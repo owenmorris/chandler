@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel describes="//parcels/OSAF/framework/blocks/events"
+             itemName="events"
+             xmlns:core="//Schema/Core"
+             xmlns="//parcels/OSAF/framework/blocks">
+
+  <description>Events, need to be defined in a different parcel than the schema because 
+of a limitation of the XML format, which will be eliminated</description>
+  <version>0.3</version>
+  
+  <BlockEvent itemName="Quit">
+    <dispatchEnum>SendToTopController</dispatchEnum>
+    <name>chandler/Quit</name>
+  </BlockEvent>
+
+</core:Parcel>

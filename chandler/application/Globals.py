@@ -21,6 +21,7 @@ chandlerDirectory = None      # Directory containing chandler executable
 jabberClient = None           # State of jabber client including presence dictionary
 notificationManager = None    # NotificationManager
 repository = None             # The repository
-topDocument = None            # The topmost Document
+topController = None          # The controller for the topmost Document
+wxApplication = None          # The wxWindows application object
 
 

@@ -1,10 +1,11 @@
 
 from Block import Block
+import application.Globals as Globals
 from wxPython.wx import *
-from wxPython.gizmos import *
 
 
 class Controller(Block):
-    def DispatchEvent (self, event):
-        pass
+
+    def onQuit (self, event):
+        Globals.wxApplication.OnQuit ()
 

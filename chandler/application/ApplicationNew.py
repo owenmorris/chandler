@@ -58,6 +58,8 @@ class wxApplicationNew (wxApp):
             sys.displayhook = _displayHook
 
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        assert (Globals.wxApplication == None) #We can have only one application
+        Globals.wxApplication = self
 
         assert not Globals.application   #More than one application object doesn't make sense
         Globals.application = self
@@ -153,13 +155,15 @@ class wxApplicationNew (wxApp):
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
+        EVT_MENU(self, -1, self.OnCommand)
+        EVT_UPDATE_UI(self, -1, self.OnCommand)
+
         #allocate the Jabber client, logging in if possible
         #import ChandlerJabber
         # Globals.jabberClient = ChandlerJabber.JabberClient(self)
         
         # Globals.jabberClient.Login()
 
-        
         from OSAF.framework.blocks.Block import Block
         
         topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
@@ -167,9 +171,14 @@ class wxApplicationNew (wxApp):
             self.testFrame = TestFrame()
             assert isinstance (topDocument, Block)
             self.testFramePanel = wxPanel(self.testFrame, -1)
-            topDocument.Render (self.testFramePanel, self.testFramePanel)
-            self.testFrame.Show()
+            Globals.topController = topDocument.findController()
+            topDocument.render (self.testFramePanel, self.testFramePanel)
 
+            events = Globals.repository.find('//parcels/OSAF/framework/blocks/events')
+            for child in events:
+                Globals.notificationManager.Subscribe (child.name, Globals.topController.getUUID())
+
+            self.testFrame.Show()
         return true                     #indicates we succeeded with initialization
 
     def OnTerminate(self):
@@ -185,15 +194,31 @@ class wxApplicationNew (wxApp):
         """
         Globals.repository.commit(purge=True)
         Globals.repository.close()
-
           
-    def OnQuit(self, event):
+    def OnCommand(self, event):
         """
-          Exit the application
+          Catch commands and pass them along to the blocks.
+        Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
         """
-        # FIXME:  This will not fully quit the app if a stdout window has been
-        # opened by a print statement.  We should also close that stdout window.
-        Globals.wxMainFrame.Close()
+        from OSAF.framework.blocks.Controller import Controller
+        from OSAF.framework.blocks.Block import BlockEvent
+
+        wxID = event.GetId()
+        if wxID >= BlockEvent.MINIMUM_WX_ID and wxID <= BlockEvent.MAXIMUM_WX_ID:
+            eventType = event.GetEventType()
+            if eventType == wxEVT_UPDATE_UI:
+                pass
+            elif eventType == wxEVT_COMMAND_MENU_SELECTED:
+                Globals.topController.dispatchEvent (BlockEvent.wxIDToEvent (wxID))
+            elif __debug__:
+                assert (False)
+            
+    def OnQuit(self):
+        """
+          Exit the application. Close with an argument of True forces the
+        window to close.
+        """
+        self.testFrame.Close (TRUE)
 
     def OnMainThreadCallbackEvent(self, event):
         """

@@ -4,7 +4,6 @@ from Block import Block
 from wxPython.wx import *
 from wxPython.gizmos import *
 
-
 class Font(wxFont):
     def __init__(self, characterStyle):
         family = wxDEFAULT
@@ -44,16 +43,18 @@ class Font(wxFont):
 
         
 class ContainerChild(Block):
-    def Render (self, parent, parentWindow):
-        (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
+    def render (self, parent, parentWindow):
+        (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
         """
           Store the wxWindows version of the object in the association, so
         given the block we can find the associated wxWindows object.
         """
-        assert (not Globals.association.has_key(self.getUUID()))
-        Globals.association[self.getUUID()] = parent
+        UUID = self.getUUID()
+        assert not Globals.association.has_key(UUID)
+        Globals.association[UUID] = parent
+        window.counterpartUUID = UUID
         for child in self.childrenBlocks:
-            child.Render (parent, parentWindow)
+            child.render (parent, parentWindow)
 
 
 class RectContainer(ContainerChild):
@@ -104,7 +105,7 @@ class RectContainer(ContainerChild):
 
 
 class BoxContainer(RectContainer):
-    def RenderOneBlock (self, parent, parentWindow):
+    def renderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wxHORIZONTAL
         else:
@@ -118,11 +119,11 @@ class BoxContainer(RectContainer):
         else:
             assert isinstance (parent, wxSizerPtr)
             parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return sizer, parentWindow
+        return sizer, sizer, parentWindow
 
 
 class StaticText(RectContainer):
-    def RenderOneBlock (self, parent, parentWindow):
+    def renderOneBlock (self, parent, parentWindow):
         assert isinstance (parent, wxSizerPtr) #must be in a container
         if self.alignment == "Left":
             style = wxALIGN_LEFT
@@ -141,11 +142,11 @@ class StaticText(RectContainer):
         staticText.SetFont(Font (self.characterStyle))
         parent.Add(staticText, int(self.stretchFactor), 
                    self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return None, None
+        return staticText, None, None
         
      
 class Menu(ContainerChild):
-    def RenderOneBlock(self, parent, parentWindow):
+    def renderOneBlock(self, parent, parentWindow):
         frame = parentWindow.GetParent()
         while not isinstance (frame, wxFrame):
             frame = frame.GetParent()
@@ -157,28 +158,44 @@ class Menu(ContainerChild):
         menu = wxMenu()
         menuBar.Insert(menuBar.GetMenuCount(), menu, self.title)
         assert isinstance (parent, wxSizerPtr)
-        return menu, parentWindow
+        return menu, menu, parentWindow
 
         
 class MenuItem(ContainerChild):
-    def RenderOneBlock(self, parent, parentWindow):
-        assert isinstance (parent, wxMenu)
+    def __init__(self, *arguments, **keywords):
+        super (ContainerChild, self).__init__ (*arguments, **keywords)
+        #self.event = None # Big hack, should set in XML DJA
+
+    def renderOneBlock(self, parent, parentWindow):
+
         title = self.title
         if len(self.accel) > 0:
             title = title + "\tChtrl+" + self.accel
+
+        id = 0
+        if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA
+            id = self.event.getwxID()
+    
         if self.menuItemKind == "Separator":
-            parent.AppendSeparator()
+            id = wxID_SEPARATOR
+            kind = wxITEM_SEPARATOR
         elif self.menuItemKind == "Normal":
-            parent.Append(0, title, self.helpString)
+            kind = wxITEM_NORMAL
         elif self.menuItemKind == "Check":
-            parent.AppendCheckItem(0, title, self.helpString)
+            kind = wxITEM_CHECK
         elif self.menuItemKind == "Radio":
-            parent.AppendRadioItem(0, title, self.helpString)
-        return None, None
+            kind = wxITEM_RADIO
+        elif __debug__:
+            assert (False)        
+            
+        assert isinstance (parent, wxMenu)
+        menuItem = wxMenuItem (parent, id, title, self.helpString, kind)
+        parent.AppendItem (menuItem)
+        return menuItem, None, None
 
 
 class TreeList(RectContainer):
-    def RenderOneBlock(self, parent, parentWindow):
+    def renderOneBlock(self, parent, parentWindow):
         treeList = wxTreeListCtrl(parentWindow)
         info = wxTreeListColumnInfo()
         for x in range(len(self.columnHeadings)):
@@ -187,7 +204,7 @@ class TreeList(RectContainer):
             treeList.AddColumnInfo(info)
         
         parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return None, None
+        return treeList, None, None
 
 
 class EditText(RectContainer):

@@ -9,7 +9,8 @@
              itemName="top"
              xmlns:core="//Schema/Core"
              xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:doc="//parcels/OSAF/templates/top">
+             xmlns:doc="//parcels/OSAF/templates/top"
+             xmlns:events="//parcels/OSAF/framework/blocks/events">
 
   <core:version>0.3</core:version>
 
@@ -23,6 +24,7 @@
     <menuItemKind>Normal</menuItemKind>
     <accel>Q</accel>
     <helpString>Quit Chandler</helpString>
+    <event itemref="events:Quit"/>
   </MenuItem>
   
   <MenuItem itemName="CutItem">
@@ -50,6 +52,7 @@
     <title></title>
     <menuItemKind>Separator</menuItemKind>
     <accel></accel>
+    <helpString></helpString>
   </MenuItem>
   
   <MenuItem itemName="Preferences">
@@ -79,6 +82,9 @@
     <fontStyle>bold</fontStyle>
     <fontName></fontName>
   </CharacterStyle>
+
+  <Controller itemName="Controller">
+  </Controller>
 
   <StaticText itemName="Header">
     <open>True</open>
@@ -120,6 +126,7 @@
     <childrenBlocks itemref="doc:EditMenu"/>
     <childrenBlocks itemref="doc:Header"/>
     <childrenBlocks itemref="doc:TreeList"/>
+    <childrenBlocks itemref="doc:Controller"/>
     <open>True</open>
 
     <size>400,200</size>

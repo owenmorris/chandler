@@ -8,7 +8,12 @@
 <Parcel describes="//parcels/OSAF/framework/blocks"
         itemName="blocks"
         xmlns="//Schema/Core"
-        xmlns:docSchema="//parcels/OSAF/framework/blocks">
+        xmlns:docSchema="//parcels/OSAF/framework/blocks"
+
+        xmlns:parent1 = "//parcels/OSAF/framework"
+        xmlns:parent2 = "//parcels/OSAF/framework/notifications"
+
+        xmlns:events="//parcels/OSAF/framework/notifications/schema">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
@@ -122,8 +127,36 @@
   
 
   <!--
+    Events
+  -->
+
+  <Kind itemName="BlockEvent">
+    <classes key="python">OSAF.framework.blocks.Block.BlockEvent</classes>
+    <superKinds itemref="events:Event"/>
+
+    <Enumeration itemName="dispatchEnumType">
+      <values>UUID</values>
+      <values>Broadcast</values>
+      <values>SendToTopController</values>
+      <values>SendUpOneController</values>
+    </Enumeration>
+
+    <Attribute itemName="dispatchEnum">
+      <type itemref="docSchema:BlockEvent/dispatchEnumType"/>
+    </Attribute>
+
+    <Attribute itemName="UUID">
+      <type itemref="UUID"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:BlockEvent/dispatchEnum"/>
+    <attributes itemref="docSchema:BlockEvent/UUID"/>
+  </Kind>
+
+  <!--
     Block
   -->
+
   <Kind itemName="Block">
     <classes key="python">OSAF.framework.blocks.Block.Block</classes>
 
@@ -313,10 +346,15 @@
       <type itemref="String"/>
     </Attribute>
     
+    <Attribute itemName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+    
     <attributes itemref="docSchema:MenuItem/title"/>
     <attributes itemref="docSchema:MenuItem/menuItemKind"/>
     <attributes itemref="docSchema:MenuItem/accel"/>
     <attributes itemref="docSchema:MenuItem/helpString"/>
+    <attributes itemref="docSchema:MenuItem/event"/>
   </Kind>
 
   <!--
