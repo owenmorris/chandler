@@ -25,7 +25,7 @@ from zodb.storage.file import FileStorage
 from application.repository.Repository import Repository
 from application.ImportExport import ImportExport
 
-# from model.persistence.FileRepository import FileRepository
+from model.persistence.FileRepository import FileRepository
 
 """
   The application module makes available the following global data to
@@ -179,10 +179,10 @@ class wxApplication (wxApp):
         self.presenceWindow = None
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
-        # self.repository = FileRepository(os.path.join(self.chandlerDirectory,
-        #  "__database__"))
-        # self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
-        #  "packs", "schema.pack"))
+        self.repository = FileRepository(os.path.join(self.chandlerDirectory,
+         "__database__"))
+        self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
+         "packs", "schema.pack"))
         
         self.initInProgress = true
         
