@@ -1,5 +1,5 @@
 
-VERSION=0.3-15
+VERSION=0.3-16
 
 include Makefile.inc
 
@@ -28,7 +28,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/zlib-1.2.1.tar.gz \
         swig/SWIG-20Feb04.tar.gz \
         epydoc/epydoc-2.1.tar.gz \
-        PyLucene/PyLucene-0.5.1.tar.gz \
+        PyLucene/PyLucene-0.6.1.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
         persistence/pathan/libpathan-1.2-2-src.tar.gz \
         persistence/dbxml/dbxml-1.2.1.tar.gz \

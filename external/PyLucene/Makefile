@@ -1,5 +1,5 @@
 
-VERSION=0.5.1
+VERSION=0.6.1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
@@ -53,10 +53,8 @@ endif
 endif
 
 
-apply: 
-	if [ -f patches-$(VERSION) ]; then \
-	   patch -Nup0 < patches-$(VERSION); echo ok; \
-	fi
+apply: patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 
 ifeq ($(PYLUCENE_CC),)

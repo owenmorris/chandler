@@ -1,19 +1,6 @@
---- PyLucene-0.5.1/Makefile	2004-07-03 18:14:54.440244800 -0700
-+++ PyLucene-0.5.1-patched/Makefile	2004-07-03 18:26:26.946019200 -0700
-@@ -86,6 +86,10 @@
- OS=Cygwin
- endif
- 
-+ifeq ($(findstring WINNT,$(OS)),WINNT)
-+OS=Cygwin
-+endif
-+
- ifeq ($(DEBUG),1)
- COMP_OPT=DEBUG=1
- SUFFIX=d
-@@ -127,19 +151,20 @@
- else
- 
+--- PyLucene-0.6.1/Makefile	Tue Sep 21 15:24:08 2004
++++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 16:10:19 2004
+@@ -135,19 +135,21 @@
  ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
@@ -21,20 +8,21 @@
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
--CCFLAGS=-O -g 
-+CCFLAGS=-O -g 
+ CCFLAGS=-O0 -g 
 +PYDBG=-DPy_TRACE_REFS
  LDFLAGS=-g
  else
  CCFLAGS=-O2
++PYDBG=
  LDFLAGS=
  endif
  else
  
  PYTHON=unknown
  PYTHON_SITE=unknown
-@@ -201,19 +225,19 @@
- 	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db; echo ok
+ endif
+ endif
+@@ -217,17 +219,17 @@
  
  ifeq ($(OS),Cygwin)
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
@@ -53,29 +41,52 @@
  SWIG_OPT=-D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
- 	$(JCC) -C -d $(CLASSES) $(DB_CONST)
-@@ -364,7 +373,7 @@
+@@ -364,16 +366,20 @@
+ 
+ 
+ all: env sources apply $(BINDIR) $(LIBS)
+ 	@echo build of $(PYLUCENE_LIB) complete
+ 
+ install:: all
+ 	install PyLucene.py $(PYTHON_SITE)
+ 	install $(PYLUCENE_LIB) $(PYTHON_SITE)
++	mkdir -p $(PYTHON_SITE)/security
++	install $(GCJ_HOME)/lib/security/classpath.security $(PYTHON_SITE)/security
++	install $(GCJ_HOME)/lib/security/libgcj.security $(PYTHON_SITE)/security
++
+ 
+ ifeq ($(OS),Darwin)
+ install::
+ ifdef DB
+ 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
+ 	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
+ endif
+ 	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
+@@ -386,17 +392,17 @@
+ ifdef DB
+ 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
+ endif
+ else
+ 
  ifeq ($(OS),Cygwin)
  install::
  ifdef DB
 -	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
-+	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
++	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/bin
  endif
  endif
  endif
---- PyLucene-0.5.1/Makefile	2004-08-23 16:51:22.000000000 -0700
-+++ PyLucene-0.5.1-patched/Makefile	2004-08-23 16:53:05.000000000 -0700
-@@ -364,6 +364,9 @@
- ifdef DB
- 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
  endif
-+	install $(GCJ_HOME)/lib/libgcj.so.5 $(PREFIX)/lib
-+	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
-+	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
- else
  
- ifeq ($(OS),Cygwin)
-@@ -408,8 +411,8 @@
+ 
+ clean:
+ 	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
+@@ -425,18 +431,18 @@
+ 
+ ifeq ($(OS),Linux)
+ distrib::
+ ifdef DB
+ 	mkdir -p $(DISTRIB)/db
  	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
  endif
  	mkdir -p $(DISTRIB)/gcj
@@ -86,21 +97,19 @@
  	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(DISTRIB)/gcj
  else
  
---- PyLucene-0.5.1/Makefile	Tue Sep 14 14:52:58 2004
-+++ PyLucene-0.5.1-patched/Makefile	Tue Sep 14 14:51:34 2004
-@@ -347,6 +347,9 @@
- install:: all
- 	install PyLucene.py $(PYTHON_SITE)
- 	install $(PYLUCENE_LIB) $(PYTHON_SITE)
-+	mkdir -p $(PYTHON_SITE)/security
-+	install $(GCJ_HOME)/lib/security/classpath.security $(PYTHON_SITE)/security
-+	install $(GCJ_HOME)/lib/security/libgcj.security $(PYTHON_SITE)/security
+ ifeq ($(OS),Cygwin)
+ distrib::
+ ifdef DB
+ 	mkdir -p $(DISTRIB)/db
+ 	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
+--- PyLucene-0.6.1/PyLucene.i	Tue Sep 21 15:24:08 2004
++++ PyLucene-0.6.1-patched/PyLucene.i	Tue Sep 21 16:11:17 2004
+@@ -918,14 +918,35 @@
+ #endif
  
- ifeq ($(OS),Darwin)
- install::
---- PyLucene-0.5.1/PyLucene.i	Sun Jul 11 16:15:15 2004
-+++ PyLucene-0.5.1-patched/PyLucene.i	Tue Sep 14 19:09:56 2004
-@@ -674,6 +674,27 @@
+     objects = new java::util::Hashtable();
+ 
+     java::util::Hashtable *props = (java::util::Hashtable *)
          java::lang::System::getProperties();
      props->put(JvNewStringUTF("inPython"), objects);
  
@@ -118,7 +127,7 @@
 +            jstring jp = JvNewStringUTF(p);
 +
 +            props->put(JvNewStringUTF("gnu.classpath.home.url"),
-+		       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
++                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
 +            break;
 +        }
 +    }
@@ -128,3 +137,6 @@
      JvInitClass(&org::apache::lucene::document::Field::class$);
      JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
      JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
+     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
+     JvInitClass(&org::osafoundation::util::PythonRef::class$);
+ %}
