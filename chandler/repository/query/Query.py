@@ -145,6 +145,8 @@ class Query(object):
                 this needs to be generalized to any ref collection
             """
             #@@ don't enclose kind paths in ""
+            if type(name) == tuple:
+                return name
             if (name.startswith('"') and name.endswith('"')) or \
                (name.startswith("'") and name.endswith("'")):
                 name = name[1:-1]
@@ -216,7 +218,15 @@ class Query(object):
                 return  '.'.join(path[1])+"("+','.join(args)+")"
             elif type(ast) == str or type(ast) == unicode: # string constant or iteration variable or parameter ($1)
                 #@@@ check that ast != iteration variable, or parameter
-                return ast
+                if ast.startswith('$'):
+                    arg = self.args[int(ast[1:])]
+                    if arg.isdigit():
+                        return arg
+                    else:
+                        return '"'+arg+'"'
+                    #@@@ any other values for $params?
+                else:
+                    return ast
             assert False, "unhandled predicate: operator=%s, args=%s, type(args)=%s" % (op, ast, type(ast))
                 
         def analyze_for(ast):
@@ -296,7 +306,19 @@ class Query(object):
         """
         source = plan[0]
 
-        if source[0] == 'kind':
+        if type(source) == tuple and source[0] == 'ftcontains': # source is full text
+            args = source[1]
+            textItems = self.__rep.searchItems(args[0])
+            items = []
+            for i in textItems:
+                s = i[1]
+                if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
+                    s = s[1:-1]
+                if s in args[1:]:
+                        items.append(i[0])
+                else:
+                    items.append(i[0])
+        elif source[0] == 'kind':
             self._kind = source[1]
             self._predicate = plan[1]
 
@@ -326,12 +348,6 @@ class Query(object):
             s.union(s1)
         return s
         
-#        for p in plans:
-#            print p
-#            for i in self.__executePlan(p):
-#                print i
-#                yield i
-
     def __execute_intersect(self, plans):
         """
         Execute the query plan for an intersect statement
