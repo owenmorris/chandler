@@ -87,6 +87,10 @@ class wxEditText(wx.TextCtrl):
         minW, minH = arguments[-1] # assumes minimum size passed as last arg
         self.SetSizeHints(minW=minW, minH=minH)
 
+    def wxSynchronizeWidget(self):
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
+
     def OnEnterPressed(self, event):
         self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
                              {'text':self.GetValue()})
@@ -655,6 +659,12 @@ class RadioBox(RectangularChild):
                             (self.minimumSize.width, self.minimumSize.height),
                             self.choices, self.itemsPerLine, dimension)
 
+class wxStaticText(wx.StaticText):
+    def wxSynchronizeWidget(self):
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
+
+
 class StaticText(RectangularChild):
     def instantiateWidget (self):
         if self.textAlignmentEnum == "Left":
@@ -664,12 +674,12 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
 
-        staticText = wx.StaticText (self.parentBlock.widget,
-                                    -1,
-                                    self.title,
-                                    wx.DefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height),
-                                    style)
+        staticText = wxStaticText (self.parentBlock.widget,
+                                   -1,
+                                   self.title,
+                                   wx.DefaultPosition,
+                                   (self.minimumSize.width, self.minimumSize.height),
+                                   style)
 
         staticText.SetFont(Font (self.characterStyle))
         return staticText

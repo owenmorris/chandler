@@ -108,6 +108,7 @@
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:DummyEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
+    <isShown>False</isShown>
   </Toolbar>
 
   <!--
@@ -302,6 +303,7 @@
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="FromArea"
@@ -311,6 +313,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
+    <isShown>False</isShown>
   </ContentItemDetail>
 
   <StaticText itsName="FromString"
@@ -320,6 +323,7 @@
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -330,6 +334,7 @@
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </EditText>
 
   <ContentItemDetail itsName="ToArea"
@@ -339,6 +344,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>who</selectedItemsAttribute>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <StaticText itsName="ToString"
@@ -348,6 +354,7 @@
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </StaticText>
   
   <EditText itsName="ToEditField1"
@@ -358,6 +365,7 @@
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </EditText>
 
   <!-- CoreIndent -->
@@ -367,18 +375,21 @@
     <childrenBlocks itemref="doc:Indent2"/>
     <!-- Attributes -->
     <stretchFactor>2</stretchFactor>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="Indent">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="Indent2">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <!-- CoreArea -->
@@ -389,6 +400,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>2</stretchFactor>
+    <isShown>False</isShown>
   </ContentItemDetail>
  
   <StaticText itsName="KindLabel"
@@ -398,6 +410,7 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </StaticText>
   
   <StaticText itsName="Headline"
@@ -407,6 +420,7 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </StaticText>
   
   <StaticText itsName="DateTime"
@@ -416,6 +430,7 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
+    <isShown>False</isShown>
   </StaticText>
   
   <!-- NotesArea -->
@@ -428,6 +443,7 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>1</stretchFactor>
     <minimumSize>380, 120</minimumSize>
+    <isShown>False</isShown>
   </EditText>
 
 </core:Parcel>
