@@ -60,7 +60,7 @@ src=debug/dbxml/lib
 libdbxml-1.2.so
 
 # Grab the gcj 3.3 runtime libs
-src=${gcj}/../lib
+src=$(GCJ_HOME)/lib
 libgcj.so.4
 libgcj.so.4.0.0
 libstdc++.so.5
