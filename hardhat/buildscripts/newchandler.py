@@ -125,43 +125,45 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     else:
         log.write("No changes< " + mode + " build skipped\n")
 
+    doTests(testDir, workingDir, mode)
+
+    return "success"  # end of Do( )
+
+def doTests(testDir, workingDir, mode)
+
     os.chdir(testDir)
 
-    try: # test
-        if mode == "debug":
-            print "Testing debug"
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Testing debug..." + "\n")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-dt"])
-            hardhatutil.dumpOutputList(outputList, log)
+    if mode == "debug":
+        dashT = '-dt'
+    else:
+        dashT = '-rt'
 
-        if mode == "release":
-            print "Testing release"
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Testing release..." + "\n")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rt"])
-            hardhatutil.dumpOutputList(outputList, log)
+    try: # test
+        print "Testing " + mode
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Testing " + mode + " ...\n")
+        outputList = hardhatutil.executeCommandReturnOutput(
+         [hardhatScript, dashT])
+        hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
         print "a testing error"
         log.write("***Error during tests*** " + e.str() + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Tests log:" + "\n")
-        if os.path.exists(os.path.join(modeDir, logPath)) :
-            CopyLog(os.path.join(modeDir, logPath), log)
+        if os.path.exists(os.path.join(workingDir, logPath)) :
+            CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         return "test_failed"
     else:
         log.write("Tests successful" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Detailed Tests log:" + "\n")
-        if os.path.exists(os.path.join(modeDir, logPath)) :
-            CopyLog(os.path.join(modeDir, logPath), log)
+        if os.path.exists(os.path.join(workingDir, logPath)) :
+            CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
-    return "success"  # end of Do( )
+    return "success"  # end of doTests( )
 
 def changesInModules(mode):
 # assume nothing changed
