@@ -27,3 +27,4 @@
 ALL /usr/bin/loginfo  %{sVv}
 # Bonsai, new checkins
 ALL $CVSROOT/CVSROOT/dolog.pl -r /usr/local/cvsrep bonsai-checkin-daemon
+ALL /usr/bin/perl $CVSROOT/CVSROOT/ciabot_chandler_cvs.pl %{,,,s} $USER project from_email dest_email ignore_regexp
