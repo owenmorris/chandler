@@ -74,11 +74,6 @@ def main():
     rsyncProgram = hardhatutil.findInPath(path, "rsync")
     print "rsync =", rsyncProgram
 
-    clobber = go = 1
-
-    if os.path.exists(stopFile):
-        os.remove(stopFile)
-
     startInt = int(time.time())
     startTime = str(startInt)
     os.chdir(curDir)
@@ -100,7 +95,7 @@ def main():
          treeName, None)
 
         ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
-         buildVersion, clobber, log)
+         buildVersion, 0, log)
 
     except TinderbuildError, e:
         print e
