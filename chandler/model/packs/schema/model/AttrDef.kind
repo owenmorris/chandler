@@ -18,6 +18,8 @@
     <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
     <ref name="InheritingKinds" type="path">/Model/Attributes/InheritingKinds</ref>
     <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
+    <ref name="SuperAttrDef" type="path">/Model/Attributes/SuperAttrDef</ref>
+    <ref name="SubAttrDef" type="path">/Model/Attributes/SubAttrDef</ref>
   </ref>
 
   <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>

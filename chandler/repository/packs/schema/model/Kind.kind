@@ -15,6 +15,7 @@
     <ref name="InheritedAttrDefs" type="path">/Model/Attributes/InheritedAttrDefs</ref>
     <ref name="NotFoundAttrDefs" type="path">/Model/Attributes/NotFoundAttrDefs</ref>
     <ref name="Class" type="path">/Model/Attributes/Class</ref>
+    <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
   </ref>
 
   <ref name="SuperKind" cardinality="list" otherName="SubKind" otherCard="dict">

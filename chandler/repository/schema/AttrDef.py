@@ -26,11 +26,13 @@ class AttrDef(Item):
         if self.hasAttribute(name):
             return self.getAttribute(name)
 
+        if self.hasAttribute('SuperAttrDef'):
+            return self.getAttribute('SuperAttrDef').getAspect(name, default)
+
         return default
 
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.items():
             if self.getAttrAspect(attr[0], 'Persist', True):
-                attr[1]._xmlValue(attr[0], self, '\n  ',
-                                  generator, withSchema)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema)

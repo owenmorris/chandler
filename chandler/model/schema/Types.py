@@ -23,9 +23,25 @@ class Type(Item):
     def handlerName(cls):
         return "%s.%s" %(cls.__module__, cls.__name__)
 
-    def serialize(self, value, withSchema=False):
-        return Type.makeString(value)
+    def typeXML(self, value, generator):
+
+#        fields = self.Fields
+#        if fields:
+#            generator.startElement('fields', {})
+#            for field in fields:
+#                fieldValue = getattr(value, field)
+#                attrs = { 'name': field,
+#                          'type': ItemHandler.typeName(fieldValue) }
+#                generator.startElement('field', attrs)
+#                generator.characters(type(self).makeString(fieldValue))
+#                generator.endElement('field')
+#            generator.endElement('fields')
+#
+#        else:
+#            generator.characters(type(self).makeString(value))
     
+         generator.characters(type(self).makeString(value))
+         
     def unserialize(self, data):
         raise NotImplementedError, "Type.unserialize()"
 
@@ -133,9 +149,6 @@ class Class(Type):
     def unserialize(self, data):
         return Class.makeValue(data)
         
-    def serialize(self, value, withSchema=False):
-        return Class.makeString(value)
-
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
 
@@ -148,7 +161,7 @@ class Enum(Type):
     def makeString(cls, value):
         return value
 
-    def serialize(self, value, withSchema=False):
+    def typeXML(self, value, generator):
 
         try:
             number = self.Values.index(value)
@@ -156,10 +169,7 @@ class Enum(Type):
             print value
             raise ValueError, "%d not in %s enum" %(value, self._name)
             
-        if withSchema:
-            return value
-        else:
-            return str(number)
+        generator.characters(str(number))
     
     def unserialize(self, data):
 
@@ -179,9 +189,6 @@ class DateTime(Type):
         
     def makeString(cls, value):
         return mx.DateTime.ISO.str(value)
-
-    def serialize(self, value, withSchema=False):
-        return DateTime.makeString(value)
 
     def unserialize(self, data):
         return DateTime.makeValue(data)

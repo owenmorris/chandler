@@ -91,7 +91,7 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, indent, generator, withSchema):
+    def _xmlValue(self, name, item, generator, withSchema):
 
         def typeName(value):
             
@@ -121,11 +121,9 @@ class ItemRef(object):
             attrs['otherCard'] = other.getAttrAspect(otherName, 'Cardinality',
                                                      'single')
 
-        generator.characters(indent)
         generator.startElement('ref', attrs)
         generator.characters(other.getUUID().str16())
         generator.endElement('ref')
-        generator.characters('\n')
 
 
 class RefDict(dict):
@@ -239,7 +237,7 @@ class RefDict(dict):
 
         return 'dict'
 
-    def _xmlValue(self, name, item, indent, generator, withSchema):
+    def _xmlValue(self, name, item, generator, withSchema):
 
         if len(self) > 0:
 
@@ -256,14 +254,9 @@ class RefDict(dict):
                 attrs['otherName'] = otherName
                 attrs['otherCard'] = otherCard
 
-            generator.characters(indent)
             generator.startElement('ref', attrs)
-
-            i = indent + '  '
             for ref in self.iteritems():
-                ref[1]._xmlValue(ref[0], item, i, generator, False)
-
-            generator.characters(indent)
+                ref[1]._xmlValue(ref[0], item, generator, False)
             generator.endElement('ref')
 
 
