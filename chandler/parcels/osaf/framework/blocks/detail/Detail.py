@@ -912,6 +912,14 @@ class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
+    def synchronizeItemDetail (self, item):
+        # @@@DLD - remove special case for AEBlock child (duration).
+        # Need to really resynchronize, because sizer needs to be redone
+        # for AEBlock showing duration attribute inside this block.
+        relayoutParent = super(CalendarEventBlock, self).synchronizeItemDetail(item)
+        self.synchronizeWidget()
+        return relayoutParent
+
 class StaticTimeAttribute (StaticTextLabel):
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
@@ -1011,9 +1019,13 @@ class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
     We need a synchronizeWidget method in order to show/hide ourself
        before the default synchronizeWidget gets called, which does
        all the Attribute Editor work.
+    We need synchronizeItemDetail to get control when the user
+       clicks on a different item in the summary view, because
+       the Detail View doesn't use synchronizeWidget - it uses
+       synchronizeItemDetail instead.
     """
     def synchronizeWidget (self):
-        # only shown for non-CalendarEventMixin kinds
+        # only shown for CalendarEventMixin kinds
         item = self.selectedItem ()
         if item is None:
             self.isShown = False
@@ -1021,8 +1033,15 @@ class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
             self.isShown = self.shouldShow (item)
         super (AECalendarDuration, self).synchronizeWidget ()
 
+    def synchronizeItemDetail (self, item):
+        wasShown = self.isShown
+        self.synchronizeWidget()
+        super(AECalendarDuration, self).synchronizeItemDetail(item)
+        relayoutParent = self.isShown != wasShown
+        return relayoutParent
+
     def shouldShow (self, item):
-        # only shown for non-CalendarEventMixin kinds
+        # only shown for CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
