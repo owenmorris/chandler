@@ -3,17 +3,19 @@
 import doctest
 from unittest import TestSuite
 
-def test_events():
-    return doctest.DocFileSuite(
-        'events.txt', optionflags=doctest.ELLIPSIS, package='spike',
-    )
+def make_docsuite(filename,package='spike',**kw):
+    def suite():
+        return doctest.DocFileSuite(
+            filename, optionflags=doctest.ELLIPSIS, package=package, **kw
+        )
+    return suite        
 
-def test_codegen():
-    return doctest.DocFileSuite(
-        'codegen.txt', optionflags=doctest.ELLIPSIS, package='spike',
-    )
-
+test_models = make_docsuite('models.txt')
+test_events = make_docsuite('events.txt')
+test_codegen = make_docsuite('codegen.txt')
 
 def suite():
     # Return all tests
-    return TestSuite([test_events(),test_codegen()])
+    return TestSuite(
+        [test_models(), test_events(), test_codegen()]
+    )

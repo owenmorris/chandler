@@ -463,10 +463,10 @@ possible to define a bidirectional relationship without needing to use naming
 or import tricks to make the link.  Instead, we could maybe have something
 like::
 
-    inheritance = schema.Relationship(
-        """Subclass/superclass relationship""",
-        subclass=schema.TBD, superclass=schema.TBD
-    )
+    class inheritance(schema.Relationship):
+        """Subclass/superclass relationship"""
+        subclass = schema.TBD
+        superclass = schema.TBD
 
     class Kind(schema.Entity):
          subclasses = schema.Collection(inheritance.subclass)
@@ -483,10 +483,10 @@ always has a relationship object to use for looking things up.
 In principle, this would also allow creating standalone bidirectional
 relationships, e.g.::
 
-    likes = schema.Relationship(
-        """People a contact likes""",
-        liker = Contact, liked = Contact
-    )
+    class likes(schema.Relationship):
+        """People a contact likes"""
+        liker = Contact
+        liked = Contact
 
 Then, one could iterate over liker/likes pairs, or use dynamic relationship
 navigation to go from a person to their liked people or vice versa.  This

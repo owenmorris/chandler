@@ -1,0 +1,232 @@
+=================
+Observable Models
+=================
+
+A key source of events used by Spike's higher layers are changes to data
+structures.  The ``spike.models`` module supplies base classes and event types
+for such observable data structures.
+
+>>> from spike import models
+
+
+---------------
+Observable Sets
+---------------
+
+The most basic data structure used by Spike is the set.  It is used to model
+relationships of both "single" and "set" cardinalities, treating "single" as
+a set with at most one member.  This allows the dynamic interface to be
+uniform, in that code in higher layers usually only needs to know about one
+kind of collection and one kind of event.
+
+
+Change Events
+=============
+
+There is only one type of change event for sets: ``models.SetChanged``.  The
+sender is the set that was changed, and its event instances have ``added``
+and ``removed`` attributes that are lists of the objects added or removed from
+the set::
+
+    >>> models.SetChanged(None,[1,2],[3,4])
+    <Change for None: removed=[1, 2], added=[3, 4]>
+
+For demonstration purposes, we'll use this function to print change events as
+they happen::
+
+    >>> def printEvent(event): print event
+
+
+Set Objects
+===========
+
+You can create a set using ``models.Set(anIterable)``::
+
+    >>> models.Set([1,2,3])
+    Set([1, 2, 3])
+
+Or you can create an empty set using ``models.Set()`` with no arguments::
+
+    >>> s = models.Set()
+    >>> s
+    Set([])
+
+We can now subscribe to change events on our set::
+
+    >>> models.SetChanged.subscribe(s,printEvent)
+    >>> models.SetChanged.getReceivers(s)
+    set([<weakref at ...; to 'function' at ... (printEvent)>])
+
+Although sets also have a convenience API for subscription, since there is only
+one kind of event that sets produce::
+
+    >>> s.unsubscribe(printEvent)
+    >>> models.SetChanged.getReceivers(s)
+    set([])
+
+    >>> s.subscribe(printEvent)
+    >>> models.SetChanged.getReceivers(s)
+    set([<weakref at ...; to 'function' at ... (printEvent)>])
+
+
+The ``.add()`` method adds a new member::
+
+    >>> s.add(1)
+    <Change for Set([1]): removed=[], added=[1]>
+    >>> s
+    Set([1])
+
+    >>> s.add(2)
+    <Change for Set([1, 2]): removed=[], added=[2]>
+    >>> s
+    Set([1, 2])
+
+But adding the same object (as determined by ``==``) more than once has
+no effect::
+
+    >>> s.add(1)
+    >>> s
+    Set([1, 2])
+
+Items can be removed with the ``.remove()`` method::
+
+    >>> s.remove(1)
+    <Change for Set([2]): removed=[1], added=[]>
+    >>> s
+    Set([2])
+
+as long as they're actually present, of course::
+
+    >>> s.remove(1)
+    >>> s
+    Set([2])
+
+(Notice, by the way, that no change events are generated when the collection's
+contents don't actually change.)
+
+Lists are iterable, and have a length::
+
+    >>> len(s)
+    1
+    >>> list(s)
+    [2]
+
+As a convenience, you can use the ``replace()`` method to add or remove
+multiple items, and this will only generate a single change event for all the
+items that were actually added or removed::
+
+    >>> s.replace([2],[5])
+    <Change for Set([5]): removed=[2], added=[5]>
+    >>> s
+    Set([5])
+
+    >>> s.replace(add=[9,10,9,10])
+    <Change for Set([5, 9, 10]): removed=[], added=[9, 10]>
+    >>> s
+    Set([5, 9, 10])
+
+    >>> s.replace(remove=[5,53,9,27])
+    <Change for Set([10]): removed=[5, 9], added=[]>
+    >>> s
+    Set([10])
+
+And you can also use the ``reset()`` method to clear the set's contents, and
+optionally supply an iterable of new contents::
+
+    >>> s.reset([1,2,3])
+    <Change for Set([1, 2, 3]): removed=[10], added=[1, 2, 3]>
+    >>> s
+    Set([1, 2, 3])
+
+    >>> s.reset()
+    <Change for Set([]): removed=[1, 2, 3], added=[]>
+    >>> s
+    Set([])
+
+
+Typed Sets
+==========
+
+Sets can be type-restricted, such that only instances of the specified type(s)
+can be included::
+
+    >>> s = models.Set(type=str)
+    >>> s.add(1)
+    Traceback (most recent call last):
+    ...
+    TypeError: 1 is not a str
+    >>> s
+    Set([], type=str)
+
+Note that all values to be added are checked before any changes are made, and
+so the *entire operation* either succeeds or fails as a unit.  No events are
+generated if the operation fails, and the set retains its original contents::
+
+    >>> s.add('a')
+    >>> s
+    Set(['a'], type=str)
+
+    >>> s.replace(remove=['a'], add=['x','y',24])
+    Traceback (most recent call last):
+    ...
+    TypeError: 24 is not a str
+
+    >>> s
+    Set(['a'], type=str)
+
+If more than one type is acceptable, you can use a tuple of types, e.g.::
+
+    >>> s = models.Set(type=(int,str))
+    >>> s.replace(add=[1,2,"x","y"])
+    >>> s
+    Set([1, 2, 'x', 'y'], type=int/str)
+
+    >>> s.add(1.25)
+    Traceback (most recent call last):
+    ...
+    TypeError: 1.25 is not a int/str
+    
+
+Rollback
+========
+
+If an event handler raises an exception during a change to a set, the change
+is rolled back, and the set attempts to issue a change event that reverses the
+first event.
+
+You can use this to implement arbitrary validation, like requiring a set to
+have no more than a certain number of items.  For example::
+
+    >>> s = models.Set()
+
+    >>> def rejectMultiple(event):
+    ...     if len(event.sender)>1:
+    ...         raise ValueError("Too many items added", event.added)
+
+    >>> s.subscribe(printEvent)
+    >>> s.subscribe(rejectMultiple)
+
+    >>> s.add(1)
+    <Change for Set([1]): removed=[], added=[1]>
+
+    >>> s.add(2)
+    Traceback (most recent call last):
+    ...
+    ValueError: ('Too many items added', [2])
+
+    >>> s
+    Set([1])
+
+Doctest doesn't display the event output when there's an untrapped exception,
+so let's try that again with the error trapped so we can see the events::
+
+    >>> try:
+    ...     s.add(2)
+    ... except ValueError:
+    ...     pass
+    <Change for Set([1, 2]): removed=[], added=[2]>
+    <Change for Set([1]): removed=[2], added=[]>
+
+As you can see, an event is first generated for the add attempt, and then a
+second event for the rollback.
+

@@ -462,3 +462,30 @@ support.
         >>> sender == ob_id
         True
 
+
+
+Receiver Iteration
+------------------
+
+To ensure relatively deterministic behavior, event instances are sent to the
+receivers that were subscribed at the time of the instance's creation.  By the
+time the first receiver is called, the overall set of receivers is fixed and
+will not be changed if a receiver adds or removes other receivers::
+
+    >>> sender = Sender()
+    >>> def unsub():
+    ...     events.Event.unsubscribe(sender,rcv1)
+    ...     events.Event.unsubscribe(sender,rcv2)
+    ...     events.Event.subscribe(sender,rcv3)
+    >>> def rcv1(event): print "rcv1"; unsub()
+    >>> def rcv2(event): print "rcv2"; unsub()
+    >>> def rcv3(event): print "rcv3"; unsub()
+    >>> events.Event.subscribe(sender,rcv1)
+    >>> events.Event.subscribe(sender,rcv2)
+    >>> evt = events.Event(sender)
+    rcv1
+    rcv2
+
+This rule applies even to receivers that are added or removed asynchronously,
+such as those added by another thread or removed due to garbage collection.
+

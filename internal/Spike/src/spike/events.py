@@ -76,7 +76,7 @@ class Event:
         self.consumed = False
         for k,v in args.items():
             setattr(self,k,v)
-        for rcv in self.getReceivers(sender):
+        for rcv in list(self.getReceivers(sender)):
             if self.consumed:
                 break
             rcv(self)
