@@ -87,9 +87,11 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         self.__startup(False)
 
     def __proxy(self, wakeupCallCallback, UUID):
-        #
-        # XXX: Fix the code below to cache the view
-        #
+        #XXX: At some point may wanna look at caching and returning 
+        #     one view for a WakeupCall item so that each time it '
+        #     is called it has the same view to work with.
+        #     At this point it is not needed but may be useful in the 
+        #     future
         try:
             prevView = self.repository.setCurrentView(self.repository.view)
             wakeupCall = self.__getKind().findUUID(UUID)
