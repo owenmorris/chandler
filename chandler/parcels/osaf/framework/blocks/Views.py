@@ -158,7 +158,8 @@ class View(BoxContainer):
                 except AttributeError:
                     pass
                 else:
-                    candidate = child
+                    if candidate is None:
+                        candidate = child
                     isChild = method(child)
                     if isChild:
                         synchToDynamicBlock (child, True)
