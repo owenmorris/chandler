@@ -1038,26 +1038,58 @@ def cvsFindRemovables(dir):
     removables = []
     dir = os.path.abspath(dir)
     cvsEntriesFile = os.path.join(dir, "CVS", "Entries")
+    cvsEntriesLogFile = os.path.join(dir, "CVS", "Entries.log")
     if(os.path.isfile(cvsEntriesFile)):
-        # get a dict of local files/dirs in this dir
-	localFiles = {}
-	for file in os.listdir(dir):
-	    if file != "CVS": # always skip "CVS" directory
-		localFiles[file] = 1 # flag it as potentially removable
+
+	"""
+        According to http://www.cvshome.org/docs/manual/cvs_2.html#IDX42
+	you will find an Entries file inside CVS/ and possibly an Entries.log
+	file.  Files/dirs listed in Entries are considered to be under CVS
+	control, and are added to our cvsFiles dict.
+	Next, if Entries.log exists, all lines beginning with "A " are
+	treated as if they were read from Entries.  All lines beginning with
+	"R " have been removed from CVS, so lines from the Entries.log file
+	modify the cvsFiles dict accordingly.  
+	Once we have the list of CVS files, each local file is compared
+	to that list and those not under CVS control are added to the
+	removeables list.
+	"""
+
+	cvsFiles = {}
 	for line in fileinput.input(cvsEntriesFile):
 	    line = line.strip()
 	    fields = line.split("/")
 	    if len(fields) > 1 and fields[1]:
-		localFiles[fields[1]] = 0 # this one is in CVS, untag it
+		cvsFiles[fields[1]] = 1 # this one is in CVS
 
-	for file in localFiles.keys():
-	    absFile = os.path.join(dir,file)
-	    if localFiles[file]:
-		removables.append(absFile)
-	    else:
-		if os.path.isdir(absFile):
-		    childremovables = cvsFindRemovables(absFile)
-		    removables += childremovables
+	if(os.path.isfile(cvsEntriesLogFile)):
+	    for line in fileinput.input(cvsEntriesLogFile):
+		line = line.strip()
+		if line[0] == "A" and line[1] == " ":
+		    # Consider this as if it were in "Entries"
+		    line = line[2:]
+		    fields = line.split("/")
+		    if len(fields) > 1 and fields[1]:
+			cvsFiles[fields[1]] = 1 # this one is in CVS
+		else:
+		    if line[0] == "R" and line[1] == " ":
+			# Consider this as if it were not in "Entries"
+			line = line[2:]
+			fields = line.split("/")
+			if len(fields) > 1 and fields[1]:
+			    cvsFiles[fields[1]] = 0 # not in CVS
+
+	for file in os.listdir(dir):
+	    if file != "CVS": # always skip "CVS" directory
+		absFile = os.path.join(dir,file)
+		if not cvsFiles.has_key(file) or not cvsFiles[file]:
+		    # not in cvs, so add to removeables
+		    removables.append(absFile)
+		else:
+		    # if in CVS, see if a directory and recurse
+		    if os.path.isdir(absFile):
+			childremovables = cvsFindRemovables(absFile)
+			removables += childremovables
     else:
 	print "Did not find CVS/Entries file in", dir
 
@@ -1089,12 +1121,15 @@ def cvsClean(buildenv, dirs):
     if yn == "y" or yn == "Y":
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Removing files...")
 	for removable in allRemovables:
-	    log(buildenv, HARDHAT_MESSAGE, "HardHat", "Removing: " + 
-	     removable)
+	    log(buildenv, HARDHAT_MESSAGE, "HardHat", removable)
 	    if os.path.isdir(removable):
 		rmdir_recursive(removable)
-	    if os.path.isfile(removable):
+	    elif os.path.isfile(removable) or os.path.islink(removable):
 		os.remove(removable)
+	    elif not os.path.exists(removable):
+		log(buildenv, HARDHAT_WARNING, "HardHat", "Tried to remove "+\
+		 removable +" but it doesn't exist")
+
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Files removed")
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Not removing files")
