@@ -779,7 +779,6 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     args = map(escapeBackslashes, args)
 
     if buildenv['os'] == 'win' and sys.platform != "cygwin":
-        print "escaping for windows!"
         args = map(escapeArgForWindows, args)
 
     # all args need to be quoted
