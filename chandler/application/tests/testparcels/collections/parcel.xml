@@ -21,7 +21,7 @@
      <type itemref="coll:Block"/>
      <cardinality>single</cardinality>
      <inverseAttribute itemref="coll:childrenBlocks"/>
-     <defaultValue itemref="None"/>
+     <initialValue itemref="None"/>
    </Attribute>
 
    <Attribute itemName="childrenBlocks">
