@@ -325,20 +325,20 @@ def distribute(buildenv):
              ["release","Chandler"],
              "Chandler_win_dev_release_" + buildVersionShort)
 
-        # put the compressed files in the right place if specified 'outputdir'
-        if buildenv['outputdir']:
-            if not os.path.exists(buildenv['outputdir']):
-                os.mkdir(buildenv['outputdir'])
-            if os.path.exists(buildenv['outputdir'] + os.sep + compFile1):
-                os.remove(buildenv['outputdir'] + os.sep + compFile1)
-            os.rename( compFile1, buildenv['outputdir'] + os.sep + compFile1)
-            if os.path.exists(buildenv['outputdir'] + os.sep + compFile2):
-                os.remove(buildenv['outputdir'] + os.sep + compFile2)
-            os.rename( compFile2, buildenv['outputdir'] + os.sep + compFile2)
-        
-        # remove the distribution directory, since we have a tarball/zip
-        if os.access(distDir, os.F_OK):
-            hardhatlib.rmdir_recursive(distDir)
+    # put the compressed files in the right place if specified 'outputdir'
+    if buildenv['outputdir']:
+        if not os.path.exists(buildenv['outputdir']):
+            os.mkdir(buildenv['outputdir'])
+        if os.path.exists(buildenv['outputdir'] + os.sep + compFile1):
+            os.remove(buildenv['outputdir'] + os.sep + compFile1)
+        os.rename( compFile1, buildenv['outputdir'] + os.sep + compFile1)
+        if os.path.exists(buildenv['outputdir'] + os.sep + compFile2):
+            os.remove(buildenv['outputdir'] + os.sep + compFile2)
+        os.rename( compFile2, buildenv['outputdir'] + os.sep + compFile2)
+
+    # remove the distribution directory, since we have a tarball/zip
+    if os.access(distDir, os.F_OK):
+        hardhatlib.rmdir_recursive(distDir)
 
 
 def _CreateVersionFile(buildenv):
