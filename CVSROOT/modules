@@ -40,6 +40,7 @@ chandler-system -a \
     osaf/chandler/persistence \
     osaf/chandler/pychecker \
     osaf/chandler/python \
+    osaf/chandler/epydoc \
     osaf/chandler/pyxml \
     osaf/chandler/SOAPpy \
     osaf/chandler/wxpython \
