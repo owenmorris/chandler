@@ -185,9 +185,6 @@ class wxApplication (wxApp):
             OnTest1 and OnTest2. To see how all this works check out
             ChandlerWindow.py and application.xrc.
             """
-            EVT_MENU(self, XRCID ('Test1'), self.OnTest1)
-            EVT_MENU(self, XRCID ('Test2'), self.OnTest2)
-            EVT_MENU(self, XRCID ('Test3'), self.OnTest3)
             EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
 
         EVT_MENU(self, -1, self.OnMenuCommand)
@@ -195,39 +192,6 @@ class wxApplication (wxApp):
         return true  #indicates we succeeded with initialization
 
     if __debug__:
-        def OnTest1 (self, event):
-            for item in self.model.URLTree:
-                parcel = item[0]
-                """
-                  Each parcel must have an attribute which is the displayName.
-                """
-                assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == _('Calendar'):
-                    parcel.SynchronizeView ()
-                    return
-        
-        def OnTest2 (self, event):
-            for item in self.model.URLTree:
-                parcel = item[0]
-                """
-                  Each parcel must have an attribute which is the displayName.
-                """
-                assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == _('Contacts'):
-                    parcel.SynchronizeView ()
-                    return
-        
-        def OnTest3 (self, event):
-            for item in self.model.URLTree:
-                parcel = item[0]
-                """
-                  Each parcel must have an attribute which is the displayName.
-                """
-                assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == _('Test'):
-                    parcel.SynchronizeView ()
-                    return
-
         def OnCreateNewRepository (self, event):
             if (hasattr (self.model, 'CreateNewRepository')):
                 del self.model.CreateNewRepository
@@ -291,15 +255,8 @@ class wxApplication (wxApp):
     def OnMenuCommand(self, event):
         """
           Catch menu commands and pass them along to the viewerParcels.
-        First we let the application get a crack at the event, if it
-        doesn't handle it we pass it along to the window that has the
-        focus (i.e. the viewerParcel). In the event the viewerParcel doesn't
-        handle the event we'll get recursively called, so we use
-        InMenuCommand to ignore recursive calls.
-          For some unknown reason ProcessEvent on the focusWindow always
-        returns true, even when the event isn't processed, so we don't
-        try the focusWindow first, followed by the application if it doesn't
-        get processed.
+        If the event the viewerParcel doesn't handle the event we'll get
+        recursively called, so we use InMenuCommand to ignore recursive calls.
         """
         if not self.InMenuCommand:
             self.InMenuCommand = true

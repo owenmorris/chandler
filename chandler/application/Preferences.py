@@ -1,5 +1,3 @@
-# Preferences.py
-
 __author__ = "John Anderson"
 __version__ = "$Revision$"
 __date__ = "$Date$"

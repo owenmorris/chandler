@@ -1,5 +1,3 @@
-#!bin/env python
-
 """Second toolbar for Chandler.  Contains action buttons that
 may either trigger an action directly, or display a dropdown of
 possible actions to choose from."""
@@ -8,7 +6,7 @@ __author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "OSAF"
+__license__ = "OSAF License"
 
 
 from wxPython.wx import *

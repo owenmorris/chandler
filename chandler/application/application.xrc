@@ -148,16 +148,6 @@
     </object>
     
     <object class="wxMenu" name="DebugMenu">
-        <label>Debug</label>
-        <object class="wxMenuItem" name="Test1">
-            <label>Calendar</label>
-        </object>
-        <object class="wxMenuItem" name="Test2">
-            <label>Contacts</label>
-        </object>
-        <object class="wxMenuItem" name="Test3">
-            <label>Test</label>
-        </object>
         <object class="wxMenuItem" name="CreateNewRepository">
             <label>Always Recreate Repository</label>
             <checkable>1</checkable>

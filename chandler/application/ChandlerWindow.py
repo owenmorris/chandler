@@ -106,12 +106,12 @@ class wxChandlerWindow(wxFrame):
                                           ord('D'), toggleDebugMenuId)])
             self.SetAcceleratorTable(aTable)
             EVT_MENU (self, toggleDebugMenuId, self.OnToggleDebugMenu)
-            self.OnToggleDebugMenu (wxMenuEvent())
 
         EVT_MOVE(self, self.OnMove)
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+        EVT_WINDOW_DESTROY (self, self.OnDestroy)
 
     if __debug__:
         def OnToggleDebugMenu(self, event):
@@ -151,8 +151,11 @@ class wxChandlerWindow(wxFrame):
         """
           Closing the last window causes the application to quit.
         """
-        del application.Application.app.association[id(self.model)]
         self.Destroy()
+        
+    def OnDestroy(self, event):
+        a = 1
+        del application.Application.app.association[id(self.model)]
         
     def MoveOntoScreen(self):
         """
