@@ -11,7 +11,6 @@ HardHat:  OSAF Build Environment
 Command-line frontend to hardhatlib.py (see description there)
 
 """
-
 import os, sys, traceback, getopt, string
 
 # Initialize hardhatlib
@@ -30,19 +29,19 @@ def usage():
     print "-B MODULE   build MODULE and its dependencies"
     print "-c MODULE   clean module MODULE"
     print "-C MODULE   clean MODULE and its dependencies"
-    print "-d          use debug version" 
-    print "-D          create a distribution" 
+    print "-d          use debug version"
+    print "-D          create a distribution"
     # print "-e          show environment variables in hardhat.log (on by default)"
-    print "-h          display this help" 
-    print "-i          inspect system (not implemented)" 
-    print "-n          non-interactive (won't prompt during scrubbing)" 
-    print "-r          use release version (this is the default)" 
-    # print "-s          spawn an interactive shell" 
-    print "-s          scrub MODULE (remove all local files not in CVS)" 
+    print "-h          display this help"
+    print "-i          inspect system (not implemented)"
+    print "-n          non-interactive (won't prompt during scrubbing)"
+    print "-r          use release version (this is the default)"
+    # print "-s          spawn an interactive shell"
+    print "-s          scrub MODULE (remove all local files not in CVS)"
     print "-S          scrub MODULE and its dependencies"
-    print "-t MODULE   test module MODULE" 
+    print "-t MODULE   test module MODULE"
     # print "-v          verbose"
-    print "-x MODULE   execute MODULE" 
+    print "-x MODULE   execute MODULE"
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
