@@ -94,7 +94,7 @@ class ContactEntity(Item):
         newMethod.SetMethodDescription(addressLocation)
                 
         newMethod.methodEntity = self
-        self.attach('contactMethods', newMethod)
+        self.addValue('contactMethods', newMethod)
                 
         return newMethod
          

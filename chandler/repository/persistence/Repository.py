@@ -43,6 +43,7 @@ class Repository(object):
 
         self._roots = {}
         self._registry = {}
+        self._deletedRegistry = {}
         self._stubs = []
         self._status = 0
         self.verbose = verbose
@@ -53,7 +54,7 @@ class Repository(object):
     def commit(self, purge=False):
         raise NotImplementedError, "Repository.commit"
     
-    def createRefDict(self, item, name, otherName):
+    def createRefDict(self, item, name, otherName, persist):
         raise NotImplementedError, "Repository.createRefDict"
     
     def addTransaction(self, item):
@@ -66,6 +67,17 @@ class Repository(object):
     def isLoading(self):
 
         return (self._status & Repository.LOADING) != 0
+
+    def setLoading(self, loading=True):
+
+        status = (self._status & Repository.LOADING != 0)
+
+        if loading:
+            self._status |= Repository.LOADING
+        else:
+            self._status &= ~Repository.LOADING
+
+        return status
 
     def __iter__(self):
 
@@ -95,7 +107,10 @@ class Repository(object):
 
     def _unregisterItem(self, item):
 
-        del self._registry[item.getUUID()]
+        uuid = item.getUUID()
+        del self._registry[uuid]
+        if item.isDeleting():
+            self._deletedRegistry[uuid] = uuid
 
     def _loadItem(self, uuid):
         raise NotImplementedError, "Repository._loadItem"
@@ -111,7 +126,8 @@ class Repository(object):
 
     def _addStub(self, stub):
 
-        self._stubs.append(stub)
+        if not self.isLoading():
+            self._stubs.append(stub)
 
     def getItemPath(self, path):
         'Return the path of the repository relative to its item, always //.'
@@ -201,7 +217,7 @@ class Repository(object):
         
         if item is None:
             path = Path('//')
-            for root in self._roots.itervalues():
+            for root in self.getRoots():
                 self.dir(root, path)
         else:
             path.append(item.getItemName())
@@ -263,8 +279,14 @@ class Repository(object):
 
     def check(self):
 
-        for item in self:
+        def apply(item):
+
             item.check()
+            for child in item:
+                apply(child)
+
+        for root in self.getRoots():
+            apply(root)
 
 
     ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
@@ -287,11 +309,11 @@ class Store(object):
     def loadChild(self, parent, name):
         raise NotImplementedError, "Store.loadChild"
 
-    def loadChildren(self, parent):
-        raise NotImplementedError, "Store.loadChildren"
-
     def parseXML(self, xml, handler):
         raise NotImplementedError, "Store.parseXML"
+
+    def getUUID(self, xml):
+        raise NotImplementedError, "Store.getUUID"
 
 
 class OnDemandRepository(Repository):
@@ -319,27 +341,31 @@ class OnDemandRepository(Repository):
                     hook()
                 self._hooks = None
 
+    def _loadXML(self, xml):
+
+        try:
+            loading = self._setLoading()
+            if not loading:
+                self._hooks = []
+
+            item = self._loadItemXML(xml, self._store,
+                                     afterLoadHooks = self._hooks)
+            if self.verbose:
+                print "loaded item %s" %(item.getItemPath())
+
+            return item
+        finally:
+            self._resetLoading(loading)
+
     def _loadItem(self, uuid):
 
-        xml = self._store.loadItem(uuid)
+        if not uuid in self._deletedRegistry:
+            xml = self._store.loadItem(uuid)
 
-        if xml is not None:
-            if self.verbose:
-                print "loading item %s" %(uuid)
-
-            try:
-                loading = self._setLoading()
-                if not loading:
-                    self._hooks = []
-
-                item = self._loadItemXML(xml, self._store,
-                                         afterLoadHooks = self._hooks)
+            if xml is not None:
                 if self.verbose:
-                    print "loaded item %s" %(item.getItemPath())
-
-                return item
-            finally:
-                self._resetLoading(loading)
+                    print "loading item %s" %(uuid)
+                return self._loadXML(xml)
 
         return None
 
@@ -355,25 +381,18 @@ class OnDemandRepository(Repository):
             uuid = Repository.ROOT_ID
 
         xml = self._store.loadChild(uuid, name)
-
+                
         if xml is not None:
-            if self.verbose:
-                if parent is not None and parent is not self:
-                    print "loading child %s into %s" %(name,
-                                                       parent.getItemPath())
-                else:
-                    print "loading root %s" %(name)
-
-            try:
-                loading = self._setLoading()
-                if not loading:
-                    self._hooks = []
-
-                return self._loadItemXML(xml, self._store,
-                                         afterLoadHooks = self._hooks)
-
-            finally:
-                self._resetLoading(loading)
+            uuid = self._store.getUUID(xml)
+            if (not self._deletedRegistry or
+                not self._store.getUUID(xml) in self._deletedRegistry):
+                if self.verbose:
+                    if parent is not None and parent is not self:
+                        print "loading child %s of %s" %(name,
+                                                         parent.getItemPath())
+                    else:
+                        print "loading root %s" %(name)
+                return self._loadXML(xml)
 
         return None
 

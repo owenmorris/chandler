@@ -96,7 +96,7 @@ class Kind(Namespace):
                     if attribute is not None:
                         self.addValue('inheritedNames',
                                       attribute.getUUID(), name)
-                        self.attach('inheritedAttributes', attribute)
+                        self.addValue('inheritedAttributes', attribute)
                         return attribute
                 else:
                     cache = False

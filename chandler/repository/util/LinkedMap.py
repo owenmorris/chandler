@@ -196,39 +196,25 @@ class LinkedMap(dict):
 
         return default
 
-    def first(self):
-        "Return the value mapped to the first key."
+    def firstKey(self):
+        "Return the first key of this mapping."
 
-        if self._firstKey is not None:
-            return self[self._firstKey]
+        return self._firstKey
 
-        return None
+    def lastKey(self):
+        "Return the last key of this mapping."
 
-    def last(self):
-        "Return the value mapped to the last key."
-
-        if self._lastKey is not None:
-            return self[self._lastKey]
-
-        return None
+        return self._lastKey
         
-    def next(self, key):
-        "Return the value mapped to the next key relative to key."
+    def nextKey(self, key):
+        "Return the next key relative to key."
 
-        nextKey = self._get(key)._nextKey
-        if nextKey is not None:
-            return self[nextKey]
+        return self._get(key)._nextKey
 
-        return None
+    def previousKey(self, key):
+        "Return the previous key relative to key."
 
-    def previous(self, key):
-        "Return the value mapped to the previous key relative to key."
-
-        previousKey = self._get(key)._previousKey
-        if previousKey is not None:
-            return self[previousKey]
-
-        return None
+        return self._get(key)._previousKey
 
     def __iter__(self):
 

@@ -14,10 +14,11 @@ from model.util.LinkedMap import LinkedMap
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
-    def __init__(self, item, name, other, otherName, otherCard=None):
+    def __init__(self, item, name, other, otherName,
+                 otherCard=None, otherPersist=None):
 
         super(ItemRef, self).__init__()
-        self.attach(item, name, other, otherName, otherCard)
+        self.attach(item, name, other, otherName, otherCard, otherPersist)
 
     def __repr__(self):
 
@@ -46,7 +47,8 @@ class ItemRef(object):
 
         raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
-    def attach(self, item, name, other, otherName, otherCard=None):
+    def attach(self, item, name, other, otherName,
+               otherCard=None, otherPersist=None):
 
         assert item is not None, 'item is None'
         assert other is not None, 'other is None'
@@ -58,8 +60,7 @@ class ItemRef(object):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
-                    refName = item.refName(otherName)
-                    old[refName] = self
+                    old[item.refName(otherName)] = self
                     return
             else:
                 if otherCard is None:
@@ -67,7 +68,7 @@ class ItemRef(object):
                                                          'cardinality',
                                                          'single')
                 if otherCard != 'single':
-                    old = other._refDict(otherName, name)
+                    old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
                     old[item.refName(otherName)] = self
                     return
@@ -116,19 +117,27 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema, mode):
+    def _xmlValue(self, name, item, generator, withSchema, mode,
+                  previous=None, next=None):
+
+        def addAttr(attrs, attr, value):
+
+            if value is not None:
+                if isinstance(value, UUID):
+                    attrs[attr + 'Type'] = 'uuid'
+                    attrs[attr] = value.str64()
+                elif isinstance(attr, str) or isinstance(attr, unicode):
+                    attrs[attr] = value.encode('utf-8')
+                else:
+                    raise NotImplementedError, "%s, type: %s" %(value,
+                                                                type(value))
 
         other = self.other(item)
         attrs = { 'type': 'uuid' }
 
-        if isinstance(name, UUID):
-            attrs['nameType'] = "uuid"
-            attrs['name'] = name.str64()
-        elif isinstance(name, str) or isinstance(name, unicode):
-            attrs['name'] = str(name)
-        else:
-            raise NotImplementedError, "refName: %s, type: %s" %(name,
-                                                                 type(name))
+        addAttr(attrs, 'name', name)
+        addAttr(attrs, 'previous', previous)
+        addAttr(attrs, 'next', next)
 
         if withSchema:
             otherName = item._otherName(name)
@@ -196,15 +205,19 @@ class RefArgs(object):
                 self.refName = other.refName(self.attrName)
 
         if other is not None:
-            self._attach(item, other)
-
+            if not other._isAttaching():
+                try:
+                    item._setAttaching()
+                    self._attach(item, other)
+                finally:
+                    item._setAttaching(False)
         else:
             self.ref = ItemRef(item, self.attrName,
                                ItemStub(item, self), self.otherName,
                                self.otherCard)
             repository._addStub(self.ref)
             self.valueDict.__setitem__(self.refName, self.ref, 
-                                       self.previous, self.next)
+                                       self.previous, self.next, False)
 
     def _attach(self, item, other):
         
@@ -299,7 +312,8 @@ class RefDict(LinkedMap):
         self._name = name
         self._otherName = otherName
         self._setItem(item)
-
+        self._count = 0
+        
         super(RefDict, self).__init__()
 
     def _setItem(self, item):
@@ -309,6 +323,18 @@ class RefDict(LinkedMap):
     def _getItem(self):
 
         return self._item
+
+    def _getRepository(self):
+
+        return self._item.getRepository()
+
+    def _isTransient(self):
+
+        return False
+
+    def __len__(self):
+
+        return self._count
 
     def __repr__(self):
 
@@ -346,11 +372,19 @@ class RefDict(LinkedMap):
 
         return self._getRef(key).other(self._getItem())
 
-    def __setitem__(self, key, value, previousKey=None, nextKey=None):
+    def __setitem__(self, key, value, previousKey=None, nextKey=None,
+                    load=True):
 
+        loading = self._getRepository().isLoading()
         self._changeRef(key)
+
+        if loading and previousKey is None and nextKey is None:
+            ref = self._loadRef(key)
+            if ref is not None:
+                previousKey = ref[2]
+                nextKey = ref[3]
         
-        old = super(RefDict, self).get(key)
+        old = super(RefDict, self).get(key, None, load)
         if old is not None:
             item = self._getItem()
             if type(value) is ItemRef:
@@ -366,6 +400,8 @@ class RefDict(LinkedMap):
                             value, self._otherName)
 
         super(RefDict, self).__setitem__(key, value, previousKey, nextKey)
+        if not loading:
+            self._count += 1
 
     def placeItem(self, item, after):
         """Place an item in this collection after another one.
@@ -394,6 +430,29 @@ class RefDict(LinkedMap):
                          value.other(self._item), self._otherName)
 
         super(RefDict, self).__delitem__(key)
+        self._count -= 1
+
+    def _load(self, key):
+
+        repository = self._item.getRepository()
+
+        try:
+            loading = repository.setLoading()
+            ref = self._loadRef(key)
+            if ref is not None:
+                args = RefArgs(self._name, ref[0], ref[1],
+                               self._otherName, None, self, ref[2], ref[3])
+                args.attach(self._item, self._item.getRepository())
+                
+                return True
+        finally:
+            repository.setLoading(loading)
+
+        return False
+
+    def _loadRef(self, key):
+
+        return None
 
     def linkChanged(self, link, key):
 
@@ -422,6 +481,18 @@ class RefDict(LinkedMap):
 
     def _xmlValue(self, name, item, generator, withSchema, mode):
 
+        def addAttr(attrs, attr, value):
+
+            if value is not None:
+                if isinstance(value, UUID):
+                    attrs[attr + 'Type'] = 'uuid'
+                    attrs[attr] = value.str64()
+                elif isinstance(attr, str) or isinstance(attr, unicode):
+                    attrs[attr] = value.encode('utf-8')
+                else:
+                    raise NotImplementedError, "%s, type: %s" %(value,
+                                                                type(value))
+
         if len(self) > 0:
 
             if withSchema:
@@ -437,6 +508,10 @@ class RefDict(LinkedMap):
                 attrs['otherName'] = otherName
                 attrs['otherCard'] = otherCard
 
+            addAttr(attrs, 'first', self._firstKey)
+            addAttr(attrs, 'last', self._lastKey)
+            attrs['count'] = str(self._count)
+
             generator.startElement('ref', attrs)
             self._xmlValues(generator, mode)
             generator.endElement('ref')
@@ -444,12 +519,31 @@ class RefDict(LinkedMap):
     def _xmlValues(self, generator, mode):
 
         for key in self.iterkeys():
-            self._getRef(key)._xmlValue(key, self._item,
-                                        generator, False, mode)
+            link = self._get(key)
+            link._value._xmlValue(key, self._item,
+                                  generator, False, mode,
+                                  previous=link._previousKey,
+                                  next=link._nextKey)
 
     def copy(self):
 
         raise NotImplementedError, 'RefDict.copy is not supported'
+
+    def first(self):
+
+        firstKey = self.firstKey()
+        if firstKey is not None:
+            return self[firstKey]
+
+        return None
+
+    def last(self):
+
+        lastKey = self.lastKey()
+        if lastKey is not None:
+            return self[lastKey]
+
+        return None
 
     def next(self, previous):
         """Return the next referenced item relative to previous.
@@ -457,7 +551,11 @@ class RefDict(LinkedMap):
         Returns None if previous is the last referenced item in the
         collection."""
 
-        return super(RefDict, self).next(previous.refName(self._name))
+        nextKey = self.nextKey(previous.refName(self._name))
+        if nextKey is not None:
+            return self[nextKey]
+
+        return None
 
     def previous(self, next):
         """Return the previous referenced item relative to next.
@@ -465,7 +563,26 @@ class RefDict(LinkedMap):
         Returns None if next is the first referenced item in the
         collection."""
 
-        return super(RefDict, self).previous(next.refName(self._name))
+        previousKey = self.previousKey(next.refName(self._name))
+        if previousKey is not None:
+            return self[previousKey]
+
+        return None
+
+
+class TransientRefDict(RefDict):
+
+    def linkChanged(self, link, key):
+        pass
+    
+    def _changeRef(self, key):
+        pass
+
+    def _load(self, key):
+        return False
+    
+    def _isTransient(self):
+        return True
 
 
 class DanglingRefError(ValueError):

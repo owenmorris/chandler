@@ -40,7 +40,7 @@ class Instruction(Item):
         return self.actions
     
     def AddAction(self, newAction):
-        self.attach('actions', newAction)
+        self.addValue('actions', newAction)
         
     def RemoveAction(self, actionToRemove):
         self.detach('actions', actionToRemove)

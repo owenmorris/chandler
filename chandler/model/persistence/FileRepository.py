@@ -11,7 +11,7 @@ from datetime import datetime
 
 from model.util.UUID import UUID
 from model.persistence.Repository import Repository, RepositoryError
-from model.item.ItemRef import RefDict
+from model.item.ItemRef import RefDict, TransientRefDict
 
 
 class FileRepository(Repository):
@@ -178,9 +178,12 @@ class FileRepository(Repository):
         out.write('\n')
         out.close()
 
-    def createRefDict(self, item, name, otherName):
+    def createRefDict(self, item, name, otherName, persist):
 
-        return FileRefDict(item, name, otherName)
+        if persist:
+            return FileRefDict(item, name, otherName)
+        else:
+            return TransientRefDict(item, name, otherName)
     
     def addTransaction(self, item):
 

@@ -105,10 +105,24 @@ class ItemHandler(xml.sax.ContentHandler):
             cardinality = self.getCardinality(attribute, attrs)
 
             if cardinality != 'single':
-                otherName = self.getOtherName(name, attribute, attrs)
                 if cardinality == 'dict':
                     print "Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead" %(name, self.name)
-                refDict = self.repository.createRefDict(None, name, otherName)
+
+                otherName = self.getOtherName(name, attribute, attrs)
+                refDict = self.repository.createRefDict(None, name,
+                                                        otherName, True)
+
+                if attrs.has_key('first'):
+                    firstKey = self.makeValue(attrs.get('firstType', 'str'),
+                                              attrs['first'])
+                    refDict._firstKey = firstKey
+                if attrs.has_key('last'):
+                    lastKey = self.makeValue(attrs.get('lastType', 'str'),
+                                             attrs['last'])
+                    refDict._lastKey = lastKey
+                if attrs.has_key('count'):
+                    refDict._count = int(attrs['count'])
+
                 self.collections.append(refDict)
 
     def itemStart(self, itemHandler, attrs):
@@ -288,14 +302,13 @@ class ItemHandler(xml.sax.ContentHandler):
         refDict = self.collections[-1]
         refDict._prepareKey(UUID(self.tagAttrs[-2]['uuid']), UUID(self.data))
 
-        otherCard = self.tagAttrs[-1].get('otherCard', None)
-
-        for ref in refDict._dbRefs():
-            args = RefArgs(refDict._name, ref[0], ref[1],
-                           refDict._otherName, otherCard, refDict,
-                           ref[2], ref[3])
-
-            self.refs.append(args)
+        if self.withSchema:
+            otherCard = self.tagAttrs[-1].get('otherCard', None)
+            for ref in refDict._dbRefs():
+                args = RefArgs(refDict._name, ref[0], ref[1],
+                               refDict._otherName, otherCard, refDict,
+                               ref[2], ref[3])
+                self.refs.append(args)
 
     def valueStart(self, itemHandler, attrs):
 
@@ -389,7 +402,12 @@ class ItemHandler(xml.sax.ContentHandler):
             otherName = attribute.getAspect('otherName')
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s' %(name)
+            if attribute is not None:            
+                raise TypeError, 'Undefined other endpoint for %s' %(name)
+            elif name.endswith('__for'):
+                otherName = name[:-5]
+            else:
+                otherName = name + '__for'
 
         return otherName
 

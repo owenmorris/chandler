@@ -37,6 +37,10 @@ class SOAPTransport(Transport):
     def parseXML(self, xml, handler):
         parseString(xml, handler)
         
+    def getUUID(self, xml):
+        index = xml.index('uuid=') + 6
+        return UUID(xml[index:xml.index('"', index)])
+    
 
 class JabberTransport(Transport, jabber.Client):
 
@@ -124,3 +128,14 @@ class JabberTransport(Transport, jabber.Client):
         handler.startDocument()
         apply(xml)
         handler.endDocument()
+
+    def getUUID(self, xml):
+
+        def apply(node):
+
+            if node.name == 'item':
+                return UUID(node.attrs['uuid'])
+            for kid in node.kids:
+                apply(kid)
+
+        apply(xml)

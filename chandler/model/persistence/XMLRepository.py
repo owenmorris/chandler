@@ -12,12 +12,13 @@ from struct import pack, unpack
 
 from model.util.UUID import UUID
 from model.item.Item import Item
-from model.item.ItemRef import ItemRef, ItemStub, RefDict
+from model.item.ItemRef import ItemRef, ItemStub, RefDict, TransientRefDict
 from model.persistence.Repository import OnDemandRepository, Store
 from model.persistence.Repository import RepositoryError
 
 from bsddb.db import DBEnv, DB
-from bsddb.db import DB_CREATE, DB_TRUNCATE, DB_FORCE, DB_INIT_MPOOL, DB_BTREE
+from bsddb.db import DB_CREATE, DB_RECOVER, DB_TRUNCATE, DB_FORCE, DB_BTREE
+from bsddb.db import DB_INIT_MPOOL, DB_INIT_TXN
 from bsddb.db import DBNoSuchFileError, DBNotFoundError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
@@ -61,7 +62,7 @@ class XMLRepository(OnDemandRepository):
         self._env.remove(self.dbHome, DB_FORCE)
         
         self._env = DBEnv()
-        self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
+        self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL | DB_INIT_TXN, 0)
         self._refs = XMLRepository.refContainer(self._env, "__refs__", True)
         self._store = XMLRepository.xmlContainer(self._env, "__data__", True)
 
@@ -72,7 +73,7 @@ class XMLRepository(OnDemandRepository):
             self._env = DBEnv()
 
             try:
-                self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
+                self._env.open(self.dbHome, DB_INIT_MPOOL | DB_INIT_TXN, 0)
                 self._refs = XMLRepository.refContainer(self._env, "__refs__")
                 self._store = XMLRepository.xmlContainer(self._env, "__data__")
             except DBNoSuchFileError:
@@ -94,6 +95,12 @@ class XMLRepository(OnDemandRepository):
 
     def purge(self):
         pass
+
+    def getRoots(self):
+        'Return a list of the roots in the repository.'
+
+        self._store.loadroots(self)
+        return super(XMLRepository, self).getRoots()
 
     def commit(self, purge=False):
 
@@ -133,14 +140,15 @@ class XMLRepository(OnDemandRepository):
     def _saveItem(self, item, **args):
 
         container = args['container']
-        oldDoc = container.loadItem(item.getUUID())
+        uuid = item.getUUID()
+        oldDoc = container.loadItem(uuid)
         if oldDoc is not None:
             container.deleteDocument(oldDoc)
 
         if item.isDeleted():
             if args.get('verbose'):
                 print 'Removing', item.getItemPath()
-
+            del self._deletedRegistry[uuid]
             self._refs.deleteItem(item)
 
         else:
@@ -169,9 +177,12 @@ class XMLRepository(OnDemandRepository):
         if oldDoc is not None:
             container.deleteDocument(oldDoc)
 
-    def createRefDict(self, item, name, otherName):
+    def createRefDict(self, item, name, otherName, persist):
 
-        return XMLRefDict(self, item, name, otherName)
+        if persist:
+            return XMLRefDict(self, item, name, otherName)
+        else:
+            return TransientRefDict(item, name, otherName)
 
     def addTransaction(self, item):
 
@@ -234,12 +245,12 @@ class XMLRepository(OnDemandRepository):
                                                   self._ctx):
                 return value.asDocument()
 
-        def loadChildren(self, uuid):
+        def loadroots(self, repository):
 
             ctx = XmlQueryContext()
             ctx.setReturnType(XmlQueryContext.ResultDocuments)
             ctx.setEvaluationType(XmlQueryContext.Lazy)
-            ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
+            ctx.setVariableValue("uuid", XmlValue(repository.ROOT_ID.str64()))
             nameExp = re.compile("<name>(.*)</name>")
 
             for value in self._xml.queryWithXPath(None,
@@ -249,8 +260,9 @@ class XMLRepository(OnDemandRepository):
                 xmlString = xml.getContent()
                 match = nameExp.match(xmlString, xmlString.index("<name>"))
                 name = match.group(1)
-                
-                yield (xml, name)
+
+                if not name in repository._roots:
+                    repository._loadXML(xml)
 
         def deleteDocument(self, doc):
 
@@ -269,6 +281,13 @@ class XMLRepository(OnDemandRepository):
 
             parseString(xml.getContent(), handler)
             
+        def getUUID(self, xml):
+
+            xmlString = xml.getContent()
+            index = xmlString.index('uuid=') + 6
+
+            return UUID(xmlString[index:xmlString.index('"', index)])
+
 
     class refContainer(object):
 
@@ -344,6 +363,36 @@ class XMLRefDict(RefDict):
 
         super(XMLRefDict, self).__init__(item, name, otherName)
 
+    def _getRepository(self):
+
+        return self._repository
+
+    def _loadRef(self, key):
+
+        self._key.truncate(32)
+        self._key.seek(0, 2)
+
+        if isinstance(key, UUID):
+            self._key.write('\0')
+            self._key.write(key._uuid)
+        else:
+            self._key.write('\1')
+            self._key.write(key)
+
+        value = self._repository._refs.get(self._key.getvalue())
+        if value is None:
+            return None
+
+        self._value.truncate(0)
+        self._value.seek(0)
+        self._value.write(value)
+        self._value.seek(0)
+        uuid = UUID(self._value.read(16))
+        previous = self._readValue()
+        next = self._readValue()
+
+        return (key, uuid, previous, next)
+
     def _changeRef(self, key):
 
         if not self._repository.isLoading():
@@ -356,7 +405,7 @@ class XMLRefDict(RefDict):
         if not self._repository.isLoading():
             self._log.append((1, key))
         else:
-            print 'Warning, detach during load'
+            ValueError, 'detach during load'
 
         super(XMLRefDict, self)._removeRef(key, _detach)
 

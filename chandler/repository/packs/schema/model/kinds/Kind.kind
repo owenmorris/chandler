@@ -7,9 +7,6 @@
     <kind type="path">//Schema/Model/Kinds/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
-    <ref name="kind" otherName="items" 
-         type="path" otherCard="list">/Model/Kinds/Kind</ref>
-
     <ref name="attributes" otherName="kinds"
          cardinality="list" otherCard="list">
       <ref type="path">/Model/Attributes/superKinds</ref>

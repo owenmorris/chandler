@@ -44,7 +44,7 @@ class RemoteRepository(OnDemandRepository):
     def commit(self, purge=False, verbose=False):
         pass
     
-    def createRefDict(self, item, name, otherName):
+    def createRefDict(self, item, name, otherName, persist):
 
         return RefDict(item, name, otherName)
     

@@ -157,7 +157,7 @@ class RSSChannel(Item):
         except AttributeError:
             pass
         for item in items:
-            self.attach('items',item)
+            self.addValue('items',item)
             
     def updateChannel(self, parseData):
         self.setModifiedDate(parseData)

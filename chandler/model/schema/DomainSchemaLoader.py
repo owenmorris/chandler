@@ -273,7 +273,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                                                name)
 
         item = Kind(name, self.domainSchema, kind)
-        item.attach('superKinds', itemKind)
+        item.addValue('superKinds', itemKind)
         
         return item
 
@@ -332,7 +332,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             elif key in ATTRIBUTES_REF_TAGS:
                 for attr in attributeDictionary[key]:
                     ref = self.findItem(attr)
-                    item.attach(ATTRIBUTES_REF_TAGS[key], ref)
+                    item.addValue(ATTRIBUTES_REF_TAGS[key], ref)
                                         
             # Text, look up attribute in the dictionary
             elif (key in ATTRIBUTE_TEXT_TAGS):

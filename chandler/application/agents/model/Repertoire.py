@@ -26,7 +26,7 @@ class Repertoire(Item):
         return self.possibleConditions
     
     def AddCondition(self, newCondition):
-        self.attach('possibleConditions', newCondition)
+        self.addValue('possibleConditions', newCondition)
     
     def RemoveCondition(self, conditionToRemove):
         self.detach('possibleConditions', conditionToRemove)
@@ -35,7 +35,7 @@ class Repertoire(Item):
         return self.possibleActions
     
     def AddAction(self, newAction):
-        self.attach('possibleActions', newAction)
+        self.addValue('possibleActions', newAction)
     
     def RemoveAction(self, actionToRemove):
         self.detach('possibleActions', actionToRemove)

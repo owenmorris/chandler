@@ -72,9 +72,13 @@ class Item(object):
 
         if self._status & Item.RAW:
             return super(Item, self).__repr__()
-        
-        return "<%s: %s %s>" %(type(self).__name__, self._name,
-                               self._uuid.str16())
+
+        if self._status & Item.DELETED:
+            return "<%s (deleted): %s %s>" %(type(self).__name__, self._name,
+                                             self._uuid.str16())
+        else:
+            return "<%s: %s %s>" %(type(self).__name__, self._name,
+                                   self._uuid.str16())
 
     def __getattr__(self, name):
 
@@ -108,9 +112,22 @@ class Item(object):
 
     def _otherName(self, name):
 
-        otherName = self.getAttributeAspect(name, 'otherName')
+        otherName = None
+        
+        if self._kind is not None:
+            attribute = self._kind.getAttribute(name)
+            if attribute is not None:
+                otherName = attribute.getAspect('otherName')
+        else:
+            attribute = None
+
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
+            if attribute is not None:
+                raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
+            elif name.endswith('__for'):
+                otherName = name[:-5]
+            else:
+                otherName = name + '__for'
 
         return otherName
 
@@ -261,7 +278,7 @@ class Item(object):
     def hasChild(self, name, load=True):
 
         return (self.__dict__.has_key('_children') and
-                self._children.has_key(name))
+                self._children.has_key(name, load))
 
     def placeChild(self, child, after):
         """Place a child after another one in this item's children collection.
@@ -313,7 +330,7 @@ class Item(object):
     def check(self):
 
         for key, value in self.iterAttributes(referencesOnly=True):
-            if isinstance(value, RefDict):
+            if isinstance(value, RefDict) and not value._isTransient():
                 l = len(value)
                 for other in value:
                     l -= 1
@@ -356,8 +373,12 @@ class Item(object):
 
         self.setDirty()
 
+        isItem = isinstance(value, Item)
+        if isItem and key is None:
+            key = value.refName(attribute)
+
         if _attrDict is None:
-            if isinstance(value, Item):
+            if isItem:
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -366,25 +387,23 @@ class Item(object):
             
         if attrValue is None:
             card = self.getAttributeAspect(attribute, 'cardinality', 'single')
-            isItem = isinstance(value, Item)
 
             if card == 'dict':
                 if isItem:
-                    attrValue = self._refDict(attribute,
-                                              self._otherName(attribute))
+                    attrValue = self._refDict(attribute)
                 else:
                     _attrDict[attribute] = { key: value }
                     return
 
             elif card == 'list':
                 if isItem:
-                    attrValue = self._refDict(attribute,
-                                              self._otherName(attribute))
+                    attrValue = self._refDict(attribute)
                 else:
                     _attrDict[attribute] = [ value ]
                     return
             else:
-                raise TypeError, "%s is not multi-valued" %(attribute)
+                self.setAttributeValue(attribute, value, _attrDict)
+                return
 
             _attrDict[attribute] = attrValue
 
@@ -393,8 +412,12 @@ class Item(object):
     def addValue(self, attribute, value, key=None, _attrDict=None):
         "Add a value for a multi-valued attribute for a given optional key."
 
+        isItem = isinstance(value, Item)
+        if isItem and key is None:
+            key = value.refName(attribute)
+        
         if _attrDict is None:
-            if isinstance(value, Item):
+            if isItem:
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -402,7 +425,7 @@ class Item(object):
         attrValue = _attrDict.get(attribute, None)
 
         if attrValue is None:
-            self.setValue(attribute, value, key, _attrDict=_attrDict)
+            self.setValue(attribute, value, key, _attrDict)
 
         else:
             self.setDirty()
@@ -412,7 +435,7 @@ class Item(object):
             elif isinstance(attrValue, list):
                 attrValue.append(value)
             else:
-                raise TypeError, "%s is not multi-valued" %(attribute)
+                self.setAttributeValue(attribute, value, _attrDict)
 
     def hasKey(self, attribute, key):
         """Tell where a multi-valued attribute has a value for a given key.
@@ -480,21 +503,6 @@ class Item(object):
         else:
             raise TypeError, "%s is not multi-valued" %(attribute)
 
-    def attach(self, attribute, item):
-        """Attach an item to attribute.
-
-        The item is added to the endpoint if it is multi-valued. The item
-        replaces the endpoint if it is single-valued."""
-
-        self.addValue(attribute, item, item.refName(attribute),
-                      _attrDict = self._references)
-
-    def detach(self, attribute, item):
-        'Detach an item from an attribute.'
-
-        self.removeValue(attribute, item.refName(attribute),
-                         _attrDict = self._references)
-
     def _removeRef(self, name):
 
         del self._references[name]
@@ -508,6 +516,21 @@ class Item(object):
         else:
             return _attrDict.has_key(name)
 
+    def _isAttaching(self):
+
+        return (self._status & Item.ATTACHING) != 0
+
+    def _setAttaching(self, attaching=True):
+
+        if attaching:
+            self._status |= Item.ATTACHING
+        else:
+            self._status &= ~Item.ATTACHING
+
+    def isDeleting(self):
+
+        return (self._status & Item.DELETING) != 0
+    
     def isDeleted(self):
 
         return (self._status & Item.DELETED) != 0
@@ -680,7 +703,7 @@ class Item(object):
         self._kind = kind
 
         if self._kind is not None:
-            ref = ItemRef(self, 'kind', self._kind, 'items', 'list')
+            ref = ItemRef(self, 'kind', self._kind, 'items', 'list', False)
             self._references['kind'] = ref
 
     def getRepository(self):
@@ -914,10 +937,15 @@ class Item(object):
             if self.getAttributeAspect(key, 'persist', True):
                 value._xmlValue(key, self, generator, withSchema, mode)
 
-    def _refDict(self, name, otherName):
+    def _refDict(self, name, otherName=None, persist=None):
 
-        return self.getRepository().createRefDict(self, name, otherName)
-        
+        if otherName is None:
+            otherName = self._otherName(name)
+        if persist is None:
+            persist = self.getAttributeAspect(name, 'persist', True)
+
+        return self.getRepository().createRefDict(self, name,
+                                                  otherName, persist)
 
     def loadClass(cls, name, module=None):
 
@@ -937,9 +965,9 @@ class Item(object):
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
 
-    def __new__(cls, *args):
+    def __new__(cls, *args, **kwds):
 
-        item = object.__new__(cls, *args)
+        item = object.__new__(cls, *args, **kwds)
         item._status = Item.RAW
 
         return item
@@ -948,10 +976,11 @@ class Item(object):
     loadClass = classmethod(loadClass)
     __new__ = classmethod(__new__)
     
-    DELETED  = 0x1
-    DIRTY    = 0x2
-    DELETING = 0x4
-    RAW      = 0x8
+    DELETED   = 0x01
+    DIRTY     = 0x02
+    DELETING  = 0x04
+    RAW       = 0x08
+    ATTACHING = 0x10
 
 
 class Children(LinkedMap):

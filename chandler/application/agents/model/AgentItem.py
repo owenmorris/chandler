@@ -82,7 +82,7 @@ class AgentItem(Item):
         return self.instructions
     
     def AddInstruction(self, newInstruction):
-        self.attach('instructions', newInstruction)
+        self.addValue('instructions', newInstruction)
     
     def RemoveInstruction(self, instructionToRemove):
         self.detach('instructions', instructionToRemove)
