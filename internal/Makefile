@@ -27,6 +27,9 @@ clean: env
 	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) clean; \
 	done
 
+realclean: clean
+	echo ok
+
 upload:
 	@for system in $(SYSTEMS); \
 	do \
