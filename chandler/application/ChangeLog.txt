@@ -43,3 +43,7 @@
    * Repository is loaded on init, globally accessible via app.repository.
    * Repository is saved when main Chandler window closes.
    * Calendar data parcel is loaded on init (currently hardcoded)
+
+2003-08-26 Morgen Sagen
+    * Added a debugger window (PyCrust) that can be accessed via the special
+      debug menu.

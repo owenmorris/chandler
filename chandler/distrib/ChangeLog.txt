@@ -10,3 +10,9 @@
 2003-08-25 Morgen Sagen
 
     * Linux and Windows launcher programs now pass argv properly
+
+2003-08-26 Morgen Sagen
+
+    * Fixed a bug where linux launcher would segfault if no LD_LIBRARY_PATH.
+    * Windows launcher overrides PYTHONHOME and PYTHONPATH variables to
+      ensure we are picking up the intended Python extensions.
