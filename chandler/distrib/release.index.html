@@ -28,7 +28,7 @@ Please also understand that our underlying database is undergoing massive change
 <h2>What Should I Download?</h2>
 There are a few different types of Chandler distribution files that are available in this plugh; choose the one that's right for you:
 <ul>
-<li> <b>End-users' distributions: </b> These files contain everything you need to use Chandler -- just download, unpack, and run!
+<li> <b>End-users' distributions: </b> If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, and run!
 <b>Please select one of the following:</b>
 <a href=#enduserlinux>Linux</a> | 
 <a href=#enduserosx>Mac OSX</a> | 
@@ -36,33 +36,22 @@ There are a few different types of Chandler distribution files that are availabl
 <br>
 &nbsp;
 <br>
-<li> <b>Pre-built-libraries distributions: </b> 
-These files are meant for people who are interested in working with the
-part of the Chandler application that is written in Python, but don't want
-to compile all the required libraries and the interpreter that Chandler
-depends on.  This type of distribution <b>does not</b> contain the part of
-the Chandler application that is written in Python.  You will need to <a
-href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>get
-that source separately</a>. <p> What this distribution does
-contain is a directory full of our pre-built versions of Python,
-wxPython, and many other third-party projects, all configured to
-run Chandler.  To use one of these distributions, follow the <a
-href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>
-instructions for checking out the Chandler application code</a>,
-then download one of the pre-built-libraries distributions listed at the end of this
-paragraph. Next, unpack the distribution and copy the contained "debug" or "release" directory to the "osaf/chandler" directory that 
-you checked out of CVS.  There is a shell script within the distribution
-that you can use to launch Chandler.
+<li> <b>Developers' source code distribution: </b> If you want to compile everything yourself, including the Python interpreter and all required libraries, this download contains the entire source tree. <b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>, and instructions for building Chandler are in the "hardhat/README.txt" within that tar file.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a> online.
+<br>
+&nbsp;
+<br>
+<li> <b>Developers' pre-compiled distributions: </b>  If you are interested in writing parcels or working with the Python portion of Chandler, but don't want
+to compile the interpreter and libraries Chandler
+depends on, this distribution contains the Chandler application source 
+(which can be kept up to date via CVS, unlike the end-users' distributions) and a directory full of our pre-built 
+versions of Python, wxPython, and other third-party projects, all 
+configured to run Chandler.  
 
 <b>Please select one of the following:</b>
 <a href=#devbinlinux>Linux</a> | 
 <a href=#devbinosx>Mac OSX</a> | 
 <a href=#devbinwin>Windows</a>
 <br>
-&nbsp;
-<br>
-<li> <b>Source code distribution: </b> This file contains all the source for Chandler and required third-party projects.  
-<b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>, and instructions for building Chandler are in the "hardhat/README.txt" within that tar file.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a> online.
 </ul>
 
 <br>
@@ -134,38 +123,17 @@ explorer, double-click on Chandler.bat in the directory you extracted to.
 
 <hr>
 <a name=devbinlinux></a> &nbsp; <br>
-<h2>Pre-Built-Libraries Distribution: <i>Linux</i></h2>
+<h2>Developers' Pre-Compiled Distribution: <i>Linux</i></h2>
 
-First, get Chandler's Python source by checking out the <b>chandler-app</b> module using CVS.  For CVS information, see our page about <a href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>getting Chandler source</a>.
-<p>
-
-Next, decide whether you want to run the debug version of the required components (Python, wxPython, etc.).  <p>
-
-If you want the debug version, 
-download <a href=Chandler_linux_dev_debug_XYZZY.tar.gz>Chandler_linux_dev_debug_XYZZY.tar.gz</a> and save it to the "osaf/chandler" directory that you checked out of CVS.  
-Change your shell's current directory to osaf/chandler and unpack the distribution via:
+Download <a href=Chandler_linux_dev_debug_XYZZY.tar.gz>Chandler_linux_dev_debug_XYZZY.tar.gz</a> and save it to disk.  Change your shell's current directory to the location you saved the file and unpack the distribution via:
 
 <pre>   tar zxf Chandler_linux_dev_debug_XYZZY.tar.gz</pre>
 
-This will create a "debug" subdirectory under osaf/chandler.  <p>
-To run Chandler using the binaries you just downloaded, cd into the "debug" directory and run the "RunDebug" shell script:
+This will create "Chandler" and "debug" directories.  <p>
+To run Chandler, cd into the "debug" directory and run the "RunDebug" shell script:
 
 <pre>   cd debug 
    ./RunDebug</pre>
-
-If you elect to get the non-debug version, download <a href=Chandler_linux_dev_release_XYZZY.tar.gz>Chandler_linux_dev_release_XYZZY.tar.gz</a>
- and save it to the "osaf/chandler" directory that you checked out of CVS.<p>
-
-Change your shell's current directory to osaf/chandler and unpack the distribution via:
-
-<pre>   tar zxf Chandler_linux_dev_release_XYZZY.tar.gz</pre>
-
-This will create a "release" subdirectory under osaf/chandler.  <p>
-
-To run Chandler using the binaries you just downloaded, cd into the "release" directory and run the "RunRelease" shell script:
-
-<pre>   cd release
-   ./RunRelease</pre>
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
@@ -176,18 +144,11 @@ To run Chandler using the binaries you just downloaded, cd into the "release" di
 
 <hr>
 <a name=devbinosx></a> &nbsp; <br>
-<h2>Pre-Built-Libraries Distribution: <i>Mac OSX</i></h2>
+<h2>Developers' Pre-Compiled Distribution: <i>Mac OSX</i></h2>
 
-First, get Chandler's Python source by checking out the <b>chandler-app</b> module using CVS.  For CVS information, see our page about <a href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>getting Chandler source</a>.
-
+<b>Control-click</b> this link: <a href=Chandler_osx_dev_debug_XYZZY.tar.gz>Chandler_osx_dev_debug_XYZZY.tar.gz</a>, select "Download..." or "Save link target..." in the pop-up menu, and save this file to your disk. <b>Make sure StuffIt doesn't unpack the file because it can cause problems; we're investigating why.</b>
 <p>
-
-Next, decide whether you want to run the debug version of the required components (Python, wxPython, etc.).  <p>
-
-If you want the debug version, 
-<b>control-click</b> this link: <a href=Chandler_osx_dev_debug_XYZZY.tar.gz>Chandler_osx_dev_debug_XYZZY.tar.gz</a>, select "Download..." or "Save link target..." in the pop-up menu, and save this distribution file to the "osaf/chandler" directory that you checked out of CVS.  <b>Make sure StuffIt doesn't unpack the file because it can cause problems; we're investigating why.</b>
-<p>
-Open up a Terminal window and cd to your "osaf/chandler" directory.  Some browsers will save the file as Chandler_osx_dev_debug_XYZZY.tar.gz and some will save it as Chandler_osx_dev_debug_XYZZY.tar.  If your file ends in .tar.gz type the following:
+Open up a Terminal window and cd to the directory you saved the file to. Some browsers will save the file as Chandler_osx_dev_debug_XYZZY.tar.gz and some will save it as Chandler_osx_dev_debug_XYZZY.tar.  If your file ends in .tar.gz type the following:
 
 <pre>   tar zxf Chandler_osx_dev_debug_XYZZY.tar.gz</pre>
 
@@ -195,30 +156,11 @@ If your file ends in .tar type:
 
 <pre>   tar xf Chandler_osx_dev_debug_XYZZY.tar</pre>
 
-This will create a "debug" subdirectory under osaf/chandler.  <p>
-To run Chandler using the binaries you just downloaded, cd into the "debug" directory and run the "RunDebug" shell script:
+This will create "Chandler" and "debug" directories.<p>
+To run Chandler, cd into the "debug" directory and run the "RunDebug" shell script:
 
 <pre>   cd debug 
    ./RunDebug</pre>
-
-If you elect to get the non-debug version, 
-<b>control-click</b> this link: <a href=Chandler_osx_dev_release_XYZZY.tar.gz>Chandler_osx_dev_release_XYZZY.tar.gz</a>, select "Download..." or "Save link target..." in the pop-up menu, and save this distribution file to the "osaf/chandler" directory that you checked out of CVS.  <b>Make sure StuffIt doesn't unpack the file because it can cause problems; we're investigating why.</b>
-<p>
-Open up a Terminal window and cd to your "osaf/chandler" directory.  Some browsers will save the file as Chandler_osx_dev_release_XYZZY.tar.gz and some will save it as Chandler_osx_dev_release_XYZZY.tar.  If your file ends in .tar.gz type the following:
-
-<pre>   tar zxf Chandler_osx_dev_release_XYZZY.tar.gz</pre>
-
-If your file ends in .tar type:
-
-<pre>   tar xf Chandler_osx_dev_release_XYZZY.tar</pre>
-
-This will create a "release" subdirectory under osaf/chandler.  <p>
-
-To run Chandler using the binaries you just downloaded, cd into the "release" directory and run the "RunRelease" shell script:
-
-<pre>   cd release
-   ./RunRelease</pre>
-
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
 <br>
@@ -227,23 +169,12 @@ To run Chandler using the binaries you just downloaded, cd into the "release" di
 
 <hr>
 <a name=devbinwin></a> &nbsp; <br>
-<h2>Pre-Built-Libraries Distribution: <i>Windows</i></h2>
+<h2>Developers' Pre-Compiled Distribution: <i>Windows</i></h2>
 
-First, get Chandler's Python source by checking out the <b>chandler-app</b> module using CVS.  For CVS information, see our page about <a href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>getting Chandler source</a>.
-
+Download <a href=Chandler_win_dev_debug_XYZZY.zip>Chandler_win_dev_debug_XYZZY.zip</a> and copy the "Chandler" and "debug" directories it contains to your disk.
 <p>
-
-Next, decide whether you want to run the debug version of the required components (Python, wxPython, etc.).  <p>
-
-If you want the debug version, 
-download <a href=Chandler_win_dev_debug_XYZZY.zip>Chandler_win_dev_debug_XYZZY.zip</a> and copy the "debug" directory it contains to the "osaf/chandler" directory that you checked out of CVS.  
+To run Chandler, double-click the RunDebug.bat file in the "debug" directory.
 <p>
-To run Chandler, double-click the RunDebug.bat file in the osaf/chandler/debug directory.
-<p>
-If you elect to get the non-debug version, 
-download <a href=Chandler_win_dev_release_XYZZY.zip>Chandler_win_dev_release_XYZZY.zip</a> and copy the "release" directory it contains to the "osaf/chandler" directory that you checked out of CVS.  
-<p>
-To run Chandler, double-click the RunRelease.bat file in the osaf/chandler/release directory.
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
