@@ -132,6 +132,7 @@ class String(Type):
         generator.cdataSection(value)
 
     def _compareTypes(self, other):
+
         return -1
 
 
@@ -275,6 +276,17 @@ class UUID(Type):
 
         return self.getRepository()[value]
 
+    def _compareTypes(self, other):
+
+        if other._name == 'None':
+            return 1
+        elif self._name < other._name:
+            return -1
+        elif self._name > other._name:
+            return 1
+
+        return 0
+
 
 class SingleRef(Type):
 
@@ -305,6 +317,17 @@ class SingleRef(Type):
     def eval(self, value):
 
         return self.getRepository()[value.getUUID()]
+
+    def _compareTypes(self, other):
+
+        if other._name == 'None':
+            return 1
+        elif self._name < other._name:
+            return -1
+        elif self._name > other._name:
+            return 1
+
+        return 0
 
 
 class Path(Type):
@@ -339,6 +362,17 @@ class Path(Type):
 
         return item
 
+    def _compareTypes(self, other):
+
+        if other._name == 'None':
+            return 1
+        elif self._name < other._name:
+            return -1
+        elif self._name > other._name:
+            return 1
+
+        return 0
+
 
 class NoneType(Type):
 
@@ -356,6 +390,9 @@ class NoneType(Type):
 
     def recognizes(self, value):
         return value is None
+
+    def _compareTypes(self, other):
+        return -1
 
 
 class Class(Type):

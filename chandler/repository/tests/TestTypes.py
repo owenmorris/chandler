@@ -118,6 +118,10 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 
     def _makeValidValues(self):
         """ create valid values of appropriate types"""
+
+        class myStruct(object):
+            __slots__ = ('name', 'rank')
+            
         self.uuid = self.attrKind.getUUID()
         self.uuidString = str(self.uuid)
         self.pathString = '//Schema/Core/Item'
@@ -133,8 +137,11 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         
         self.enum = self.types['Enumeration'].newItem('myEnum', self.rep)
         self.enum.values = ['red', 'green', 'blue']
-        self.struct = self.types['Struct'].newItem('myStruct', self.rep)
-        self.struct.fields=['name','rank']
+
+        self.structType = self.types['Struct'].newItem('myStruct', self.rep)
+        self.structType.fields=['name','rank']
+        self.structType.implementationTypes = {'python': myStruct }
+        self.struct = myStruct()
 
         self.text = self.types['Text'].makeValue("aba;dsjfa;jfdl;ajru87z.vncxyt89q47654", 'utf-8', 'text/plain')
         self.binary = self.types['Binary'].makeValue('znxc.verq98347dszf', 'text/plain')
@@ -280,8 +287,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         typeKind = self._find('//Schema/Core/Type')
 
         # build up lists of types as expected values for findTypes calls
-        stringTypes = [ self.types['String'], self.types['Binary'],
-                        self.types['Symbol'], self.types['Text'] ]
+        stringTypes = [ self.types['String'], self.types['Symbol'] ]
         integerTypes = [ self.types['Integer'], self.types['Long'],
                          self.types['Float'] ]
         floatTypes = [ self.types['Float'] ]
@@ -290,7 +296,6 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         singleRefTypes = [ self.types['SingleRef'] ]
         uuidTypes = [ self.types['UUID'] ]
         pathTypes = [ self.types['Path'] ]
-        #@@@ is this one (noneTypes) right?
         noneTypes = [ self._find('//Schema/Core/None'), self.types['Path'], self.types['SingleRef'], self.types['UUID'] ]
         classTypes = [ self.types['Class'] ]
         enumTypes = [ self.types['Enumeration'] ]
@@ -321,12 +326,11 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 
         for v in values:
             foundTypes = typeKind.findTypes(v)
-            if foundTypes != values[v]:
-                print v
-                print foundTypes
-                print values[v]
-                print foundTypes == values[v]
-                print "=============="
+            print 'v', v
+            print 'foundTypes', foundTypes
+            print 'values[v]', values[v]
+            print 'equals ?', foundTypes == values[v]
+            print "=============="
             if values[v] != self.relativeDateTime:
                 self.assertEquals(foundTypes, values[v])
 
