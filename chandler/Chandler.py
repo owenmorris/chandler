@@ -9,10 +9,12 @@
 from wxPython.wx import *
 from wxPython.xrc import *
 
+import cal.CalendarView
+
 class MyFrame(wxFrame):
     def __init__(self, parent, id, title,
-        pos = wxPyDefaultPosition, size = wxPyDefaultSize,
-        style = wxDEFAULT_FRAME_STYLE ):
+                 pos = wxPyDefaultPosition, size = wxPyDefaultSize,
+                 style = wxDEFAULT_FRAME_STYLE ):
         wxFrame.__init__(self, parent, id, title, pos, size, style)
 
         resources = wxXmlResource ("resources/resources.xrc")
@@ -23,6 +25,7 @@ class MyFrame(wxFrame):
         self.SetStatusText("Welcome!")
         
         # insert main window here
+        view = cal.CalendarView.CalendarView(self)
         
         # WDR: handler declarations for MyFrame
         EVT_MENU(self, wxID_ABOUT, self.OnAbout)
