@@ -158,11 +158,15 @@ class RSSItem(ContentItem):
             Returns True if the two items are the same, False otherwise
         """
         try:
+            haveLocalDate = self.hasLocalAttributeValue('date')
+            haveFeedDate = 'date' in feedItem
+            
             # not every item has a date, so if neither item has a date, then
             # in a sense their dates are equivalent
             if self.displayName == feedItem.title and \
-                (('date' not in feedItem and not self.hasLocalAttributeValue('date')) or \
-                 (self.date == mx.DateTime.DateTimeFrom(str(feedItem.date)))):
+                ((haveFeedDate and haveLocalDate and \
+                  self.date == mx.DateTime.DateTimeFrom(str(feedItem.date))) or \
+                  not haveFeedDate and not haveLocalDate):
                 return True
             else:
                 return False
