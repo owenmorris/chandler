@@ -99,15 +99,17 @@ class Component:
         resourceLocation, menuName = resourceInfo
         self._resource = wxXmlResource(resourceLocation)
         self.data["ComponentMenu"] = self._resource.LoadMenu(menuName)
-        
+
         self._xmlHandler = ComponentXmlHandler(self, self._frame)
         self._xmlHandler.Load(resourceLocation)
         
-    def Unload(self):
+    def Unload(self, isActive = false):
         """Called when the component is no longer needed.  Deallocate any
         memory and do whatever necessary cleanup."""
-        pass
-
+        self._resource.Destroy()
+        if not isActive:
+            self.data["ComponentMenu"].Destroy()
+            
     def Activate(self):
         """Called when the component has been selected.  Do whatever is
         necessary to be prepared to display."""

@@ -142,7 +142,7 @@ class MenuBar:
                 
     # File menu methods
     def __OnNewViewer(self, event):
-        self._parent.NewViewer()
+        self._parent.MenuNewEvent()
 
     def __OnImportSpool(self, event):
         pass
@@ -151,7 +151,7 @@ class MenuBar:
         self._parent.Close(true)
 
     def __OnQuit(self, event):
-        self._parent.Quit()
+        self._parent.MenuQuitEvent()
 
     # Edit menu methods
     def __OnUndo(self, event):
