@@ -1,105 +1,6 @@
-Index: twisted/internet/m2ssl.py
-===================================================================
---- twisted/internet/m2ssl.py	(revision 0)
-+++ twisted/internet/m2ssl.py	(revision 0)
-@@ -0,0 +1,94 @@
-+# Copyright (C) 2004 Open Source Applications Foundation
-+# Auhor: Heikki Toivonen (heikki@osafoundation.org)
-+#
-+# This library is free software; you can redistribute it and/or
-+# modify it under the terms of version 2.1 of the GNU Lesser General Public
-+# License as published by the Free Software Foundation.
-+#
-+# This library is distributed in the hope that it will be useful,
-+# but WITHOUT ANY WARRANTY; without even the implied warranty of
-+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+# Lesser General Public License for more details.
-+#
-+# You should have received a copy of the GNU Lesser General Public
-+# License along with this library; if not, write to the Free Software
-+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+
-+# Import with different name so that we can call the base class methods.
-+from M2Crypto.SSL import Connection as SSLConnection
-+
-+class Connection(SSLConnection):
-+    """
-+    A connection object modelled after PyOpenSSL's Connection object that
-+    Twisted is used to. Only provides methods that Twisted actually uses,
-+    and which need to be different from the normal
-+    M2Crypto.SSL.Connection object.
-+
-+    Documentation for M2Crypto's Connection object is here:
-+    http://sandbox.rulemaker.net/ngps/Dist/api/public/M2Crypto.SSL.Connection.Connection-class.html
-+
-+    Documentation for PyOpenSSL's Connection object is here:
-+    http://pyopenssl.sourceforge.net/pyOpenSSL.html/openssl-connection.html
-+    """
-+
-+    def close(self):
-+        # M2Crypto.SSL.Connection has a different close().
-+        self.socket.close()
-+
-+    def shutdown(self, how=2):
-+        # M2Crypto.SSL.Connection has a different shutdown().
-+        SSLConnection.close(self)
-+
-+    def sock_shutdown(self, how):
-+        # M2Crypto.SSL.Connection does not have this method.
-+        self.socket.shutdown(how)
-+
-+    def connect_ex(self, addr):
-+        # M2Crypto.SSL.Connection does not have this method.
-+        # Not sure if this method is actually used.
-+        ret = self.socket.connect_ex(addr)
-+        if ret == 0:
-+            self.addr = addr
-+            self.set_connect_state()
-+        return ret
-+
-+    def get_peer_certificate(self):
-+        # M2Crypto.SSL.Connection has a differently named method.
-+        return self.get_peer_cert()
-+
-+    def __getattr__(self, name):
-+        # If this object does not have the attribute asked for, we try
-+        # to delegate to socket, and fail if the socket does not have
-+        # the attribute. M2Crypto.SSL.Connection() does not do this.
-+        # Not sure if this method is actually used.
-+        if hasattr(self.socket, name):
-+            return self.socket.__dict__[name]
-+        raise AttributeError
-+
-+    def set_connect_state(self):
-+        # Need to do extra work to setup internal state.
-+        self.setup_ssl()
-+        SSLConnection.set_connect_state(self)
-+        self.connect_ssl()
-+
-+    def set_accept_state(self):
-+        # Need to do extra work to setup internal state.
-+        self.setup_ssl()
-+        SSLConnection.set_accept_state(self)
-+        self.accept_ssl()
-+
-+    def accept(self):
-+        # Need to create this Connection object.
-+        sock, addr = self.socket.accept()
-+        ssl = Connection(self.ctx, sock)
-+        ssl.addr = addr
-+        ssl.set_accept_state()
-+        return ssl, addr
-+
-+    def send(self, data):
-+        # M2Crypto.SSL.Connection.send() raises exception with empty data.
-+        if not data:
-+            return 0
-+        return self._write_bio(data)
-+
-+__all__ = ["Connection"]
 Index: twisted/internet/ssl.py
 ===================================================================
---- twisted/internet/ssl.py	(revision 11277)
+--- twisted/internet/ssl.py	(revision 11245)
 +++ twisted/internet/ssl.py	(working copy)
 @@ -2,6 +2,9 @@
  # Twisted, the Framework of Your Internet
@@ -111,53 +12,126 @@ Index: twisted/internet/ssl.py
  # This library is free software; you can redistribute it and/or
  # modify it under the terms of version 2.1 of the GNU Lesser General Public
  # License as published by the Free Software Foundation.
-@@ -44,7 +47,16 @@
+@@ -15,8 +18,13 @@
+ # License along with this library; if not, write to the Free Software
+ # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ 
+-"""SSL transport. Requires PyOpenSSL (http://pyopenssl.sf.net).
++"""SSL transport.
+ 
++Requires PyOpenSSL (http://pyopenssl.sf.net) or alternatively
++M2Crypto (http://sandbox.rulemaker.net/ngps/m2/). PyOpenSSL is the default.
++To use M2Crypto, set the optional 'useM2' parameter to True when creating
++the context factory.
++
+ SSL connections require a ContextFactory so they can create SSL contexts.
+ End users should only use the ContextFactory classes directly - for SSL
+ connections use the reactor.connectSSL/listenSSL and so on, as documented
+@@ -44,7 +52,26 @@
  supported = False
  
  # System imports
 -from OpenSSL import SSL
++
++# Tricks that enable us to import both PyOpenSSL and M2Crypto.
 +try:
 +    from OpenSSL import SSL
 +except:
-+    from M2Crypto import SSL
++    SSL = None
++
++try:
 +    import m2ssl
-+    SSL.Connection = m2ssl.Connection
-+    SSL.SSLv23_METHOD = 'sslv23'
-+    SSL.SSLv3_METHOD = 'sslv3'
-+    SSL.TLSv1_METHOD = 'tlsv1'
-+    
++    if not SSL:
++        from M2Crypto import SSL
++        SSL.SSLv2_METHOD  = 'sslv2'        
++        SSL.SSLv23_METHOD = 'sslv23'
++        SSL.SSLv3_METHOD  = 'sslv3'
++        SSL.TLSv1_METHOD  = 'tlsv1'
++except:
++    if not SSL:
++        raise
++
++
  import socket
  from zope.interface import implements, implementsOnly, implementedBy
  
-@@ -106,6 +118,16 @@
+@@ -60,6 +87,7 @@
+     """A factory for SSL context objects, for server SSL connections."""
+ 
+     isClient = 0
++    useM2    = 0
+ 
+     def getContext(self):
+         """Return a SSL.Context object. override in subclasses."""
+@@ -69,16 +97,21 @@
+ class DefaultOpenSSLContextFactory(ContextFactory):
+ 
+     def __init__(self, privateKeyFileName, certificateFileName,
+-                 sslmethod=SSL.SSLv23_METHOD):
++                 sslmethod=SSL.SSLv23_METHOD, useM2=0):
+         self.privateKeyFileName = privateKeyFileName
+         self.certificateFileName = certificateFileName
+         self.sslmethod = sslmethod
++        self.useM2 = useM2
+         self.cacheContext()
+ 
+     def cacheContext(self):
+-        ctx = SSL.Context(self.sslmethod)
+-        ctx.use_certificate_file(self.certificateFileName)
+-        ctx.use_privatekey_file(self.privateKeyFileName)
++        if self.useM2:
++            ctx = m2ssl.Context(self.sslmethod)
++            ctx.load_cert(self.certificateFileName, self.privateKeyFileName)
++        else:
++            ctx = SSL.Context(self.sslmethod)
++            ctx.use_certificate_file(self.certificateFileName)
++            ctx.use_privatekey_file(self.privateKeyFileName)
+         self._context = ctx
+ 
+     def __getstate__(self):
+@@ -100,9 +133,15 @@
+     """A context factory for SSL clients."""
+ 
+     isClient = 1
+-    method = SSL.SSLv3_METHOD
++    useM2    = 0
++    method   = SSL.SSLv3_METHOD
+ 
++    def __init__(self, useM2=0):
++        self.useM2 = useM2
++
+     def getContext(self):
++        if self.useM2:
++            return m2ssl.Context(self.method)
          return SSL.Context(self.method)
  
  
-+class M2ClientContextFactory(ClientContextFactory):
-+    """A context factory for M2Crypto-based SSL clients."""
-+
-+    isClient = 1
-+    method = 'sslv3'
-+
-+    def getContext(self):
-+        return SSL.Context(self.method)
-+
-+
- class Client(tcp.Client):
-     """I am an SSL client."""
+@@ -161,16 +200,21 @@
+         tcp.Port.__init__(self, port, factory, backlog, interface, reactor)
+         self.ctxFactory = ctxFactory
  
-@@ -189,6 +211,7 @@
-         return address.IPv4Address('TCP', self.host, self.port, 'SSL')
-  
++    def _useM2(self):
++        return hasattr(self.ctxFactory, 'useM2') and self.ctxFactory.useM2
++
+     def createInternetSocket(self):
+         """(internal) create an SSL socket
+         """
+         sock = tcp.Port.createInternetSocket(self)
++        if self._useM2():
++            return m2ssl.Connection(self.ctxFactory.getContext(), sock)
+         return SSL.Connection(self.ctxFactory.getContext(), sock)
  
--__all__ = ["ContextFactory", "DefaultOpenSSLContextFactory", "ClientContextFactory"]
-+__all__ = ["ContextFactory", "DefaultOpenSSLContextFactory",
-+           "ClientContextFactory", "M2ClientContextFactory"]
+     def _preMakeConnection(self, transport):
+         # *Don't* call startTLS here
+         # The transport already has the SSL.Connection object from above
+-        transport._startTLS()
++        transport._startTLS(self._useM2())
+         return tcp.Port._preMakeConnection(self, transport)
  
- supported = True
+ 
 Index: twisted/internet/abstract.py
 ===================================================================
---- twisted/internet/abstract.py	(revision 11277)
+--- twisted/internet/abstract.py	(revision 11245)
 +++ twisted/internet/abstract.py	(working copy)
 @@ -1,6 +1,9 @@
  # Twisted, the Framework of Your Internet
@@ -186,7 +160,7 @@ Index: twisted/internet/abstract.py
                      return
 Index: twisted/internet/tcp.py
 ===================================================================
---- twisted/internet/tcp.py	(revision 11277)
+--- twisted/internet/tcp.py	(revision 11245)
 +++ twisted/internet/tcp.py	(working copy)
 @@ -2,6 +2,9 @@
  # Twisted, the Framework of Your Internet
@@ -198,29 +172,48 @@ Index: twisted/internet/tcp.py
  # This library is free software; you can redistribute it and/or
  # modify it under the terms of version 2.1 of the GNU Lesser General Public
  # License as published by the Free Software Foundation.
-@@ -42,8 +45,20 @@
+@@ -40,11 +43,30 @@
+     fcntl = None
+ from zope.interface import implements, classImplements
  
++# Tricks that enable us to import both PyOpenSSL and M2Crypto.
  try:
      from OpenSSL import SSL
 +    # Dummies, not used for anything with PyOpenSSL
 +    class DummyPyOpenSSLError(Exception): pass
 +    SSL.SSLError = DummyPyOpenSSLError
  except ImportError:
--    SSL = None
-+    try:
+     SSL = None
+ 
++try:
++    import m2ssl
++    if not SSL:
 +        from M2Crypto import SSL
-+        from M2Crypto.Err import SSLError
-+        import m2ssl
-+        SSL.Connection = m2ssl.Connection
 +        # Dummies, not used for anything with M2Crypto
 +        class DummyM2CryptoError(Exception): pass
 +        SSL.SysCallError = SSL.WantReadError = SSL.WantWriteError = SSL.ZeroReturnError = SSL.Error = DummyM2CryptoError
-+    except:
-+        SSL = None
- 
++    else:
++        # Don't want to import all of M2Crypto.SSL and stomp over PyOpenSSL
++        from M2Crypto.SSL import SSLError
++        SSL.SSLError = SSLError
++except:
++    pass
++
++
  if os.name == 'nt':
      # we hardcode these since windows actually wants e.g.
-@@ -151,6 +166,9 @@
+     # WSAEALREADY rather than EALREADY. Possibly we should
+@@ -115,6 +137,9 @@
+         except SSL.Error:
+             log.err()
+             return main.CONNECTION_LOST
++        except SSL.SSLError:
++            log.err()
++            return main.CONNECTION_LOST
+ 
+     def loseConnection(self):
+         Connection.loseConnection(self)
+@@ -151,6 +176,9 @@
          except SSL.Error:
              log.err()
              return main.CONNECTION_LOST
@@ -230,7 +223,38 @@ Index: twisted/internet/tcp.py
  
      def _closeSocket(self):
          try:
-@@ -251,6 +269,14 @@
+@@ -204,20 +232,26 @@
+         self.socket.setblocking(0)
+         self.fileno = skt.fileno
+         self.protocol = protocol
++        self.useM2 = 0
+ 
+     if SSL:
+-
++        
+         def startTLS(self, ctx):
+             assert not self.TLS
+             self.stopReading()
+             self.stopWriting()
+-            self._startTLS()
+-            self.socket = SSL.Connection(ctx.getContext(), self.socket)
++            useM2 = hasattr(ctx, 'useM2') and ctx.useM2
++            self._startTLS(useM2)
++            if useM2:
++                self.socket = m2ssl.Connection(ctx.getContext(), self.socket)
++            else:
++                self.socket = SSL.Connection(ctx.getContext(), self.socket)
+             self.fileno = self.socket.fileno
+             self.startReading()
+ 
+-        def _startTLS(self):
++        def _startTLS(self, useM2):
+             self.TLS = 1
++            self.useM2 = useM2
+             klass = self.__class__
+             class TLSConnection(_TLSMixin, klass):
+                 implements(interfaces.ISSLTransport)
+@@ -251,6 +285,14 @@
              if retval == -1 and desc == 'Unexpected EOF':
                  return main.CONNECTION_DONE
              raise
@@ -240,14 +264,14 @@ Index: twisted/internet/tcp.py
 +            if str(m2err) == 'unexpected eof':
 +                return main.CONNECTION_DONE
 +            raise
-+        if data is None and m2ssl and self.TLS:
++        if data is None and self.useM2:
 +            return # M2Crypto told us not to hang up yet!
          if not data:
              return main.CONNECTION_DONE
          return self.protocol.dataReceived(data)
 Index: twisted/mail/protocols.py
 ===================================================================
---- twisted/mail/protocols.py	(revision 11142)
+--- twisted/mail/protocols.py	(revision 11245)
 +++ twisted/mail/protocols.py	(working copy)
 @@ -2,6 +2,9 @@
  # Twisted, the Framework of Your Internet
