@@ -1109,12 +1109,26 @@ def copyFile(srcfile, destdir):
 
 def copyFiles(srcdir, destdir, patterns):
     for pattern in patterns:
-        matches = glob.glob(os.path.join(srcdir,pattern))
+        matches = glob.glob(os.path.join(srcdir, pattern))
         for match in matches:
             if os.path.isfile(match):
                 if not os.path.exists(destdir):
                     _mkdirs(destdir)
                 shutil.copy(match, destdir)
+
+def copyTree(srcdir, destdir, patterns):
+    for pattern in patterns:
+        matches = glob.glob(os.path.join(srcdir, pattern))
+        for match in matches:
+            if os.path.isfile(match):
+                if not os.path.exists(destdir):
+                    _mkdirs(destdir)
+                shutil.copy(match, destdir)
+    for name in os.listdir(srcdir):
+        fullpath = os.path.join(srcdir, name)
+        if os.path.isdir(fullpath):
+            copyTree(fullpath, os.path.join(destdir, name), patterns)
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # CVS-cleaning methods
