@@ -132,6 +132,13 @@
             <initialValue ref="None" />
         </Attribute>
 
+        <Attribute itsName="replyToAddress">
+            <displayName value="Reply-To Address" />
+            <type ref="mail:EmailAddress" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:EmailAddress/accounts" />
+        </Attribute>
+
     </Kind>
 
     <Kind itsName="SMTPAccount">
@@ -174,13 +181,6 @@
             <description value="A first and last name which will get included in the From: header of outgoing mail" />
             <type ref="String" />
             <initialValue ref="None" />
-        </Attribute>
-
-        <Attribute itsName="replyToAddress">
-            <displayName value="Reply-To Address" />
-            <type ref="mail:EmailAddress" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:EmailAddress/accounts" />
         </Attribute>
 
         <Attribute itsName="accounts">
@@ -669,9 +669,9 @@
             <displayName value="Used as Return Address by Email Account" />
             <description value="A list of Email Accounts that use this Email Address as the reply address for mail sent from the account." />
             <cardinality value="list" />
-            <type ref="mail:SMTPAccount" />
+            <type ref="mail:IMAPAccount" />
             <initialValue />
-            <inverseAttribute ref="mail:SMTPAccount/replyToAddress" />
+            <inverseAttribute ref="mail:IMAPAccount/replyToAddress" />
         </Attribute>
 
         <Attribute itsName="messagesBcc">
