@@ -1,0 +1,138 @@
+
+body
+{
+    margin: 10px 10px 10px 10px;
+    background-color: #fff;
+    color: #333;
+    font-family:"Lucida Grande", verdana, lucida, helvetica, sans-serif;
+    font-size: x-small;
+    font-weight: normal;
+}
+
+table
+{
+    font-size: x-small;
+    border-right: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+}
+
+td
+{
+    border-left: 1px solid #ccc;
+}
+
+.path
+{
+    font-size: small;
+    padding-bottom: 5px;
+}
+
+.children
+{
+    font-size: small;
+    padding-top: 5px;
+    padding-bottom: 15px;
+}
+
+.itemname
+{
+    font-size: large;
+    font-weight: bold;
+}
+
+.header
+{
+    font-size: large;
+    font-weight: bold;
+    padding-bottom: 10px;
+}
+
+.subheader
+{
+    font-size: small;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.footer
+{
+    color: #888;
+    font-size: x-small;
+    padding-top: 5px;
+    text-align: right;
+}
+
+
+.toprow
+{
+    background-color: #ccc;
+    font-size: small;
+}
+
+.headingsrow
+{
+    background-color: #ddd;
+}
+
+.oddrow
+{
+    background-color: #eee;
+}
+
+.evenrow
+{
+    background-color: #fff;
+}
+
+ul
+{
+    list-style-type: circle;
+    margin: 0px;
+    padding-left: 15px;
+}
+
+.tree ul
+{
+    list-style-type: circle;
+    font-size: small;
+    margin: 0px;
+    padding-top: 3px;
+    padding-left: 15px;
+}
+
+.tree
+{
+    padding: 5px;
+    font-size: small; 
+}
+
+A
+{
+    text-decoration: none;
+}
+
+A:link
+{
+    # color: #119;
+    text-decoration: none;
+}
+
+A:visited
+{
+    # color: #dd4;
+    text-decoration: none;
+}
+
+A:active
+{
+    # color: #ff0;
+    text-decoration: underline;
+}
+
+A:hover
+{
+    # color: #ff0;
+    text-decoration: underline;
+}
+

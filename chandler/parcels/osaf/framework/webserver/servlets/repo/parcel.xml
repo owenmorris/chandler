@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itsName="repo"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:web="http://osafoundation.org/parcels/osaf/framework/webserver"
+        xmlns:serv="http://osafoundation.org/parcels/osaf/framework/webserver/servers"
+        xmlns:me="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/repo" >
+
+    <web:Resource itsName="repoResource">
+        <displayName value="Repository Viewer"/>
+        <location value="repo"/>
+        <resourceClass value="osaf.framework.webserver.servlets.repo.Repo.RepoResource"/>
+        <server itemref="serv:mainServer"/>
+    </web:Resource>
+
+</Parcel>

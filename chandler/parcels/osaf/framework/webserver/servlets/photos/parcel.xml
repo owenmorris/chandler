@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itsName="photos"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:web="http://osafoundation.org/parcels/osaf/framework/webserver"
+        xmlns:serv="http://osafoundation.org/parcels/osaf/framework/webserver/servers"
+        xmlns:me="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/photos" >
+
+    <Kind itsName="PhotoMixin">
+        <displayName value="Photo Mixin" />
+        <Attribute itsName="caption">
+            <cardinality value="single"/>
+            <type itemref="String"/>
+            <initialValue itemref="None"/>
+        </Attribute>
+        <Attribute itsName="about">
+            <redirectTo value="caption" />
+        </Attribute>
+        <Attribute itsName="date">
+            <redirectTo value="dateTaken" />
+        </Attribute>
+        <Attribute itsName="file">
+            <cardinality value="single"/>
+            <type itemref="String"/>
+            <initialValue itemref="None"/>
+        </Attribute>
+        <Attribute itsName="dateTaken">
+            <type itemref="DateTime"/>
+        </Attribute>
+    </Kind>
+
+    <Kind itsName="Photo">
+        <displayName value="Photo" />
+        <superKinds itemref="me:PhotoMixin"/>
+        <superKinds itemref="cm:Note"/>
+    </Kind>
+
+    <web:Resource itsName="photoResource">
+        <displayName value="Photo Viewer"/>
+        <location value="photos"/>
+        <resourceClass value="osaf.framework.webserver.servlets.photos.Photos.PhotosResource"/>
+        <server itemref="serv:mainServer"/>
+    </web:Resource>
+
+    <web:Directory itsName="mediaDirectory">
+        <location value="photomedia"/>
+        <path value="media"/>
+        <server itemref="serv:mainServer"/>
+    </web:Directory>
+
+</Parcel>
