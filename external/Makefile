@@ -1,5 +1,5 @@
 
-VERSION=0.3-6
+VERSION=0.3-7
 
 include Makefile.inc
 
@@ -17,6 +17,7 @@ SYSTEMS=persistence/db \
         egenix-mx \
         jabber-py \
         SOAPpy \
+        twisted \
         pychecker
 
 SOURCES=persistence/db/db-4.2.52.tar.gz \
@@ -36,6 +37,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         egenix-mx/egenix-mx-base-2.1.0.tar.gz \
         jabber-py/jabberpy0.4-0.tar.gz \
         SOAPpy/SOAPpy-0.10.2.tar.gz \
+        twisted/Twisted-1.3.0.tar.gz \
         pychecker/pychecker-0.8.13.tar.gz
 
 .PHONY: sources expand binaries $(SYSTEMS)
