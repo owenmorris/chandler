@@ -103,7 +103,7 @@ ifndef VS71COMNTOOLS
 	@echo VS71COMNTOOLS is not set, you do not have MSVC 7.1 installed
 	@false
 else
-	@if [ ! -d $(shell cygpath -u $$VS71COMNTOOLS) ]; then \
+	@if [ ! -d "$(shell cygpath -u $$VS71COMNTOOLS)" ]; then \
             echo VS71COMNTOOLS is not set properly; \
             false; \
         else \
