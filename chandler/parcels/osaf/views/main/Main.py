@@ -333,10 +333,22 @@ class MainView(View):
             self.setStatusMessage(errorMessage)
 
     def onImportIcalendarEvent(self, event):
-        # triggered from "Test | Import iCalendar" Menu
-        self.setStatusMessage ("Importing from import.ics")
+        # triggered from "File | Import/Export" menu
+        wildcard = "iCalendar files|*.ics|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose a file to import",
+                              "", "import.ics", wildcard,
+                              wx.OPEN | wx.CHANGE_DIR | wx.HIDE_READONLY)
+        if dlg.ShowModal() == wx.ID_OK:
+            (dir, filename) = os.path.split(dlg.GetPath())
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            self.setStatusMessage("Import aborted")
+            return
+            
+        self.setStatusMessage ("Importing from %s" % filename)
         try:
-            share = Sharing.OneTimeFileSystemShare('.', 'import.ics',
+            share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             share.get()
             self.setStatusMessage ("Import completed")
@@ -346,11 +358,24 @@ class MainView(View):
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
-        # triggered from "Test | Export Events as iCalendar" Menu
+        # triggered from "File | Import/Export" Menu
+
+        wildcard = "iCalendar files|*.ics|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose filename to export to",
+                              "", "export.ics", wildcard,
+                              wx.SAVE | wx.CHANGE_DIR | wx.OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            (dir, filename) = os.path.split(dlg.GetPath())
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            self.setStatusMessage("Export aborted")
+            return
+
         eventKind = Calendar.CalendarEvent.getKind(self.itsView)
-        self.setStatusMessage ("Exporting to export.ics")
+        self.setStatusMessage ("Exporting to %s" % filename)
         try:
-            share = Sharing.OneTimeFileSystemShare('.', 'export.ics',
+            share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = ItemCollection(view=self.itsView)
             events = KindQuery().run([eventKind])
