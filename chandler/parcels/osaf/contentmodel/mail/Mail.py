@@ -514,11 +514,25 @@ class EmailAddress(Item.Item):
         
     def getEmailAddress (cls, nameOrAddressString, fullName=''):
         """
-          Lookup or create an EmailAddress based
-        on the supplied string.
-        @param nameOrAddressString: emailAddress string, or fullName for lookup
+          Lookup or create an EmailAddress based on the supplied string.
+        If a matching EmailAddress object is found in the repository, it
+        is returned.  If there is no match, then a new item is created
+        and returned.  
+        There are two ways to call this method:
+            1) with something the user typed in nameOrAddressString, which
+                 will be parsed, and no fullName is needed
+            2) with an plain email address in the nameOrAddressString, and a 
+                 full name in the fullName field
+        If a match is found for both name and address then it will be used.
+        If there is no name specified, a match on address will be returned.
+        If there is no address specified, a match on name will be returned.
+        If both name and address are specified, but there's no entry that
+          matches both, then a new entry is created.
+        @param nameOrAddressString: emailAddress string, or fullName for lookup,
+           or both in the form "name <address>"
         @type nameOrAddressString: C{String}
-        @param fullName: explict fullName to use when a new item is created
+        @param fullName: optional explict fullName when not using the
+           "name <address>" form of the nameOrAddressString parameter
         @type fullName: C{String}
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
                not a valid email address.
@@ -532,30 +546,46 @@ class EmailAddress(Item.Item):
         if address == 'me':
             return cls.getCurrentMeEmailAddress ()
 
-        # if no fullName specified, parse apart the fullName and emailAddress if we can
-        if fullName == '':
+        # if no fullName specified, parse apart the name and address if we can
+        if fullName != '':
+            name = fullName
+        else:
             try:
                 address.index ('<')
             except ValueError:
-                pass
+                name = address
             else:
-                fullName, address = address.split ('<')
+                name, address = address.split ('<')
                 address = address.strip ('>').strip ()
-                fullName = fullName.strip ()
+                name = name.strip ()
+                # ignore a name of "me"
+                if name == 'me':
+                    name = ''
 
-        # check if it looks like a valid email address
+        # check if the address looks like a valid emailAddress
         isValidAddress = message.isValidEmailAddress (address)
+        if not isValidAddress:
+            address = None
 
+        """
+        At this point we should have:
+            name - the name to search for, or ''
+            address - the address to search for, or None
+        If the user specified a single word which could also be a valid
+        email address, we could have that word in both the address and
+        name variables.
+        """
         # DLDTBD - switch on the better queries
-        # Need to override compare operators to use emailAddressesAreEqual, etc
+        # Need to override compare operators to use emailAddressesAreEqual, 
+        #  deal with name=='' cases, name case sensitivity, etc
         useBetterQuery = False
         if useBetterQuery:
 
             # get all addresses whose emailAddress or fullName match the param
             queryString = u'for i in "//parcels/osaf/contentmodel/mail/EmailAddress" \
-                          where i.emailAddress =="$0" or i.fullName =="$0"'
+                          where i.emailAddress =="$0" or i.fullName =="$1"'
             addrQuery = Query.Query (Globals.repository, queryString)
-            addrQuery.args = [ address ]
+            addrQuery.args = [ address, name ]
             addresses = addrQuery
 
         else:
@@ -568,28 +598,39 @@ class EmailAddress(Item.Item):
                     if message.emailAddressesAreEqual(candidate.emailAddress, address):
                         # found an existing address!
                         addresses.append (candidate)
-                elif address != '' and address == candidate.fullName:
+                elif name != '' and name == candidate.fullName:
                     # full name match
                     addresses.append (candidate)
 
         # process the result(s)
+        # Hope for a match of both name and address
+        # fall back on a match of the address, then name
+        addressMatch = None
+        nameMatch = None
         for candidate in addresses:
             if isValidAddress:
                 if message.emailAddressesAreEqual(candidate.emailAddress, address):
-                    # found an existing address!
-                    if fullName != '':
-                        # update the fullname with what the caller supplied.
-                        candidate.fullName = fullName
-                    return candidate
-            elif address == candidate.fullName:
+                    # found an existing address match
+                    addressMatch = candidate
+            if name != '' and name == candidate.fullName:
                 # full name match
-                return candidate
+                nameMatch = candidate
+                if addressMatch is not None:
+                    # matched both
+                    return addressMatch
         else:
+            # no double-matches found
+            if name == address:
+                name = ''
+            if addressMatch is not None and name == '':
+                return addressMatch
+            if nameMatch is not None and address is None:
+                return nameMatch
             if isValidAddress:
                 # make a new EmailAddress
                 newAddress = EmailAddress()
                 newAddress.emailAddress = address
-                newAddress.fullName = fullName
+                newAddress.fullName = name
                 return newAddress
             else:
                 return None
