@@ -254,3 +254,31 @@ class InputStreamReader(object):
 
         self.inputStream.close()
 
+
+class StringReader(object):
+
+    def __init__(self, unicodeText):
+
+        super(StringReader, self).__init__()
+        self.unicodeText = unicodeText
+
+    def read(self, length = -1):
+
+        text = self.unicodeText
+        if text is None:
+            return None
+        
+        if length >= len(text):
+            length = -1
+            
+        if length == -1:
+            self.unicodeText = None
+            return text
+
+        text = text[0:length]
+        self.unicodeText = self.unicodeText[length:]
+
+        return text
+
+    def close(self):
+        pass
