@@ -54,14 +54,18 @@ And content items' importance is an enumeration of possible values::
     >>> sorted(Importance)
     [Importance.fyi, Importance.important, Importance.normal]
 
-Finally, content items can have a "body"::
+Content items can have a ``body``::
 
     >>> item.body = "You're no-body till you have a body"
     >>> item.body
     "You're no-body till you have a body"
 
+and a ``creator``, which must be a ``Contact``::
 
-XXX can't demo "creator" until we have Contacts
+    >>> from pim.content import Contact
+    >>> item.creator = Contact(emailAddress="foo@example.com")
+    >>> print item.creator
+    foo@example.com
 
 
 Action Stamps
@@ -166,11 +170,50 @@ Stamping Operations
         >>> item.unstamp(OtherStamp)
 
 
+Contacts
+========
+
+A contact is a ``pim.content.Item`` that represents a person::
+
+    >>> me = Contact(
+    ...     firstName="Phillip", lastName="Eby", emailAddress="pje@example.com"
+    ... )
+
+and its display name is its email address::
+
+    >>> me.displayName
+    'pje@example.com'
+
+
 ----------------------
 The Application object
 ----------------------
 
-XXX can't demo this effectively until Contacts implemented
+The ``pim.content.Application`` class represents the application as a whole.
+Currently, its sole purpose is to serve as an anchor for application
+configuration relationships, where one needs to find a special instance of some
+type.  For example, the ``Contact`` that represents the user of the application
+can be stored in an ``Application`` instance's ``user`` attribute::
 
     >>> from pim.content import Application
+    >>> thisApp = Application(user = me)
+
+To do something similar for a new type, you just need to create a relationship
+between that type and ``Application``:
+
+    >>> class Account(Item): """Dummy type for illustration purposes"""
+    >>> acct = Account()
+
+    >>> from spike import schema
+    >>> class CurrentAccount(schema.Relationship):
+    ...     app = schema.One(Application)
+    ...     account = schema.One(Account)
+
+    >>> CurrentAccount.account.of(thisApp)
+    Set([], type=Account)
+
+    >>> CurrentAccount.account.of(thisApp).add(acct)
+
+    >>> CurrentAccount.account.of(thisApp)
+    Set([<Account object at ...>], type=Account)
 

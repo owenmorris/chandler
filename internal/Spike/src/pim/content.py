@@ -42,9 +42,10 @@ from datetime import datetime
 # XXX temporary hacks
 Lob = str
 DateTime = datetime
+String = basestring
 
 __all__ = [
-    'Importance', 'Item', 'Stamp', 'Note', 'Application'
+    'Importance', 'Item', 'Contact', 'Application', 'Stamp',
 ]
 
 
@@ -130,7 +131,7 @@ class Item(Base):
                         "Only one %r stamp allowed per content item" %
                         cls.__name__
                     )
-        
+
 
     def get_stamp(self,type):
         """Return stamp of `type` (active or inactive), or ``None``"""
@@ -186,8 +187,41 @@ class Stamp(Base):
             raise TypeError("A stamp's content item cannot be changed")
 
 
-class Application(schema.Entity):
-    user = schema.One(
+class Contact(Item):
+    """An entry in an address book
+
+    Typically represents either a person or a company.
+
+    Issues: We might want to keep track of lots of sharing information like
+    'Permissions I've given them', 'Items of mine they've subscribed to',
+    'Items of theirs I've subscribed to', etc.
+    """
+
+    @Base.displayName.loader
+    def _loadName(self,linkset):
+        """Use a contact's email address as its displayName"""
+        return Contact.emailAddress.of(self)
+
+    firstName = schema.One(String, default="")
+    lastName = schema.One(String, default="")
+
+    #contactName = schema.One(String)
+    #@contactName.loader
+    #def _loadContactName(self,linkset):
+    #   compute contactName from first/last name
+
+
+    emailAddress = schema.One(String, default="")   # XXX
+
+    itemsCreated = schema.Many(Item,
+        displayName = "Items Created",
+        doc = "Content items created by this user.",
+        inverse = Item.creator
+    )
+
+
+class Application(Base):
+    user = schema.One(Contact,
         displayName = "Application User",
         doc = "The Contact that represents the application's user",
     )
