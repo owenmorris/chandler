@@ -170,7 +170,7 @@ class DynamicContainer(RefCollectionDictionary):
         """
         return item.blockName
     
-    def rebuildDynamicContainers(cls, startingAtBlock, dynamicChildBlock):
+    def rebuildDynamicContainers(cls, startingAtBlock, firstTime):
         """
            rebuildDynamicContainers rebuilds the dynamic
         container hierarchy based on the blocks it finds in
@@ -195,9 +195,9 @@ class DynamicContainer(RefCollectionDictionary):
 
         @param startingAtBlock: the starting block for the scan.
         @type startingAtBlock: C{Block}
-        @param dynamicChildBlock: a L{DynamicChild}, used to determine if
-                if we have every rebuilt the dynamic container hierarchy.
-        @type dynamicChildBlock: C{DynamicChild}
+        @param firstTime: a flag used to determine if
+                we should force a rebuilt the dynamic container hierarchy.
+        @type firstTime: C{Boolean}
         """
         
         def rebuildContainers(block, containers):
@@ -256,11 +256,10 @@ class DynamicContainer(RefCollectionDictionary):
                        assert (False)
         """
           Should we rebuild the dynamic container hierarchy?
-        Not needed if we already have a persisted hierarchy
+        Not needed if this is not the first time building
         and we're currently ignoring synchronize widget.
         """
-        if dynamicChildBlock.hasAttributeValue("dynamicParent") and \
-           Globals.wxApplication.ignoreSynchronizeWidget:
+        if not firstTime and Globals.wxApplication.ignoreSynchronizeWidget:
             return
         
         """

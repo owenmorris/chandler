@@ -108,6 +108,7 @@ class View(BoxContainer):
         to rebuild the Dynamic Containers.
         """
         import DynamicContainerBlocks as DynamicContainerBlocks
+        firstTime = Globals.activeView == None
         Globals.activeView = block
         while (block):
             for child in block.childrenBlocks:
@@ -115,7 +116,7 @@ class View(BoxContainer):
                     if block != Globals.mainView.lastDynamicParent:
                         Globals.mainView.lastDynamicParent = block
                         DynamicContainerBlocks.DynamicContainer.\
-                                              rebuildDynamicContainers(block, child)
+                                              rebuildDynamicContainers(block, firstTime)
                     return
             block = block.parentBlock
             
