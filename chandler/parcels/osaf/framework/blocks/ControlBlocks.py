@@ -475,7 +475,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         of a column, so need to remember to add the left/right borders when doing
         certain column width calculations
         """
-        _colBorderSize = wx.SystemSettings_GetMetric(wx.SYS_BORDER_X) * 2
+        self._colBorderSize = wx.SystemSettings_GetMetric(wx.SYS_BORDER_X) * 2
     
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
