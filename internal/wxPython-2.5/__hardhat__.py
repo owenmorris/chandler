@@ -130,8 +130,8 @@ def build(buildenv):
          'BUILD_GLCANVAS=0',
          'BUILD_BASE=build_%s' % version,
          'WX_CONFIG='+buildenv['root']+'/%s/bin/wx-config' % version,
-         'build_ext',
-         '--inplace',
+         'build',
+         'install',
         ]
         if version == "debug":
             buildOptions.append("--debug")
@@ -140,16 +140,7 @@ def build(buildenv):
             buildOptions.append("UNICODE=1")
 
         hardhatlib.executeCommand(buildenv, info['name'], buildOptions,
-         "Building wxPython")
-
-        installOptions = [
-         'setup.py',
-         'install',
-         'BUILD_BASE=build_%s' % version,
-        ]
-
-        hardhatlib.executeCommand(buildenv, info['name'], installOptions,
-         "Installing wxPython")
+         "Building and Installing wxPython")
 
 
     # Windows
@@ -214,46 +205,24 @@ def clean(buildenv):
 
     if buildenv['os'] == 'posix':
 
-        os.chdir("../wxPython")
-
-        if version == 'release':
-
-            buildDir=buildenv['root']+os.sep+'wxpython'+os.sep+'build_release'
-            if os.access(buildDir, os.F_OK):
-                hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-                 info['name'], 
-                 "Removing temporary build directory: " + buildDir)
-                hardhatlib.rmdir_recursive(buildDir)
-
-        elif version == 'debug':
-
-            buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_debug'
-            if os.access(buildDir, os.F_OK):
-                hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-                 info['name'], 
-                 "Removing temporary build directory: " + buildDir)
-                hardhatlib.rmdir_recursive(buildDir)
+        buildDir=os.path.abspath("build_%s" % version)
+ 
+        if os.access(buildDir, os.F_OK):
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+             info['name'], 
+             "Removing temporary build directory: " + buildDir)
+            hardhatlib.rmdir_recursive(buildDir)
 
 
     if buildenv['os'] == 'osx':
 
-        if version == 'release':
+        buildDir=os.path.abspath("build_%s" % version)
 
-            buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_release'
-            if os.access(buildDir, os.F_OK):
-                hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-                 info['name'], 
-                 "Removing temporary build directory: " + buildDir)
-                hardhatlib.rmdir_recursive(buildDir)
-
-        elif version == 'debug':
-
-            buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_debug'
-            if os.access(buildDir, os.F_OK):
-                hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-                 info['name'], 
-                 "Removing temporary build directory: " + buildDir)
-                hardhatlib.rmdir_recursive(buildDir)
+        if os.access(buildDir, os.F_OK):
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+             info['name'], 
+             "Removing temporary build directory: " + buildDir)
+            hardhatlib.rmdir_recursive(buildDir)
 
 
     if buildenv['os'] == 'win':
