@@ -4,15 +4,45 @@
 #
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/internal
+
+OS=$(shell uname)
+
+ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
+OS=Cygwin
+endif
+
+ifeq ($(findstring WINNT,$(OS)),WINNT)
+OS=Cygwin
+endif
+
 # When a version changes, the ARCHIVES lists below needs to be updated.
-#
 
 # these get installed into release or debug
-BIN_ARCHIVES=../$(SNAP)-0.4-1.tar.gz \
+BIN_ARCHIVES=../twisted-$(SNAP)-r11303-1.tar.gz \
+             ../pychecker-$(SNAP)-0.8.13-1.tar.gz \
+             ../soappy-$(SNAP)-0.10.2-1.tar.gz \
+             ../egenix-mx-base-$(SNAP)-2.1.0-1.tar.gz \
+             ../yapps-$(SNAP)-2.1.1-1.tar.gz \
+             ../zopeinterface-$(SNAP)-3.0.0b1-1.tar.gz \
+             ../jabberpy-$(SNAP)-0.4-0-1.tar.gz \
+             ../libxslt-$(SNAP)-1.1.2-1.tar.gz \
+             ../libxml2-$(SNAP)-2.6.10-1.tar.gz \
+             ../dbxml-$(SNAP)-1.2.1-1.tar.gz \
+             ../pathan-$(SNAP)-1.2-1.tar.gz \
+             ../xerces-c-$(SNAP)-2_4_0-1.tar.gz \
+             ../pylucene-$(SNAP)-0.6.2-1.tar.gz \
+             ../epydoc-$(SNAP)-2.1-1.tar.gz \
+             ../python-$(SNAP)-2.3.3-1.tar.gz \
+             ../db-$(SNAP)-4.2.52-1.tar.gz \
              ../wxPython-$(SNAP)-2.5.2.9-2.tar.gz \
              ../chandlerdb-$(SNAP)-0.4-1.tar.gz \
              ../m2crypto-$(SNAP)-0.12-2.tar.gz \
              ../Launchers-$(SNAP)-0.4-1.tar.gz
+
+# OpenSSL gets bundled into M2Crypto on Windows
+ifneq ($(OS),Cygwin)
+BIN_ARCHIVES += ../openssl-$(SNAP)-0.9.7d-1.tar.gz
+endif
 
 # these get installed into chandler
 HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-1.tar.gz
@@ -27,19 +57,9 @@ ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
 #
 # You can also replace curl with something else, for example wget:
 #   CURL="wget -r -P .. -nd"
+
 ifeq ($(CURL),)
 CURL=curl $(CHANDLER_CURL_OPTIONS) -o
-endif
-
-
-OS=$(shell uname)
-
-ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
-OS=Cygwin
-endif
-
-ifeq ($(findstring WINNT,$(OS)),WINNT)
-OS=Cygwin
 endif
 
 ifeq ($(DEBUG),1)
