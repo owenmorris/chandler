@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, unittest
 
 from bsddb.db import DBNoSuchFileError
+from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.XMLRepository import XMLRepository
 
 class BasicRepositoryTest(unittest.TestCase):
@@ -20,7 +21,9 @@ class BasicRepositoryTest(unittest.TestCase):
             self.rep.open()
             self.fail()
         except DBNoSuchFileError:
-            self.assert_(True)
+            pass
+        except RepositoryOpenDeniedError:
+            pass
 
     def setUp(self):
         self.rootdir = os.environ['CHANDLERHOME']
