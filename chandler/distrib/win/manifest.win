@@ -23,7 +23,7 @@ xerces-c_2_4_0.dll
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=chandler/release/bin
 dest=release/bin
-glob=*.py,*.so,*.dll
+glob=*.py,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
 Lib
