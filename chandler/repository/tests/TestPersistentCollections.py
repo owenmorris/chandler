@@ -26,7 +26,7 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
 
     def _checkManagerAndEmployeesDict(self, m, es):
         """Make sure a list of employees has the same manager"""
-        for e,v in es.items():
+        for k,v in es.items():
             self.assertEquals(v.manager, m)
             self.assert_(m.hasValue('employees', v))
 
@@ -91,23 +91,18 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         emps = {}
         empNames = ['employee1','employee2','employee3','employee4']
         for e in empNames:
-            emps[e] = employeeKind.newItem(e, self.rep)
+            emp = employeeKind.newItem(e, self.rep)
+            emps[str(emp.getUUID())] = emp
 
         manager.employees = emps
-#        print manager.employees
-#        print emps['employee1']
-#        print emps['employee1'].manager
-#        for i in emps:
-#            print emps[i]
-#            print emps[i].manager
         self._checkManagerAndEmployeesDict(manager, emps)
-        
         
         self._reopenRepository()
         manager = self.rep.find('//boss')
         emps = {}
         for e in empNames:
-            emps[e] = self.rep.find('//%s' % e)
+            emp = self.rep.find('//%s' % e)
+            emps[str(emp.getUUID())] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
         
                   
