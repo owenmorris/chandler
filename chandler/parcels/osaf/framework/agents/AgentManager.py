@@ -99,10 +99,6 @@ class AgentManager:
         if not self.IsRegistered(agentID):
             raise KeyError, 'Agent Not Registered'
 
-        # register with the notification manager and subscribe to notifications
-        if not Globals.notificationManager.IsRegistered(agentID):
-            Globals.notificationManager.Register(agentID)
-
         # subscribe to notifications
         agentItem = Globals.repository.find(agentID)
         agentItem.SubscribeToNotifications()
