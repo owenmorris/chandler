@@ -520,7 +520,7 @@ class Manager(Item):
 
         for i in range(globalDepth):
             print " ",
-        print namespace
+        print str(namespace)
 
         # prepare the handler
         handler = ParcelItemHandler()
@@ -964,6 +964,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             # This is an attribute assignment; Delay it's assignment
             # until we reach the end of the xml document
 
+            # We are deprecating defaultValue:
+            if local == "defaultValue":
+                raise self.saveErrorState(
+                 "The 'defaultValue' attribute has been deprecated",
+                 self.locator.getSystemId(), self.locator.getLineNumber())
+
             # Initialize the assignment with values shared by all types:
             assignment = {
                "reloading"  : reloadingCurrentItem,
@@ -1308,7 +1314,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                                  (item.itsPath, attributeName, value)
 
                     except:
-                        print attributeName, value, key
                         raise self.saveErrorState("Couldn't add value to item ",
                          file, line)
 

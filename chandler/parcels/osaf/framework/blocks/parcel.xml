@@ -491,7 +491,7 @@
     
     <Attribute itsName="disabled">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
     
     <attributes itemref="docSchema:DynamicChild/dynamicParent"/>
@@ -1004,7 +1004,7 @@
       <description>Specifies which attribute of the selected Item should be associated with this block.</description>
       <type itemref="String"/>
       <cardinality>single</cardinality>
-      <defaultValue type="String"/>
+      <initialValue type="String"/>
     </Attribute>
 
     <attributes itemref="docSchema:ContentItemDetail/selectedItemsAttribute"/>
