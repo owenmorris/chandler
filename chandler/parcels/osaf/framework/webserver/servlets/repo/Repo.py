@@ -295,14 +295,24 @@ def RenderCloudItems(rootItem):
 def RenderKindQuery(item):
 
     result = ""
-    result += "<h3>All Items of Kind "
+
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td><b>All Items of Kind: </b>"
+
     i = 1
     for part in item.itsPath:
         if i > 2: part = "/%s" % part
         result += "<a href=%s>%s</a>" % (toLink(item.itsPath[:i]), part)
         i += 1
-    result += "</h3>"
-    result += "<p>"
+
+    result += "</td>\n"
+    result += "</tr>\n"
+
+    result += "<tr class='oddrow'>\n"
+    result += "<td>"
+    result += "<div class='tree'>"
+
     output = []
     try:
         for i in repository.item.Query.KindQuery().run([item]):
@@ -310,11 +320,12 @@ def RenderKindQuery(item):
                 name = i.displayName
             except:
                 name = i.itsName
-            output.append("<a href=%s>'%s'</a>  %s" % (toLink(i.itsPath), name, i.itsPath))
+            output.append("<a href=%s>'%s'</a>  (%s) %s" % (toLink(i.itsPath), name, i.itsKind.itsName, i.itsPath))
         result += ("<br>".join(output))
     except Exception, e:
         result += "Caught an exception: %s<br> %s" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
-    result += "</p>"
+    result += "</div>"
+    result += "</td></tr></table>\n"
     return result
 
 
