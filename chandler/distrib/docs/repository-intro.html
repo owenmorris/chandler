@@ -11,9 +11,10 @@
 Version 0.1
 </center>
 
-<p>
-This document is an introduction to the features of the Chandler repository. It's not meant to be an exhaustive coverage of the entire API or all of the cool features. Instead it is meant help you get up to speed so that you can do common repository tasks.
-</p>
+<p> This document is an introduction to the features of the Chandler
+repository. It's not meant to be an exhaustive coverage of the entire
+API or all of the cool features. Instead it is meant help you get up to
+speed so that you can do common repository tasks.  </p>
 
 <h2>Chandler Data Model</h2>
 
@@ -21,8 +22,8 @@ This document is an introduction to the features of the Chandler repository. It'
 "items"; these items are arranged in a hierarchy, and are addressable
 either by their unique identifier (UUID) or by their path within the
 hierarchy (e.g. //Schema/Core/Kind).  There are special items called
-"kinds" which play the role of "classes" in the object-oriented world.
-Items can be thought of as "instances" of kinds, and take on the
+"kinds" which play the role of classes in the object-oriented world.
+Items can be thought of as instances of kinds, and take on the
 characteristics described by their kind. For example, a kind determines
 what attributes an item has and what code implements an item's behavior.
 An attribute contains meta information including its name (how you
@@ -339,7 +340,7 @@ item1 = rep.find("//parcels/simple/data/item1")<br />
 &lt;Item: item1 843636cc-55bd-11d8-f385-000a95bb2738&gt;
 </code>
 
-<p>This shows the item's kind (MORGEN: although shouldn't that kind be TestKind?), name, and UUID.  Every item in the repository has a unique identifier or UUID.  You can also use the <code>getUUID()</code> method to get an item's UUID.</p>
+<p>This shows the item's class name (this may change to be the kind), name, and UUID.  Every item in the repository has a unique identifier or UUID.  You can also use the <code>getUUID()</code> method to get an item's UUID.</p>
 <p />
 <code>
 uuid = item1.getUUID()
@@ -455,7 +456,7 @@ To change an Item's parent you would use the <code>move()</code> method.  If I w
 item3.move(rep)
 </code>
 <p />
-The first argument to move is the new root for the item being moved (authorChild in this case).  You can also specify where the item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new item. (MORGEN:  I discovered that once an item has been moved up to the top level, it can't be moved again.)
+The first argument to move is the new root for the item being moved (authorChild in this case).  You can also specify where the item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new item. 
 <p />
 
 <h3>Attributes</h3>
@@ -634,6 +635,15 @@ When this happens the <code>commit</code> method will raise an exception.
 At this point it is up to you redo the work in your transaction.  </p>
 
 
+<hr />
+
+<h2>Additional Topics</h2>
+<ul>
+<li>SubAttributes
+<li>More about cardinality
+<li>More about references
+<li>Pointer to <a href=http://builds.osafoundation.org/autogen/>generated docs</a> (but perhaps not to the copy on "builds.osafoundation.org" since that's an internal machine?)
+</ul>
 <hr />
 Please send any comments to dev@osafoundation.org.
 </body>
