@@ -11,7 +11,7 @@ import os
 import application.Application
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
-from osaf.mail.IMAPMailTask import IMAPDownloader
+from osaf.mail.imap import IMAPDownloader
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
