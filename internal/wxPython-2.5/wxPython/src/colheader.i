@@ -130,6 +130,14 @@ public:
         bool                bSelected = false,
         bool                bSortEnabled = true,
         bool                bSortAscending = false );
+    void AddItem(
+        long                beforeIndex,
+        const wxString        &textBuffer,
+        long                textJust,
+        long                extentX,
+        bool                bSelected = false,
+        bool                bSortEnabled = true,
+        bool                bSortAscending = false );
     void DeleteItem(
         long                itemIndex );
     void GetBitmapRef(

@@ -670,9 +670,16 @@ long		deltaX, summerX, originX, incX;
 bool wxColumnHeader::ResizeToFit( void )
 {
 long		extentX;
+bool		bScaling;
+
+	// temporarily turn off proportional resizing
+	bScaling = m_BProportionalResizing;
+	m_BProportionalResizing = false;
 
 	extentX = GetTotalUIExtent();
 	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
+
+	m_BProportionalResizing = true;
 
 	return true;
 }
@@ -728,34 +735,33 @@ void wxColumnHeader::SetSelectedItem(
 {
 bool		bSelected;
 
-	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
-		if (m_ItemSelected != itemIndex)
+	if (m_ItemSelected != itemIndex)
+	{
+		for (long i=0; i<m_ItemCount; i++)
 		{
-			for (long i=0; i<m_ItemCount; i++)
-			{
-				bSelected = (i == itemIndex);
-				if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-					m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
+			bSelected = (i == itemIndex);
+			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
-			bool		bSortEnabled, bSortAscending;
+		bool		bSortEnabled, bSortAscending;
 
-				bSortEnabled = false;
-				bSortAscending = false;
-				if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-				{
-					bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
-					bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-				}
-
-				(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
-#endif
+			bSortEnabled = false;
+			bSortAscending = false;
+			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+			{
+				bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
+				bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
 			}
 
-			m_ItemSelected = itemIndex;
-
-			SetViewDirty();
+			(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
+#endif
 		}
+
+		m_ItemSelected = itemIndex;
+
+		SetViewDirty();
+	}
 }
 
 void wxColumnHeader::DeleteItem(
@@ -792,19 +798,31 @@ void wxColumnHeader::DeleteItem(
 			if (m_ItemSelected == itemIndex)
 				m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 
-			// NB: AppendItem doesn't do this
+			// NB: AddItem doesn't do this
 			SetViewDirty();
 		}
 	}
 }
 
 void wxColumnHeader::AppendItem(
-	const wxString	&textBuffer,
-	long			textJust,
-	long			extentX,
-	bool			bSelected,
-	bool			bSortEnabled,
-	bool			bSortAscending )
+	const wxString		&textBuffer,
+	long				textJust,
+	long				extentX,
+	bool				bSelected,
+	bool				bSortEnabled,
+	bool				bSortAscending )
+{
+	AddItem( -1, textBuffer, textJust, extentX, bSelected, bSortEnabled, bSortAscending );
+}
+
+void wxColumnHeader::AddItem(
+	long				beforeIndex,
+	const wxString		&textBuffer,
+	long				textJust,
+	long				extentX,
+	bool				bSelected,
+	bool				bSortEnabled,
+	bool				bSortAscending )
 {
 wxColumnHeaderItem		itemInfo;
 wxPoint					targetExtent;
@@ -819,6 +837,7 @@ long					originX;
 	itemInfo.m_FontID = 0;
 #endif
 
+	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
 	itemInfo.m_TextJust = textJust;
 	itemInfo.m_ExtentX = extentX;
@@ -826,16 +845,26 @@ long					originX;
 	itemInfo.m_BSortEnabled = bSortEnabled;
 	itemInfo.m_BSortAscending = bSortAscending;
 
-	targetExtent = GetUIExtent( m_ItemCount - 1 );
-	originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
+	if ((beforeIndex < 0) || (beforeIndex > m_ItemCount))
+		beforeIndex = m_ItemCount;
 
-	itemInfo.m_OriginX = originX + targetExtent.y;
-	AppendItemList( &itemInfo, 1 );
+	// determine new item origin
+	if (beforeIndex > 0)
+	{
+		targetExtent = GetUIExtent( beforeIndex - 1 );
+		originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
+		itemInfo.m_OriginX = originX + targetExtent.y;
+	}
+	else
+		itemInfo.m_OriginX = 0;
+
+	AddItemList( &itemInfo, 1, beforeIndex );
 }
 
-void wxColumnHeader::AppendItemList(
+void wxColumnHeader::AddItemList(
 	const wxColumnHeaderItem		*itemList,
-	long							itemCount )
+	long							itemCount,
+	long							beforeIndex )
 {
 wxColumnHeaderItem	**newItemList;
 long				targetIndex, i;
@@ -844,12 +873,18 @@ bool				bIsSelected;
 	if ((itemList == NULL) || (itemCount <= 0))
 		return;
 
+	if ((beforeIndex < 0) || (beforeIndex > m_ItemCount))
+		beforeIndex = m_ItemCount;
+
 	// allocate new item list and copy the original list items into it
 	newItemList = (wxColumnHeaderItem**)calloc( m_ItemCount + itemCount, sizeof(wxColumnHeaderItem*) );
 	if (m_ItemList != NULL)
 	{
 		for (i=0; i<m_ItemCount; i++)
-			newItemList[i] = m_ItemList[i];
+		{
+			targetIndex = ((i < beforeIndex) ? i : itemCount + i);
+			newItemList[targetIndex] = m_ItemList[i];
+		}
 
 		free( m_ItemList );
 	}
@@ -858,7 +893,7 @@ bool				bIsSelected;
 	// append the new items
 	for (i=0; i<itemCount; i++)
 	{
-		targetIndex = m_ItemCount + i;
+		targetIndex = beforeIndex + i;
 		m_ItemList[targetIndex] = new wxColumnHeaderItem( &itemList[i] );
 
 		bIsSelected = (m_ItemList[targetIndex]->m_BSelected && m_ItemList[targetIndex]->m_BEnabled);
@@ -879,8 +914,18 @@ bool				bIsSelected;
 			m_ItemSelected = targetIndex;
 	}
 
-	// update the counter
+	// update the item count
 	m_ItemCount += itemCount;
+
+	// if this was an insertion, refresh the end items
+	if (beforeIndex < m_ItemCount - itemCount)
+	{
+		RecalculateItemExtents();
+		for (i=0; i<itemCount; i++)
+			RefreshItem( i + (m_ItemCount - itemCount) );
+	}
+
+	SetViewDirty();
 }
 
 void wxColumnHeader::DisposeItemList( void )

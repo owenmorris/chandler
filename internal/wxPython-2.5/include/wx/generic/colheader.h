@@ -209,6 +209,14 @@ public:
 		bool				bActive,
 		bool				bSortEnabled,
 		bool				bSortAscending );
+	void AddItem(
+		long				beforeIndex,
+		const wxString		&textBuffer,
+		long				textJust,
+		long				extentX,
+		bool				bActive,
+		bool				bSortEnabled,
+		bool				bSortAscending );
 
 	void GetBitmapRef(
 		long				itemIndex,
@@ -257,9 +265,10 @@ public:
 		wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL );
 
 protected:
-	void AppendItemList(
+	void AddItemList(
 		const wxColumnHeaderItem		*itemList,
-		long							itemCount );
+		long							itemCount,
+		long							beforeIndex );
 
 	void OnClick_SelectOrToggleSort(
 		long				itemIndex,
