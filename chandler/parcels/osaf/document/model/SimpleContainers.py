@@ -6,13 +6,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from Container import Container
 from wxPython.wx import *
 
-class Document(Container):
+class BoxContainer(Container):
     def GetSchemaLocation(self):
-        return '//Schema/DocumentSchema/Document'
+        return '//Schema/DocumentSchema/BoxContainer'
 
-    def Render(self, view):
-        view.DestroyChildren()
+    def Render(self, parent, parentSizer):
         sizer = wxBoxSizer(self.style['orientation'])
-        self.RenderChildren(view, sizer)
-        view.SetSizerAndFit(sizer)
- 
+        parentSizer.Add(sizer, self.style['weight'], self.style['flag'], 
+                        self.style['border'])
+        self.RenderChildren(parent, sizer)
+        
+    

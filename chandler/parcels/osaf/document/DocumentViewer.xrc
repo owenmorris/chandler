@@ -2,26 +2,11 @@
 <resource>
 <object class="wxMenu" name="ViewerParcelMenu">
     <label>Document</label>
-    <object class="wxMenuItem" name="CalendarDocument">
-       <label>View Calendar document</label>
-    </object>
-    <object class="wxMenuItem" name="ContactsDocument">
-       <label>View Contacts document</label>
-    </object>
     <object class="wxMenuItem" name="MrMenusDocument">
        <label>View MrMenus document</label>
     </object>
-    <object class="wxMenuItem" name="RepositoryViewerDocument">
-       <label>View Repository Viewer document</label>
-    </object>
-    <object class="wxMenuItem" name="RosterDocument">
-       <label>View Roster document</label>
-    </object>
     <object class="wxMenuItem" name="TimeclockDocument">
        <label>View Timeclock document</label>
-    </object>
-    <object class="wxMenuItem" name="ZaoBaoDocument">
-       <label>View ZaoBao document</label>
     </object>
 </object>
 

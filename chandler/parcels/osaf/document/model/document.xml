@@ -50,29 +50,6 @@
     <type itemref="types:Integer"/>
   </Attribute>
 
-  <Kind itemName="doc:Document">
-    <displayName>Document</displayName>
-    <attributes itemref="doc:blocktype"/>
-    <attributes itemref="doc:contentspec"/>
-    <attributes itemref="doc:style"/>
-    <attributes itemref="doc:notifications"/>
-
-    <classes key="python">OSAF.document.model.Document.Document</classes>
-    <superKinds itemref="core:Item" />
-  </Kind>
-
-  <Kind itemName="doc:BoxContainer">
-    <displayName>Box Container</displayName>
-    <attributes itemref="doc:blocktype"/>
-    <attributes itemref="doc:contentspec"/>
-    <attributes itemref="doc:style"/>
-    <attributes itemref="doc:notifications"/>
-    <attributes itemref="doc:positionInParent"/>
-
-    <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
-    <superKinds itemref="core:Item" />
-  </Kind>
-
   <Kind itemName="doc:Block">
     <displayName>Block</displayName>
     <attributes itemref="doc:blocktype"/>
@@ -85,4 +62,105 @@
     <classes key="python">OSAF.document.model.Block.Block</classes>
     <superKinds itemref="core:Item" />
   </Kind>
+  
+  <Kind itemName="doc:Container">
+    <displayName>Container</displayName>
+    
+    <classes key="python">OSAF.document.model.Container.Container</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+  
+  <Kind itemName="doc:Document">
+    <displayName>Document</displayName>
+    <attributes itemref="doc:blocktype"/>
+    <attributes itemref="doc:contentspec"/>
+    <attributes itemref="doc:style"/>
+    <attributes itemref="doc:notifications"/>
+
+    <classes key="python">OSAF.document.model.Document.Document</classes>
+    <superKinds itemref="doc:Container" />
+  </Kind>
+
+  <Kind itemName="doc:BoxContainer">
+    <displayName>Box Container</displayName>
+    <attributes itemref="doc:blocktype"/>
+    <attributes itemref="doc:contentspec"/>
+    <attributes itemref="doc:style"/>
+    <attributes itemref="doc:notifications"/>
+    <attributes itemref="doc:positionInParent"/>
+
+    <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
+    <superKinds itemref="doc:Container" />
+  </Kind>
+
+  <Kind itemName="doc:Button">
+    <displayName>Button</displayName>
+    
+    <classes key="python">OSAF.document.model.Button.Button</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+  
+  <Kind itemName="doc:List">
+    <displayName>List</displayName>
+    
+    <classes key="python">OSAF.document.model.List.List</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:Text">
+    <displayName>Text</displayName>
+    
+    <classes key="python">OSAF.document.model.Text.Text</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:Label">
+    <displayName>Label</displayName>
+    
+    <classes key="python">OSAF.document.model.Label.Label</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:ScrolledWindow">
+    <displayName>ScrolledWindow</displayName>
+    
+    <classes key="python">OSAF.document.model.ScrolledWindow.ScrolledWindow</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:ToggleButton">
+    <displayName>ToggleButton</displayName>
+    
+    <classes key="python">OSAF.document.model.ToggleButton.ToggleButton</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:Choice">
+    <displayName>Choice</displayName>
+    
+    <classes key="python">OSAF.document.model.Choice.Choice</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:Tree">
+    <displayName>Tree</displayName>
+    
+    <classes key="python">OSAF.document.model.Tree.Tree</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:RadioBox">
+    <displayName>RadioBox</displayName>
+    
+    <classes key="python">OSAF.document.model.RadioBox.RadioBox</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:RadioButton">
+    <displayName>RadioButton</displayName>
+    
+    <classes key="python">OSAF.document.model.RadioButton.RadioButton</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
 </DomainSchema>
