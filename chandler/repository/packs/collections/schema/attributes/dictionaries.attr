@@ -2,7 +2,7 @@
 
 <item>
     <name>dictionaries</name>
-    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">dict</attribute>
 </item>

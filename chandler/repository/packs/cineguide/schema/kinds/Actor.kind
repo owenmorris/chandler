@@ -2,17 +2,17 @@
 
 <item>
   <name>Actor</name>
-  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref type="path">/CineGuide/Attributes/name</ref>
-    <ref type="path">/CineGuide/Attributes/born</ref>
-    <ref type="path">/CineGuide/Attributes/died</ref>
-    <ref type="path">/CineGuide/Attributes/movies</ref>
+    <ref alias="name" type="path">/CineGuide/Attributes/name</ref>
+    <ref alias="born" type="path">/CineGuide/Attributes/born</ref>
+    <ref alias="died" type="path">/CineGuide/Attributes/died</ref>
+    <ref alias="movies" type="path">/CineGuide/Attributes/movies</ref>
   </ref>
 
   <ref name="superKinds">
-    <ref type="path">/Model/Kinds/Item</ref>
+    <ref type="path">/Model/Item</ref>
   </ref>
 
 </item>

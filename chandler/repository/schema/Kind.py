@@ -11,7 +11,7 @@ from model.item.ItemRef import RefDict
 from model.util.Path import Path
 
 
-class Kind(Namespace):
+class Kind(Item):
 
     def __init__(self, name, parent, kind):
 
@@ -50,7 +50,7 @@ class Kind(Namespace):
         if child:
             return child.getUUID()
 
-        return self.getDomain().getNamespace('Attributes').resolve(name)
+        return self.attributes.resolveAlias(name)
 
     def getAttribute(self, name):
 

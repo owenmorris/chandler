@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>displayName</name>
+  <kind type="path">//Schema/Model/Attribute</kind>
+  <class module="model.schema.Attribute">Attribute</class>
+
+  <ref name="type" otherName="typeFor" 
+       type="path" otherCard="list">/Model/String</ref>
+
+  <attribute name="cardinality">single</attribute>
+</item>

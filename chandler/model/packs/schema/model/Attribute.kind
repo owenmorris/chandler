@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True">
+    <name>Attribute</name>
+    <kind type="path">//Schema/Model/Kind</kind>
+    <class module="model.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     required, persist, cardinality, type, defaultValue,
+         -     inheritFrom, otherName, deletePolicy, copyPolicy, countPolicy,
+         -     inheritingKinds, kinds, superAttribute, subAttributes
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Model/Item</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" 
+               type="model.schema.Types.Class">
+      <value name="python">model.schema.Attribute.Attribute</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>required</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">False</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>persist</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">True</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>cardinality</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Model/Cardinality</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>type</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">typeFor</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>defaultValue</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Anything</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>inheritFrom</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/String</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>otherName</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>deletePolicy</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/DeletePolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">remove</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>copyPolicy</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/CopyPolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">remove</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>countPolicy</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/CountPolicy</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">none</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>inheritingKinds</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+    <attribute name="otherName">inheritedAttributes</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>kinds</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">attributes</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>superAttribute</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Attribute</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">subAttributes</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>subAttributes</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Model/Attribute</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">superAttribute</attribute>
+  </item>
+
+</items>

@@ -518,8 +518,19 @@ class RefDict(LinkedMap):
         return default
 
     def getByAlias(self, alias):
-
+        'Get the item referenced through the alias.'
+        
         return self[self._aliases[alias]]
+
+    def resolveAlias(self, alias):
+        """Resolve the alias to its corresponding reference key.
+
+        Returns None if alias does not exist."""
+        
+        if self._aliases:
+            return self._aliases.get(alias)
+
+        return None
 
     def _refCount(self):
 

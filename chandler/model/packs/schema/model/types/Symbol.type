@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item withSchema="True">
-  <name>Symbol</name>
-  <kind type="path">//Schema/Model/Kinds/Type</kind>
-  <class module="model.schema.Types">Symbol</class>
-</item>

@@ -5,26 +5,18 @@
   <item file="Schema.root" afterLoadHooks="True">
     <item file="Model.domain" cwd="model">
 
-      <item file="Types.namespace" cwd="types">
-        <item files="*.type" />
-        <item files="*.alias" />
-      </item>
+      <item files="*.type" />
+      <item files="*.alias" />
 
-      <item file="Attributes.namespace" cwd="attributes">
-        <item files="*.attr" />
-      </item>
+      <item files="*.attr" />
 
-      <item file="Kinds.namespace" cwd="kinds">
-        <item file="Item.kind" />
-        <item file="Namespace.kind" />
-        <item file="Domain.kind" />
-        <item file="Attribute.kind" />
-        <item file="Taxon.kind" />
-        <item file="Kind.kind" /> 
-        <item file="Alias.kind" />
-        <item file="Type.kind" />
-        <item file="Enumeration.kind" />
-      </item>
+      <item file="Item.kind" />
+      <item file="Attribute.kind" />
+      <item file="Taxon.kind" />
+      <item file="Kind.kind" /> 
+      <item file="Alias.kind" />
+      <item file="Type.kind" />
+      <item file="Enumeration.kind" />
 
     </item>
   </item>

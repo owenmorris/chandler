@@ -2,20 +2,20 @@
 
 <item>
   <name>Movie</name>
-  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref type="path">/CineGuide/Attributes/director</ref>
-    <ref type="path">/CineGuide/Attributes/title</ref>
-    <ref type="path">/CineGuide/Attributes/frenchTitle</ref>
-    <ref type="path">/CineGuide/Attributes/released</ref>
-    <ref type="path">/CineGuide/Attributes/actors</ref>
+    <ref alias="director" type="path">/CineGuide/Attributes/director</ref>
+    <ref alias="title" type="path">/CineGuide/Attributes/title</ref>
+    <ref alias="frenchTitle" type="path">/CineGuide/Attributes/frenchTitle</ref>
+    <ref alias="released" type="path">/CineGuide/Attributes/released</ref>
+    <ref alias="actors" type="path">/CineGuide/Attributes/actors</ref>
   </ref>
 
   <attribute name="displayAttribute">title</attribute>
 
   <ref name="superKinds">
-    <ref type="path">/Model/Kinds/Item</ref>
+    <ref type="path">/Model/Item</ref>
   </ref>
 
 </item>

@@ -2,7 +2,7 @@
 
 <item>
     <name>directed</name>
-    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">director</attribute>

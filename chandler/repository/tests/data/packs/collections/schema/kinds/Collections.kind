@@ -2,18 +2,18 @@
 
 <item>
   <name>Collections</name>
-  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref type="path">/Collections/Attributes/dictionary</ref>
-    <ref type="path">/Collections/Attributes/list</ref>
-    <ref type="path">/Collections/Attributes/lists</ref>
-    <ref type="path">/Collections/Attributes/dictionaries</ref>
-    <ref type="path">/Collections/Attributes/alias</ref>
+    <ref alias="dictionary" type="path">/Collections/Attributes/dictionary</ref>
+    <ref alias="list" type="path">/Collections/Attributes/list</ref>
+    <ref alias="lists" type="path">/Collections/Attributes/lists</ref>
+    <ref alias="dictionaries" type="path">/Collections/Attributes/dictionaries</ref>
+    <ref alias="alias" type="path">/Collections/Attributes/alias</ref>
   </ref>
 
   <ref name="superKinds">
-    <ref type="path">/Model/Kinds/Item</ref>
+    <ref type="path">/Model/Item</ref>
   </ref>
 
 </item>

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item withSchema="True">
-  <name>Attributes</name>
-  <kind type="path">//Schema/Model/Kinds/Namespace</kind>
-  <class module="model.schema.Namespace">Namespace</class>
-</item>

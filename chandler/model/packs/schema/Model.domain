@@ -2,6 +2,4 @@
 
 <item withSchema="True">
   <name>Model</name>
-  <kind type="path">//Schema/Model/Kinds/Domain</kind>
-  <class module="model.schema.Namespace">Domain</class>
 </item>

@@ -2,7 +2,7 @@
 
 <item>
     <name>alias</name>
-    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">single</attribute>
     <ref name="type" type="path">/Collections/Types/Alias</ref>

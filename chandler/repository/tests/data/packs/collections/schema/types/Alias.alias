@@ -2,10 +2,10 @@
 
 <item>
   <name>Alias</name>
-  <kind type="path">//Schema/Model/Kinds/Alias</kind>
+  <kind type="path">//Schema/Model/Alias</kind>
 
   <ref name="types">
-    <ref type="path">//Schema/Model/Types/Integer</ref>
-    <ref type="path">//Schema/Model/Types/String</ref>
+    <ref type="path">//Schema/Model/Integer</ref>
+    <ref type="path">//Schema/Model/String</ref>
   </ref>
 </item>
