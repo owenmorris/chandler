@@ -141,12 +141,6 @@
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/recurrence"/>
 
-      <Endpoint itsName="reminderTime">
-        <attribute value="reminderTime"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="cal:CalendarEventMixin/Cloud/reminderTime"/>
-
       <Endpoint itsName="participants">
         <attribute value="participants"/>
         <includePolicy value="byValue"/>
