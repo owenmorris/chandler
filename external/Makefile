@@ -45,7 +45,7 @@ sources:
 sources-$(VERSION).tar:
 	curl http://builds.osafoundation.org/external/sources-$(VERSION).tar > sources-$(VERSION).tar
 
-expand: sources-$(VERSION).tar
+expand: env sources-$(VERSION).tar
 	tar xvf sources-$(VERSION).tar
 	for system in $(SYSTEMS); \
 	do \
