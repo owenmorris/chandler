@@ -821,6 +821,7 @@ def setupEnvironment(buildenv):
 
     os.putenv('PYTHONPATH', os.pathsep.join(pythonpaths))
     os.putenv('CHANDLERDIR', buildenv['root']+os.sep+"Chandler")
+    os.putenv('CHANDLERHOME', buildenv['root'])
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
