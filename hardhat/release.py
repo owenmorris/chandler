@@ -46,18 +46,9 @@ class Release:
     def checkoutMinimal(self):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-q -z3", "checkout",
-          'chandler/application/welcome.html',
           'chandler/distrib/osx/bundle'])
         #hardhatutil.dumpOutputList(outputList, log)
         
-
-    def updateWelcome(self):
-        updateSmallFile(os.path.join(self.chandlerDir,
-                                     'application',
-                                     'welcome.html'),
-                        r'\?rev=CHANDLER_[a-zA-Z0-9_]+&',
-                        '?rev=CHANDLER_' + self.cvsVersion + '&')
-
 
     def updatePList(self):
         bundleDir = os.path.join(self.chandlerDir,
@@ -82,11 +73,10 @@ class Release:
 
     def cvsChanges(self):
         self.checkoutMinimal()
-        self.updateWelcome()
         self.updatePList()
 
         print 'cd ' + self.workDir
-        print 'cvs diff -u chandler/application/welcome.html chandler/distrib'
+        print 'cvs diff -u chandler/distrib'
         print 'to see if the changes look correct, then commit them.'
         print 'Finally do:'
         print '  cvs rtag -D now CHANDLER_' + self.cvsVersion + ' chandler-all'
