@@ -78,6 +78,8 @@ class Client(object):
     def propfind(self, url, body=None, depth=None, extraHeaders={ }):
         extraHeaders = extraHeaders.copy()
         extraHeaders['Content-Type'] = XML_CONTENT_TYPE
+        if body is None:
+            body = "%s\n<D:propfind xmlns:D=\"DAV:\"><D:prop><D:getlastmodified/></D:prop></D:propfind>" % XML_DOC_HEADER
         if depth is not None:
             extraHeaders['Depth'] = str(depth)
         return self._request('PROPFIND', url, body, extraHeaders=extraHeaders)
@@ -195,9 +197,18 @@ class Client(object):
             if response.status in (httplib.MOVED_PERMANENTLY, httplib.FOUND,
              httplib.SEE_OTHER, httplib.TEMPORARY_REDIRECT):
                 response.read() # Always need to read each response
-                url = response.getheader('Location')
-                logger.debug("Redirecting to: %s" % url)
-                continue
+                newurl = response.getheader('Location')
+                # Make sure server isn't redirecting us somewhere else, since
+                # bad things can happen:
+                old = urlparse.urlsplit(url)
+                new = urlparse.urlsplit(newurl)
+                if old[0] == new[0] and old[1] == new[1]:
+                    url = newurl
+                    logger.debug("Redirecting to: %s" % url)
+                    continue
+                else:
+                    logger.debug("Illegal redirect: %s to %s" % (url, newurl))
+                    raise IllegalRedirect()
 
             return response
 
@@ -215,6 +226,9 @@ class NotFound(WebDAVException):
     pass
 
 class NotAuthorized(WebDAVException):
+    pass
+
+class IllegalRedirect(WebDAVException):
     pass
 
 
