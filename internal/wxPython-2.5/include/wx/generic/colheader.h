@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:		generic/colheader.h
-// Purpose:	generic definitions for a native-appearance column header
+// Purpose:	data definitions for a 2-platform (Mac,MSW) + generic native-appearance column header
 // Author:	David Surovell
 // Modified by:
 // Created:	01.01.2005
@@ -49,13 +49,6 @@ public:
 	wxColumnHeaderItem();
 	virtual ~wxColumnHeaderItem();
 
-	long DrawItem(
-		wxWindow		*parentW,
-		wxClientDC		*dc,
-		const wxRect		*boundsR,
-		bool				bUseUnicode,
-		bool				bVisibleSelection ) const;
-
 	long HitTest(
 		const wxPoint		&locationPt ) const;
 
@@ -92,6 +85,22 @@ public:
 		wxColumnHeaderFlagAttr		flagEnum,
 		bool						bFlagValue );
 
+	long GenericDrawItem(
+		wxWindow		*parentW,
+		wxClientDC		*dc,
+		const wxRect		*boundsR,
+		bool				bUseUnicode,
+		bool				bVisibleSelection ) const;
+
+#if defined(__WXMAC__)
+	long MacDrawItem(
+		wxWindow		*parentW,
+		wxClientDC		*dc,
+		const wxRect		*boundsR,
+		bool				bUseUnicode,
+		bool				bVisibleSelection ) const;
+#endif
+
 public:
 #if defined(__WXMSW__)
 	static void MSWRenderSelection(
@@ -99,21 +108,19 @@ public:
 		const wxRect		*boundsR );
 #endif
 
-#if defined(__WXGTK__)
-	static void GTKGetSortArrowBounds(
-		const wxRect		*itemBoundsR,
-		wxRect			*targetBoundsR );
-	static void GTKDrawSortArrow(
-		wxClientDC		*dc,
-		const wxRect		*boundsR,
-		bool				bSortAscending );
-#endif
-
 #if defined(__WXMAC__)
 	static void MacDrawThemeBackgroundNoArrows(
 		const void			*boundsR,
 		bool				bSelected );
 #endif
+
+	static void GenericGetSortArrowBounds(
+		const wxRect		*itemBoundsR,
+		wxRect			*targetBoundsR );
+	static void GenericDrawSortArrow(
+		wxClientDC		*dc,
+		const wxRect		*boundsR,
+		bool				bSortAscending );
 
 	static bool HasValidBitmapRef(
 		const wxBitmap	*bitmapRef );

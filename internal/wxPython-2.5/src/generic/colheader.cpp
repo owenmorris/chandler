@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:		generic/colheader.cpp
-// Purpose:	3-platform (Mac,MSW,GTK) implementation of a native-appearance column header
+// Purpose:	2-platform (Mac,MSW) + generic implementation of a native-appearance column header
 // Author:	David Surovell
 // Modified by:
 // Created:	01.01.2005
@@ -1274,11 +1274,17 @@ long			resultV;
 #else
 wxClientDC	dc( this );
 
-	// NB: this case being used for both Mac and GTK
-	// no DC needed for Mac rendering (except for bitmaps)
+	// NB: this case being used for both Mac and Generic
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+		{
+#if defined(__WXMAC__)
+			// no DC needed for Mac rendering (except for bitmaps)
+			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+#else
+			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+#endif
+		}
 #endif
 
 	return resultV;
@@ -1812,34 +1818,24 @@ long		targetX, resultV;
 	return resultV;
 }
 
-long wxColumnHeaderItem::DrawItem(
+#if defined(__WXMAC__)
+long wxColumnHeaderItem::MacDrawItem(
 	wxWindow		*parentW,
 	wxClientDC		*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
 	bool				bVisibleSelection ) const
 {
-//	if ((boundsR == NULL) || boundsR->IsEmpty())
-	if (boundsR == NULL)
-		return (-1L);
-
-#if defined(__WXMSW__)
-	wxUnusedVar( parentW );
-	wxUnusedVar( dc );
-	wxUnusedVar( bUseUnicode );
-	wxUnusedVar( bVisibleSelection );
-
-	// NB: implementation not needed
-	// - parent renders all items as a single control
-	return 0;
-
-#elif defined(__WXMAC__)
 ThemeButtonDrawInfo		drawInfo;
 RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
 bool					bSelected, bHasIcon;
 OSStatus				errStatus;
+
+//	if ((boundsR == NULL) || boundsR->IsEmpty())
+	if (boundsR == NULL)
+		return (-1L);
 
 	errStatus = noErr;
 
@@ -1939,12 +1935,24 @@ OSStatus				errStatus;
 	DisposeRgn( savedClipRgn );
 
 	return (long)errStatus;
+}
+#endif
 
-#else
+long wxColumnHeaderItem::GenericDrawItem(
+	wxWindow		*parentW,
+	wxClientDC		*dc,
+	const wxRect		*boundsR,
+	bool				bUseUnicode,
+	bool				bVisibleSelection ) const
+{
 wxRect				localBoundsR, subItemBoundsR;
 wxPoint				labelTextSize;
 long					originX, insetX;
 bool					bSelected, bHasIcon;
+
+//	if ((boundsR == NULL) || boundsR->IsEmpty())
+	if (boundsR == NULL)
+		return (-1L);
 
 	if ((parentW == NULL) || (dc == NULL))
 		return (-1L);
@@ -1954,7 +1962,7 @@ bool					bSelected, bHasIcon;
 	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
 	// draw column header background:
-	// leverage native (GTK) wxRenderer
+	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
 	localBoundsR.y = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
@@ -1992,13 +2000,9 @@ bool					bSelected, bHasIcon;
 	// NB: what if icon avail? mut. ex.?
 	if (bSelected && m_BSortEnabled)
 	{
-#if defined(__WXGTK__)
 		// NB: should the first arg be the original "boundsR" arg ??
-		GTKGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
-		GTKDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
-#else
-		// FIXME: what about non-(Mac,MSW,GTK) platforms?
-#endif
+		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
+		GenericDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 	}
 
 	// render the bitmap, should one be present
@@ -2010,7 +2014,6 @@ bool					bSelected, bHasIcon;
 	}
 
 	return 0;
-#endif
 }
 
 // ================
@@ -2097,9 +2100,8 @@ OSStatus			errStatus;
 }
 #endif
 
-#if defined(__WXGTK__)
 // static
-void wxColumnHeaderItem::GTKGetSortArrowBounds(
+void wxColumnHeaderItem::GenericGetSortArrowBounds(
 	const wxRect			*itemBoundsR,
 	wxRect				*targetBoundsR )
 {
@@ -2129,7 +2131,7 @@ int		sizeX, sizeY, insetX;
 }
 
 // static
-void wxColumnHeaderItem::GTKDrawSortArrow(
+void wxColumnHeaderItem::GenericDrawSortArrow(
 	wxClientDC			*dc,
 	const wxRect			*boundsR,
 	bool					bSortAscending )
@@ -2160,7 +2162,6 @@ wxPoint		triPt[3];
 
 	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
 }
-#endif
 
 // static
 void wxColumnHeaderItem::GetBitmapItemBounds(
@@ -2227,7 +2228,7 @@ static AnonLongPair	sMap[] =
 	, { wxCOLUMNHEADER_JUST_Center, teJustCenter }
 	, { wxCOLUMNHEADER_JUST_Right, teJustRight }
 #else
-	// FIXME: GTK - wild guess - irrelevant
+	// FIXME: generic - wild guess - irrelevant
 	{ wxCOLUMNHEADER_JUST_Left, 0 }
 	, { wxCOLUMNHEADER_JUST_Center, 1 }
 	, { wxCOLUMNHEADER_JUST_Right, 2 }
