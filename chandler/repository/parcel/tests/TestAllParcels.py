@@ -11,6 +11,7 @@ import ParcelLoaderTestCase, os, sys, unittest
 from repository.parcel.Util import PrintItem
 from repository.parcel.LoadParcels import LoadParcels
 from repository.item.Item import Item
+import application.Globals as Globals
 
 class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -20,6 +21,10 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         Test to ensure all parcels load
         """
         parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels')
+
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+
         LoadParcels(parcelDir, self.rep)
         PrintItem("//Schema", self.rep)
         PrintItem("//parcels", self.rep)

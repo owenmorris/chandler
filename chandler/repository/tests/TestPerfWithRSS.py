@@ -42,6 +42,10 @@ class TestPerfWithRSS(unittest.TestCase):
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+
         Globals.repository = self.rep # to keep indexer happy
         self.rep.create()
         schemaPack = os.path.join(self.rootdir, 'chandler', 'repository', 'packs', 'schema.pack')
