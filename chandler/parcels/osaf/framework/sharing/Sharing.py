@@ -1108,7 +1108,10 @@ class CloudXMLFormat(ImportExportFormat):
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
                     if isinstance(value, Lob):
-                        value = value.getInputStream().read()
+                        # @@@MOR For 0.5 convert to ASCII
+                        # For 0.6, we should handle encoding properly.
+                        uStr = value.getReader().read()
+                        value = uStr.encode('ascii', 'replace')
                     result += "<![CDATA[" + str(value) + "]]>"
 
                 elif cardinality == 'list':
@@ -1205,8 +1208,6 @@ class CloudXMLFormat(ImportExportFormat):
         if item is None:
             # item search turned up empty, so create an item...
             if uuid:
-                # @@@MOR This needs to use the new defaultParent framework
-                # to determine the parent
                 parent = self.findPath("//userdata")
                 item = kind.instantiateItem(None, parent, uuid,
                                             withInitialValues=True)
