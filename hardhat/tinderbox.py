@@ -156,19 +156,23 @@ def main():
                 os.remove(outputDir+os.sep+"index.html")
             if os.path.exists(outputDir+os.sep+"time.js"):
                 os.remove(outputDir+os.sep+"time.js")
-            print "Calling RotateDirectories"
-            log.write("Calling RotateDirectories\n")
-            RotateDirectories(outputDir)
             print "Calling CreateIndex with " + newDir
             log.write("Calling CreateIndex with " + newDir + "\n")
             CreateIndex(outputDir, buildVersion, nowString, buildName)
+            print "Calling RotateDirectories"
+            log.write("Calling RotateDirectories\n")
+            RotateDirectories(outputDir)
 
             buildNameNoSpaces = buildName.replace(" ", "")
             
             if skipRsync:
                 print "skipping rsync"
+                log.write("skipping rsync")
             else:
                 print "Rsyncing..."
+                log.write('rsync -e ssh -avzp ' + outputDir + os.sep + ' ' +
+                          options.rsyncServer + ':continuous/' +
+                          buildNameNoSpaces)
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [rsyncProgram, "-e", "ssh", "-avzp",
                  outputDir + os.sep, 
@@ -286,31 +290,72 @@ def SHAsum(filename):
     s.update(filedata)
     return s.hexdigest()
 
-def CreateIndex(outputDir, newDirName, nowString, buildName):
-    """Generates an index.html page from the hint files that hardhat creates
-    which contain the actual distro filenames"""
-    fileOut = file(outputDir+os.sep+buildName+"_index.html", "w")
-    fileOut.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
-    fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
-    for x in ["enduser", "developer"]:
-        actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
-        fileOut.write("<p><a href="+x+".html> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
-        fileOut2 = file(outputDir+os.sep+x+".html", "w")
-        fileOut2.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
-        fileOut2.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
-        fileOut2.write("<p>Download <a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: <br>")
-        fileOut2.write(" MD5 checksum: " + MD5sum(outputDir+os.sep+newDirName+os.sep+actual) + "<br>")
-        fileOut2.write(" SHA checksum: " + SHAsum(outputDir+os.sep+newDirName+os.sep+actual) + "<br>")
-        fileOut2.write("<p> " + _descriptions[x][1] +"</p>\n")
-        fileOut2.write("</td></tr></table></body></html>\n")
-        fileOut2.close()
 
-    fileOut.write("</td></tr></table></body></html>\n")
+def CreateIndex(outputDir, newDirName, nowString, buildName):
+    """
+    Generates HTML files that contain links and hash information
+    for downloadable files.
+    """
+
+    newPrefix = outputDir + os.sep + newDirName + os.sep
+
+    head1 = '<!DOCTYPE html ' +\
+            'PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'+\
+            '<html><head>\n<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
+            '<title>Download Chandler ' + buildName + ' ' + newDirName +\
+            '</title>\n' +\
+            '<link rel="Stylesheet" ' +\
+            'href="http://www.osafoundation.org/css/OSAF.css" ' +\
+            'type="text/css" charset="iso-8859-1">\n'
+    head2 = '</head>\n' +\
+            '<body>\n' +\
+            '<img src="http://www.osafoundation.org/images/OSAFLogo.gif" ' +\
+            'alt="[OSAF Logo]">\n'
+    head = head1 + head2
+    index = head
+
+    for distro in ('enduser', 'developer'):
+        actualDistroFile = _readFile(outputDir + os.sep + newDirName +
+                                     os.sep+distro)
+        index += '<p><a href="'+distro+'.html"> ' + _descriptions[distro][0] +\
+                 '</a>: ' + _descriptions[distro][1] + '</p>\n'
+
+        fileOut = file(newPrefix + distro + '.html', "w")
+        fileOut.write(head + '<h2>Chandler Build: ' + nowString +\
+                      ' PDT (machine: ' +\
+                      buildName + ')</h2>\n' + '<p>Download <a href="' +\
+                      actualDistroFile +\
+                      '"> ' + _descriptions[distro][0] + '</a>: <br>\n' +\
+                      ' MD5 checksum: ' + MD5sum(outputDir + os.sep +
+                                                 newDirName +\
+                                   os.sep + actualDistroFile) + '<br>\n' +\
+                      ' SHA checksum: ' + SHAsum(outputDir + os.sep +
+                                                 newDirName +\
+                                   os.sep + actualDistroFile) + '<br>\n' +\
+                      '<p> ' + _descriptions[distro][1] + '</p>\n' +\
+                      '</body></html>\n')
+        fileOut.close()
+
+    index += '</body></html>\n'
+
+    fileOut = file(newPrefix + "index.html", "w")
+    fileOut.write(index)
     fileOut.close()
+
+    fileOut = file(outputDir + os.sep + "latest.html", "w")
+    fileOut.write(head1 +\
+                  '<meta http-equiv="refresh" content="5;URL=' + newDirName +\
+                  '">' + head2 +\
+                  '<h2>Latest Continuous ' + buildName + ' Build</h2>' +\
+                  '<a href="' + newDirName + '">' + newDirName + '</a>' +\
+                  '</body></html>\n')
+    fileOut.close()
+
+    # This file is used by http://builds.osafoundation.org/index.html
     fileOut = file(outputDir+os.sep+"time.js", "w")
     fileOut.write("document.write('" + nowString + "');\n")
     fileOut.close()
-
+    
 def _readFile(path):
     fileIn = open(path, "r")
     line = fileIn.readline()
@@ -321,5 +366,6 @@ def _readFile(path):
 class TinderbuildError(Exception):
     def __init__(self, args=None):
         self.args = args
+
 
 main()
