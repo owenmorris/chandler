@@ -17,12 +17,15 @@ def verify_callback(ok, store):
         print "***Verify Not ok"
     return ok
 
+dh1024 = None
+
 def init_dhparams():
-    #'dh1024.pem')
-    pass
+    dh1024 = DH.load_params('dh1024.pem')
 
 def tmp_dh_callback(ssl, is_export, keylength):
-    pass
+    if not dh1024:
+        init_dhparams()
+    return dh1024
 
 def setup_server_ctx():
     ctx = SSL.Context('sslv23')
@@ -32,9 +35,10 @@ def setup_server_ctx():
     #    print "***No default verify paths"
     ctx.load_cert_chain('server.pem')
     ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                   10)#, verify_callback)
+                   10)#, verify_callback) # XXX Crash with callback
     ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
-    #ctx.set_tmp_dh_callback(
+    #ctx.set_tmp_dh_callback(tmp_dh_callback)# XXX This causes crash
+    ctx.set_tmp_dh('dh1024.pem')
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         print "***No valid ciphers"
     if verbose_debug:
