@@ -89,3 +89,6 @@ compilers: gcc-3.4-20040107.tar.bz2
 gcc-3.4-20040107.tar.bz2:
 	curl -O $(HOST)/osx/gcc-3.4-20040107.tar.bz2
 endif
+
+upload:	$(SNAP)-$(VERSION).tar.gz
+	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)

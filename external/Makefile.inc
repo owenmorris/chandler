@@ -23,17 +23,21 @@ PREFIX=$(BUILD_ROOT)/$(SNAP)
 ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
+PLATFORM=windows
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
 PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python2.3/site-packages
+PLATFORM=macosx
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python2.3/site-packages
+PLATFORM=linux
 endif
 endif
 
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 
 .PHONY: default all build compile install clean env
 
