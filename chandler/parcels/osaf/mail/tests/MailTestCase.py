@@ -7,7 +7,14 @@ import application.Globals as Globals
 
 class MailTestCase(RepositoryTestCase.RepositoryTestCase):
 
+    __setup = False
+
     def setUp(self):
+
+        if self.__setup:
+            return
+
+        self.__setup = True
 
         super(MailTestCase, self)._setup(self)
 
