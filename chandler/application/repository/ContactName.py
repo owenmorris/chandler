@@ -151,6 +151,9 @@ class ContactName(Thing):
             if self.get(chandler.lastname) == None:
                 self[chandler.fullname] = self.get(chandler.firstname)
                 return
+            if self.get(chandler.firstname) == None:
+                self[chandler.fullname] = self.get(chandler.lastname)
+                return
             
             if self.get(chandler.middlename) != None:
                 self[chandler.fullname] = (self[chandler.firstname] + ' ' + 
@@ -181,6 +184,8 @@ class ContactName(Thing):
         if self.IsPersonName():
             if self.get(chandler.lastname) == None:
                 self[chandler.sortname] = self.get(chandler.firstname)
+            elif self.get(chandler.firstname) == None:
+                self[chandler.sortname] = self.get(chandler.lastname)
             else: 
                 self[chandler.sortname] = self[chandler.lastname] + ', ' + self[chandler.firstname]
         else:

@@ -154,6 +154,15 @@ class ViewerParcel (Parcel):
         """
         pass
 
+    
+    def UpdateFromRepository(self):
+        """
+          UpdateFromRepository is called when new objects are added to the repository
+          to give the view a change to update itself. There's nothing to do here in the
+          baseclass, but parcels should override this to receive notification of changes
+        """
+        pass
+    
     def HandleErrorResponse(self, jabberID, url, errorMessage):
         """
           handle an error reponse.  Here in the base class, just

@@ -11,7 +11,6 @@ from wxPython.xrc import *
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
-from application.ImportExport import ImportExport
 
 from persistence import Persistent 
 from persistence.list import PersistentList
@@ -24,6 +23,7 @@ import PresencePanel
 from zodb import db 
 from zodb.storage.file import FileStorage
 from application.repository.Repository import Repository
+from application.ImportExport import ImportExport
 
 """
 	The application module makes available the following global data to
@@ -383,13 +383,16 @@ class wxApplication (wxApp):
 		if applicationCommand:
 			event.Skip()
 	
-	# handle the import and export command
+	# handle the export command
 	def OnExportItems(self, event):
 		ImportExport().Export()
-		
+	
+	# handle the import command		
 	def OnImportItems(self, event):
 		ImportExport().Import()
-
+		# tell the current view to redraw
+		self.wxMainFrame.activeParcel.UpdateFromRepository()
+		
 	def GetAccessibleViews(self, jabberID):
 		"""
 		  return a list of views accessible to the user represented by

@@ -12,6 +12,7 @@ from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
 from application.repository.Item import Item
+from mx.DateTime import DateTimeFrom
 
 _attributes = [{ chandler.uri : chandler.startTime,
                  chandler.displayName : 'Start Time',
@@ -58,6 +59,13 @@ class Event(Item):
     startTime = property(GetStartTime, SetStartTime,
                          doc='mxDateTime: event start time and date')
 
+    # override SetAttribute to allow DateTime values to be set as unicode strings
+    def SetAttribute(self, uri, value):
+        if uri == chandler.startTime or uri == chandler.endTime:
+            if isinstance(value, unicode) or isinstance(value, str):
+                 value = DateTimeFrom(str(value))
+        Thing.SetAttribute(self, uri, value)
+        
     def GetEndTime(self):
         """Returns the end date and time of the event, as an mxDateTime"""
         return self.GetAttribute(chandler.endTime)
