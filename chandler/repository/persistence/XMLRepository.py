@@ -297,7 +297,14 @@ class XMLContainer(object):
             if txnStarted:
                 store._abortTransaction()
 
-        return [dv[0] for dv in docs.itervalues()]
+        results = []
+        for uuid, (doc, ver) in docs.iteritems():
+            # verify that match version is latest,
+            # if not it is out of date for the view
+            if store._versions.getDocVersion(uuid, version) == ver:
+                results.append(doc)
+
+        return results
 
     def deleteDocument(self, doc):
 
@@ -489,7 +496,7 @@ class VerContainer(DBContainer):
 
         self.put(pack('>16sl', uuid._uuid, ~version), pack('>l', docId))
 
-    def getDocVersion(self, uuid):
+    def getDocVersion(self, uuid, version=0):
 
         cursor = None
         txnStarted = False
@@ -502,10 +509,17 @@ class VerContainer(DBContainer):
                 value = cursor.set_range(key)
             except DBNotFoundError:
                 return None
-            else:
+
+            while True:
                 if value[0].startswith(key):
-                    return ~unpack('>l', value[0][16:20])[0]
-                return None
+                    docVersion = ~unpack('>l', value[0][16:20])[0]
+                    if version == 0 or docVersion <= version:
+                        return docVersion
+                else:
+                    return None
+
+                value = cursor.next()
+
         finally:
             if cursor:
                 cursor.close()

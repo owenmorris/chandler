@@ -198,7 +198,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     self.logger.debug('Removing version %d of %s',
                                       item._version, item.getItemPath())
                 versions.setDocVersion(uuid, newVersion, 0)
-                history.writeVersion(uuid, newVersion, 0)
+                history.writeVersion(uuid, newVersion, 0, item.getDirty())
 
         else:
             if self.isDebug():
