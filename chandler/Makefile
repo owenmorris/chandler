@@ -3,11 +3,11 @@
 # It should *not* be made to depend on external/internal
 # When a version changes, the ARCHIVES list below needs to be updated.
 #
-ARCHIVES=../$(SNAP)-0.3-13.tar.gz \
+ARCHIVES=../$(SNAP)-0.3-14.tar.gz \
          ../wxPython-$(SNAP)-2.5-4.tar.gz \
          ../UUIDext-$(SNAP)-0.3-2.tar.gz \
          ../m2crypto-$(SNAP)-0.12-1.tar.gz \
-         ../QueryParser-$(SNAP)-0.1-1.tar.gz \
+         ../QueryParser-$(SNAP)-0.1.2.tar.gz \
          ../Launchers-$(SNAP)-0.3-4.tar.gz
 
 OS=$(shell uname)
@@ -62,7 +62,6 @@ checkout:
 	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
 install: $(ARCHIVES) $(notdir $(ARCHIVES))
-	cp $(SNAP)/$(SITE)/QueryParser.py repository/query/parser/
 
 clean:
 	rm -rf $(SNAP); \
