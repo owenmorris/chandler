@@ -77,7 +77,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -86,7 +85,6 @@
   </zb:ZaoBaoItemDetail>
 
   <EditText itemName="NewChannel">
-    <open>True</open>
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
@@ -99,7 +97,6 @@
   </EditText>
 
   <BoxContainer itemName="ItemViewBox">
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -115,7 +112,6 @@
   <HTML itemName="AboutZaoBao">
     <url>parcels/osaf/examples/zaobao/AboutZaoBao.html</url>
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -127,7 +123,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -167,7 +162,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -179,7 +173,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -212,7 +205,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="chandlerwiki_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -224,7 +216,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -256,7 +247,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="junglewiki_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -268,7 +258,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -301,7 +290,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ted_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -313,7 +301,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -346,7 +333,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="zaobao_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -358,7 +344,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -392,7 +377,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="chao_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -404,7 +388,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -438,7 +421,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="lessig_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -450,7 +432,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -484,7 +465,6 @@
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="mark_ChannelItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -496,7 +476,6 @@
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>

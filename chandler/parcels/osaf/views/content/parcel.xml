@@ -50,7 +50,6 @@
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -73,7 +72,6 @@
     <columnWidths>130</columnWidths>
     <columnWidths>240</columnWidths>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -92,7 +90,6 @@
     <columnWidths>270</columnWidths>
     <columnWidths>170</columnWidths>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -108,7 +105,6 @@
     <weeksPerView>6</weeksPerView>
     <offset>20</offset>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -124,7 +120,6 @@
     <hoursPerView>24</hoursPerView>
     <offset>40</offset>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -145,7 +140,6 @@
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -155,7 +149,6 @@
 
   <ItemDetail itemName="CalendarEventDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -165,7 +158,6 @@
 
   <ItemDetail itemName="NoteDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -175,7 +167,6 @@
 
   <ItemDetail itemName="ContactDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -185,7 +176,6 @@
 
   <ItemDetail itemName="MixedItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -195,7 +185,6 @@
 
   <ItemDetail itemName="MonthItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -205,7 +194,6 @@
 
   <ItemDetail itemName="WeekItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -219,7 +207,6 @@
     <childrenBlocks itemref="view:CalendarList"/>
     <childrenBlocks itemref="view:CalendarEventDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>
@@ -236,7 +223,6 @@
     <childrenBlocks itemref="view:NoteList"/>
     <childrenBlocks itemref="view:NoteDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>
@@ -253,7 +239,6 @@
     <childrenBlocks itemref="view:ContactList"/>
     <childrenBlocks itemref="view:ContactDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>
@@ -270,7 +255,6 @@
     <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="view:MixedItemDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>
@@ -287,7 +271,6 @@
     <childrenBlocks itemref="view:SummaryMonth"/>
     <childrenBlocks itemref="view:MonthItemDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>
@@ -304,7 +287,6 @@
     <childrenBlocks itemref="view:SummaryWeek"/>
     <childrenBlocks itemref="view:WeekItemDetail"/>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
 
     <size>600,200</size>

@@ -80,7 +80,6 @@
   <ItemDetail itemName="ItemDetail"
               itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
     <!-- Attributes -->
-    <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -96,7 +95,6 @@
     <!-- Attributes -->
     <splitPercentage>0.5</splitPercentage>
 
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
     <size>517,564</size>
     <minimumSize>50,50</minimumSize>
