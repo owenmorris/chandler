@@ -92,6 +92,9 @@ class ViewerParcel (Parcel):
                 node = node.GetNext()
         self.description = _('The ' + self.displayName + ' parcel')
 
+        # register with the notification manager
+        app.model.notificationManager.Register(self.GetClientID())
+        
     def SynchronizeView (self):
         """
           If it isn't in the association we need to construct it and
@@ -143,7 +146,34 @@ class ViewerParcel (Parcel):
                                                           panel)
             panel.Activate()
             panel.Show ()
+         
+    def _SubscribeToNotifications(self, subscribeFlag):
+        """
+          private routine to get the list of notifications from the parcel, and subscribe
+          or unsubscribe to them according ot the flag
+         """
+        list = self.GetNotificationList()
+        clientID = self.GetClientID()
+        
+        for notification_name in list:
+            if subscribeFlag:
+                app.model.notificationManager.Subscribe(notification_name, clientID)
+            else:
+                 app.model.notificationManager.Unsubscribe(notification_name, clientID)
 
+    def GetNotificationList(self):
+        """
+        override to return a list of the notifications your parcel subscribes to.
+        Here we return an empty list
+        """
+        return []
+     
+    def GetClientID(self):
+        """
+        derive the clientID from the parcel's name
+        """
+        return 'parcel/OSAF/' + self.modulename         
+            
     def GoToURL(self, remoteaddress, url):
         """
           Override to navigate your parcel to the specified url.
@@ -238,6 +268,10 @@ class wxViewerParcel(wxPanel):
         """
         if hasattr (self, 'OnInit'):
             self.OnInit()
+            # connect to the idle event to check for notifications, if any
+            if len(self.model.GetNotificationList()) > 0:
+                EVT_IDLE(self, self.OnIdle)
+                
         """
           OnInitData is called once per parcel class, the first time a parcel
         is displayed. It's a good place to store global data that can't be
@@ -277,13 +311,17 @@ class wxViewerParcel(wxPanel):
         self.UpdateActionsBar()
         app.wxMainFrame.activeParcel = self
     
+        self.model._SubscribeToNotifications(True)
+        
     def Deactivate(self):
         """
           Override to do tasks that need to happen just before your parcel is
-        replaced with anoter.
+        replaced with another.
         """
+        self.model._SubscribeToNotifications(False)
         app.wxMainFrame.activeParcel = None
-    
+         
+     
     def UpdateParcelMenus(self):
         """
           Updates menus to reflect parcel menu items other than the viewerParcelMenu.
@@ -482,3 +520,14 @@ class wxViewerParcel(wxPanel):
             del ignoreErrors
             mainFrame.ReplaceActionsBar(actionsBar)
             
+    def OnIdle(self, event):
+        """
+          at idle time, fetch notifications for the parcel and call it if we have one
+        """
+        notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
+        if notification != None:
+            print "received notification ", notification.name
+            
+        event.RequestMore()
+        
+        

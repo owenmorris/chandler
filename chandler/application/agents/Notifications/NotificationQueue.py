@@ -40,7 +40,7 @@ def _timestamp(notification, queue):
 
 class NotificationQueue(Queue.Queue):
     def __init__(self, maxsize=0, strategy = _timestamp):
-        self.cancelSema = thread.allocate_lock()   #allocate a lock for cancelling notifications       
+        #self.cancelSema = thread.allocate_lock()   #allocate a lock for cancelling notifications       
         Queue.Queue.__init__(self, maxsize)        #initialise underlying superclass
         self.strategy = strategy
         return
@@ -50,9 +50,9 @@ class NotificationQueue(Queue.Queue):
         return
     
     def remove(self, notificationId):
-        self.cancelSema.acquire()
+        #self.cancelSema.acquire()
         result =  self._remove(notificationId)    
-        self.cancelSema.release()
+        #self.cancelSema.release()
         return result
         
     def _remove(self,notificationId):

@@ -19,13 +19,17 @@ import Queue
 import re
 import thread
 
+from persistence import Persistent 
+from persistence.list import PersistentList
+from persistence.dict import PersistentDict
+
 DuplicateClient = "Duplicate Client"
 SchemaNotFound = "Schema not found"
 SubscriberNotFound = "Subscriber not Found"
 SubscriberRegistered = "Subscriber Already registered"
 InvalidSubscriberId = "Invalid Subscriber Id"
 
-class NotificationManager:
+class NotificationManager(Persistent):
     
     TRUE = 1
     FALSE = 0
@@ -42,21 +46,42 @@ class NotificationManager:
     SUBSCRIBER_NOT_FOUND = 2
     DUPLICATE_CLIENT = 3
     DUPLICATE_DECLARATION = 4
+
+    notificationMutex = thread.allocate_lock()
     
-     
+    # the message queues are not persistent, so keep them in a class variable
+    # messageTable = MessageTable()
+    
     def __init__(self):
-        self.messageTable = MessageTable()   #handle queues
         self.declarations = Declarations()   #handle declarations
-        self.notificationMutex = thread.allocate_lock()
-        
-    
+        self.messageTable = MessageTable()
+        self.subscriberList = PersistentList()
+                
     # EXPERIMENTAL
     def Register(self,clientID):
         self.messageTable.AddQueue(clientID)
+ 
+        try:
+            index = self.subscriberList.index(clientID)
+            # FIXME: should throw an 'AlreadyRegistered' exception here?
+        except ValueError:
+            self.subscriberList.append(clientID)
+
         
     def Unregister(self,clientID):
         self.messageTable.DeleteQueue(clientID)
+
+        try:
+            index = self.subscriberList.index(clientID)
+            del self.subscriberList[index]
+        except ValueError:
+            # FIXME: should throw a 'NotRegistered' exception here?
+            pass
         
+    # called when the app is started up to add queues for all the persistent subscribers
+    def PrepareSubscribers(self):
+        self.messageTable.AddSubscribers(self.subscriberList)
+
     # END EXPERIMENTAL
     
     #UTILITY
@@ -83,7 +108,7 @@ class NotificationManager:
         return self.declarations.IsDeclared(name)
 
     def Lock(self):
-        self.notificationMutex.acquire()
+         NotificationManager.notificationMutex.acquire()
     
     def PutMessage(self, subscriber, notification):
         self.messageTable.PutMessage(subscriber, notification)
@@ -92,7 +117,7 @@ class NotificationManager:
         self.messageTable.RemoveMessage(notificationID,subscriber)
     
     def Unlock(self):
-        self.notificationMutex.release()
+        NotificationManager.notificationMutex.release()
             
     #END UTILITY
     
@@ -142,7 +167,7 @@ class NotificationManager:
                if (matchObject != None):
                   result.append(matchObject.group())
                   
-        return result
+        return
 
 
     def _getDescription(self, name):
@@ -187,7 +212,7 @@ class NotificationManager:
            
     # for now we don't care who posts......
     # future version should check notification for validity
-    def _postNotification(self,notification):    
+    def _postNotification(self,notification):         
         if self.IsDeclared(notification.GetName()):      
            subscriptionList = self.GetSubscriptionList(notification.GetName())
            
@@ -215,7 +240,7 @@ class NotificationManager:
         
              
     def _waitForNextNotification(self,clientID):
-        return self.messageTable.GetMessage(clientID, NotificationManager.BLOCKING)
+        return messageTable.GetMessage(clientID, NotificationManager.BLOCKING)
     
     
     def _cancelNotification(self, notificationID, clientID = 0):
@@ -326,35 +351,42 @@ class NotificationManager:
         finally:
             self.Unlock()
             return result
-   
-    
+      
 """
 The MessageTable class handles subscription details
 """
 
-class MessageTable:
-    def __init__(self):
-        self.table = {}  
+class MessageTable: 
+   
+    table = {}
+    
+    def __init__(self): 
         return
     
     def AddQueue(self, subscriber):
         if subscriber == "":
             raise InvalidSubscriberId
         
-        if self.table.has_key(subscriber):
+        if MessageTable.table.has_key(subscriber):
             raise SubscriberRegistered
         else:
-           # self.table[subscriber] = Queue.Queue()
-           self.table[subscriber] = NotificationQueue()
-    
+           MessageTable.table[subscriber] = NotificationQueue()
+
+    def HasQueue(self, subscriber):
+        return MessageTable.table.has_key(subscriber)
     
     def DeleteQueue(self,subscriber):
-        del self.table[subscriber]
+        del MessageTable.table[subscriber]
 
-           
+
+    def AddSubscribers(self, subscriberList):
+        for subscriber in subscriberList:
+            if not self.HasQueue(subscriber):
+                self.AddQueue(subscriber)
+            
     def GetMessage(self, subscriber, mode):
         try:
-            queue = self.table[subscriber]
+            queue = MessageTable.table[subscriber]
             notification = queue.get(mode)
         
         except Queue.Empty:
@@ -365,10 +397,9 @@ class MessageTable:
         
         return notification
     
-    
     def PutMessage(self, subscriber, notification):
         try:         
-            queue = self.table[subscriber]
+            queue = MessageTable.table[subscriber]
             queue.put(notification)
         
         except KeyError:
@@ -380,20 +411,19 @@ class MessageTable:
     def RemoveMessage(self, notificationID, subscriber):
         result = True
         try:         
-            queue = self.table[subscriber]
+            queue = MessageTable.table[subscriber]
             result = queue.remove(notificationID)
         except KeyError:
             result = False
         return result
-
-
+        
 """
 The Declaration class handles declaration details
 """
 
-class Declarations:
+class Declarations(Persistent):
     def __init__(self):
-        self.subscriptions = {}
+        self.subscriptions = PersistentDict()
         return
          
     
@@ -471,14 +501,14 @@ class Declarations:
     DeclarationEntry class
     """
     
-class DeclarationEntry:
+class DeclarationEntry(Persistent):
     def __init__(self, name, clientID, type, description, acl = None):
         self.name = name
         self.owner = clientID
         self.type = type
         self.description = description
         self.acl = acl
-        self.subscriptionList = []
+        self.subscriptionList = PersistentList()
         return 
     
     #def __repr__(self):

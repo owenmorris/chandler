@@ -40,6 +40,10 @@ class RosterViewer(ViewerParcel):
         
         return true
 
+    # return the list of notifications to subscribe to
+    def GetNotificationList(self):
+        return ['chandler/im/presence-changed']
+    
     # utility to map a name back to its corresponding ID
     def MapNameToID(self, name):
         if self.nameToIDMap.has_key(name):

@@ -123,19 +123,19 @@ class JabberClient:
     def DeclareNotifications(self):
         # presence subscription request
         description = _("Someone has requested a subscription to your presence.")
-        self.application.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
 
         # presence changed
         description = _("Someone's presence state has changed.")
-        self.application.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
 
         # instant message arrived
         description = _("You have received a new instant message.")
-        self.application.notificationManager.DeclareNotification('chandler/im/instant-message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/instant-message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
         
         # instant message sent
         description = _("You have sent a new instant message.")
-        self.application.notificationManager.DeclareNotification('chandler/im/instant-message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/instant-message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
                                                 
     # login to the Jabber server
     def Login(self):
@@ -205,7 +205,7 @@ class JabberClient:
             name = self.nameMap[key]
             if name != key:
                 return name
-            
+ 
         name = self.application.LookupInRepository(key)
         if name == None:
             name = str(jabberID)
@@ -563,7 +563,7 @@ class JabberClient:
     def NotifyPresenceChanged(self, who):
         presenceChangedNotification = Notification("chandler/im/presence-changed","whoType", None)
         presenceChangedNotification.SetData(who)
-        self.application.notificationManager.PostNotification(presenceChangedNotification)
+        self.application.model.notificationManager.PostNotification(presenceChangedNotification)
         
         app = application.Application.app
         if app.presenceWindow != None:

@@ -42,7 +42,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 39
+    VERSION = 40
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -59,12 +59,15 @@ class Application(Persistent):
         self.mainFrame           ChandlerWindow
         self.URLTree             tree of URL's
         self.version             see __setstate__
+        self.notificationManager notification manager
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
         self.URLTree = URLTree()
         self.version = Application.VERSION
-    
+        
+        self.notificationManager = NotificationManager()
+   
     def SynchronizeView(self):
         """
           Notifies each of the application's wxPython view counterparts
@@ -139,7 +142,6 @@ class wxApplication (wxApp):
     self.dbroot                   ZODB root object tree
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
-    self.notificationManager      notification manager object
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the model.persistence.FileRepository instance
     
@@ -180,7 +182,6 @@ class wxApplication (wxApp):
         
         self.jabberClient = None
         self.presenceWindow = None
-        self.notificationManager = NotificationManager()
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
 
@@ -303,6 +304,12 @@ class wxApplication (wxApp):
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
+        
+        """
+        initialize the non-persistent part of the NotificationManager
+        """
+        self.model.notificationManager.PrepareSubscribers()
+        
         """
           allocate the Jabber client, logging in if possible
         """
