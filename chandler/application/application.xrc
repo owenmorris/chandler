@@ -46,7 +46,7 @@
                     <object class="wxTextCtrl" name="urlBox">
                         <style>wxTE_PROCESS_ENTER</style>
                         <option>1</option>
-                        <size>160,-1</size>
+                        <size>360,-1</size>
                         <value></value>
                     </object>
                 </object>
