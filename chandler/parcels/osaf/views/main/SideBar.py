@@ -128,6 +128,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                       ItemCollection change we don't update our copied rule.                      
                     """
                     key = ItemCollection.ItemCollection (view=self.itsView)
+                    key.source = item
                     key._rule = item._rule
                     key.inclusions = item.inclusions
                     key.exclusions = item.exclusions

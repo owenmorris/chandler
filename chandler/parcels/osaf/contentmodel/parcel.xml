@@ -323,6 +323,18 @@
       <type itemref="Boolean"/>
     </Attribute>
 
+    <Attribute itsName="source">
+      <type itemref="cm:ItemCollection"/>
+      <inverseAttribute itemref="cm:ItemCollection/destination"/>
+    </Attribute>
+  
+    <Attribute itsName="destination">
+      <type itemref="cm:ItemCollection"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="cm:ItemCollection/source"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
     <Attribute itsName="shares">
       <type itemref="share:Share"/>
       <cardinality value="list" />
