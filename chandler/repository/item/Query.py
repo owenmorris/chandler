@@ -33,7 +33,7 @@ class FilterQuery(Query):
 
 
 class KindQuery(Query):
-    'A query that returns all items of certain kinds or subkind thereof'
+    'A query that returns all items of certain kinds or subkinds thereof'
 
     def __init__(self, recursive=True):
 

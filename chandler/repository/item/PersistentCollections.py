@@ -109,6 +109,10 @@ class PersistentList(list, PersistentCollection):
         if args:
             self.extend(args)
 
+    def copy(self, item, attribute, companion, original):
+
+        return PersistentList(item, attribute, companion, *original)
+
     def __setitem__(self, index, value):
 
         self._storeValue(value)
@@ -231,6 +235,10 @@ class PersistentDict(dict, PersistentCollection):
 
         if kwds:
             self.update(kwds)
+
+    def copy(self, item, attribute, companion, original):
+
+        return PersistentDict(item, attribute, companion, **original)
 
     def __delitem__(self, key):
 

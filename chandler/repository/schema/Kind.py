@@ -6,7 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from repository.item.Item import Item
-from repository.item.ItemRef import RefDict
+from repository.item.ItemRef import RefDict, NoneRef
+from repository.item.PersistentCollections import PersistentCollection
 from repository.util.Path import Path
 from repository.util.UUID import UUID
 from repository.util.SingleRef import SingleRef
@@ -17,6 +18,9 @@ class Kind(Item):
     def __init__(self, name, parent, kind):
 
         super(Kind, self).__init__(name, parent, kind)
+        self.__init()
+
+    def __init(self):
 
         # recursion avoidance
         self._values['notFoundAttributes'] = []
@@ -27,20 +31,14 @@ class Kind(Item):
 
         # will allow schema items to live anywhere
         self._status |= Item.SCHEMA
+
+        self._initialValues = None
+        self._initialReferences = None
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
-
-        # recursion avoidance
-        self._values['notFoundAttributes'] = []
-        refDict = self._refDict('inheritedAttributes',
-                                'inheritingKinds', False)
-        self._references['inheritedAttributes'] = refDict
-        self._status |= Item.SCHEMA
-
-        # will allow schema items to live anywhere
-        self._status |= Item.SCHEMA
+        self.__init()
 
     def newItem(self, name, parent):
         """Create an item of this kind.
@@ -128,10 +126,14 @@ class Kind(Item):
         """
 
         if inherited:
+            inheritedAttributes = self.inheritedAttributes
             for superKind in self._getSuperKinds():
-                for pair in superKind.iterAttributes(inherited,
-                                                     localOnly, globalOnly):
-                    yield pair
+                for name, attribute in superKind.iterAttributes(inherited,
+                                                                localOnly,
+                                                                globalOnly):
+                    if not attribute.itsUUID in inheritedAttributes:
+                        inheritedAttributes.append(attribute, alias=name)
+                    yield (name, attribute)
 
         attributes = self.getAttributeValue('attributes', default=None)
         if attributes is not None:
@@ -201,6 +203,43 @@ class Kind(Item):
 
         return False
 
+    def getInitialValues(self, item, values, references):
+
+        # setup cache
+        if self._initialValues is None:
+            self._initialValues = {}
+            self._initialReferences = {}
+            for name, attribute in self.iterAttributes():
+                value = attribute.getAspect('initialValue', default=Item.Nil)
+                if value is not Item.Nil:
+                    otherName = attribute.getAspect('otherName')
+                    if otherName is None:
+                        self._initialValues[name] = value
+                    else:
+                        self._initialReferences[name] = value
+
+        for name, value in self._initialValues.iteritems():
+            if isinstance(value, PersistentCollection):
+                value = value.copy(item, name, value._companion, value)
+            values[name] = value
+
+        # only initialValue of None for refs is supported at the moment
+        for name, value in self._initialReferences.iteritems():
+            if value is None:
+                value = NoneRef
+            references[name] = value
+
+    def flushCaches(self):
+
+        self.inheritedAttributes.clear()
+        del self.notFoundAttributes[:]
+        self._initialValues = None
+        self._initialReferences = None
+
+        for subKind in self.getAttributeValue('subKinds',
+                                              _attrDict=self._references,
+                                              default=[]):
+            subKind.flushCaches()
 
     # begin typeness of Kind as SingleRef
     

@@ -60,6 +60,9 @@ class Item(object):
 
         self._setParent(parent)
 
+        if kind is not None:
+            kind.getInitialValues(self, self._values, self._references)
+
     def _fillItem(self, name, parent, kind, **kwds):
 
         self._uuid = kwds['uuid']
@@ -453,10 +456,6 @@ class Item(object):
 
         except KeyError:
             pass
-
-        value = self.getAttributeAspect(name, 'initialValue', default=Item.Nil)
-        if value is not Item.Nil:
-            return self.setAttributeValue(name, value)
 
         inherit = self.getAttributeAspect(name, 'inheritFrom', default=None)
         if inherit is not None:
@@ -863,12 +862,6 @@ class Item(object):
 
         isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
-
-        if attrValue is Item.Nil:
-            attrValue = self.getAttributeAspect(attribute, 'initialValue',
-                                                default=Item.Nil)
-            if attrValue is not Item.Nil:
-                attrValue = self.setAttributeValue(attribute, attrValue)
 
         if attrValue is Item.Nil:
             return self.setValue(attribute, value, key, alias, _attrDict)
