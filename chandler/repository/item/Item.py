@@ -1621,7 +1621,7 @@ class Item(object):
         superKinds = []
         if self._kind is not None:
             if self._kind.isMixin():
-                superKinds[:] = self._kind._getSuperKinds()
+                superKinds[:] = self._kind.superKinds
             else:
                 superKinds.append(self._kind)
 

@@ -218,7 +218,7 @@ class Cloud(Item):
                 yield (endpoints.getAlias(endpoint), endpoint, self)
 
         if cloudAlias is not None:
-            for superKind in self.kind._getSuperKinds():
+            for superKind in self.kind.superKinds:
                 for cloud in superKind.getClouds(cloudAlias):
                     for (alias, endpoint,
                          inCloud) in cloud.iterEndpoints(cloudAlias):
@@ -248,7 +248,7 @@ class Cloud(Item):
 
         if cloudAlias is not None:
             results = []
-            for superKind in self.kind._getSuperKinds():
+            for superKind in self.kind.superKinds:
                 for cloud in superKind.getClouds(cloudAlias):
                     results.extend(cloud.getEndpoints(cloudAlias, alias))
             return results

@@ -24,6 +24,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.attrKind = self.itemKind.itsParent['Attribute']
 
         self.kind1 = self.kind.newItem('kind1',self.rep)
+        self.kind1.addValue('superKinds', self.itemKind)
         self.kind1Attr1 = Attribute('k1a1', self.rep, self.attrKind)
         self.kind1Attr1.cardinality = 'list'
         self.kind1Attr1.otherName = 'owner'
@@ -38,6 +39,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
             pass
         
         self.kind2 = self.kind.newItem('kind2', self.kind1)
+        self.kind2.addValue('superKinds', self.itemKind)
         self.kind2.addValue('attributes', self.kind1Attr1, alias='k1a1')
         self.kind2Attr2 = Attribute('k2a2', self.rep, self.attrKind)
         self.kind2Attr2.cardinality = 'list'

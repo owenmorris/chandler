@@ -5,7 +5,11 @@
   <item withSchema="True">
     <name>Item</name>
     <kind type="path">//Schema/Core/Kind</kind>
-    <class module="repository.schema.Kind">ItemKind</class>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+    </ref>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">

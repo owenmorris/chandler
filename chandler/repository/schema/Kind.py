@@ -71,7 +71,7 @@ class Kind(Item):
         superClasses = []
         
         hash = UUIDext.combine(0, self._uuid._hash)
-        for superKind in self._getSuperKinds():
+        for superKind in self.superKinds:
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
@@ -100,8 +100,9 @@ class Kind(Item):
         
         if not self.getAttributeValue('superKinds', default=None,
                                       _attrDict = self._references):
-            self.itsView.logger.warn('No superKinds for %s', self.itsPath)
-            result = False
+            if self is not self.getItemKind():
+                self.itsView.logger.warn('No superKinds for %s', self.itsPath)
+                result = False
 
         return result
         
@@ -214,7 +215,7 @@ class Kind(Item):
 
         if inherited:
             inheritedAttributes = self.inheritedAttributes
-            for superKind in self._getSuperKinds():
+            for superKind in self.superKinds:
                 for name, attribute in superKind.iterAttributes():
                     if (attribute._uuid not in inheritedAttributes and
                         inheritedAttributes.resolveAlias(name) is None):
@@ -230,7 +231,7 @@ class Kind(Item):
             return None
 
         cache = True
-        for superKind in self._getSuperKinds():
+        for superKind in self.superKinds:
             if superKind is not None:
                 try:
                     attribute = superKind.getAttribute(name)
@@ -250,16 +251,6 @@ class Kind(Item):
             self.addValue('notFoundAttributes', name)
 
         return None
-
-    def _getSuperKinds(self):
-
-        superKinds = self.getAttributeValue('superKinds', default=None,
-                                            _attrDict=self._references)
-        if not superKinds:
-            self.itsView.logger.warn('No superKinds for %s', self.itsPath)
-            return [ self.getItemKind() ]
-
-        return superKinds
 
     def getItemKind(self):
 
@@ -320,9 +311,9 @@ class Kind(Item):
         if self is superKind:
             return True
 
-        superKinds = self._getSuperKinds()
+        superKinds = self.superKinds
 
-        if superKinds:
+        if len(superKinds) > 0:
             for kind in superKinds:
                 if kind is superKind:
                     return True
@@ -479,7 +470,7 @@ class Kind(Item):
 
         if clouds is None or (cloudAlias is not None and
                               clouds.resolveAlias(cloudAlias) is None):
-            for superKind in self._getSuperKinds():
+            for superKind in self.superKinds:
                 results.extend(superKind.getClouds(cloudAlias))
 
         elif cloudAlias is not None:
@@ -492,12 +483,3 @@ class Kind(Item):
 
 
     NoneString = "__NONE__"
-
-
-class ItemKind(Kind):
-
-    def _getSuperKinds(self):
-        return []
-
-    def check(self, recursive=False):
-        return super(Kind, self).check(recursive)

@@ -223,7 +223,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//bossA','//employeeA1','//employeeA2','//employeeA3','//employeeA4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
-        # now test reassigning the same refdictionary
+        # now test reassigning the same ref collection
         numEmployees = len(manager.employees)
         manager.employees = manager.employees
         self.assert_(len(manager.employees) == numEmployees)
@@ -236,7 +236,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         manager.employees = empClone
         print "manager has %d employees" % len(manager.employees)
         print "manager has %d employee values" % len(manager.employees.values())
-        #self.assert_(len(manager.employees) == numEmployees)
+        self.assert_(len(manager.employees) == numEmployees)
 
     def testSubAttributes(self):
         """Test attributes which have sub attributes (subAttributes and superAttribute attributes)"""

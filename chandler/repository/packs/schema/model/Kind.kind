@@ -75,6 +75,7 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">subKinds</attribute>
+    <attribute name="initialValue" type="list"></attribute>
   </item>
 
   <item withSchema="True">
