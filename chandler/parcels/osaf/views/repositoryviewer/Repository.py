@@ -25,15 +25,15 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
         try:
-            cellValues.append (str (element.getItemDisplayName()))
+            cellValues.append (unicode (element.getItemDisplayName()))
         except AttributeError:
             cellValues.append (' ')
         try:
             cellValues.append (element.itsKind.itsName)
         except AttributeError:
             cellValues.append (' ')
-        cellValues.append (str (element.itsUUID))
-        cellValues.append (str (element.itsPath))
+        cellValues.append (unicode (element.itsUUID))
+        cellValues.append (unicode (element.itsPath))
         return cellValues
 
     def ElementHasChildren(self, element):
@@ -61,7 +61,7 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             else:
                 kind = "(kindless)"
                 
-            dn = str(reference.getItemDisplayName())
+            dn = unicode(reference.getItemDisplayName())
             
             # Escape < and > for HTML display
             kind = kind.replace("<", "&lt;").replace(">", "&gt;")
@@ -89,14 +89,14 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
                 if isinstance(v, dict):
                     tmpList = ["<li><b>%s:</b></li><ul>" % k]
                     for attr in v:
-                        attrString = str(attr)
+                        attrString = unicode(attr)
                         attrString = attrString.replace("<", "&lt;")
                         attrString = attrString.replace(">", "&gt;")
                         tmpList.append("<li>%s</li>" % attrString)
                     tmpList.append("</ul>")
                     valueAttr.append((k, "".join(tmpList)))
                 else:
-                    value = str(v)
+                    value = unicode(v)
                     value = value.replace("<", "&lt;")
                     value = value.replace(">", "&gt;")
                     valueAttr.append((k,"<li><b>%s: </b>%s</li>" % (k, value)))
@@ -150,11 +150,11 @@ class CPIADelegate (ControlBlocks.ListDelegate):
             cellValues.append (' ')
 
         try:
-            cellValues.append (str (element.getItemDisplayName()))
+            cellValues.append (unicode (element.getItemDisplayName()))
         except AttributeError:
             cellValues.append (' ')
-        cellValues.append (str (element.itsUUID))
-        cellValues.append (str (element.itsPath))
+        cellValues.append (unicode (element.itsUUID))
+        cellValues.append (unicode (element.itsPath))
         return cellValues
 
     def ElementHasChildren(self, element):
