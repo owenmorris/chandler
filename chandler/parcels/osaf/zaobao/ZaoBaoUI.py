@@ -465,7 +465,9 @@ class wxZaoBaoItemView(wxHtmlWindow):
     def SetData(self, data):
         """Set the RSSChannel that this content view should represent"""
         self.data = data
-        self.SetPage(self.getNewItemsHTML())
+        pageHTML = self.getNewItemsHTML()
+        pageHTML = pageHTML.encode('latin_1','ignore') #@@@ wxHTMLWindow doesn't seem to support non latin_1 encoding for now
+        self.SetPage(pageHTML)
         
     def __init__(self,parent,id,path=''):
         wxHtmlWindow.__init__(self,parent,id)
