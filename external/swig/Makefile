@@ -57,7 +57,7 @@ snap:
 	tar -cvzf $(SNAP).tar.gz . --no-recursion
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)
 
 expand: SWIG-$(VERSION).tar.gz 
 	tar xvzf SWIG-$(VERSION).tar.gz

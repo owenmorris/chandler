@@ -26,4 +26,4 @@ snap:
             --exclude Examples
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)

@@ -33,4 +33,4 @@ snap:
                   $(SNAP)/$(BIN)/pychecker*
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)

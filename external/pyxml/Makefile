@@ -22,4 +22,4 @@ snap:
                   $(SNAP)/$(SITE)/_xmlplus
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)

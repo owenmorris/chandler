@@ -146,6 +146,6 @@ apply: $(SRC)/$(BUILD)/Makefile patches
 	patch -Nup0 < patches; echo ok
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)
 
 endif

@@ -26,4 +26,4 @@ snap:
                   $(SNAP)/$(SITE)/xmlstream.py*
 
 clean:
-	cd $(SRC); rm -rf $(BUILD)
+	rm -rf $(SRC)/$(BUILD)
