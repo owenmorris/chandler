@@ -69,7 +69,7 @@ snap:
 
 endif
 
-ifeq($(OS),Darwin)
+ifeq ($(OS),Darwin)
 
 openssl:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
