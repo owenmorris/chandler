@@ -489,12 +489,19 @@ class wxViewerParcel(wxPanel):
                 be deleted). Also avoiding the replace eliminates flicker that
                 is seen in the menubar as it's replaced.
                 """
+
+                """
+                I'm commenting this out until we figure out why
+                an assertion fires with this code in.  I just turned on
+                assertion checking in wx under the debug build.
+
                 for menuItem in menu.GetMenuItems():
                     menu.DestroyItem(menuItem)
-                
+
                 for menuItem in source.GetMenuItems():
                     menu.AppendItem(source.RemoveItem(menuItem))
-                    
+                """
+
                 parcelMenuResourceXRC = self.resources.FindResourceWithoutLogging (name, 'wxMenu')
 
                 if parcelMenuResourceXRC != None:
