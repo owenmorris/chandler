@@ -13,13 +13,35 @@ __license__ = "Python"
 
 import os
 from wxPython.wx import *
-from application.Application import app
 from application.ChandlerJabber import *
+import application.Application
 
+class PresenceWindow(wxFrame):
+    def __init__(self, title, jabberClient):
+        self.jabberClient = jabberClient
+        
+        wxFrame.__init__(self, None, -1, title, size=(200, 120), style=wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE)
+        sizer = wxBoxSizer(wxVERTICAL)
+        
+        # base ID for events
+        self.eventID = 100
+
+        # add the presence panel
+        self.presencePanel = PresencePanel(self, self.jabberClient)
+        sizer.Add(self.presencePanel, 1, wxEXPAND)
+       
+        self.SetSizer(sizer)
+        self.SetAutoLayout(true)
+        #sizer.Fit(self)
+
+    def PresenceChanged(self, who):
+        self.presencePanel.PresenceChanged(who)
+        
 class PresencePanel(wxScrolledWindow):
     def __init__(self, parent, jabberClient):
         self.jabberClient = jabberClient
-         
+        self.openState = {}
+        
         wxScrolledWindow.__init__(self, parent)
 
         self.nameFont = wxFont(12, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")
@@ -85,22 +107,37 @@ class PresencePanel(wxScrolledWindow):
     # of each entry
     def LayoutWidgets(self):
         container = wxBoxSizer(wxVERTICAL)        
-        buddyList = self.jabberClient.GetRosterIDs(false)
+        if not self.jabberClient.IsConnected():
+            message = _("You are not logged in.  Click here \nto fill out your account information.")
+            textWidget = wxStaticText(self, -1, message)
+            EVT_LEFT_DOWN(textWidget, self.ShowPreferencesDialog)
+            container.Add(textWidget, 0, wxEXPAND | wxALIGN_CENTRE | wxALL, 12)
+        else:
+            buddyList = self.jabberClient.GetRosterIDs(false)
         
-        for jabberID in buddyList:
-            presenceEntry = self.RenderPresenceEntry(jabberID)
-            container.Add(presenceEntry, 0)
-                                        
-        self.SetSizerAndFit(container)           
+            for jabberID in buddyList:
+                presenceEntry = self.RenderPresenceEntry(jabberID)
+                container.Add(presenceEntry, 0, wxEXPAND)
+                container.Add(-1, 4)
+                
+        self.SetSizer(container)           
+        self.Layout()
+        
         self.EnableScrolling(false, true)
         self.SetScrollRate(0, 20)
 
+    # show the preferences dialog
+    def ShowPreferencesDialog(self, event):
+        app = application.Application.app
+        app.OnPreferences(event)
+        
     # rerender the presence panel when the presence state changes
     def PresenceChanged(self, who):
         self.RenderWidgets()
-
+        
     # utility routine to load a bitmap from a GIF file
     def LoadBitmap(self, filename):
+        app = application.Application.app
         path = app.chandlerDirectory + os.sep + 'application' + os.sep + 'images' + os.sep + filename
         image = wxImage(path, wxBITMAP_TYPE_GIF)
         bitmap = image.ConvertToBitmap()

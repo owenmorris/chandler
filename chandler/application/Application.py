@@ -17,6 +17,7 @@ from persistence.list import PersistentList
 import application.ChandlerWindow
 import PreferencesDialog
 import ChandlerJabber
+import PresencePanel
 
 from zodb import db 
 from zodb.storage.file import FileStorage
@@ -145,7 +146,8 @@ class wxApplication (wxApp):
         self.parcels=[]
         self.storage=None
         self.model=None
-
+        self.presenceWindow = None
+        
         global app
         assert app == None     #More than one app object doesn't make sense
         app = self
@@ -198,7 +200,10 @@ class wxApplication (wxApp):
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         EVT_MENU(self, XRCID ("About"), self.OnAbout)
         EVT_MENU(self, XRCID ("Preferences"), self.OnPreferences)
-
+        
+        # view menu handlers
+        EVT_MENU(self, XRCID("TogglePresenceWindow"), self.TogglePresenceWindow)
+        
         self.homeDirectory = wxGetHomeDir() + os.sep + ".Chandler";
         if not os.path.exists (self.homeDirectory):
             os.makedirs (self.homeDirectory)
@@ -340,6 +345,23 @@ class wxApplication (wxApp):
         # This gives a chance for the app to respond to the events as well
         event.Skip()
 
+    # handler for the Show/Hide Presence Window command
+    def TogglePresenceWindow(self, event):
+        if self.presenceWindow == None:
+            title = _("Presence Panel")
+            self.presenceWindow = PresencePanel.PresenceWindow(title, self.jabberClient)
+            self.presenceWindow.CentreOnScreen()
+            self.presenceWindow.Show()
+            EVT_CLOSE(self.presenceWindow, self.PresenceWindowClosed)
+        else:
+            self.presenceWindow.Close()
+            self.presenceWindow = None
+    
+    # handle the presence window closing by clearing the reference
+    def PresenceWindowClosed(self, event):
+        self.presenceWindow.Destroy()
+        self.presenceWindow = None
+        
     # HandleSystemPreferences is called after the preferences
     # changed to handle changing the state for varous
     # system preferences

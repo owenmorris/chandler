@@ -134,6 +134,10 @@
                 <label>Side Bar</label>
                 <checkable>1</checkable>
             </object>
+            <object class="wxMenuItem" name="TogglePresenceWindow">
+                <label>Presence Window</label>
+                <checkable>1</checkable>
+            </object>
         </object>
         <object class="wxMenu" name="HelpMenu">
             <label>Help</label>

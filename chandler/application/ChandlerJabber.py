@@ -20,6 +20,8 @@ import cPickle
 import xmlstream
 from jabber import *
 
+import application.Application
+
 # jabber callbacks
 def messageCallback(connection, messageElement):
     connection.jabberclient.HandleMessage(messageElement)
@@ -45,6 +47,7 @@ class JabberClient:
         self.timer = None
         
         self.resourceMap = {}
+        self.statusMap = {}
         self.accessibleViews = {}
         self.openPeers = {}
                 
@@ -88,9 +91,7 @@ class JabberClient:
             return
         
         username = self.GetUsername()
-        servername = self.GetServername()	
-
-        print "login to", username, servername        
+        servername = self.GetServername()
         
         self.connection = Client(host=servername, debug=0)
         try:
@@ -100,20 +101,15 @@ class JabberClient:
             self.connection = None
             return
 
-        print "connected"
         # store a reference to the client object in the connection
         self.connection.jabberclient = self
         
-        if not self.IsRegistered():		
-            print "not registered"
-     
+        if not self.IsRegistered():     
             if not self.Register():
                 self.connection.disconnect()
                 print "couldnt register ", self.name
                 return
         
-        print "registered"
-         
         if self.connection.auth(username, self.password, 'Chandler'):	            
             self.connection.setPresenceHandler(presenceCallback)
             self.connection.setMessageHandler(messageCallback)
@@ -161,12 +157,6 @@ class JabberClient:
         resource = self.resourceMap[basicID]
         return string.find(resource, 'Chandler') >= 0
     
-    # the idle routine drives the event mechanism, etc
-    def OnIdle(self, event):
-        if self.connection != None:
-            self.connection.process(0)			
-            print "process idle"
-
     # return a list of all the jabber_ids in the roster, with the
     # active ones first.
     # optionally, filter for Chandler clients only
@@ -302,7 +292,6 @@ class JabberClient:
         subject = messageElement.getSubject()
         
         xRequest = messageElement.getX()		
-        print "message ", type, xRequest, fromAddress, subject
 
         if xRequest != None:
             if xRequest == 'chandler:shimmer-request':
@@ -344,26 +333,23 @@ class JabberClient:
 
         #if type == 'unavailable':
             #self.viewer.location_bar.notify_unavailable(who)
-            
-        print "presence element of type", type, "from", fromAddress, "status", status
-                
+                            
         # invoke a dialog to confirm the subscription request if necessary
         if type == 'subscribe' or type == 'unsubscribe':
             self.ConfirmSubscription(type, who)
         else:
-            self.NotifyPresenceChanged(who)
+            if not self.statusMap.has_key(who) or self.statusMap[who] != status:
+                self.statusMap[who] = status
+                self.NotifyPresenceChanged(who)
             
     # handle iq requests
+    # FIXME: do we need this - we're not really doing anything with it now...
     def HandleIq(self, iqElement):
         type = iqElement.getType()
         fromAddress = iqElement.getFrom()
         query = iqElement.getQuery()
         error = iqElement.getError()
-        if query == 'jabber:iq:roster':				
-            self.NotifyPresenceChanged(fromAddress)
-            
-        print "iq callback ", type, fromAddress, query, error
-        
+                    
     def RequestAccessibleViews(self, jabberID):
         requestMessage = Message(jabberID, 'Requesting accessible views')
         requestMessage.setX('chandler:request-views')
@@ -396,13 +382,13 @@ class JabberClient:
     # notify the presence panel that presence has changed
     
     def NotifyPresenceChanged(self, who):
-        print "presence changed", who
+        app = application.Application.app
+        if app.presenceWindow != None:
+            app.presenceWindow.PresenceChanged(who)
         
     # register the user
     def Register(self):
         self.connection.requestRegInfo()
-        print "about to register", self.name, self.password, self.GetUsername(), self.email
-
         
         self.connection.setRegInfo('name', self.name)
         self.connection.setRegInfo('password', self.password)
@@ -411,7 +397,6 @@ class JabberClient:
         
         registerResult = self.connection.sendRegInfo()
         error = registerResult.getError()
-        print "registered ", self.name, " error ", error
         return error == None
                     
     # return TRUE if we're registered with our server
