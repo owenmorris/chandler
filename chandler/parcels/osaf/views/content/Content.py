@@ -50,7 +50,7 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
 
 
 class CalendarListDelegate (ControlBlocks.ListDelegate):
-    def GetElementText (self, row, column):
+    def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
             return result.getWho()
@@ -77,7 +77,7 @@ class ContactListDelegate(ControlBlocks.ListDelegate):
         else:
             return ""
 
-    def GetElementText (self, row, column): 
+    def GetElementValue (self, row, column): 
         result = self.blockItem.contents [row]
         if column == 0:
             return self.valOrEmpty(result, ("contactName", "firstName"))
@@ -92,7 +92,7 @@ class ContactListDelegate(ControlBlocks.ListDelegate):
         return ""
 
 class MixedListDelegate(ControlBlocks.ListDelegate):
-    def GetElementText (self, row, column):
+    def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
             return result.getWho()
@@ -106,7 +106,7 @@ class MixedListDelegate(ControlBlocks.ListDelegate):
 
 
 class NoteListDelegate(ControlBlocks.ListDelegate):
-    def GetElementText (self, row, column):
+    def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
             return result.getAbout()

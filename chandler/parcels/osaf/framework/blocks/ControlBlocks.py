@@ -188,7 +188,7 @@ class ListDelegate:
       Default delegate for Lists that use the block's contents. Override
     to customize your behavior.
     """
-    def GetElementText (self, row, column):
+    def GetElementValue (self, row, column):
         result = self.blockItem.contents[item]
         name = self.blockItem.columnHeadings[column]
         try:
@@ -196,7 +196,7 @@ class ListDelegate:
         except AttributeError:
             return ""
 
-    def SetElementText (self, row, column, value):
+    def SetElementValue (self, row, column, value):
         result = self.blockItem.contents[item]
         column = self.blockItem.columnHeadings[column]
         result.setAttributeValue(column, value)
@@ -262,7 +262,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
           OnGetItemText won't be called if it's in the delegate -- WxPython won't
         call it if it's in a base class
         """
-        return self.GetElementText (row, column)
+        return self.GetElementValue (row, column)
 
     def GoToItem(self, item):
         self.Select (self.blockItem.contents.index (item))
@@ -286,13 +286,13 @@ class List(RectangularChild):
         self.GoToItem (self.selection)
 
 
-class wxSummaryTable(wx.grid.PyGridTableBase):
+class wxTableData(wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
-        super (wxSummaryTable, self).__init__ (*arguments, **keywords)
+        super (wxTableData, self).__init__ (*arguments, **keywords)
 
     def GetNumberRows(self):
         """
-          We've got the usual chicken & egg problems: Wx calls GetNumberRows &
+          We've got the usual chicken & egg problems: wxWidgets calls GetNumberRows &
         GetNumberCols before wiring up the view instance variable
         """
         if self.GetView():
@@ -311,13 +311,13 @@ class wxSummaryTable(wx.grid.PyGridTableBase):
         return False 
 
     def GetValue(self, row, column): 
-        return self.GetView().GetElementText(row, column)
+        return self.GetView().GetElementValue(row, column)
 
     def SetValue(self, row, column, value):
-        self.GetView().GetElementText(row, column, value) 
+        self.GetView().GetElementValue(row, column, value) 
 
 
-class wxSummary(wx.grid.Grid):
+class wxTable(wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -327,7 +327,7 @@ class wxSummary(wx.grid.Grid):
         oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
         Globals.wxApplication.ignoreSynchronizeWidget = True
         try:
-            super (wxSummary, self).__init__ (*arguments, **keywords)
+            super (wxTable, self).__init__ (*arguments, **keywords)
         finally:
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
@@ -342,14 +342,14 @@ class wxSummary(wx.grid.Grid):
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
         """
-          wxSummaryTable handles the callbacks to display the elements of the
+          wxTableData handles the callbacks to display the elements of the
         table. Setting the second argument to True cause the table to be deleted
         when the grid is deleted.
 
           We've also got the usual chicken and egg problem: SetTable uses the
         table before initializing it's view so GetView() returns none.
         """
-        gridTable = wxSummaryTable()
+        gridTable = wxTableData()
         self.currentRows = gridTable.GetNumberRows()
         self.currentColumns = gridTable.GetNumberCols()
 
@@ -383,7 +383,7 @@ class wxSummary(wx.grid.Grid):
                 self.blockItem.selection = item
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
-            self.blockItem.cursorColumnLabel = self.GetTable().GetColLabelValue (event.GetCol())
+            self.blockItem.selectedColumn = self.GetTable().GetColLabelValue (event.GetCol())
         event.Skip()
 
     def Reset(self): 
@@ -410,18 +410,21 @@ class wxSummary(wx.grid.Grid):
         for columnIndex in xrange (newColumns):
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
-        importPath = "osaf.framework.blocks.ControlBlocks.SmileRenderer"
-        parts = importPath.split (".")
-        assert len(parts) >= 2, "Renderer %s isn't a module and class" % importPath
-        className = parts.pop ()
-        module = __import__ ('.'.join(parts), globals(), locals(), className)
-        theClass = vars (module) [className]
-        renderer = theClass (gridTable)
-
-        attribute = wx.grid.GridCellAttr()
-        attribute.SetReadOnly (True)
-        attribute.SetRenderer (renderer)
-        self.SetColAttr (0, attribute)
+        columnIndex = 0
+        for importPath in self.blockItem.columnRenderer:
+            if importPath:
+                parts = importPath.split (".")
+                assert len(parts) >= 2, "Renderer %s isn't a module and class" % importPath
+                className = parts.pop ()
+                module = __import__ ('.'.join(parts), globals(), locals(), className)
+                theClass = vars (module) [className]
+                renderer = theClass (gridTable)
+        
+                attribute = wx.grid.GridCellAttr()
+                attribute.SetReadOnly (renderer.IsReadOnly())
+                attribute.SetRenderer (renderer)
+                self.SetColAttr (columnIndex, attribute)
+            columnIndex = columnIndex + 1
 
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
@@ -446,13 +449,13 @@ class wxSummary(wx.grid.Grid):
 
         cursorColumn = 0
         try:
-            cursorColumnLabel = self.blockItem.cursorColumnLabel
+            selectedColumn = self.blockItem.selectedColumn
         except AttributeError:
             pass
         else:
             table = self.GetTable()
             for columnIndex in xrange (table.GetNumberCols()):
-                if table.GetColLabelValue(columnIndex) == cursorColumnLabel:
+                if table.GetColLabelValue(columnIndex) == selectedColumn:
                     cursorColumn = columnIndex
                     break
 
@@ -465,6 +468,9 @@ class SmileRenderer (wx.grid.PyGridCellRenderer):
         super (SmileRenderer, self).__init__ ()
         self.gridTable = gridTable
         self.image = self.GetImage()
+
+    def IsReadOnly (self):
+        return True
 
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
         offscreenBuffer = wx.MemoryDC()
@@ -534,13 +540,13 @@ class SmileRenderer (wx.grid.PyGridCellRenderer):
         return BitmapFromImage (ImageFromStream (cStringIO.StringIO (data)))
 
 
-class Summary(RectangularChild):
+class Table(RectangularChild):
     def __init__(self, *arguments, **keywords):
-        super (Summary, self).__init__ (*arguments, **keywords)
+        super (Table, self).__init__ (*arguments, **keywords)
         self.selection = None
 
     def instantiateWidget (self):
-        return wxSummary (self.parentBlock.widget, Block.getWidgetID(self))
+        return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
 
     def onSelectionChangedEvent (self, notification):
         """

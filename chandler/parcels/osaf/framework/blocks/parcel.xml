@@ -601,22 +601,29 @@
   </Kind>  
 
   <!--
-    Summary
+    Table
   -->
-  <Kind itsName="Summary">
-    <classes key="python">osaf.framework.blocks.ControlBlocks.Summary</classes>
+  <Kind itsName="Table">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Table</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Attribute itsName="cursorColumnLabel">
+    <Attribute itsName="columnRenderer">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+      <defaultValue /> 
+    </Attribute>
+
+    <Attribute itsName="selectedColumn">
       <type itemref="String"/>
       <defaultValue itemref="None"/>
     </Attribute>
     
     <attributes itemref="docSchema:columnHeadings"/>
     <attributes itemref="docSchema:columnWidths"/>
+    <attributes itemref="docSchema:Table/columnRenderer"/>
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
-    <attributes itemref="docSchema:Summary/cursorColumnLabel"/>
+    <attributes itemref="docSchema:Table/selectedColumn"/>
   </Kind>  
 
   <!--

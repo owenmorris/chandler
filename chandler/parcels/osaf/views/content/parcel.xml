@@ -111,18 +111,22 @@
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->
-  <Summary itsName="MixedList">
+  <Table itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.MixedListDelegate</elementDelegate>
 
+    <columnRenderer></columnRenderer>
+    <columnRenderer>osaf.framework.blocks.ControlBlocks.SmileRenderer</columnRenderer>
+
     <columnHeadings>Who (Participants)</columnHeadings>
     <columnHeadings>About (Headline)</columnHeadings>
     <columnHeadings>Date (Start Time)</columnHeadings>
+
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
-  </Summary>
+  </Table>
 
   <ItemDetail itsName="ContactDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
