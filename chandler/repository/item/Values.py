@@ -68,7 +68,7 @@ class Values(dict):
                 other = item.find(value.itsUUID)
                 copyOther = copyFn(item, other, policy)
 
-                if copyOther is not None:
+                if copyOther is not item.Nil:
                     self[name] = SingleRef(copyOther.itsUUID)
             else:
                 self[name] = value

@@ -82,7 +82,7 @@ class PersistentCollection(object):
         
         if isinstance(value, PersistentCollection):
             value = value._copy(self._item, self._attribute, self._companion,
-                                'copy', lambda x, other, z: other)
+                                'copy', lambda x, other, z: other or Item.Nil)
         elif isinstance(value, list):
             persistentValue = PersistentList(self._item, self._attribute,
                                              self._companion)
@@ -160,7 +160,7 @@ class PersistentList(list, PersistentCollection):
         for value in self:
             if isinstance(value, Item):
                 value = copyFn(item, value, policy)
-                if value is not None:
+                if value is not Item.Nil:
                     copy.append(value, False)
             elif isinstance(value, PersistentCollection):
                 copy.append(value._copy(item, attribute, companion,
@@ -303,7 +303,7 @@ class PersistentDict(dict, PersistentCollection):
         for key, value in self.iteritems():
             if isinstance(value, Item):
                 value = copyFn(item, value, policy)
-                if value is not None:
+                if value is not Item.Nil:
                     copy.__setitem__(key, value, False)
             elif isinstance(value, PersistentCollection):
                 copy.__setitem__(key, value._copy(item, attribute, companion,
