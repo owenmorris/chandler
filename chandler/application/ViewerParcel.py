@@ -66,9 +66,9 @@ class ViewerParcel (Parcel):
         self.modulePath = self.path + os.sep + self.modulename + ".xrc"
         assert (os.path.exists (self.modulePath))
         """
-          Go dig the module name out of the XRC, which requires FindResource.
+          Go dig the module name out of the XRC, which requires FindResourceWithoutLogging.
         """
-        assert hasattr (app.applicationResources, 'FindResource')
+        assert hasattr (app.applicationResources, 'FindResourceWithoutLogging')
         resources = wxXmlResource(self.modulePath)
         """
           All parcels must have a resource file. Although they are not
@@ -76,9 +76,7 @@ class ViewerParcel (Parcel):
         """
         assert (resources)
 
-        ignoreErrors = wxLogNull ()
-        parcelMenuResourceXRC = resources.FindResource ('ViewerParcelMenu','wxMenu')
-        del ignoreErrors
+        parcelMenuResourceXRC = resources.FindResourceWithoutLogging ('ViewerParcelMenu','wxMenu')
         """
           Make sure you call the base class before defining your own displayName.
         """
@@ -111,9 +109,9 @@ class ViewerParcel (Parcel):
             assert (resources)
             app.wxMainFrame.Freeze ()
             panel = resources.LoadObject(app.wxMainFrame, self.modulename, "wxPanel")
+            assert (panel != None)
             panel.Show (FALSE)
             app.wxMainFrame.Thaw ()
-            assert (panel != None)
             
             app.association[id(self)] = panel
             panel.Setup(self, resources)
@@ -302,7 +300,7 @@ class wxViewerParcel(wxPanel):
             Given these limitations of menus, it is necessary to use the XRC resources
           directly since only they contain all the necessary information. However,
           the method, FindResource, used to find XRC resources is private. I had to
-          make it public for this code to work.
+          make a version of it public that doesn't log failed finds for this code to work.
 
             wxWindows menus don't contain the name of the menu, even though the XRC
           resource contains the name. -- DJA
@@ -338,14 +336,14 @@ class wxViewerParcel(wxPanel):
 
         mainFrameId = id(app.model.mainFrame)
         """
-          We require that there's a mainFrame and that wxWindows exposes FindResource.
+          We require that there's a mainFrame and that wxWindows contains FindResourceWithoutLogging.
         """
-        assert app.association.has_key(mainFrameId) and hasattr (app.applicationResources, 'FindResource')
+        assert app.association.has_key(mainFrameId) and hasattr (app.applicationResources, 'FindResourceWithoutLogging')
         mainFrame = app.association[mainFrameId]
         menuBar = mainFrame.GetMenuBar()
         
-        mainMenuResourceXRC = app.applicationResources.FindResource ('MainMenuBar',
-                                                                     'wxMenuBar')
+        mainMenuResourceXRC = app.applicationResources.FindResourceWithoutLogging ('MainMenuBar',
+                                                                                   'wxMenuBar')
         assert mainMenuResourceXRC != None
         
         mainMenuBar = None
@@ -395,9 +393,7 @@ class wxViewerParcel(wxPanel):
                 for menuItem in source.GetMenuItems():
                     menu.AppendItem(source.RemoveItem(menuItem))
                     
-                ignoreErrors = wxLogNull ()
-                parcelMenuResourceXRC = self.resources.FindResource (name, 'wxMenu')
-                del ignoreErrors
+                parcelMenuResourceXRC = self.resources.FindResourceWithoutLogging (name, 'wxMenu')
 
                 if parcelMenuResourceXRC != None:
                     """
@@ -453,9 +449,9 @@ class wxViewerParcel(wxPanel):
             noParcelMenu = (menuBar.FindMenu(_('Help')) == menuIndex) or \
                            (menuBar.FindMenu(_('Debug')) == menuIndex)
 
-            ignoreErrors = wxLogNull ()
+#            ignoreErrors = wxLogNull ()
             viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
-            del ignoreErrors
+#            del ignoreErrors
 
             if viewerParcelMenu != None:
                 if noParcelMenu:
@@ -484,8 +480,8 @@ class wxViewerParcel(wxPanel):
         mainFrameId = id(app.model.mainFrame)
         if app.association.has_key(mainFrameId):
             mainFrame = app.association[mainFrameId]
-            ignoreErrors = wxLogNull()
+#            ignoreErrors = wxLogNull()
             actionsBar = self.resources.LoadToolBar(mainFrame, 'ActionsBar')
-            del ignoreErrors
+#            del ignoreErrors
             mainFrame.ReplaceActionsBar(actionsBar)
             
