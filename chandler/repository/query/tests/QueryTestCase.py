@@ -11,7 +11,7 @@ class QueryTestCase(RepositoryTestCase.RepositoryTestCase):
          'query', 'tests')
         RepositoryTestCase.RepositoryTestCase._openRepository(self, False)
 
-    def _executeQuery(self, queryString, args=None):
+    def _compileQuery(self, queryString, args=None):
         q = Query.Query(self.rep, queryString)
         if args is not None:
             q.args = args
@@ -19,7 +19,7 @@ class QueryTestCase(RepositoryTestCase.RepositoryTestCase):
         return q
 
     def _printQuery(self, query):
-        q = self._executeQuery(query)
+        q = self._compileQuery(query)
         for i in q:
             print i
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel describes="//parcels/notification"
+	itsName="notification"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:notification="http://testparcels.org/notification">
+  
+  <namespace value="http://testparcels.org/notification"/>
+
+  <displayName>Notification</displayName>
+  <description>Query Notification Test Parcel</description>
+  <version>0.1</version>
+  <author>Open Source Applications Foundation</author>
+
+
+  <Attribute itsName="item">
+    <displayName>Notification target</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="SingleRef"/>
+    <initialValue itemref="None"/>
+  </Attribute>
+
+  <Attribute itsName="action">
+    <displayName>Notification callback</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itsName="NotificationItem">
+    <classes key="python">repository.query.tests.NotificationItem.NotificationItem</classes>
+
+    <superKinds itemref="Item"/>
+    <displayName>Notification Item</displayName>
+<!--    <attributes itemref="notification:item"/> -->
+    <attributes itemref="notification:action"/>
+  </Kind>
+
+  <notification:NotificationItem itsName="testNotifier">
+    <action></action>
+  </notification:NotificationItem>
+
+</Parcel>

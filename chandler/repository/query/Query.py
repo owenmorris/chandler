@@ -20,7 +20,6 @@ class Query(object):
 
     def __init__(self, repo, queryString = None):
         """
-        
         @param repo: The repository associated with the query @@@ replace with factory method
         @type repo: Repository
         
@@ -39,16 +38,16 @@ class Query(object):
 
     def execute(self):
         """
-        Execute this query
+        Compile this query
 
-        Before calling execute, be sure that they queryString
+        Before calling compile, be sure that they queryString
         and any parameters have been set
         """
         
         start = time.time()
         if self.queryString is None:
             return
-        log.debug("RepoQuery.execute(): %s" % self.queryString)
+        log.debug("RepoQuery.compile(): %s" % self.queryString)
 
         if self.queryString:
             #tools.timing.reset()
@@ -61,13 +60,19 @@ class Query(object):
             self._logical_plan = self.__analyze(self.ast)
             #tools.timing.end("Analyzing query")
             #tools.timing.results()
-            log.debug("execute: %s:%f" % (self.queryString,time.time()-start))
+            log.debug("compile: %s:%f" % (self.queryString,time.time()-start))
         else:
             self._logical_plan = None
 
     def subscribe(self, callbackItem = None, callbackMethodName = None):
         """
         This query should subscribe to repository changes
+
+        @param callbackItem: a Chandler Item that provides a callback method
+        @type callbackItem: Item
+
+        @param callbackMethodName: The name of the callback method on the callbackItem
+        @type callbackMethodName: string
         """
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
@@ -78,6 +83,9 @@ class Query(object):
         """
         This query should stop subscribing to repository changes. If you don't specify a
         callbackItemUUID, all subscriptions will be removed.
+
+        @param callbackItem: callbackItem to be removed
+        @type callbackItem: Item
         """
         if callbackItem is None:
             self._callbacks = {}
@@ -101,7 +109,7 @@ class Query(object):
         """
         start = time.time()
         log.debug("RepoQuery.queryCallback for %s" % self.queryString)
-        if self.queryString is None:
+        if self.queryString is None or self.queryString == "":
             return
         elif self._logical_plan is None and self.queryString is not None:
             self.execute()
@@ -110,15 +118,11 @@ class Query(object):
             i = view.findUUID(uuid)
             #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
-#                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
-                if self.recursive:
-                    rightKind = i.isItemOf(self._kind)
-                else:
-                    rightKind = i.itsKind is self._kind
-                if rightKind:
+                log.debug("RepoQuery.queryCallback %s:%s:%s" % (i, i.itsKind, self._kind))
+                flag = self._logical_plan.changed(i)
+                if flag is not None:
                     changed = True
-                    #@@@ accumulate batch results
-                    if eval(self._predicate):
+                    if flag:
                         action = "entered"
                     else:
                         action = "exited"
@@ -138,7 +142,7 @@ class Query(object):
         if self._logical_plan is None and self.queryString is not None:
             self.execute()
         if self._logical_plan is not None:
-            for i in self.__executePlan(self._logical_plan):
+            for i in self._logical_plan.execute():
                 yield i
         else: # queries without plans are empty
             for i in []:
@@ -150,188 +154,240 @@ class Query(object):
         
         @param ast: A list (tree) containg the AST tree
         @type ast: list
-        """
-        
-        def lookup_source(name):
-            """
-            Convert the name of a source to a collection
-            @@@ ATM this returns a kind to be used w/ KindQuery -
-                this needs to be generalized to any ref collection
-            """
-            #@@ don't enclose kind paths in ""
-            if type(name) == tuple:
-                return name
-            if (name.startswith('"') and name.endswith('"')) or \
-               (name.startswith("'") and name.endswith("'")):
-                name = name[1:-1]
-            kind = self.__rep.findPath(name)
-            if kind is not None:
-                return ('kind', kind)
-            if name.startswith('$'): # variable argument
-                itemUUID, attribute = self.args[name]
-                if isinstance (itemUUID, UUID):
-                    item = self.__rep.find (itemUUID)                
-                    if attribute is None:
-                        return ('arg', item)
-                    else:
-                        return ('arg',item.getAttributeValue(attribute))
-                else:
-                    if attribute is None:
-                        return('arg', itemUUID)
-                    else:
-                        return ('arg',item.getAttr(attribute))
-            assert False, "lookup_source couldn't handle %s" % name
-
-        def compile_predicate(ast):
-            """
-            Compile an abstract syntax tree into a python expression
-            that can be passed to eval
-
-            @param ast:
-            @type ast: list (tree)
-            """
-
-            # These lists control the functions and operators allowed
-            # in query predicate expressions
-            infix_ops = ['+','-','*','/','div','mod','==','!=','>=','<=','>','<','and','or']
-            infix_fns = ['contains']
-            binary_fns = []
-            unary_ops = ['not']
-            unary_fns = ['date','len']
-
-            def infix_op(op, args):
-                """
-                Helper function to construct an infix operator
-                """
-                log.debug("infix op: %s %s" % (op, args))
-                return "%s %s %s" % (compile_predicate(args[0]), op, compile_predicate(args[1]))
-
-            log.debug("compile_predicate: ast=%s, ast[0]=%s" % (ast,ast[0]))
-            if ast[0] == 'fn': # function
-                tok = ast[0]
-                fn = ast[1]
-                args = ast [2:][0]
-                log.debug("%s %s %s" % (tok, fn, args))
-                if fn in unary_fns and len(args) == 1:
-                    if fn == 'date':
-                        pred = "mx.DateTime.ISO.ParseDateTime(%s)" % compile_predicate(args[0])
-                    else:
-                        pred = "%s(%s)" % (fn, compile_predicate(args[0]))
-                elif fn in binary_fns and len(args) == 2: 
-                    pred = fn+'('+compile_predicate(args[0])+','+compile_predicate(args[1])+')'
-                elif fn in infix_fns:
-                    if fn == 'contains':
-                        pred = infix_op('in', [args[1],args[0]])
-                    else:
-                        pred = infix_op(fn, [args[0], args[1]])
-                else:
-                    assert False, "unhandled fn %s" % fn
-                return pred
-            elif ast[0] in unary_ops and len(ast[1:]) == 1:
-                pred = "%s %s" % (ast[0], compile_predicate(ast[1]))
-                return pred
-            elif ast[0] in infix_ops:
-                args = ast[1:]
-                return infix_op(ast[0],[args[0],args[1]])
-            elif ast[0] == 'path': # path expression
-                #@@@ do iteration variable checks
-                return '.'.join(ast[1])
-            elif ast[0] == 'method':
-                path = ast[1]
-                args = ast[2]
-                #@@@ check method name against approved list
-                return  '.'.join(path[1])+"("+','.join(args)+")"
-            elif type(ast) == str or type(ast) == unicode: # string constant or iteration variable or parameter ($1)
-                #@@@ check that ast != iteration variable, or parameter
-                if ast.startswith('$'):
-                    arg = self.args[int(ast[1:])]
-                    if arg.isdigit():
-                        return arg
-                    else:
-                        return '"'+arg+'"'
-                    #@@@ any other values for $params?
-                else:
-                    return ast
-            assert False, "unhandled predicate: operator=%s, args=%s, type(args)=%s" % (op, ast, type(ast))
-                
-        def analyze_for(ast):
-            """
-            Produce a logical plan (collection name, compiled predicate) that
-            corresponds to the 'for' statement represented by the AST.
-            (The AST is actually the arguments to 'for')
-
-            @param ast:
-            @type ast: list
-            """
-            log.debug("analyze_for: %s" % ast)
-
-            iter_var = ast[0]
-            iter_source = ast[1]
-            predicate = ast[2]
-
-            log.debug("analyze_for: var = %s, source = %s, predicate = %s" % (iter_var, iter_source, predicate))
-
-            collection = lookup_source(iter_source)
-            closure = compile_predicate(predicate)
-            self._predicate = closure
-
-            log.debug("analyze_for: collection = %s, closure = %s" % (collection, closure))
-            
-            return ('for', (collection, compile(closure,'<string>','eval')))
-
-        def analyze_union(ast):
-            """
-            Produce a logical plan that corresponds to the 'union' statement
-            represented by the AST.
-            (The AST is actually the list of arguments to 'union')
-            """
-            queries = [ self.__analyze(i) for i in ast[0] ]
-            return ('union', queries)
-
-        def analyze_intersect(ast):
-            """
-            Produce a logical plan that corresponds to the 'intersect' statement
-            represented by the AST
-            (The AST is the two arguments to 'intersect')
-            """
-            queries = [ self.__analyze(i) for i in ast[0:2] ]
-            return ('intersect', queries)
-
-        def analyze_difference(ast):
-            """
-            Produce a logical plan that corresponds to the 'difference'
-            statement represented by the AST
-            (The AST is the two arguments to 'difference')
-            """
-            queries = [ self.__analyze(i) for i in ast[0:2] ]
-            return ('difference', queries)
-
-
+        """                   
         log.debug("__analyze %s" % ast)
         op = ast[0]
 
         if op == 'for':
-            plan = analyze_for(ast[1:])
+            #@@@ recursive handling is a problem now, just like args
+            plan = ForPlan(self.__rep, ast[1:], self.args, self.recursive)
         elif op == 'union':
-            plan = analyze_union(ast[1:])
+            plans = [ self.__analyze(i) for i in ast[1:][0] ]
+            plan = UnionPlan(self.__rep, plans)
         elif op == 'intersect':
-            plan = analyze_intersect(ast[1:])
+            plans = [ self.__analyze(i) for i in ast[1:][0:2] ]
+            plan = IntersectionPlan(self.__rep, plans)
         elif op == 'difference':
-            plan = analyze_difference(ast[1:])
+            plans = [ self.__analyze(i) for i in ast[1:][0:2] ]
+            plan = DifferencePlan(self.__rep, plans)
         else:
             raise ValueError, "Unrecognized operator %s" % op
 
         return plan
 
-    def __execute_for(self, plan):
+
+class LogicalPlan(object):
+    """
+    Abstract (interface, really) class for Logical Plan
+    """
+    def __init__(self, ast):
+        pass
+
+class ForPlan(LogicalPlan):
+    """
+    Logical plan which implements for queries
+    """
+    def __init__(self, rep, ast, args, recursive):
+        """
+        constructor
+
+        @param rep: a repository instance
+        @type rep: Repository
+
+        @param ast: an abstract syntax tree of the query
+        @type ast: list
+
+        @param args: the set of query parameters/arguments
+        @type arts: dict
+
+        @param recursive: whether or not a Kind based query is recursive over subkinds
+        @type recursive: boolean
+        """
+        self.__rep = rep
+        self.args = args #@@@ AUAUGUGUGH
+        self.recursive = recursive
+        self._pathKinds = {}
+        self.analyze(ast)
+
+    def lookup_source(self, name):
+        """
+        Convert a query source to a collection
+
+        @param name: the source specified in the query
+        @type name: a string (kind path or argument) or a tuple (ftcontains, lucene query)
+        """
+        # ftcontains
+        if type(name) == tuple and name[0] == 'ftcontains':
+            return name
+
+        # "/path/to/kind"
+        #@@ don't enclose kind paths in ""?
+        if (name.startswith('"') and name.endswith('"')) or \
+           (name.startswith("'") and name.endswith("'")):
+            name = name[1:-1]
+        kind = self.__rep.findPath(name)
+        if kind is not None:
+            return ('kind', kind)
+
+        # $argument
+        if name.startswith('$'): 
+            itemUUID, attribute = self.args[name]
+            if isinstance (itemUUID, UUID):
+                item = self.__rep.find (itemUUID)                
+                if attribute is None:
+                    return ('arg', item)
+                else:
+                    return ('arg',item.getAttributeValue(attribute))
+            else:
+                if attribute is None:
+                    return('arg', itemUUID)
+                else:
+                    return ('arg',item.getAttr(attribute))
+        assert False, "lookup_source couldn't handle %s" % name
+
+    def compile_predicate(self, ast):
+        """
+        Compile an abstract syntax tree into a python expression
+        that can be passed to eval
+
+        @param ast:
+        @type ast: list (tree)
+        """
+
+        # These lists control the functions and operators allowed
+        # in query predicate expressions
+        infix_ops = ['+','-','*','/','div','mod','==','!=','>=','<=','>','<','and','or']
+        infix_fns = ['contains']
+        binary_fns = []
+        unary_ops = ['not']
+        unary_fns = ['date','len']
+
+        def infix_op(op, args):
+            """
+            Helper function to construct an infix operator
+            """
+            log.debug("infix op: %s %s" % (op, args))
+            return "%s %s %s" % (self.compile_predicate(args[0]), op, self.compile_predicate(args[1]))
+
+        log.debug("compile_predicate: ast=%s, ast[0]=%s" % (ast,ast[0]))
+        # function
+        if ast[0] == 'fn':
+            tok = ast[0]
+            fn = ast[1]
+            args = ast [2:][0]
+            log.debug("%s %s %s" % (tok, fn, args))
+            if fn in unary_fns and len(args) == 1:
+                if fn == 'date':
+                    pred = "mx.DateTime.ISO.ParseDateTime(%s)" % self.compile_predicate(args[0])
+                else:
+                    pred = "%s(%s)" % (fn, self.compile_predicate(args[0]))
+            elif fn in binary_fns and len(args) == 2: 
+                pred = fn+'('+self.compile_predicate(args[0])+','+self.compile_predicate(args[1])+')'
+            elif fn in infix_fns:
+                if fn == 'contains':
+                    pred = infix_op('in', [args[1],args[0]])
+                else:
+                    pred = infix_op(fn, [args[0], args[1]])
+            else:
+                assert False, "unhandled fn %s" % fn
+            return pred
+        # unary operators
+        elif ast[0] in unary_ops and len(ast[1:]) == 1:
+            pred = "%s %s" % (ast[0], self.compile_predicate(ast[1]))
+            return pred
+        # infix operators
+        elif ast[0] in infix_ops:
+            args = ast[1:]
+            return infix_op(ast[0],[args[0],args[1]])
+        # path expression
+        elif ast[0] == 'path': 
+            # handle path expressions by computing the set of kinds/types covered
+            # by the attributes along a path.  changed() will check commit against
+            # this list of types to do incremental checking of multi-item paths
+
+            #@@@ do iteration variable checks
+            path_type, root_kind = self.lookup_source(self.iter_source)
+
+            if path_type == 'kind':
+                current = root_kind
+                count = 1
+                # walk path, building reverse lookup to be used by changed()
+                for i in ast[1][1:]:
+                    try:
+                        if (i.startswith('its')): #@@@ is this right?
+                            attr = getattr(current, i)
+                        else:
+                            attr = current.getAttribute(i)
+                    except AttributeError:
+                        #@@@ raise a compilation error?
+                        #@@@What about the case wher only some items only have the attr?
+                        break
+
+                    # stop at literal attributes
+                    if type(attr) == str or type(attr) == unicode:
+                        break
+                    if attr.hasAttributeValue('otherName'):
+                        if attr.hasAttributeValue(attr.otherName):
+                            #@@@ need to handle list cardinality!
+                            current = attr.getAttributeValue(attr.otherName).first()
+                        else:
+                            current = current.getAttribute(i).type
+                        #@@@ this needs to generalize to multiple path expressions per predicate
+                        self._pathKinds[current] = (attr.otherName, count)
+            return '.'.join(ast[1])
+        # other methods
+        elif ast[0] == 'method':
+            path = ast[1]
+            args = ast[2]
+            #@@@ check method name against approved list
+            return  '.'.join(path[1])+"("+','.join(args)+")"
+        # string constant or iteration variable or parameter ($1)
+        elif type(ast) == str or type(ast) == unicode: 
+            #@@@ check that ast != iteration variable, or parameter
+            if ast.startswith('$'):
+                arg = self.args[int(ast[1:])]
+                if arg.isdigit():
+                    return arg
+                else:
+                    return '"'+arg+'"'
+                #@@@ any other values for $params?
+            else:
+                return ast
+        assert False, "unhandled predicate: operator=%s, args=%s, type(args)=%s" % (op, ast, type(ast))
+
+    def analyze(self, ast):
+        """
+        Produce a logical plan (collection name, compiled predicate) that
+        corresponds to the 'for' statement represented by the AST.
+        (The AST is actually the arguments to 'for')
+        
+        @param ast: the abstract syntax tree for a query
+        @type ast: list
+        """
+        log.debug("analyze_for: %s" % ast)
+        
+        self.iter_var = ast[0]
+        self.iter_source = ast[1]
+        predicate = ast[2]
+        
+        log.debug("analyze_for: var = %s, source = %s, predicate = %s" % (self.iter_var, self.iter_source, predicate))
+        
+        self.collection = self.lookup_source(self.iter_source)
+        self.closure = self.compile_predicate(predicate) #@@@ duplicate
+        self._predicate = self.closure
+        
+        log.debug("analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
+            
+        self.plan= (self.collection, compile(self.closure,'<string>','eval'))
+
+    def execute(self):
         """
         Execute the query plan for a for statement
-        @param: plan
-        @type param: tuple (source collection, compiled predicate)
         """
-        source = plan[0]
+        source = self.plan[0]
 
-        if type(source) == tuple and source[0] == 'ftcontains': # source is full text
+        # source is full text
+        if type(source) == tuple and source[0] == 'ftcontains': 
             args = source[1]
             textItems = self.__rep.searchItems(args[0])
             items = []
@@ -343,13 +399,15 @@ class Query(object):
                         items.append(i[0])
                 else:
                     items.append(i[0])
+        # source is a Kind
         elif source[0] == 'kind':
             self._kind = source[1]
-            self._predicate = plan[1]
+            self._predicate = self.plan[1]
 
             import repository.item.Query as RepositoryQuery
             items = RepositoryQuery.KindQuery(recursive=self.recursive).run([source[1]])
-        else: # it = 'arg'
+        # source is an argument (ref-collection)
+        else: 
             items = source[1]
 
         for i in items:
@@ -357,68 +415,233 @@ class Query(object):
                 if eval(self._predicate):
                     yield i
             except AttributeError:
+                #@@@ log
                 pass
 
-    def __execute_union(self, plans):
+    def changed(self, item, attribute=None):
+        """
+        determine whether item has entered/exited the query result set
+
+        @param item: an item that has been changed by commit
+        @type item:
+
+        @param attribute: the attribute on the item that was modified
+        @type attribute:
+
+        @rtype: boolean
+        @return: true if the item entered, false if it exited, None if it was unaffected
+        """
+        # query source is a ref collection
+        if self.collection[0] == 'arg':
+            if item in self.collection[1]:
+                i = item
+                result = eval(self._predicate)
+            else:
+                result = None
+            return result
+        #@@@ query source is a lucene query
+        
+        # query source is a Kind
+        i = item #@@@ predicates are hardwired to 'i'
+
+        # is the item's kind in the set covered by the predicate?
+        if self._pathKinds.has_key(i.itsKind):
+            # the item may be in the middle of a path expression
+            # so try to walk backwards until we reach the kind that is the root of the query
+            kind, count = self._pathKinds[i.itsKind]
+            right_i = i
+            for x in range(count):
+                right_i = right_i.getAttributeValue(self._pathKinds[right_i.itsKind][0])
+            i = right_i
+
+        # handle recursive queries
+        if self.recursive:
+            rightKind = i.isItemOf(self._kind)
+        else:
+            rightKind = i.itsKind is self._kind
+
+        if rightKind:
+            result = eval(self._predicate)
+        else:
+            result = None
+
+        log.debug("changed: %s, %s" % (i, result))
+        return result
+
+class UnionPlan(LogicalPlan):
+    """
+    Logical plan which implements for queries
+    """
+
+    def __init__(self, rep, ast):
+        """
+        constructor
+
+        @param rep: a repository instance
+        @type rep: Repository
+
+        @param ast: an abstract syntax tree of the query
+        @type ast: list
+        """
+        self.__rep = rep
+        self.analyze(ast)
+
+    def analyze(self, plans):
+        """
+        Produce a logical plan that corresponds to the 'union' statement
+        represented by the AST.
+        (The AST is actually the list of arguments to 'union')
+
+        @param plans: a list of Logical Plans, one per arm of the union statement
+        @type plans: list
+        """
+        self.__plans = plans
+
+    def execute(self):
         """
         Execute the query plan for a union statement
-        @param: plans
-        @type param: list (plans to union)
         """
+        plans = self.__plans
         log.debug("__execute_union: plan = %s" % plans)
         
         #@@@ DANGER - hack for self._kind - fix with notification upgrade
         self._kind = None
 
-        s = sets.Set(self.__executePlan(plans[0]))
+        s = sets.Set(plans[0].execute())
         for p in plans[1:]:
-            s1 = sets.Set(self.__executePlan(p))
-            s.union(s1)
+            s1 = sets.Set(p.execute())
+            s.union_update(s1)
         return s
         
-    def __execute_intersect(self, plans):
+    def changed(self, item, attribute=None):
+        """
+        determine whether item has entered/exited the query result set
+
+        @param item: an item that has been changed by commit
+        @type item:
+
+        @param attribute: the attribute on the item that was modified
+        @type attribute:
+
+        @rtype: boolean
+        @return: true if the item entered, false if it exited, None if it was unaffected
+        """
+        bools = [ x.changed(item, attribute) for x in self.__plans ]
+        bools = [ x for x in bools if x is not None ]
+        if bools != []:
+            return reduce((lambda x,y: x or y), bools)
+        return None
+
+    
+class IntersectionPlan(LogicalPlan):
+    """
+    Logical plan which implements for queries
+    """
+    def __init__(self, rep, ast):
+        """
+        constructor
+
+        @param rep: a repository instance
+        @type rep: Repository
+
+        @param ast: an abstract syntax tree of the query
+        @type ast: list
+        """
+        self.__rep = rep
+        self.analyze(ast)
+
+    def analyze(self, plans):
+        """
+        Produce a logical plan that corresponds to the 'intersect' statement
+        represented by the AST.
+        (The AST is actually the list of arguments to 'intersect')
+
+        @param plans: a list of Logical Plans, one per arm of the intersect statement
+        @type plans: list
+        """
+        self.__plans = plans
+
+    def execute(self):
         """
         Execute the query plan for an intersect statement
-        @params: plans
-        @type param: list (two plans)
         """
+        plans = self.__plans
         log.debug("__execute_intersect: plan = %s" % plans)
         self._kind = None
-        s1 = sets.Set(self.__executePlan(plans[0]))
-        s2 = sets.Set(self.__executePlan(plans[1]))
+        s1 = sets.Set(plans[0].execute())
+        s2 = sets.Set(plans[1].execute())
         return s1.intersection(s2)
 
-    def __execute_difference(self, plans):
+    def changed(self, item, attribute=None):
+        """
+        determine whether item has entered/exited the query result set
+
+        @param item: an item that has been changed by commit
+        @type item:
+
+        @param attribute: the attribute on the item that was modified
+        @type attribute:
+
+        @rtype: boolean
+        @return: true if the item entered, false if it exited, None if it was unaffected
+        """
+        #@@@ in prep for n-way intersect
+        return reduce((lambda x,y: x and y), [ x.changed(item, attribute) for x in self.__plans ])
+
+
+
+class DifferencePlan(LogicalPlan):
+    """
+    Logical plan which implements for queries
+    """
+
+    def __init__(self, rep, ast):
+        """
+        constructor
+
+        @param rep: a repository instance
+        @type rep: Repository
+
+        @param ast: an abstract syntax tree of the query
+        @type ast: list
+        """
+        self.__rep = rep
+        self.analyze(ast)
+
+    def analyze(self, plans):
+        """
+        Produce a logical plan that corresponds to the 'difference' statement
+        represented by the AST.
+        (The AST is actually the list of arguments to 'difference')
+
+        @param plans: a list of Logical Plans, one per arm of the difference statement
+        @type plans: list
+        """
+        self.__plans = plans
+
+    def execute(self):
         """
         Execute the query plan for a difference statement
-        @params: plans
-        @type param: list (two plans)
         """
+        plans = self.__plans
         log.debug("__execute_difference: plan = %s" % plans)
         self._kind = None
-        s1 = sets.Set(self.__executePlan(plans[0]))
-        s2 = sets.Set(self.__executePlan(plans[1]))
+        s1 = sets.Set(plans[0].execute())
+        s2 = sets.Set(plans[1].execute())
         return s1.difference(s2)
 
-    def __executePlan(self, plan):
+    def changed(self, item, attribute=None):
         """
-        Execute a logical query plan (a tuple of the collection to be queried
-        and a compiled query predicate)
+        determine whether item has entered/exited the query result set
 
-        @@@ at the moment, the collection is just the name of the kind for KindQuery
+        @param item: an item that has been changed by commit
+        @type item:
 
-        @param plan: a tuple indicating the plan type, and a plan
-        @type param: tuple 
+        @param attribute: the attribute on the item that was modified
+        @type attribute:
+
+        @rtype: boolean
+        @return: true if the item entered, false if it exited, None if it was unaffected
         """
-        start = time.time()
-        if plan[0] == 'for':
-            return self.__execute_for(plan[1])
-        elif plan[0] == 'union':
-            return self.__execute_union(plan[1])
-        elif plan[0] == 'intersect':
-            return self.__execute_intersect(plan[1])
-        elif plan[0] == 'difference':
-            return self.__execute_difference(plan[1])
-        else:
-            raise ValueError, "Unrecognized plan %s" % plan[0]
-        log.debug("__executePlan %s:%f", (self.queryString % time.time()-start))
+        flags = [ x.changed(item, attribute) for x in self.__plans ]
+        return x and not y

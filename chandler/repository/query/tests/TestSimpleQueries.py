@@ -23,58 +23,58 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         # now run the query
 
         qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"
-        results = self._executeQuery(qString)
+        results = self._compileQuery(qString)
         self._checkQuery(lambda i: not i.isInbound is True, results)
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where True')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where True')
         self._checkQuery(lambda i: False, results)
 
     def testFunctionKindQuery(self):
         """ Test calling a function in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
                 
     def testVariableQuery(self):
         """ Test query where source is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
-        results = self._executeQuery('for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
+        results = self._compileQuery('for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
 
     def testNotFunctionKindQuery(self):
         """ Test negating a function call in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
         self._checkQuery(lambda i: 'arc' in i.itsName, results)
 
     def testEqualityKindQuery(self):
         """ Test equality operator in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.itsName == "Item"')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.itsName == "Item"')
         self._checkQuery(lambda i: not i.itsName == 'Item', results)
 
     def testInequalityKindQuery(self):
         """ Test inequality operator in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.itsName != "Item"')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.itsName != "Item"')
         self._checkQuery(lambda i: not i.itsName != 'Item', results)
 
     def testLengthKindQuery(self):
         """ Test calling a unary function in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
         self._checkQuery(lambda i: not len(i.attributes) >= 4, results)
         
     def testAndKindQuery(self):
         """ Test AND operator in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ("arc" in i.itsName and len(i.attributes) >= 4), results)
 
     def testNotAndKindQuery(self):
         """ Test AND NOT operation in the query predicate """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ('arc' in i.itsName and not len(i.attributes) >= 4), results)
 
     def testMethodCallQuery(self):
         """  """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
         self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
     def testItemTraversalQuery(self):
@@ -96,7 +96,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         tools.timing.end("Commit Contacts")
 #        tools.timing.results()
         
-        results = self._executeQuery(u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
+        results = self._compileQuery(u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
         self._checkQuery(lambda i: not 'a' in i.contactName.firstName, results)
 
     def testEnumerationQuery(self):
@@ -119,7 +119,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         tools.timing.end("Commit Calendar Events")
 #        tools.timing.results()
         
-        results = self._executeQuery(u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
+        results = self._compileQuery(u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
         self._checkQuery(lambda i: not i.importance == 'fyi', results)
 
     def testRefCollectionQuery(self):
@@ -178,7 +178,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         endDateString = endDate.date
         
         queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date,endDate.date)
-        results = self._executeQuery(queryString)
+        results = self._compileQuery(queryString)
         self._checkQuery(lambda i: not (i.startTime > startDate and i.startTime < endDate), results)
 
     def testTextQuery(self):
@@ -195,18 +195,18 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         self.rep.loadPack(cineguidePack)
         self.rep.commit()
 
-        results = self._executeQuery(u"for i in ftcontains('femme AND homme') where True")
+        results = self._compileQuery(u"for i in ftcontains('femme AND homme') where True")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
 
-        results = self._executeQuery(u"for i in ftcontains('femme AND homme','synopsis') where True")
+        results = self._compileQuery(u"for i in ftcontains('femme AND homme','synopsis') where True")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
 
-        results = self._executeQuery(u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
+        results = self._compileQuery(u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme") and len(i.title) < 10), results)
 
     def testBug1815(self):
         """ Test that missing attributes don't blow up the query [Bug 1815] """
-        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsNme,"arc")')
+        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsNme,"arc")')
         self._checkQuery(lambda i: not "arc" in i.itsNme, results)
 
 

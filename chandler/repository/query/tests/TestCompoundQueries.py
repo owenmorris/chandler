@@ -11,13 +11,13 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
 
     def testDifferenceQuery(self):
         """ Test a difference query """
-        results = self._executeQuery("difference(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
+        results = self._compileQuery("difference(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
         #@@@ TODO better result check
 #        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
     def testIntersectQuery(self):
         """ Test an intersection query """
-        results = self._executeQuery("intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
+        results = self._compileQuery("intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
         #@@@ TODO better result check
 #        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
@@ -35,7 +35,7 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         GenerateItems.GenerateContacts(10)
         self.rep.commit()
 
-        results = self._executeQuery('union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
+        results = self._compileQuery('union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
         # these checks could be more robust
         # check twice to make sure generator restarts
         self._checkQuery(lambda i: False, results)
