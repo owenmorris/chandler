@@ -106,6 +106,9 @@ class Values(dict):
                 persist = True
 
             if persist:
+                persist = self._getFlags('classes') & self.TRANSIENT == 0
+
+            if persist:
                 if attribute is not None:
                     attrType = attribute.getAspect('type')
                     attrCard = attribute.getAspect('cardinality',
@@ -127,9 +130,16 @@ class Values(dict):
             
 
     READONLY = 0x0001          # value is read-only
-        
+    TRANSIENT = 0x0002         # value is transient
+    
 
 class References(Values):
+
+    def clear(self):
+
+        item = self._item
+        for name in self.keys():
+            item.removeAttributeValue(name, _attrDict=item._references)
 
     def _setItem(self, item):
 

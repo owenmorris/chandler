@@ -558,7 +558,7 @@ class Item(object):
                 value.clear()
                 del _attrDict[name]
             else:
-                raise ValueError, value
+                raise TypeError, (type(value), value)
 
     def hasChild(self, name, load=True):
         """
@@ -1491,6 +1491,108 @@ class Item(object):
                 
         return kind
 
+    def __setKind(self, kind):
+
+        if kind is not self._kind:
+            self.setDirty()
+
+            if self._kind is not None:
+                if kind is None:
+                    self._values.clear()
+                    self._references.clear()
+
+                else:
+                    def removeOrphans(attrDict):
+                        for name in attrDict.keys():
+                            curAttr = self._kind.getAttribute(name)
+                            newAttr = kind.getAttribute(name)
+                            if curAttr is not newAttr:
+                                self.removeAttributeValue(name,
+                                                          _attrDict=attrDict)
+
+                    removeOrphans(self._values)
+                    removeOrphans(self._references)
+
+            self._kind = kind
+
+            if kind is None:
+                self.__class__ = Item
+            else:
+                self.__class__ = kind.getItemClass()
+
+    def mixinKinds(self, *kinds):
+        """
+        Mixin kinds into this item's kind.
+
+        A new kind for the item is created if necessary by combining the
+        current kind and the kinds passed into a superKinds list. When
+        removing kinds from a mixin item, its kind may revert to a non-mixin
+        kind.
+
+        This method does not affect items of the same kind as this item's
+        kind. It affects only this item. When the same mixin operation is
+        performed on other items of this item's kind, they get assigned the
+        same resulting kind as this item after this call completes.
+
+        The class of the item is set to the kind's item class which maybe a
+        combination of the item classes of the kinds making up the mixin kind.
+
+        The *kinds arguments passed in are tuples as follows:
+
+            - C{('add', newKind)}: add C{newKind} to the end of the
+              mixin kind's superKinds list.
+
+            - C{('remove', kind)}: remove C{kind} from the superKinds. This
+              operation is only supported when the item is already an item
+              of a mixin kind.
+
+            - C{('before', kind, newKind)}: insert C{newKind} before
+              C{kind}. This operation is only supported when the item is
+              already an item of a mixin kind.
+
+            - C{('after', kind, newKind)}: insert C{newKind} after
+              C{kind}. This operation is only supported when the item is
+              already an item of a mixin kind.
+
+        @param *kinds: any number of tuples as described above.
+        @type *kinds: tuple
+        @return: the item's kind after the method completes
+        """
+
+        superKinds = []
+        if self._kind is not None:
+            if self._kind.isMixin():
+                superKinds[:] = self._kind._getSuperKinds()
+            else:
+                superKinds.append(self._kind)
+
+        for kind in kinds:
+            if kind[0] == 'remove':
+                del superKinds[superKinds.index(kind[1])]
+            elif kind[0] == 'add':
+                superKinds.append(kind[1])
+            elif kind[0] == 'before':
+                superKinds.insert(superKinds.index(kind[1]), kind[2])
+            elif kind[0] == 'after':
+                superKinds.insert(superKinds.index(kind[1]) + 1, kind[2])
+
+        count = len(superKinds)
+        kind = self._kind
+        
+        if count == 0 and (kind is None or
+                           kind is not None and kind.isMixin()):
+            kind = None
+        elif count == 1 and kind is not None and kind.isMixin():
+            kind = superKinds[0]
+        else:
+            if kind is None:
+                kind = superKinds.pop(0)
+            kind = kind.mixin(superKinds)
+
+        self.__setKind(kind)
+
+        return kind
+
     def setACL(self, acl, name=None):
         """
         Set an ACL on this item.
@@ -2212,13 +2314,19 @@ class Item(object):
                        doc =
                        """
                        Return this item's repository view.
+                       
                        See L{getRepositoryView} for more information.
                        """)
 
     itsKind = property(fget = __getKind,
+                       fset = __setKind,
                        doc = 
                        """
-                       Return this item's kind.
+                       Return or set this item's kind.
+
+                       When setting an item's kind, only the values for
+                       attributes common to both current and new kind are
+                       retained.
                        """)
 
 

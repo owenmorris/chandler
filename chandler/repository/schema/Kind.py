@@ -4,6 +4,9 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import UUIDext
+
+from new import classobj
 
 from repository.item.Item import Item
 from repository.item.Values import ItemValue
@@ -39,17 +42,21 @@ class Kind(Item):
         self.__init()
 
     def newItem(self, name, parent):
-        """Create an item of this kind.
+        """
+        Create an item of this kind.
 
         The python class instantiated is taken from the Kind's classes
-        attribute if it is set. The Item class is used otherwise."""
+        attribute if it is set. The Item class is used otherwise.
+        """
         
         return self.getItemClass()(name, parent, self)
             
     def getItemClass(self):
-        """Return the class used to create items of this Kind.
+        """
+        Return the class used to create items of this Kind.
 
-        By default, the Item class is returned."""
+        By default, the L{Item<repository.item.Item.Item>} class is returned.
+        """
 
         return self.getAttributeValue('classes').get('python', Item)
 
@@ -200,9 +207,47 @@ class Kind(Item):
                                             _attrDict=self._references)
         if not superKinds:
             self.itsView.logger.warn('No superKinds for %s', self.itsPath)
-            return [ self._kind.itsParent['Item'] ]
+            return [ self.getItemKind() ]
 
         return superKinds
+
+    def getItemKind(self):
+
+        return self._kind.itsParent['Item']
+
+    def mixin(self, superKinds):
+
+        duplicates = {}
+        for superKind in superKinds:
+            if superKind._uuid in duplicates:
+                raise ValueError, 'Kind %s is duplicated' %(superKind.itsPath)
+            else:
+                duplicates[superKind._uuid] = superKind
+                
+        hash = UUIDext.combine(0, self._uuid._hash)
+        for superKind in superKinds:
+            hash = UUIDext.combine(hash, superKind._uuid._hash)
+        if hash < 0:
+            hash = ~hash
+        name = "mixin_%08x" %(hash)
+        parent = self.getItemKind().itsParent['Mixins']
+
+        kind = parent.getItemChild(name)
+        if kind is None:
+            kind = MixinKind(name, parent, self._kind)
+
+            kind.addValue('superKinds', self)
+            kind.superKinds.extend(superKinds)
+            kind.addValue('mixins', self._uuid)
+            kind.mixins.extend([sk._uuid for sk in superKinds])
+
+            kind._createItemClass()
+            
+        return kind
+        
+    def isMixin(self):
+
+        return False
 
     def isAlias(self):
 
@@ -275,6 +320,7 @@ class Kind(Item):
                                               _attrDict=self._references,
                                               default=[]):
             subKind.flushCaches()
+
 
     # begin typeness of Kind as SingleRef
     
@@ -352,3 +398,35 @@ class ItemKind(Kind):
 
     def check(self, recursive=False):
         return super(Kind, self).check(recursive)
+
+
+class MixinKind(Kind):
+
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(MixinKind, self)._fillItem(name, parent, kind, **kwds)
+        self._createItemClass()
+
+    def isMixin(self):
+        return True
+
+    def _createItemClass(self):
+
+        duplicates = {}
+        superClasses = []
+        
+        for superKind in self._getSuperKinds():
+            c = superKind.getItemClass()
+            if c is not Item and c.__name__ not in duplicates:
+                superClasses.append(c)
+                duplicates[c.__name__] = c
+
+            if len(superClasses) == 1:
+                c = superClasses[0]
+            else:
+                c = classobj(self._name, tuple(superClasses), {})
+                
+        self.classes = { 'python': c }
+        self._values._setFlag('classes', self._values.TRANSIENT)
+
+        return c

@@ -28,6 +28,8 @@
         <item file="Kind.cloud" />
         <item file="Attribute.cloud" />
       </item>
+
+      <item file="Mixins.namespace" />
     </item>
   </item>
 

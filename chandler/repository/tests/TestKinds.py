@@ -35,7 +35,10 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.kind1.addValue('attribute', kind1Attr1Bad, alias='k1a1bad')
         
         self.kind2 = self.kind.newItem('kind2', self.kind1)
-
+        self.kind2.addValue('attributes', self.kind1Attr1, alias='k1a1')
+        self.kind2Attr2 = Attribute('k2a2', self.rep, self.attrKind)
+        self.kind2Attr2.cardinality = 'list'
+        self.kind2.addValue('attributes', self.kind2Attr2, alias='k2a2')
     
     def testBasic(self):
         """ Test basic Kind methods """
@@ -95,24 +98,16 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         
     def testRekinding(self):
         # rekind an item
-        # re super kind a kind
-        # we do this in TestReferenceAttributes.py but should do it for real here
-        #@@@TODO we need to define what it means to rekind first
 
-#         self.kind2.addValue('superKinds', self.kind1)
+        item = self.kind2.newItem('item', self.rep)
+        item.k2a2 = 'foo'
+        self.assert_(item.k2a2 == 'foo')
+        self.assert_(item.getAttributeAspect('k1a1', 'cardinality') == 'list')
 
-#         item = self.kind2.newItem('item', self.rep)
-#         item.setValue('k1a1','value')
-#         self.assertEquals(len(item.k1a1),1)
+        item.itsKind = self.kind1
+        self.assert_(not item.hasAttributeValue('k2a2'))
+        self.assert_(item.getAttributeAspect('k1a1', 'cardinality') == 'list')
 
-#         newKind = self.kind.newItem('newKind', self.rep)
-#         item.itsKind = newKind
-#         self.assert_('value' in item.k1a1)
-
-#         newSuperKind = self.kind.newItem('newSuperKind', self.rep)
-
-        pass
-        
 
 if __name__ == "__main__":
 #    import hotshot
