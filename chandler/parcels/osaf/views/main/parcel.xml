@@ -152,6 +152,11 @@
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
   
+  <BlockEvent itsName="SyncCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+  
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -321,6 +326,7 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
+    <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
@@ -836,6 +842,13 @@
     <title>Share collection</title>
     <event itemref="doc:ShareCollection"/>
     <helpString>Enable sharing a collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="SyncCollectionItem">
+    <blockName>SyncCollectionItem</blockName>
+    <title>Sync collection</title>
+    <event itemref="doc:SyncCollection"/>
+    <helpString>Synchronize a shared collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="SharingSubscribeToCollectionItem">
@@ -1485,6 +1498,7 @@
     <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareCollection"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

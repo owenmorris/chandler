@@ -77,3 +77,9 @@ def manualPublishCollection(collection):
             addresses = addresses.split(",")
             sendInvites(addresses, url)
 
+def syncCollection(collection):
+    if collection.getAttributeValue('sharedURL', None):
+        print "Synchronizing", collection.sharedURL
+        osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
+    else:
+        print "Collection hasn't been shared yet"
