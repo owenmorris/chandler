@@ -27,81 +27,40 @@
 
 Chandler osaf/chandler/Chandler
 
+hardhat osaf/hardhat
+
 chandler-app -a \
     osaf/chandler/Chandler
 
 chandler-system -a \
-    hardhat \
+    osaf/hardhat \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/persistence \
     osaf/chandler/zodb \
-    osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
     osaf/chandler/wxpython \
-    osaf/chandler/jabber-py \
-    osaf/chandler/pychecker \
-    osaf/chandler/swig \
-    osaf/chandler/pkgconfig \
-    osaf/chandler/net/expat \
-    osaf/chandler/net/gettext \
-    osaf/chandler/net/glib \
-    osaf/chandler/net/libiconv \
-    osaf/chandler/net/libxml2 \
-    osaf/chandler/net/roadrunner \
-    osaf/chandler/net/sc-db \
-    osaf/chandler/net/rap
+    osaf/chandler/jabber-py
 
 chandler-small -a \
-    hardhat \
+    osaf/hardhat \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/persistence \
     osaf/chandler/zodb \
-    osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
     osaf/chandler/wxpython \
     osaf/chandler/pychecker \
     osaf/chandler/jabber-py
 
-# chandler-system -o /disk1/cvs-scripts/count-checkouts
-# chandler-system -u /disk1/cvs-scripts/count-checkouts
-# chandler-app -o /disk1/cvs-scripts/count-checkouts
-# chandler-app -u /disk1/cvs-scripts/count-checkouts
-
-rap -a \
-    hardhat \
-    osaf/chandler/swig \
-    osaf/chandler/pkgconfig \
-    osaf/chandler/net/expat \
-    osaf/chandler/net/gettext \
-    osaf/chandler/net/glib \
-    osaf/chandler/net/libiconv \
-    osaf/chandler/net/libxml2 \
-    osaf/chandler/net/roadrunner \
-    osaf/chandler/net/sc-db \
-    osaf/chandler/net/rap
-
 # Obsolete:
 chandler-source -a \
-    hardhat \
+    osaf/hardhat \
     osaf/chandler/Chandler \
-    osaf/chandler/hardhat \
     osaf/chandler/python \
     osaf/chandler/zodb \
-    osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
     osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
-    osaf/chandler/pychecker \
-    osaf/chandler/swig \
-    osaf/chandler/pkgconfig \
-    osaf/chandler/net/expat \
-    osaf/chandler/net/gettext \
-    osaf/chandler/net/glib \
-    osaf/chandler/net/libiconv \
-    osaf/chandler/net/libxml2 \
-    osaf/chandler/net/roadrunner \
-    osaf/chandler/net/sc-db \
-    osaf/chandler/net/rap
+    osaf/chandler/pychecker
 
