@@ -249,3 +249,4 @@ Other files in this directory:
   compiler by examing in the registry.
 
 - cygwinreg.py is a module I wrote to make os_win.py work under Cygwin.
+
