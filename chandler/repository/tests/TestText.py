@@ -10,29 +10,27 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from repository.persistence.XMLRepository import XMLRepository
+from repository.tests.RepositoryTestCase import RepositoryTestCase
 
-class TestText(unittest.TestCase):
+
+class TestText(RepositoryTestCase):
     """ Test Text storage """
 
     def setUp(self):
-        self.rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(self.rootdir, 'repository',
-                                  'packs', 'schema.pack')
-        cineguidePack = os.path.join(self.rootdir, 'repository',
-                                     'tests', 'data', 'packs',
+
+        super(TestText, self).setUp()
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep = XMLRepository('TextUnitTest-Repository')
-        self.rep.create()
-        self.rep.loadPack(schemaPack)
         self.rep.loadPack(cineguidePack)
+        self.rep.commit()
 
     def compressed(self, compression):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        largeText = os.path.join(self.rootdir, 'repository',
-                                 'tests', 'data', 'world192.txt')
+        largeText = os.path.join(self.testdir, 'data', 'world192.txt')
 
         input = file(largeText, 'r')
         writer = movie.synopsis.getWriter(compression=compression)
@@ -48,15 +46,12 @@ class TestText(unittest.TestCase):
 
         input.close()
         writer.close()
-
+        movie.setDirty()
+        
         self.rep.logger.info("%s compressed %d bytes to %d",
                              compression, count, len(movie.synopsis._data))
 
-        self.rep.commit()
-        self.rep.close()
-
-        self.rep = XMLRepository('TextUnitTest-Repository')
-        self.rep.open()
+        self._reopenRepository()
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
@@ -83,15 +78,13 @@ class TestText(unittest.TestCase):
 
         self.compressed(None)
 
-
     def appended(self, compression):
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        largeText = os.path.join(self.rootdir, 'repository',
-                                 'tests', 'data', 'world192.txt')
+        largeText = os.path.join(self.testdir, 'data', 'world192.txt')
 
         input = file(largeText, 'r')
         writer = movie.synopsis.getWriter(compression=compression)
@@ -111,11 +104,7 @@ class TestText(unittest.TestCase):
         input.close()
         writer.close()
 
-        self.rep.commit()
-        self.rep.close()
-
-        self.rep = XMLRepository('TextUnitTest-Repository')
-        self.rep.open()
+        self._reopenRepository()
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
@@ -128,7 +117,6 @@ class TestText(unittest.TestCase):
         input.close()
         reader.close()
 
-        print len(data), len(string)
         self.assert_(data == string)
         
     def testAppendBZ2(self):
@@ -143,10 +131,6 @@ class TestText(unittest.TestCase):
 
         self.appended(None)
 
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-        pass
 
 if __name__ == "__main__":
 #    import hotshot

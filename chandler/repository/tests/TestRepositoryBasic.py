@@ -49,7 +49,8 @@ TODO is there more pack testing we need to do?
         """
         self.rep.create()
         self.assert_(self.rep.check())
-        schemaPack = os.path.join(self.rootdir, 'repository', 'packs', 'schema.pack')
+        schemaPack = os.path.join(self.rootdir, 'repository',
+                                  'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
         self.assert_(self.rep.check())
     

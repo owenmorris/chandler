@@ -17,7 +17,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
     """ Test Kinds  """
     
     def testToXML(self):
-        """ toXML on kinds is broken """
+
         kind = self.rep.find('//Schema/Core/Kind')
         xml = kind.toXML()
         self.failIf(xml is None)

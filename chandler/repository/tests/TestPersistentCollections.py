@@ -10,6 +10,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import RepositoryTestCase, os, unittest
 
 from repository.schema.Attribute import Attribute
+from repository.util.Path import Path
+
 
 class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
     """Test Persistent Collection"""
@@ -21,13 +23,13 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
     def _checkManagerAndEmployeesList(self, m, es):
         """Make sure a list of employees has the same manager"""
         for i in es:
-            self.assertEquals(i.manager, m)
+            self.assert_(i.manager is m)
             self.assert_(m.hasValue('employees', i))
 
     def _checkManagerAndEmployeesDict(self, m, es):
         """Make sure a list of employees has the same manager"""
         for k,v in es.items():
-            self.assertEquals(v.manager, m)
+            self.assert_(v.manager is m)
             self.assert_(m.hasValue('employees', v))
 
             
@@ -38,16 +40,16 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         attrKind = itemKind.getAttribute('kind').kind
 
         managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees',managerKind, attrKind)
-        employeesAttribute.setAttributeValue('cardinality','list')
-        employeesAttribute.setAttributeValue('otherName', 'manager')
+        employeesAttribute = Attribute('employees', managerKind, attrKind)
+        employeesAttribute.cardinality = 'list'
+        employeesAttribute.otherName = 'manager'
         managerKind.addValue('attributes',
-                             employeesAttribute,alias='employees')
+                             employeesAttribute, alias='employees')
         employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager',employeeKind, attrKind)
-        managerAttribute.setAttributeValue('otherName', 'employees')
+        managerAttribute = Attribute('manager', employeeKind, attrKind)
+        managerAttribute.otherName = 'employees'
         employeeKind.addValue('attributes',
-                              managerAttribute,alias='manager')
+                              managerAttribute, alias='manager')
 
         manager = managerKind.newItem('boss', self.rep)
 
@@ -64,7 +66,7 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         manager = self.rep.find("//boss")
         emps = []
         for i in empNames:
-            emps.append(self.rep.find("//%s" % i))
+            emps.append(self.rep.find(Path('//', i)))
         self._checkManagerAndEmployeesList(manager, emps)
         
     
@@ -75,16 +77,16 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         attrKind = itemKind.getAttribute('kind').kind
 
         managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees',managerKind, attrKind)
-        employeesAttribute.setAttributeValue('cardinality','dict')
-        employeesAttribute.setAttributeValue('otherName', 'manager')
+        employeesAttribute = Attribute('employees', managerKind, attrKind)
+        employeesAttribute.cardinality = 'list'
+        employeesAttribute.otherName = 'manager'
         managerKind.addValue('attributes',
-                             employeesAttribute,alias='employees')
+                             employeesAttribute, alias='employees')
         employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager',employeeKind, attrKind)
-        managerAttribute.setAttributeValue('otherName', 'employees')
+        managerAttribute = Attribute('manager', employeeKind, attrKind)
+        managerAttribute.otherName = 'employees'
         employeeKind.addValue('attributes',
-                              managerAttribute,alias='manager')
+                              managerAttribute, alias='manager')
 
         manager = managerKind.newItem('boss', self.rep)
         
@@ -101,7 +103,7 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         manager = self.rep.find('//boss')
         emps = {}
         for e in empNames:
-            emp = self.rep.find('//%s' % e)
+            emp = self.rep.find(Path('//', e))
             emps[str(emp.getUUID())] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
         

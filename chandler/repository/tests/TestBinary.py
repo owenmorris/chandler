@@ -10,28 +10,26 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from repository.persistence.XMLRepository import XMLRepository
+from repository.tests.RepositoryTestCase import RepositoryTestCase
 
-class TestBinary(unittest.TestCase):
+
+class TestBinary(RepositoryTestCase):
     """ Test Binary storage """
 
     def setUp(self):
-        self.rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(self.rootdir, 'repository',
-                                  'packs', 'schema.pack')
-        cineguidePack = os.path.join(self.rootdir, 'repository',
-                                     'tests', 'data', 'packs',
+
+        super(TestBinary, self).setUp()
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep = XMLRepository('BinaryUnitTest-Repository')
-        self.rep.create()
-        self.rep.loadPack(schemaPack)
         self.rep.loadPack(cineguidePack)
+        self.rep.commit()
 
     def testBZ2Compressed(self):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        largeBinary = os.path.join(self.rootdir, 'repository',
-                                   'tests', 'data', 'khepltr.jpg')
+        largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
@@ -53,11 +51,7 @@ class TestBinary(unittest.TestCase):
         self.rep.logger.info("bz2 compressed %d bytes to %d", count,
                              len(khepburn.picture._data))
 
-        self.rep.commit()
-        self.rep.close()
-
-        self.rep = XMLRepository('BinaryUnitTest-Repository')
-        self.rep.open()
+        self._reopenRepository()
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
@@ -75,8 +69,7 @@ class TestBinary(unittest.TestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        largeBinary = os.path.join(self.rootdir, 'repository',
-                                   'tests', 'data', 'khepltr.jpg')
+        largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
@@ -98,11 +91,7 @@ class TestBinary(unittest.TestCase):
         self.rep.logger.info("zlib compressed %d bytes to %d", count,
                              len(khepburn.picture._data))
 
-        self.rep.commit()
-        self.rep.close()
-
-        self.rep = XMLRepository('BinaryUnitTest-Repository')
-        self.rep.open()
+        self._reopenRepository()
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
@@ -120,8 +109,7 @@ class TestBinary(unittest.TestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        largeBinary = os.path.join(self.rootdir, 'repository',
-                                   'tests', 'data', 'khepltr.jpg')
+        largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
@@ -138,11 +126,7 @@ class TestBinary(unittest.TestCase):
         outputStream.close()
         khepburn.picture = binary
 
-        self.rep.commit()
-        self.rep.close()
-
-        self.rep = XMLRepository('BinaryUnitTest-Repository')
-        self.rep.open()
+        self._reopenRepository()
 
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
@@ -156,15 +140,10 @@ class TestBinary(unittest.TestCase):
 
         self.assert_(data == picture)
         
-        
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-        pass
 
 if __name__ == "__main__":
 #    import hotshot
-#    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
+#    profiler = hotshot.Profile('/tmp/TestBinary.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
     unittest.main()

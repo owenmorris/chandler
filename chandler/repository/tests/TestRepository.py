@@ -30,18 +30,19 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         pass
 
     def testGetRoot(self):
+
         root = self.rep.getRoot('Packs')
         #TODO these should use UUID's
         self.assert_(root.getItemName() == 'Packs')
     
+        root = self.rep['Packs']
+        self.assert_(root.getItemName() == 'Packs')
+    
     def testGetRoots(self):
         """ Make sure the roots of the repository are correct"""
-        roots = self.rep.getRoots()
-        schema = roots[0]
-        packs = roots[1]
-        #TODO these should use UUID's
-        self.assert_(schema.getItemName() == 'Schema')
-        self.assert_(packs.getItemName() == 'Packs')
+
+        for root in self.rep.getRoots():
+            self.assert_(root.getItemName() in ['Schema', 'Packs'])
 
     def testWalk(self):
         def callme(self, path, x):

@@ -352,20 +352,19 @@ class Item(object):
         """Place a child after another one in this item's children collection.
 
         To place a children in first position, pass None for after."""
+
+        if not (child.getItemParent() is self):
+            raise ValueError, '%s not a child of %s' %(child, self)
+        if not (after is None or after.getItemParent() is self):
+            raise ValueError, '%s not a child of %s' %(after, self)
         
-        if (child.getItemParent() is self and
-            (after is None or after.getItemParent() is self)):
-
-            key = child.getItemName()
-            if after is None:
-                afterKey = None
-            else:
-                afterKey = after.getItemName()
-
-            self._children.place(key, afterKey)
-
+        key = child.getItemName()
+        if after is None:
+            afterKey = None
         else:
-            raise ValueError, '%s or %s not a %s of %s' %(child, after, self)
+            afterKey = after.getItemName()
+
+        self._children.place(key, afterKey)
 
     def dir(self, recursive=True):
         'Print out a listing of each child under this item, recursively.'

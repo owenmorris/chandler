@@ -15,11 +15,11 @@ class RepositoryTestCase(unittest.TestCase):
     def setUp(self):
         self.rootdir = os.environ['CHANDLERHOME']
         self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
-           'tests')
-        self.rep = XMLRepository(os.path.join(self.testdir,'__repository__'))
+                                    'tests')
+        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         self.rep.create()
         schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository',
-         'packs', 'schema.pack')
+                                  'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
         self.rep.commit()
 
@@ -30,6 +30,7 @@ class RepositoryTestCase(unittest.TestCase):
     def _reopenRepository(self):
         self.rep.commit()
         self.rep.close()
+        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         self.rep.open()
 
     # Repository specific assertions

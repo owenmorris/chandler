@@ -73,9 +73,11 @@ class Repository(object):
                 self.logger.addHandler(logging.StreamHandler())
             
     def _isRepository(self):
+
         return True
 
     def _isItem(self):
+
         return False
     
     def close(self, purge=False):
@@ -189,15 +191,19 @@ class RepositoryView(object):
         return "<%s for %s>" %(type(self).__name__, self._thread.getName())
 
     def _isRepository(self):
+
         return False
 
     def _isItem(self):
+
         return False
 
     def createRefDict(self, item, name, otherName, persist):
+
         raise NotImplementedError, "RepositoryView.createRefDict"
     
     def getTextType(self):
+
         raise NotImplementedError, "RepositoryView.getTextType"
     
     def isLoading(self):
