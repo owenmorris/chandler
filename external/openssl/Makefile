@@ -7,8 +7,6 @@ SRC=$(OPENSSL)/openssl-$(VERSION)
 
 BUILD=build_$(SNAP)
 
-.PHONY: openssl
-
 ifeq ($(OS),Darwin)
 PLATFORM='darwin-ppc-cc'
 endif
@@ -16,10 +14,6 @@ ifeq ($(OS),Linux)
 # XXX fix later, just for now
 PLATFORM='linux-pentium'
 endif
-
-
-ifeq '$(OS)' 'Cygwin'
-# Build using Visual C++ compiler
 
 ifeq ($(DEBUG),1)
 MK1MF=sed -e "s/mk1mf\.pl/mk1mf\.pl debug/" ms/do_masm.bat > ms/do_masm_debug.bat
@@ -31,7 +25,11 @@ OUT32DLL=out32dll
 DOMASM=do_masm.bat
 endif
 
-$(SRC)/$(BUILD)/ms/$(DOMASM): $(SRC)/Configure
+
+ifeq '$(OS)' 'Cygwin'
+# Build using Visual C++ compiler
+
+$(SRC)/$(BUILD)/ms/$(DOMASM): apply
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
 	cp -r crypto ssl apps certs tools util ms include test $(BUILD)/;cd $(BUILD);\
 	$(MK1MF);\
@@ -108,12 +106,10 @@ snap:
 endif # if OS X or linux
 endif # if Cygwin or not
 
-$(SRC)/Configure: apply
-
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
 
-apply: expand patches-$(VERSION)
+apply:  
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 clean:
