@@ -20,7 +20,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.collection = collection
 
         self.urlLabel = wx.xrc.XRCCTRL(self, "ID_URL_LABEL")
-        self.urlLabel.SetLabel("Publish Collection '%s' to:" % \
+        self.urlLabel.SetLabel("Publish collection '%s' to:" % \
          collection.displayName)
 
         self.urlText = wx.xrc.XRCCTRL(self, "ID_URL")
@@ -42,26 +42,29 @@ class PublishCollectionDialog(wx.Dialog):
         invitees = self.inviteesText.GetValue()
         if invitees:
             invitees = invitees.split(",")
-            bad_addrs = []
+            badAddresses = []
 
             for invitee in invitees:
                 if not osaf.mail.message.isValidEmailAddress(invitee):
-                    bad_addrs.append(invitee)
+                    badAddresses.append(invitee)
 
-            size = len(bad_addrs)
+            size = len(badAddresses)
 
             if size > 0:
                 a = size > 1 and "addresses" or "address"
-                self.waitLabel.SetLabel("Invalid %s: %s" % (a, ', '.join(bad_addrs)))
+                self.waitLabel.SetLabel("Invalid %s: %s" % \
+                 (a, ', '.join(badAddresses)))
                 return
 
-            url = self.urlText.GetValue()
-            self.waitLabel.SetLabel("Publishing, Please Wait...")
+        url = self.urlText.GetValue()
+        self.waitLabel.SetLabel("Publishing, Please Wait...")
 
-            osaf.framework.webdav.Dav.DAV(url).put(self.collection)
+        osaf.framework.webdav.Dav.DAV(url).put(self.collection)
+
+        if invitees:
             osaf.mail.sharing.sendInvitation(url, invitees)
 
-            self.EndModal(True)
+        self.EndModal(True)
 
     def OnCancel(self, evt):
         self.EndModal(False)
