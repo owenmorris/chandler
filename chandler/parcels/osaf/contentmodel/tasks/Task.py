@@ -4,7 +4,7 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
@@ -50,7 +50,20 @@ class TaskMixin(Item.Item):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    pass
+    def InitOutgoingAttributes (self):
+        """ Init any attributes on ourself that are appropriate for
+        a new outgoing item.
+        """
+        try:
+            super(TaskMixin, self).InitOutgoingAttributes ()
+        except AttributeError:
+            pass
+
+        # default status is To Do
+        self.taskStatus = 'todo'
+
+        # default due date is 7 days hence
+        self.dueDate = DateTime.now() + DateTime.DateTimeDelta(7)
 
 class Task(Notes.Note, TaskMixin):
     def __init__(self, name=None, parent=None, kind=None):

@@ -374,7 +374,6 @@
     <attributes itemref="mail:attachments"/>
     <attributes itemref="mail:characterEncoding"/>
     <attributes itemref="mail:hasBeenRead"/>
-    <attributes itemref="content:importance"/>
     <attributes itemref="mail:downloadAccount"/>
     <attributes itemref="mail:serverStatus"/>
     <attributes itemref="mail:deliveryStatus"/>

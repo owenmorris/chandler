@@ -3,7 +3,7 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
@@ -17,6 +17,18 @@ class Note(ContentModel.ContentItem):
             kind = ContentModel.ContentModel.getNoteKind()
         super (Note, self).__init__(name, parent, kind)
 
+    def InitOutgoingAttributes (self):
+        """ Init any attributes on ourself that are appropriate for
+        a new outgoing item.
+        """
+        try:
+            super(Note, self).InitOutgoingAttributes ()
+        except AttributeError:
+            pass
+
+        self.processingStatus = 'processing'
+
+    
 class Conversation(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:

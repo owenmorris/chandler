@@ -8,7 +8,6 @@ from osaf.framework.blocks.Views import View
 from osaf.framework.notifications.Notification import Notification
 import wx
 import os
-from mx import DateTime
 import application.Application
 import osaf.contentmodel.mail.Mail as Mail
 from application.SplashScreen import SplashScreen
@@ -17,6 +16,7 @@ from osaf.mail.imap import IMAPDownloader
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
+import repository.util.UUID as UUID
 
 class MainView(View):
     """
@@ -111,21 +111,12 @@ class MainView(View):
         account = accountList[0]
         IMAPDownloader (account).getMail()
 
-    def NewItemName (cls):
-        """
-        Return a unique name of a new item
-        """
-        itemNumber = MainView.AnonymousItemNumber
-        MainView.AnonymousItemNumber += 1
-        return "Anonymous" + str (itemNumber)
-    NewItemName = classmethod (NewItemName)
-    AnonymousItemNumber = 1
-
     def onNewEvent (self, notification):
-        # create a new mail message
+        # create a new content item
         event = notification.event
-        newMessage = event.kindParameter.newItem (self.NewItemName(), self)
-        newMessage.date = DateTime.now()
+        itemName = 'Anonymous'+str(UUID.UUID())
+        newItem = event.kindParameter.newItem (itemName, self)
+        newItem.InitOutgoingAttributes ()
         Globals.repository.commit()
 
         # lookup our selectionChangedEvents
@@ -142,7 +133,7 @@ class MainView(View):
 
         # Tell the ActiveView to select our new item
         args = {}
-        args['item'] = newMessage
+        args['item'] = newItem
         self.Post(activeViewSelectionChanged, args)
 
     def onNewEventUpdateUI (self, notification):
@@ -179,6 +170,7 @@ class MainView(View):
 
     def onReloadParcelsEvent(self, notification):
         ParcelManager.getManager().loadParcels()
+        self.rerender ()
 
     def onCommitRepositoryEvent(self, notification):
         Globals.repository.commit()

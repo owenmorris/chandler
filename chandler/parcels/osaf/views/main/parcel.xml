@@ -16,7 +16,10 @@
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+             xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
              xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+             xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:stockQuote="http://osafoundation.org/parcels/osaf/examples/stockquote/views">
 
   <core:version>0.3</core:version>
@@ -63,6 +66,34 @@
 
   <KindParameterizedEvent itemName="NewMailMessage">
     <kindParameter itemref="mail:MailMessage"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itemName="NewTask">
+    <kindParameter itemref="tasks:Task"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itemName="NewCalendarEvent">
+    <kindParameter itemref="calendarModel:CalendarEvent"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itemName="NewNote">
+    <kindParameter itemref="contentModel:Note"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itemName="NewContact">
+    <kindParameter itemref="contacts:Contact"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
@@ -340,7 +371,7 @@
     <blockName>NewTabItem</blockName>
     <title>Note</title>
     <helpString>Create a new Note</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:NewNote"/>
   </MenuItem>
   
   <MenuItem itsName="NewMessageItem">
@@ -354,14 +385,14 @@
     <blockName>NewTaskItem</blockName>
     <title>Task</title>
     <helpString>Create a new Task</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:NewTask"/>
   </MenuItem>
   
   <MenuItem itsName="NewEventItem">
     <blockName>NewEventItem</blockName>
     <title>Event</title>
     <helpString>Create a new Event</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:NewCalendarEvent"/>
   </MenuItem>
   
   <MenuItem itsName="NewSeparator1">
@@ -373,7 +404,7 @@
     <blockName>NewContactItem</blockName>
     <title>Contact</title>
     <helpString>Create a new Contact</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:NewContact"/>
   </MenuItem>
 
   <MenuItem itsName="NewGenericCollectionItem">
@@ -1203,7 +1234,7 @@
     <bitmap>application/images/new.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
-    <event itemref="doc:NewMailMessage"/>
+    <event itemref="doc:NewNote"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ReplyButton">
@@ -1444,6 +1475,10 @@
     <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
     <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

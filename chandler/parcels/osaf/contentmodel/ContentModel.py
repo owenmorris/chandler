@@ -3,13 +3,14 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Parcel import Parcel
 import repository.item.Item as Item
 import repository.item.Query as Query
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
+from mx import DateTime
 import logging
 
 import application.Globals as Globals
@@ -163,6 +164,19 @@ class ContentItem(Item.Item):
         if not kind:
             kind = ContentModel.getContentItemKind()
         super (ContentItem, self).__init__(name, parent, kind)
+
+    def InitOutgoingAttributes (self):
+        """ Init any attributes on ourself that are appropriate for
+        a new outgoing item.
+        """
+        try:
+            super(ContentItem, self).InitOutgoingAttributes ()
+        except AttributeError:
+            pass
+
+        self.importance = 'normal'
+        self.createdOn = DateTime.now()
+
 
     def StampKind(self, operation, mixinKind):
         """

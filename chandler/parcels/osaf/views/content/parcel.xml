@@ -70,7 +70,6 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="mixedQuery">
-    <data itemref="calendarModel:CalendarEvent"/>
     <data itemref="contentModel:Note"/>
     <data itemref="contactsModel:Contact"/>
   </contentModel:Query>
@@ -94,7 +93,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
-    <data itemref="mailModel:MailMessage"/>
+    <data itemref="mailModel:MailMessageMixin"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="inItemCollection">
@@ -103,7 +102,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="outQuery">
-    <data itemref="mailModel:MailMessage"/>
+    <data itemref="mailModel:MailMessageMixin"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="outItemCollection">
