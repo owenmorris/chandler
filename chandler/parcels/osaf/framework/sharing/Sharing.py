@@ -1426,3 +1426,17 @@ def isWebDAVSetUp(view):
 
     account = getWebDAVAccount(view)
     return account is not None
+
+
+def syncAll(view):
+    """ Synchronize all active shares.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    """
+
+    shareKind = view.findPath("//parcels/osaf/framework/sharing/Share")
+    for share in KindQuery().run([shareKind]):
+        if share.active:
+            share.sync()
+

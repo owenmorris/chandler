@@ -60,6 +60,13 @@
             <initialValue type="Boolean" value="False"/>
         </Attribute>
 
+        <Attribute itsName="active">
+            <description value="This attribute indicates whether this share should be synced during a 'sync all' operation." />
+            <type itemref="Boolean"/>
+            <cardinality value="single"/>
+            <initialValue type="Boolean" value="True"/>
+        </Attribute>
+
         <Attribute itsName="contents">
             <type itemref="cm:ItemCollection"/>
             <inverseAttribute itemref="cm:ItemCollection/shares"/>
