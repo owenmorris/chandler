@@ -627,12 +627,14 @@ class RefDict(LinkedMap):
         @type indexType: a string
         """
 
-        index = self._createIndex(indexType, **kwds)
-
-        if self._indexes is None:
-            self._indexes = { name: index }
+        if self._indexes is not None:
+            if name in self._indexes:
+                raise IndexAlreadyExists, (self, name)
         else:
-            self._indexes[name] = index
+            self._indexes = {}
+
+        index = self._createIndex(indexType, **kwds)
+        self._indexes[name] = index
 
         if not self._getRepository().isLoading():
             self.fillIndex(index)
@@ -658,9 +660,12 @@ class RefDict(LinkedMap):
 
         raise NotImplementedError, "indexType: %s" %(indexType)
 
-    def removeIndex(self, name):
+    def removeIndex(self, indexName):
 
-        del self._indexes[name]
+        if self._indexes is None or indexName not in self._indexes:
+            raise NoSuchIndexError, (self, indexName)
+
+        del self._indexes[indexName]
         self._setDirty(noMonitors=True)
 
     def fillIndex(self, index):
@@ -829,7 +834,7 @@ class RefDict(LinkedMap):
         if indexName is None:
             super(RefDict, self).place(key, afterKey)
         else:
-            self._indexes[indexName].moveKey(key, afterKey)
+            self._index(indexName).moveKey(key, afterKey)
             self._setDirty()
 
     def remove(self, item):
@@ -966,11 +971,11 @@ class RefDict(LinkedMap):
         @return: an C{Item} instance
         """
 
-        return self[self._indexes[indexName].getKey(position)]
+        return self[self._index(indexName).getKey(position)]
 
     def resolveIndex(self, indexName, position):
 
-        return self._indexes[indexName].getKey(position)
+        return self._index(indexName).getKey(position)
 
     def getIndexEntryValue(self, indexName, item):
         """
@@ -986,7 +991,7 @@ class RefDict(LinkedMap):
         @return: the index entry value
         """
         
-        return self._indexes[indexName].getEntryValue(item._uuid)
+        return self._index(indexName).getEntryValue(item._uuid)
 
     def setIndexEntryValue(self, indexName, item, value):
         """
@@ -1002,7 +1007,7 @@ class RefDict(LinkedMap):
         @type value: int
         """
 
-        self._indexes[indexName].setEntryValue(item._uuid, value)
+        self._index(indexName).setEntryValue(item._uuid, value)
         self._setDirty()
 
     def _refCount(self):
@@ -1075,7 +1080,7 @@ class RefDict(LinkedMap):
         if indexName is None:
             firstKey = self.firstKey()
         else:
-            firstKey = self._indexes[indexName].getFirstKey()
+            firstKey = self._index(indexName).getFirstKey()
             
         if firstKey is not None:
             return self[firstKey]
@@ -1095,7 +1100,7 @@ class RefDict(LinkedMap):
         if indexName is None:
             lastKey = self.lastKey()
         else:
-            lastKey = self._indexes[indexName].getLastKey()
+            lastKey = self._index(indexName).getLastKey()
             
         if lastKey is not None:
             return self[lastKey]
@@ -1121,7 +1126,7 @@ class RefDict(LinkedMap):
             if indexName is None:
                 nextKey = self.nextKey(key)
             else:
-                nextKey = self._indexes[indexName].getNextKey(key)
+                nextKey = self._index(indexName).getNextKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -1152,7 +1157,7 @@ class RefDict(LinkedMap):
             if indexName is None:
                 previousKey = self.previousKey(key)
             else:
-                previousKey = self._indexes[indexName].getPreviousKey(key)
+                previousKey = self._index(indexName).getPreviousKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -1171,7 +1176,7 @@ class RefDict(LinkedMap):
                 yield key
 
         else:
-            index = self._indexes[indexName]
+            index = self._index(indexName)
             nextKey = index.getFirstKey()
             while nextKey is not None:
                 key = nextKey
@@ -1195,8 +1200,18 @@ class RefDict(LinkedMap):
 
     def setDescending(self, indexName, descending=True):
 
-        self._indexes[indexName].setDescending(descending)
+        self._index(indexName).setDescending(descending)
         self._setDirty(noMonitors=True)
+
+    def _index(self, indexName):
+
+        if self._indexes is None:
+            raise NoSuchIndexError, (self, indexName)
+
+        try:
+            return self._indexes[indexName]
+        except KeyError:
+            raise NoSuchIndexError, (self, indexName)
 
     def check(self, item, name):
         """
@@ -1278,3 +1293,20 @@ class TransientRefDict(RefDict):
 
 class DanglingRefError(ValueError):
     pass
+
+class IndexError(KeyError):
+
+    def getCollection(self):
+        return self.args[0]
+
+    def getIndexName(self):
+        return self.args[1]
+
+    def __str__(self):
+        return self.__doc__ %(self.getIndexName(), self.getCollection())
+    
+class NoSuchIndexError(IndexError):
+    "No index named '%s' on %s"
+
+class IndexAlreadyExists(IndexError):
+    "An index named '%s' already exists on %s"
