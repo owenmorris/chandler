@@ -5,11 +5,24 @@ import application.Globals
 from application.Globals import repository as repo
 from application.Globals import parcelManager as pm
 from repository.item.Query import KindQuery
+import osaf.contentmodel.mail.Mail as Mail
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
 # Used to lookup the webdav parcel:
 WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
+
+# Special handlers referenced in the PANELS dictionary below:
+
+def IMAPSaveHandler(item, fields, values):
+    if values['IMAP_EMAIL_ADDRESS'] != item.emailAddress:
+        # we're changing the email address string, so we need to not modify
+        # the existing EmailAddress item and instead create a new one.
+        item.replyToAddress = Mail.EmailAddress(clone=item.replyToAddress)
+
+    # process as normal:
+    for (field, desc) in fields.iteritems():
+        item.setAttributeValue(desc['attr'], values[field])
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -49,6 +62,7 @@ PANELS = {
             },
         },
         "id" : "IMAPPanel",
+        "saveHandler" : IMAPSaveHandler,
     },
     "SMTP" : {
         "fields" : {
@@ -191,9 +205,13 @@ class AccountPreferencesDialog(wx.Dialog):
         for account in self.data:
             item = account['item']
             values = account['values']
-            for (field, desc) in \
-             PANELS[item.accountType]['fields'].iteritems():
-                item.setAttributeValue(desc['attr'], values[field])
+            panel = PANELS[item.accountType]
+            if panel.has_key("saveHandler"):
+                panel["saveHandler"](item, panel['fields'], values)
+            else:
+                for (field, desc) in \
+                 panel['fields'].iteritems():
+                    item.setAttributeValue(desc['attr'], values[field])
 
         repo.commit()
 

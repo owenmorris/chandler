@@ -605,8 +605,9 @@ class EmailAddress(Item.Item):
           Lookup the "me" emailAddress string.
         @return: C{String} the email address of the default account, or None
         """
-        if cls._theMeAddress is not None:
-            return cls._theMeAddress
+        # @@@ Morgen disabling this cache for now
+        # if cls._theMeAddress is not None:
+        #     return cls._theMeAddress
 
         # get the default IMAP address, and use it to find/build "me"
         import osaf.mail.imap as imap
@@ -632,57 +633,3 @@ class EmailAddress(Item.Item):
         # if there is no account, we'll get None, and just create an EmailAddress for it
         return cls.getEmailAddress (meAddress)
     getCurrentMeEmailAddress = classmethod (getCurrentMeEmailAddress)
-
-    def captureCurrentMeEmailAddress (cls):
-        """
-          Prepare for editing of the "me" EmailAddress.
-        Since many messages refer to "me" we'd like it to be preserved
-        across the edit, rather than change all those messages, which
-        would make it look like sent mail was sent from the new address.
-        """
-        
-        # get the account that owns the "me" address
-        meEmailAddress = cls.getCurrentMeEmailAddress ()
-        imapAccounts = meEmailAddress.accounts
-        assert len (imapAccounts) == 1, "The EmailAddress %s is not being used in %d accounts!" \
-                  %  (len (imapAccounts), meEmailAddress.emailAddress)
-        account = imapAccounts.first()
-        if account:
-            # Create a fresh unused EmailAddress for editing
-            newMe = EmailAddress(clone=meEmailAddress) # a fresh unused EmailAddress
-    
-            # Put the new EmailAddress into the account that owns "me",
-            account.replyToAddress = newMe
-            assert cls._capturedAccount is None, "capturedAccount error"
-            cls._capturedAccount = account
-    captureCurrentMeEmailAddress = classmethod (captureCurrentMeEmailAddress)
-
-    # the captured IMAP account is save here during capture/release
-    _capturedAccount = None
-
-    def releaseCurrentMeEmailAddress (cls):
-        """
-          If the "me" address was changed by editing, we'll start using a new one.
-        If unchanged, we revert back to the old one.
-        """
-        # get the new user-edited "me" address out of the account
-        if cls._capturedAccount is not None:
-            account = cls._capturedAccount
-            cls._capturedAccount = None
-            newMeCandidate = account.replyToAddress
-    
-            """
-              We'll want to use whatever existing address matches the user's edit.
-            Could be the new fresh one, could be an existing reuse, 
-            and could be the old one if no edit was made. 
-            If we're not using the new fresh copy, then we delete it.
-            """
-            theNewMe = cls.getEmailAddress (newMeCandidate.emailAddress)
-            account.replyToAddress = theNewMe
-            if theNewMe is not newMeCandidate:
-                newMeCandidate.delete ()
-    
-            # Invalidate the "me" emailAddress string cache in case there was an edit.
-            cls._theMeAddress = None
-    releaseCurrentMeEmailAddress = classmethod (releaseCurrentMeEmailAddress)
-

@@ -709,9 +709,11 @@
         <Attribute itsName="accounts">
             <displayName value="Used as Return Address by Email Account" />
             <description value="A list of Email Accounts that use this Email Address as the reply address for mail sent from the account." />
+            <!-- @@@ Making this single for now
             <cardinality value="list" />
-            <type ref="mail:IMAPAccount" />
             <initialValue />
+            -->
+            <type ref="mail:IMAPAccount" />
             <inverseAttribute ref="mail:IMAPAccount/replyToAddress" />
         </Attribute>
 
