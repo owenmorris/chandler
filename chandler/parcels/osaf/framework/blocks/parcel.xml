@@ -30,6 +30,13 @@
     <fields>height</fields>
   </Type>
  
+  <Type itemName="RectType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.RectType">
+    <fields>top</fields>
+    <fields>left</fields>
+    <fields>bottom</fields>
+    <fields>right</fields>
+  </Type>
+ 
   <!--
     Chandler Query
   -->
@@ -137,7 +144,7 @@
     </Attribute>
 
     <Attribute itemName="border">
-      <type itemref="Float"/>
+      <type itemref="docSchema:RectType"/>
     </Attribute>
     
     <Enumeration itemName="alignmentEnumType">

@@ -318,6 +318,12 @@ class wxApplication (wxApp):
         LoadParcels.LoadParcels(parcelSearchPath, self.repository)
         self.repository.commit()
                                 
+        from OSAF.AppSchema.DocumentSchema.Block import Block
+        topDocument = app.repository.find('//Parcels/OSAF/templates/top/TopDocument')
+        if topDocument:
+            assert isinstance (topDocument, Block)
+            topDocument.Render (self.model.mainFrame)
+
         #""" Load the old parcels, will go away """
         self.LoadParcelsV2InDirectory(parcelDir)
 
@@ -332,7 +338,7 @@ class wxApplication (wxApp):
               In the debugging version we have a debug menu with a couple
             commands that are useful for testing code. Currently they call
             OnTest1 and OnTest2. To see how all this works check out
-            ChandlerWindow.py and application.xrc.
+            ChandlerWindow.py.
             """
             EVT_MENU(self, XRCID("ShowDebuggerWindow"), self.ShowDebuggerWindow)
             EVT_MENU(self, XRCID("DebugRoutine"), self.DebugRoutine)
