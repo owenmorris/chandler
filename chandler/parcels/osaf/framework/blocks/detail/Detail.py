@@ -429,6 +429,15 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
             labelChanged = self.synchronizeLabel(self.staticTextLabelValue(item))
             hasChanged = hasChanged or labelChanged
         return hasChanged
+
+# gets redirectTo for an attribute name, or just returns the attribute
+# name if a there is no redirectTo
+def GetRedirectAttribute(item, defaultAttr):
+    attributeName = item.getAttributeAspect(defaultAttr, 'redirectTo');
+    if attributeName is None:
+        attributeName = defaultAttr
+    return attributeName
+
         
 class StaticRedirectAttribute (StaticTextLabel):
     """
@@ -441,18 +450,14 @@ class StaticRedirectAttribute (StaticTextLabel):
         return True
 
     def staticTextLabelValue (self, item):
-        redirectName = self.whichAttribute ()
-        try:
-            redirectAttr = item.getAttributeAspect(redirectName, 'redirectTo')
-        except AttributeError:
-            redirectAttr = redirectName
-        if redirectAttr is None:
-            redirectAttr = redirectName
+        redirectAttr = GetRedirectAttribute(item, self.whichAttribute ())
         # lookup better names for display of some attributes
         if item.hasAttributeAspect (redirectAttr, 'displayName'):
             redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
         return redirectAttr
 
+# basic class which makes a detail block visible if the given attribute is there
+# and never for contacts
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
@@ -660,16 +665,18 @@ class NoteBody (EditTextAttribute):
         # the kind to see if it knows about the attribute.
         knowsBody = item.itsKind.hasAttribute("body")
         return knowsBody
-
+        
     def saveAttributeFromWidget (self, item, widget, validate):
-        textType = item.getAttributeAspect('body', 'type')
+        attributeName = GetRedirectAttribute(item, 'body');
+        textType = item.getAttributeAspect(attributeName, 'type')
         widgetText = widget.GetValue()
         if widgetText:
             item.body = textType.makeValue(widgetText, encoding='ascii',
              indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
-        if item.hasAttributeValue("body"):
+        attributeName = GetRedirectAttribute(item, 'body');
+        if item.hasAttributeValue(attributeName):
             # get the character string out of the Text LOB
             noteBody = item.ItemBodyString ()
             widget.SetValue(noteBody)
