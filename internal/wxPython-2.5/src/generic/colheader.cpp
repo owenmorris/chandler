@@ -1717,7 +1717,7 @@ int		sizeX, sizeY, insetX;
 	if (arrowBoundsR == NULL)
 		return;
 
-	if (itemBoundsR == NULL)
+	if (itemBoundsR != NULL)
 	{
 		sizeX =
 		sizeY = 12;
