@@ -217,7 +217,6 @@ class Block(Item):
                  copies=copies)
                 Globals.notificationManager.PrepareSubscribers()
                 if collection is not None:
-                    print "I am setting collection to", collection
                     item.contents = collection
 
                     # @@@ Hack to also set the table's contents:

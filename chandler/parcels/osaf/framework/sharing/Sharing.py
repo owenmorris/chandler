@@ -38,7 +38,7 @@ class Parcel(application.Parcel.Parcel):
         else:
             if application.dialogs.Util.promptYesNo( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
-             "Subscribe to %s?" % url):
+             "Subscribe to collection:\n%s ?" % url):
                 subscribeToWebDavCollection(url)
 
     def _errorCallback(self, notification):

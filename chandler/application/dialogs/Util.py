@@ -245,7 +245,7 @@ class yesNoDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-        label = wx.StaticText(self, -1, message, wx.DefaultPosition, [400,-1],
+        label = wx.StaticText(self, -1, message, wx.DefaultPosition, [450,80],
          wx.ALIGN_CENTRE)
         sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
