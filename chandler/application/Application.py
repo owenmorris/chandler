@@ -29,7 +29,7 @@ class MainThreadCallbackEvent(wxPyEvent):
 
 def repositoryCallback(uuid, notification, reason):
     if notification == 'ItemChanged':
-        eventPath = '//parcels/OSAF/test/item_' + reason
+        eventPath = '//parcels/OSAF/framework/item_' + reason
     elif notification == 'CollectionChanged':
         return
     else:
