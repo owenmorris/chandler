@@ -1,5 +1,43 @@
+--- PyLucene-0.6.1/PyLucene.i	Tue Sep 21 15:24:08 2004
++++ PyLucene-0.6.1-patched/PyLucene.i	Tue Sep 21 16:11:17 2004
+@@ -918,14 +918,35 @@
+ #endif
+ 
+     objects = new java::util::Hashtable();
+ 
+     java::util::Hashtable *props = (java::util::Hashtable *)
+         java::lang::System::getProperties();
+     props->put(JvNewStringUTF("inPython"), objects);
+ 
++    PyObject *sys = PyImport_ImportModule("sys");
++    PyObject *path = PyObject_GetAttrString(sys, "path");
++    int count = PyList_Size(path);
++
++    while (count-- > 0) {
++        PyObject *pp = PyList_GET_ITEM(path, count);
++        char *p = PyString_AsString(pp);
++        int l = strlen(p);
++
++        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
++        {
++            jstring jp = JvNewStringUTF(p);
++
++            props->put(JvNewStringUTF("gnu.classpath.home.url"),
++                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
++            break;
++        }
++    }
++    Py_DECREF(path);
++    Py_DECREF(sys);
++
+     JvInitClass(&org::apache::lucene::document::Field::class$);
+     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+     JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
+     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
+     JvInitClass(&org::osafoundation::util::PythonRef::class$);
+ %}
 --- PyLucene-0.6.1/Makefile	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 16:10:19 2004
++++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 17:30:54 2004
 @@ -135,19 +135,21 @@
  ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
@@ -62,10 +100,18 @@
  	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -386,17 +392,17 @@
+@@ -381,22 +387,25 @@
+ 	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
+ else
+ 
+ ifeq ($(OS),Linux)
+ install::
  ifdef DB
  	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
  endif
++	install $(GCJ_HOME)/lib/libgcj.so.5 $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
  else
  
  ifeq ($(OS),Cygwin)
@@ -81,7 +127,7 @@
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
-@@ -425,18 +431,18 @@
+@@ -425,18 +434,18 @@
  
  ifeq ($(OS),Linux)
  distrib::
@@ -102,41 +148,3 @@
  ifdef DB
  	mkdir -p $(DISTRIB)/db
  	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
---- PyLucene-0.6.1/PyLucene.i	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/PyLucene.i	Tue Sep 21 16:11:17 2004
-@@ -918,14 +918,35 @@
- #endif
- 
-     objects = new java::util::Hashtable();
- 
-     java::util::Hashtable *props = (java::util::Hashtable *)
-         java::lang::System::getProperties();
-     props->put(JvNewStringUTF("inPython"), objects);
- 
-+    PyObject *sys = PyImport_ImportModule("sys");
-+    PyObject *path = PyObject_GetAttrString(sys, "path");
-+    int count = PyList_Size(path);
-+
-+    while (count-- > 0) {
-+        PyObject *pp = PyList_GET_ITEM(path, count);
-+        char *p = PyString_AsString(pp);
-+        int l = strlen(p);
-+
-+        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
-+        {
-+            jstring jp = JvNewStringUTF(p);
-+
-+            props->put(JvNewStringUTF("gnu.classpath.home.url"),
-+                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
-+            break;
-+        }
-+    }
-+    Py_DECREF(path);
-+    Py_DECREF(sys);
-+
-     JvInitClass(&org::apache::lucene::document::Field::class$);
-     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
-     JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
-     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
-     JvInitClass(&org::osafoundation::util::PythonRef::class$);
- %}
