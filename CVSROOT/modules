@@ -33,18 +33,4 @@ chandler-source -a \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx-base-2.0.4 \
     osaf/chandler/hardhat \
-    osaf/chandler/wxWindows \
     osaf/chandler/wxWindows-2.4
-
-new-chandler-source -a \
-    osaf/chandler/Chandler \
-    osaf/chandler/PyXML \
-    osaf/chandler/Python-2.2.2 \
-    osaf/chandler/ZODB4 \
-    osaf/chandler/distutils \
-    osaf/chandler/egenix-mx-base-2.0.4 \
-    osaf/chandler/hardhat \
-    osaf/chandler/wxWindows-2.4
-
-
-
