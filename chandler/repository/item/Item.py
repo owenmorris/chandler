@@ -166,7 +166,8 @@ class Item(CItem):
 
         return False
 
-    def getAttributeAspect(self, name, aspect, _attrID=None, **kwds):
+    def getAttributeAspect(self, name, aspect, noError=False, _attrID=None,
+                           **kwds):
         """
         Return the value for an attribute aspect.
 
@@ -266,7 +267,6 @@ class Item(CItem):
             if _attrID is not None:
                 attribute = self.find(_attrID)
             else:
-                noError = kwds.get('noError', False)
                 attribute = self._kind.getAttribute(name, noError, self)
 
             if attribute is not None:
@@ -278,14 +278,14 @@ class Item(CItem):
                         for i in xrange(len(names) - 1):
                             item = item.getAttributeValue(names[i])
                         return item.getAttributeAspect(names[-1], aspect,
-                                                       **kwds)
+                                                       noError, None, **kwds)
                     
                 return attribute.getAspect(aspect, **kwds)
 
         return kwds.get('default', None)
         
-    def setAttributeValue(self, name, value=None, setAliases=False,
-                          _attrDict=None, setDirty=True, _attrID=None):
+    def setAttributeValue(self, name, value=None, _attrDict=None, _attrID=None,
+                          setDirty=True, setAliases=False):
         """
         Set a value on a Chandler attribute.
 
@@ -304,37 +304,41 @@ class Item(CItem):
         """
 
         otherName = None
+        _values = self._values
+        _references = self._references
         
         if _attrDict is None:
-            if self._values.has_key(name):
-                _attrDict = self._values
+            if name in _values:
+                _attrDict = _values
                 otherName = Item.Nil
-            elif self._references.has_key(name):
-                _attrDict = self._references
+            elif name in _references:
+                _attrDict = _references
             else:
                 otherName = self._kind.getOtherName(name, _attrID, self,
                                                     Item.Nil)
                 if otherName is not Item.Nil:
-                     _attrDict = self._references
+                    _attrDict = _references
                 else:
                     redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                       default=None,
-                                                       _attrID=_attrID)
+                                                       False, _attrID,
+                                                       default=None)
                     if redirect is not None:
                         item = self
                         names = redirect.split('.')
                         for i in xrange(len(names) - 1):
                             item = item.getAttributeValue(names[i])
 
-                        return item.setAttributeValue(names[-1], value)
+                        return item.setAttributeValue(names[-1], value,
+                                                      None, None,
+                                                      setDirty, setAliases)
 
                     else:
-                        _attrDict = self._values
+                        _attrDict = _values
 
-        isItem = isinstance(value, Item)
+        isItem = value is not None and isinstance(value, Item)
         old = None
 
-        if _attrDict is self._references:
+        if _attrDict is _references:
             if name in _attrDict:
                 old = _attrDict[name]
                 if old is value:
@@ -343,27 +347,28 @@ class Item(CItem):
                     old.clear()
 
         if isItem or value is None:
-            card = self.getAttributeAspect(name, 'cardinality')
+            card = self.getAttributeAspect(name, 'cardinality', False, _attrID,
+                                           default='single')
 
             if card != 'single':
                 raise CardinalityError, (self, name, 'single-valued')
 
-            if _attrDict is self._values:
+            if _attrDict is _values:
                 if isItem:
-                    self._values[name] = value = SingleRef(value.itsUUID)
+                    _values[name] = value = SingleRef(value.itsUUID)
                 else:
-                    self._values[name] = None
+                    _values[name] = None
                 dirty = Item.VDIRTY
             else:
                 if otherName is None:
                     otherName = self._kind.getOtherName(name, _attrID, self)
-                self._references._setValue(name, value, otherName)
+                _references._setValue(name, value, otherName)
                 setDirty = False
 
         elif isinstance(value, list):
-            if _attrDict is self._references:
+            if _attrDict is _references:
                 if old is None:
-                    self._references[name] = refList = self._refList(name)
+                    _references[name] = refList = self._refList(name)
                 else:
                     assert isinstance(old, RefList)
                     refList = old
@@ -373,16 +378,17 @@ class Item(CItem):
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
+                                                    False, _attrID,
                                                     default=None)
                 attrValue = PersistentList(self, name, companion)
-                self._values[name] = attrValue
+                _values[name] = attrValue
                 attrValue.extend(value)
                 setDirty = False
 
         elif isinstance(value, dict):
-            if _attrDict is self._references:
+            if _attrDict is _references:
                 if old is None:
-                    self._references[name] = refList = self._refList(name)
+                    _references[name] = refList = self._refList(name)
                 else:
                     assert isinstance(old, RefList)
                     refList = old
@@ -392,19 +398,20 @@ class Item(CItem):
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
+                                                    False, _attrID,
                                                     default=None)
                 attrValue = PersistentDict(self, name, companion)
-                self._values[name] = attrValue
+                _values[name] = attrValue
                 attrValue.update(value)
                 setDirty = False
             
         elif isinstance(value, ItemValue):
             value._setItem(self, name)
-            self._values[name] = value
+            _values[name] = value
             dirty = Item.VDIRTY
             
         else:
-            self._values[name] = value
+            _values[name] = value
             dirty = Item.VDIRTY
 
         if setDirty:
@@ -533,8 +540,8 @@ class Item(CItem):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   default=None,
-                                                   _attrID=_attrID)
+                                                   False, _attrID,
+                                                   default=None)
                 if redirect is not None:
                     item = self
                     names = redirect.split('.')
@@ -1187,10 +1194,10 @@ class Item(CItem):
             view._status |= view.FDIRTY
             
             if not self.isDirty():
-                if view is not None and not view.isLoading():
+                if not view.isLoading():
                     if attribute is not None:
                         if not self.getAttributeAspect(attribute, 'persist',
-                                                       noError=True,
+                                                       True, None,
                                                        default=True):
                             return False
                     if view._logItem(self):

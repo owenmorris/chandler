@@ -128,7 +128,7 @@ class RemoteFilter(XMLFilter):
     def itemStart(self, attrs):
 
         self.itemUUID = UUID(attrs['uuid'])
-        self.itemVersion = long(attrs['version'])
+        self.itemVersion = int(attrs['version'])
 
         version = self.store.getItemVersion(self.itemVersion, self.itemUUID)
         if not self.force and version == self.itemVersion:
@@ -241,7 +241,7 @@ class RemoteFilter(XMLFilter):
             return
         
         uuid = UUID(attrs['uuid'])
-        version = long(attrs['version'])
+        version = int(attrs['version'])
         encoding = attrs['encoding']
         compression = attrs.get('compression', None)
         store = self.store

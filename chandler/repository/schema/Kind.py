@@ -771,9 +771,8 @@ class Descriptor(CDescriptor):
 
         else:
             flags = CDescriptor.VALUE
-            type = attribute.getAttributeValue('type',
-                                               _attrDict=attribute._references,
-                                               default=None)
+            type = attribute.getAttributeValue('type', attribute._references,
+                                               None, default=None)
             if type is not None and type.isSimple():
                 flags |= CDescriptor.SIMPLE
 
@@ -816,25 +815,6 @@ class Descriptor(CDescriptor):
             return None
 
         raise AssertionError, (self.name, flags)
-
-    def __set__(self, obj, value):
-
-        if obj is None:
-            raise AttributeError, self.name
-
-        kind = obj._kind
-        if kind is not None:
-            try:
-                attrID, flags = self.attrs[kind._uuid]
-                attrDict = self.getAttrDict(obj, flags)
-            except KeyError:
-                pass
-            else:
-                return obj.setAttributeValue(self.name, value,
-                                             _attrDict=attrDict,
-                                             _attrID=attrID)
-                
-        obj.__dict__[self.name] = value
 
     def __delete__(self, obj):
 

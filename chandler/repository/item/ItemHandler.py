@@ -530,8 +530,8 @@ class ItemHandler(ValueHandler):
             for name, value in self.references.iteritems():
                 if not isinstance(value, dict):
                     dirty = Item.VDIRTY
-                    item.setAttributeValue(name, value, _attrDict=references,
-                                           setDirty=False)
+                    item.setAttributeValue(name, value, references,
+                                           None, False)
                 else:
                     dirty = Item.RDIRTY
                     references[name] = value

@@ -937,7 +937,7 @@ class ContactFullNameEditField (EditRedirectAttribute):
     def saveAttributeFromWidget(self, item, widget, validate):
         contactName = item.getAttributeValue (self.whichAttribute())
         widgetString = widget.GetValue()
-        contactName.setAttributeValue('fullName', widgetString)
+        contactName.fullName = widgetString
         if validate:
             names = widgetString.split (' ')
             if len (names) > 0:
@@ -988,7 +988,7 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
             section = item.getAttributeValue (self.whichAttribute())
             widgetString = widget.GetValue()
             processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
-            section.setAttributeValue('emailAddresses', validAddresses)
+            section.emailAddresses = validAddresses
             for address in validAddresses:
                 try:
                     address.fullName = section.fullName

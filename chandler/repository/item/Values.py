@@ -383,8 +383,7 @@ class References(Values):
         if value is None:
             cardinality = (kwds.get('cardinality') or
                            item.getAttributeAspect(name, 'cardinality',
-                                                   noError=True,
-                                                   default='single'))
+                                                   True, default='single'))
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
             elif cardinality != 'single':

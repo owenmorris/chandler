@@ -1078,7 +1078,7 @@ class CloudXMLFormat(ImportExportFormat):
             result += indent * depth
             result += "<%s>" % attrName
 
-            otherName = item.getAttributeAspect(attrName, 'otherName')
+            otherName = item.itsKind.getOtherName(attrName, None, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
 
             if otherName: # it's a bidiref
@@ -1229,7 +1229,7 @@ class CloudXMLFormat(ImportExportFormat):
                     item.removeAttributeValue(attrName)
                 continue
 
-            otherName = item.getAttributeAspect(attrName, 'otherName')
+            otherName = item.itsKind.getOtherName(attrName, None, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
             type = item.getAttributeAspect(attrName, 'type')
 
