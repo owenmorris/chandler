@@ -580,7 +580,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         position = box.bounds.GetPosition()
         size = box.bounds.GetSize()
 
-        self.editor.SetItem(box.getItem(), position, size)
+        self.editor.SetItem(box.getItem(), position, size, size.height)
 
     def getDateTimeFromPosition(self, position):
         # bound the position by the available space that the user 
@@ -816,7 +816,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         textPos = wx.Point(position.x + 8, position.y + 15)
         textSize = wx.Size(size.width - 13, size.height - 20)
 
-        self.editor.SetItem(box.getItem(), textPos, textSize)
+        self.editor.SetItem(box.getItem(), textPos, textSize, self.smallFont.GetPointSize()) 
 
     def OnSelectItem(self, item):
         self.parent.blockItem.selection = item
@@ -984,11 +984,19 @@ class wxInPlaceEditor(wx.TextCtrl):
             self.Hide()
         event.Skip()
 
-    def SetItem(self, item, position, size):
+    def SetItem(self, item, position, size, pointSize):
         self.item = item
         self.SetValue(item.displayName)
 
-        self.SetSize(size)
+        newSize = wx.Size(size.width, size.height)
+
+        # GTK doesn't like making the editor taller than
+        # the font, plus it doesn't honor the NOBORDER style
+        # so we have to include 4 pixels for each border
+        if '__WXGTK__' in wx.PlatformInfo:
+            newSize.height = pointSize + 8
+
+        self.SetSize(newSize)
         self.Move(position)
 
         self.SetInsertionPointEnd()
