@@ -1,11 +1,15 @@
+""" ZaoBao blocks
+"""
+
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 import application.Globals as Globals
 from repository.item.Query import KindQuery
-from OSAF.framework.blocks.ControlBlocks import Tree
-from OSAF.framework.blocks.RepositoryBlocks import wxItemDetail, ItemDetail
-from OSAF.framework.notifications.Notification import Notification
+from OSAF.framework.blocks.ControlBlocks import Tree, ItemDetail
 import OSAF.examples.zaobao.RSSData as RSSData
-
-import webbrowser # for opening external links
 
 class ZaoBaoListDelegate:
     def ElementParent(self, element):
@@ -95,23 +99,9 @@ def OnEnterPressedEvent(self, notification):
     chan = RSSData.NewChannelFromURL(url, True)
     Globals.repository.commit()
 
+class ZaoBaoItemDetail(ItemDetail):
 
-class wxZaoBaoItemDetail(wxItemDetail):
-    def OnLinkClicked(self, wx_linkinfo):
-        itemURL = wx_linkinfo.GetHref()
-        item = Globals.repository.find(itemURL)
-
-        if not item:
-            webbrowser.open(itemURL)
-            return
-
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(event, None, None)
-        notification.SetData({'item':item, 'type':'Normal'})
-
-        Globals.notificationManager.PostNotification (notification)
-
-    def On_wxSelectionChanged(self, item):
+    def getHTMLText(self, item):
         if item == Globals.repository.view:
             return
         if item:
@@ -133,31 +123,7 @@ class wxZaoBaoItemDetail(wxItemDetail):
 
             HTMLText = HTMLText + '</body></html>\n'
 
-            try:
-                self.SetPage(HTMLText)
-            except TypeError:
-                self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
+            return HTMLText
 
-class ZaoBaoItemDetail(ItemDetail):
-    def renderOneBlock (self, parent, parentWindow):
-        from OSAF.framework.blocks.Block import Block
-        from wxPython.wx import wxDefaultPosition
-        
-        htmlWindow = wxZaoBaoItemDetail(parentWindow,
-                                      Block.getwxID(self),
-                                      wxDefaultPosition,
-                                      (self.minimumSize.width, self.minimumSize.height))
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         htmlWindow,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
-        return htmlWindow, None, None
 
-    def OnSelectionChangedEvent (self, notification):
-        """
-          Display the item in the wxWindow counterpart.
-        """
-        wxWindow = Globals.association[self.getUUID()]
-        wxWindow.On_wxSelectionChanged (notification.data['item'])
 

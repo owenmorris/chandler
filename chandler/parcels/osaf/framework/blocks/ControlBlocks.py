@@ -14,7 +14,7 @@ from wxPython.wx import *
 from wxPython.gizmos import *
 from wxPython.html import *
 from new import classobj
-
+import webbrowser # for opening external links
 
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
@@ -528,3 +528,52 @@ class Tree(RectangularChild):
             style |= wxTR_NO_BUTTONS
         return style
 
+class wxItemDetail(wxHtmlWindow):
+    def OnLinkClicked(self, wx_linkinfo):
+        """ Clicking on an item changes the selection (post notification).
+            Clicking on a URL loads the page in a separate browser.
+        """
+        itemURL = wx_linkinfo.GetHref()
+        item = Globals.repository.find(itemURL)
+        if not item:
+            webbrowser.open(itemURL)
+        else:
+            event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+            event.Post({'item':item, 'type':'Normal'})
+
+    def SynchronizeFramework(self):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        item = Globals.repository.find (counterpart.selection)
+        try:
+            self.SetPage(counterpart.getHTMLText(item))
+        except TypeError:
+            self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
+
+class ItemDetail(RectangularChild):
+    def renderOneBlock (self, parent, parentWindow):
+        htmlWindow = wxItemDetail(parentWindow,
+                                  Block.getwxID(self),
+                                  wxDefaultPosition,
+                                  (self.minimumSize.width,
+                                   self.minimumSize.height))
+        
+        parentBlock = self.getParentBlock(parentWindow)
+        parentBlock.addToContainer(parent,
+                                   htmlWindow,
+                                   self.stretchFactor,
+                                   self.Calculate_wxFlag(),
+                                   self.Calculate_wxBorder())
+
+        return htmlWindow, None, None
+
+    def getHTMLText(self, item):
+        return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
+
+    def OnSelectionChangedEvent (self, notification):
+        """
+          Display the item in the wxWindow counterpart.
+        """
+        item = notification.data['item']
+        self.selection = item.getUUID()
+        wxWindow = Globals.association[self.getUUID()]
+        wxWindow.SynchronizeFramework ()

@@ -93,6 +93,7 @@ class RSSChannel(ContentItem):
         if not kind:
             kind = ZaoBaoParcel.getRSSChannelKind()
         super(RSSChannel, self).__init__(name, parent, kind)
+        self.items = []
 
     def Update(self):
         etag = self.getAttributeValue('etag', default=None)

@@ -88,10 +88,9 @@
     <stretchFactor>1.0</stretchFactor>
   </Tree>
  
-  <ItemDetail itemName="ItemDetail">
+  <ItemDetail itemName="ItemDetail"
+              itemClass="OSAF.views.repositoryviewer.Repository.RepositoryItemDetail">
     <!-- Attributes -->
-    <url></url>
-    
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <size>100,50</size>

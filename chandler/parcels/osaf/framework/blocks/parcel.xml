@@ -893,6 +893,19 @@
     <attributes itemref="docSchema:Tree/elementDelegate"/>
   </Kind>  
 
+  <!-- Item Detail Block  -->
+
+  <Kind itemName="ItemDetail">
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.ItemDetail</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+
+    <Attribute itemName="selection">
+      <type itemref="UUID"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:ItemDetail/selection"/>
+  </Kind>    
+
   <!--
     NavigationBar
   -->
@@ -907,17 +920,6 @@
   <Kind itemName="BookmarksBar">
     <classes key="python">OSAF.framework.blocks.NavigationBlocks.BookmarksBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
-  </Kind>  
-
-  <Kind itemName="ItemDetail">
-    <classes key="python">OSAF.framework.blocks.RepositoryBlocks.ItemDetail</classes>
-    <superKinds itemref="docSchema:HTML"/>
-
-    <Attribute itemName="selection">
-      <type itemref="UUID"/>
-    </Attribute>
-
-    <attributes itemref="docSchema:ItemDetail/selection"/>
   </Kind>  
 
   <!--
@@ -947,6 +949,6 @@
     <attributes itemref="docSchema:Node/parent"/>
     <attributes itemref="docSchema:Node/item"/>
   </Kind>
-  
+
 </Parcel>
 
