@@ -310,31 +310,24 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     head2 = '</head>\n' +\
             '<body>\n' +\
             '<img src="http://www.osafoundation.org/images/OSAFLogo.gif" ' +\
-            'alt="[OSAF Logo]">\n'
-    head = head1 + head2
-    index = head
+            'alt="[OSAF Logo]">\n' +\
+            '<h2>Chandler Build: ' + nowString + ' PDT (machine: ' +\
+            buildName + ')</h2>\n'
+    index = head1 + head2
 
     for distro in ('enduser', 'developer'):
         actualDistroFile = _readFile(outputDir + os.sep + newDirName +
                                      os.sep+distro)
-        index += '<p><a href="'+distro+'.html"> ' + _descriptions[distro][0] +\
-                 '</a>: ' + _descriptions[distro][1] + '</p>\n'
 
-        fileOut = file(newPrefix + distro + '.html', "w")
-        fileOut.write(head + '<h2>Chandler Build: ' + nowString +\
-                      ' PDT (machine: ' +\
-                      buildName + ')</h2>\n' + '<p>Download <a href="' +\
-                      actualDistroFile +\
-                      '"> ' + _descriptions[distro][0] + '</a>: <br>\n' +\
-                      ' MD5 checksum: ' + MD5sum(outputDir + os.sep +
-                                                 newDirName +\
-                                   os.sep + actualDistroFile) + '<br>\n' +\
-                      ' SHA checksum: ' + SHAsum(outputDir + os.sep +
-                                                 newDirName +\
-                                   os.sep + actualDistroFile) + '<br>\n' +\
-                      '<p> ' + _descriptions[distro][1] + '</p>\n' +\
-                      '</body></html>\n')
-        fileOut.close()
+        index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
+                 _descriptions[distro][0] + '</a>: <br>\n' +\
+                 ' MD5 checksum: ' + MD5sum(outputDir + os.sep + newDirName +\
+                                            os.sep + actualDistroFile) +\
+                 '<br>\n' +\
+                 ' SHA checksum: ' + SHAsum(outputDir + os.sep + newDirName +\
+                                            os.sep + actualDistroFile) +\
+                 '<br>\n<p> ' + _descriptions[distro][1] + '</p>\n' +\
+                 '</body></html>\n'
 
     index += '</body></html>\n'
 
