@@ -135,7 +135,7 @@ class MainView(View):
                     else:
                         printObject.OnPrint()
                     return
-        message = "Printing is currently only supported when viewing week/month/day view of the calendar."
+        message = "Printing is currently only supported when viewing week or day view of the calendar."
         dialog = wx.MessageDialog(None, message, 'Chandler', wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
         dialog.Destroy()
