@@ -17,7 +17,6 @@ from RdfRestriction import RdfRestriction
 
 from RdfNamespace import dc
 from RdfNamespace import chandler
-# from RdfNamespace import ical
 
 from mx.DateTime import *
 
