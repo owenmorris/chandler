@@ -89,7 +89,7 @@ class Block(Item):
 
             if widget:
                 Globals.wxApplication.needsUpdateUI = True
-                assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
+                assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
                 widget.blockItem = self
                 """
@@ -463,8 +463,8 @@ class DetailBlock(Block):
                            wxRectangularChild.CalculateWXFlag (newView), 
                            wxRectangularChild.CalculateWXBorder (newView))
                 
-                # @@@BJS Probably unnecessary - I'm leaving it out for now.
-                # self.widget.Layout()
+                # @@@BJS I think this is necessary after all, but I'll need to do more testing...
+                self.widget.Layout()
 
     def onSelectItemEvent (self, event):
         self.contents = event.arguments['item']
@@ -487,6 +487,9 @@ class DetailViewCache (Item):
                 except KeyError:
                     pass
                 else:
+                    # @@@BJS: work in progress...
+                    # NOT: For now, just use the old detail view
+                    # was: template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/DetailRootTemplate")
                     template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
                     view = template.copy (parent = Globals.repository.findPath ("//userdata"),
                                           cloudAlias="default")

@@ -87,6 +87,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         for child in children:
             child.isShown = item is not None
             reNotifyInside(child, item)
+        Globals.wxApplication.needsUpdateUI = True
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
@@ -138,6 +139,42 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         super(DetailRoot, self).onDestroyWidget ()
         showReentrant (self)
 
+    def onSendShareItemEventUpdateUI(self, event):    
+        item = self.selectedItem()
+        enabled = False
+        label = _("Send")
+        if item is not None:            
+            if isinstance(item, ItemCollection.ItemCollection):
+                # It's a collection: label should read "Send", or "Send to new" if it's already shared.
+                enabled = True
+                try:
+                    renotify = Sharing.isShared (item)
+                except AttributeError:
+                    pass
+                else:
+                    if renotify:
+                        label = _("Send to new")
+            elif isinstance(item, Mail.MailMessageMixin):
+                # It's mail. Has it been sent already?
+                try:
+                    dateSent = item.dateSent
+                except AttributeError:
+                    dateSent = None
+                if dateSent is not None:
+                    label = _("Sent")
+                else:
+                    enabled = True
+        
+        event.arguments['Enable'] = enabled    
+
+        # @@@BJS It'd be nice to set the Text attribute in the event, to cause the
+        # toolbaritem to be re-labeled (eg, event.arguments['Text'] = label), but this 
+        # doesn't seem to work (I think it's because ToolBarItems aren't real widgets).
+        # Instead, set the block's label directly here.
+        toolbarItem = event.arguments['sender']
+        toolbarItem.widget.SetLabel(label)
+        toolbarItem.parentBlock.widget.Realize()
+            
     def onSendShareItemEvent (self, event):
         """
           Send or Share the current item.
@@ -757,43 +794,6 @@ class EditHeadlineRedirectAttribute (EditRedirectAttribute):
         contactKind = Contacts.Contact.getKind ()
         shouldShow = not item.isItemOf (contactKind)
         return shouldShow
-
-class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
-    def shouldShow (self, item):
-        # if the item is a MailMessageMixin, we should show ourself
-        shouldShow = item.isItemOf(Mail.MailMessageMixin.getKind())
-        # if the item is a collection, we should show ourself
-        shouldShow = shouldShow or isinstance (item, ItemCollection.ItemCollection)
-        return shouldShow
-
-    def synchronizeItemDetail (self, item):
-        # if the button should be visible, enable/disable
-        # changed for 0.4 - always enabled to avoid user confusion.
-        if item is not None and self.shouldShow (item):
-            shouldEnable = True
-            if isinstance (item, ItemCollection.ItemCollection):
-                # collection: label should read "Notify"
-                label = "Notify"
-                # change the button label if the collection is already shared
-                try:
-                    renotify = Sharing.isShared (item)
-                except AttributeError:
-                    pass
-                else:
-                    if renotify:
-                        label = "Renotify"
-            else:
-                # not a collection, so it's probably Mail
-                label = "Send"
-                try:
-                    dateSent = item.dateSent
-                except AttributeError:
-                    dateSent = None
-                if dateSent is not None:
-                    label = "Sent"
-            self.widget.Enable (shouldEnable)
-            self.widget.SetLabel (label)
-        return super (SendShareButton, self).synchronizeItemDetail (item)
 
 """
 Classes to support Contact details

@@ -22,8 +22,9 @@ class View(BoxContainer):
 
             """
               Comment in this code to see which events are dispatched -- DJA
+              ... to which blocks -- BJS
 
-            print "Calling %s" % methodName
+            print "Calling %s.%s" % (block.itsPath, methodName)
             """
 
             member (block, event)

@@ -189,12 +189,20 @@ class MainView(View):
              "", statusMessage)
             self.setStatusMessage ('')
 
-    def onSendMailEvent (self, event):
-        # put a "committing" message into the status bar
-        self.setStatusMessage ('Committing changes...')
+    def onSendShareItemEventUpdateUI(self, event):
+        # If we get asked about this, and it hasn't already been set, there's no selected 
+        # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
+        event.arguments ['Enable'] = False
+        # @@@BJS Just as in DetailRoot.onSendShareItemEventUpdateUI, it'd be nice to just
+        # set the Text in the event to update the label of this toolbaritem, but that doesn't work.
+        # Do it the hard way.
+        toolbarItem = event.arguments['sender']
+        toolbarItem.widget.SetLabel(_("Send"))
+        toolbarItem.parentBlock.widget.Realize()
 
+    def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
-        Globals.repository.commit()
+        self.RepositoryCommitWithStatus()
     
         # get default SMTP account
         item = event.arguments ['item']

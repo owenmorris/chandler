@@ -77,11 +77,6 @@
     <destinationBlockReference itemref="doc:EditReminder"/>
   </BlockEvent>
   
-  <BlockEvent itsName="SendShareItem">
-    <blockName>SendShareItem</blockName>
-    <destinationBlockReference itemref="doc:DetailRootTemplate"/>
-  </BlockEvent>
-
   <!--
     Layout blocks
   -->
@@ -109,7 +104,6 @@
     <childrenBlocks itemref="doc:CalendarDuration"/>
     <childrenBlocks itemref="doc:CalendarDetailsArea"/>
     <childrenBlocks itemref="doc:NotesArea"/>
-    <childrenBlocks itemref="doc:SendShareButton"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
@@ -628,35 +622,12 @@
     <minimumSize>300, 80</minimumSize>
   </EditText>
 
-  <!-- Send button -->
-  <Button itsName="SendShareButton"
-          itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
-
-    <!-- Attributes -->
-    <blockName value="SendShareButton"/>
-    <title>Share</title>
-    <buttonKind>Text</buttonKind>
-
-    <size>60,30</size>
-    <minimumSize>75,30</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:SendShareItem"/>
-    <alignmentEnum>alignMiddleRight</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </Button>
-
-
   <!--
     TREES OF BLOCKS
   -->
   <BlockEvent itsName="ButtonPressed1">
     <blockName>ButtonPressed1</blockName>
     <destinationBlockReference itemref="doc:MarkupBar1"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="SendShareItem1">
-    <blockName>SendShareItem1</blockName>
-    <destinationBlockReference itemref="doc:EmailRootTemplate"/>
   </BlockEvent>
 
   <!-- EMAIL TREE Root Template -->
@@ -676,7 +647,6 @@
     <childrenBlocks itemref="doc:EmailAddressArea1"/>
     <childrenBlocks itemref="doc:DateKindArea1"/>
     <childrenBlocks itemref="doc:NotesArea1"/>
-    <childrenBlocks itemref="doc:SendShareButton1"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
@@ -922,24 +892,6 @@
     <minimumSize>300, 80</minimumSize>
   </EditText>
 
-  <!-- Send button -->
-  <Button itsName="SendShareButton1"
-          itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
-
-    <!-- Attributes -->
-    <blockName value="SendShareButton1"/>
-    <title>Share</title>
-    <buttonKind>Text</buttonKind>
-
-    <size>60,30</size>
-    <minimumSize>75,30</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:SendShareItem"/>
-    <alignmentEnum>alignMiddleRight</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </Button>
-
-
   <!-- CALENDAR TREE Root Template -->
   
   <BlockEvent itsName="ButtonPressed2">
@@ -962,7 +914,6 @@
     <childrenBlocks itemref="doc:CalendarStartTime2"/>
     <childrenBlocks itemref="doc:CalendarDuration2"/>
     <childrenBlocks itemref="doc:NotesArea2"/>
-    <childrenBlocks itemref="doc:SendShareButton2"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
@@ -1173,22 +1124,6 @@
     <minimumSize>300, 80</minimumSize>
   </EditText>
 
-  <!-- Send button -->
-  <Button itsName="SendShareButton2"
-          itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
-
-    <!-- Attributes -->
-    <blockName value="SendShareButton2"/>
-    <title>Share</title>
-    <buttonKind>Text</buttonKind>
-
-    <size>60,30</size>
-    <minimumSize>75,30</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:SendShareItem"/>
-    <alignmentEnum>alignMiddleRight</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </Button>
 
 
 

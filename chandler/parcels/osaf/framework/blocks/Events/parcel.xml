@@ -133,4 +133,8 @@ application specific parcels here</description>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
+  <BlockEvent itsName="SendShareItem">
+    <blockName>SendShareItem</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </BlockEvent>
 </core:Parcel>
