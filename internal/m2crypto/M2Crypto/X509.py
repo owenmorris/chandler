@@ -49,7 +49,7 @@ class X509_Extension:
         Mark this extension critical or noncritical. By default an
         extension is not critical.
 
-        @type critical:  integer
+        @type critical:  int
         @param critical: Nonzero sets this extension as critical. Calling
                          this method without arguments will set this extension
                          to critical.
@@ -60,7 +60,7 @@ class X509_Extension:
         """
         Return whether or not this is a critical extension.
 
-        @rtype:   integer
+        @rtype:   int
         @return:  Nonzero if this is a critical extension.
         """
         return m2.x509_extension_get_critical(self.x509_ext)
@@ -204,9 +204,9 @@ class X509:
         """
         Set version.
 
-        @type version:  integer
+        @type version:  int
         @param version: Version number.
-        @rtype:         integer
+        @rtype:         int
         @return:        Returns 0 on failure.
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"    
@@ -223,7 +223,7 @@ class X509:
         A CA must issue unique serial numbers for all the certificates that
         it issues.
 
-        @type serial:   integer
+        @type serial:   int
         @param serial:  Serial number.
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"
@@ -449,7 +449,7 @@ class Request:
         """
         Get version.
 
-        @rtype:         integer
+        @rtype:         int
         @return:        Returns version.
         """
         return m2.x509_req_get_version(self.req)
@@ -458,9 +458,9 @@ class Request:
         """
         Set version.
 
-        @type version:  integer
+        @type version:  int
         @param version: Version number.
-        @rtype:         integer
+        @rtype:         int
         @return:        Returns 0 on failure.
         """
         return m2.x509_req_set_version(self.req, version)

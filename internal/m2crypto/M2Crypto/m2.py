@@ -1,7 +1,5 @@
 """M2Crypto low level OpenSSL wrapper functions.
 
-Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved.
-
 m2 is the low level wrapper for OpenSSL functions. Typically you would not
 need to use these directly, since these will be called by the higher level
 objects you should try to use instead.
@@ -19,6 +17,8 @@ X509_REQ_verify           m2.x509_req_verify
 
 Exceptions to naming rules:
 
+
+Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved.
 
 Portions created by Open Source Applications Foundation (OSAF) are
 Copyright (C) 2004 OSAF. All Rights Reserved.
