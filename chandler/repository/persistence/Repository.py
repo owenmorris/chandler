@@ -506,6 +506,9 @@ class Store(object):
     def getDocVersion(self, doc):
         raise NotImplementedError, "Store.getDocVersion"
 
+    def getDocContent(self, doc):
+        raise NotImplementedError, "Store.getDocContent"
+
 
 class OnDemandRepository(Repository):
 

@@ -8,15 +8,23 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.persistence.Repository import OnDemandRepository
 from repository.persistence.Repository import RepositoryError
 from repository.persistence.Repository import OnDemandRepositoryView
+from repository.persistence.Transport import SOAPTransport, JabberTransport
 from repository.util.ClassLoader import ClassLoader
 
 
 class RemoteRepository(OnDemandRepository):
 
-    def __init__(self, transport):
+    def __init__(self, protocol, *args, **kwds):
         'Construct an RemoteRepository giving it a transport handler'
         
         super(RemoteRepository, self).__init__(None)
+        if protocol == 'soap':
+            transport = SOAPTransport(self, *args)
+        elif protocol == 'jabber':
+            transport = JabberTransport(self, *args)
+        else:
+            raise NotImplementedError, '%s protocol' %(protocol)
+        
         self.store = transport
         
     def create(self, verbose=False):
@@ -27,8 +35,8 @@ class RemoteRepository(OnDemandRepository):
 
         if not self.isOpen():
             super(RemoteRepository, self).open(verbose)
-            module, className = self.store.open(create)
-            self.viewClass = ClassLoader.loadClass(className, module)
+            className = self.store.open(create)
+            self.viewClass = ClassLoader.loadClass(className)
             self._status |= self.OPEN
 
     def close(self, purge=False):

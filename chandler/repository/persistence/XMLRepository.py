@@ -354,6 +354,78 @@ class DBContainer(object):
 
 class RefContainer(DBContainer):
 
+    def loadRef(self, version, key, cursorKey):
+
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store._startTransaction()
+                cursor = self.cursor()
+
+                try:
+                    value = cursor.set_range(cursorKey)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    print 'restarting loadRef aborted by deadlock'
+                    continue
+
+                while value is not None and value[0].startswith(cursorKey):
+                    refVer = ~unpack('>l', value[0][48:52])[0]
+                
+                    if refVer <= version:
+                        value = value[1]
+                        offset = 0
+
+                        len, uuid = self._readValue(value, offset)
+                        offset += len
+                    
+                        if uuid is None:
+                            return None
+
+                        else:
+                            len, previous = self._readValue(value, offset)
+                            offset += len
+
+                            len, next = self._readValue(value, offset)
+                            offset += len
+
+                            len, alias = self._readValue(value, offset)
+                            offset += len
+
+                            return (key, uuid, previous, next, alias)
+
+                    else:
+                        value = cursor.next()
+
+                return None
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store._abortTransaction()
+        
+    def _readValue(self, value, offset):
+
+        code = value[offset]
+        offset += 1
+
+        if code == '\0':
+            return (17, UUID(value[offset:offset+16]))
+
+        if code == '\1':
+            len, = unpack('>H', value[offset:offset+2])
+            offset += 2
+            return (len + 3, value[offset:offset+len])
+
+        if code == '\2':
+            return (1, None)
+
+        raise ValueError, code
+
     # has to run within the commit() transaction
     def deleteItem(self, item):
 
@@ -520,6 +592,12 @@ class XMLStore(Store):
 
         self._data.loadRoots(version)
 
+    def loadRef(self, version, uItem, uuid, key):
+
+        return self._refs.loadRef(version, key, "".join((uItem._uuid,
+                                                         uuid._uuid,
+                                                         key._uuid)))
+
     def parseDoc(self, doc, handler):
 
         self._data.parseDoc(doc, handler)
@@ -531,6 +609,10 @@ class XMLStore(Store):
     def getDocVersion(self, doc):
 
         return self._data.getDocVersion(doc)
+
+    def getDocContent(self, doc):
+
+        return doc.getContent()
 
     def getVersion(self):
 

@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import sys, re, xmlrpclib, jabber
+import sys, re, xmlrpclib, jabber, traceback
 
 from SOAPpy import SOAPServer
 
@@ -30,12 +30,70 @@ class RepositoryServer(object):
     def open(self):
 
         self.store, viewClass = self.repository.serverOpen()
-        return (viewClass.__module__, viewClass.__name__)
+        return ".".join((viewClass.__module__, viewClass.__name__))
 
-    def call(self, method, *args):
+    def call(self, method, signature, *args):
 
         store = self.store
-        return getattr(type(store), method)(store, *args)
+        try:
+            args = self.decode(signature, args)
+            value = getattr(type(store), method)(store, *args)
+            value = self.encode(signature, 0, value)
+
+            return value
+        except:
+            traceback.print_exc(file=sys.stdout)
+            raise
+
+    def decode(self, signature, args):
+
+        result = []
+        count = len(args)
+        offset = len(signature) - count
+
+        for i in xrange(count):
+            c = signature[i + offset]
+            arg = args[i]
+
+            if c == 'x':
+                result.append(arg)
+            elif c == 'u':
+                result.append(UUID(arg))
+            elif c == 's':
+                result.append(unicode(arg, 'utf-8'))
+            elif c == 'i':
+                result.append(long(arg))
+            else:
+                raise TypeError, '%s: unsupported signature char' %(c)
+
+        return result
+
+    def encode(self, signature, offset, value):
+
+        if value is None:
+            return None
+        
+        c = signature[offset]
+        
+        if c == 'x':
+            return value
+        if c == 'd':
+            return self.store.getDocContent(value)
+        if c == 'u':
+            return value.str64()
+        if c == 's':
+            return value.encode('utf-8')
+        if c == 'i':
+            return str(value)
+
+        if c == 't':
+            values = []
+            offset += 1
+            for i in xrange(len(value)):
+                values.append(self.encode(signature, i + offset, value[i]))
+            return tuple(values)
+
+        raise TypeError, '%s: unsupported signature char' %(c)
 
 
 class SOAPRepositoryServer(RepositoryServer):
@@ -84,21 +142,45 @@ class JabberRepositoryServer(RepositoryServer, jabber.Client):
     def terminate(self):
 
         self.running = False
+
+    def open(self):
+
+        return "<value><![CDATA[%s]]></value>" %(super(JabberRepositoryServer,
+                                                       self).open())
+
+    def call(self, method, signature, *args):
+
+        value = super(JabberRepositoryServer, self).call(method, signature,
+                                                         *args)
+        if value is None:
+            return "<none/>"
         
+        c = signature[0]
+
+        if c == 'd':
+            return value
+        if c == 'i':
+            return "<value>%s</value>" %(value)
+        if c == 't':
+            return "<values>%s</values>" %("".join(['<value><![CDATA[%s]]></value>' %(v) for v in value]))
+
+        return "<value><![CDATA[%s]]></value>" %(value)
+
     def iqHandler(self, iq):
 
         xmlrpc = iq.getQueryPayload()
-        args, func = xmlrpclib.loads("<?xml version='1.0'?>%s" % xmlrpc)
+        args, func = xmlrpclib.loads("<?xml version='1.0'?>%s" %(xmlrpc))
 
-        method = getattr(JabberRepositoryServer, func, None)
-        if method:
-            result = method(self, *args)
-        else:
-            result = "<error>%s</error>" %(func)
+        try:
+            method = getattr(JabberRepositoryServer, func, None)
+            if method:
+                result = method(self, *args)
+            else:
+                result = "<error>No such method: %s</error>" %(func)
+        except Exception, e:
+            traceback.print_exc(file=sys.stdout)
+            result = "<error><![CDATA[%s]]></error>" %(e)
 
-        if result is None:
-            result = '<none/>'
-            
         iq.setQueryPayload(result)
         iq.setType('set')
         iq.setTo(iq.getFrom())

@@ -242,63 +242,15 @@ class XMLRefDict(RefDict):
         if key in self._deletedRefs:
             return None
 
-        store = view.repository.store
-        
-        while True:
-            cursor = None
-            txnStarted = False
-            try:
-                txnStarted = store._startTransaction()
-                cursor = store._refs.cursor()
+        return self._loadRef_(key)
 
-                try:
-                    cursorKey = self._packKey(key)
-                    value = cursor.set_range(cursorKey)
+    def _loadRef_(self, key):
 
-                except DBLockDeadlockError:
-                    print 'restarting _loadRef aborted by deadlock'
-                    if cursor:
-                        cursor.close()
-                    if txnStarted:
-                        store._abortTransaction()
+        version = self._item._version
+        cursorKey = self._packKey(key)
 
-                    continue
-
-                except DBNotFoundError:
-                    return None
-
-                else:
-                    version = self._item._version
-                    while value is not None and value[0].startswith(cursorKey):
-                        refVer = ~unpack('>l', value[0][48:52])[0]
-
-                        if refVer <= version:
-                            self._value.truncate(0)
-                            self._value.seek(0)
-                            self._value.write(value[1])
-                            self._value.seek(0)
-                            uuid = self._readValue()
-
-                            if uuid is None:
-                                return None
-
-                            else:
-                                previous = self._readValue()
-                                next = self._readValue()
-                                alias = self._readValue()
-        
-                                return (key, uuid, previous, next, alias)
-
-                        else:
-                            value = cursor.next()
-
-                    return None
-
-            finally:
-                if cursor:
-                    cursor.close()
-                if txnStarted:
-                    store._abortTransaction()
+        return self.view.repository.store._refs.loadRef(version, key,
+                                                        cursorKey)
 
     def _changeRef(self, key):
 
@@ -350,22 +302,6 @@ class XMLRefDict(RefDict):
         else:
             raise NotImplementedError, "value: %s, type: %s" %(value,
                                                                type(value))
-
-    def _readValue(self):
-
-        code = self._value.read(1)
-
-        if code == '\0':
-            return UUID(self._value.read(16))
-
-        if code == '\1':
-            len, = unpack('>H', self._value.read(2))
-            return self._value.read(len)
-
-        if code == '\2':
-            return None
-
-        raise ValueError, code
 
     def _eraseRef(self, key):
 
@@ -453,9 +389,9 @@ class XMLClientRefDict(XMLRefDict):
         self._uItem = uItem
         self._uuid = uuid
             
-    def _loadRef(self, key):
+    def _loadRef_(self, key):
 
-        return self.view.repository.store.loadRef(self.view.version,
+        return self.view.repository.store.loadRef(self._item._version,
                                                   self._uItem, self._uuid, key)
 
     def _writeRef(self, key, version, uuid, previous, next, alias):
