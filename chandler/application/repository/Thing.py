@@ -156,9 +156,10 @@ class Thing(PersistentDict):
             elif isinstance(value, PersistentList) or isinstance(value, type([])):
                 xmlStr += self.DumpList(key, value, indent + '    ')         
             else:
-                valueStr = str(value)
-                attributeStr = indent + '    ' + '<attribute name="%s" value="%s"/>\n' % (key, valueStr)
-                xmlStr += attributeStr
+                if value != None:
+                    valueStr = str(value)
+                    attributeStr = indent + '    ' + '<attribute name="%s" value="%s"/>\n' % (key, valueStr)
+                    xmlStr += attributeStr
         
         tail = indent + '</%s>\n\n' % (className)
         xmlStr += tail
@@ -176,9 +177,10 @@ class Thing(PersistentDict):
             elif isinstance(element, PersistentList) or isinstance(element, type([])):
                 xmlStr += self.DumpList(key, element, indent + '    ')
             else:
-                valueStr = str(element)
-                attributeStr = indent + '<attribute name="%s" value="%s"/>\n' % (key, valueStr)
-                xmlStr += attributeStr                
+                if element != None:
+                    valueStr = str(element)
+                    attributeStr = indent + '<attribute name="%s" value="%s"/>\n' % (key, valueStr)
+                    xmlStr += attributeStr                
         xmlStr += indent + '</List>\n\n'
         
         return xmlStr
