@@ -31,6 +31,15 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/notifications/schema")
 
+
+    def isOnline(self):
+        import socket
+        try:
+            a = socket.gethostbyname('www.osafoundation.org')
+            return True
+        except:
+            return False
+
 class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
