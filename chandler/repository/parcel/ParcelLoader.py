@@ -155,11 +155,9 @@ class ItemHandler(xml.sax.ContentHandler):
         elementLocal = local
         
         (uri, local, element, currentItem, currentReferences) = self.tags[-1]
-        currentItemsKindPath = currentItem.kind.getItemPath().__str__()
-        if currentItemsKindPath[:13] == "//Schema/Core":
-            isSchemaItem = True
-        else:
-            isSchemaItem = False
+
+        # Is the current item part of the core schema?
+        isSchemaItem = (currentItem.kind.getRoot().getItemName() == 'Schema')
 
         # If we have a reference, delay loading
         if element == 'Reference':
