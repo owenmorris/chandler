@@ -1,6 +1,12 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.25 (CVS tag CHANDLER_0_3_25) 2004-09-23
+    * Upgraded to wxPython 2.5.2.9
+    * Upgraded to PyLucene 0.6.1
+    * And various bugfixes and overall improvements in the repository,
+      calendar, detail view, CPIA and sharing
+
 Milestone 0.3.24 (CVS tag CHANDLER_0_3_24) 2004-09-09
     * Improvements in calendar, detail view
     * Improvements in sharing
@@ -39,7 +45,6 @@ Milestone 0.3.22 (CVS tag CHANDLER_0_3_22) 2004-08-10
     * Added support for sorted indexes, AttributeIndex, CompareIndex
     * Started adding clouds for Block kinds in an effort to migrate from
       attribute-based copying to cloud-based.
-    * 
     * numerous bug fixes from previous milestone build
 
 Milestone 0.3.21 (CVS tag CHANDLER_0_3_21) 2004-07-27
