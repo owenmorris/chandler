@@ -3,6 +3,8 @@ import davlib
 from repository.item.Item import Item
 from repository.util.URL import URL
 
+from M2Crypto import SSL
+
 import Sync
 
 #@@@ Temporary way for retrieving webdav 'account' information
@@ -39,7 +41,10 @@ class DAV(object):
         self.url = resourceURL
 
     def newConnection(self):
-        return DAVConnection(self.url)
+        acct = osaf.framework.sharing.Sharing.getWebDavAccount()
+        if acct.useSSL:
+            return SSLDAVConnection(self.url, acct)
+        return DAVConnection(self.url, acct)
 
     def __request(self, func, *args):
         for i in xrange(4):
@@ -150,10 +155,26 @@ class DAV(object):
 
 
 class DAVConnection(davlib.DAV):
-    def __init__(self, url):
+    def __init__(self, url, acct):
         host = url.host
         port = url.port or 80
 
         davlib.DAV.__init__(self, host, port)
-        acct = osaf.framework.sharing.Sharing.getWebDavAccount()
+        self.setauth(acct.username, acct.password)
+
+class SSLDAV(M2Crypto.httpslib.HTTPSConnection, davlib.DAV, object):
+    """
+    SSL-enabled DAV. See M2Crypto.httpslib.HTTPSConnection for SSL-specific
+    information.
+    """
+    def __init__(self, *args, **kwds):
+        super(SSLDAV, self).__init__(*args, **kwds)
+
+class SSLDAVConnection(SSLDAV):
+    def __init__(self, url, acct):
+        host = url.host
+        port = url.port or 443
+
+        davlib.SSLDAV.__init__(self, host, port,
+                               ssl_context=SSL.Context('tlsv1'))
         self.setauth(acct.username, acct.password)
