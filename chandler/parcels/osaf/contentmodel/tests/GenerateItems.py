@@ -27,6 +27,8 @@ def GenerateCalendarParticipant():
     email.emailAddress = "%s@%s" % (handle, domainName)
     return email
 
+IMPORTANCE = ["important", "normal", "fyi"]
+
 def GenerateCalendarEvent(days):
     event = Calendar.CalendarEvent()
     event.displayName = random.choice(HEADLINES)
@@ -41,6 +43,7 @@ def GenerateCalendarEvent(days):
     
     # Choose random minutes
     event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))
+    event.importance = random.choice(IMPORTANCE)
     return event
     
 def generateCalendarEventItems(count, days):
