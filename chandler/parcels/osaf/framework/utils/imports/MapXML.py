@@ -87,7 +87,10 @@ class MapXML:
                 elif name == 'StringKey':
                     key=node.getContent()
                     name=self.lastXMLAttr
-                    self.stack.append(ImportMap.StringValue(key, name))
+                    parent=self.stack[-1]
+                    if name == None:#list of strings case
+                        name = parent.name
+                    self.stack.append(ImportMap.StringValue(key, name, parent))
                 elif name == 'DateKey':
                     key=node.getContent()
                     name=self.lastXMLAttr
@@ -102,7 +105,6 @@ class MapXML:
                     keys=[i.getContent() for i in node.xpathEval("StringKey")]
                     name=self.lastXMLAttr
                     self.stack.append(ImportMap.ConcatKeys(keys, name))
-                #fixme, If, Constant
                 self.emptySavedNode()
                 self.reader.Next()
                    

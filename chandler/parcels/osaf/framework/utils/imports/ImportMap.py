@@ -18,7 +18,7 @@ class ImportMap:
     @ivar kind: If this is the root of the mapping tree, the kind of the tree.
         Otherwise None.
     
-    """       
+    """
     def process(self, itemDict):
         """Return a filled item, or None if all children map to empty keys.
     
@@ -109,13 +109,15 @@ class DateValue(ImportMap):
 
 class StringValue(ImportMap):
     """Map for a key whose value is a string."""
-    def __init__(self, key, name):
+    def __init__(self, key, name, parentMap):
         self.key=key
         self.name=name
+        self.kind=None
+        self.parentMap=parentMap
 
     def process(self, itemDict):
         if itemDict[self.key]:
-            return itemDict[self.key]
+            return self.getType().makeValue(itemDict[self.key])
         else:
             return None
 
