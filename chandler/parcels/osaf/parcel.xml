@@ -4,5 +4,5 @@
              itsName="osaf"
              xmlns="http://osafoundation.org/parcels/core" >
 
-  <namespace name="http://osafoundation.org/parcels/osaf" />
+  <namespace value="http://osafoundation.org/parcels/osaf" />
 </Parcel>
