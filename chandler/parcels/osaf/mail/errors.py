@@ -10,12 +10,12 @@ class IMAPException(MailException):
     """Base class for all Chandler IMAP based exceptions"""
 
 class SMTPException(MailException):
-    """Base class for all Chandler IMAP based exceptions"""
+    """Base class for all Chandler SMTP based exceptions"""
 
 __SMTP_PREFIX        = "twisted.mail.smtp."
 __IMAP4_PREFIX       = "twisted.mail.imap4."
 __TWISTED_PREFIX     = "twisted.internet.error."
-__MAILSERVICE_PREFIX = "parcels.osaf.mail."
+__MAILSERVICE_PREFIX = "osaf.mail.errors."
 
 AUTH_DECLINED_ERROR       = __SMTP_PREFIX + "AUTHDeclinedError"
 TLS_ERROR                 = __SMTP_PREFIX + "TLSError"

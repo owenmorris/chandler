@@ -124,11 +124,11 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         """Perform error checking to make sure To, From have values"""
         if len(to_addrs) == 0:
-            self.execInViewThenCommitInThread(self.__fatalError("To Address"))
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, "To Address")
             return
 
         if from_addr is None or len(from_addr.strip()) == 0:
-            self.execInViewThenCommitInThread(self.__fatalError("From Address"))
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, "From Address")
             return
 
         SMTPSender.sendMailMessage(from_addr, to_addrs, messageText, d, self.account)
@@ -298,6 +298,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             deliveryError.errorString = err.__str__()
 
         else:
+            print "errorType: %s" % errorType
             deliveryError.errorCode = errors.UNKNOWN_CODE
             s = "Unknown Exception encountered docString: %s module: %s" % (err.__doc__, err.__module__)
             deliveryError.errorString = s
@@ -347,11 +348,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         """Returns instances of C{SMTPAccount} and C{MailMessage}
            based on C{UUID}'s"""
 
-        view = self.getCurrentView()
-        accountKind = Mail.SMTPAccount.getKind(view)
+        """ Refresh our view before retrieving Message and Account info"""
+        self.view.refresh()
+
+        accountKind = Mail.SMTPAccount.getKind(self.view)
         self.account = accountKind.findUUID(self.accountUUID)
 
-        mailMessageKind = Mail.MailMessage.getKind(view)
+        mailMessageKind = Mail.MailMessage.getKind(self.view)
         self.mailMessage = mailMessageKind.findUUID(self.mailMessageUUID)
 
         assert self.account is not None, "No Account for UUID: %s" % self.accountUUID

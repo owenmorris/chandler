@@ -312,6 +312,9 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         """Sort the uid's from lowest to highest"""
         uidList.sort()
 
+        """ Refresh our view before creating mail message items"""
+        self.view.refresh()
+
         for uid in uidList:
             d = self.proto.fetchMessage(str(uid), uid=True)
             d.addCallback(self.__fetchMessage).addErrback(self.catchErrors)
@@ -337,11 +340,6 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
             if __debug__:
                 self.printCurrentView("fetchMessage")
 
-            """ Refresh our view before adding items to our mail account
-                and commiting. Will not cause merge conflicts since
-                no data changed in view in yet """
-            self.view.refresh()
-
             msg = msgs.keys()[0]
 
             messageText = msgs[msg]['RFC822']
@@ -350,7 +348,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
             messageObject = email.message_from_string(messageText)
 
-            repMessage = message.messageObjectToKind(self.getCurrentView(),
+            repMessage = message.messageObjectToKind(self.view,
                                                      messageObject, messageText)
 
             """Set the message as incoming"""
@@ -400,7 +398,8 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         self.account.messageDownloadSequence = uid
 
     def __getAccount(self):
-        self.account = Mail.MailParcel.getIMAPAccount(self.getCurrentView(),
+        self.view.refresh()
+        self.account = Mail.MailParcel.getIMAPAccount(self.view,
                                                       self.accountUUID)
 
     def __printInfo(self, info):
