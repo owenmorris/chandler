@@ -49,48 +49,58 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             relStr = "release"
         
         # Find out if the initialization was ever done
+        try:
 
-        extModuleDir = os.path.join(releaseModeDir, "external")
-        intModuleDir = os.path.join(releaseModeDir, "internal")
-        version = getVersion(os.path.join(extModuleDir, "Makefile"))
-        if not os.path.exists (os.path.join(extModuleDir, "sources-" + version + ".tar.gz")):
-            print "checking out external"
-            log.write("Checking out: external with " + cvsVintage + "\n")
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "-q", "checkout", cvsVintage, "external"])
-            hardhatutil.dumpOutputList(outputList, log)
-            print "checking out internal"
-            log.write("Checking out: internal with " + cvsVintage + "\n")
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
-            hardhatutil.dumpOutputList(outputList, log)
+            extModuleDir = os.path.join(releaseModeDir, "external")
+            intModuleDir = os.path.join(releaseModeDir, "internal")
+            version = getVersion(os.path.join(extModuleDir, "Makefile"))
+            if not os.path.exists (os.path.join(extModuleDir, "sources-" + version + ".tar.gz")):
+                print "checking out external"
+                log.write("Checking out: external with " + cvsVintage + "\n")
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [cvsProgram, "-q", "checkout", cvsVintage, "external"])
+                hardhatutil.dumpOutputList(outputList, log)
+                print "checking out internal"
+                log.write("Checking out: internal with " + cvsVintage + "\n")
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
+                hardhatutil.dumpOutputList(outputList, log)
+    
+                # Now need to do the setup for external - "expand" and "make"
+                os.chdir(extModuleDir)
+                os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
+                print "Building " + relStr
+                log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+                log.write("Expanding external sources\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 ['make', "expand" ])
+                hardhatutil.dumpOutputList(outputList, log)
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr ])
+                hardhatutil.dumpOutputList(outputList, log)
+                log.write("Making external (debug) binaries\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr, "binaries" ])
+                hardhatutil.dumpOutputList(outputList, log)
+    
+                os.chdir(intModuleDir)
+                log.write("Making internal (debug) programs\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr ])
+                hardhatutil.dumpOutputList(outputList, log)
+                log.write("Making internal (debug) binaries\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr, "binaries" ])
+                hardhatutil.dumpOutputList(outputList, log)
 
-            # Now need to do the setup for external - "expand" and "make"
-            os.chdir(extModuleDir)
-            os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
-            print "Building " + relStr
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Expanding external sources")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             ['make', "expand" ])
-            hardhatutil.dumpOutputList(outputList, log)
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], dbgStr ])
-            hardhatutil.dumpOutputList(outputList, log)
-            log.write("Making external (debug) binaries")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], dbgStr, "binaries" ])
-            hardhatutil.dumpOutputList(outputList, log)
-
-            os.chdir(intModuleDir)
-            log.write("Making internal (debug) programs")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], dbgStr ])
-            hardhatutil.dumpOutputList(outputList, log)
-            log.write("Making internal (debug) binaries")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], dbgStr, "binaries" ])
-            hardhatutil.dumpOutputList(outputList, log)
+    except Exception, e:
+        print "an initialization error"
+        log.write("***Error during initialization***" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("initialization log:" + "\n")
+        CopyLog(os.path.join(releaseModeDir, logPath), log)
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        return "init_failed"
 
     # do debug
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
@@ -229,17 +239,17 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         log.write("Scrubbing all modules" + "\n")
         try:
             os.chdir(extModuleDir)
-            log.write("Cleaning external")
+            log.write("Cleaning external\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], dbgStr, "clean" ])
             hardhatutil.dumpOutputList(outputList, log)
             os.chdir(intModuleDir)
-            log.write("Cleaning internal")
+            log.write("Cleaning internal\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], dbgStr, "clean" ])
             hardhatutil.dumpOutputList(outputList, log)
             os.chdir(mainModuleDir)
-            log.write("Cleaning chandler")
+            log.write("Cleaning chandler\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-ns"])
             hardhatutil.dumpOutputList(outputList, log)
@@ -276,21 +286,21 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building " + relStr + "...\n")
             os.chdir(extModuleDir)
-            log.write("Making external programs")
+            log.write("Making external programs\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], dbgStr ])
             hardhatutil.dumpOutputList(outputList, log)
-            log.write("Making external binaries")
+            log.write("Making external binaries\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], dbgStr, "binaries" ])
             hardhatutil.dumpOutputList(outputList, log)
 
         os.chdir(intModuleDir)
-        log.write("Making internal programs")
+        log.write("Making internal programs\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [buildenv['make'], dbgStr ])
         hardhatutil.dumpOutputList(outputList, log)
-        log.write("Making internal binaries")
+        log.write("Making internal binaries\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [buildenv['make'], dbgStr, "binaries" ])
         hardhatutil.dumpOutputList(outputList, log)
