@@ -292,9 +292,12 @@
     <childrenBlocks itemref="doc:CloseTabItem"/>
     <childrenBlocks itemref="doc:CloseWindowItem"/>
     <childrenBlocks itemref="doc:FileSeparator3"/>
+    <childrenBlocks itemref="doc:PrintPreviewItem"/> 
+    <childrenBlocks itemref="doc:PrintItem"/> 
+    <childrenBlocks itemref="doc:FileSeparator4"/>
     <childrenBlocks itemref="doc:SyncMenu"/>
     <childrenBlocks itemref="doc:PreferencesMenu"/>
-    <childrenBlocks itemref="doc:FileSeparator4"/>
+    <childrenBlocks itemref="doc:FileSeparator5"/>
     <childrenBlocks itemref="doc:QuitItem"/>
   </Menu>
 
@@ -493,8 +496,27 @@
     <helpString>Close the selected Window</helpString>
   </MenuItem>
   
+  <MenuItem itsName="PrintPreviewItem">
+    <blockName>PrintPreviewItem</blockName>
+    <title>Print Preview</title>
+    <event itemref="events:PrintPreview"/>
+  </MenuItem>
+  
+  <MenuItem itsName="PrintItem">
+    <blockName>PrintItem</blockName>
+    <title>Print...</title>
+    <accel>Ctrl+P</accel>
+    <helpString>Print the current calendar</helpString>
+    <event itemref="events:Print"/>
+  </MenuItem>
+ 
   <MenuItem itsName="FileSeparator1">
     <blockName>FileSeparator1</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="FileSeparator2">
+    <blockName>FileSeparator2</blockName>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
@@ -508,8 +530,8 @@
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itsName="FileSeparator2">
-    <blockName>FileSeparator2</blockName>
+  <MenuItem itsName="FileSeparator5">
+    <blockName>FileSeparator5</blockName>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   

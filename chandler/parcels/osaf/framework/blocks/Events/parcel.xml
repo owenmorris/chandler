@@ -22,6 +22,8 @@ application specific parcels here</description>
     <!-- Don't add any events here unless your proposed event has been reviewed -->
     <subscribeAlwaysEvents itemref="events:About"/>    
     <subscribeAlwaysEvents itemref="events:Close"/>
+    <subscribeAlwaysEvents itemref="events:PrintPreview"/>
+    <subscribeAlwaysEvents itemref="events:Print"/>
     <subscribeAlwaysEvents itemref="events:Copy"/>
     <subscribeAlwaysEvents itemref="events:Cut"/>
     <subscribeAlwaysEvents itemref="events:Delete"/>
@@ -46,6 +48,16 @@ application specific parcels here</description>
 
   <BlockEvent itsName="Close">
     <eventName>Close</eventName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="PrintPreview">
+    <eventName>PrintPreview</eventName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Print">
+    <eventName>Print</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

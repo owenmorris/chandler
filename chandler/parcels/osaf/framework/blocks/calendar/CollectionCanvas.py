@@ -467,7 +467,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # double buffered drawing
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
-
+        
+        self.DrawCanvas(dc)
+        
+    def DrawCanvas(self, dc):
         # Find update rect in scrolled coordinates
         updateRect = self.GetUpdateRegion().GetBox()
         (xBuffer, yBuffer) = self.CalcUnscrolledPosition((updateRect.GetLeft(),
@@ -491,8 +494,14 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 memoryDC,
                 xBuffer, yBuffer)
 
-        memoryDC.EndDrawing()
+        memoryDC.EndDrawing()      
         
+    def PrintCanvas(self, dc):
+        dc.BeginDrawing()
+        self.DrawBackground(dc)
+        self.DrawCells(dc)        
+        dc.EndDrawing()
+
     def DrawCells(self, dc):
         """
         Subclasses should define to draw the canvas cells

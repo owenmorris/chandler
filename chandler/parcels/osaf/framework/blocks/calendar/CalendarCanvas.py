@@ -192,6 +192,10 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
     def wxSynchronizeWidget(self):
         self.headerCanvas.wxSynchronizeWidget()
         self.columnCanvas.wxSynchronizeWidget()
+        
+    def PrintCanvas(self, dc):
+        self.headerCanvas.PrintCanvas(dc)
+        self.columnCanvas.PrintCanvas(dc)
 
 class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):

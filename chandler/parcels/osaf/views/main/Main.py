@@ -20,6 +20,8 @@ import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Query import KindQuery
 from repository.item.Item import Item
+import application.Printing as Printing
+import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 
@@ -108,6 +110,28 @@ class MainView(View):
 
     def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
+        
+    def onPrintPreviewEvent (self, notification):
+        self.printEvent(True)
+        
+    def onPrintEvent (self, notification):
+        self.printEvent(False)
+
+    def printEvent(self, isPreview):
+        for item in Globals.activeView.childrenBlocks:
+            for canvas in item.childrenBlocks:
+                if isinstance(canvas, CollectionCanvas.CollectionBlock):
+                    printObject = Printing.Printing(Globals.wxApplication.mainFrame, canvas.widget)
+                    if isPreview:
+                        printObject.OnPrintPreview()
+                    else:
+                        printObject.OnPrint()
+                    return
+        message = "Printing is currently only supported when viewing week/month/day view of the calendar."
+        dialog = wx.MessageDialog(None, message, 'Chandler', wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+        dialog.Destroy()
+        
 
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
