@@ -1322,7 +1322,7 @@ long		resultV;
 	{
 		itemData.fmt = newFmt;
 		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//		resultV = (long)SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+//		resultV = (long)SendMessage( targetViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 	}
 	else
 		resultV = 1;
@@ -1627,7 +1627,10 @@ long wxColumnHeaderItem::DrawItem(
 		return (-1L);
 
 #if defined(__WXMSW__)
-	// WXUNUSED(parentW, dc)
+	// WXUNUSED(parentW, dc, bVisibleSelection)
+	wxUnusedVar( parentW );
+	wxUnusedVar( dc );
+	wxUnusedVar( bVisibleSelection );
 
 	// NB: implementation not needed ??
 	return 0;
