@@ -87,10 +87,13 @@ class DateValue(ImportMap):
     @ivar dateType: See formats in mx.DateTime.Parser.DateTimeFromString
     
     """
-    def __init__(self, key, name, emptyDates=[], dateType=('us', 'unknown')):
+    def __init__(self, key, name, emptyDates=None, dateType=('us', 'unknown')):
         self.key=key
         self.name=name
-        self.emptyDates=[""]+emptyDates
+        if emptyDates:
+            self.emptyDates=[""]+emptyDates
+        else:
+            self.emptyDates=[""]
         self.dateType=dateType
         
     def process(self, itemDict):
