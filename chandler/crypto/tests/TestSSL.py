@@ -27,6 +27,7 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         # XXX Wrap this in try/except, we should not care about network
         #     errors. Possible errors (check that they are ok):
         #     - SSLError: (54, 'Connection reset by peer')
+        #     - gaierror: (7, 'No address associated with nodename')
         self.assert_(conn.connect((site, 443)) >= 0)
 
         Globals.crypto.sslPostConnectionCheck(conn, '0FA5B0527BA98FC66276CA166BA22E44A73636C9', host=site)
