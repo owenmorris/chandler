@@ -142,7 +142,17 @@ class ContactEntityItem(InformationItem):
            del self.format.bodyAttributes[index]
        except:
            pass
-     
+ 
+    # return true if the contact has a specific contact method
+    def HasContactMethod(self, contactType, contactValue):
+        for contactMethod in self.contactMethods:
+            if contactMethod.GetMethodType() == contactType:
+                methodAttributes = contactMethod.GetAddressAttributes()
+                for attribute in methodAttributes:
+                    if contactMethod.GetAttribute(attribute) == contactValue:
+                        return true
+        return false
+   
    # group management routines
     def AddGroup(self, newGroup):
         try:

@@ -55,6 +55,7 @@ class JabberClient:
         self.timer = None
         
         self.presenceStateMap = {}
+        self.nameMap = {}
         self.accessibleViews = {}
         self.openPeers = {}
                 
@@ -151,7 +152,20 @@ class JabberClient:
     def SetPresenceState(self, jabberID, state):
         key = str(jabberID)
         self.presenceStateMap[key] = state
-       
+
+    # get the name associated with a jabberID and cache it
+    def GetNameFromID(self, jabberID):
+        key = str(jabberID)
+        if self.nameMap.has_key(key):
+            return self.nameMap[key]
+ 
+        name = self.application.LookupInRepository(key)
+        if name == None:
+            name = str(jabberID)
+            
+        self.nameMap[key] = name
+        return name
+    
     # dump the roster, mainly for debugging
     def DumpRoster(self):
         print "resources ", self.resourceMap
@@ -501,7 +515,7 @@ class JabberClient:
         else:
             subscribeType = 'unsubscribe'
         self.connection.send(Presence(to=jabberID, type=subscribeType))
-        
+
 # here's a subclass of timer to periodically drive the event mechanism
 class JabberTimer(wxTimer):
     def __init__(self, jabberClient):

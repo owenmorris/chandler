@@ -22,6 +22,8 @@ import PresencePanel
 from zodb import db 
 from zodb.storage.file import FileStorage
 
+from application.model.LocalRepository import LocalRepository
+
 """
 	The application module makes available the following global data to
 other parts of the program
@@ -431,6 +433,20 @@ class wxApplication (wxApp):
 		else:
 			self.presenceWindow.Close()
 			self.presenceWindow = None
+	
+	def LookupInRepository(self, jabberID):
+		"""
+		  Lookup the name of a contact associated with the passed-in
+		  jabberID.
+		  FIXME:  this routine is temporary scaffolding - we'll use the
+		  real database stuff with indexing when it's developed.
+		"""
+		repository = LocalRepository()
+		for item in repository.objectList:
+			if item.__class__.__name__ == 'ContactEntityItem':
+				if item.HasContactMethod('jabberID', jabberID):
+					return item.GetFullName()
+		return None
 	
 	# handle the presence window closing by clearing the reference
 	def PresenceWindowClosed(self, event):

@@ -81,6 +81,9 @@ class PresencePanel(wxScrolledWindow):
     # for now, it's just the jabberID itself, but soon we'll look
     # it up in Contacts
     def GetDisplayName(self, jabberID):
+        name = self.jabberClient.GetNameFromID(jabberID)
+        if name != None:
+            return name
         return str(jabberID)
     
     # render a presence entry for the passed-in ID
