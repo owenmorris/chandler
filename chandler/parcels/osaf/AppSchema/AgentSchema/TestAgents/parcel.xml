@@ -16,35 +16,140 @@
   <core:description>Sample agents</core:description>
   <core:version>0.3</core:version>
 
-  <Repertoire itemName="TestAgentRepertoire">
-    <core:displayName>Test Agent Repertoire</core:displayName>
-  </Repertoire>
-
-  <Instruction itemName="SubscriptionRequest">
-    <enabled/>
-    <condition itemref="test:PresenceSubscriptionRequest"/>
-    <actions itemref="test:ApproveSubscriptionRequest"/>
-  </Instruction>
-
-  <Condition itemName="PresenceSubscriptionRequest">
-    <conditionDescription>match the presence subscription request with a pre-approved list</conditionDescription>
-    <conditionNotification>chandler/im/presence-request</conditionNotification>
-    <conditionFilterMode>matches</conditionFilterMode>
-    <conditionAttribute>who</conditionAttribute>
-    <conditionValue>.*osafoundation.*</conditionValue>
+  <Condition itemName="MrMenusChanged">
+    <core:description>looks for mrmenus changes</core:description>
+    <conditionNotification>mrmenus/changed</conditionNotification>
   </Condition>
 
-  <Action itemName="ApproveSubscriptionRequest">
+  <Action itemName="PrintSelection">
+    <core:description>print selection</core:description>
     <actionType>inline</actionType>
-    <actionDescription>this action approves a subscription request</actionDescription>
-    <actionScript>agent.agentManager.application.jabberClient.AcceptSubscriptionRequest(data['who']); agent.agentManager.setHandledStatus(notification, True)</actionScript>
+    <actionScript>print data['selection']</actionScript>
   </Action>
 
-  <AgentItem itemName="PresenceSubscription">
+  <Instruction itemName="DoStuff">
+    <enabled/>
+    <condition itemref="test:MrMenusChanged"/>
+    <actions itemref="test:PrintSelection"/>
+  </Instruction>
+
+  <AgentItem itemName="MrMenusAgent">
+    <core:displayName>The MrMenus Agent</core:displayName>
+    <core:description>This agent notices when MrMenus changes</core:description>
+    <instructions itemref="test:DoStuff"/>
+  </AgentItem>
+
+
+
+
+
+
+
+  <Condition itemName="PresenceChangedNotification">
+    <core:description>watches for presence requests</core:description>
+    <conditionNotification>chandler/im/presence-request</conditionNotification>
+  </Condition>
+
+  <Action itemName="ApproveIfOnWhitelist" itemClass="application.agents.test_agents.ApproveAction.ApproveAction">
+    <core:description>Checks the whitelist and approves if you are in it</core:description>
+  </Action>
+
+  <Action itemName="ApproveIfUserOK" itemClass="application.agents.test_agents.ApproveAction2.ApproveAction2">
+    <core:description>print selection</core:description>
+  </Action>
+
+  <Instruction itemName="ApprovePresence">
+    <enabled/>
+    <condition itemref="test:PresenceChangedNotification"/>
+    <actions itemref="test:ApproveIfOnWhitelist"/>
+    <actions itemref="test:ApproveIfUserOK"/>
+  </Instruction>
+
+  <AgentItem itemName="PresenceApprovalAgent">
+    <core:displayName>Presence Approval Agent</core:displayName>
+    <core:description>This agent automatically approves presence subscription requests when the sender meets various criterion.</core:description>
     <roles>approval</roles>
-    <agentDescription>The agent automatically approves presence subscription requests when the sender meets various criterion.</agentDescription>
-    <instructions itemref="test:SubscriptionRequest"/>
+    <instructions itemref="test:ApprovePresence"/>
+  </AgentItem>
+
+
+
+
+
+
+
+
+  <Condition itemName="IMArrived">
+    <core:description>This condition is invoked when an instant message arrives and filters on the fromAddress field</core:description>
+    <conditionNotification>chandler/im/message-arrived</conditionNotification>
+    <conditionFilterMode>matches</conditionFilterMode>
+    <conditionAttribute>fromAddress</conditionAttribute>
+    <conditionValue>.*pavlov.*</conditionValue>
+  </Condition>
+
+  <Action itemName="PrintMessageBody">
+    <core:description>this action prints the body attribute to standard output</core:description>
+    <actionType>inline</actionType>
+    <actionScript>print data['body']</actionScript>
+  </Action>  
+
+  <Action itemName="PostDialog" itemClass="application.agents.model.DialogAction.DialogAction">
+    <core:description>this action posts a dialog containing a message, based on a template</core:description>
+    <actionType>dialog</actionType>
+    <actionValue>You received a message from [fromAddress]:\n    [body]</actionValue>
+    <confirmFlag/>
+    <actionPermissionRequest>Agent [agentname] requires your permssion to post a dialog.  Do you grant it?</actionPermissionRequest>
+  </Action>
+
+  <Repertoire itemName="TestAgentRepertoire">
+    <core:displayName>Test Agent Repertoire</core:displayName>
+    <possibleActions itemref="test:PrintMessageBody"/>
+    <possibleActions itemref="test:PostDialog"/>
+    <possibleConditions itemref="test:IMArrived"/>
+  </Repertoire>
+
+  <Instruction itemName="ProcessIM">
+    <enabled/>
+    <condition itemref="test:IMArrived"/>
+    <actions itemref="test:PrintMessageBody"/>
+  </Instruction>
+
+  <Condition itemName="OccupationChanged">
+    <core:description>This condition is invoked when the occupation field of a contact is changed to a specific value</core:description>
+    <conditionNotification>chandler/parcels/OSAF/contacts/contact-changed</conditionNotification>
+    <conditionFilterMode>listequals</conditionFilterMode>
+    <conditionAttribute>attribute,value</conditionAttribute>
+    <conditionValue>occupation,Dentist</conditionValue>
+  </Condition>
+      
+  <Action itemName="PostDentistDialog" itemClass="application.agents.model.DialogAction.DialogAction">
+    <core:description>this action posts a dialog containing a message, based on a template</core:description>
+    <actionType>dialog</actionType>
+    <actionValue>You have new dentist in your contacts. Do you want to send it to your Family?</actionValue>
+  </Action>
+
+  <Action itemName="TestMethod">
+    <core:description>this action testings actions invoking methods in arbitrary classes</core:description>
+    <actionType>classmethod</actionType>
+    <actionScript>application.agents.test_agents.testActionClass:testActionClass:foo</actionScript>
+  </Action>
+
+
+  <Instruction itemName="ContactsOccupationChanged">
+    <enabled/>
+    <condition itemref="test:OccupationChanged"/>
+    <actions itemref="test:TestMethod"/>
+    <actions itemref="test:PostDentistDialog"/>
+    <actions itemref="test:PrintMessageBody"/>
+  </Instruction>
+
+  <AgentItem itemName="TestAgent">
+    <core:displayName>Test Agent</core:displayName>
+    <core:description>This agent does random things</core:description>
+    <roles>watcher</roles>
     <repertoire itemref="test:TestAgentRepertoire"/>
+    <instructions itemref="test:ProcessIM"/>
+    <instructions itemref="test:ContactsOccupationChanged"/>
   </AgentItem>
 
 </core:Parcel>

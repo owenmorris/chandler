@@ -14,22 +14,10 @@
 
   <displayName>Agents Schema</displayName>
   <description>Agents schema for the 0.2 release</description>
-  <version>0.1</version>
+  <version>0.2</version>
 
 <!-- Attributes used in Actions -->
 
-  <Attribute itemName="actionName">
-    <displayName>Action Name</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-  
-  <Attribute itemName="actionDescription">
-    <displayName>Action Description</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
   <Attribute itemName="actionType">
     <displayName>Action Type</displayName>
     <type itemref="String"/>
@@ -93,28 +81,29 @@
   </Attribute>
   
   <!-- Action Item Definition -->
-    <Kind itemName="Action">
-      <displayName>Action</displayName>
-      <attributes itemref="agents:actionName"/>
-      <attributes itemref="agents:actionDescription"/>
-      <attributes itemref="agents:actionType"/>
-      <attributes itemref="agents:actionScript"/>
-      <attributes itemref="agents:actionValue"/>
-      <attributes itemref="agents:actionFilePath"/>     
-      <attributes itemref="agents:actionPermissionRequest"/>     
-      <attributes itemref="agents:asyncFlag"/>
-      <attributes itemref="agents:wxThreadFlag"/>
-      <attributes itemref="agents:confirmFlag"/>
-      <attributes itemref="agents:actionOwner"/>
-      <attributes itemref="agents:actionRepertoireOwner"/>
-      <classes key="python">application.agents.model.Action.Action</classes>
-    </Kind>
+  <Kind itemName="Action">
+    <displayName>Action</displayName>
+    <attributes itemref="displayName"/>
+    <attributes itemref="description"/>
+    <attributes itemref="agents:actionType"/>
+    <attributes itemref="agents:actionScript"/>
+    <attributes itemref="agents:actionValue"/>
+    <attributes itemref="agents:actionFilePath"/>     
+    <attributes itemref="agents:actionPermissionRequest"/>     
+    <attributes itemref="agents:asyncFlag"/>
+    <attributes itemref="agents:wxThreadFlag"/>
+    <attributes itemref="agents:confirmFlag"/>
+    <attributes itemref="agents:actionOwner"/>
+    <attributes itemref="agents:actionRepertoireOwner"/>
+    <superKinds itemref="Item"/>
+    <classes key="python">application.agents.model.Action.Action</classes>
+  </Kind>
 
-    <Kind itemName="DialogAction">
-      <displayName>Dialog Action</displayName>
-      <superKinds itemref="agents:Action"/>
-      <classes key="python">application.agents.model.DialogAction.DialogAction</classes>
-    </Kind>
+  <Kind itemName="DialogAction">
+    <displayName>Dialog Action</displayName>
+    <superKinds itemref="agents:Action"/>
+    <classes key="python">application.agents.model.DialogAction.DialogAction</classes>
+  </Kind>
 
   <!-- Attributes used in Condition, which is a sub-class of action -->
   <Attribute itemName="conditionType">
@@ -123,12 +112,6 @@
     <cardinality>single</cardinality>
   </Attribute>
    
-   <Attribute itemName="conditionDescription">
-    <displayName>Condition Description</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
   <!-- the following should be an enum, but for now it's a string-->
   <Attribute itemName="conditionFilterMode">
     <displayName>Filter comparison mode</displayName>
@@ -172,14 +155,16 @@
   
   <Kind itemName="Condition">
     <displayName>Condition</displayName>
+    <attributes itemref="displayName"/>
+    <attributes itemref="description"/>
     <attributes itemref="agents:conditionType"/>
-    <attributes itemref="agents:conditionDescription"/>
     <attributes itemref="agents:conditionFilterMode"/>
     <attributes itemref="agents:conditionValue"/>
     <attributes itemref="agents:conditionAttribute"/>    
     <attributes itemref="agents:conditionNotification"/>
     <attributes itemref="agents:conditionOwner"/>
-    <attributes itemref="agents:conditionRepertoireOwner"/>   
+    <attributes itemref="agents:conditionRepertoireOwner"/>
+    <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
   
@@ -214,10 +199,12 @@
   <!-- Instruction Item Definition -->
   <Kind itemName="Instruction">
     <displayName>Instruction</displayName>
+    <attributes itemref="displayName"/>
     <attributes itemref="agents:enabled"/>
     <attributes itemref="agents:condition"/>
     <attributes itemref="agents:actions"/>
     <attributes itemref="agents:instructionOwner"/>
+    <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Instruction.Instruction</classes>
   </Kind>
   
@@ -246,6 +233,8 @@
   <!-- Repertoire Item Definition -->
   <Kind itemName="Repertoire">
     <displayName>Repertoire</displayName>
+    <attributes itemref="displayName"/>
+    <attributes itemref="description"/>
     <attributes itemref="agents:possibleActions"/>
     <attributes itemref="agents:possibleConditions"/>
     <attributes itemref="agents:repertoireOwner"/>
@@ -253,12 +242,6 @@
   </Kind>
   
   <!-- Attributes used in AgentItem -->
-  <Attribute itemName="agentName">
-    <displayName>Agent Name</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
   <Attribute itemName="agentOwner">
     <displayName>Agent Owner</displayName>
     <type itemref="String"/>
@@ -269,12 +252,6 @@
     <displayName>Agent Roles</displayName>
     <type itemref="String"/>
     <cardinality>list</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="agentDescription">
-    <displayName>Agent Description</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
   </Attribute>
   
   <Attribute itemName="repertoire">
@@ -296,6 +273,12 @@
     <type itemref="String"/>
     <cardinality>single</cardinality>
   </Attribute>
+
+  <Attribute itemName="status">
+    <displayName>Status Dictionary</displayName>
+    <type itemref="String"/>
+    <cardinality>dict</cardinality>
+  </Attribute>
   
   <Attribute itemName="imageData">
     <displayName>Image Data</displayName>
@@ -313,15 +296,17 @@
   
   <Kind itemName="AgentItem">
     <displayName>The Agent</displayName>
-    <attributes itemref="agents:agentName"/>
+    <attributes itemref="displayName"/>
+    <attributes itemref="description"/>
     <attributes itemref="agents:agentOwner"/>
     <attributes itemref="agents:roles"/>
-    <attributes itemref="agents:agentDescription"/>
     <attributes itemref="agents:repertoire"/>
     <attributes itemref="agents:instructions"/>
     <attributes itemref="agents:sourceFile"/>
     <attributes itemref="agents:imageData"/>
     <attributes itemref="agents:prefData"/>
+    <attributes itemref="agents:status"/>
+    <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.AgentItem.AgentItem</classes>
   </Kind>
 
