@@ -2,6 +2,43 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 4 (CVS tag CHANDLER_M_04) 2003-07-31
+
+    * Parcels can now get loaded from an external directory using the PARCELDIR
+      directory
+
+    * Fixed SplashScreen to be able to handle longer html pages that require
+      scrolling.
+ 
+    * Repository is loaded on init, globally accessible via app.repository.
+
+    * Repository is saved when main Chandler window closes.
+
+    * Calendar data parcel is loaded on init (currently hardcoded)
+
+    * Created calendar data parcel as sub parcel of calendar parcel
+
+    * Moved calendar viewer parcel code on to new repository
+ 
+    * Fix for Bug#456 ("About Calendar" info page missing)
+
+    * Removed discussion of a now-dead bug from the About page.
+ 
+    * Re-entered fix for Bug#425
+
+    * Mostly fixed Bug#421 on the mac: ends up drawn correctly on resize.
+ 
+    * Added "About Contacts" Help menu option
+ 
+    * Changed Repository parcel to use wxTreeListCtrl
+ 
+    * ZaoBao: Internationalized strings with gettext()
+
+    * tinderbuild.py now keeps the last 3 builds around so that
+      people can get the latest bits
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Milestone 3 (CVS tag CHANDLER_M_03) 2003-07-15
 
     * Added the ability for parcels to add their version of the ActionsBar
@@ -278,3 +315,4 @@ Milesone 1 (CVS tag CHANDLER_M_01) 2003-06-17
          variable of RSSData.  This allows sharing of views, whereby each 
          view has its own list of RSS feeds
        * Support Andy's Viewer Parcel sharing framework
+
