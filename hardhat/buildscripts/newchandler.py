@@ -21,6 +21,7 @@ treeName = "Chandler"
 mainModule = 'chandler'
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+releaseModes = ('debug', 'release')
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False):
 
@@ -87,8 +88,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
     
         os.chdir(chanDir)
     
-        # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
-        for releaseMode in ('release', 'debug'):
+        for releaseMode in releaseModes:
             doInstall(releaseMode, workingDir, log)
 
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
@@ -112,13 +112,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if makeInstall:
             log.write("Changes in CVS require install\n")
             changes = "-changes"
-            for releaseMode in ('debug', 'release'):        
+            for releaseMode in releaseModes:        
                 doInstall(releaseMode, workingDir, log)
                 
         if makeDistribution:
             log.write("Changes in CVS require making distributions\n")
             changes = "-changes"
-            for releaseMode in ('debug', 'release'):
+            for releaseMode in releaseModes:
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
         if not makeInstall and not makeDistribution:
@@ -129,7 +129,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if skipTests:
             ret = 'success'
         else:
-            for releaseMode in ('debug', 'release'):   
+            for releaseMode in releaseModes:   
                 ret = doTests(hardhatScript, releaseMode, workingDir,
                               outputDir, cvsVintage, buildVersion, log)
                 if ret != 'success':

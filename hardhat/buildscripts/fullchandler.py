@@ -18,6 +18,7 @@ cvsProgram = hardhatutil.findInPath(path, "cvs")
 treeName = "Chandler"
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+releaseModes = ('debug', 'release')
 
 # These modules are the ones to check out of CVS, and build
 cvsModules = (
@@ -103,7 +104,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if skipTests:
             ret = 'success'
         else:
-            for releaseMode in ('release', 'debug'):
+            for releaseMode in releaseModes:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
                               outputDir, cvsVintage, buildVersion, log)
                 if ret != 'success':
@@ -119,13 +120,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if cvsChanges['external'] or cvsChanges['internal']:
             log.write("Changes in CVS require build\n")
             changes = "-changes"
-            for releaseMode in ('debug', 'release'):        
+            for releaseMode in releaseModes:        
                 doBuild(releaseMode, workingDir, log, cvsChanges)
 
         if cvsChanges['external'] or cvsChanges['internal'] or cvsChanges['chandler']:
             log.write("Changes in CVS require making distributions\n")
             changes = "-changes"            
-            for releaseMode in ('debug', 'release'):        
+            for releaseMode in releaseModes:        
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
         else:
@@ -136,7 +137,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if skipTests:
             ret = 'success'
         else:
-            for releaseMode in ('debug', 'release'):   
+            for releaseMode in releaseModes:   
                 ret = doTests(hardhatScript, releaseMode, workingDir,
                               outputDir, cvsVintage, buildVersion, log)
                 if ret != 'success':
