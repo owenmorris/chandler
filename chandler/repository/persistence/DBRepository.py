@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, cStringIO
+import os, cStringIO, threading
 
 from datetime import datetime
 from struct import pack
@@ -12,7 +12,6 @@ from struct import pack
 from chandlerdb.util import lock
 from chandlerdb.util.UUID import UUID
 from repository.item.Item import Item
-from repository.util.ThreadLocal import ThreadLocal
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import OnDemandRepository, Store
@@ -33,7 +32,7 @@ from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
 from bsddb.db import DB_LOCK_WRITE
 from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
-from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
+from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from bsddb.db import DBLockDeadlockError
 
@@ -236,7 +235,7 @@ class XMLStore(Store):
 
     def __init__(self, repository):
 
-        self._threaded = ThreadLocal()
+        self._threaded = threading.local()
         super(XMLStore, self).__init__(repository)
         
     def open(self, **kwds):
@@ -414,7 +413,7 @@ class XMLStore(Store):
         
         if not self._ramdb:
             if self.txn is None:
-                self.txn = repository._env.txn_begin(None, DB_DIRTY_READ)
+                self.txn = repository._env.txn_begin(None)
                 status |= XMLStore.TXNSTARTED
         else:
             self.txn = None

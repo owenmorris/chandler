@@ -4,16 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import threading, logging
+import logging, threading, PyLucene
 
 from chandlerdb.util.UUID import UUID
-from repository.util.ThreadLocal import ThreadLocal
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.RepositoryError import RepositoryError
-
-from PyLucene import attachCurrentThread
 
 
 class Repository(object):
@@ -37,7 +34,7 @@ class Repository(object):
 
         self.dbHome = dbHome
         self._status = 0
-        self._threaded = ThreadLocal()
+        self._threaded = threading.local()
         self._notifications = []
 
     def create(self, **kwds):
@@ -571,16 +568,5 @@ class RepositoryNotifications(dict):
         self.clear()
 
 
-class RepositoryThread(threading.Thread):
-
-    def __init__(self, repository, *args, **kwds):
-
-        self.repository = repository
-        super(RepositoryThread, self).__init__(*args, **kwds)
-
-    def run(self):
-
-        try:
-            return attachCurrentThread(super(RepositoryThread, self))
-        finally:
-            self.repository.closeView()
+class RepositoryThread(PyLucene.PythonThread):
+    pass

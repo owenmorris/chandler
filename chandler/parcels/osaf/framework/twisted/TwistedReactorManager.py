@@ -7,6 +7,9 @@ import twisted.internet.reactor as reactor
 import threading
 import twisted.python.threadable as threadable
 
+from repository.persistence.Repository import RepositoryThread
+
+
 """required when using threads in Twisted"""
 threadable.init()
 
@@ -15,7 +18,7 @@ class TwistedReactorException(Exception):
     """Exception Class raised by L{TwistedReactorManager}"""
     pass
 
-class TwistedReactorManager(threading.Thread):
+class TwistedReactorManager(RepositoryThread):
     """Runs the Twisted Reactor in a Thread to prevent blocking of the
        Main Thread when C{reactor.run} is called. Only one instance of
        the TwistedReactorManager can be initialized at a time"""

@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import cStringIO
+import cStringIO, threading
 
 from struct import pack, unpack
 
@@ -12,10 +12,9 @@ from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.persistence.Repository import Repository
-from repository.util.ThreadLocal import ThreadLocal
 
 from bsddb.db import DB
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_DIRTY_READ
+from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
 from bsddb.db import DBNotFoundError, DBLockDeadlockError
 
 
@@ -27,17 +26,16 @@ class DBContainer(object):
 
         self.store = store
         self._filename = name
-        self._threaded = ThreadLocal()
+        self._threaded = threading.local()
         
         self._db = DB(store.env)
         self._db.set_lorder(4321)
+        self._flags = 0
         
         if kwds.get('ramdb', False):
-            self._flags = 0
             name = None
             dbname = None
         else:
-            self._flags = DB_DIRTY_READ
             dbname = kwds.get('dbname')
 
         if kwds.get('create', False):

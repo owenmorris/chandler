@@ -1,7 +1,6 @@
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.framework.twisted.TwistedThreadPool as TwistedThreadPool
 import repository.item.Query as Query
-from repository.persistence.Repository import RepositoryThread
 import repository.util.ClassLoader as ClassLoader
 import application.Globals as Globals
 import twisted.internet.reactor as reactor

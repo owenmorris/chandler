@@ -19,6 +19,6 @@ class RepositoryThreadPool(threadpool.ThreadPool):
             firstJob = self.q.get(0)
         except Queue.Empty:
             firstJob = None
-        newThread = Repository.RepositoryThread(Globals.repository, target=self._worker, name=name, args=(firstJob,))
+        newThread = Repository.RepositoryThread(target=self._worker, name=name, args=(firstJob,))
         self.threads.append(newThread)
         newThread.start()
