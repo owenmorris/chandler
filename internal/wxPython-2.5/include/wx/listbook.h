@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     19.08.03
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -108,6 +108,10 @@ public:
 
     // returns true if we have wxLB_TOP or wxLB_BOTTOM style
     bool IsVertical() const { return HasFlag(wxLB_BOTTOM | wxLB_TOP); }
+
+    virtual bool DeleteAllPages();
+
+    wxListView* GetListView() { return m_list; }
 
 protected:
     virtual wxWindow *DoRemovePage(size_t page);

@@ -78,8 +78,8 @@ swig_sources = run_swig(['core.i'], 'src', GENDIR, PKGDIR,
                           'src/_constraints.i',
                           'src/_core_api.i',
                           'src/_core_ex.py',
-                          'src/_core_rename.i',
-                          'src/_core_reverse.txt',
+                          'src/__core_rename.i',
+                          'src/__core_reverse.txt',
                           'src/_defs.i',
                           'src/_event.i',
                           'src/_event_ex.py',
@@ -95,7 +95,8 @@ swig_sources = run_swig(['core.i'], 'src', GENDIR, PKGDIR,
                           'src/_validator.i',
                           'src/_window.i',
                           'src/_control.i',
-                          ])
+                          ],
+                        True)
 
 copy_file('src/__init__.py', PKGDIR, update=1, verbose=0)
 CLEANUP.append(opj(PKGDIR, '__init__.py'))
@@ -120,9 +121,9 @@ else:
     rc_file = []
 
 
-ext = Extension('_core', ['src/helpers.cpp',
-                          'src/libpy.c',
-                        ] + rc_file + swig_sources,
+ext = Extension('_core_', ['src/helpers.cpp',
+                           'src/libpy.c',
+                           ] + rc_file + swig_sources,
 
                 include_dirs = includes,
                 define_macros = defines,
@@ -144,7 +145,7 @@ wxpExtensions.append(ext)
 # Extension for the GDI module
 swig_sources = run_swig(['gdi.i'], 'src', GENDIR, PKGDIR,
                         USE_SWIG, swig_force, swig_args, swig_deps +
-                        ['src/_gdi_rename.i',
+                        ['src/__gdi_rename.i',
                          'src/_bitmap.i',
                          'src/_colour.i',
                          'src/_dc.i',
@@ -161,8 +162,9 @@ swig_sources = run_swig(['gdi.i'], 'src', GENDIR, PKGDIR,
                          'src/_icon.i',
                          'src/_pen.i',
                          'src/_palette.i',
-                         ])
-ext = Extension('_gdi', ['src/drawlist.cpp'] + swig_sources,
+                         ],
+                        True)
+ext = Extension('_gdi_', ['src/drawlist.cpp'] + swig_sources,
                 include_dirs =  includes,
                 define_macros = defines,
                 library_dirs = libdirs,
@@ -181,8 +183,8 @@ wxpExtensions.append(ext)
 # Extension for the windows module
 swig_sources = run_swig(['windows.i'], 'src', GENDIR, PKGDIR,
                         USE_SWIG, swig_force, swig_args, swig_deps +
-                        ['src/_windows_rename.i',
-                         'src/_windows_reverse.txt',
+                        ['src/__windows_rename.i',
+                         'src/__windows_reverse.txt',
                          'src/_panel.i',
                          'src/_toplvl.i',
                          'src/_statusbar.i',
@@ -196,8 +198,9 @@ swig_sources = run_swig(['windows.i'], 'src', GENDIR, PKGDIR,
                          'src/_mdi.i',
                          'src/_pywindows.i',
                          'src/_printfw.i',
-                         ])
-ext = Extension('_windows', swig_sources,
+                         ],
+                        True)
+ext = Extension('_windows_', swig_sources,
                 include_dirs =  includes,
                 define_macros = defines,
                 library_dirs = libdirs,
@@ -214,8 +217,8 @@ wxpExtensions.append(ext)
 # Extension for the controls module
 swig_sources = run_swig(['controls.i'], 'src', GENDIR, PKGDIR,
                         USE_SWIG, swig_force, swig_args, swig_deps +
-                        [ 'src/_controls_rename.i',
-                          'src/_controls_reverse.txt',
+                        [ 'src/__controls_rename.i',
+                          'src/__controls_reverse.txt',
                           'src/_toolbar.i',
                           'src/_button.i',
                           'src/_checkbox.i',
@@ -237,8 +240,9 @@ swig_sources = run_swig(['controls.i'], 'src', GENDIR, PKGDIR,
                           'src/_pycontrol.i',
                           'src/_cshelp.i',
                           'src/_dragimg.i',
-                          ])
-ext = Extension('_controls', swig_sources,
+                          ],
+                        True)
+ext = Extension('_controls_', swig_sources,
                 include_dirs =  includes,
                 define_macros = defines,
                 library_dirs = libdirs,
@@ -255,7 +259,9 @@ wxpExtensions.append(ext)
 # Extension for the misc module
 swig_sources = run_swig(['misc.i'], 'src', GENDIR, PKGDIR,
                         USE_SWIG, swig_force, swig_args, swig_deps +
-                        [ 'src/_settings.i',
+                        [ 'src/__misc_rename.i',
+                          'src/__misc_reverse.txt',
+                          'src/_settings.i',
                           'src/_functions.i',
                           'src/_misc.i',
                           'src/_tipdlg.i',
@@ -272,8 +278,9 @@ swig_sources = run_swig(['misc.i'], 'src', GENDIR, PKGDIR,
                           'src/_dnd.i',
                           'src/_display.i',
                           'src/_clipbrd.i',
-                          ])
-ext = Extension('_misc', swig_sources,
+                          ],
+                        True)
+ext = Extension('_misc_', swig_sources,
                 include_dirs =  includes,
                 define_macros = defines,
                 library_dirs = libdirs,
@@ -361,7 +368,7 @@ if BUILD_GLCANVAS:
 
     gl_libs = []
     if os.name == 'posix':
-        gl_config = os.popen(WX_CONFIG + ' --gl-libs', 'r').read()[:-1]
+        gl_config = os.popen(WX_CONFIG + ' --libs gl', 'r').read()[:-1]
         gl_lflags = gl_config.split() + lflags
         gl_libs = libs
     else:
@@ -428,7 +435,7 @@ if BUILD_STC:
     if os.name == 'nt':
         STC_H = opj(WXDIR, 'contrib', 'include/wx/stc')
     else:
-        STC_H = opj(WXPREFIX, 'include/wx/stc')
+        STC_H = opj(WXPREFIX, 'include/wx-%d.%d/wx/stc' % (VER_MAJOR, VER_MINOR))
 
 ## NOTE: need to add something like this to the stc.bkl...
 
@@ -446,7 +453,7 @@ if BUILD_STC:
 ##             os.chdir(cwd)
 
 
-    swig_sources = run_swig(['stc.i'], location, '', PKGDIR,
+    swig_sources = run_swig(['stc.i'], location, GENDIR, PKGDIR,
                             USE_SWIG, swig_force,
                             swig_args + ['-I'+STC_H, '-I'+location],
                             [opj(STC_H, 'stc.h')] + swig_deps)
@@ -503,34 +510,33 @@ if BUILD_IEWIN:
 # Define the ACTIVEX extension module (experimental)
 #----------------------------------------------------------------------
 
-# active x files are not in the release so this doesn't work -- DJA
-#if BUILD_ACTIVEX:
-    #msg('Preparing ACTIVEX...')
-    #location = 'contrib/activex'
-    #axloc = opj(location, "wxie")
+if BUILD_ACTIVEX:
+    msg('Preparing ACTIVEX...')
+    location = 'contrib/activex'
+    axloc = opj(location, "wxie")
 
-    #swig_files = ['activex.i', ]
+    swig_files = ['activex.i', ]
 
-    #swig_sources = run_swig(swig_files, location, '', PKGDIR,
-                            #USE_SWIG, swig_force, swig_args, swig_deps +
-                            #[ '%s/_activex_ex.py' % location])
+    swig_sources = run_swig(swig_files, location, '', PKGDIR,
+                            USE_SWIG, swig_force, swig_args, swig_deps +
+                            [ '%s/_activex_ex.py' % location])
 
 
-    #ext = Extension('_activex', ['%s/IEHtmlWin.cpp' % axloc,
-                                 #'%s/wxactivex.cpp' % axloc,
-                                 #] + swig_sources,
+    ext = Extension('_activex', ['%s/IEHtmlWin.cpp' % axloc,
+                                 '%s/wxactivex.cpp' % axloc,
+                                 ] + swig_sources,
 
-                    #include_dirs =  includes + [ axloc ],
-                    #define_macros = defines,
+                    include_dirs =  includes + [ axloc ],
+                    define_macros = defines,
 
-                    #library_dirs = libdirs,
-                    #libraries = libs,
+                    library_dirs = libdirs,
+                    libraries = libs,
 
-                    #extra_compile_args = cflags,
-                    #extra_link_args = lflags,
-                    #)
+                    extra_compile_args = cflags,
+                    extra_link_args = lflags,
+                    )
 
-    #wxpExtensions.append(ext)
+    wxpExtensions.append(ext)
 
 
 #----------------------------------------------------------------------
@@ -541,7 +547,7 @@ if BUILD_XRC:
     msg('Preparing XRC...')
     location = 'contrib/xrc'
 
-    swig_sources = run_swig(['xrc.i'], location, '', PKGDIR,
+    swig_sources = run_swig(['xrc.i'], location, GENDIR, PKGDIR,
                             USE_SWIG, swig_force, swig_args, swig_deps +
                             [ '%s/_xrc_rename.i' % location,
                               '%s/_xrc_ex.py' % location,
@@ -580,9 +586,9 @@ if BUILD_GIZMOS:
                             USE_SWIG, swig_force, swig_args, swig_deps)
 
     ext = Extension('_gizmos',
-                    [ '%s/treelistctrl.cpp' % location ] + swig_sources,
+                    [ '%s/treelistctrl.cpp' % opj(location, 'wxCode/src') ] + swig_sources,
 
-                    include_dirs =  includes + [ location ] + CONTRIBS_INC,
+                    include_dirs =  includes + [ location, opj(location, 'wxCode/include') ] + CONTRIBS_INC,
                     define_macros = defines,
 
                     library_dirs = libdirs,
@@ -665,8 +671,9 @@ else:
               glob.glob(opj("src/_*.py")) + \
               glob.glob(opj("src/*.swg"))
 
-    HEADERS = zip(h_files, ["/include/wx/wxPython"]*len(h_files)) + \
-              zip(i_files, ["/include/wx/wxPython/i_files"]*len(i_files))
+    HEADERS = zip(h_files, ["/wxPython"]*len(h_files)) + \
+              zip(i_files, ["/wxPython/i_files"]*len(i_files))
+
 
 #----------------------------------------------------------------------
 # Do the Setup/Build/Install/Whatever
@@ -699,7 +706,10 @@ if __name__ == "__main__":
                           'wx.lib',
                           'wx.lib.colourchooser',
                           'wx.lib.editor',
+                          'wx.lib.floatcanvas',
+                          'wx.lib.masked',
                           'wx.lib.mixins',
+                          'wx.lib.ogl',
                           'wx.py',
                           'wx.tools',
                           'wx.tools.XRCed',

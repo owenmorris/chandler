@@ -55,7 +55,7 @@ public:
        @param newmsg if used, new message to display
        @returns true if ABORT button has not been pressed
    */
-   bool Update(int value, const wxString& newmsg = wxT(""));
+   virtual bool Update(int value, const wxString& newmsg = wxEmptyString);
 
    /* Can be called to continue after the cancel button has been pressed, but
        the program decided to continue the operation (e.g., user didn't
@@ -63,7 +63,7 @@ public:
    */
    void Resume();
 
-   bool Show( bool show = TRUE );
+   bool Show( bool show = true );
 
 protected:
    // callback for optional abort button
@@ -78,9 +78,8 @@ protected:
 
 private:
    // create the label with given text and another one to show the time nearby
-   // under the lastWindow and modify it to be the same as the control created
-   // (which is returned)
-   wxStaticText *CreateLabel(const wxString& text, wxWindow **lastWindow);
+   // as the next windows in the sizer, returns the created control
+   wxStaticText *CreateLabel(const wxString& text, wxSizer *sizer);
 
    // the status bar
    wxGauge *m_gauge;

@@ -72,7 +72,7 @@ public:
     ~wxDocument();
 
     // accessors
-    void SetFilename(const wxString& filename, bool notifyViews = FALSE);
+    void SetFilename(const wxString& filename, bool notifyViews = false);
     wxString GetFilename() const { return m_documentFile; }
 
     void SetTitle(const wxString& title) { m_documentTitle = title; };
@@ -82,7 +82,7 @@ public:
     wxString GetDocumentName() const { return m_documentTypeName; }
 
     bool GetDocumentSaved() const { return m_savedYet; }
-    void SetDocumentSaved(bool saved = TRUE) { m_savedYet = saved; }
+    void SetDocumentSaved(bool saved = true) { m_savedYet = saved; }
 
     virtual bool Close();
     virtual bool Save();
@@ -97,15 +97,15 @@ public:
     virtual wxInputStream& LoadObject(wxInputStream& stream);
 #endif
 
-    // Called by wxWindows
+    // Called by wxWidgets
     virtual bool OnSaveDocument(const wxString& filename);
     virtual bool OnOpenDocument(const wxString& filename);
     virtual bool OnNewDocument();
     virtual bool OnCloseDocument();
 
-    // Prompts for saving if about to close a modified document. Returns TRUE
+    // Prompts for saving if about to close a modified document. Returns true
     // if ok to close the document (may have saved in the meantime, or set
-    // modified to FALSE)
+    // modified to false)
     virtual bool OnSaveModified();
 
     // Called by framework if created automatically by the default document
@@ -162,6 +162,12 @@ protected:
     wxCommandProcessor*   m_commandProcessor;
     bool                  m_savedYet;
 
+    // Called by OnSaveDocument and OnOpenDocument to implement standard
+    // Save/Load behavior. Re-implement in derived class for custom
+    // behavior.
+    virtual bool DoSaveDocument(const wxString& file);
+    virtual bool DoOpenDocument(const wxString& file);
+
 private:
     DECLARE_ABSTRACT_CLASS(wxDocument)
     DECLARE_NO_COPY_CLASS(wxDocument)
@@ -192,12 +198,12 @@ public:
 
     // Called by framework if created automatically by the default document
     // manager class: gives view a chance to initialise
-    virtual bool OnCreate(wxDocument *WXUNUSED(doc), long WXUNUSED(flags)) { return TRUE; };
+    virtual bool OnCreate(wxDocument *WXUNUSED(doc), long WXUNUSED(flags)) { return true; };
 
     // Checks if the view is the last one for the document; if so, asks user
     // to confirm save data (if modified). If ok, deletes itself and returns
-    // TRUE.
-    virtual bool Close(bool deleteWindow = TRUE);
+    // true.
+    virtual bool Close(bool deleteWindow = true);
 
     // Override to do cleanup/veto close
     virtual bool OnClose(bool deleteWindow);
@@ -254,6 +260,10 @@ public:
     virtual wxDocument *CreateDocument(const wxString& path, long flags = 0);
     virtual wxView *CreateView(wxDocument *doc, long flags = 0);
 
+    // Helper method for CreateDocument; also allows you to do your own document
+    // creation
+    virtual bool InitDocument(wxDocument* doc, const wxString& path, long flags = 0);
+
     wxString GetDefaultExtension() const { return m_defaultExt; };
     wxString GetDescription() const { return m_description; }
     wxString GetDirectory() const { return m_directory; };
@@ -272,6 +282,9 @@ public:
 
     bool IsVisible() const { return ((m_flags & wxTEMPLATE_VISIBLE) == wxTEMPLATE_VISIBLE); }
 
+    wxClassInfo* GetDocClassInfo() const { return m_docClassInfo; }
+    wxClassInfo* GetViewClassInfo() const { return m_viewClassInfo; }
+
     virtual bool FileMatchesTemplate(const wxString& path);
 
 protected:
@@ -288,6 +301,12 @@ protected:
     wxClassInfo*      m_docClassInfo;
     wxClassInfo*      m_viewClassInfo;
 
+    // Called by CreateDocument and CreateView to create the actual document/view object.
+    // By default uses the ClassInfo provided to the constructor. Override these functions
+    // to provide a different method of creation.
+    virtual wxDocument *DoCreateDocument();
+    virtual wxView *DoCreateView();
+
 private:
     DECLARE_CLASS(wxDocTemplate)
     DECLARE_NO_COPY_CLASS(wxDocTemplate)
@@ -298,7 +317,7 @@ private:
 class WXDLLEXPORT wxDocManager: public wxEvtHandler
 {
 public:
-    wxDocManager(long flags = wxDEFAULT_DOCMAN_FLAGS, bool initialize = TRUE);
+    wxDocManager(long flags = wxDEFAULT_DOCMAN_FLAGS, bool initialize = true);
     ~wxDocManager();
 
     virtual bool Initialize();
@@ -344,11 +363,11 @@ public:
     virtual bool FlushDoc(wxDocument *doc);
     virtual wxDocTemplate *MatchTemplate(const wxString& path);
     virtual wxDocTemplate *SelectDocumentPath(wxDocTemplate **templates,
-            int noTemplates, wxString& path, long flags, bool save = FALSE);
+            int noTemplates, wxString& path, long flags, bool save = false);
     virtual wxDocTemplate *SelectDocumentType(wxDocTemplate **templates,
-            int noTemplates, bool sort = FALSE);
+            int noTemplates, bool sort = false);
     virtual wxDocTemplate *SelectViewType(wxDocTemplate **templates,
-            int noTemplates, bool sort = FALSE);
+            int noTemplates, bool sort = false);
     virtual wxDocTemplate *FindTemplateForPath(const wxString& path);
 
     void AssociateTemplate(wxDocTemplate *temp);
@@ -364,17 +383,17 @@ public:
     void RemoveDocument(wxDocument *doc);
 
     // closes all currently open documents
-    bool CloseDocuments(bool force = TRUE);
+    bool CloseDocuments(bool force = true);
 
     // closes the specified document
-    bool CloseDocument(wxDocument* doc, bool force = FALSE);
+    bool CloseDocument(wxDocument* doc, bool force = false);
 
     // Clear remaining documents and templates
-    bool Clear(bool force = TRUE);
+    bool Clear(bool force = true);
 
     // Views or windows should inform the document manager
     // when a view is going in or out of focus
-    virtual void ActivateView(wxView *view, bool activate = TRUE);
+    virtual void ActivateView(wxView *view, bool activate = true);
     virtual wxView *GetCurrentView() const;
 
     wxList& GetDocuments() { return m_docs; }

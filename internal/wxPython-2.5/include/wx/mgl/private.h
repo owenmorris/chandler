@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        private.h
 // Purpose:     Private declarations: as this header is only included by
-//              wxWindows itself, it may contain identifiers which don't start
+//              wxWidgets itself, it may contain identifiers which don't start
 //              with "wx".
 // Author:      Vaclav Slavik
 // Created:     2001/04/07

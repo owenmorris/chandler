@@ -5,7 +5,7 @@
  * Modified by:
  * Created:     16.10.2003 (extracted from wx/defs.h)
  * RCS-ID:      $Id$
- * Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+ * Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
 
@@ -57,7 +57,7 @@
 #endif
 
 /*
-   We support building wxWindows as a set of several libraries but we don't
+   We support building wxWidgets as a set of several libraries but we don't
    support arbitrary combinations of libs/DLLs: either we build all of them as
    DLLs (in which case WXMAKINGDLL is defined) or none (it isn't).
 

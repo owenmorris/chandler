@@ -125,6 +125,8 @@ IMP_PYCALLBACK_COORD_const          (wxPyVScrolledWindow, wxVScrolledWindow, Est
    of the window and not its entire client area.
  */
 
+MustHaveApp(wxPyVScrolledWindow);
+
 %name(VScrolledWindow) class wxPyVScrolledWindow : public wxPanel
 {
 public:
@@ -174,7 +176,7 @@ public:
 
     // return the item at the specified (in physical coordinates) position or
     // wxNOT_FOUND if none, i.e. if it is below the last item
-    %name(HitTestXT) int HitTest(wxCoord x, wxCoord y) const;
+    %name(HitTestXY) int HitTest(wxCoord x, wxCoord y) const;
     int HitTest(const wxPoint& pt) const;
 
     // recalculate all our parameters and redisplay all lines
@@ -282,6 +284,8 @@ IMP_PYCALLBACK__DCRECTSIZET_const    (wxPyVListBox, wxVListBox, OnDrawBackground
     It emits the same events as wxListBox and the same event macros may be used
     with it.
  */
+MustHaveApp(wxPyVListBox);
+
 %name(VListBox) class wxPyVListBox : public wxPyVScrolledWindow
 {
 public:
@@ -329,22 +333,44 @@ public:
     // this method is valid for both single and multi selection listboxes
     size_t GetSelectedCount() const;
 
-    // get the first selected item, returns wxNOT_FOUND if none
-    //
-    // cookie is an opaque parameter which should be passed to
-    // GetNextSelected() later
-    //
-    // this method is only valid for the multi selection listboxes
-    int GetFirstSelected(unsigned long& cookie) const;
+    %extend {
+        // get the first selected item, returns wxNOT_FOUND if none
+        //
+        // cookie is an opaque parameter which should be passed to
+        // GetNextSelected() later
+        //
+        // this method is only valid for the multi selection listboxes
+        //int GetFirstSelected(unsigned long& cookie) const;
+        PyObject* GetFirstSelected() {
+            unsigned long cookie = 0;
+            int selected = self->GetFirstSelected(cookie);
+            bool blocked = wxPyBeginBlockThreads();
+            PyObject* tup = PyTuple_New(2);
+            PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(selected));
+            PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(cookie));
+            wxPyEndBlockThreads(blocked);
+            return tup;           
+        }   
 
-    // get next selection item, return wxNOT_FOUND if no more
-    //
-    // cookie must be the same parameter that was passed to GetFirstSelected()
-    // before
-    //
-    // this method is only valid for the multi selection listboxes
-    int GetNextSelected(unsigned long& cookie) const;
+        // get next selection item, return wxNOT_FOUND if no more
+        //
+        // cookie must be the same parameter that was passed to GetFirstSelected()
+        // before
+        //
+        // this method is only valid for the multi selection listboxes
+        // int GetNextSelected(unsigned long& cookie) const;
+        PyObject* GetNextSelected(unsigned long cookie) {
+            int selected = self->GetNextSelected(cookie);
+            bool blocked = wxPyBeginBlockThreads();
+            PyObject* tup = PyTuple_New(2);
+            PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(selected));
+            PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(cookie));
+            wxPyEndBlockThreads(blocked);
+            return tup;           
+        }   
+    }
 
+    
     // get the margins around each item
     wxPoint GetMargins() const;
 
@@ -478,6 +504,7 @@ IMP_PYCALLBACK_STRING_SIZET     (wxPyHtmlListBox, wxHtmlListBox, OnGetItemMarkup
 
 
 // wxHtmlListBox is a listbox whose items are wxHtmlCells
+MustHaveApp(wxPyHtmlListBox);
 %name(HtmlListBox) class wxPyHtmlListBox : public wxPyVListBox
 {
 public:
@@ -508,6 +535,9 @@ public:
     void RefreshAll();
     void SetItemCount(size_t count);
 
+    // retrieve the file system used by the wxHtmlWinParser: if you use
+    // relative paths in your HTML, you should use its ChangePathTo() method
+    wxFileSystem& GetFileSystem();
 };
 
 

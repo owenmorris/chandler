@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
 // CVS-ID:      $Id$
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FS_ZIP_H_
@@ -14,21 +14,16 @@
 #pragma interface "fs_zip.h"
 #endif
 
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
+#include "wx/defs.h"
 
 #if wxUSE_FILESYSTEM && wxUSE_FS_ZIP && wxUSE_STREAMS
 
 #include "wx/filesys.h"
+#include "wx/hashmap.h"
 
-class WXDLLIMPEXP_BASE wxLongToLongHashMap;
-
-//--------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // wxZipFSHandler
-//--------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxZipFSHandler : public wxFileSystemHandler
 {

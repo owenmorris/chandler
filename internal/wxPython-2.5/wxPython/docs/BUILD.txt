@@ -42,6 +42,16 @@ the wxPythonSrc tarball to.  You can either substitute the $WXDIR text
 below with your actual dir, or set the value in the environment and
 use it just like you see it below.
 
+If you run into what appears to be compatibility issues between
+wxWidgets and wxPython while building wxPython, be sure you are using
+the wxWidgets sources included with the wxPythonSrc tarball or the CVS
+snapshot, and not a previously installed version or a version
+installed from one of the standard wxWidgets installers.  With the
+"unstable" releases (have a odd-numbered minor release value, where
+the APIs are allowed to change) there are often significant
+differences between the W.X.Y release of wxWidgets and the W.X.Y.Z
+release of wxPython.
+
 
 
 Building on Unix-like Systems (e.g. Linux and OS X)
@@ -67,7 +77,6 @@ place, then do the same for wxPython.
          ../configure --prefix=/opt/wx/2.5 \
                       --with-gtk \
                       --with-opengl \
-                      --disable-monolithic \
                       --enable-debug \
                       --enable-geometry \
                       --enable-sound --with-sdl \
@@ -75,9 +84,26 @@ place, then do the same for wxPython.
                       
 
    On OS X of course you'll want to use --with-mac instead of
-   --with-gtk.  For GTK2 and unicode add::
+   --with-gtk.  
+
+   **NOTE**: Due to a recent change there is a dependency problem in the
+   multilib builds of wxWidgets on OSX, so I have switched to a
+   monolithic build on that platform.  (IOW, all of the core code in
+   one shared library instead of several.)  I would also expect other
+   unix builds to do just fine with a monolithic library, but I havn't
+   tested it in a while so your mileage may vary.  Anyway, to switch
+   to the monolithic build of wxWidgets just add this configure flag::
+
+		     --enable-monolithic \
+
+   By default GTK2 will be selected if it is on your build system.  To
+   force the use of GTK 1.2.x add this flag::
+
+		      --disable-gtk2 \
+
+   To make the wxWidgets build be Unicode enabled (strongly
+   recommended if you are building with GTK2) then add::
                          
-                      --enable-gtk2 \
                       --enable-unicode \
 
    Notice that I used a prefix of /opt/wx/2.5.  You can use whatever
@@ -105,7 +131,7 @@ place, then do the same for wxPython.
    command but there are other libraries besides the main wxWidgets
    libs that also need to be built so again I make a script to do it
    all for me so I don't forget anything.  This time it is called
-   ".make" (I use the leading ".  so when I do ``rm -r *`` in my build
+   ".make" (I use the leading "."  so when I do ``rm -r *`` in my build
    dir I don't lose my scripts too.)  This is what it looks like::
 
         make $* \
@@ -137,7 +163,7 @@ place, then do the same for wxPython.
    these commands, so it won't impact your already installed version
    of the latest release.  You'll be able test with this version when
    you want to, and use the installed release version the rest of the
-   time.  If do want to install the development verison please read
+   time.  If you want to install the development version please read
    INSTALL.txt.
 
    If you have more than one version of Python on your system then be
@@ -158,10 +184,17 @@ place, then do the same for wxPython.
 
          WX_CONFIG=/opt/wx/2.5/bin/wx-config
 
-   If you are building with GTK2 then add the following flags to the
-   command line::
+   By default setup.py will assume that you built wxWidgets to use
+   GTK2.  If you built wxWidgets to use GTK 1.2.x then you should add
+   this flag to the command-line::
 
-         WXPORT=gtk2 UNICODE=1
+	 WXPORT=gtk 
+
+   If you would like to do a Unicode enabled build (all strings sent
+   to or retruned from wx functions are Unicode objects) and your
+   wxWidgets was built with unicode enabled then add this flag::
+
+         UNICODE=1
 
    If you are wanting to have the source files regenerated with swig,
    then you need to turn on the USE_SWIG flag and optionally tell it
@@ -169,10 +202,10 @@ place, then do the same for wxPython.
 
          USE_SWIG=1 SWIG=/opt/swig/bin/swig
 
-   If you get errors about wxGLCanvas or being unable to find libGLU
-   or something like that then you can add BUILD_GLCANVAS=0 to the
-   setup.py command line to disable the building of the glcanvas
-   module.
+   If you get errors about being unable to find libGLU, wxGLCanvas
+   being undeclared, or something similar then you can add
+   BUILD_GLCANVAS=0 to the setup.py command line to disable the
+   building of the glcanvas module.
 
    When the setup.py command is done you should have fully populated
    wxPython and wx packages locally in $WXDIR/wxPython/wxPython and
@@ -180,7 +213,7 @@ place, then do the same for wxPython.
    located in the wx package.
 
 
-4. To run code with the development verison of wxPython, just set the
+4. To run code with the development version of wxPython, just set the
    PYTHONPATH to the wxPython dir located in the source tree.  For
    example::
 
@@ -226,7 +259,7 @@ wxPython extensions that I distribute are built with MSVC 6 with all
 the Service Packs applied.  This policy will change with Python 2.4
 and MSVC 7.1 will be used starting with that version.
 
-If you want to build a debugable version of wxWidgets and wxPython you
+If you want to build a debuggable version of wxWidgets and wxPython you
 will need to have also built a debug version of Python and any other
 extension modules you need to use.  You can tell if you have them
 already if there is a _d in the file names, for example python_d.exe
@@ -236,32 +269,38 @@ version is fine, and you can use the regular python executables with
 it.
 
 Just like the unix versions I also use some scripts to help me build
-wxWidgets, but I use some non-standard stuff to do it.  So if you want
-to use my scripts you'll need to get a copy or 4DOS or 4NT from
-http://www.jpsoft.com/ and also a copy of unix-like cat and sed
-programs.  You can also do by hand what my scripts are doing, but
-there are alot of steps involved and I won't be going into details
-here.  There is a copy of my build scripts in %WXDIR%\wxPython\distrib\msw
-that you can use for reference (if you don't use them directly) for
-adapting these instructions to your specific needs.  The directions
-below assume that you are using my scripts.
+wxWidgets, but I use some non-standard stuff to do it.  So if you have
+bash (cygwin or probably MSYS too) or 4NT plus unix-like cat and sed
+programs then there is a copy of my wxWidgets build scripts in
+%WXDIR%\\wxPython\\distrib\\msw.  Just copy them to
+%WXDIR%\\build\\msw and you can use them to do your build, otherwise
+you can do everything by hand as described below.  But if you do work
+by hand and something doesn't seem to be working correctly please
+refer to the build scripts to see what may need to be done
+differently.
 
+The \*.btm files are for 4NT and the others are for bash.  They are::
+
+   .make/.make.btm	  Builds the main lib and the needed contribs
+   .mymake/.mymake.btm	  Builds just one lib, use by .make
+   .makesetup.mk	  A makefile that will copy and edit setup.h
+			  as needed for the different types of builds
+
+Okay.  Here's what you've been waiting for, the instructions!  Adapt
+accordingly if you are using the bash shell.
 
 1. Set an environment variable to the root of the wxWidgets source
    tree.  This is used by the makefiles::
 
          set WXWIN=%WXDIR%
 
-2. Copy setup0.h to setup.h
+2. Copy setup0.h to setup.h::
 
          cd %WXDIR%\include\wx\msw
          copy setup0.h setup.h
 
 
-3. Edit %WXDIR%\include\wx\msw\setup.h and change a few settings.
-   Some of them are changed by my build scripts depending on the type
-   of build (debug/hybrid, unicode/ansi). I change a few of the other
-   defaults to have these values::
+3. Edit %WXDIR%\\include\\wx\\msw\\setup.h and change a few settings::
 
          wxDIALOG_UNIT_COMPATIBILITY    0
          wxUSE_DEBUG_CONTEXT            1
@@ -271,21 +310,35 @@ below assume that you are using my scripts.
          wxUSE_POSTSCRIPT               1
          wxUSE_AFM_FOR_POSTSCRIPT       0
          wxUSE_DISPLAY                  1
-         
 
-4. Make sure that %WXDIR%\lib\vc_dll directory is on the PATH.  The
+   If you are using my build scripts then a few more settings will be
+   changed and then a copy of setup.h is placed in a subdir of
+   %WXWIN%\\lib\vc_dll.  If you are doing it by hand and making a
+   UNICODE build, then also change these::
+
+         wxUSE_UNICODE                  1
+	 wxUSE_UNICODE_MSLU             1
+
+   If you are doing a "hybrid" build (which is the same as the
+   binaries that I release) then also change these::
+
+         wxUSE_MEMORY_TRACING           0
+         wxUSE_DEBUG_CONTEXT            0
+
+
+4. Make sure that %WXDIR%\\lib\\vc_dll directory is on the PATH.  The
    wxWidgets DLLs will end up there as part of the build and so you'll
    need it on the PATH for them to be found at runtime.
 
 
-5. Change to the %WXDIR%\build\msw directory and copy my build scripts
-   there from their default location in %WXDIR%\wxPython\distrib\msw
-   if they are not present already.
+5. Change to the %WXDIR%\\build\\msw directory 
+
+     	 cd %WXDIR%\\build\\msw
 
 
-6. Use the .make.btm command to build wxWidgets.  It needs one
-   command-line parameter which controls what kind of build(s) to do.
-   Use one of the following::
+6. If using my scripts then use the .make.btm command to build
+   wxWidgets.  It needs one command-line parameter which controls what
+   kind of build(s) to do.  Use one of the following::
 
          debug          Build debug version
          hybrid         Build hybrid version
@@ -298,17 +351,47 @@ below assume that you are using my scripts.
 
          .make hybrid
 
-    You can also pass additional command line parameters as needed and
-    they will all be passed on to the nmake commands, for example to
-    clean up the build::
+   You can also pass additional command line parameters as needed and
+   they will all be passed on to the nmake commands, for example to
+   clean up the build::
 
          .make hybrid clean
 
+   If *not* using my scripts then you can do it by hand by directly
+   executing nmake with a bunch of extra command line parameters.
+   The base set are::
 
-7.  When that is done it will have built the main wxWidgets DLLs and
-    also some of the contribs DLLs.  There should be a ton of DLLs in
-    %WXDIR%\bin and lots of lib files and other stuff in
-    %WXDIR%\lib\vc_dll.
+	-f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1
+
+   If doing a debug build then add::
+
+       BUILD=debug 
+
+   otherwise add these::
+
+       DEBUG_FLAG=1 CXXFLAGS=/D__NO_VC_CRTDBG__ WXDEBUGFLAG=h BUILD=release
+
+   If doing a Unicode build then add these flags::
+
+       UNICODE=1 MSLU=1
+
+   Now, from the %WXDIR%\\build\\msw directory run nmake with your
+   selection of command-line flags as described above.  Repeat this
+   same command from the following directories in order to build the
+   contrib libraries::
+
+	%WXDIR%\contrib\build\gizmos
+	%WXDIR%\contrib\build\xrc
+	%WXDIR%\contrib\build\stc
+	%WXDIR%\contrib\build\ogl
+
+    Note, that the ogl lib build will need an additional flag::
+
+	CPPFLAGS="-DwxUSE_DEPRECATED=0"
+
+7.  When that is all done it will have built the main wxWidgets DLLs
+    and also some of the contribs DLLs.  There should be a ton of DLLs
+    and lots of lib files and other stuff in %WXDIR%\\lib\\vc_dll.
 
 
 8. Building wxPython on Windows is very similar to doing it for the
@@ -317,10 +400,10 @@ below assume that you are using my scripts.
    installed version of the latest release.  You'll be able to test
    with this version when you want to, and use the installed release
    version the rest of the time.  If you ever do want to install the
-   development verison please refer to INSTALL.txt.
+   development version please refer to INSTALL.txt.
 
-   Change to the %WXDIR%\wxPython dir and run the this command,
-   makeing sure that you use the version of python that you want to
+   Change to the %WXDIR%\\wxPython dir and run the this command,
+   making sure that you use the version of python that you want to
    build for (if you have more than one on your system)::
 
          cd %WXDIR%\wxPython
@@ -349,7 +432,7 @@ below assume that you are using my scripts.
    files) located in the wx package.
 
 
-9. To run code with the development verison of wxPython, just set the
+9. To run code with the development version of wxPython, just set the
    PYTHONPATH to the wxPython dir in the CVS tree.  For example::
 
         set PYTHONPATH=%WXDIR%\wxPython

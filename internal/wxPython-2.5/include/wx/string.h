@@ -11,7 +11,7 @@
 
 /*
     Efficient string class [more or less] compatible with MFC CString,
-    wxWindows version 1 wxString and std::string and some handy functions
+    wxWidgets version 1 wxString and std::string and some handy functions
     missing from string.h.
 */
 
@@ -429,9 +429,9 @@ public:
   const_iterator end() const { return m_pchData + length(); }
 
   // first valid index position
-  iterator begin() { CopyBeforeWrite(); return m_pchData; }
+  iterator begin();
   // position one after the last valid one
-  iterator end() { CopyBeforeWrite(); return m_pchData + length(); }
+  iterator end();
 
     // insert another string
   wxStringBase& insert(size_t nPos, const wxStringBase& str)
@@ -675,8 +675,6 @@ public:
 
 #if wxUSE_UNICODE
     // from multibyte string
-    // (NB: nLength is right now number of Unicode characters, not
-    //  characters in psz! So try not to use it yet!)
   wxString(const char *psz, wxMBConv& conv, size_t nLength = npos);
     // from wxWCharBuffer (i.e. return from wxGetString)
   wxString(const wxWCharBuffer& psz) : wxStringBase(psz.data()) { }
@@ -692,7 +690,7 @@ public:
 
     // from wxCharBuffer
   wxString(const wxCharBuffer& psz)
-      : wxStringBase(psz, npos) { }
+      : wxStringBase(psz) { }
 #endif // Unicode/ANSI
 
   // generic attributes & operations
@@ -1095,7 +1093,7 @@ public:
   void UngetWriteBuf(size_t nLen);
 #endif
 
-  // wxWindows version 1 compatibility functions
+  // wxWidgets version 1 compatibility functions
 
   // use Mid()
   wxString SubString(size_t from, size_t to) const

@@ -10,7 +10,13 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-%module stc
+%define DOCSTRING
+"The `StyledTextCtrl` provides a text editor that can used as a syntax
+highlighting source code editor, or similar.  Lexers for several programming
+languages are built-in."
+%enddef
+
+%module(package="wx", docstring=DOCSTRING) stc
 
 
 %{
@@ -24,13 +30,15 @@
 
 %import core.i
 %import misc.i  // for DnD
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 MAKE_CONST_WXSTRING(STCNameStr);
 
 
 %include _stc_rename.i
 
+MustHaveApp(wxStyledTextCtrl);
 
 //---------------------------------------------------------------------------
 // Get all our defs from the REAL header file.
@@ -54,7 +62,6 @@ EVT_STC_MODIFIED = wx.PyEventBinder( wxEVT_STC_MODIFIED, 1 )
 EVT_STC_MACRORECORD = wx.PyEventBinder( wxEVT_STC_MACRORECORD, 1 )
 EVT_STC_MARGINCLICK = wx.PyEventBinder( wxEVT_STC_MARGINCLICK, 1 )
 EVT_STC_NEEDSHOWN = wx.PyEventBinder( wxEVT_STC_NEEDSHOWN, 1 )
-EVT_STC_POSCHANGED = wx.PyEventBinder( wxEVT_STC_POSCHANGED, 1 )
 EVT_STC_PAINTED = wx.PyEventBinder( wxEVT_STC_PAINTED, 1 )
 EVT_STC_USERLISTSELECTION = wx.PyEventBinder( wxEVT_STC_USERLISTSELECTION, 1 )
 EVT_STC_URIDROPPED = wx.PyEventBinder( wxEVT_STC_URIDROPPED, 1 )

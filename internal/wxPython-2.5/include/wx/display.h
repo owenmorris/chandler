@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin (resolution changes, display modes, ...)
 // Created:     06/21/02
 // RCS-ID:      $Id$
-// Copyright:   (c) 2002-2003 wxWindows team
+// Copyright:   (c) 2002-2003 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +24,7 @@
 class WXDLLEXPORT wxWindow;
 class WXDLLEXPORT wxPoint;
 class WXDLLEXPORT wxRect;
-class WXDLLEXPORT wxString; 
+class WXDLLEXPORT wxString;
 
 WX_DECLARE_EXPORTED_OBJARRAY(wxVideoMode, wxArrayVideoModes);
 
@@ -108,6 +108,8 @@ protected:
 #elif defined(__WXMOTIF__)
     #include "wx/unix/displayx11.h"
 #elif defined(__WXGTK__)
+    #include "wx/unix/displayx11.h"
+#elif defined(__WXX11__)
     #include "wx/unix/displayx11.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/display.h"

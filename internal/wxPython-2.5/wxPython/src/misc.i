@@ -10,24 +10,22 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-
-%module misc
+%module(package="wx") _misc
 
 //---------------------------------------------------------------------------
 
 %{
 #include "wx/wxPython/wxPython.h"
 #include "wx/wxPython/pyclasses.h"
-#include "wx/wxPython/pyistream.h"
-    
+#include "wx/wxPython/pyistream.h"    
 %}
 
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
 
-%include _misc_rename.i
+%include __misc_rename.i
 
 
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);

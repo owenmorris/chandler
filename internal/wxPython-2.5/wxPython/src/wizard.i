@@ -10,7 +10,12 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-%module wizard
+%define DOCSTRING
+"`Wizard` is a dialog class that guides the user through a sequence of steps,
+or pages."
+%enddef
+
+%module(package="wx", docstring=DOCSTRING) wizard
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -24,7 +29,8 @@
 //----------------------------------------------------------------------
 
 %import windows.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 %include _wizard_rename.i
 
@@ -79,6 +85,7 @@ public:
 //
 // Other than GetNext/Prev() functions, wxWizardPage is just a panel and may be
 // used as such (i.e. controls may be placed directly on it &c).
+MustHaveApp(wxWizardPage);
 class wxWizardPage : public wxPanel
 {
 public:
@@ -193,11 +200,14 @@ IMP_PYCALLBACK_VOID_WXWINBASE(wxPyWizardPage, wxWizardPage, RemoveChild);
 
 
 
+MustHaveApp(wxPyWizardPage);
+
 class wxPyWizardPage : public wxWizardPage {
 public:
 
     %pythonAppend wxPyWizardPage   "self._setCallbackInfo(self, PyWizardPage);self._setOORInfo(self)"
     %pythonAppend wxPyWizardPage() ""
+    %typemap(out) wxPyWizardPage*;    // turn off this typemap
     
     // ctor accepts an optional bitmap which will be used for this page instead
     // of the default one for this wizard (should be of the same size). Notice
@@ -215,6 +225,9 @@ public:
     }
 
     %name(PrePyWizardPage)wxPyWizardPage();
+
+    // Turn it back on again
+    %typemap(out) wxPyWizardPage* { $result = wxPyMake_wxObject($1, $owner); }
 
     %extend {
         bool Create(wxWizard *parent,
@@ -270,6 +283,7 @@ public:
 // OTOH, it is also possible to dynamicly decide which page to return (i.e.
 // depending on the user's choices) as the wizard sample shows - in order to do
 // this, you must derive from wxWizardPage directly.
+MustHaveApp(wxWizardPageSimple);
 class wxWizardPageSimple : public wxWizardPage
 {
 public:
@@ -301,6 +315,8 @@ public:
 
 
 //----------------------------------------------------------------------
+
+MustHaveApp(wxWizard);
 
 class  wxWizard : public wxDialog
 {

@@ -27,19 +27,27 @@ typedef wxString _wxArraywxBaseArrayStringBase;
 _WX_DECLARE_BASEARRAY_2(_wxArraywxBaseArrayStringBase, wxBaseArrayStringBase,
                         wxArray_SortFunction<wxString>,
                         class WXDLLIMPEXP_BASE);
-WX_DEFINE_USER_EXPORTED_TYPEARRAY(wxString, wxArrayStringBase, 
+WX_DEFINE_USER_EXPORTED_TYPEARRAY(wxString, wxArrayStringBase,
                                   wxBaseArrayStringBase, WXDLLIMPEXP_BASE);
-_WX_DEFINE_SORTED_TYPEARRAY_2(wxString, wxSortedArrayStringBase, 
+_WX_DEFINE_SORTED_TYPEARRAY_2(wxString, wxSortedArrayStringBase,
                               wxBaseArrayStringBase, = wxStringSortAscending,
                               class WXDLLIMPEXP_BASE, CMPFUNCwxString);
 
 class WXDLLIMPEXP_BASE wxArrayString : public wxArrayStringBase
 {
 public:
+    // type of function used by wxArrayString::Sort()
+    typedef int (wxCMPFUNC_CONV *CompareFunction)(const wxString& first,
+                                                  const wxString& second);
+
     wxArrayString() { }
     wxArrayString(const wxArrayString& a) : wxArrayStringBase(a) { }
 
     int Index(const wxChar* sz, bool bCase = true, bool bFromEnd = false) const;
+
+    void Sort(bool reverseOrder = false);
+    void Sort(CompareFunction function);
+    void Sort(CMPFUNCwxString function) { wxArrayStringBase::Sort(function); }
 };
 
 class WXDLLIMPEXP_BASE wxSortedArrayString : public wxSortedArrayStringBase

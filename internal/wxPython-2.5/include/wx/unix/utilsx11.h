@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     25.03.02
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -15,7 +15,7 @@
 #include "wx/defs.h"
 #include "wx/gdicmn.h"
 
-// NB: Content of this header is for wxWindows' private use! It is not
+// NB: Content of this header is for wxWidgets' private use! It is not
 //     part of public API and may be modified or even disappear in the future!
 
 #if defined(__WXMOTIF__) || defined(__WXGTK__) || defined(__WXX11__)

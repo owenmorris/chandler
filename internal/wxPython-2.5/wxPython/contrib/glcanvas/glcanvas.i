@@ -11,7 +11,11 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-%module glcanvas
+%define DOCSTRING
+"`GLCanvas` provides an OpenGL Context on a `wx.Window`."
+%enddef
+
+%module(package="wx", docstring=DOCSTRING) glcanvas
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -24,7 +28,8 @@
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 
 MAKE_CONST_WXSTRING2(GLCanvasNameStr, wxT("GLCanvas"));
@@ -38,6 +43,8 @@ MAKE_CONST_WXSTRING_NOSWIG(EmptyString);
 class wxPalette;
 
 //---------------------------------------------------------------------------
+
+MustHaveApp(wxGLContext);
 
 class wxGLContext : public wxObject {
 public:
@@ -113,6 +120,8 @@ enum {
 }
 
 
+
+MustHaveApp(wxGLCanvas);
 
 class wxGLCanvas : public wxWindow {
 public:

@@ -43,6 +43,7 @@ private:
 #define SWIG_TypeCast        SWIG_Python_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Python_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Python_TypeName
+#define SWIG_TypePrettyName  SWIG_Python_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Python_TypeQuery
 #define SWIG_TypeClientData  SWIG_Python_TypeClientData
 #define SWIG_PackData        SWIG_Python_PackData 
@@ -113,6 +114,7 @@ SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
 SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
 SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
+SWIGIMPORT(const char *)     SWIG_TypePrettyName(const swig_type_info *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
 SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
 SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
@@ -123,6 +125,7 @@ SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
 }
 #endif
 
+
 /***********************************************************************
  * pyrun.swg for wxPython
  *
@@ -132,8 +135,6 @@ SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
  * anyway.
  *
  ************************************************************************/
-
-#include "Python.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -204,6 +205,7 @@ SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_con
 #endif
 
 
+
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define  SWIGTYPE_p_wxGridCellAutoWrapStringRenderer swig_types[0] 
@@ -220,45 +222,46 @@ SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_con
 #define  SWIGTYPE_p_wxDC swig_types[11] 
 #define  SWIGTYPE_p_wxGridTableMessage swig_types[12] 
 #define  SWIGTYPE_p_wxGrid swig_types[13] 
-#define  SWIGTYPE_p_char swig_types[14] 
-#define  SWIGTYPE_p_wxPanel swig_types[15] 
-#define  SWIGTYPE_p_wxNotifyEvent swig_types[16] 
-#define  SWIGTYPE_p_wxGridRangeSelectEvent swig_types[17] 
-#define  SWIGTYPE_p_wxSize swig_types[18] 
-#define  SWIGTYPE_p_wxGridCellCoords swig_types[19] 
-#define  SWIGTYPE_p_wxScrolledWindow swig_types[20] 
-#define  SWIGTYPE_p_wxWindow swig_types[21] 
-#define  SWIGTYPE_p_wxFont swig_types[22] 
-#define  SWIGTYPE_p_wxControl swig_types[23] 
-#define  SWIGTYPE_p_wxEvent swig_types[24] 
-#define  SWIGTYPE_p_wxObject swig_types[25] 
-#define  SWIGTYPE_p_wxGridSizeEvent swig_types[26] 
-#define  SWIGTYPE_p_wxRect swig_types[27] 
-#define  SWIGTYPE_p_long swig_types[28] 
-#define  SWIGTYPE_p_wxString swig_types[29] 
-#define  SWIGTYPE_p_wxEvtHandler swig_types[30] 
-#define  SWIGTYPE_p_wxPoint swig_types[31] 
-#define  SWIGTYPE_p_wxGridEvent swig_types[32] 
-#define  SWIGTYPE_p_wxGridEditorCreatedEvent swig_types[33] 
-#define  SWIGTYPE_p_wxGridTableBase swig_types[34] 
-#define  SWIGTYPE_p_wxGridCellNumberEditor swig_types[35] 
-#define  SWIGTYPE_p_wxPyGridCellEditor swig_types[36] 
-#define  SWIGTYPE_p_wxGridCellEditor swig_types[37] 
-#define  SWIGTYPE_p_wxGridCellTextEditor swig_types[38] 
-#define  SWIGTYPE_p_wxGridCellFloatEditor swig_types[39] 
-#define  SWIGTYPE_p_wxGridCellBoolEditor swig_types[40] 
-#define  SWIGTYPE_p_wxPyGridTableBase swig_types[41] 
-#define  SWIGTYPE_p_wxGridStringTable swig_types[42] 
-#define  SWIGTYPE_p_wxArrayString swig_types[43] 
-#define  SWIGTYPE_p_wxCommandEvent swig_types[44] 
-#define  SWIGTYPE_p_wxGridCellAttrProvider swig_types[45] 
-#define  SWIGTYPE_p_wxKeyEvent swig_types[46] 
-#define  SWIGTYPE_p_wxGridCellChoiceEditor swig_types[47] 
-#define  SWIGTYPE_p_wxGridCellEnumEditor swig_types[48] 
-#define  SWIGTYPE_p_wxGridCellAutoWrapStringEditor swig_types[49] 
-#define  SWIGTYPE_p_int swig_types[50] 
-#define  SWIGTYPE_p_wxPyGridCellAttrProvider swig_types[51] 
-static swig_type_info *swig_types[53];
+#define  SWIGTYPE_p_wxVisualAttributes swig_types[14] 
+#define  SWIGTYPE_p_char swig_types[15] 
+#define  SWIGTYPE_p_wxPanel swig_types[16] 
+#define  SWIGTYPE_p_wxNotifyEvent swig_types[17] 
+#define  SWIGTYPE_p_wxGridRangeSelectEvent swig_types[18] 
+#define  SWIGTYPE_p_wxSize swig_types[19] 
+#define  SWIGTYPE_p_wxGridCellCoords swig_types[20] 
+#define  SWIGTYPE_p_wxScrolledWindow swig_types[21] 
+#define  SWIGTYPE_p_wxWindow swig_types[22] 
+#define  SWIGTYPE_p_wxFont swig_types[23] 
+#define  SWIGTYPE_p_wxControl swig_types[24] 
+#define  SWIGTYPE_p_wxEvent swig_types[25] 
+#define  SWIGTYPE_p_wxObject swig_types[26] 
+#define  SWIGTYPE_p_wxGridSizeEvent swig_types[27] 
+#define  SWIGTYPE_p_wxRect swig_types[28] 
+#define  SWIGTYPE_p_long swig_types[29] 
+#define  SWIGTYPE_p_wxString swig_types[30] 
+#define  SWIGTYPE_p_wxEvtHandler swig_types[31] 
+#define  SWIGTYPE_p_wxPoint swig_types[32] 
+#define  SWIGTYPE_p_wxGridEvent swig_types[33] 
+#define  SWIGTYPE_p_wxGridEditorCreatedEvent swig_types[34] 
+#define  SWIGTYPE_p_wxGridTableBase swig_types[35] 
+#define  SWIGTYPE_p_wxGridCellNumberEditor swig_types[36] 
+#define  SWIGTYPE_p_wxPyGridCellEditor swig_types[37] 
+#define  SWIGTYPE_p_wxGridCellEditor swig_types[38] 
+#define  SWIGTYPE_p_wxGridCellTextEditor swig_types[39] 
+#define  SWIGTYPE_p_wxGridCellFloatEditor swig_types[40] 
+#define  SWIGTYPE_p_wxGridCellBoolEditor swig_types[41] 
+#define  SWIGTYPE_p_wxPyGridTableBase swig_types[42] 
+#define  SWIGTYPE_p_wxGridStringTable swig_types[43] 
+#define  SWIGTYPE_p_wxArrayString swig_types[44] 
+#define  SWIGTYPE_p_wxCommandEvent swig_types[45] 
+#define  SWIGTYPE_p_wxGridCellAttrProvider swig_types[46] 
+#define  SWIGTYPE_p_wxKeyEvent swig_types[47] 
+#define  SWIGTYPE_p_wxGridCellChoiceEditor swig_types[48] 
+#define  SWIGTYPE_p_wxGridCellEnumEditor swig_types[49] 
+#define  SWIGTYPE_p_wxGridCellAutoWrapStringEditor swig_types[50] 
+#define  SWIGTYPE_p_int swig_types[51] 
+#define  SWIGTYPE_p_wxPyGridCellAttrProvider swig_types[52] 
+static swig_type_info *swig_types[54];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -270,47 +273,64 @@ static swig_type_info *swig_types[53];
 
 #define SWIG_name    "_grid"
 
-/* Auxiliar swig  macros */
+/* Auxiliar swig  macros that appear in the header */
+
+#define SWIG_OLDOBJ  1
+#define SWIG_NEWOBJ  SWIG_OLDOBJ + 1
+#define SWIG_PYSTR   SWIG_NEWOBJ + 1
 
 #ifdef __cplusplus
 #define SWIGSTATICINLINE(a) static inline a
 #define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) (new type[(size)])
+#define swig_new_array(size,Type) (new Type[(size)])
+#define swig_delete(cptr) delete cptr
 #define swig_delete_array(cptr) delete[] cptr
-#define swig_const_cast(type,a) const_cast<type>(a)
-#define swig_static_cast(type,a) static_cast<type>(a)
-#define swig_reinterpret_cast(type,a) reinterpret_cast<type>(a)
-
-#ifdef HAVE_NUMERIC_CAST
-#define swig_numeric_cast(type,a) numeric_cast<type>(a)
-#else
-#define swig_numeric_cast(type,a) static_cast<type>(a)
-#endif
+#define swig_const_cast(a,Type) const_cast<Type >(a)
+#define swig_static_cast(a,Type) static_cast<Type >(a)
+#define swig_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
+#define swig_new_copy(ptr,Type) (new Type(*ptr))
+#define swig_numeric_cast(a,Type) static_cast<Type >(a)
 
 #else /* C case */
 
 #define SWIGSTATICINLINE(a) static a
 #define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) ((type*) malloc((size)*sizeof(type)))
+#define swig_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define swig_delete(cptr) free((char*)cptr)
 #define swig_delete_array(cptr) free((char*)cptr)
-#define swig_const_cast(type,a) (type)(a)
-#define swig_static_cast(type,a) (type)(a)
-#define swig_reinterpret_cast(type,a) (type)(a)
-#define swig_numeric_cast(type,a) (type)(a)
+#define swig_const_cast(a,Type) (Type)(a)
+#define swig_static_cast(a,Type) (Type)(a)
+#define swig_reinterpret_cast(a,Type) (Type)(a)
+#define swig_numeric_cast(a,Type) (Type)(a)
+#define swig_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 
 #endif /* __cplusplus */
 
 
-#define SWIG_FromSignedChar     PyInt_FromLong
-#define SWIG_FromUnsignedChar   PyInt_FromLong
-#define SWIG_FromShort         PyInt_FromLong
-#define SWIG_FromUnsignedShort  PyInt_FromLong
-#define SWIG_FromInt           PyInt_FromLong
-#define SWIG_FromLong          PyInt_FromLong
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_signed_SS_char PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_unsigned_SS_char PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_short PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_unsigned_SS_short PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_int PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_long PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_float PyFloat_FromDouble
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_double PyFloat_FromDouble
+/*@@*/
 
 
 #include "wx/wxPython/wxPython.h"
@@ -327,7 +347,7 @@ static swig_type_info *swig_types[53];
 
 
 #define wxPyMake_TEMPLATE(TYPE) \
-PyObject* wxPyMake_##TYPE(TYPE* source) { \
+PyObject* wxPyMake_##TYPE(TYPE* source, bool setThisOwn) { \
     PyObject* target = NULL; \
     if (source) { \
         /* Check if there is already a pointer to a Python object in the \
@@ -335,12 +355,13 @@ PyObject* wxPyMake_##TYPE(TYPE* source) { \
         wxPyOORClientData* data = (wxPyOORClientData*)source->GetClientObject(); \
         if (data) { \
             target = data->m_obj; \
-            Py_INCREF(target); \
+            if (target) \
+                Py_INCREF(target); \
         } \
         /* Otherwise make a new wrapper for it the old fashioned way and \
            give it the OOR treatment */ \
         if (! target) { \
-            target = wxPyConstructObject(source, wxT(#TYPE), False); \
+            target = wxPyConstructObject(source, wxT(#TYPE), setThisOwn); \
             if (target) \
                 source->SetClientObject(new wxPyOORClientData(target)); \
         } \
@@ -390,7 +411,7 @@ wxPyMake_TEMPLATE(wxGridTableBase)
         bool blocked = wxPyBeginBlockThreads();                                                \
         bool found;                                                             \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxGridCellAttr(attr);                      \
+            PyObject* obj = wxPyMake_wxGridCellAttr(attr,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oii)", obj, a, b));  \
             Py_DECREF(obj);                                                     \
         }                                                                       \
@@ -409,7 +430,7 @@ wxPyMake_TEMPLATE(wxGridTableBase)
         bool blocked = wxPyBeginBlockThreads();                                                \
         bool found;                                                             \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxGridCellAttr(attr);                      \
+            PyObject* obj = wxPyMake_wxGridCellAttr(attr,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", obj, val));    \
             Py_DECREF(obj);                                                     \
         }                                                                       \
@@ -766,109 +787,181 @@ wxPyMake_TEMPLATE(wxGridTableBase)
 SWIGSTATICINLINE(PyObject *)
 SWIG_FromCharPtr(const char* cptr)
 { 
-  size_t size = cptr ? strlen(cptr) : 0;
   if (cptr) {
+    size_t size = strlen(cptr);
     if (size > INT_MAX) {
-      return SWIG_NewPointerObj(swig_const_cast(char*,cptr), 
+      return SWIG_NewPointerObj(swig_const_cast(cptr,char*), 
 				SWIG_TypeQuery("char *"), 0);
     } else {
-      return PyString_FromStringAndSize(cptr, swig_numeric_cast(int,size));
+      if (size != 0) {
+	return PyString_FromStringAndSize(cptr, size);
+      } else {
+	return PyString_FromString(cptr);
+      }
     }
-  } else {
-    Py_INCREF(Py_None);
-    return Py_None;
   }
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
+
+#define wxGRID_DEFAULT_NUMBER_ROWS        WXGRID_DEFAULT_NUMBER_ROWS
+#define wxGRID_DEFAULT_NUMBER_COLS        WXGRID_DEFAULT_NUMBER_COLS
+#define wxGRID_DEFAULT_ROW_HEIGHT         WXGRID_DEFAULT_ROW_HEIGHT
+#define wxGRID_DEFAULT_COL_WIDTH          WXGRID_DEFAULT_COL_WIDTH
+#define wxGRID_DEFAULT_COL_LABEL_HEIGHT   WXGRID_DEFAULT_COL_LABEL_HEIGHT
+#define wxGRID_DEFAULT_ROW_LABEL_WIDTH    WXGRID_DEFAULT_ROW_LABEL_WIDTH
+#define wxGRID_LABEL_EDGE_ZONE            WXGRID_LABEL_EDGE_ZONE
+#define wxGRID_MIN_ROW_HEIGHT             WXGRID_MIN_ROW_HEIGHT
+#define wxGRID_MIN_COL_WIDTH              WXGRID_MIN_COL_WIDTH
+#define wxGRID_DEFAULT_SCROLLBAR_WIDTH    WXGRID_DEFAULT_SCROLLBAR_WIDTH
+
 void wxGridCellRenderer__setOORInfo(wxGridCellRenderer *self,PyObject *_self){
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
 
 #include <limits.h>
 
 
-SWIGSTATICINLINE(long)
-SWIG_CheckLongInRange(long value, const char* type,
-		      long min_value, long max_value)
+SWIGSTATICINLINE(int)
+  SWIG_CheckLongInRange(long value, long min_value, long max_value,
+			const char *errmsg)
 {
-  if (!PyErr_Occurred()) {
-    if (value < min_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is less than '%s' minimum %ld", 
-			    value, type, min_value);
-      
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
-    } else if (value > max_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is greater than '%s' maximum %ld", 
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
+  if (value < min_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError, 
+		   "value %ld is less than '%s' minimum %ld", 
+		   value, errmsg, min_value);
     }
+    return 0;    
+  } else if (value > max_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError,
+		   "value %ld is greater than '%s' maximum %ld", 
+		   value, errmsg, max_value);
+    }
+    return 0;
   }
-  return value;
+  return 1;
 }
 
 
-SWIGSTATICINLINE(long)
-SWIG_AsLong(PyObject * obj)
+// See my_fragments.i
+SWIGSTATICINLINE(int)
+SWIG_AsVal_long(PyObject* obj, long* val)
 {
-    if (PyNumber_Check(obj))
-        return PyInt_AsLong(obj);
+    if (PyNumber_Check(obj)) {
+        if (val) *val = PyInt_AsLong(obj);
+        return 1;
+    }
     else {
         PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
                                                obj->ob_type->tp_name);
         PyErr_SetObject(PyExc_TypeError, errmsg);
         Py_DECREF(errmsg);
-        return 0;
     }
+    return 0;
 }
 
 
 #if INT_MAX != LONG_MAX
 SWIGSTATICINLINE(int)
-SWIG_AsInt(PyObject *obj)
+  SWIG_AsVal_int(PyObject *obj, int *val)
 { 
-  return swig_numeric_cast(int,
-    SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			  "int", INT_MIN, INT_MAX));
+  const char* errmsg = val ? "int" : 0;
+  long v;
+  if (SWIG_AsVal_long(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, INT_MIN,INT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, int);
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "an int is expected");
+  }
+  return 0;    
 }
 #else
-#define SWIG_AsInt SWIG_AsLong
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_int(PyObject *obj, int *val)
+{
+  return SWIG_AsVal_long(obj,(long*)val);
+}
 #endif
 
 
+SWIGSTATICINLINE(int)
+SWIG_As_int(PyObject* obj)
+{
+  int v;
+  if (!SWIG_AsVal_int(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(int));
+  }
+  return v;
+}
+
+
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_bool(PyObject *obj, bool *val)
+{
+  /*  if (val) *val = PyObject_IsTrue(obj); return 1; */
+  if (obj == Py_True) {
+    if (val) *val = true;
+    return 1;
+  }
+  if (obj == Py_False) {
+    if (val) *val = false;
+    return 1;
+  }
+  int res = 0;
+  if (SWIG_AsVal_int(obj, &res)) {    
+    if (val) *val = (bool)res;
+    return 1;
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a bool is expected");
+  }
+  return 0;
+}
+
+
 SWIGSTATICINLINE(bool)
-SWIG_AsBool(PyObject *obj)
+SWIG_As_bool(PyObject* obj)
 {
-  return PyObject_IsTrue(obj) ? true : false;
+  bool v;
+  if (!SWIG_AsVal_bool(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(bool));
+  }
+  return v;
 }
 
-
+  
 SWIGSTATICINLINE(int)
-SWIG_CheckInt(PyObject* obj)
+SWIG_Check_int(PyObject* obj)
 {
-  SWIG_AsInt(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
-  }
+  return SWIG_AsVal_int(obj, (int*)0);
 }
 
-
+  
 SWIGSTATICINLINE(int)
-SWIG_CheckBool(PyObject* obj)
+SWIG_Check_bool(PyObject* obj)
 {
-  SWIG_AsBool(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
-  }
+  return SWIG_AsVal_bool(obj, (bool*)0);
 }
 
 
@@ -883,9 +976,9 @@ public:
               int row, int col, bool isSelected) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "Draw")) {
-            PyObject* go = wxPyMake_wxObject(&grid);
-            PyObject* dco = wxPyMake_wxObject(&dc);
-            PyObject* ao = wxPyMake_wxGridCellAttr(&attr);
+            PyObject* go = wxPyMake_wxObject(&grid,false);
+            PyObject* dco = wxPyMake_wxObject(&dc,false);
+            PyObject* ao = wxPyMake_wxGridCellAttr(&attr,false);
             PyObject* ro = wxPyConstructObject((void*)&rect, wxT("wxRect"), 0);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OOOOiii)", go, ao, dco, ro,
@@ -905,9 +998,9 @@ public:
         if (wxPyCBH_findCallback(m_myInst, "GetBestSize")) {
             PyObject* ro;
             wxSize*   ptr;
-            PyObject* go = wxPyMake_wxObject(&grid);
-            PyObject* dco = wxPyMake_wxObject(&dc);
-            PyObject* ao = wxPyMake_wxGridCellAttr(&attr);
+            PyObject* go = wxPyMake_wxObject(&grid,false);
+            PyObject* dco = wxPyMake_wxObject(&dc,false);
+            PyObject* ao = wxPyMake_wxGridCellAttr(&attr,false);
 
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OOOii)",
                                                                  go, ao, dco,
@@ -968,7 +1061,8 @@ IMP_PYCALLBACK__STRING( wxPyGridCellRenderer, wxGridCellRenderer, SetParameters)
 
 
 void wxGridCellEditor__setOORInfo(wxGridCellEditor *self,PyObject *_self){
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
 
 class wxPyGridCellEditor : public wxGridCellEditor
@@ -979,8 +1073,8 @@ public:
     void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "Create")) {
-            PyObject* po = wxPyMake_wxObject(parent);
-            PyObject* eo = wxPyMake_wxObject(evtHandler);
+            PyObject* po = wxPyMake_wxObject(parent,false);
+            PyObject* eo = wxPyMake_wxObject(evtHandler,false);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OiO)", po, id, eo));
             Py_DECREF(po);
@@ -993,7 +1087,7 @@ public:
     void BeginEdit(int row, int col, wxGrid* grid) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "BeginEdit")) {
-            PyObject* go = wxPyMake_wxObject(grid);
+            PyObject* go = wxPyMake_wxObject(grid,false);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)", row, col, go));
             Py_DECREF(go);
         }
@@ -1005,7 +1099,7 @@ public:
         bool rv = False;
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "EndEdit")) {
-            PyObject* go = wxPyMake_wxObject(grid);
+            PyObject* go = wxPyMake_wxObject(grid,false);
             rv = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)", row, col, go));
             Py_DECREF(go);
         }
@@ -1036,7 +1130,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "Show"))) {
-            PyObject* ao = wxPyMake_wxGridCellAttr(attr);
+            PyObject* ao = wxPyMake_wxGridCellAttr(attr,false);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iO)", show, ao));
             Py_DECREF(ao);
         }
@@ -1053,7 +1147,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "PaintBackground)"))) {
-            PyObject* ao = wxPyMake_wxGridCellAttr(attr);
+            PyObject* ao = wxPyMake_wxGridCellAttr(attr,false);
             PyObject* ro = wxPyConstructObject((void*)&rectCell, wxT("wxRect"), 0);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", ro, ao));
@@ -1096,24 +1190,25 @@ IMP_PYCALLBACK_STRING__constpure(wxPyGridCellEditor, wxGridCellEditor, GetValue)
 
 
 void wxGridCellAttr__setOORInfo(wxGridCellAttr *self,PyObject *_self){
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
 
-static PyObject* t_output_helper(PyObject* target, PyObject* o) {
+  static PyObject* t_output_helper(PyObject* target, PyObject* o) {
     PyObject*   o2;
     PyObject*   o3;
-
+    
     if (!target) {                   
         target = o;
     } else if (target == Py_None) {  
         Py_DECREF(Py_None);
         target = o;
-    } else {                         
+    } else {
         if (!PyTuple_Check(target)) {
             o2 = target;
             target = PyTuple_New(1);
             PyTuple_SetItem(target, 0, o2);
-        }
+        }            
         o3 = PyTuple_New(1);            
         PyTuple_SetItem(o3, 0, o);      
 
@@ -1123,37 +1218,49 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
         Py_DECREF(o3);
     }
     return target;
-}
+  }
+
 
 void wxGridCellAttrProvider__setOORInfo(wxGridCellAttrProvider *self,PyObject *_self){
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
 
-SWIGSTATICINLINE(unsigned long)
-SWIG_AsUnsignedLong(PyObject * obj) 
+// See my_fragments.i
+SWIGSTATICINLINE(int)
+SWIG_AsVal_unsigned_SS_long(PyObject* obj, unsigned long* val)
 {
-  if (PyLong_Check(obj)) {
-    return PyLong_AsUnsignedLong(obj);
-  } else {
-    long i = SWIG_AsLong(obj);
-    if ( !PyErr_Occurred() && (i < 0)) {
-      PyErr_SetString(PyExc_TypeError, "negative value received for unsigned type");
+    long v = 0;
+    if (SWIG_AsVal_long(obj, &v) && v < 0) {
+        PyErr_SetString(PyExc_TypeError, "negative value received for unsigned type");
+        return 0;
     }
-    return i;
-  }
+    else if (val)
+        *val = (unsigned long)v;
+    return 1;
 }
 
 
-SWIGSTATICINLINE(int)
-SWIG_CheckUnsignedLong(PyObject* obj)
+SWIGSTATICINLINE(unsigned long)
+SWIG_As_unsigned_SS_long(PyObject* obj)
 {
-  SWIG_AsUnsignedLong(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  unsigned long v;
+  if (!SWIG_AsVal_unsigned_SS_long(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(unsigned long));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_unsigned_SS_long(PyObject* obj)
+{
+  return SWIG_AsVal_unsigned_SS_long(obj, (unsigned long*)0);
 }
 
 
@@ -1171,47 +1278,71 @@ public:
 };
 
 void wxGridTableBase__setOORInfo(wxGridTableBase *self,PyObject *_self){
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
 
-SWIGSTATICINLINE(int)
-SWIG_CheckLong(PyObject* obj)
+SWIGSTATICINLINE(long)
+SWIG_As_long(PyObject* obj)
 {
-  SWIG_AsLong(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  long v;
+  if (!SWIG_AsVal_long(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(long));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_long(PyObject* obj)
+{
+  return SWIG_AsVal_long(obj, (long*)0);
 }
 
 
-SWIGSTATICINLINE(double)
-SWIG_AsDouble(PyObject *obj)
+// See my_fragments.i
+SWIGSTATICINLINE(int)
+SWIG_AsVal_double(PyObject *obj, double* val)
 {
-    if (PyNumber_Check(obj))
-        return PyFloat_AsDouble(obj);
+    if (PyNumber_Check(obj)) {
+        if (val) *val = PyFloat_AsDouble(obj);
+        return 1;
+    }
     else {
         PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
                                                obj->ob_type->tp_name);
         PyErr_SetObject(PyExc_TypeError, errmsg);
         Py_DECREF(errmsg);
-        return 0;
     }
+    return 0;
 }
 
 
-SWIGSTATICINLINE(int)
-SWIG_CheckDouble(PyObject* obj)
+SWIGSTATICINLINE(double)
+SWIG_As_double(PyObject* obj)
 {
-  SWIG_AsDouble(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  double v;
+  if (!SWIG_AsVal_double(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(double));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_double(PyObject* obj)
+{
+  return SWIG_AsVal_double(obj, (double*)0);
 }
 
 
@@ -1251,6 +1382,11 @@ public:
             PyObject* ro;
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(ii)",row,col));
             if (ro) {
+                if (!PyString_Check(ro) && !PyUnicode_Check(ro)) {
+                    PyObject* old = ro;
+                    ro = PyObject_Str(ro);
+                    Py_DECREF(old);
+                }
                 rval = Py2wxString(ro);
                 Py_DECREF(ro);
             }
@@ -1380,7 +1516,7 @@ bool wxGridCellCoords_helper(PyObject* source, wxGridCellCoords** obj) {
 
 bool wxGridCellCoords_typecheck(PyObject* source) {
     void* ptr;
-    
+
     if (wxPySwigInstance_Check(source) &&
         wxPyConvertSwigPtr(source, (void **)&ptr, wxT("wxGridCellCoords")))
         return True;
@@ -1388,7 +1524,7 @@ bool wxGridCellCoords_typecheck(PyObject* source) {
     PyErr_Clear();
     if (PySequence_Check(source) && PySequence_Length(source) == 2)
         return True;
-    
+
     return False;
 }
 
@@ -1408,7 +1544,7 @@ PyObject* wxGridCellCoordsArray_helper(const wxGridCellCoordsArray& source)
     return list;
 }
 
-PyObject *wxGridCellCoords_asTuple(wxGridCellCoords *self){
+PyObject *wxGridCellCoords_Get(wxGridCellCoords *self){
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->GetRow()));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->GetCol()));
@@ -1416,6 +1552,7 @@ PyObject *wxGridCellCoords_asTuple(wxGridCellCoords *self){
         }
 
 typedef wxGrid::wxGridSelectionModes WXGRIDSELECTIONMODES;
+
 
 wxGridCellCoords wxGrid_XYToCell(wxGrid *self,int x,int y){
             wxGridCellCoords rv;
@@ -1643,11 +1780,11 @@ static PyObject *_wrap_GridCellRenderer_Draw(PyObject *, PyObject *args, PyObjec
         arg5 = &temp5;
         if ( ! wxRect_helper(obj4, &arg5)) SWIG_fail;
     }
-    arg6 = (int) SWIG_AsInt(obj5); 
+    arg6 = (int)SWIG_As_int(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg7 = (int) SWIG_AsInt(obj6); 
+    arg7 = (int)SWIG_As_int(obj6); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg8 = (bool) SWIG_AsBool(obj7); 
+    arg8 = (bool)SWIG_As_bool(obj7); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1706,9 +1843,9 @@ static PyObject *_wrap_GridCellRenderer_GetBestSize(PyObject *, PyObject *args, 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (int) SWIG_AsInt(obj5); 
+    arg6 = (int)SWIG_As_int(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1748,7 +1885,7 @@ static PyObject *_wrap_GridCellRenderer_Clone(PyObject *, PyObject *args, PyObje
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     return resultobj;
     fail:
@@ -1935,11 +2072,11 @@ static PyObject *_wrap_new_GridCellFloatRenderer(PyObject *, PyObject *args, PyO
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_GridCellFloatRenderer",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -1975,7 +2112,7 @@ static PyObject *_wrap_GridCellFloatRenderer_GetWidth(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -1995,7 +2132,7 @@ static PyObject *_wrap_GridCellFloatRenderer_SetWidth(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridCellFloatRenderer_SetWidth",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellFloatRenderer,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -2030,7 +2167,7 @@ static PyObject *_wrap_GridCellFloatRenderer_GetPrecision(PyObject *, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -2050,7 +2187,7 @@ static PyObject *_wrap_GridCellFloatRenderer_SetPrecision(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridCellFloatRenderer_SetPrecision",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellFloatRenderer,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -2304,7 +2441,7 @@ static PyObject *_wrap_GridCellEditor_GetControl(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -2361,7 +2498,7 @@ static PyObject *_wrap_GridCellEditor_GetCellAttr(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -2508,7 +2645,7 @@ static PyObject *_wrap_GridCellEditor_Create(PyObject *, PyObject *args, PyObjec
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxWindow,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -2543,9 +2680,9 @@ static PyObject *_wrap_GridCellEditor_BeginEdit(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridCellEditor_BeginEdit",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellEditor,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -2581,9 +2718,9 @@ static PyObject *_wrap_GridCellEditor_EndEdit(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridCellEditor_EndEdit",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellEditor,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -2648,7 +2785,7 @@ static PyObject *_wrap_GridCellEditor_Clone(PyObject *, PyObject *args, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     return resultobj;
     fail:
@@ -2703,7 +2840,7 @@ static PyObject *_wrap_GridCellEditor_Show(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:GridCellEditor_Show",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellEditor,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
         if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGridCellAttr,
@@ -3021,7 +3158,7 @@ static PyObject *_wrap_PyGridCellEditor_base_Show(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PyGridCellEditor_base_Show",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridCellEditor,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
         if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGridCellAttr,
@@ -3354,11 +3491,11 @@ static PyObject *_wrap_new_GridCellNumberEditor(PyObject *, PyObject *args, PyOb
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_GridCellNumberEditor",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3416,15 +3553,27 @@ static PyObject * GridCellNumberEditor_swigregister(PyObject *, PyObject *args) 
 }
 static PyObject *_wrap_new_GridCellFloatEditor(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
+    int arg1 = (int) -1 ;
+    int arg2 = (int) -1 ;
     wxGridCellFloatEditor *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
     char *kwnames[] = {
-        NULL 
+        (char *) "width",(char *) "precision", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)":new_GridCellFloatEditor",kwnames)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_GridCellFloatEditor",kwnames,&obj0,&obj1)) goto fail;
+    if (obj0) {
+        arg1 = (int)SWIG_As_int(obj0); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    if (obj1) {
+        arg2 = (int)SWIG_As_int(obj1); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (wxGridCellFloatEditor *)new wxGridCellFloatEditor();
+        result = (wxGridCellFloatEditor *)new wxGridCellFloatEditor(arg1,arg2);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -3557,7 +3706,7 @@ static PyObject *_wrap_new_GridCellChoiceEditor(PyObject *, PyObject *args, PyOb
         }
     }
     if (obj1) {
-        arg3 = (bool) SWIG_AsBool(obj1); 
+        arg3 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3810,7 +3959,7 @@ static PyObject *_wrap_new_GridCellAttr(PyObject *, PyObject *args, PyObject *kw
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 1); 
     }
     return resultobj;
     fail:
@@ -3838,7 +3987,7 @@ static PyObject *_wrap_GridCellAttr_Clone(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -4038,9 +4187,9 @@ static PyObject *_wrap_GridCellAttr_SetAlignment(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridCellAttr_SetAlignment",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4071,9 +4220,9 @@ static PyObject *_wrap_GridCellAttr_SetSize(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridCellAttr_SetSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4103,7 +4252,7 @@ static PyObject *_wrap_GridCellAttr_SetOverflow(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4134,7 +4283,7 @@ static PyObject *_wrap_GridCellAttr_SetReadOnly(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4222,7 +4371,7 @@ static PyObject *_wrap_GridCellAttr_SetKind(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridCellAttr_SetKind",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (wxGridCellAttr::wxAttrKind) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4558,14 +4707,16 @@ static PyObject *_wrap_GridCellAttr_GetAlignment(PyObject *, PyObject *args, PyO
     int *arg2 = (int *) 0 ;
     int *arg3 = (int *) 0 ;
     int temp2 ;
+    int res2 = 0 ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:GridCellAttr_GetAlignment",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -4577,14 +4728,10 @@ static PyObject *_wrap_GridCellAttr_GetAlignment(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -4597,14 +4744,16 @@ static PyObject *_wrap_GridCellAttr_GetSize(PyObject *, PyObject *args, PyObject
     int *arg2 = (int *) 0 ;
     int *arg3 = (int *) 0 ;
     int temp2 ;
+    int res2 = 0 ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:GridCellAttr_GetSize",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -4616,14 +4765,10 @@ static PyObject *_wrap_GridCellAttr_GetSize(PyObject *, PyObject *args, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -4678,9 +4823,9 @@ static PyObject *_wrap_GridCellAttr_GetRenderer(PyObject *, PyObject *args, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4690,7 +4835,7 @@ static PyObject *_wrap_GridCellAttr_GetRenderer(PyObject *, PyObject *args, PyOb
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     return resultobj;
     fail:
@@ -4718,9 +4863,9 @@ static PyObject *_wrap_GridCellAttr_GetEditor(PyObject *, PyObject *args, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4730,7 +4875,7 @@ static PyObject *_wrap_GridCellAttr_GetEditor(PyObject *, PyObject *args, PyObje
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     return resultobj;
     fail:
@@ -4760,6 +4905,32 @@ static PyObject *_wrap_GridCellAttr_IsReadOnly(PyObject *, PyObject *args, PyObj
     {
         resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
     }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_GridCellAttr_GetKind(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGridCellAttr *arg1 = (wxGridCellAttr *) 0 ;
+    int result;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "self", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:GridCellAttr_GetKind",kwnames,&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttr,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (int)(arg1)->GetKind();
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -4818,7 +4989,7 @@ static PyObject *_wrap_new_GridCellAttrProvider(PyObject *, PyObject *args, PyOb
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttrProvider(result); 
+        resultobj = wxPyMake_wxGridCellAttrProvider(result, 1); 
     }
     return resultobj;
     fail:
@@ -4872,11 +5043,11 @@ static PyObject *_wrap_GridCellAttrProvider_GetAttr(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridCellAttrProvider_GetAttr",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttrProvider,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (wxGridCellAttr::wxAttrKind) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4886,7 +5057,7 @@ static PyObject *_wrap_GridCellAttrProvider_GetAttr(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -4913,9 +5084,9 @@ static PyObject *_wrap_GridCellAttrProvider_SetAttr(PyObject *, PyObject *args, 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4948,7 +5119,7 @@ static PyObject *_wrap_GridCellAttrProvider_SetRowAttr(PyObject *, PyObject *arg
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4981,7 +5152,7 @@ static PyObject *_wrap_GridCellAttrProvider_SetColAttr(PyObject *, PyObject *arg
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5012,9 +5183,9 @@ static PyObject *_wrap_GridCellAttrProvider_UpdateAttrRows(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridCellAttrProvider_UpdateAttrRows",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttrProvider,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+    arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5045,9 +5216,9 @@ static PyObject *_wrap_GridCellAttrProvider_UpdateAttrCols(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridCellAttrProvider_UpdateAttrCols",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellAttrProvider,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+    arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5141,11 +5312,11 @@ static PyObject *_wrap_PyGridCellAttrProvider_base_GetAttr(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyGridCellAttrProvider_base_GetAttr",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridCellAttrProvider,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (wxGridCellAttr::wxAttrKind) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5155,7 +5326,7 @@ static PyObject *_wrap_PyGridCellAttrProvider_base_GetAttr(PyObject *, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -5182,9 +5353,9 @@ static PyObject *_wrap_PyGridCellAttrProvider_base_SetAttr(PyObject *, PyObject 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5217,7 +5388,7 @@ static PyObject *_wrap_PyGridCellAttrProvider_base_SetRowAttr(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5250,7 +5421,7 @@ static PyObject *_wrap_PyGridCellAttrProvider_base_SetColAttr(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5350,7 +5521,7 @@ static PyObject *_wrap_GridTableBase_GetAttrProvider(PyObject *, PyObject *args,
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttrProvider(result); 
+        resultobj = wxPyMake_wxGridCellAttrProvider(result, 0); 
     }
     return resultobj;
     fail:
@@ -5407,7 +5578,7 @@ static PyObject *_wrap_GridTableBase_GetView(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -5434,7 +5605,7 @@ static PyObject *_wrap_GridTableBase_GetNumberRows(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -5460,7 +5631,7 @@ static PyObject *_wrap_GridTableBase_GetNumberCols(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -5483,9 +5654,9 @@ static PyObject *_wrap_GridTableBase_IsEmptyCell(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_IsEmptyCell",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5519,9 +5690,9 @@ static PyObject *_wrap_GridTableBase_GetValue(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_GetValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5561,9 +5732,9 @@ static PyObject *_wrap_GridTableBase_SetValue(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_SetValue",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -5608,9 +5779,9 @@ static PyObject *_wrap_GridTableBase_GetTypeName(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_GetTypeName",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5651,9 +5822,9 @@ static PyObject *_wrap_GridTableBase_CanGetValueAs(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_CanGetValueAs",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -5703,9 +5874,9 @@ static PyObject *_wrap_GridTableBase_CanSetValueAs(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_CanSetValueAs",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -5752,9 +5923,9 @@ static PyObject *_wrap_GridTableBase_GetValueAsLong(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_GetValueAsLong",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5763,7 +5934,7 @@ static PyObject *_wrap_GridTableBase_GetValueAsLong(PyObject *, PyObject *args, 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromLong((long)result);
+    resultobj = SWIG_From_long((long)result);
     return resultobj;
     fail:
     return NULL;
@@ -5786,9 +5957,9 @@ static PyObject *_wrap_GridTableBase_GetValueAsDouble(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_GetValueAsDouble",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5797,7 +5968,7 @@ static PyObject *_wrap_GridTableBase_GetValueAsDouble(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -5820,9 +5991,9 @@ static PyObject *_wrap_GridTableBase_GetValueAsBool(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_GetValueAsBool",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5857,11 +6028,11 @@ static PyObject *_wrap_GridTableBase_SetValueAsLong(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_SetValueAsLong",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (long) SWIG_AsLong(obj3); 
+    arg4 = (long)SWIG_As_long(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5894,11 +6065,11 @@ static PyObject *_wrap_GridTableBase_SetValueAsDouble(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_SetValueAsDouble",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5931,11 +6102,11 @@ static PyObject *_wrap_GridTableBase_SetValueAsBool(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_SetValueAsBool",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (bool) SWIG_AsBool(obj3); 
+    arg4 = (bool)SWIG_As_bool(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5993,11 +6164,11 @@ static PyObject *_wrap_GridTableBase_InsertRows(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6031,7 +6202,7 @@ static PyObject *_wrap_GridTableBase_AppendRows(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6067,11 +6238,11 @@ static PyObject *_wrap_GridTableBase_DeleteRows(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6107,11 +6278,11 @@ static PyObject *_wrap_GridTableBase_InsertCols(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6145,7 +6316,7 @@ static PyObject *_wrap_GridTableBase_AppendCols(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6181,11 +6352,11 @@ static PyObject *_wrap_GridTableBase_DeleteCols(PyObject *, PyObject *args, PyOb
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6218,7 +6389,7 @@ static PyObject *_wrap_GridTableBase_GetRowLabelValue(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridTableBase_GetRowLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6254,7 +6425,7 @@ static PyObject *_wrap_GridTableBase_GetColLabelValue(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridTableBase_GetColLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6292,7 +6463,7 @@ static PyObject *_wrap_GridTableBase_SetRowLabelValue(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_SetRowLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -6337,7 +6508,7 @@ static PyObject *_wrap_GridTableBase_SetColLabelValue(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridTableBase_SetColLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -6412,11 +6583,11 @@ static PyObject *_wrap_GridTableBase_GetAttr(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:GridTableBase_GetAttr",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (wxGridCellAttr::wxAttrKind) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6426,7 +6597,7 @@ static PyObject *_wrap_GridTableBase_GetAttr(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -6453,9 +6624,9 @@ static PyObject *_wrap_GridTableBase_SetAttr(PyObject *, PyObject *args, PyObjec
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6488,7 +6659,7 @@ static PyObject *_wrap_GridTableBase_SetRowAttr(PyObject *, PyObject *args, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6521,7 +6692,7 @@ static PyObject *_wrap_GridTableBase_SetColAttr(PyObject *, PyObject *args, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6638,9 +6809,9 @@ static PyObject *_wrap_PyGridTableBase_base_GetTypeName(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyGridTableBase_base_GetTypeName",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6681,9 +6852,9 @@ static PyObject *_wrap_PyGridTableBase_base_CanGetValueAs(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyGridTableBase_base_CanGetValueAs",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -6733,9 +6904,9 @@ static PyObject *_wrap_PyGridTableBase_base_CanSetValueAs(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyGridTableBase_base_CanSetValueAs",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -6808,11 +6979,11 @@ static PyObject *_wrap_PyGridTableBase_base_InsertRows(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6846,7 +7017,7 @@ static PyObject *_wrap_PyGridTableBase_base_AppendRows(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6882,11 +7053,11 @@ static PyObject *_wrap_PyGridTableBase_base_DeleteRows(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6922,11 +7093,11 @@ static PyObject *_wrap_PyGridTableBase_base_InsertCols(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6960,7 +7131,7 @@ static PyObject *_wrap_PyGridTableBase_base_AppendCols(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6996,11 +7167,11 @@ static PyObject *_wrap_PyGridTableBase_base_DeleteCols(PyObject *, PyObject *arg
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (size_t) SWIG_AsUnsignedLong(obj1); 
+        arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (size_t) SWIG_AsUnsignedLong(obj2); 
+        arg3 = (size_t)SWIG_As_unsigned_SS_long(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7033,7 +7204,7 @@ static PyObject *_wrap_PyGridTableBase_base_GetRowLabelValue(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyGridTableBase_base_GetRowLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7069,7 +7240,7 @@ static PyObject *_wrap_PyGridTableBase_base_GetColLabelValue(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyGridTableBase_base_GetColLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7107,7 +7278,7 @@ static PyObject *_wrap_PyGridTableBase_base_SetRowLabelValue(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyGridTableBase_base_SetRowLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -7152,7 +7323,7 @@ static PyObject *_wrap_PyGridTableBase_base_SetColLabelValue(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyGridTableBase_base_SetColLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -7227,11 +7398,11 @@ static PyObject *_wrap_PyGridTableBase_base_GetAttr(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyGridTableBase_base_GetAttr",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (wxGridCellAttr::wxAttrKind) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7241,7 +7412,7 @@ static PyObject *_wrap_PyGridTableBase_base_GetAttr(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellAttr(result); 
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
     }
     return resultobj;
     fail:
@@ -7268,9 +7439,9 @@ static PyObject *_wrap_PyGridTableBase_base_SetAttr(PyObject *, PyObject *args, 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7303,7 +7474,7 @@ static PyObject *_wrap_PyGridTableBase_base_SetRowAttr(PyObject *, PyObject *arg
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7336,7 +7507,7 @@ static PyObject *_wrap_PyGridTableBase_base_SetColAttr(PyObject *, PyObject *arg
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7372,11 +7543,11 @@ static PyObject *_wrap_new_GridStringTable(PyObject *, PyObject *args, PyObject 
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_GridStringTable",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7418,14 +7589,14 @@ static PyObject *_wrap_new_GridTableMessage(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OO:new_GridTableMessage",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7516,7 +7687,7 @@ static PyObject *_wrap_GridTableMessage_GetTableObject(PyObject *, PyObject *arg
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridTableBase(result); 
+        resultobj = wxPyMake_wxGridTableBase(result, 0); 
     }
     return resultobj;
     fail:
@@ -7537,7 +7708,7 @@ static PyObject *_wrap_GridTableMessage_SetId(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridTableMessage_SetId",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableMessage,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7572,7 +7743,7 @@ static PyObject *_wrap_GridTableMessage_GetId(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7592,7 +7763,7 @@ static PyObject *_wrap_GridTableMessage_SetCommandInt(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridTableMessage_SetCommandInt",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableMessage,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7627,7 +7798,7 @@ static PyObject *_wrap_GridTableMessage_GetCommandInt(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7647,7 +7818,7 @@ static PyObject *_wrap_GridTableMessage_SetCommandInt2(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridTableMessage_SetCommandInt2",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridTableMessage,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7682,7 +7853,7 @@ static PyObject *_wrap_GridTableMessage_GetCommandInt2(PyObject *, PyObject *arg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7709,11 +7880,11 @@ static PyObject *_wrap_new_GridCellCoords(PyObject *, PyObject *args, PyObject *
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_GridCellCoords",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7774,7 +7945,7 @@ static PyObject *_wrap_GridCellCoords_GetRow(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7794,7 +7965,7 @@ static PyObject *_wrap_GridCellCoords_SetRow(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridCellCoords_SetRow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellCoords,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7829,7 +8000,7 @@ static PyObject *_wrap_GridCellCoords_GetCol(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7849,7 +8020,7 @@ static PyObject *_wrap_GridCellCoords_SetCol(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridCellCoords_SetCol",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellCoords,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7880,9 +8051,9 @@ static PyObject *_wrap_GridCellCoords_Set(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:GridCellCoords_Set",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellCoords,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7968,7 +8139,7 @@ static PyObject *_wrap_GridCellCoords___ne__(PyObject *, PyObject *args, PyObjec
 }
 
 
-static PyObject *_wrap_GridCellCoords_asTuple(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_GridCellCoords_Get(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxGridCellCoords *arg1 = (wxGridCellCoords *) 0 ;
     PyObject *result;
@@ -7977,12 +8148,12 @@ static PyObject *_wrap_GridCellCoords_asTuple(PyObject *, PyObject *args, PyObje
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:GridCellCoords_asTuple",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:GridCellCoords_Get",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridCellCoords,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (PyObject *)wxGridCellCoords_asTuple(arg1);
+        result = (PyObject *)wxGridCellCoords_Get(arg1);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -8004,7 +8175,7 @@ static PyObject * GridCellCoords_swigregister(PyObject *, PyObject *args) {
 static PyObject *_wrap_new_Grid(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxWindow *arg1 = (wxWindow *) 0 ;
-    int arg2 ;
+    int arg2 = (int) -1 ;
     wxPoint const &arg3_defvalue = wxDefaultPosition ;
     wxPoint *arg3 = (wxPoint *) &arg3_defvalue ;
     wxSize const &arg4_defvalue = wxDefaultSize ;
@@ -8026,11 +8197,13 @@ static PyObject *_wrap_new_Grid(PyObject *, PyObject *args, PyObject *kwargs) {
         (char *) "parent",(char *) "id",(char *) "pos",(char *) "size",(char *) "style",(char *) "name", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OOOO:new_Grid",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|OOOOO:new_Grid",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxWindow,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
+    if (obj1) {
+        arg2 = (int)SWIG_As_int(obj1); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
     if (obj2) {
         {
             arg3 = &temp3;
@@ -8044,7 +8217,7 @@ static PyObject *_wrap_new_Grid(PyObject *, PyObject *args, PyObject *kwargs) {
         }
     }
     if (obj4) {
-        arg5 = (long) SWIG_AsLong(obj4); 
+        arg5 = (long)SWIG_As_long(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
@@ -8055,15 +8228,14 @@ static PyObject *_wrap_new_Grid(PyObject *, PyObject *args, PyObject *kwargs) {
         }
     }
     {
+        if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         result = (wxGrid *)new wxGrid(arg1,arg2,(wxPoint const &)*arg3,(wxSize const &)*arg4,arg5,(wxString const &)*arg6);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = wxPyMake_wxObject(result); 
-    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxGrid, 1);
     {
         if (temp6)
         delete arg6;
@@ -8073,6 +8245,112 @@ static PyObject *_wrap_new_Grid(PyObject *, PyObject *args, PyObject *kwargs) {
     {
         if (temp6)
         delete arg6;
+    }
+    return NULL;
+}
+
+
+static PyObject *_wrap_new_PreGrid(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *result;
+    char *kwnames[] = {
+        NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)":new_PreGrid",kwnames)) goto fail;
+    {
+        if (!wxPyCheckForApp()) SWIG_fail;
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (wxGrid *)new wxGrid();
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxGrid, 1);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Grid_Create(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *arg1 = (wxGrid *) 0 ;
+    wxWindow *arg2 = (wxWindow *) 0 ;
+    int arg3 = (int) -1 ;
+    wxPoint const &arg4_defvalue = wxDefaultPosition ;
+    wxPoint *arg4 = (wxPoint *) &arg4_defvalue ;
+    wxSize const &arg5_defvalue = wxDefaultSize ;
+    wxSize *arg5 = (wxSize *) &arg5_defvalue ;
+    long arg6 = (long) wxWANTS_CHARS ;
+    wxString const &arg7_defvalue = wxPyPanelNameStr ;
+    wxString *arg7 = (wxString *) &arg7_defvalue ;
+    bool result;
+    wxPoint temp4 ;
+    wxSize temp5 ;
+    bool temp7 = False ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    PyObject * obj3 = 0 ;
+    PyObject * obj4 = 0 ;
+    PyObject * obj5 = 0 ;
+    PyObject * obj6 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "parent",(char *) "id",(char *) "pos",(char *) "size",(char *) "style",(char *) "name", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OOOOO:Grid_Create",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxWindow,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    if (obj2) {
+        arg3 = (int)SWIG_As_int(obj2); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    if (obj3) {
+        {
+            arg4 = &temp4;
+            if ( ! wxPoint_helper(obj3, &arg4)) SWIG_fail;
+        }
+    }
+    if (obj4) {
+        {
+            arg5 = &temp5;
+            if ( ! wxSize_helper(obj4, &arg5)) SWIG_fail;
+        }
+    }
+    if (obj5) {
+        arg6 = (long)SWIG_As_long(obj5); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    if (obj6) {
+        {
+            arg7 = wxString_in_helper(obj6);
+            if (arg7 == NULL) SWIG_fail;
+            temp7 = True;
+        }
+    }
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (bool)(arg1)->Create(arg2,arg3,(wxPoint const &)*arg4,(wxSize const &)*arg5,arg6,(wxString const &)*arg7);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+    }
+    {
+        if (temp7)
+        delete arg7;
+    }
+    return resultobj;
+    fail:
+    {
+        if (temp7)
+        delete arg7;
     }
     return NULL;
 }
@@ -8096,12 +8374,12 @@ static PyObject *_wrap_Grid_CreateGrid(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:Grid_CreateGrid",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (WXGRIDSELECTIONMODES) SWIG_AsInt(obj3); 
+        arg4 = (WXGRIDSELECTIONMODES)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8133,7 +8411,7 @@ static PyObject *_wrap_Grid_SetSelectionMode(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetSelectionMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (WXGRIDSELECTIONMODES) SWIG_AsInt(obj1); 
+    arg2 = (WXGRIDSELECTIONMODES)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -8168,7 +8446,7 @@ static PyObject *_wrap_Grid_GetSelectionMode(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -8194,7 +8472,7 @@ static PyObject *_wrap_Grid_GetNumberRows(PyObject *, PyObject *args, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -8220,7 +8498,7 @@ static PyObject *_wrap_Grid_GetNumberCols(PyObject *, PyObject *args, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -8284,7 +8562,7 @@ static PyObject *_wrap_Grid_GetTable(PyObject *, PyObject *args, PyObject *kwarg
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridTableBase(result); 
+        resultobj = wxPyMake_wxGridTableBase(result, 0); 
     }
     return resultobj;
     fail:
@@ -8313,11 +8591,11 @@ static PyObject *_wrap_Grid_SetTable(PyObject *, PyObject *args, PyObject *kwarg
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxGridTableBase,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (WXGRIDSELECTIONMODES) SWIG_AsInt(obj3); 
+        arg4 = (WXGRIDSELECTIONMODES)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8380,15 +8658,15 @@ static PyObject *_wrap_Grid_InsertRows(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8424,11 +8702,11 @@ static PyObject *_wrap_Grid_AppendRows(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8466,15 +8744,15 @@ static PyObject *_wrap_Grid_DeleteRows(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8512,15 +8790,15 @@ static PyObject *_wrap_Grid_InsertCols(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8556,11 +8834,11 @@ static PyObject *_wrap_Grid_AppendCols(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8598,15 +8876,15 @@ static PyObject *_wrap_Grid_DeleteCols(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8705,15 +8983,15 @@ static PyObject *_wrap_Grid_DrawTextRectangle(PyObject *, PyObject *args, PyObje
         if ( ! wxRect_helper(obj3, &arg4)) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8747,7 +9025,9 @@ static PyObject *_wrap_Grid_GetTextBoxSize(PyObject *, PyObject *args, PyObject 
     long *arg5 = (long *) 0 ;
     bool temp3 = False ;
     long temp4 ;
+    int res4 = 0 ;
     long temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -8755,8 +9035,8 @@ static PyObject *_wrap_Grid_GetTextBoxSize(PyObject *, PyObject *args, PyObject 
         (char *) "self",(char *) "dc",(char *) "lines", NULL 
     };
     
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetTextBoxSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -8782,6 +9062,7 @@ static PyObject *_wrap_Grid_GetTextBoxSize(PyObject *, PyObject *args, PyObject 
 #else
             PyObject* str  = PyObject_Str(item);
 #endif
+            if (PyErr_Occurred())  SWIG_fail;
             arg3->Add(Py2wxString(str));
             Py_DECREF(item);
             Py_DECREF(str);
@@ -8795,14 +9076,10 @@ static PyObject *_wrap_Grid_GetTextBoxSize(PyObject *, PyObject *args, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_long((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_long((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, 0)));
     {
         if (temp3) delete arg3;
     }
@@ -8884,7 +9161,7 @@ static PyObject *_wrap_Grid_GetBatchCount(PyObject *, PyObject *args, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -8957,7 +9234,7 @@ static PyObject *_wrap_Grid_EnableEditing(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_EnableEditing",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -8987,7 +9264,7 @@ static PyObject *_wrap_Grid_EnableCellEditControl(PyObject *, PyObject *args, Py
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -9232,9 +9509,9 @@ static PyObject *_wrap_Grid_XYToCell(PyObject *, PyObject *args, PyObject *kwarg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_XYToCell",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9268,7 +9545,7 @@ static PyObject *_wrap_Grid_YToRow(PyObject *, PyObject *args, PyObject *kwargs)
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_YToRow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9277,7 +9554,7 @@ static PyObject *_wrap_Grid_YToRow(PyObject *, PyObject *args, PyObject *kwargs)
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9298,7 +9575,7 @@ static PyObject *_wrap_Grid_XToCol(PyObject *, PyObject *args, PyObject *kwargs)
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_XToCol",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9307,7 +9584,7 @@ static PyObject *_wrap_Grid_XToCol(PyObject *, PyObject *args, PyObject *kwargs)
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9328,7 +9605,7 @@ static PyObject *_wrap_Grid_YToEdgeOfRow(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_YToEdgeOfRow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9337,7 +9614,7 @@ static PyObject *_wrap_Grid_YToEdgeOfRow(PyObject *, PyObject *args, PyObject *k
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9358,7 +9635,7 @@ static PyObject *_wrap_Grid_XToEdgeOfCol(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_XToEdgeOfCol",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9367,7 +9644,7 @@ static PyObject *_wrap_Grid_XToEdgeOfCol(PyObject *, PyObject *args, PyObject *k
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9390,9 +9667,9 @@ static PyObject *_wrap_Grid_CellToRect(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_CellToRect",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9431,7 +9708,7 @@ static PyObject *_wrap_Grid_GetGridCursorRow(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9457,7 +9734,7 @@ static PyObject *_wrap_Grid_GetGridCursorCol(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9482,12 +9759,12 @@ static PyObject *_wrap_Grid_IsVisible(PyObject *, PyObject *args, PyObject *kwar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:Grid_IsVisible",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -9521,9 +9798,9 @@ static PyObject *_wrap_Grid_MakeCellVisible(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_MakeCellVisible",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9554,9 +9831,9 @@ static PyObject *_wrap_Grid_SetGridCursor(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetGridCursor",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9586,7 +9863,7 @@ static PyObject *_wrap_Grid_MoveCursorUp(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorUp",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9618,7 +9895,7 @@ static PyObject *_wrap_Grid_MoveCursorDown(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorDown",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9650,7 +9927,7 @@ static PyObject *_wrap_Grid_MoveCursorLeft(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorLeft",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9682,7 +9959,7 @@ static PyObject *_wrap_Grid_MoveCursorRight(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorRight",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9770,7 +10047,7 @@ static PyObject *_wrap_Grid_MoveCursorUpBlock(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorUpBlock",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9802,7 +10079,7 @@ static PyObject *_wrap_Grid_MoveCursorDownBlock(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorDownBlock",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9834,7 +10111,7 @@ static PyObject *_wrap_Grid_MoveCursorLeftBlock(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorLeftBlock",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9866,7 +10143,7 @@ static PyObject *_wrap_Grid_MoveCursorRightBlock(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_MoveCursorRightBlock",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9903,7 +10180,7 @@ static PyObject *_wrap_Grid_GetDefaultRowLabelSize(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9929,7 +10206,7 @@ static PyObject *_wrap_Grid_GetRowLabelSize(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9955,7 +10232,7 @@ static PyObject *_wrap_Grid_GetDefaultColLabelSize(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -9981,7 +10258,7 @@ static PyObject *_wrap_Grid_GetColLabelSize(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -10084,14 +10361,16 @@ static PyObject *_wrap_Grid_GetRowLabelAlignment(PyObject *, PyObject *args, PyO
     int *arg2 = (int *) 0 ;
     int *arg3 = (int *) 0 ;
     int temp2 ;
+    int res2 = 0 ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:Grid_GetRowLabelAlignment",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -10103,14 +10382,10 @@ static PyObject *_wrap_Grid_GetRowLabelAlignment(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -10123,14 +10398,16 @@ static PyObject *_wrap_Grid_GetColLabelAlignment(PyObject *, PyObject *args, PyO
     int *arg2 = (int *) 0 ;
     int *arg3 = (int *) 0 ;
     int temp2 ;
+    int res2 = 0 ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:Grid_GetColLabelAlignment",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -10142,14 +10419,10 @@ static PyObject *_wrap_Grid_GetColLabelAlignment(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -10175,7 +10448,7 @@ static PyObject *_wrap_Grid_GetColLabelTextOrientation(PyObject *, PyObject *arg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -10196,7 +10469,7 @@ static PyObject *_wrap_Grid_GetRowLabelValue(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_GetRowLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10232,7 +10505,7 @@ static PyObject *_wrap_Grid_GetColLabelValue(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_GetColLabelValue",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10333,7 +10606,7 @@ static PyObject *_wrap_Grid_GetCellHighlightPenWidth(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -10359,7 +10632,7 @@ static PyObject *_wrap_Grid_GetCellHighlightROPenWidth(PyObject *, PyObject *arg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -10379,7 +10652,7 @@ static PyObject *_wrap_Grid_SetRowLabelSize(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetRowLabelSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10408,7 +10681,7 @@ static PyObject *_wrap_Grid_SetColLabelSize(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetColLabelSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10537,9 +10810,9 @@ static PyObject *_wrap_Grid_SetRowLabelAlignment(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetRowLabelAlignment",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10570,9 +10843,9 @@ static PyObject *_wrap_Grid_SetColLabelAlignment(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColLabelAlignment",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10601,7 +10874,7 @@ static PyObject *_wrap_Grid_SetColLabelTextOrientation(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetColLabelTextOrientation",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10633,7 +10906,7 @@ static PyObject *_wrap_Grid_SetRowLabelValue(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetRowLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -10678,7 +10951,7 @@ static PyObject *_wrap_Grid_SetColLabelValue(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColLabelValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -10784,7 +11057,7 @@ static PyObject *_wrap_Grid_SetCellHighlightPenWidth(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetCellHighlightPenWidth",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10813,7 +11086,7 @@ static PyObject *_wrap_Grid_SetCellHighlightROPenWidth(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetCellHighlightROPenWidth",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10843,7 +11116,7 @@ static PyObject *_wrap_Grid_EnableDragRowSize(PyObject *, PyObject *args, PyObje
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -10927,7 +11200,7 @@ static PyObject *_wrap_Grid_EnableDragColSize(PyObject *, PyObject *args, PyObje
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11011,7 +11284,7 @@ static PyObject *_wrap_Grid_EnableDragGridSize(PyObject *, PyObject *args, PyObj
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11081,6 +11354,90 @@ static PyObject *_wrap_Grid_CanDragGridSize(PyObject *, PyObject *args, PyObject
 }
 
 
+static PyObject *_wrap_Grid_EnableDragCell(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *arg1 = (wxGrid *) 0 ;
+    bool arg2 = (bool) True ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "enable", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:Grid_EnableDragCell",kwnames,&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    if (obj1) {
+        arg2 = (bool)SWIG_As_bool(obj1); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->EnableDragCell(arg2);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Grid_DisableDragCell(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *arg1 = (wxGrid *) 0 ;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "self", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:Grid_DisableDragCell",kwnames,&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->DisableDragCell();
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Grid_CanDragCell(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *arg1 = (wxGrid *) 0 ;
+    bool result;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "self", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:Grid_CanDragCell",kwnames,&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (bool)(arg1)->CanDragCell();
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
 static PyObject *_wrap_Grid_SetAttr(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxGrid *arg1 = (wxGrid *) 0 ;
@@ -11098,9 +11455,9 @@ static PyObject *_wrap_Grid_SetAttr(PyObject *, PyObject *args, PyObject *kwargs
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetAttr",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -11133,7 +11490,7 @@ static PyObject *_wrap_Grid_SetRowAttr(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetRowAttr",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -11166,7 +11523,7 @@ static PyObject *_wrap_Grid_SetColAttr(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColAttr",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGridCellAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -11178,6 +11535,42 @@ static PyObject *_wrap_Grid_SetColAttr(PyObject *, PyObject *args, PyObject *kwa
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Grid_GetOrCreateCellAttr(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxGrid *arg1 = (wxGrid *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    wxGridCellAttr *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "row",(char *) "col", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetOrCreateCellAttr",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (int)SWIG_As_int(obj1); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg3 = (int)SWIG_As_int(obj2); 
+    if (PyErr_Occurred()) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (wxGridCellAttr *)((wxGrid const *)arg1)->GetOrCreateCellAttr(arg2,arg3);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        resultobj = wxPyMake_wxGridCellAttr(result, 0); 
+    }
     return resultobj;
     fail:
     return NULL;
@@ -11197,7 +11590,7 @@ static PyObject *_wrap_Grid_SetColFormatBool(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetColFormatBool",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11226,7 +11619,7 @@ static PyObject *_wrap_Grid_SetColFormatNumber(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetColFormatNumber",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11259,14 +11652,14 @@ static PyObject *_wrap_Grid_SetColFormatFloat(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OO:Grid_SetColFormatFloat",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11299,7 +11692,7 @@ static PyObject *_wrap_Grid_SetColFormatCustom(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColFormatCustom",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -11342,7 +11735,7 @@ static PyObject *_wrap_Grid_EnableGridLines(PyObject *, PyObject *args, PyObject
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11406,7 +11799,7 @@ static PyObject *_wrap_Grid_GetDefaultRowSize(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -11427,7 +11820,7 @@ static PyObject *_wrap_Grid_GetRowSize(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_GetRowSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11436,7 +11829,7 @@ static PyObject *_wrap_Grid_GetRowSize(PyObject *, PyObject *args, PyObject *kwa
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -11462,7 +11855,7 @@ static PyObject *_wrap_Grid_GetDefaultColSize(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -11483,7 +11876,7 @@ static PyObject *_wrap_Grid_GetColSize(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_GetColSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11492,7 +11885,7 @@ static PyObject *_wrap_Grid_GetColSize(PyObject *, PyObject *args, PyObject *kwa
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -11545,9 +11938,9 @@ static PyObject *_wrap_Grid_GetCellBackgroundColour(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellBackgroundColour",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11613,9 +12006,9 @@ static PyObject *_wrap_Grid_GetCellTextColour(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellTextColour",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11681,9 +12074,9 @@ static PyObject *_wrap_Grid_GetCellFont(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellFont",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11709,14 +12102,16 @@ static PyObject *_wrap_Grid_GetDefaultCellAlignment(PyObject *, PyObject *args, 
     int *arg2 = (int *) 0 ;
     int *arg3 = (int *) 0 ;
     int temp2 ;
+    int res2 = 0 ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:Grid_GetDefaultCellAlignment",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -11728,14 +12123,10 @@ static PyObject *_wrap_Grid_GetDefaultCellAlignment(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -11750,7 +12141,9 @@ static PyObject *_wrap_Grid_GetCellAlignment(PyObject *, PyObject *args, PyObjec
     int *arg4 = (int *) 0 ;
     int *arg5 = (int *) 0 ;
     int temp4 ;
+    int res4 = 0 ;
     int temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -11758,14 +12151,14 @@ static PyObject *_wrap_Grid_GetCellAlignment(PyObject *, PyObject *args, PyObjec
         (char *) "self",(char *) "row",(char *) "col", NULL 
     };
     
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellAlignment",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11775,14 +12168,10 @@ static PyObject *_wrap_Grid_GetCellAlignment(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -11833,9 +12222,9 @@ static PyObject *_wrap_Grid_GetCellOverflow(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellOverflow",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11861,7 +12250,9 @@ static PyObject *_wrap_Grid_GetCellSize(PyObject *, PyObject *args, PyObject *kw
     int *arg4 = (int *) 0 ;
     int *arg5 = (int *) 0 ;
     int temp4 ;
+    int res4 = 0 ;
     int temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -11869,14 +12260,14 @@ static PyObject *_wrap_Grid_GetCellSize(PyObject *, PyObject *args, PyObject *kw
         (char *) "self",(char *) "row",(char *) "col", NULL 
     };
     
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11886,14 +12277,10 @@ static PyObject *_wrap_Grid_GetCellSize(PyObject *, PyObject *args, PyObject *kw
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -11915,10 +12302,10 @@ static PyObject *_wrap_Grid_SetDefaultRowSize(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_SetDefaultRowSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11950,9 +12337,9 @@ static PyObject *_wrap_Grid_SetRowSize(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetRowSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11983,10 +12370,10 @@ static PyObject *_wrap_Grid_SetDefaultColSize(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_SetDefaultColSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12018,9 +12405,9 @@ static PyObject *_wrap_Grid_SetColSize(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12051,10 +12438,10 @@ static PyObject *_wrap_Grid_AutoSizeColumn(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_AutoSizeColumn",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12086,10 +12473,10 @@ static PyObject *_wrap_Grid_AutoSizeRow(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_AutoSizeRow",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12120,7 +12507,7 @@ static PyObject *_wrap_Grid_AutoSizeColumns(PyObject *, PyObject *args, PyObject
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12151,7 +12538,7 @@ static PyObject *_wrap_Grid_AutoSizeRows(PyObject *, PyObject *args, PyObject *k
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12206,7 +12593,7 @@ static PyObject *_wrap_Grid_AutoSizeRowLabelSize(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_AutoSizeRowLabelSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12235,7 +12622,7 @@ static PyObject *_wrap_Grid_AutoSizeColLabelSize(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_AutoSizeColLabelSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12266,9 +12653,9 @@ static PyObject *_wrap_Grid_SetColMinimalWidth(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetColMinimalWidth",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12299,9 +12686,9 @@ static PyObject *_wrap_Grid_SetRowMinimalHeight(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetRowMinimalHeight",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12330,7 +12717,7 @@ static PyObject *_wrap_Grid_SetColMinimalAcceptableWidth(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetColMinimalAcceptableWidth",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12359,7 +12746,7 @@ static PyObject *_wrap_Grid_SetRowMinimalAcceptableHeight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetRowMinimalAcceptableHeight",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12394,7 +12781,7 @@ static PyObject *_wrap_Grid_GetColMinimalAcceptableWidth(PyObject *, PyObject *a
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -12420,7 +12807,7 @@ static PyObject *_wrap_Grid_GetRowMinimalAcceptableHeight(PyObject *, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -12477,9 +12864,9 @@ static PyObject *_wrap_Grid_SetCellBackgroundColour(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellBackgroundColour",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = &temp4;
@@ -12549,9 +12936,9 @@ static PyObject *_wrap_Grid_SetCellTextColour(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellTextColour",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = &temp4;
@@ -12622,9 +13009,9 @@ static PyObject *_wrap_Grid_SetCellFont(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellFont",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxFont,
     SWIG_POINTER_EXCEPTION | 0)) == -1)
@@ -12662,9 +13049,9 @@ static PyObject *_wrap_Grid_SetDefaultCellAlignment(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetDefaultCellAlignment",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12699,13 +13086,13 @@ static PyObject *_wrap_Grid_SetCellAlignment(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:Grid_SetCellAlignment",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12734,7 +13121,7 @@ static PyObject *_wrap_Grid_SetDefaultCellOverflow(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_SetDefaultCellOverflow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12767,11 +13154,11 @@ static PyObject *_wrap_Grid_SetCellOverflow(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellOverflow",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (bool) SWIG_AsBool(obj3); 
+    arg4 = (bool)SWIG_As_bool(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12806,13 +13193,13 @@ static PyObject *_wrap_Grid_SetCellSize(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:Grid_SetCellSize",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12874,9 +13261,9 @@ static PyObject *_wrap_Grid_SetCellRenderer(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellRenderer",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxGridCellRenderer,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -12914,7 +13301,7 @@ static PyObject *_wrap_Grid_GetDefaultRenderer(PyObject *, PyObject *args, PyObj
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     return resultobj;
     fail:
@@ -12938,9 +13325,9 @@ static PyObject *_wrap_Grid_GetCellRenderer(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellRenderer",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12950,7 +13337,7 @@ static PyObject *_wrap_Grid_GetCellRenderer(PyObject *, PyObject *args, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     return resultobj;
     fail:
@@ -13004,9 +13391,9 @@ static PyObject *_wrap_Grid_SetCellEditor(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellEditor",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_wxGridCellEditor,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -13044,7 +13431,7 @@ static PyObject *_wrap_Grid_GetDefaultEditor(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     return resultobj;
     fail:
@@ -13068,9 +13455,9 @@ static PyObject *_wrap_Grid_GetCellEditor(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellEditor",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13080,7 +13467,7 @@ static PyObject *_wrap_Grid_GetCellEditor(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     return resultobj;
     fail:
@@ -13104,9 +13491,9 @@ static PyObject *_wrap_Grid_GetCellValue(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetCellValue",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13146,9 +13533,9 @@ static PyObject *_wrap_Grid_SetCellValue(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:Grid_SetCellValue",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = wxString_in_helper(obj3);
@@ -13193,9 +13580,9 @@ static PyObject *_wrap_Grid_IsReadOnly(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_IsReadOnly",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13230,12 +13617,12 @@ static PyObject *_wrap_Grid_SetReadOnly(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:Grid_SetReadOnly",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13267,10 +13654,10 @@ static PyObject *_wrap_Grid_SelectRow(PyObject *, PyObject *args, PyObject *kwar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_SelectRow",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13302,10 +13689,10 @@ static PyObject *_wrap_Grid_SelectCol(PyObject *, PyObject *args, PyObject *kwar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Grid_SelectCol",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13343,16 +13730,16 @@ static PyObject *_wrap_Grid_SelectBlock(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO|O:Grid_SelectBlock",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (bool) SWIG_AsBool(obj5); 
+        arg6 = (bool)SWIG_As_bool(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13463,9 +13850,9 @@ static PyObject *_wrap_Grid_IsInSelection(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_IsInSelection",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13648,7 +14035,7 @@ static PyObject *_wrap_Grid_DeselectRow(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_DeselectRow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13677,7 +14064,7 @@ static PyObject *_wrap_Grid_DeselectCol(PyObject *, PyObject *args, PyObject *kw
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Grid_DeselectCol",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13708,9 +14095,9 @@ static PyObject *_wrap_Grid_DeselectCell(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_DeselectCell",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13959,9 +14346,9 @@ static PyObject *_wrap_Grid_GetDefaultEditorForCell(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetDefaultEditorForCell",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13971,7 +14358,7 @@ static PyObject *_wrap_Grid_GetDefaultEditorForCell(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     return resultobj;
     fail:
@@ -13995,9 +14382,9 @@ static PyObject *_wrap_Grid_GetDefaultRendererForCell(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_GetDefaultRendererForCell",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14007,7 +14394,7 @@ static PyObject *_wrap_Grid_GetDefaultRendererForCell(PyObject *, PyObject *args
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     return resultobj;
     fail:
@@ -14043,7 +14430,7 @@ static PyObject *_wrap_Grid_GetDefaultEditorForType(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellEditor(result); 
+        resultobj = wxPyMake_wxGridCellEditor(result, 0); 
     }
     {
         if (temp2)
@@ -14087,7 +14474,7 @@ static PyObject *_wrap_Grid_GetDefaultRendererForType(PyObject *, PyObject *args
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxGridCellRenderer(result); 
+        resultobj = wxPyMake_wxGridCellRenderer(result, 0); 
     }
     {
         if (temp2)
@@ -14118,9 +14505,9 @@ static PyObject *_wrap_Grid_SetMargins(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:Grid_SetMargins",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14156,7 +14543,7 @@ static PyObject *_wrap_Grid_GetGridWindow(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -14184,7 +14571,7 @@ static PyObject *_wrap_Grid_GetGridRowLabelWindow(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -14212,7 +14599,7 @@ static PyObject *_wrap_Grid_GetGridColLabelWindow(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -14240,7 +14627,40 @@ static PyObject *_wrap_Grid_GetGridCornerLabelWindow(PyObject *, PyObject *args,
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Grid_GetClassDefaultAttributes(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    int arg1 = (int) wxWINDOW_VARIANT_NORMAL ;
+    wxVisualAttributes result;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "variant", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|O:Grid_GetClassDefaultAttributes",kwnames,&obj0)) goto fail;
+    if (obj0) {
+        arg1 = (int)SWIG_As_int(obj0); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        if (!wxPyCheckForApp()) SWIG_fail;
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = wxGrid::GetClassDefaultAttributes((wxWindowVariant )arg1);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        wxVisualAttributes * resultptr;
+        resultptr = new wxVisualAttributes((wxVisualAttributes &) result);
+        resultobj = SWIG_NewPointerObj((void *)(resultptr), SWIGTYPE_p_wxVisualAttributes, 1);
     }
     return resultobj;
     fail:
@@ -14287,46 +14707,46 @@ static PyObject *_wrap_new_GridEvent(PyObject *, PyObject *args, PyObject *kwarg
     };
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OOOOOOOOO:new_GridEvent",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) goto fail;
-    arg1 = (int) SWIG_AsInt(obj0); 
+    arg1 = (int)SWIG_As_int(obj0); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg2 = (wxEventType) SWIG_AsInt(obj1); 
+    arg2 = (wxEventType)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj7) {
-        arg8 = (bool) SWIG_AsBool(obj7); 
+        arg8 = (bool)SWIG_As_bool(obj7); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj8) {
-        arg9 = (bool) SWIG_AsBool(obj8); 
+        arg9 = (bool)SWIG_As_bool(obj8); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj9) {
-        arg10 = (bool) SWIG_AsBool(obj9); 
+        arg10 = (bool)SWIG_As_bool(obj9); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj10) {
-        arg11 = (bool) SWIG_AsBool(obj10); 
+        arg11 = (bool)SWIG_As_bool(obj10); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj11) {
-        arg12 = (bool) SWIG_AsBool(obj11); 
+        arg12 = (bool)SWIG_As_bool(obj11); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14362,7 +14782,7 @@ static PyObject *_wrap_GridEvent_GetRow(PyObject *, PyObject *args, PyObject *kw
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -14388,7 +14808,7 @@ static PyObject *_wrap_GridEvent_GetCol(PyObject *, PyObject *args, PyObject *kw
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -14600,38 +15020,38 @@ static PyObject *_wrap_new_GridSizeEvent(PyObject *, PyObject *args, PyObject *k
     };
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OOOOOOO:new_GridSizeEvent",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) goto fail;
-    arg1 = (int) SWIG_AsInt(obj0); 
+    arg1 = (int)SWIG_As_int(obj0); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg2 = (wxEventType) SWIG_AsInt(obj1); 
+    arg2 = (wxEventType)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj7) {
-        arg8 = (bool) SWIG_AsBool(obj7); 
+        arg8 = (bool)SWIG_As_bool(obj7); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj8) {
-        arg9 = (bool) SWIG_AsBool(obj8); 
+        arg9 = (bool)SWIG_As_bool(obj8); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj9) {
-        arg10 = (bool) SWIG_AsBool(obj9); 
+        arg10 = (bool)SWIG_As_bool(obj9); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14667,7 +15087,7 @@ static PyObject *_wrap_GridSizeEvent_GetRowOrCol(PyObject *, PyObject *args, PyO
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -14853,9 +15273,9 @@ static PyObject *_wrap_new_GridRangeSelectEvent(PyObject *, PyObject *args, PyOb
     };
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO|OOOOO:new_GridRangeSelectEvent",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) goto fail;
-    arg1 = (int) SWIG_AsInt(obj0); 
+    arg1 = (int)SWIG_As_int(obj0); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg2 = (wxEventType) SWIG_AsInt(obj1); 
+    arg2 = (wxEventType)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxGrid,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -14868,23 +15288,23 @@ static PyObject *_wrap_new_GridRangeSelectEvent(PyObject *, PyObject *args, PyOb
         if (! wxGridCellCoords_helper(obj4, &arg5)) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (bool) SWIG_AsBool(obj5); 
+        arg6 = (bool)SWIG_As_bool(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj7) {
-        arg8 = (bool) SWIG_AsBool(obj7); 
+        arg8 = (bool)SWIG_As_bool(obj7); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj8) {
-        arg9 = (bool) SWIG_AsBool(obj8); 
+        arg9 = (bool)SWIG_As_bool(obj8); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj9) {
-        arg10 = (bool) SWIG_AsBool(obj9); 
+        arg10 = (bool)SWIG_As_bool(obj9); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14980,7 +15400,7 @@ static PyObject *_wrap_GridRangeSelectEvent_GetTopRow(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15006,7 +15426,7 @@ static PyObject *_wrap_GridRangeSelectEvent_GetBottomRow(PyObject *, PyObject *a
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15032,7 +15452,7 @@ static PyObject *_wrap_GridRangeSelectEvent_GetLeftCol(PyObject *, PyObject *arg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15058,7 +15478,7 @@ static PyObject *_wrap_GridRangeSelectEvent_GetRightCol(PyObject *, PyObject *ar
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15232,15 +15652,15 @@ static PyObject *_wrap_new_GridEditorCreatedEvent(PyObject *, PyObject *args, Py
     };
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOO:new_GridEditorCreatedEvent",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
-    arg1 = (int) SWIG_AsInt(obj0); 
+    arg1 = (int)SWIG_As_int(obj0); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg2 = (wxEventType) SWIG_AsInt(obj1); 
+    arg2 = (wxEventType)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxObject,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj5,(void **)(&arg6),SWIGTYPE_p_wxControl,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -15277,7 +15697,7 @@ static PyObject *_wrap_GridEditorCreatedEvent_GetRow(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15303,7 +15723,7 @@ static PyObject *_wrap_GridEditorCreatedEvent_GetCol(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15330,7 +15750,7 @@ static PyObject *_wrap_GridEditorCreatedEvent_GetControl(PyObject *, PyObject *a
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -15351,7 +15771,7 @@ static PyObject *_wrap_GridEditorCreatedEvent_SetRow(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridEditorCreatedEvent_SetRow",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridEditorCreatedEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15380,7 +15800,7 @@ static PyObject *_wrap_GridEditorCreatedEvent_SetCol(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:GridEditorCreatedEvent_SetCol",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxGridEditorCreatedEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15552,6 +15972,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GridCellAttr_GetRenderer", (PyCFunction) _wrap_GridCellAttr_GetRenderer, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellAttr_GetEditor", (PyCFunction) _wrap_GridCellAttr_GetEditor, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellAttr_IsReadOnly", (PyCFunction) _wrap_GridCellAttr_IsReadOnly, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"GridCellAttr_GetKind", (PyCFunction) _wrap_GridCellAttr_GetKind, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellAttr_SetDefAttr", (PyCFunction) _wrap_GridCellAttr_SetDefAttr, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellAttr_swigregister", GridCellAttr_swigregister, METH_VARARGS, NULL },
 	 { (char *)"new_GridCellAttrProvider", (PyCFunction) _wrap_new_GridCellAttrProvider, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -15651,9 +16072,11 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GridCellCoords_Set", (PyCFunction) _wrap_GridCellCoords_Set, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellCoords___eq__", (PyCFunction) _wrap_GridCellCoords___eq__, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellCoords___ne__", (PyCFunction) _wrap_GridCellCoords___ne__, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"GridCellCoords_asTuple", (PyCFunction) _wrap_GridCellCoords_asTuple, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"GridCellCoords_Get", (PyCFunction) _wrap_GridCellCoords_Get, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridCellCoords_swigregister", GridCellCoords_swigregister, METH_VARARGS, NULL },
 	 { (char *)"new_Grid", (PyCFunction) _wrap_new_Grid, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"new_PreGrid", (PyCFunction) _wrap_new_PreGrid, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_Create", (PyCFunction) _wrap_Grid_Create, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_CreateGrid", (PyCFunction) _wrap_Grid_CreateGrid, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetSelectionMode", (PyCFunction) _wrap_Grid_SetSelectionMode, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_GetSelectionMode", (PyCFunction) _wrap_Grid_GetSelectionMode, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -15747,9 +16170,13 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Grid_EnableDragGridSize", (PyCFunction) _wrap_Grid_EnableDragGridSize, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_DisableDragGridSize", (PyCFunction) _wrap_Grid_DisableDragGridSize, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_CanDragGridSize", (PyCFunction) _wrap_Grid_CanDragGridSize, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_EnableDragCell", (PyCFunction) _wrap_Grid_EnableDragCell, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_DisableDragCell", (PyCFunction) _wrap_Grid_DisableDragCell, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_CanDragCell", (PyCFunction) _wrap_Grid_CanDragCell, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetAttr", (PyCFunction) _wrap_Grid_SetAttr, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetRowAttr", (PyCFunction) _wrap_Grid_SetRowAttr, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetColAttr", (PyCFunction) _wrap_Grid_SetColAttr, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_GetOrCreateCellAttr", (PyCFunction) _wrap_Grid_GetOrCreateCellAttr, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetColFormatBool", (PyCFunction) _wrap_Grid_SetColFormatBool, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetColFormatNumber", (PyCFunction) _wrap_Grid_SetColFormatNumber, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_SetColFormatFloat", (PyCFunction) _wrap_Grid_SetColFormatFloat, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -15841,6 +16268,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Grid_GetGridRowLabelWindow", (PyCFunction) _wrap_Grid_GetGridRowLabelWindow, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_GetGridColLabelWindow", (PyCFunction) _wrap_Grid_GetGridColLabelWindow, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_GetGridCornerLabelWindow", (PyCFunction) _wrap_Grid_GetGridCornerLabelWindow, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"Grid_GetClassDefaultAttributes", (PyCFunction) _wrap_Grid_GetClassDefaultAttributes, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"Grid_swigregister", Grid_swigregister, METH_VARARGS, NULL },
 	 { (char *)"new_GridEvent", (PyCFunction) _wrap_new_GridEvent, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"GridEvent_GetRow", (PyCFunction) _wrap_GridEvent_GetRow, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -16927,6 +17355,7 @@ static swig_type_info _swigt__p_wxColour[] = {{"_p_wxColour", 0, "wxColour *", 0
 static swig_type_info _swigt__p_wxDC[] = {{"_p_wxDC", 0, "wxDC *", 0, 0, 0, 0},{"_p_wxDC", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxGridTableMessage[] = {{"_p_wxGridTableMessage", 0, "wxGridTableMessage *", 0, 0, 0, 0},{"_p_wxGridTableMessage", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxGrid[] = {{"_p_wxGrid", 0, "wxGrid *", 0, 0, 0, 0},{"_p_wxGrid", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_wxVisualAttributes[] = {{"_p_wxVisualAttributes", 0, "wxVisualAttributes *", 0, 0, 0, 0},{"_p_wxVisualAttributes", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_char[] = {{"_p_char", 0, "char *", 0, 0, 0, 0},{"_p_char", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPanel[] = {{"_p_wxPanel", 0, "wxPanel *", 0, 0, 0, 0},{"_p_wxPanel", 0, 0, 0, 0, 0, 0},{"_p_wxGrid", _p_wxGridTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxScrolledWindow", _p_wxScrolledWindowTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyScrolledWindow", _p_wxPyScrolledWindowTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyVScrolledWindow", _p_wxPyVScrolledWindowTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyVListBox", _p_wxPyVListBoxTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyHtmlListBox", _p_wxPyHtmlListBoxTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyPanel", _p_wxPyPanelTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPreviewCanvas", _p_wxPreviewCanvasTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPreviewControlBar", _p_wxPreviewControlBarTo_p_wxPanel, 0, 0, 0, 0, 0},{"_p_wxPyPreviewControlBar", _p_wxPyPreviewControlBarTo_p_wxPanel, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxNotifyEvent[] = {{"_p_wxNotifyEvent", 0, "wxNotifyEvent *", 0, 0, 0, 0},{"_p_wxGridSizeEvent", _p_wxGridSizeEventTo_p_wxNotifyEvent, 0, 0, 0, 0, 0},{"_p_wxGridRangeSelectEvent", _p_wxGridRangeSelectEventTo_p_wxNotifyEvent, 0, 0, 0, 0, 0},{"_p_wxSplitterEvent", _p_wxSplitterEventTo_p_wxNotifyEvent, 0, 0, 0, 0, 0},{"_p_wxGridEvent", _p_wxGridEventTo_p_wxNotifyEvent, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
@@ -16981,6 +17410,7 @@ _swigt__p_wxColour,
 _swigt__p_wxDC, 
 _swigt__p_wxGridTableMessage, 
 _swigt__p_wxGrid, 
+_swigt__p_wxVisualAttributes, 
 _swigt__p_char, 
 _swigt__p_wxPanel, 
 _swigt__p_wxNotifyEvent, 
@@ -17074,23 +17504,33 @@ SWIGEXPORT(void) SWIG_init(void) {
     PyDict_SetItemString(d,"GRID_VALUE_DATETIME", SWIG_FromCharPtr("datetime"));
     SWIG_addvarlink(SWIG_globals,(char*)"GridNoCellCoords",_wrap_GridNoCellCoords_get, _wrap_GridNoCellCoords_set);
     SWIG_addvarlink(SWIG_globals,(char*)"GridNoCellRect",_wrap_GridNoCellRect_get, _wrap_GridNoCellRect_set);
-    PyDict_SetItemString(d,"GridCellAttr_Any", SWIG_FromInt((int)wxGridCellAttr::Any));
-    PyDict_SetItemString(d,"GridCellAttr_Default", SWIG_FromInt((int)wxGridCellAttr::Default));
-    PyDict_SetItemString(d,"GridCellAttr_Cell", SWIG_FromInt((int)wxGridCellAttr::Cell));
-    PyDict_SetItemString(d,"GridCellAttr_Row", SWIG_FromInt((int)wxGridCellAttr::Row));
-    PyDict_SetItemString(d,"GridCellAttr_Col", SWIG_FromInt((int)wxGridCellAttr::Col));
-    PyDict_SetItemString(d,"GridCellAttr_Merged", SWIG_FromInt((int)wxGridCellAttr::Merged));
-    PyDict_SetItemString(d,"GRIDTABLE_REQUEST_VIEW_GET_VALUES", SWIG_FromInt((int)wxGRIDTABLE_REQUEST_VIEW_GET_VALUES));
-    PyDict_SetItemString(d,"GRIDTABLE_REQUEST_VIEW_SEND_VALUES", SWIG_FromInt((int)wxGRIDTABLE_REQUEST_VIEW_SEND_VALUES));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_INSERTED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_ROWS_INSERTED));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_APPENDED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_ROWS_APPENDED));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_DELETED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_ROWS_DELETED));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_INSERTED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_COLS_INSERTED));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_APPENDED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_COLS_APPENDED));
-    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_DELETED", SWIG_FromInt((int)wxGRIDTABLE_NOTIFY_COLS_DELETED));
-    PyDict_SetItemString(d,"Grid_wxGridSelectCells", SWIG_FromInt((int)wxGrid::wxGridSelectCells));
-    PyDict_SetItemString(d,"Grid_wxGridSelectRows", SWIG_FromInt((int)wxGrid::wxGridSelectRows));
-    PyDict_SetItemString(d,"Grid_wxGridSelectColumns", SWIG_FromInt((int)wxGrid::wxGridSelectColumns));
+    PyDict_SetItemString(d,"GRID_DEFAULT_NUMBER_ROWS", SWIG_From_int((int)wxGRID_DEFAULT_NUMBER_ROWS));
+    PyDict_SetItemString(d,"GRID_DEFAULT_NUMBER_COLS", SWIG_From_int((int)wxGRID_DEFAULT_NUMBER_COLS));
+    PyDict_SetItemString(d,"GRID_DEFAULT_ROW_HEIGHT", SWIG_From_int((int)wxGRID_DEFAULT_ROW_HEIGHT));
+    PyDict_SetItemString(d,"GRID_DEFAULT_COL_WIDTH", SWIG_From_int((int)wxGRID_DEFAULT_COL_WIDTH));
+    PyDict_SetItemString(d,"GRID_DEFAULT_COL_LABEL_HEIGHT", SWIG_From_int((int)wxGRID_DEFAULT_COL_LABEL_HEIGHT));
+    PyDict_SetItemString(d,"GRID_DEFAULT_ROW_LABEL_WIDTH", SWIG_From_int((int)wxGRID_DEFAULT_ROW_LABEL_WIDTH));
+    PyDict_SetItemString(d,"GRID_LABEL_EDGE_ZONE", SWIG_From_int((int)wxGRID_LABEL_EDGE_ZONE));
+    PyDict_SetItemString(d,"GRID_MIN_ROW_HEIGHT", SWIG_From_int((int)wxGRID_MIN_ROW_HEIGHT));
+    PyDict_SetItemString(d,"GRID_MIN_COL_WIDTH", SWIG_From_int((int)wxGRID_MIN_COL_WIDTH));
+    PyDict_SetItemString(d,"GRID_DEFAULT_SCROLLBAR_WIDTH", SWIG_From_int((int)wxGRID_DEFAULT_SCROLLBAR_WIDTH));
+    PyDict_SetItemString(d,"GridCellAttr_Any", SWIG_From_int((int)wxGridCellAttr::Any));
+    PyDict_SetItemString(d,"GridCellAttr_Default", SWIG_From_int((int)wxGridCellAttr::Default));
+    PyDict_SetItemString(d,"GridCellAttr_Cell", SWIG_From_int((int)wxGridCellAttr::Cell));
+    PyDict_SetItemString(d,"GridCellAttr_Row", SWIG_From_int((int)wxGridCellAttr::Row));
+    PyDict_SetItemString(d,"GridCellAttr_Col", SWIG_From_int((int)wxGridCellAttr::Col));
+    PyDict_SetItemString(d,"GridCellAttr_Merged", SWIG_From_int((int)wxGridCellAttr::Merged));
+    PyDict_SetItemString(d,"GRIDTABLE_REQUEST_VIEW_GET_VALUES", SWIG_From_int((int)wxGRIDTABLE_REQUEST_VIEW_GET_VALUES));
+    PyDict_SetItemString(d,"GRIDTABLE_REQUEST_VIEW_SEND_VALUES", SWIG_From_int((int)wxGRIDTABLE_REQUEST_VIEW_SEND_VALUES));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_INSERTED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_ROWS_INSERTED));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_APPENDED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_ROWS_APPENDED));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_ROWS_DELETED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_ROWS_DELETED));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_INSERTED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_COLS_INSERTED));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_APPENDED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_COLS_APPENDED));
+    PyDict_SetItemString(d,"GRIDTABLE_NOTIFY_COLS_DELETED", SWIG_From_int((int)wxGRIDTABLE_NOTIFY_COLS_DELETED));
+    PyDict_SetItemString(d,"Grid_wxGridSelectCells", SWIG_From_int((int)wxGrid::wxGridSelectCells));
+    PyDict_SetItemString(d,"Grid_wxGridSelectRows", SWIG_From_int((int)wxGrid::wxGridSelectRows));
+    PyDict_SetItemString(d,"Grid_wxGridSelectColumns", SWIG_From_int((int)wxGrid::wxGridSelectColumns));
     PyDict_SetItemString(d, "wxEVT_GRID_CELL_LEFT_CLICK", PyInt_FromLong(wxEVT_GRID_CELL_LEFT_CLICK));
     PyDict_SetItemString(d, "wxEVT_GRID_CELL_RIGHT_CLICK", PyInt_FromLong(wxEVT_GRID_CELL_RIGHT_CLICK));
     PyDict_SetItemString(d, "wxEVT_GRID_CELL_LEFT_DCLICK", PyInt_FromLong(wxEVT_GRID_CELL_LEFT_DCLICK));
@@ -17107,6 +17547,7 @@ SWIGEXPORT(void) SWIG_init(void) {
     PyDict_SetItemString(d, "wxEVT_GRID_EDITOR_SHOWN", PyInt_FromLong(wxEVT_GRID_EDITOR_SHOWN));
     PyDict_SetItemString(d, "wxEVT_GRID_EDITOR_HIDDEN", PyInt_FromLong(wxEVT_GRID_EDITOR_HIDDEN));
     PyDict_SetItemString(d, "wxEVT_GRID_EDITOR_CREATED", PyInt_FromLong(wxEVT_GRID_EDITOR_CREATED));
+    PyDict_SetItemString(d, "wxEVT_GRID_CELL_BEGIN_DRAG", PyInt_FromLong(wxEVT_GRID_CELL_BEGIN_DRAG));
     
     
 }

@@ -11,6 +11,8 @@ class PyOnDemandOutputWindow:
     def __init__(self, title = "wxPython: stdout/stderr"):
         self.frame  = None
         self.title  = title
+        self.pos    = wx.DefaultPosition
+        self.size   = (450, 300)
         self.parent = None
 
     def SetParent(self, parent):
@@ -19,12 +21,11 @@ class PyOnDemandOutputWindow:
 
 
     def CreateOutputWindow(self, st):
-        self.frame = wx.Frame(self.parent, -1, self.title,
-                              style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
+        self.frame = wx.Frame(self.parent, -1, self.title, self.pos, self.size,
+                              style=wx.DEFAULT_FRAME_STYLE)
         self.text  = wx.TextCtrl(self.frame, -1, "",
-                                 style = wx.TE_MULTILINE | wx.TE_READONLY)
+                                 style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.text.AppendText(st)
-        self.frame.SetSize((450, 300))
         self.frame.Show(True)
         EVT_CLOSE(self.frame, self.OnCloseWindow)
         
@@ -60,6 +61,10 @@ class PyOnDemandOutputWindow:
             wx.CallAfter(self.frame.Close)
 
 
+    def flush(self):
+        pass
+    
+
 
 #----------------------------------------------------------------------
 
@@ -67,12 +72,61 @@ _defRedirect = (wx.Platform == '__WXMSW__' or wx.Platform == '__WXMAC__')
 
 class App(wx.PyApp):
     """
-    The main application class.  Derive from this and implement an OnInit
-    method that creates a frame and then calls self.SetTopWindow(frame)
+    The ``wx.App`` class represents the application and is used to:
+
+      * bootstrap the wxPython system and initialize the underlying
+        gui toolkit
+      * set and get application-wide properties
+      * implement the windowing system main message or event loop,
+        and to dispatch events to window instances
+      * etc.
+
+    Every application must have a ``wx.App`` instance, and all
+    creation of UI objects should be delayed until after the
+    ``wx.App`` object has been created in order to ensure that the gui
+    platform and wxWidgets have been fully initialized.
+
+    Normally you would derive from this class and implement an
+    ``OnInit`` method that creates a frame and then calls
+    ``self.SetTopWindow(frame)``.
+
+    :see: `wx.PySimpleApp` for a simpler app class that can be used
+           directly.
     """
+    
     outputWindowClass = PyOnDemandOutputWindow
 
-    def __init__(self, redirect=_defRedirect, filename=None, useBestVisual=False):
+    def __init__(self, redirect=_defRedirect, filename=None,
+                 useBestVisual=False, clearSigInt=True):
+        """
+        Construct a ``wx.App`` object.  
+
+        :param redirect: Should ``sys.stdout`` and ``sys.stderr`` be
+            redirected?  Defaults to True on Windows and Mac, False
+            otherwise.  If `filename` is None then output will be
+            redirected to a window that pops up as needed.  (You can
+            control what kind of window is created for the output by
+            resetting the class variable ``outputWindowClass`` to a
+            class of your choosing.)
+
+        :param filename: The name of a file to redirect output to, if
+            redirect is True.
+
+        :param useBestVisual: Should the app try to use the best
+            available visual provided by the system (only relevant on
+            systems that have more than one visual.)  This parameter
+            must be used instead of calling `SetUseBestVisual` later
+            on because it must be set before the underlying GUI
+            toolkit is initialized.
+
+        :param clearSigInt: Should SIGINT be cleared?  This allows the
+            app to terminate upon a Ctrl-C in the console like other
+            GUI apps will.
+
+        :note: You should override OnInit to do applicaition
+            initialization to ensure that the system, toolkit and
+            wxWidgets are fully initialized.
+        """
         wx.PyApp.__init__(self)
 
         if wx.Platform == "__WXMAC__":
@@ -84,6 +138,8 @@ This program needs access to the screen. Please run with 'pythonw',
 not 'python', and only when you are logged in on the main display of
 your Mac."""
                     _sys.exit(1)
+            except SystemExit:
+                raise
             except:
                 pass
 
@@ -96,11 +152,12 @@ your Mac."""
         # KeyboardInterrupt???)  but will later segfault on exit.  By
         # setting the default handler then the app will exit, as
         # expected (depending on platform.)
-        try:
-            import signal
-            signal.signal(signal.SIGINT, signal.SIG_DFL)
-        except:
-            pass
+        if clearSigInt:
+            try:
+                import signal
+                signal.signal(signal.SIGINT, signal.SIG_DFL)
+            except:
+                pass
 
         # Save and redirect the stdio to a window?
         self.stdioWin = None
@@ -146,19 +203,35 @@ your Mac."""
         _sys.stdout, _sys.stderr = self.saveStdio
 
 
+    def SetOutputWindowAttributes(self, title=None, pos=None, size=None):
+        """
+        Set the title, position and/or size of the output window if
+        the stdio has been redirected.  This should be called before
+        any output would cause the output window to be created.
+        """
+        if self.stdioWin:
+            if title is not None:
+                self.stdioWin.title = title
+            if pos is not None:
+                self.stdioWin.pos = pos
+            if size is not None:
+                self.stdioWin.size = size
+            
 
-# change from wxPyApp_ to wxApp_
-App_GetMacSupportPCMenuShortcuts = _core.PyApp_GetMacSupportPCMenuShortcuts
-App_GetMacAboutMenuItemId        = _core.PyApp_GetMacAboutMenuItemId
-App_GetMacPreferencesMenuItemId  = _core.PyApp_GetMacPreferencesMenuItemId
-App_GetMacExitMenuItemId         = _core.PyApp_GetMacExitMenuItemId
-App_GetMacHelpMenuTitleName      = _core.PyApp_GetMacHelpMenuTitleName
-App_SetMacSupportPCMenuShortcuts = _core.PyApp_SetMacSupportPCMenuShortcuts
-App_SetMacAboutMenuItemId        = _core.PyApp_SetMacAboutMenuItemId
-App_SetMacPreferencesMenuItemId  = _core.PyApp_SetMacPreferencesMenuItemId
-App_SetMacExitMenuItemId         = _core.PyApp_SetMacExitMenuItemId
-App_SetMacHelpMenuTitleName      = _core.PyApp_SetMacHelpMenuTitleName
-App_GetComCtl32Version           = _core.PyApp_GetComCtl32Version
+
+
+# change from wx.PyApp_XX to wx.App_XX
+App_GetMacSupportPCMenuShortcuts = _core_.PyApp_GetMacSupportPCMenuShortcuts
+App_GetMacAboutMenuItemId        = _core_.PyApp_GetMacAboutMenuItemId
+App_GetMacPreferencesMenuItemId  = _core_.PyApp_GetMacPreferencesMenuItemId
+App_GetMacExitMenuItemId         = _core_.PyApp_GetMacExitMenuItemId
+App_GetMacHelpMenuTitleName      = _core_.PyApp_GetMacHelpMenuTitleName
+App_SetMacSupportPCMenuShortcuts = _core_.PyApp_SetMacSupportPCMenuShortcuts
+App_SetMacAboutMenuItemId        = _core_.PyApp_SetMacAboutMenuItemId
+App_SetMacPreferencesMenuItemId  = _core_.PyApp_SetMacPreferencesMenuItemId
+App_SetMacExitMenuItemId         = _core_.PyApp_SetMacExitMenuItemId
+App_SetMacHelpMenuTitleName      = _core_.PyApp_SetMacHelpMenuTitleName
+App_GetComCtl32Version           = _core_.PyApp_GetComCtl32Version
 
 #----------------------------------------------------------------------------
 
@@ -166,14 +239,26 @@ class PySimpleApp(wx.App):
     """
     A simple application class.  You can just create one of these and
     then then make your top level windows later, and not have to worry
-    about OnInit."""
+    about OnInit.  For example::
 
-    def __init__(self, redirect=False, filename=None, useBestVisual=False):
-        wx.App.__init__(self, redirect, filename, useBestVisual)
+        app = wx.PySimpleApp()
+        frame = wx.Frame(None, title='Hello World')
+        frame.Show()
+        app.MainLoop()
+
+    :see: `wx.App` 
+    """
+
+    def __init__(self, redirect=False, filename=None,
+                 useBestVisual=False, clearSigInt=True):
+        """
+        :see: `wx.App.__init__`
+        """
+        wx.App.__init__(self, redirect, filename, useBestVisual, clearSigInt)
         
     def OnInit(self):
-        wx.InitAllImageHandlers()
         return True
+
 
 
 # Is anybody using this one?
@@ -187,30 +272,27 @@ class PyWidgetTester(wx.App):
         self.SetTopWindow(self.frame)
         return True
 
-    def SetWidget(self, widgetClass, *args):
-        w = widgetClass(self.frame, *args)
+    def SetWidget(self, widgetClass, *args, **kwargs):
+        w = widgetClass(self.frame, *args, **kwargs)
         self.frame.Show(True)
 
 #----------------------------------------------------------------------------
 # DO NOT hold any other references to this object.  This is how we
-# know when to cleanup system resources that wxWin is holding.  When
+# know when to cleanup system resources that wxWidgets is holding.  When
 # the sys module is unloaded, the refcount on sys.__wxPythonCleanup
-# goes to zero and it calls the wxApp_CleanUp function.
+# goes to zero and it calls the wx.App_CleanUp function.
 
 class __wxPyCleanup:
     def __init__(self):
-        self.cleanup = _core.App_CleanUp
+        self.cleanup = _core_.App_CleanUp
     def __del__(self):
         self.cleanup()
 
 _sys.__wxPythonCleanup = __wxPyCleanup()
 
 ## # another possible solution, but it gets called too early...
-## if sys.version[0] == '2':
-##     import atexit
-##     atexit.register(_core.wxApp_CleanUp)
-## else:
-##     sys.exitfunc = _core.wxApp_CleanUp
+## import atexit
+## atexit.register(_core_.wxApp_CleanUp)
 
 
 #----------------------------------------------------------------------------

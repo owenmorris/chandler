@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx_cw.h
-// Purpose:     wxWindows definitions for CodeWarrior builds
+// Purpose:     wxWidgets definitions for CodeWarrior builds
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     12/10/98

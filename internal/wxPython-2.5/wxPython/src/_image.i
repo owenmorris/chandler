@@ -52,7 +52,7 @@ class wxImageHistogram /* : public wxImageHistogramBase */
 public:
     wxImageHistogram();
 
-    DocStr(MakeKey, "Get the key in the histogram for the given RGB values");
+    DocStr(MakeKey, "Get the key in the histogram for the given RGB values", "");
     static unsigned long MakeKey(unsigned char r,
                                  unsigned char g,
                                  unsigned char b);
@@ -65,9 +65,9 @@ public:
                                     unsigned char startG = 0,
                                     unsigned char startB = 0 ) const,
         "FindFirstUnusedColour(int startR=1, int startG=0, int startB=0) -> (success, r, g, b)",
-        "Find first colour that is not used in the image and has higher RGB values than\n"
-        "startR, startG, startB.  Returns a tuple consisting of a success flag and rgb\n"
-        "values.");
+        "Find first colour that is not used in the image and has higher RGB
+values than startR, startG, startB.  Returns a tuple consisting of a
+success flag and rgb values.", "");
 };
 
 
@@ -89,12 +89,13 @@ public:
                 return new wxImage(width, height, clear);
             else
                 return new wxImage;
-        }   
-           
+        }
+
+        MustHaveApp(wxImage(const wxBitmap &bitmap));
         %name(ImageFromBitmap) wxImage(const wxBitmap &bitmap) {
             return new wxImage(bitmap.ConvertToImage());
         }
-   
+
         %name(ImageFromData) wxImage(int width, int height, unsigned char* data) {
             // Copy the source data so the wxImage can clean it up later
             unsigned char* copy = (unsigned char*)malloc(width*height*3);
@@ -106,7 +107,7 @@ public:
             return new wxImage(width, height, copy, False);
         }
     }
-    
+
     void Create( int width, int height );
     void Destroy();
 
@@ -129,11 +130,23 @@ public:
         bool, FindFirstUnusedColour( byte *OUTPUT, byte *OUTPUT, byte *OUTPUT,
                                      byte startR = 0, byte startG = 0, byte startB = 0 ) const,
         "FindFirstUnusedColour(int startR=1, int startG=0, int startB=0) -> (success, r, g, b)",
-        "Find first colour that is not used in the image and has higher RGB values than\n"
-        "startR, startG, startB.  Returns a tuple consisting of a success flag and rgb\n"
-        "values.");
+        "Find first colour that is not used in the image and has higher RGB
+values than startR, startG, startB.  Returns a tuple consisting of a
+success flag and rgb values.", "");
 
+    
+    DocDeclStr(
+        bool , ConvertAlphaToMask(byte threshold = 128),
+        "If the image has alpha channel, this method converts it to mask. All pixels
+with alpha value less than ``threshold`` are replaced with mask colour and the
+alpha channel is removed. Mask colour is chosen automatically using
+`FindFirstUnusedColour`.
 
+If the image image doesn't have alpha channel, ConvertAlphaToMask does
+nothing.", "");
+    
+
+    
     // Set image's mask to the area of 'mask' that has <mr,mg,mb> colour
     bool SetMaskFromImage(const wxImage & mask,
                           byte mr, byte mg, byte mb);
@@ -160,6 +173,13 @@ public:
     bool Ok();
     int GetWidth();
     int GetHeight();
+
+    %extend {
+        wxSize GetSize() {
+            wxSize size(self->GetWidth(), self->GetHeight());
+            return size;
+        }
+    }
 
     wxImage GetSubImage(const wxRect& rect);
     wxImage Copy();
@@ -305,9 +325,12 @@ public:
     static wxString GetImageExtWildcard();
 
 
+MustHaveApp(ConvertToBitmap);
+MustHaveApp(ConvertToMonoBitmap);
+
     %extend {
-        wxBitmap ConvertToBitmap() {
-            wxBitmap bitmap(*self);
+        wxBitmap ConvertToBitmap(int depth=-1) {
+            wxBitmap bitmap(*self, depth);
             return bitmap;
         }
 
@@ -325,7 +348,17 @@ public:
 
 
 
-void wxInitAllImageHandlers();
+///void wxInitAllImageHandlers();
+
+%pythoncode {
+    def InitAllImageHandlers():
+        """
+        The former functionality of InitAllImageHanders is now done internal to
+        the _core_ extension module and so this function has become a simple NOP.
+        """
+        pass
+}
+
 
 
 // See also wxPy_ReinitStockObjects in helpers.cpp
@@ -340,7 +373,7 @@ MAKE_CONST_WXSTRING(IMAGE_OPTION_BMP_FORMAT);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_CUR_HOTSPOT_X);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_CUR_HOTSPOT_Y);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTION);
-MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTIONUNIT);   
+MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTIONUNIT);
 
 enum
 {
@@ -433,5 +466,46 @@ public:
     wxIFFHandler();
 };
 #endif
+
+//---------------------------------------------------------------------------
+
+%{
+#include <wx/quantize.h>
+%}
+
+enum {
+    wxQUANTIZE_INCLUDE_WINDOWS_COLOURS,
+//    wxQUANTIZE_RETURN_8BIT_DATA,
+    wxQUANTIZE_FILL_DESTINATION_IMAGE
+};
+
+
+DocStr(wxQuantize,
+       "Performs quantization, or colour reduction, on a wxImage.", "");
+
+class wxQuantize /*: public wxObject */
+{
+public:
+    
+    %extend {
+        DocStr(
+            Quantize,
+            "Reduce the colours in the source image and put the result into the
+destination image, setting the palette in the destination if
+needed. Both images may be the same, to overwrite the source image.", "
+:todo: Create a version that returns the wx.Palette used.");
+    
+        static bool Quantize(const wxImage& src, wxImage& dest, int desiredNoColours = 236,
+                             int flags = wxQUANTIZE_INCLUDE_WINDOWS_COLOURS|wxQUANTIZE_FILL_DESTINATION_IMAGE)
+        {
+                return wxQuantize::Quantize(src, dest, 
+                                            //NULL, // palette
+                                            desiredNoColours,
+                                            NULL, // eightBitData
+                                            flags);
+        }
+    }
+};
+
 
 //---------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 // Modified by: Ron Lee
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -74,6 +74,39 @@ class WXDLLEXPORT wxAccessible;
 #endif
 
 // ----------------------------------------------------------------------------
+// helper stuff used by wxWindow
+// ----------------------------------------------------------------------------
+
+// struct containing all the visual attributes of a control
+struct WXDLLEXPORT wxVisualAttributes
+{
+    // the font used for control label/text inside it
+    wxFont font;
+
+    // the foreground colour
+    wxColour colFg;
+
+    // the background colour, may be wxNullColour if the controls background
+    // colour is not solid
+    wxColour colBg;
+};
+
+// different window variants, on platforms like eg mac uses different
+// rendering sizes
+enum wxWindowVariant
+{
+    wxWINDOW_VARIANT_NORMAL,  // Normal size
+    wxWINDOW_VARIANT_SMALL,   // Smaller size (about 25 % smaller than normal)
+    wxWINDOW_VARIANT_MINI,    // Mini size (about 33 % smaller than normal)
+    wxWINDOW_VARIANT_LARGE,   // Large size (about 25 % larger than normal)
+    wxWINDOW_VARIANT_MAX
+};
+
+#if wxUSE_SYSTEM_OPTIONS
+    #define wxWINDOW_DEFAULT_VARIANT wxT("window-default-variant")
+#endif
+
+// ----------------------------------------------------------------------------
 // (pseudo)template list classes
 // ----------------------------------------------------------------------------
 
@@ -95,17 +128,6 @@ WXDLLEXPORT_DATA(extern wxWindowList) wxTopLevelWindows;
 // alteration of a window's functionality (e.g. by a resource editor that
 // temporarily switches event handlers).
 // ----------------------------------------------------------------------------
-
-// different window variants, on platforms like eg mac uses different rendering sizes
-
-enum wxWindowVariant 
-{
-    wxWINDOW_VARIANT_DEFAULT,       // Default size (usually == normal, may be set by a wxSystemOptions entry)
-    wxWINDOW_VARIANT_NORMAL,        // Normal size
-    wxWINDOW_VARIANT_SMALL,         // Smaller size (about 25 % smaller than normal )
-    wxWINDOW_VARIANT_MINI,          // Mini size (about 33 % smaller than normal )
-    wxWINDOW_VARIANT_LARGE,         // Large size (about 25 % larger than normal )
-};
 
 class WXDLLEXPORT wxWindowBase : public wxEvtHandler
 {
@@ -150,7 +172,7 @@ public:
     // window attributes
     // -----------------
 
-        // NB: in future versions of wxWindows Set/GetTitle() will only work
+        // NB: in future versions of wxWidgets Set/GetTitle() will only work
         //     with the top level windows (such as dialogs and frames) and
         //     Set/GetLabel() only with the other ones (i.e. all controls).
 
@@ -172,10 +194,10 @@ public:
     // sets the window variant, calls internally DoSetVariant if variant has changed
     void SetWindowVariant( wxWindowVariant variant ) ;
     wxWindowVariant GetWindowVariant() const { return m_windowVariant ; }
-        
+
 
         // window id uniquely identifies the window among its siblings unless
-        // it is -1 which means "don't care"
+        // it is wxID_ANY which means "don't care"
     void SetId( wxWindowID winid ) { m_windowId = winid; }
     wxWindowID GetId() const { return m_windowId; }
 
@@ -198,7 +220,7 @@ public:
         {  DoSetSize(x, y, width, height, sizeFlags); }
 
     void SetSize( int width, int height )
-        { DoSetSize( -1, -1, width, height, wxSIZE_USE_EXISTING ); }
+        { DoSetSize( wxDefaultCoord, wxDefaultCoord, width, height, wxSIZE_USE_EXISTING ); }
 
     void SetSize( const wxSize& size )
         { SetSize( size.x, size.y); }
@@ -207,7 +229,7 @@ public:
         { DoSetSize(rect.x, rect.y, rect.width, rect.height, sizeFlags); }
 
     void Move(int x, int y, int flags = wxSIZE_USE_EXISTING)
-        { DoSetSize(x, y, -1, -1, flags); }
+        { DoSetSize(x, y, wxDefaultCoord, wxDefaultCoord, flags); }
 
     void Move(const wxPoint& pt, int flags = wxSIZE_USE_EXISTING)
         { Move(pt.x, pt.y, flags); }
@@ -276,16 +298,28 @@ public:
     }
 
         // get the size best suited for the window (in fact, minimal
-        // acceptable size using which it will still look "nice")
-    wxSize GetBestSize() const { return DoGetBestSize(); }
+        // acceptable size using which it will still look "nice" in
+        // most situations)
+    wxSize GetBestSize() const
+    {
+        if (m_bestSizeCache.IsFullySpecified())
+            return m_bestSizeCache;
+        return DoGetBestSize();
+    }
     void GetBestSize(int *w, int *h) const
     {
-        wxSize s = DoGetBestSize();
+        wxSize s = GetBestSize();
         if ( w )
             *w = s.x;
         if ( h )
             *h = s.y;
     }
+
+        // reset the cached best size value so it will be recalculated the
+        // next time it is needed.
+    void InvalidateBestSize() { m_bestSizeCache = wxDefaultSize; }
+    void CacheBestSize(const wxSize& size) const
+        { wxConstCast(this, wxWindowBase)->m_bestSizeCache = size; }
 
         // There are times (and windows) where 'Best' size and 'Min' size
         // are vastly out of sync.  This should be remedied somehow, but in
@@ -294,9 +328,18 @@ public:
         // MinSize hint.
     wxSize GetAdjustedBestSize() const
     {
-        wxSize  s( DoGetBestSize() );
+        wxSize  s( GetBestSize() );
         return wxSize( wxMax( s.x, GetMinWidth() ), wxMax( s.y, GetMinHeight() ) );
     }
+
+        // This function will merge the window's best size into the window's
+        // minimum size, giving priority to the min size components, and
+        // returns the results.
+    wxSize GetBestFittingSize() const;
+
+        // A 'Smart' SetSize that will fill in default size values with 'best'
+        // size.  Sets the minsize to what was passed in.
+    void SetBestFittingSize(const wxSize& size=wxDefaultSize);
 
         // the generic centre function - centers the window on parent by`
         // default or on screen if it doesn't have parent or
@@ -320,11 +363,24 @@ public:
 
         // set min/max size of the window
     virtual void SetSizeHints( int minW, int minH,
-                               int maxW = -1, int maxH = -1,
-                               int incW = -1, int incH = -1 );
+                               int maxW = wxDefaultCoord, int maxH = wxDefaultCoord,
+                               int incW = wxDefaultCoord, int incH = wxDefaultCoord );
+    void SetSizeHints( const wxSize& minSize,
+                       const wxSize& maxSize=wxDefaultSize,
+                       const wxSize& incSize=wxDefaultSize)
+    {
+        SetSizeHints(minSize.x, minSize.y,
+                     maxSize.x, maxSize.y,
+                     incSize.x, incSize.y);
+    }
 
     virtual void SetVirtualSizeHints( int minW, int minH,
-                                      int maxW = -1, int maxH = -1 );
+                                      int maxW = wxDefaultCoord, int maxH = wxDefaultCoord );
+    void SetVirtualSizeHints( const wxSize& minSize,
+                              const wxSize& maxSize=wxDefaultSize)
+    {
+        SetVirtualSizeHints(minSize.x, minSize.y, maxSize.x, maxSize.y);
+    }
 
     virtual int GetMinWidth() const { return m_minWidth; }
     virtual int GetMinHeight() const { return m_minHeight; }
@@ -333,6 +389,10 @@ public:
 
         // Override this method to control the values given to Sizers etc.
     virtual wxSize GetMaxSize() const { return wxSize( m_maxWidth, m_maxHeight ); }
+    virtual wxSize GetMinSize() const { return wxSize( m_minWidth, m_minHeight ); }
+
+    void SetMinSize(const wxSize& minSize) { SetSizeHints(minSize); }
+    void SetMaxSize(const wxSize& maxSize) { SetSizeHints(GetMinSize(), maxSize); }
 
         // Methods for accessing the virtual size of a window.  For most
         // windows this is just the client area of the window, but for
@@ -407,20 +467,20 @@ public:
         // make the window modal (all other windows unresponsive)
     virtual void MakeModal(bool modal = true);
 
+
+    // (primitive) theming support
+    // ---------------------------
+
     virtual void SetThemeEnabled(bool enableTheme) { m_themeEnabled = enableTheme; }
     virtual bool GetThemeEnabled() const { return m_themeEnabled; }
 
         // Returns true if this class should have the background colour
         // changed to match the parent window's theme.  For example when a
-        // page is added to a notebook it and it's children may need to have
+        // page is added to a notebook it and its children may need to have
         // the colours adjusted depending on the current theme settings, but
         // not all windows/controls can do this without looking wrong.
     virtual void ApplyParentThemeBackground(const wxColour& WXUNUSED(bg))
         { /* do nothing */ }
-    
-        // returns true if this window should inherit its parent colours on
-        // creation
-    virtual bool ShouldInheritColours() const { return false; }
 
 
     // focus and keyboard handling
@@ -457,6 +517,17 @@ public:
         // set this child as temporary default
     virtual void SetTmpDefaultItem(wxWindow * WXUNUSED(win)) { }
 
+        // navigates in the specified direction by sending a wxNavigationKeyEvent
+    virtual bool Navigate(int flags = wxNavigationKeyEvent::IsForward);
+
+        // move this window just before/after the specified one in tab order
+        // (the other window must be our sibling!)
+    void MoveBeforeInTabOrder(wxWindow *win)
+        { DoMoveInTabOrder(win, MoveBefore); }
+    void MoveAfterInTabOrder(wxWindow *win)
+        { DoMoveInTabOrder(win, MoveAfter); }
+
+
     // parent/children relations
     // -------------------------
 
@@ -474,7 +545,7 @@ public:
         // is this window a top level one?
     virtual bool IsTopLevel() const;
 
-        // it doesn't really change parent, use ReParent() instead
+        // it doesn't really change parent, use Reparent() instead
     void SetParent( wxWindowBase *parent ) { m_parent = (wxWindow *)parent; }
         // change the real parent of this window, return true if the parent
         // was changed, false otherwise (error or newParent == oldParent)
@@ -649,25 +720,60 @@ public:
     // colours, fonts and cursors
     // --------------------------
 
-        // set/retrieve the window colours (system defaults are used by
-        // default): Set functions return true if colour was changed
-    virtual bool SetBackgroundColour( const wxColour &colour );
-    virtual bool SetForegroundColour( const wxColour &colour );
+        // get the default attributes for the controls of this class: we
+        // provide a virtual function which can be used to query the default
+        // attributes of an existing control and a static function which can
+        // be used even when no existing object of the given class is
+        // available, but which won't return any styles specific to this
+        // particular control, of course (e.g. "Ok" button might have
+        // different -- bold for example -- font)
+    virtual wxVisualAttributes GetDefaultAttributes() const
+    {
+        return GetClassDefaultAttributes(GetWindowVariant());
+    }
 
-    wxColour GetBackgroundColour() const { return m_backgroundColour; }
-    wxColour GetForegroundColour() const { return m_foregroundColour; }
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
+        // set/retrieve the window colours (system defaults are used by
+        // default): SetXXX() functions return true if colour was changed,
+        // SetDefaultXXX() reset the "m_inheritXXX" flag after setting the
+        // value to prevent it from being inherited by our children
+    virtual bool SetBackgroundColour(const wxColour& colour);
+    void SetOwnBackgroundColour(const wxColour& colour)
+    {
+        if ( SetBackgroundColour(colour) )
+            m_inheritBgCol = false;
+    }
+    wxColour GetBackgroundColour() const;
+
+    virtual bool SetForegroundColour(const wxColour& colour);
+    void SetOwnForegroundColour(const wxColour& colour)
+    {
+        if ( SetForegroundColour(colour) )
+            m_inheritFgCol = false;
+    }
+    wxColour GetForegroundColour() const;
+
+        // Set/get the background style.
+        // Pass one of wxBG_STYLE_SYSTEM, wxBG_STYLE_COLOUR, wxBG_STYLE_CUSTOM
+    virtual bool SetBackgroundStyle(wxBackgroundStyle style) { m_backgroundStyle = style; return true; }
+    virtual wxBackgroundStyle GetBackgroundStyle() const { return m_backgroundStyle; }
+
+        // set/retrieve the font for the window (SetFont() returns true if the
+        // font really changed)
+    virtual bool SetFont(const wxFont& font) = 0;
+    void SetOwnFont(const wxFont& font)
+    {
+        if ( SetFont(font) )
+            m_inheritFont = false;
+    }
+    wxFont GetFont() const;
 
         // set/retrieve the cursor for this window (SetCursor() returns true
         // if the cursor was really changed)
     virtual bool SetCursor( const wxCursor &cursor );
     const wxCursor& GetCursor() const { return m_cursor; }
-    wxCursor& GetCursor() { return m_cursor; }
-
-        // set/retrieve the font for the window (SetFont() returns true if the
-        // font really changed)
-    virtual bool SetFont( const wxFont &font ) = 0;
-    const wxFont& GetFont() const { return m_font; }
-    wxFont& GetFont() { return m_font; }
 
 #if wxUSE_CARET
         // associate a caret with the window
@@ -740,9 +846,9 @@ public:
     virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) ;
 
 #if wxUSE_MENUS
-    bool PopupMenu( wxMenu *menu, const wxPoint& pos )
+    bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition)
         { return DoPopupMenu(menu, pos.x, pos.y); }
-    bool PopupMenu( wxMenu *menu, int x, int y )
+    bool PopupMenu(wxMenu *menu, int x, int y)
         { return DoPopupMenu(menu, x, y); }
 #endif // wxUSE_MENUS
 
@@ -809,6 +915,10 @@ public:
         // get the associated tooltip or NULL if none
     wxToolTip* GetToolTip() const { return m_tooltip; }
     wxString GetToolTipText() const ;
+#else
+        // make it much easier to compile apps in an environment
+        // that doesn't support tooltips, such as PocketPC
+    inline void SetToolTip( const wxString & WXUNUSED(tip) ) {}
 #endif // wxUSE_TOOLTIPS
 
     // drag and drop
@@ -867,17 +977,7 @@ public:
     wxSizer *GetSizer() const { return m_windowSizer; }
 
     // Track if this window is a member of a sizer
-    void SetContainingSizer(wxSizer* sizer)
-    {
-        // adding a window to a sizer twice is going to result in fatal and
-        // hard to debug problems later because when deleting the second
-        // associated wxSizerItem we're going to dereference a dangling
-        // pointer; so try to detect this as early as possible
-        wxASSERT_MSG( !sizer || m_containingSizer != sizer,
-                        _T("Adding a window to the same sizer twice?") );
-
-        m_containingSizer = sizer;
-    }
+    void SetContainingSizer(wxSizer* sizer);
     wxSizer *GetContainingSizer() const { return m_containingSizer; }
 
     // accessibility
@@ -918,6 +1018,10 @@ public:
         // is only used for wxWin itself or for user code which wants to call
         // platform-specific APIs
     virtual WXWidget GetHandle() const = 0;
+        // associate the window with a new native handle
+    virtual void AssociateHandle(WXWidget WXUNUSED(handle)) { }
+        // dissociate the current native handle from the window
+    virtual void DissociateHandle() { }
 
 #if wxUSE_PALETTE
         // Store the palette used by DCs in wxWindow so that the dcs can share
@@ -935,11 +1039,30 @@ public:
     wxWindow *GetAncestorWithCustomPalette() const;
 #endif // wxUSE_PALETTE
 
+    // inherit the parents visual attributes if they had been explicitly set
+    // by the user (i.e. we don't inherit default attributes) and if we don't
+    // have our own explicitly set
+    virtual void InheritAttributes();
+
+    // returns false from here if this window doesn't want to inherit the
+    // parents colours even if InheritAttributes() would normally do it
+    //
+    // this just provides a simple way to customize InheritAttributes()
+    // behaviour in the most common case
+    virtual bool ShouldInheritColours() const { return false; }
+
 protected:
     // event handling specific to wxWindow
     virtual bool TryValidator(wxEvent& event);
     virtual bool TryParent(wxEvent& event);
 
+    // common part of MoveBefore/AfterInTabOrder()
+    enum MoveKind
+    {
+        MoveBefore,     // insert before the given window
+        MoveAfter       // insert after the given window
+    };
+    virtual void DoMoveInTabOrder(wxWindow *win, MoveKind move);
 
 #if wxUSE_CONSTRAINTS
     // satisfy the constraints for the windows but don't set the window sizes
@@ -950,7 +1073,7 @@ protected:
     void SendDestroyEvent();
 
     // the window id - a number which uniquely identifies a window among
-    // its siblings unless it is -1
+    // its siblings unless it is wxID_ANY
     wxWindowID           m_windowId;
 
     // the parent window of this window (or NULL) and the list of the children
@@ -959,7 +1082,7 @@ protected:
     wxWindowList         m_children;
 
     // the minimal allowed size for the window (no minimal size if variable(s)
-    // contain(s) -1)
+    // contain(s) wxDefaultCoord)
     int                  m_minWidth,
                          m_minHeight,
                          m_maxWidth,
@@ -980,8 +1103,9 @@ protected:
 
     // visual window attributes
     wxCursor             m_cursor;
-    wxFont               m_font;
-    wxColour             m_backgroundColour, m_foregroundColour;
+    wxFont               m_font;                // see m_hasFont
+    wxColour             m_backgroundColour,    //     m_hasBgCol
+                         m_foregroundColour;    //     m_hasFgCol
 
 #if wxUSE_CARET
     wxCaret             *m_caret;
@@ -1029,12 +1153,17 @@ protected:
     bool                 m_hasFgCol:1;
     bool                 m_hasFont:1;
 
+    // and should it be inherited by children?
+    bool                 m_inheritBgCol:1;
+    bool                 m_inheritFgCol:1;
+    bool                 m_inheritFont:1;
+
     // window attributes
     long                 m_windowStyle,
                          m_exStyle;
     wxString             m_windowName;
     bool                 m_themeEnabled;
-
+    wxBackgroundStyle    m_backgroundStyle;
 #if wxUSE_PALETTE
     wxPalette            m_palette;
     bool                 m_hasCustomPalette;
@@ -1043,6 +1172,7 @@ protected:
 #if wxUSE_ACCESSIBILITY
     wxAccessible*       m_accessible;
 #endif
+
     // Virtual size (scrolling)
     wxSize                m_virtualSize;
 
@@ -1050,7 +1180,7 @@ protected:
     int                   m_minVirtualHeight;
     int                   m_maxVirtualWidth;
     int                   m_maxVirtualHeight;
-    
+
     wxWindowVariant       m_windowVariant ;
 
     // override this to change the default (i.e. used when no style is
@@ -1059,33 +1189,28 @@ protected:
 
     // Get the default size for the new window if no explicit size given. TLWs
     // have their own default size so this is just for non top-level windows.
-    static int WidthDefault(int w) { return w == -1 ? 20 : w; }
-    static int HeightDefault(int h) { return h == -1 ? 20 : h; }
+    static int WidthDefault(int w) { return w == wxDefaultCoord ? 20 : w; }
+    static int HeightDefault(int h) { return h == wxDefaultCoord ? 20 : h; }
 
-    // set the best size for the control if the default size was given:
-    // replaces the fields of size == -1 with the best values for them and
-    // calls SetSize() if needed
+
+    // Used to save the results of DoGetBestSize so it doesn't need to be
+    // recalculated each time the value is needed.
+    wxSize m_bestSizeCache;
+
+    // keep the old name for compatibility, at least until all the internal
+    // usages of it are changed to SetBestFittingSize
+    void SetBestSize(const wxSize& size) { SetBestFittingSize(size); }
+
+    // set the initial window size if none is given (i.e. at least one of the
+    // components of the size passed to ctor/Create() is -1)
     //
-    // This function is rather unfortunately named..  it's really just a
-    // smarter SetSize / convenience function for expanding wxDefaultSize.
-    // Note that it does not influence the value returned by GetBestSize
-    // at all.
-    void SetBestSize(const wxSize& size)
-    {
-        // the size only needs to be changed if the current size is incomplete,
-        // i.e. one of the components was specified as default -- so if both
-        // were given, simply don't do anything
-        if ( size.x == -1 || size.y == -1 )
-        {
-            wxSize sizeBest = DoGetBestSize();
-            if ( size.x != -1 )
-                sizeBest.x = size.x;
-            if ( size.y != -1 )
-                sizeBest.y = size.y;
+    // normally just calls SetBestSize() for controls, but can be overridden
+    // not to do it for the controls which have to do some additional
+    // initialization (e.g. add strings to list box) before their best size
+    // can be accurately calculated
+    virtual void SetInitialBestSize(const wxSize& WXUNUSED(size)) {}
 
-            SetSize(sizeBest);
-        }
-    }
+
 
     // more pure virtual functions
     // ---------------------------
@@ -1140,7 +1265,7 @@ protected:
 #endif // wxUSE_TOOLTIPS
 
 #if wxUSE_MENUS
-    virtual bool DoPopupMenu( wxMenu *menu, int x, int y ) = 0;
+    virtual bool DoPopupMenu(wxMenu *menu, int x, int y) = 0;
 #endif // wxUSE_MENUS
 
     // Makes an adjustment to the window position to make it relative to the
@@ -1153,7 +1278,6 @@ protected:
     virtual void DoSetWindowVariant( wxWindowVariant variant ) ;
 
 private:
-
     // contains the last id generated by NewControlId
     static int ms_lastControlId;
 

@@ -6,7 +6,7 @@
 // Created:     01/02/97
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_TABCTRL_H_
@@ -16,7 +16,7 @@
 #pragma interface "tabctrl.h"
 #endif
 
-class wxImageList;
+class WXDLLIMPEXP_CORE wxImageList;
 
 // WXDLLEXPORT_DATA(extern const wxChar*) wxToolBarNameStr;
 
@@ -156,9 +156,9 @@ private:
 typedef void (wxEvtHandler::*wxTabEventFunction)(wxTabEvent&);
 
 #define EVT_TAB_SEL_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_COMMAND_TAB_SEL_CHANGED, \
-  id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTabEventFunction, & fn ), NULL),
+  id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTabEventFunction, & fn ), NULL),
 #define EVT_TAB_SEL_CHANGING(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_COMMAND_TAB_SEL_CHANGING, \
-  id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTabEventFunction, & fn ), NULL),
+  id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTabEventFunction, & fn ), NULL),
 
 #endif
     // _WX_TABCTRL_H_

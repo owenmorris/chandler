@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -57,23 +57,19 @@ typedef int wxEventType;
 
 // this is used to make the event table entry type safe, so that for an event
 // handler only a function with proper parameter list can be given.
-#ifdef HAVE_STATIC_CAST
-    #define wxStaticCastEvent(type, val) static_cast<type>(val)
-#else
-    #define wxStaticCastEvent(type, val) ((type)(val))
-#endif
+#define wxStaticCastEvent(type, val) wx_static_cast(type, val)
 
-// in previous versions of wxWindows the event types used to be constants
+// in previous versions of wxWidgets the event types used to be constants
 // which created difficulties with custom/user event types definition
 //
-// starting from wxWindows 2.4 the event types are now dynamically assigned
+// starting from wxWidgets 2.4 the event types are now dynamically assigned
 // using wxNewEventType() which solves this problem, however at price of
 // several incompatibilities:
 //
 //  a) event table macros declaration changed, it now uses wxEventTableEntry
 //     ctor instead of initialisation from an agregate - the macro
 //     DECLARE_EVENT_TABLE_ENTRY may be used to write code which can compile
-//     with all versions of wxWindows
+//     with all versions of wxWidgets
 //
 //  b) event types can't be used as switch() cases as they're not really
 //     constant any more - there is no magic solution here, you just have to
@@ -274,7 +270,7 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_BASE, wxEVT_IDLE, 439)
     DECLARE_EVENT_TYPE(wxEVT_UPDATE_UI, 440)
     DECLARE_EVENT_TYPE(wxEVT_SIZING, 441)
-    DECLARE_EVENT_TYPE(wxEVT_MOVING, 4442)
+    DECLARE_EVENT_TYPE(wxEVT_MOVING, 442)
 
         // Generic command events
         // Note: a click is a higher-level event than button down/up
@@ -319,7 +315,7 @@ enum Propagation_state
 };
 
 /*
- * wxWindows events, covering all interesting things that might happen
+ * wxWidgets events, covering all interesting things that might happen
  * (button clicking, resizing, setting text in widgets, etc.).
  *
  * For each completely new event type, derive a new event class.
@@ -353,8 +349,8 @@ public:
     // Can instruct event processor that we wish to ignore this event
     // (treat as if the event table entry had not been found): this must be done
     // to allow the event processing by the base classes (calling event.Skip()
-    // is the analog of calling the base class verstion of a virtual function)
-    void Skip(bool skip = TRUE) { m_skipped = skip; }
+    // is the analog of calling the base class version of a virtual function)
+    void Skip(bool skip = true) { m_skipped = skip; }
     bool GetSkipped() const { return m_skipped; };
 
     // this function is used to create a copy of the event polymorphically and
@@ -362,7 +358,7 @@ public:
     // for them wouldn't work (it needs to do a copy of the event)
     virtual wxEvent *Clone() const = 0;
 
-    // Implementation only: this test is explicitlty anti OO and this functions
+    // Implementation only: this test is explicitly anti OO and this function
     // exists only for optimization purposes.
     bool IsCommandEvent() const { return m_isCommandEvent; }
 
@@ -502,7 +498,7 @@ public:
 
     // Set/Get client object from controls
     void SetClientObject(wxClientData* clientObject) { m_clientObject = clientObject; }
-    void *GetClientObject() const { return m_clientObject; }
+    wxClientData *GetClientObject() const { return m_clientObject; }
 
     // Get listbox selection if single-choice
     int GetSelection() const { return m_commandInt; }
@@ -514,7 +510,7 @@ public:
     // Get checkbox value
     bool IsChecked() const { return m_commandInt != 0; }
 
-    // TRUE if the listbox event was a selection.
+    // true if the listbox event was a selection.
     bool IsSelection() const { return (m_extraLong != 0); }
 
     void SetExtraLong(long extraLong) { m_extraLong = extraLong; }
@@ -543,17 +539,17 @@ class WXDLLIMPEXP_CORE wxNotifyEvent  : public wxCommandEvent
 public:
     wxNotifyEvent(wxEventType commandType = wxEVT_NULL, int winid = 0)
         : wxCommandEvent(commandType, winid)
-        { m_bAllow = TRUE; }
+        { m_bAllow = true; }
 
     wxNotifyEvent(const wxNotifyEvent& event)
         : wxCommandEvent(event)
         { m_bAllow = event.m_bAllow; }
 
     // veto the operation (usually it's allowed by default)
-    void Veto() { m_bAllow = FALSE; }
+    void Veto() { m_bAllow = false; }
 
     // allow the operation if it was disabled by default
-    void Allow() { m_bAllow = TRUE; }
+    void Allow() { m_bAllow = true; }
 
     // for implementation code only: is the operation allowed?
     bool IsAllowed() const { return m_bAllow; }
@@ -707,6 +703,14 @@ public:
     bool MetaDown() const { return m_metaDown; }
     bool AltDown() const { return m_altDown; }
     bool ShiftDown() const { return m_shiftDown; }
+    bool CmdDown() const
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
 
     // Find which event was just generated
     bool LeftDown() const { return (m_eventType == wxEVT_LEFT_DOWN); }
@@ -754,7 +758,6 @@ public:
             *ypos = m_y;
     }
 
-#ifndef __WIN16__
     void GetPosition(long *xpos, long *ypos) const
     {
         if (xpos)
@@ -762,7 +765,6 @@ public:
         if (ypos)
             *ypos = (long)m_y;
     }
-#endif
 
     // Find the position of the event
     wxPoint GetPosition() const { return wxPoint(m_x, m_y); }
@@ -884,6 +886,20 @@ public:
     bool AltDown() const { return m_altDown; }
     bool ShiftDown() const { return m_shiftDown; }
 
+    // "Cmd" is a pseudo key which is Control for PC and Unix platforms but
+    // Apple ("Command") key under Macs: it makes often sense to use it instead
+    // of, say, ControlDown() because Cmd key is used for the same thing under
+    // Mac as Ctrl elsewhere (but Ctrl still exists, just not used for this
+    // purpose under Mac)
+    bool CmdDown() const
+    {
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        return MetaDown();
+#else
+        return ControlDown();
+#endif
+    }
+
     // exclude MetaDown() from HasModifiers() because NumLock under X is often
     // configured as mod2 modifier, yet the key events even when it is pressed
     // should be processed normally, not like Ctrl- or Alt-key
@@ -891,6 +907,11 @@ public:
 
     // get the key code: an ASCII7 char or an element of wxKeyCode enum
     int GetKeyCode() const { return (int)m_keyCode; }
+
+#if wxUSE_UNICODE
+    // get the Unicode character corresponding to this key
+    wxChar GetUnicodeKey() const { return m_uniChar; }
+#endif // wxUSE_UNICODE
 
     // get the raw key code (platform-dependent)
     wxUint32 GetRawKeyCode() const { return m_rawCode; }
@@ -905,13 +926,11 @@ public:
         if (ypos) *ypos = m_y;
     }
 
-#ifndef __WIN16__
     void GetPosition(long *xpos, long *ypos) const
     {
         if (xpos) *xpos = (long)m_x;
         if (ypos) *ypos = (long)m_y;
     }
-#endif
 
     wxPoint GetPosition() const
         { return wxPoint(m_x, m_y); }
@@ -1180,7 +1199,7 @@ private:
 class WXDLLIMPEXP_CORE wxActivateEvent : public wxEvent
 {
 public:
-    wxActivateEvent(wxEventType type = wxEVT_NULL, bool active = TRUE, int Id = 0)
+    wxActivateEvent(wxEventType type = wxEVT_NULL, bool active = true, int Id = 0)
         : wxEvent(Id, type)
         { m_active = active; }
     wxActivateEvent(const wxActivateEvent& event)
@@ -1237,7 +1256,7 @@ public:
     int GetMenuId() const { return m_menuId; }
 
     // only for wxEVT_MENU_OPEN/CLOSE
-    bool IsPopup() const { return m_menuId == -1; }
+    bool IsPopup() const { return m_menuId == wxID_ANY; }
 
     // only for wxEVT_MENU_OPEN/CLOSE
     wxMenu* GetMenu() const { return m_menu; }
@@ -1263,9 +1282,9 @@ class WXDLLIMPEXP_CORE wxCloseEvent : public wxEvent
 public:
     wxCloseEvent(wxEventType type = wxEVT_NULL, int winid = 0)
         : wxEvent(winid, type),
-          m_loggingOff(TRUE),
-          m_veto(FALSE),      // should be FALSE by default
-          m_canVeto(TRUE) {}
+          m_loggingOff(true),
+          m_veto(false),      // should be false by default
+          m_canVeto(true) {}
 
     wxCloseEvent(const wxCloseEvent & event)
         : wxEvent(event),
@@ -1276,9 +1295,9 @@ public:
     void SetLoggingOff(bool logOff) { m_loggingOff = logOff; }
     bool GetLoggingOff() const { return m_loggingOff; }
 
-    void Veto(bool veto = TRUE)
+    void Veto(bool veto = true)
     {
-        // GetVeto() will return FALSE anyhow...
+        // GetVeto() will return false anyhow...
         wxCHECK_RET( m_canVeto,
                      wxT("call to Veto() ignored (can't veto this event)") );
 
@@ -1307,7 +1326,7 @@ private:
 class WXDLLIMPEXP_CORE wxShowEvent : public wxEvent
 {
 public:
-    wxShowEvent(int winid = 0, bool show = FALSE)
+    wxShowEvent(int winid = 0, bool show = false)
         : wxEvent(winid, wxEVT_SHOW)
         { m_show = show; }
     wxShowEvent(const wxShowEvent & event)
@@ -1333,7 +1352,7 @@ private:
 class WXDLLIMPEXP_CORE wxIconizeEvent : public wxEvent
 {
 public:
-    wxIconizeEvent(int winid = 0, bool iconized = TRUE)
+    wxIconizeEvent(int winid = 0, bool iconized = true)
         : wxEvent(winid, wxEVT_ICONIZE)
         { m_iconized = iconized; }
     wxIconizeEvent(const wxIconizeEvent & event)
@@ -1545,7 +1564,7 @@ public:
         m_enabled =
         m_setEnabled =
         m_setText =
-        m_setChecked = FALSE;
+        m_setChecked = false;
     }
     wxUpdateUIEvent(const wxUpdateUIEvent & event)
         : wxCommandEvent(event),
@@ -1564,9 +1583,9 @@ public:
     bool GetSetChecked() const { return m_setChecked; }
     bool GetSetEnabled() const { return m_setEnabled; }
 
-    void Check(bool check) { m_checked = check; m_setChecked = TRUE; }
-    void Enable(bool enable) { m_enabled = enable; m_setEnabled = TRUE; }
-    void SetText(const wxString& text) { m_text = text; m_setText = TRUE; }
+    void Check(bool check) { m_checked = check; m_setChecked = true; }
+    void Enable(bool enable) { m_enabled = enable; m_setEnabled = true; }
+    void SetText(const wxString& text) { m_text = text; m_setText = true; }
 
     // Sets the interval between updates in milliseconds.
     // Set to -1 to disable updates, or to 0 to update as frequently as possible.
@@ -1582,7 +1601,7 @@ public:
     // time we should update
     static void ResetUpdateTime();
 
-    // Specify how wxWindows will send update events: to
+    // Specify how wxWidgets will send update events: to
     // all windows, or only to those which specify that they
     // will process the events.
     static void SetMode(wxUpdateUIMode mode) { sm_updateMode = mode; }
@@ -1711,7 +1730,7 @@ class WXDLLIMPEXP_CORE wxQueryNewPaletteEvent : public wxEvent
 public:
     wxQueryNewPaletteEvent(wxWindowID winid = 0)
         : wxEvent(winid, wxEVT_QUERY_NEW_PALETTE),
-          m_paletteRealized(FALSE)
+          m_paletteRealized(false)
         { }
     wxQueryNewPaletteEvent(const wxQueryNewPaletteEvent & event)
         : wxEvent(event),
@@ -1771,11 +1790,14 @@ public:
     wxWindow* GetCurrentFocus() const { return m_focus; }
     void SetCurrentFocus(wxWindow *win) { m_focus = win; }
 
+    // Set flags
+    void SetFlags(long flags) { m_flags = flags; }
+
     virtual wxEvent *Clone() const { return new wxNavigationKeyEvent(*this); }
 
-private:
     enum
     {
+        IsBackward = 0x0000,
         IsForward = 0x0001,
         WinChange = 0x0002
     };
@@ -1927,19 +1949,19 @@ class WXDLLIMPEXP_CORE wxIdleEvent : public wxEvent
 public:
     wxIdleEvent()
         : wxEvent(0, wxEVT_IDLE),
-          m_requestMore(FALSE)
+          m_requestMore(false)
         { }
     wxIdleEvent(const wxIdleEvent & event)
         : wxEvent(event),
           m_requestMore(event.m_requestMore)
     { }
 
-    void RequestMore(bool needMore = TRUE) { m_requestMore = needMore; }
+    void RequestMore(bool needMore = true) { m_requestMore = needMore; }
     bool MoreRequested() const { return m_requestMore; }
 
     virtual wxEvent *Clone() const { return new wxIdleEvent(*this); }
 
-    // Specify how wxWindows will send idle events: to
+    // Specify how wxWidgets will send idle events: to
     // all windows, or only to those which specify that they
     // will process the events.
     static void SetMode(wxIdleMode mode) { sm_idleMode = mode; }
@@ -2153,7 +2175,7 @@ protected:
 };
 
 // ----------------------------------------------------------------------------
-// wxEvtHandler: the base class for all objects handling wxWindows events
+// wxEvtHandler: the base class for all objects handling wxWidgets events
 // ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxEvtHandler : public wxObject
@@ -2396,9 +2418,9 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
 
 // Miscellaneous
 #define EVT_SIZE(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_SIZE, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxSizeEventFunction, & func ), (wxObject *) NULL ),
-#define EVT_SIZING(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_SIZING, -1, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxSizeEventFunction, & func ), (wxObject *) NULL ),
+#define EVT_SIZING(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_SIZING, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxSizeEventFunction, & func ), (wxObject *) NULL ),
 #define EVT_MOVE(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_MOVE, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxMoveEventFunction, & func ), (wxObject *) NULL ),
-#define EVT_MOVING(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_MOVING, -1, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxMoveEventFunction, & func ), (wxObject *) NULL ),
+#define EVT_MOVING(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_MOVING, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxMoveEventFunction, & func ), (wxObject *) NULL ),
 #define EVT_CLOSE(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_CLOSE_WINDOW, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCloseEventFunction, & func ), (wxObject *) NULL ),
 #define EVT_END_SESSION(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_END_SESSION, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCloseEventFunction, & func ), (wxObject *) NULL ),
 #define EVT_QUERY_END_SESSION(func)  DECLARE_EVENT_TABLE_ENTRY( wxEVT_QUERY_END_SESSION, wxID_ANY, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCloseEventFunction, & func ), (wxObject *) NULL ),
@@ -2538,13 +2560,17 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
 #define EVT_COMMAND_SCROLL_ENDSCROLL(winid, func) DECLARE_EVENT_TABLE_ENTRY( wxEVT_SCROLL_ENDSCROLL, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxScrollEventFunction, & func ), (wxObject *) NULL ),
 
 // Convenience macros for commonly-used commands
-#define EVT_BUTTON(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_BUTTON_CLICKED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_CHECKBOX(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_CHECKBOX_CLICKED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_CHOICE(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_CHOICE_SELECTED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_LISTBOX(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LISTBOX_SELECTED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_LISTBOX_DCLICK(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_MENU(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_MENU_SELECTED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_MENU_RANGE(id1, id2, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_MENU_SELECTED, id1, id2, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
+#if defined(__SMARTPHONE__)
+#  define EVT_BUTTON(winid, fn) EVT_MENU(winid, fn)
+#else
+#  define EVT_BUTTON(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_BUTTON_CLICKED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
+#endif
 #define EVT_SLIDER(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_SLIDER_UPDATED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_RADIOBOX(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_RADIOBOX_SELECTED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
 #define EVT_RADIOBUTTON(winid, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_RADIOBUTTON_SELECTED, winid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),

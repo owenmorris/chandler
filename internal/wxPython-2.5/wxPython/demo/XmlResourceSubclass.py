@@ -14,8 +14,7 @@ resourceText = r'''<?xml version="1.0"?>
 <object class="wxPanel" subclass="XmlResourceSubclass.MyCustomPanel" name="MyPanel">
     <size>200,100</size>
     <object class="wxStaticText" name="label1">
-        <label>This blue panel is a class derived from wx.Panel
-and is loaded by a using a subclass attribute of the object tag.</label>
+        <label>This panel is a custom class derived from wx.Panel,\nand is loaded by a custom XmlResourceHandler.</label>
         <pos>10,10</pos>
     </object>
 </object>
@@ -48,13 +47,12 @@ class MyCustomPanel(wx.Panel):
             # On OSX the EVT_SIZE happens before EVT_WINDOW_CREATE !?!
             # so give it another kick
             wx.CallAfter(self.OnSize, None)
-            
+        evt.Skip()
 
     def OnSize(self, evt):
         if hasattr(self, 't'):
             sz = self.GetSize()
             w, h = self.t.GetTextExtent(self.t.GetLabel())
-            print w, h
             self.t.SetPosition(((sz.width-w)/2, (sz.height-h)/2))
     
 #----------------------------------------------------------------------
@@ -80,9 +78,7 @@ class TestPanel(wx.Panel):
         res.LoadFromString(resourceText)
 
         # Now create a panel from the resource data
-        #panel = res.LoadPanel(self, "MyPanel")
-        panel = MyCustomPanel()
-        panel.Create(self, -1)
+        panel = res.LoadPanel(self, "MyPanel")
 
         # and do the layout
         sizer = wx.BoxSizer(wx.VERTICAL)

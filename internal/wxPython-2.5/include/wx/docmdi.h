@@ -6,7 +6,7 @@
 // Created:     01/02/97
 // RCS-ID:      $Id$
 // Copyright:   (c)
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DOCMDI_H_
@@ -30,7 +30,12 @@
 class WXDLLEXPORT wxDocMDIParentFrame: public wxMDIParentFrame
 {
 public:
+    wxDocMDIParentFrame();
     wxDocMDIParentFrame(wxDocManager *manager, wxFrame *parent, wxWindowID id,
+        const wxString& title, const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, const wxString& name = wxT("frame"));
+
+    bool Create(wxDocManager *manager, wxFrame *parent, wxWindowID id,
         const wxString& title, const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize, long style = wxDEFAULT_FRAME_STYLE, const wxString& name = wxT("frame"));
 
@@ -44,6 +49,7 @@ public:
     void OnCloseWindow(wxCloseEvent& event);
 
 protected:
+    void Init();
     wxDocManager *m_docManager;
 
 private:
@@ -86,7 +92,7 @@ public:
     inline void SetDocument(wxDocument *doc) { m_childDocument = doc; }
     inline void SetView(wxView *view) { m_childView = view; }
     bool Destroy() { m_childView = (wxView *)NULL; return wxMDIChildFrame::Destroy(); }
-    
+
 protected:
     void Init();
     wxDocument*       m_childDocument;

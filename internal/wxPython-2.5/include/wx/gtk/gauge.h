@@ -77,10 +77,11 @@ public:
 
     bool IsVertical() const { return HasFlag(wxGA_VERTICAL); }
     
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation
     // -------------
-
-    void ApplyWidgetStyle();
 
     // the max and current gauge values
     int m_rangeMax,
@@ -99,6 +100,8 @@ protected:
     void DoSetGauge();
 
     virtual wxSize DoGetBestSize() const;
+
+    virtual wxVisualAttributes GetDefaultAttributes() const;
 
 private:
     DECLARE_DYNAMIC_CLASS(wxGauge)

@@ -24,9 +24,9 @@
 
 enum wxSoundFlags
 {
-    wxSOUND_SYNC   = 0,
-    wxSOUND_ASYNC  = 1,
-    wxSOUND_LOOP   = 2
+    wxSOUND_SYNC,
+    wxSOUND_ASYNC,
+    wxSOUND_LOOP
 };
 
 
@@ -43,7 +43,7 @@ public:
                         "wxSound is not available on this platform.");
         wxPyEndBlockThreads(blocked);
     }
-    wxSound(const wxString&, bool) {
+    wxSound(const wxString&/*, bool*/) {
         bool blocked = wxPyBeginBlockThreads();
         PyErr_SetString(PyExc_NotImplementedError,
                         "wxSound is not available on this platform.");
@@ -58,7 +58,7 @@ public:
     
     ~wxSound() {};
 
-    bool Create(const wxString&, bool) { return false; }
+    bool Create(const wxString&/*, bool*/) { return false; }
     bool Create(int, const wxByte*) { return false; };
     bool IsOk() { return false; };    
     bool Play(unsigned) const { return false; }
@@ -71,35 +71,63 @@ public:
 
 
 
+MustHaveApp(wxSound);
+MustHaveApp(wxSound::Play);
+MustHaveApp(wxSound::Stop);
+
 class wxSound /*: public wxObject*/
 {
 public:
-    %nokwargs wxSound;
-    wxSound();
-    wxSound(const wxString& fileName, bool isResource = false);
-    wxSound(int size, const wxByte* data);
-    ~wxSound();
-
-    %nokwargs Create;
-    %nokwargs Play;
-    
-    // Create from resource or file
-    bool Create(const wxString& fileName, bool isResource = false);
-
-#ifndef __WXMAC__
-    // Create from data
-    bool Create(int size, const wxByte* data);
-#else
     %extend {
-        bool Create(int size, const wxByte* data) {
+        wxSound(const wxString& fileName = wxPyEmptyString /*, bool isResource = false*/) {
+            if (fileName.Length() == 0)
+                return new wxSound;
+            else
+                return new wxSound(fileName);
+        }
+        %name(SoundFromData) wxSound(PyObject* data) {
+            unsigned char* buffer; int size;
+            wxSound *sound = NULL;
+
             bool blocked = wxPyBeginBlockThreads();
-            PyErr_SetString(PyExc_NotImplementedError,
-                            "Create from data  is not available on this platform.");
+            if (!PyArg_Parse(data, "t#", &buffer, &size))
+                goto done;
+            sound = new wxSound(size, buffer);
+        done:
             wxPyEndBlockThreads(blocked);
-            return False;
+            return sound;
         }
     }
-#endif
+    
+    ~wxSound();
+
+    
+    // Create from resource or file
+    bool Create(const wxString& fileName/*, bool isResource = false*/);
+
+    %extend {
+        bool CreateFromData(PyObject* data) {
+        %#ifndef __WXMAC__
+            unsigned char* buffer;
+            int size;
+            bool rv = False;
+
+            bool blocked = wxPyBeginBlockThreads();
+            if (!PyArg_Parse(data, "t#", &buffer, &size))
+                goto done;
+            rv = self->Create(size, buffer);
+        done:
+            wxPyEndBlockThreads(blocked);
+            return rv;
+        %#else
+                 bool blocked = wxPyBeginBlockThreads();
+                 PyErr_SetString(PyExc_NotImplementedError,
+                                 "Create from data is not available on this platform.");
+                 wxPyEndBlockThreads(blocked);
+                 return False;
+        %#endif
+        }
+    }
     
     bool  IsOk();
     
@@ -107,7 +135,7 @@ public:
     bool Play(unsigned flags = wxSOUND_ASYNC) const;
 
     // Plays sound from filename:
-    %name(PlaySound)static bool Play(const wxString& filename, unsigned flags = wxSOUND_ASYNC);
+    %name(PlaySound) static bool Play(const wxString& filename, unsigned flags = wxSOUND_ASYNC);
 
 #ifndef __WXMAC__
     static void Stop();

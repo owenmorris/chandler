@@ -101,7 +101,7 @@ public:
 
   // conversion to/from either real (system-dependent) tree item id or
   // to "long" which used to be the type for tree item ids in previous
-  // versions of wxWindows
+  // versions of wxWidgets
 
   // for wxTreeCtrl usage only
   wxTreeItemId(GtkTreeItem *itemId) { m_itemId = itemId; }
@@ -356,7 +356,7 @@ public:
     // ----------
 
     // these methods are deprecated and will be removed in future versions of
-    // wxWindows, they're here for compatibility only, don't use them in new
+    // wxWidgets, they're here for compatibility only, don't use them in new
     // code (the comments indicate why these methods are now useless and how to
     // replace them)
 

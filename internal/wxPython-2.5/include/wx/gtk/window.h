@@ -15,6 +15,10 @@
     #pragma interface
 #endif
 
+// helper structure that holds class that holds GtkIMContext object and
+// some additional data needed for key events processing
+struct wxGtkIMData;
+
 //-----------------------------------------------------------------------------
 // callback definition for inserting a window (internal)
 //-----------------------------------------------------------------------------
@@ -76,6 +80,8 @@ public:
     virtual bool SetCursor( const wxCursor &cursor );
     virtual bool SetFont( const wxFont &font );
 
+    virtual bool SetBackgroundStyle(wxBackgroundStyle style) ;
+    
     virtual int GetCharHeight() const;
     virtual int GetCharWidth() const;
     virtual void GetTextExtent(const wxString& string,
@@ -101,6 +107,11 @@ public:
 #if wxUSE_DRAG_AND_DROP
     virtual void SetDropTarget( wxDropTarget *dropTarget );
 #endif // wxUSE_DRAG_AND_DROP
+    
+#ifdef __WXGTK20__
+    virtual void AddChild( wxWindowBase *child );
+    virtual void RemoveChild( wxWindowBase *child );
+#endif
 
     // implementation
     // --------------
@@ -114,10 +125,6 @@ public:
 
     // Internal represention of Update()
     void GtkUpdate();
-    
-    // For delayed background 
-    void GtkSetBackgroundColour( const wxColour &colour );
-    void GtkSetForegroundColour( const wxColour &colour );
     
     // For compatibility across platforms (not in event table)
     void OnIdle(wxIdleEvent& WXUNUSED(event)) {}
@@ -153,10 +160,6 @@ public:
     virtual bool IsOwnGtkWindow( GdkWindow *window );
     void ConnectWidget( GtkWidget *widget );
 
-    // Creates a new widget style if none is there
-    // and sets m_widgetStyle to this value.
-    GtkStyle *GetWidgetStyle();
-
 #ifdef __WXGTK20__
     // Returns the default context which usually is anti-aliased
     PangoContext   *GtkGetPangoDefaultContext();
@@ -167,12 +170,6 @@ public:
     PangoContext   *GtkGetPangoX11Context();
     PangoContext   *m_x11Context;
 #endif
-
-    // Called by SetFont() and SetXXXColour etc
-    void SetWidgetStyle();
-
-    // Overridden in many GTK widgets who have to handle subwidgets
-    virtual void ApplyWidgetStyle();
 
 #if wxUSE_TOOLTIPS
     virtual void ApplyToolTip( GtkTooltips *tips, const wxChar *tip );
@@ -201,16 +198,16 @@ public:
 
     // see the docs in src/gtk/window.cpp
     GtkWidget           *m_widget;          // mostly the widget seen by the rest of GTK
-    GtkWidget           *m_wxwindow;        // mostly the client area as per wxWindows
+    GtkWidget           *m_wxwindow;        // mostly the client area as per wxWidgets
 
     // this widget will be queried for GTK's focus events
     GtkWidget           *m_focusWidget;
 
 #ifdef __WXGTK20__
-    GtkIMMulticontext   *m_imContext;
+    wxGtkIMData         *m_imData;
 #else
-#if HAVE_XIM
-    // XIM support for wxWindows
+#if HAVE_XIM && !defined(__WXGTK20__)
+    // XIM support for wxWidgets
     GdkIC               *m_ic;
     GdkICAttr           *m_icattr;
 #endif
@@ -239,19 +236,12 @@ public:
     bool                 m_hasFocus:1;          // true if == FindFocus()
     bool                 m_isScrolling:1;       // dragging scrollbar thumb?
     bool                 m_clipPaintRegion:1;   // TRUE after ScrollWindow()
-    bool                 m_queuedFullRedraw:1;  // TRUE after DoMoveWindow
-
-    // These are true if the style were set before the widget was realized
-    // (typcally in the constructor) but the actual GTK style must not be set
-    // before the widget has been "realized"
-    bool                 m_delayedForegroundColour:1;
-    bool                 m_delayedBackgroundColour:1;
-
-    // Contains GTK's widgets internal information about non-default widget
-    // font and colours. we create one for each widget that gets any
-    // non-default attribute set via SetFont() or SetForegroundColour() /
-    // SetBackgroundColour().
-    GtkStyle            *m_widgetStyle;
+#ifdef __WXGTK20__
+    bool                 m_dirtyTabOrder:1;     // tab order changed, GTK focus
+                                                // chain needs update
+#endif
+    bool                 m_needsStyleChange:1;  // May not be able to change
+                                                // background style until OnIdle
 
     // C++ has no virtual methods in the constrcutor of any class but we need
     // different methods of inserting a child window into a wxFrame,
@@ -280,6 +270,27 @@ public:
 protected:
     // common part of all ctors (not virtual because called from ctor)
     void Init();
+    
+#ifdef __WXGTK20__
+    virtual void DoMoveInTabOrder(wxWindow *win, MoveKind move);
+
+    // Copies m_children tab order to GTK focus chain:
+    void RealizeTabOrder();
+#endif
+    
+    // Called by ApplyWidgetStyle (which is called by SetFont() and
+    // SetXXXColour etc to apply style changed to native widgets) to create
+    // modified GTK style with non-standard attributes. If forceStyle=true,
+    // creates empty GtkRcStyle if there are no modifications, otherwise
+    // returns NULL in such case.
+    GtkRcStyle *CreateWidgetStyle(bool forceStyle = false);
+
+    // Overridden in many GTK widgets who have to handle subwidgets
+    virtual void ApplyWidgetStyle(bool forceStyle = false);
+    
+    // helper function to ease native widgets wrapping, called by 
+    // ApplyWidgetStyle -- override this, not ApplyWidgetStyle
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
 
 private:
     DECLARE_DYNAMIC_CLASS(wxWindowGTK)

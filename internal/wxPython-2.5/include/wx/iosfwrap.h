@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     18.12.2002
 // RCS-ID:      $Id$
-// Copyright:   wxWindows team
+// Copyright:   wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 

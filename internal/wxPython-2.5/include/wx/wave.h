@@ -25,7 +25,7 @@
     #warning "wx/wave.h header is deprecated, use wx/sound.h and wxSound"
 #endif
     #include "wx/sound.h"
-    // wxSound used to be called wxWave before wxWindows 2.5.1:
+    // wxSound used to be called wxWave before wxWidgets 2.5.1:
     typedef wxSound wxWave;
 #else
     #error "wx/wave.h is only available in compatibility mode"

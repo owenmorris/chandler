@@ -6,7 +6,7 @@
 // Created:     2003/04/01
 // RCS-ID:      $Id$
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_COCOA_DC_H__
@@ -46,7 +46,7 @@ protected:
     bool CocoaUnwindStackAndTakeFocus();
     inline bool CocoaTakeFocus()
     {
-        wxCocoaDCStack::Node *node = sm_cocoaDCStack.GetFirst();
+        wxCocoaDCStack::compatibility_iterator node = sm_cocoaDCStack.GetFirst();
         if(node && (node->GetData() == this))
             return true;
         return CocoaUnwindStackAndTakeFocus();

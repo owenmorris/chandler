@@ -45,11 +45,12 @@ public:
     virtual bool GetValue() const ;
 
     virtual bool MSWCommand(WXUINT param, WXWORD id);
-    virtual void SetLabel(const wxString& label);
     virtual void Command(wxCommandEvent& event);
 
 protected:
     virtual wxSize DoGetBestSize() const;
+    virtual wxBorder GetDefaultBorder() const;
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxToggleButton)

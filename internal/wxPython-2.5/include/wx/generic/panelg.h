@@ -45,12 +45,12 @@ public:
     {
         Init();
 
-        Create(parent, -1, wxPoint(x, y), wxSize(width, height), style, name);
+        Create(parent, wxID_ANY, wxPoint(x, y), wxSize(width, height), style, name);
     }
 
     // Constructor
     wxPanel(wxWindow *parent,
-            wxWindowID winid = -1,
+            wxWindowID winid = wxID_ANY,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             long style = wxTAB_TRAVERSAL | wxNO_BORDER,
@@ -73,23 +73,20 @@ public:
     // implementation from now on
     // --------------------------
 
-        // responds to colour changes
-    void OnSysColourChanged(wxSysColourChangedEvent& event);
-
         // calls layout for layout constraints and sizers
     void OnSize(wxSizeEvent& event);
 
     virtual void InitDialog();
 
 #ifdef __WXUNIVERSAL__
-    virtual bool IsCanvasWindow() const { return TRUE; }
-    virtual bool ProvidesBackground() const { return TRUE; }
+    virtual bool IsCanvasWindow() const { return true; }
+    virtual bool ProvidesBackground() const { return true; }
 #endif
 
     virtual void ApplyParentThemeBackground(const wxColour& bg)
         { SetBackgroundColour(bg); }
 
-    
+
     WX_DECLARE_CONTROL_CONTAINER();
 
 protected:

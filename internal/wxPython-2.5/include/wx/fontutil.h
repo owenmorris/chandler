@@ -5,11 +5,11 @@
 // Modified by:
 // Created:     05.11.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-// General note: this header is private to wxWindows and is not supposed to be
+// General note: this header is private to wxWidgets and is not supposed to be
 // included by user code. The functions declared here are implemented in
 // msw/fontutil.cpp for Windows, unix/fontutil.cpp for GTK/Motif &c.
 
@@ -27,8 +27,7 @@
 #include "wx/font.h"        // for wxFont and wxFontEncoding
 
 #if defined(__WXMSW__)
-    #include <windows.h>
-    #include "wx/msw/winundef.h"
+    #include "wx/msw/wrapwin.h"
 #endif
 
 struct WXDLLEXPORT wxNativeEncodingInfo;
@@ -135,6 +134,23 @@ public:
 
     // default ctor (default copy ctor is ok)
     wxNativeFontInfo() { Init(); }
+
+#if wxUSE_PANGO
+private:
+    void Init(const wxNativeFontInfo& info);
+    void Free();
+
+public:
+    wxNativeFontInfo(const wxNativeFontInfo& info) { Init(info); }
+    ~wxNativeFontInfo() { Free(); }
+
+    wxNativeFontInfo& operator=(const wxNativeFontInfo& info)
+    {
+        Free();
+        Init(info);
+        return *this;
+    }
+#endif // wxUSE_PANGO
 
     // reset to the default state
     void Init();

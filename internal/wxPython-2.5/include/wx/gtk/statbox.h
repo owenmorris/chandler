@@ -40,12 +40,16 @@ public:
 
     virtual void SetLabel( const wxString &label );
 
-    // implementation
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
-    virtual void ApplyWidgetStyle();
+    // implementation
 
     virtual bool IsTransparentForMouse() const { return TRUE; }
 
+protected:
+    void DoApplyWidgetStyle(GtkRcStyle *style);
+    
 private:
     DECLARE_DYNAMIC_CLASS(wxStaticBox)
 };

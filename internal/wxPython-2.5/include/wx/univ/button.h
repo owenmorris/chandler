@@ -40,7 +40,7 @@ public:
     wxButton(wxWindow *parent,
              wxWindowID id,
              const wxBitmap& bitmap,
-             const wxString& label,
+             const wxString& label = wxEmptyString,
              const wxPoint& pos = wxDefaultPosition,
              const wxSize& size = wxDefaultSize,
              long style = 0,
@@ -51,10 +51,10 @@ public:
 
         Create(parent, id, bitmap, label, pos, size, style, validator, name);
     }
-
+    
     wxButton(wxWindow *parent,
              wxWindowID id,
-             const wxString& label,
+             const wxString& label = wxEmptyString,
              const wxPoint& pos = wxDefaultPosition,
              const wxSize& size = wxDefaultSize,
              long style = 0,
@@ -68,7 +68,7 @@ public:
 
     bool Create(wxWindow *parent,
                 wxWindowID id,
-                const wxString& label,
+                const wxString& label = wxEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
@@ -78,11 +78,11 @@ public:
         return Create(parent, id, wxNullBitmap, label,
                       pos, size, style, validator, name);
     }
-
+    
     bool Create(wxWindow *parent,
                 wxWindowID id,
                 const wxBitmap& bitmap,
-                const wxString& label,
+                const wxString& label = wxEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
@@ -113,7 +113,7 @@ protected:
     virtual bool DoDrawBackground(wxDC& dc);
     virtual void DoDraw(wxControlRenderer *renderer);
 
-    virtual bool CanBeHighlighted() const { return TRUE; }
+    virtual bool CanBeHighlighted() const { return true; }
 
     // common part of all ctors
     void Init();

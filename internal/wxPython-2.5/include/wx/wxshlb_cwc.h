@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx_cw.h
-// Purpose:     wxWindows definitions for CodeWarrior builds
+// Purpose:     wxWidgets definitions for CodeWarrior builds
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     12/10/98
@@ -30,10 +30,14 @@
 #ifdef __cplusplus
 	#if __POWERPC__
 		#include <wxshlb_Carbon++.mch>
+	#elif __MACH__
+		#include <wxshlb_Mach++.mch>
 	#endif
 #else
 	#if __POWERPC__
 		#include <wxshlb_Carbon.mch>
+	#elif __MACH__
+		#include <wxshlb_Mach.mch>
 	#endif
 #endif
 #endif

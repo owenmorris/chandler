@@ -49,7 +49,7 @@ enum
 //    The MFC splitter window manages scrollbars as well so is able to
 //    put sash buttons on the scrollbars, but we probably don't want to go down
 //    this path.
-// 2) for wxWindows 2.0, we must find a way to set the WS_CLIPCHILDREN style
+// 2) for wxWidgets 2.0, we must find a way to set the WS_CLIPCHILDREN style
 //    to prevent flickering. (WS_CLIPCHILDREN doesn't work in all cases so can't be
 //    standard).
 
@@ -67,7 +67,7 @@ public:
     }
 
     // Normal constructor
-    wxSplitterWindow(wxWindow *parent, wxWindowID id = -1,
+    wxSplitterWindow(wxWindow *parent, wxWindowID id = wxID_ANY,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      long style = wxSP_3D,
@@ -79,7 +79,7 @@ public:
 
     virtual ~wxSplitterWindow();
 
-    bool Create(wxWindow *parent, wxWindowID id = -1,
+    bool Create(wxWindow *parent, wxWindowID id = wxID_ANY,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      long style = wxSP_3D,
@@ -376,7 +376,7 @@ typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);
   DECLARE_EVENT_TABLE_ENTRY(                                                \
     wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,                                \
     id,                                                                     \
-    -1,                                                                     \
+    wxID_ANY,                                                               \
     (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
     NULL                                                                    \
   ),
@@ -385,7 +385,7 @@ typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);
   DECLARE_EVENT_TABLE_ENTRY(                                                \
     wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING,                               \
     id,                                                                     \
-    -1,                                                                     \
+    wxID_ANY,                                                               \
     (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
     NULL                                                                    \
   ),
@@ -394,7 +394,7 @@ typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);
   DECLARE_EVENT_TABLE_ENTRY(                                                \
     wxEVT_COMMAND_SPLITTER_DOUBLECLICKED,                                   \
     id,                                                                     \
-    -1,                                                                     \
+    wxID_ANY,                                                               \
     (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
     NULL                                                                    \
   ),
@@ -403,7 +403,7 @@ typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);
   DECLARE_EVENT_TABLE_ENTRY(                                                \
     wxEVT_COMMAND_SPLITTER_UNSPLIT,                                         \
     id,                                                                     \
-    -1,                                                                     \
+    wxID_ANY,                                                               \
     (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
     NULL                                                                    \
   ),

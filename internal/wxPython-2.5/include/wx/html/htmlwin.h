@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -120,14 +120,19 @@ public:
     void SetRelatedFrame(wxFrame* frame, const wxString& format);
     wxFrame* GetRelatedFrame() const {return m_RelatedFrame;}
 
+#if wxUSE_STATUSBAR
     // After(!) calling SetRelatedFrame, this sets statusbar slot where messages
     // will be displayed. Default is -1 = no messages.
     void SetRelatedStatusBar(int bar);
+#endif // wxUSE_STATUSBAR
 
     // Sets fonts to be used when displaying HTML page.
     void SetFonts(wxString normal_face, wxString fixed_face,
                   const int *sizes = NULL);
 
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     // Sets space between text and window borders.
     void SetBorders(int b) {m_Borders = b;}
 
@@ -196,6 +201,12 @@ public:
     void SelectWord(const wxPoint& pos);
     void SelectLine(const wxPoint& pos);
     void SelectAll();
+    
+    // Convert selection to text:
+    wxString SelectionToText() { return DoSelectionToText(m_selection); }
+
+    // Converts current page to text:
+    wxString ToText();
 #endif
 
     virtual void ApplyParentThemeBackground(const wxColour& WXUNUSED(bg))
@@ -252,14 +263,13 @@ protected:
     bool CopySelection(ClipboardType t = Secondary);
 
 #if wxUSE_CLIPBOARD
-    // Convert selection to text:
-    wxString SelectionToText();
-
     // Automatic scrolling during selection:
     void StopAutoScrolling();
 #endif // wxUSE_CLIPBOARD
 
 protected:
+    wxString DoSelectionToText(wxHtmlSelection *sel);
+    
     // This is pointer to the first cell in parsed data.  (Note: the first cell
     // is usually top one = all other cells are sub-cells of this one)
     wxHtmlContainerCell *m_Cell;
@@ -278,9 +288,11 @@ protected:
 
     wxFrame *m_RelatedFrame;
     wxString m_TitleFormat;
+#if wxUSE_STATUSBAR
     // frame in which page title should be displayed & number of it's statusbar
     // reserved for usage with this html window
     int m_RelatedStatusBar;
+#endif // wxUSE_STATUSBAR
 
     // borders (free space between text and window borders)
     // defaults to 10 pixels.

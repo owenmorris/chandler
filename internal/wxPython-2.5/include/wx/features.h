@@ -1,12 +1,12 @@
 /**
 *  Name:        wx/features.h
 *  Purpose:     test macros for the features which might be available in some
-*               wxWindows ports but not others
+*               wxWidgets ports but not others
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     18.03.02
 *  RCS-ID:      $Id$
-*  Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwindows.org>
+*  Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 *  Licence:     wxWindows licence
 */
 
@@ -27,14 +27,6 @@
     #define wxHAS_RAW_KEY_CODES
 #else
     #undef wxHAS_RAW_KEY_CODES
-#endif
-
-/*  detect SmartPhone */
-#ifdef WIN32_PLATFORM_WFSP
-    #ifdef wxUSE_SMARTPHONE
-    #undef wxUSE_SMARTPHONE
-    #endif
-    #define wxUSE_SMARTPHONE 1
 #endif
 
 /*  taskbar is only implemented in wxMSW and X11 ports */

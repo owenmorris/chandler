@@ -24,21 +24,22 @@
 #include "wx/list.h"
 #include "wx/string.h"
 #include "wx/fontenc.h"
+#include "wx/hashmap.h"
 
 // ---------------------------------------------------------------------------
 // forward declarations
 // ---------------------------------------------------------------------------
 
-class WXDLLEXPORT wxBitmap;
-class WXDLLEXPORT wxBrush;
-class WXDLLEXPORT wxColour;
-class WXDLLEXPORT wxCursor;
-class WXDLLEXPORT wxFont;
-class WXDLLEXPORT wxIcon;
-class WXDLLEXPORT wxPalette;
-class WXDLLEXPORT wxPen;
-class WXDLLEXPORT wxRegion;
-class WXDLLEXPORT wxString;
+class WXDLLIMPEXP_CORE wxBitmap;
+class WXDLLIMPEXP_CORE wxBrush;
+class WXDLLIMPEXP_CORE wxColour;
+class WXDLLIMPEXP_CORE wxCursor;
+class WXDLLIMPEXP_CORE wxFont;
+class WXDLLIMPEXP_CORE wxIcon;
+class WXDLLIMPEXP_CORE wxPalette;
+class WXDLLIMPEXP_CORE wxPen;
+class WXDLLIMPEXP_CORE wxRegion;
+class WXDLLIMPEXP_BASE wxString;
 
 // ---------------------------------------------------------------------------
 // constants
@@ -116,7 +117,7 @@ enum wxStockCursor
     wxCURSOR_DEFAULT, // standard X11 cursor
 #endif
 #ifdef __WXMAC__
-	wxCURSOR_COPY_ARROW , // MacOS Theme Plus arrow 
+	wxCURSOR_COPY_ARROW , // MacOS Theme Plus arrow
 #endif
 #ifdef __X__
     // Not yet implemented for Windows
@@ -181,7 +182,12 @@ enum wxStockCursor
 
 #if defined(__WXMSW__) || defined(__WXPM__)
     #define wxBITMAP(name) wxBitmap(wxT(#name), wxBITMAP_TYPE_RESOURCE)
-#elif defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXX11__) || defined(__WXMAC__) || defined(__WXMGL__) || defined(__WXCOCOA__)
+#elif defined(__WXGTK__)   || \
+      defined(__WXMOTIF__) || \
+      defined(__WXX11__)   || \
+      defined(__WXMAC__)   || \
+      defined(__WXMGL__)   || \
+      defined(__WXCOCOA__)
     // Initialize from an included XPM
     #define wxBITMAP(name) wxBitmap( (const char**) name##_xpm )
 #else // other platforms
@@ -214,7 +220,7 @@ public:
     // FIXME are these really useful? If they're, we should have += &c as well
     wxSize operator+(const wxSize& sz) { return wxSize(x + sz.x, y + sz.y); }
     wxSize operator-(const wxSize& sz) { return wxSize(x - sz.x, y - sz.y); }
-    
+
     void IncTo(const wxSize& sz)
         { if ( sz.x > x ) x = sz.x; if ( sz.y > y ) y = sz.y; }
     void DecTo(const wxSize& sz)
@@ -227,6 +233,18 @@ public:
 
     int GetWidth() const { return x; }
     int GetHeight() const { return y; }
+
+    bool IsFullySpecified() const { return x != -1 && y != -1; }
+
+    // combine this size with the other one replacing the default (i.e. equal
+    // to -1) components of this object with those of the other
+    void SetDefaults(const wxSize& size)
+    {
+        if ( x == -1 )
+            x = size.x;
+        if ( y == -1 )
+            y = size.y;
+    }
 
     // compatibility
     int GetX() const { return x; }
@@ -427,7 +445,7 @@ public:
                              wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
 };
 
-class WXDLLEXPORT wxStringToColourHashMap;
+WX_DECLARE_STRING_HASH_MAP( wxColour *, wxStringToColourHashMap );
 
 class WXDLLEXPORT wxColourDatabase
 {

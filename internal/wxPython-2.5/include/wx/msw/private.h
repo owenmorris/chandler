@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        private.h
 // Purpose:     Private declarations: as this header is only included by
-//              wxWindows itself, it may contain identifiers which don't start
+//              wxWidgets itself, it may contain identifiers which don't start
 //              with "wx".
 // Author:      Julian Smart
 // Modified by:
@@ -15,14 +15,6 @@
 #define _WX_PRIVATE_H_
 
 #include "wx/msw/wrapwin.h"
-
-#if defined (__WXWINCE__)
-    #include <wingdi.h>     // RGB, COLORREF
-    #define ERRFALSE(x)
-    #include <winuser.h>    // Global Namespaces ::GetKeyState, ::GetWindowRect
-    #include "wx/msw/winundef.h"
-#endif
-
 
 #ifdef __WXMICROWIN__
     // Extra prototypes and symbols not defined by MicroWindows
@@ -146,11 +138,11 @@ WXDLLEXPORT_DATA(extern HFONT) wxSTATUS_LINE_FONT;
 #define STATIC_FLAGS     (SS_LEFT|WS_CHILD|WS_VISIBLE)
 #define CHECK_CLASS      wxT("BUTTON")
 #define CHECK_FLAGS      (BS_AUTOCHECKBOX|WS_TABSTOP|WS_CHILD)
-#define CHECK_IS_FAFA   FALSE
+#define CHECK_IS_FAFA    FALSE
 #define RADIO_CLASS      wxT("BUTTON")
 #define RADIO_FLAGS      (BS_AUTORADIOBUTTON|WS_CHILD|WS_VISIBLE)
 #define RADIO_SIZE       20
-#define RADIO_IS_FAFA   FALSE
+#define RADIO_IS_FAFA    FALSE
 #define PURE_WINDOWS
 #define GROUP_CLASS      wxT("BUTTON")
 #define GROUP_FLAGS      (BS_GROUPBOX|WS_CHILD|WS_VISIBLE)
@@ -253,7 +245,7 @@ inline void wxCopyRECTToRect(const RECT& r, wxRect& rect)
 extern void HIMETRICToPixel(LONG *x, LONG *y);
 extern void PixelToHIMETRIC(LONG *x, LONG *y);
 
-// Windows convention of the mask is opposed to the wxWindows one, so we need
+// Windows convention of the mask is opposed to the wxWidgets one, so we need
 // to invert the mask each time we pass one/get one to/from Windows
 extern HBITMAP wxInvertMask(HBITMAP hbmpMask, int w = 0, int h = 0);
 
@@ -299,14 +291,11 @@ inline bool wxIsCtrlDown()
 inline RECT wxGetWindowRect(HWND hwnd)
 {
     RECT rect;
-#ifdef __WIN16__
-    ::GetWindowRect(hwnd, &rect);
-#else // Win32
+
     if ( !::GetWindowRect(hwnd, &rect) )
     {
         wxLogLastError(_T("GetWindowRect"));
     }
-#endif // Win16/32
 
     return rect;
 }
@@ -314,14 +303,11 @@ inline RECT wxGetWindowRect(HWND hwnd)
 inline RECT wxGetClientRect(HWND hwnd)
 {
     RECT rect;
-#ifdef __WIN16__
-    ::GetClientRect(hwnd, &rect);
-#else // Win32
+
     if ( !::GetClientRect(hwnd, &rect) )
     {
         wxLogLastError(_T("GetClientRect"));
     }
-#endif // Win16/32
 
     return rect;
 }
@@ -339,7 +325,9 @@ struct WinStruct : public T
     WinStruct()
     {
         ::ZeroMemory(this, sizeof(T));
-        cbSize = sizeof(T);
+
+        // explicit qualification is required here for this to be valid C++
+        this->cbSize = sizeof(T);
     }
 };
 
@@ -358,6 +346,22 @@ private:
     HDC m_hdc;
 
     DECLARE_NO_COPY_CLASS(ScreenHDC)
+};
+
+// the same as ScreenHDC but for window DCs
+class WindowHDC
+{
+public:
+    WindowHDC(HWND hwnd) { m_hdc = ::GetDC(m_hwnd = hwnd); }
+   ~WindowHDC() { ::ReleaseDC(m_hwnd, m_hdc); }
+
+    operator HDC() const { return m_hdc; }
+
+private:
+   HWND m_hwnd;
+   HDC m_hdc;
+
+   DECLARE_NO_COPY_CLASS(WindowHDC)
 };
 
 // the same as ScreenHDC but for memory DCs: creates the HDC compatible with
@@ -396,7 +400,6 @@ private:
    DECLARE_NO_COPY_CLASS(SelectInHDC)
 };
 
-#ifndef __WXWINCE__
 // when working with global pointers (which is unfortunately still necessary
 // sometimes, e.g. for clipboard) it is important to unlock them exactly as
 // many times as we lock them which just asks for using a "smart lock" class
@@ -405,7 +408,7 @@ class GlobalPtr
 public:
     GlobalPtr(HGLOBAL hGlobal) : m_hGlobal(hGlobal)
     {
-        m_ptr = ::GlobalLock(hGlobal);
+        m_ptr = GlobalLock(hGlobal);
         if ( !m_ptr )
         {
             wxLogLastError(_T("GlobalLock"));
@@ -414,7 +417,7 @@ public:
 
     ~GlobalPtr()
     {
-        if ( !::GlobalUnlock(m_hGlobal) )
+        if ( !GlobalUnlock(m_hGlobal) )
         {
 #ifdef __WXDEBUG__
             // this might happen simply because the block became unlocked
@@ -435,7 +438,6 @@ private:
 
     DECLARE_NO_COPY_CLASS(GlobalPtr)
 };
-#endif
 
 // ---------------------------------------------------------------------------
 // macros to make casting between WXFOO and FOO a bit easier: the GetFoo()
@@ -507,7 +509,7 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 extern HCURSOR wxGetCurrentBusyCursor();    // from msw/utils.cpp
 extern const wxCursor *wxGetGlobalCursor(); // from msw/cursor.cpp
 
-WXDLLEXPORT void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont *the_font);
+WXDLLEXPORT void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont& the_font);
 WXDLLEXPORT void wxFillLogFont(LOGFONT *logFont, const wxFont *font);
 WXDLLEXPORT wxFont wxCreateFontFromLogFont(const LOGFONT *logFont);
 WXDLLEXPORT wxFontEncoding wxGetFontEncFromCharSet(int charset);
@@ -559,58 +561,6 @@ WXDLLEXPORT extern wxSize wxGetHiconSize(HICON hicon);
 
 // Lines are drawn differently for WinCE and regular WIN32
 WXDLLEXPORT void wxDrawLine(HDC hdc, int x1, int y1, int x2, int y2);
-
-// LocalAlloc should be used on WinCE
-#ifdef __WXWINCE__
-#include <winbase.h>
-
-#if _WIN32_WCE <= 211
-#define GlobalAlloc LocalAlloc
-#define GlobalFree LocalFree
-#define GlobalLock(mem) mem
-#define GlobalUnlock(mem)
-#define GlobalSize LocalSize
-#define GPTR LPTR
-#define GHND LPTR
-#define GMEM_MOVEABLE 0
-#define GMEM_SHARE 0
-#endif
-
-#if 0
-
-HLOCAL
-WINAPI
-LocalAlloc (
-    UINT fuFlags,
-    UINT cbBytes
-    );
-
-HLOCAL
-WINAPI
-LocalFree (
-    HLOCAL hMem
-    );
-
-#ifndef LMEM_FIXED
-#define LMEM_FIXED          0x0000
-#define LMEM_MOVEABLE       0x0002
-#define LMEM_NOCOMPACT      0x0010       /**** Used for Moveable Memory  ***/
-#define LMEM_NODISCARD      0x0020       /**** Ignored *****/
-#define LMEM_ZEROINIT       0x0040
-#define LMEM_MODIFY         0x0080       /*** Used only in LocalReAlloc() **/
-#define LMEM_DISCARDABLE    0x0F00       /**** Ignored ****/
-#define LMEM_VALID_FLAGS    0x0F72
-#define LMEM_INVALID_HANDLE 0x8000
-
-#define LHND                (LMEM_MOVEABLE | LMEM_ZEROINIT)
-#define LPTR                (LMEM_FIXED | LMEM_ZEROINIT)
-#endif
-
-#endif
-    // 0
-
-#endif
-    // __WXWINCE__
 
 // ----------------------------------------------------------------------------
 // 32/64 bit helpers

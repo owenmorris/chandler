@@ -1,12 +1,12 @@
 /**
-*  Name:        defs.h 
-*  Purpose:     Declarations/definitions common to all wx source files 
-*  Author:      Julian Smart and others 
+*  Name:        defs.h
+*  Purpose:     Declarations/definitions common to all wx source files
+*  Author:      Julian Smart and others
 *  Modified by: Ryan Norton (Converted to C)
-*  Created:     01/02/97 
-*  RCS-ID:      $Id$ 
-*  Copyright:   (c) 
-*  Licence:     wxWindows licence 
+*  Created:     01/02/97
+*  RCS-ID:      $Id$
+*  Copyright:   (c)
+*  Licence:     wxWindows licence
 */
 
 /* THIS IS A C FILE, DON'T USE C++ FEATURES (IN PARTICULAR COMMENTS) IN IT */
@@ -24,16 +24,22 @@
 
 #include "wx/platform.h"
 
-/*  RN - only double-check the environment when building in C++ 
+/*  RN - only double-check the environment when building in C++
     Shouldn't configure pass the environment to all sub-libs too? */
 #ifdef __cplusplus
 /*  Make sure the environment is set correctly */
 #   if defined(__WXMSW__) && defined(__X__)
 #       error "Target can't be both X and Windows"
-#   elif !defined(__WXMOTIF__) && !defined(__WXMSW__) && !defined(__WXGTK__) && \
-      !defined(__WXPM__) && !defined(__WXMAC__) && !defined(__WXCOCOA__) && \
-      !defined(__X__) && !defined(__WXMGL__) && !defined(__WXX11__) && \
-      wxUSE_GUI
+#   elif !defined(__WXMOTIF__) && \
+         !defined(__WXMSW__)   && \
+         !defined(__WXGTK__)   && \
+         !defined(__WXPM__)    && \
+         !defined(__WXMAC__)   && \
+         !defined(__WXCOCOA__) && \
+         !defined(__X__)       && \
+         !defined(__WXMGL__)   && \
+         !defined(__WXX11__)   && \
+          wxUSE_GUI
 #       ifdef __UNIX__
 #           error "No Target! You should use wx-config program for compilation flags!"
 #       else /*  !Unix */
@@ -97,7 +103,7 @@
 #endif /*  __BORLANDC__ */
 
 /*  ---------------------------------------------------------------------------- */
-/*  wxWindows version and compatibility defines */
+/*  wxWidgets version and compatibility defines */
 /*  ---------------------------------------------------------------------------- */
 
 #include "wx/version.h"
@@ -109,20 +115,6 @@
 /*  ---------------------------------------------------------------------------- */
 /*  compiler defects workarounds */
 /*  ---------------------------------------------------------------------------- */
-
-#if defined(__VISUALC__) && !defined(WIN32) && !defined(__WXWINCE__)
-    /*  VC1.5 does not have LPTSTR type */
-#define LPTSTR  LPSTR
-#define LPCTSTR LPCSTR
-#elif defined(__BORLANDC__) && !defined(__WIN32__)
-#ifndef LPTSTR
-#define LPTSTR  LPSTR
-#endif
-#ifndef LPCTSTR
-#define LPCTSTR LPSTR
-#endif
-#endif
-
 
 /*
    Digital Unix C++ compiler only defines this symbol for .cxx and .hxx files,
@@ -219,7 +211,7 @@ typedef short int WXTYPE;
 
 /*  special care should be taken with this type under Windows where the real */
 /*  window id is unsigned, so we must always do the cast before comparing them */
-/*  (or else they would be always different!). Usign wxGetWindowId() which does */
+/*  (or else they would be always different!). Using wxGetWindowId() which does */
 /*  the cast itself is recommended. Note that this type can't be unsigned */
 /*  because wxID_ANY == -1 is a valid (and largely used) value for window id. */
 typedef int wxWindowID;
@@ -234,11 +226,7 @@ typedef int wxWindowID;
 /*  general, but there are places where you can use them to advantage */
 /*  without totally breaking ports that cannot use them.  If you do, then */
 /*  wrap it in this guard, but such cases should still be relatively rare. */
-#ifndef __WIN16__
-    #define wxUSE_NESTED_CLASSES    1
-#else
-    #define wxUSE_NESTED_CLASSES    0
-#endif
+#define wxUSE_NESTED_CLASSES    1
 
 /*  check for explicit keyword support */
 #ifndef HAVE_EXPLICIT
@@ -287,11 +275,20 @@ typedef int wxWindowID;
     #endif
 #endif /*  HAVE_CXX_CASTS */
 
-#ifdef HAVE_CONST_CAST
-    #define wxConstCast(obj, className) const_cast<className *>(obj)
+#ifdef HAVE_STATIC_CAST
+    #define wx_static_cast(t, x) static_cast<t>(x)
 #else
-    #define wxConstCast(obj, className) ((className *)(obj))
+    #define wx_static_cast(t, x) ((t)(x))
 #endif
+
+#ifdef HAVE_CONST_CAST
+    #define wx_const_cast(t, x) const_cast<t>(x)
+#else
+    #define wx_const_cast(t, x) ((t)(x))
+#endif
+
+/* for consistency with wxStatic/DynamicCast defined in wx/object.h */
+#define wxConstCast(obj, className) wx_const_cast(className *, obj)
 
 #ifndef HAVE_STD_WSTRING
     #if defined(__VISUALC__) && (__VISUALC__ >= 1100)
@@ -408,7 +405,9 @@ typedef int wxWindowID;
 /*  NULL declaration: it must be defined as 0 for C++ programs (in particular, */
 /*  it must not be defined as "(void *)0" which is standard for C but completely */
 /*  breaks C++ code) */
+#ifndef __HANDHELDPC__
 #include <stddef.h>
+#endif
 
 /*  delete pointer if it is not NULL and NULL it afterwards */
 /*  (checking that it's !NULL before passing it to delete is just a */
@@ -557,7 +556,7 @@ enum
 };
 
 /*  ---------------------------------------------------------------------------- */
-/*  standard wxWindows types */
+/*  standard wxWidgets types */
 /*  ---------------------------------------------------------------------------- */
 
 /*  the type for screen and DC coordinates */
@@ -566,16 +565,11 @@ enum
     /*  to ensure compatibility with 2.0, we must use long */
     #define wxCoord long
 #else  /*  !wxUSE_COMPATIBLE_COORD_TYPES */
-    #ifdef __WIN16__
-        /*  under Win16, int is too small, so use long to allow for bigger */
-        /*  virtual canvases */
-        typedef long wxCoord;
-    #else /*  !Win16 */
         /*  other platforms we support have at least 32bit int - quite enough */
         typedef int wxCoord;
-    #endif /*  Win16/!Win16 */
 #endif /*  wxUSE_COMPATIBLE_COORD_TYPES/!wxUSE_COMPATIBLE_COORD_TYPES */
 
+enum {  wxDefaultCoord = -1 };
 
 /*  ---------------------------------------------------------------------------- */
 /*  define fixed length types */
@@ -596,7 +590,7 @@ typedef wxUint8 wxByte;
 /*  16bit */
 #ifdef SIZEOF_SHORT
     #if SIZEOF_SHORT != 2
-        #error "wxWindows assumes sizeof(short) == 2, please fix the code"
+        #error "wxWidgets assumes sizeof(short) == 2, please fix the code"
     #endif
 #else
     #define SIZEOF_SHORT 2
@@ -686,7 +680,7 @@ typedef wxUint16 wxWord;
             typedef long wxInt32;
             typedef unsigned long wxUint32;
         #elif
-            /*  wxWindows is not ready for 128bit systems yet... */
+            /*  wxWidgets is not ready for 128bit systems yet... */
             #error "Unknown sizeof(int) value, what are you compiling for?"
         #endif
     #else /*  !defined(SIZEOF_INT) */
@@ -702,9 +696,9 @@ typedef wxUint16 wxWord;
         typedef int wxInt32;
         typedef unsigned int wxUint32;
 
-		#if defined(__MACH__) && !defined(SIZEOF_WCHAR_T)
-			#define SIZEOF_WCHAR_T 4
-		#endif
+        #if defined(__MACH__) && !defined(SIZEOF_WCHAR_T)
+            #define SIZEOF_WCHAR_T 4
+        #endif
         #if wxUSE_WCHAR_T && !defined(SIZEOF_WCHAR_T)
             /*  also assume that sizeof(wchar_t) == 2 (under Unix the most */
             /*  common case is 4 but there configure would have defined */
@@ -732,7 +726,7 @@ typedef wxUint32 wxDword;
 #else
     /*
        This should never happen for the current architectures but if you're
-       using one where it does, please contact wx-dev@lists.wxwindows.org.
+       using one where it does, please contact wx-dev@lists.wxwidgets.org.
      */
     #error "Pointers can't be stored inside integer types."
 #endif
@@ -754,7 +748,7 @@ typedef wxUint32 wxDword;
     #define wxLongLongSuffix l
     #define wxLongLongFmtSpec _T("l")
     #define wxLongLongIsLong
-#elif (defined(__VISUALC__) && defined(__WIN32__)) 
+#elif (defined(__VISUALC__) && defined(__WIN32__))
     #define wxLongLong_t __int64
     #define wxLongLongSuffix i64
     #define wxLongLongFmtSpec _T("I64")
@@ -766,7 +760,7 @@ typedef wxUint32 wxDword;
       #define wxLongLong_t __int64
       #define wxLongLongSuffix i64
       #define wxLongLongFmtSpec _T("Ld")
-#elif defined(__DIGITALMARS__) 
+#elif defined(__DIGITALMARS__)
       #define wxLongLong_t __int64
       #define wxLongLongSuffix LL
       #define wxLongLongFmtSpec _T("ll")
@@ -822,6 +816,24 @@ typedef float wxFloat32;
 #else
     typedef double wxDouble;
 #endif
+
+/*
+    Some (non standard) compilers typedef wchar_t as an existing type instead
+    of treating it as a real fundamental type, set wxWCHAR_T_IS_REAL_TYPE to 0
+    for them and to 1 for all the others.
+ */
+#if wxUSE_WCHAR_T
+    /*
+        VC++ typedefs wchar_t as unsigned short by default, that is unless
+        /Za or /Zc:wchar_t option is used in which case _WCHAR_T_DEFINED is
+        defined.
+     */
+#   if defined(__VISUALC__) && !defined(_NATIVE_WCHAR_T_DEFINED)
+#       define wxWCHAR_T_IS_REAL_TYPE 0
+#   else /* compiler having standard-conforming wchar_t */
+#       define wxWCHAR_T_IS_REAL_TYPE 1
+#   endif
+#endif /* wxUSE_WCHAR_T */
 
 /*  ---------------------------------------------------------------------------- */
 /*  byte ordering related definition and macros */
@@ -1041,8 +1053,15 @@ enum wxStretch
     wxGROW                    = 0x2000,
     wxEXPAND                  = wxGROW,
     wxSHAPED                  = 0x4000,
-    wxADJUST_MINSIZE          = 0x8000,
-    wxTILE                    = 0xc000
+    wxFIXED_MINSIZE           = 0x8000,
+    wxTILE                    = 0xc000,
+
+    // for compatibility only, default now, don't use explicitly any more
+#if WXWIN_COMPATIBILITY_2_4
+    wxADJUST_MINSIZE          = 0x00100000
+#else
+    wxADJUST_MINSIZE          = 0
+#endif
 };
 
 /*  border flags: the values are chosen for backwards compatibility */
@@ -1188,51 +1207,11 @@ enum wxBorder
 #define wxDIALOG_EX_CONTEXTHELP 0x00000004
 
 /*
- * wxFrame/wxDialog style flags
- */
-#define wxSTAY_ON_TOP           0x8000
-#define wxICONIZE               0x4000
-#define wxMINIMIZE              wxICONIZE
-#define wxMAXIMIZE              0x2000
-#define wxCLOSE_BOX                 0x1000
-
-#define wxSYSTEM_MENU           0x0800
-#define wxMINIMIZE_BOX          0x0400
-#define wxMAXIMIZE_BOX          0x0200
-#define wxTINY_CAPTION_HORIZ    0x0100
-#define wxTINY_CAPTION_VERT     0x0080
-#define wxRESIZE_BORDER         0x0040
-
-#define wxDIALOG_NO_PARENT      0x0001  /*  Don't make owned by apps top window */
-#define wxFRAME_NO_TASKBAR      0x0002  /*  No taskbar button (MSW only) */
-#define wxFRAME_TOOL_WINDOW     0x0004  /*  No taskbar button, no system menu */
-#define wxFRAME_FLOAT_ON_PARENT 0x0008  /*  Always above its parent */
-#define wxFRAME_SHAPED          0x0010  /*  Create a window that is able to be shaped */
-
-/*  deprecated versions defined for compatibility reasons */
-#define wxRESIZE_BOX            wxMAXIMIZE_BOX
-#define wxTHICK_FRAME           wxRESIZE_BORDER
-
-/*  obsolete styles, unused any more */
-#define wxDIALOG_MODAL          0x0020  /*  free flag value 0x0020 */
-#define wxDIALOG_MODELESS       0
-#define wxNO_3D                 0
-#define wxUSER_COLOURS          0
-
-
-/*
  * MDI parent frame style flags
  * Can overlap with some of the above.
  */
 
 #define wxFRAME_NO_WINDOW_MENU  0x0100
-
-#define wxDEFAULT_FRAME_STYLE \
-  (wxSYSTEM_MENU | wxRESIZE_BORDER | \
-   wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX | \
-   wxCAPTION | wxCLIP_CHILDREN)
-
-#define wxDEFAULT_DIALOG_STYLE  (wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
 
 /*
  * wxExtDialog style flags
@@ -1444,6 +1423,17 @@ enum wxBorder
 #define  wxMORE                 0x00010000
 #define  wxSETUP                0x00020000
 
+/*
+ * Background styles. See wxWindow::SetBackgroundStyle
+ */
+
+enum wxBackgroundStyle
+{
+  wxBG_STYLE_SYSTEM,
+  wxBG_STYLE_COLOUR,
+  wxBG_STYLE_CUSTOM
+};
+
 /*  ---------------------------------------------------------------------------- */
 /*  standard IDs */
 /*  ---------------------------------------------------------------------------- */
@@ -1518,7 +1508,7 @@ enum
     wxID_FILE8,
     wxID_FILE9,
 
-    /*  Standard button IDs */
+    /*  Standard button and menu IDs */
     wxID_OK = 5100,
     wxID_CANCEL,
     wxID_APPLY,
@@ -1537,6 +1527,31 @@ enum
     wxID_ABORT,
     wxID_RETRY,
     wxID_IGNORE,
+    wxID_ADD,
+    wxID_REMOVE,
+
+    wxID_UP,
+    wxID_DOWN,
+    wxID_HOME,
+    wxID_REFRESH,
+    wxID_STOP,
+    wxID_INDEX,
+
+    wxID_BOLD,
+    wxID_ITALIC,
+    wxID_JUSTIFY_CENTER,
+    wxID_JUSTIFY_FILL,
+    wxID_JUSTIFY_RIGHT,
+    wxID_JUSTIFY_LEFT,
+    wxID_UNDERLINE,
+    wxID_INDENT,
+    wxID_UNINDENT,
+    wxID_ZOOM_100,
+    wxID_ZOOM_FIT,
+    wxID_ZOOM_IN,
+    wxID_ZOOM_OUT,
+    wxID_UNDELETE,
+    wxID_REVERT_TO_SAVED,
 
     /*  System menu IDs (used by wxUniv): */
     wxID_SYSTEM_MENU = 5200,
@@ -2028,12 +2043,14 @@ enum wxUpdateUI
 #endif
 
 /*  --------------------------------------------------------------------------- */
-/*  macros that enable wxWindows apps to be compiled in absence of the */
+/*  macros that enable wxWidgets apps to be compiled in absence of the */
 /*  sytem headers, although some platform specific types are used in the */
 /*  platform specific (implementation) parts of the headers */
 /*  --------------------------------------------------------------------------- */
 
 #ifdef __WXMAC__
+
+#define WX_OPAQUE_TYPE( name ) struct wxOpaque##name
 
 typedef unsigned char WXCOLORREF[6];
 typedef void*       WXHBITMAP;
@@ -2054,8 +2071,11 @@ typedef unsigned int    WXUINT;
 typedef unsigned long   WXDWORD;
 typedef unsigned short  WXWORD;
 
-typedef void*       WXWidget;
-typedef void*       WXWindow;
+
+//typedef void*       WXWidget;
+//typedef void*       WXWindow;
+typedef WX_OPAQUE_TYPE(ControlRef ) * WXWidget ;
+typedef WX_OPAQUE_TYPE(WindowRef) * WXWindow ;
 typedef void*       WXDisplay;
 
 /* typedef WindowPtr       WXHWND; */
@@ -2116,8 +2136,8 @@ typedef struct klass *WX_##klass
 #warning "Objective-C types will not be checked by the compiler."
 /*  NOTE: typedef struct objc_object *id; */
 /*  IOW, we're declaring these using the id type without using that name, */
-/*  since "id" is used extensively not only within wxWindows itself, but */
-/*  also in wxWindows application code.  The following works fine when */
+/*  since "id" is used extensively not only within wxWidgets itself, but */
+/*  also in wxWidgets application code.  The following works fine when */
 /*  compiling C(++) code, and works without typesafety for Obj-C(++) code */
 #define DECLARE_WXCOCOA_OBJC_CLASS(klass) \
 typedef struct objc_object *WX_##klass
@@ -2147,23 +2167,15 @@ DECLARE_WXCOCOA_OBJC_CLASS(NSTextStorage);
 DECLARE_WXCOCOA_OBJC_CLASS(NSThread);
 DECLARE_WXCOCOA_OBJC_CLASS(NSWindow);
 DECLARE_WXCOCOA_OBJC_CLASS(NSView);
-typedef WX_NSView WXWidget; /*  wxWindows BASE definition */
+typedef WX_NSView WXWidget; /*  wxWidgets BASE definition */
 #endif /*  __WXCOCOA__ */
 
 #ifdef __WXMSW__
 
 /*  the keywords needed for WinMain() declaration */
-#ifdef __WIN16__
-#  ifdef __VISUALC__
-#    define WXFAR __far
-#  else
-#    define WXFAR _far
-#  endif
-#else  /*  Win32 */
-#  ifndef WXFAR
+#ifndef WXFAR
 #    define WXFAR
-#  endif
-#endif /*  Win16/32 */
+#endif
 
 /*  Stand-ins for Windows types to avoid #including all of windows.h */
 typedef void *          WXHWND;
@@ -2188,7 +2200,7 @@ typedef unsigned short  WXWORD;
 
 typedef unsigned long   WXCOLORREF;
 typedef void *          WXRGNDATA;
-typedef void *          WXMSG;
+typedef struct tagMSG   WXMSG;
 typedef void *          WXHCONV;
 typedef void *          WXHKEY;
 typedef void *          WXHTREEITEM;
@@ -2391,7 +2403,7 @@ typedef struct _GdkICAttr       GdkICAttr;
 
 /* Stand-ins for GTK types */
 typedef struct _GtkWidget         GtkWidget;
-typedef struct _GtkStyle          GtkStyle;
+typedef struct _GtkRcStyle        GtkRcStyle;
 typedef struct _GtkAdjustment     GtkAdjustment;
 typedef struct _GtkList           GtkList;
 typedef struct _GtkToolbar        GtkToolbar;
@@ -2408,11 +2420,6 @@ typedef GtkWidget *WXWidget;
 #define GTK_OBJECT_GET_CLASS(object) (GTK_OBJECT(object)->klass)
 #define GTK_CLASS_TYPE(klass) ((klass)->type)
 #endif
-
-#ifdef __WXGTK20__
-/* Input method thing */
-typedef struct _GtkIMMulticontext    GtkIMMulticontext;
-#endif /*  __WXGTK20__ */
 
 #endif /*  __WXGTK__ */
 
@@ -2434,8 +2441,8 @@ typedef struct window_t *WXWidget;
 #endif /*  MGL */
 
 /*  This is required because of clashing macros in windows.h, which may be */
-/*  included before or after wxWindows classes, and therefore must be */
-/*  disabled here before any significant wxWindows headers are included. */
+/*  included before or after wxWidgets classes, and therefore must be */
+/*  disabled here before any significant wxWidgets headers are included. */
 #ifdef __WXMSW__
 #ifdef GetClassInfo
 #undef GetClassInfo

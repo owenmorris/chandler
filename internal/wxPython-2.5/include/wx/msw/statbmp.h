@@ -74,9 +74,6 @@ public:
     // -------------------------------
 
     // implement base class virtuals
-#ifdef __WIN16__
-    virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
-#endif // __WIN16__
     virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 
 protected:
@@ -85,10 +82,10 @@ protected:
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     // ctor/dtor helpers
-    void Init() { m_isIcon = TRUE; m_image = NULL; }
+    void Init() { m_isIcon = true; m_image = NULL; }
     void Free();
 
-    // TRUE if icon/bitmap is valid
+    // true if icon/bitmap is valid
     bool ImageIsOk() const;
 
     void SetImage(const wxGDIImage* image);

@@ -90,7 +90,7 @@ public:
     virtual void GetScrollPixelsPerUnit(int *x_unit, int *y_unit) const;
 
     // Enable/disable Windows scrolling in either direction.
-    // If TRUE, wxWindows scrolls the canvas and only a bit of
+    // If TRUE, wxWidgets scrolls the canvas and only a bit of
     // the canvas is invalidated; no Clear() is necessary.
     // If FALSE, the whole canvas is invalidated and a Clear() is
     // necessary. Disable for when the scroll increment is used
@@ -127,7 +127,7 @@ public:
 
     // Override this function if you don't want to have wxScrolledWindow
     // automatically change the origin according to the scroll position.
-    virtual void PrepareDC(wxDC& dc);
+    void PrepareDC(wxDC& dc) { DoPrepareDC(dc); }
 
     // lay out the window and its children
     virtual bool Layout();
@@ -156,13 +156,15 @@ public:
     // Calculate scroll increment
     virtual int CalcScrollInc(wxScrollWinEvent& event);
 
-    // Overridden from wxWindows due callback being static
+    // Overridden from wxWidgets due callback being static
     virtual void SetScrollPos( int orient, int pos, bool refresh = TRUE );
 
 #if WXWIN_COMPATIBILITY_2_2
     // Compatibility
     void ViewStart(int *x, int *y) const { GetViewStart( x, y ); }
 #endif // WXWIN_COMPATIBILITY_2_2
+
+    virtual void DoPrepareDC(wxDC& dc);
 
 protected:
     wxWindow             *m_targetWindow;

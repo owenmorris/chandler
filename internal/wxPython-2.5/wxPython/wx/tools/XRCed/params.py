@@ -10,11 +10,20 @@ from globals import *
 from types import *
 from wxPython.xrc import *
 
-genericStyles = ['wxSIMPLE_BORDER', 'wxDOUBLE_BORDER',
-                 'wxSUNKEN_BORDER', 'wxRAISED_BORDER',
-                 'wxSTATIC_BORDER', 'wxNO_BORDER',
-                 'wxTRANSPARENT_WINDOW', 'wxWANTS_CHARS',
-                 'wxNO_FULL_REPAINT_ON_RESIZE']
+genericStyles = [
+    'wxCLIP_CHILDREN',
+    'wxSIMPLE_BORDER',
+    'wxSUNKEN_BORDER',
+    'wxDOUBLE_BORDER',
+    'wxRAISED_BORDER',
+    'wxSTATIC_BORDER',
+    'wxNO_BORDER',
+    'wxTRANSPARENT_WINDOW',
+    'wxWANTS_CHARS',
+    'wxNO_FULL_REPAINT_ON_RESIZE',
+    'wxFULL_REPAINT_ON_RESIZE',
+    'wxWS_EX_BLOCK_EVENTS',
+]
 
 buttonSize = (35,-1)    # in dialog units, transformed to pixels in panel ctor
 
@@ -94,8 +103,10 @@ class ParamBinaryOr(PPanel):
 class ParamFlag(ParamBinaryOr):
     values = ['wxTOP', 'wxBOTTOM', 'wxLEFT', 'wxRIGHT', 'wxALL',
               'wxEXPAND', 'wxGROW', 'wxSHAPED', 'wxALIGN_CENTRE', 'wxALIGN_RIGHT',
+              'wxFIXED_MINSIZE',
               'wxALIGN_BOTTOM', 'wxALIGN_CENTRE_VERTICAL',
-              'wxALIGN_CENTRE_HORIZONTAL']
+              'wxALIGN_CENTRE_HORIZONTAL',
+              ]
     equal = {'wxALIGN_CENTER': 'wxALIGN_CENTRE',
              'wxALIGN_CENTER_VERTICAL': 'wxALIGN_CENTRE_VERTICAL',
              'wxALIGN_CENTER_HORIZONTAL': 'wxALIGN_CENTRE_HORIZONTAL'}
@@ -405,10 +416,10 @@ class ParamEncoding(ParamText):
 class ContentDialog(wxDialog):
     def __init__(self, parent, value):
         # Load from resource
-	pre = wxPreDialog()
+        pre = wxPreDialog()
         g.frame.res.LoadOnDialog(pre, parent, 'DIALOG_CONTENT')
         self.this = pre.this
-	self._setOORInfo(self)
+        self._setOORInfo(self)
         self.list = XRCCTRL(self, 'LIST')
         # Set list items
         for v in value:
@@ -455,10 +466,10 @@ class ContentDialog(wxDialog):
 
 class ContentCheckListDialog(wxDialog):
     def __init__(self, parent, value):
-	pre = wxPreDialog()
+        pre = wxPreDialog()
         g.frame.res.LoadOnDialog(pre, parent, 'DIALOG_CONTENT_CHECK_LIST')
         self.this = pre.this
-	self._setOORInfo(self)
+        self._setOORInfo(self)
         self.list = XRCCTRL(self, 'CHECK_LIST')
         # Set list items
         i = 0
@@ -587,10 +598,10 @@ class ParamContentCheckList(ParamContent):
 
 class IntListDialog(wxDialog):
     def __init__(self, parent, value):
-	pre = wxPreDialog()
+        pre = wxPreDialog()
         g.frame.res.LoadOnDialog(pre, parent, 'DIALOG_INTLIST')
         self.this = pre.this
-	self._setOORInfo(self)
+        self._setOORInfo(self)
         self.list = XRCCTRL(self, 'LIST')
         # Set list items
         value.sort()
@@ -704,6 +715,17 @@ class ParamOrient(RadioBox):
         if not value: value = 'wxHORIZONTAL'
         self.SetStringSelection(self.seulav[value])
 
+class ParamOrientation(RadioBox):
+    values = {'horizontal': 'horizontal', 'vertical': 'vertical'}
+    seulav = {'horizontal': 'horizontal', 'vertical': 'vertical'}
+    def __init__(self, parent, name):
+        RadioBox.__init__(self, parent, -1, choices=self.values.keys(), name=name)
+    def GetValue(self):
+        return self.values[self.GetStringSelection()]
+    def SetValue(self, value):
+        if not value: value = 'vertical'
+        self.SetStringSelection(self.seulav[value])
+
 class ParamFile(PPanel):
     def __init__(self, parent, name):
         PPanel.__init__(self, parent, name)
@@ -752,10 +774,10 @@ class ParamFile(PPanel):
 
 class ParamBitmap(PPanel):
     def __init__(self, parent, name):
-	pre = wxPrePanel()
+        pre = wxPrePanel()
         g.frame.res.LoadOnPanel(pre, parent, 'PANEL_BITMAP')
         self.this = pre.this
-	self._setOORInfo(self)
+        self._setOORInfo(self)
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
         self.modified = self.freeze = False

@@ -54,6 +54,8 @@ public:
 
 
 
+MustHaveApp(wxGenericDirCtrl);
+
 class wxGenericDirCtrl: public wxControl
 {
 public:
@@ -118,9 +120,11 @@ public:
     DocDeclAStr(
         virtual wxTreeItemId, FindChild(wxTreeItemId parentId, const wxString& path, bool& OUTPUT),
         "FindChild(wxTreeItemId parentId, wxString path) -> (item, done)",
-        "Find the child that matches the first part of 'path'.  E.g. if a child path is\n"
-        "\"/usr\" and 'path' is \"/usr/include\" then the child for /usr is returned.\n"
-        "If the path string has been used (we're at the leaf), done is set to True\n");
+        "Find the child that matches the first part of 'path'.  E.g. if a child
+path is \"/usr\" and 'path' is \"/usr/include\" then the child for
+/usr is returned.  If the path string has been used (we're at the
+leaf), done is set to True.
+", "");
         
     
     // Resize the components of the control
@@ -133,6 +137,8 @@ public:
 
 
 
+
+MustHaveApp(wxDirFilterListCtrl);
 
 class wxDirFilterListCtrl: public wxChoice
 {

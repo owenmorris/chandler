@@ -5,7 +5,7 @@
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
  * RCS-ID:      $Id$
- * Copyright:   (c) 1998-2002 wxWindows dev team
+ * Copyright:   (c) 1998-2002 wxWidgets dev team
  * Licence:     wxWindows licence
  */
 
@@ -22,10 +22,7 @@
 
 /* check whether we have wchar_t and which size it is if we do */
 #if !defined(wxUSE_WCHAR_T)
-    #if defined(__WIN16__)
-        /* no wchar_t under Win16 regadrless of compiler used */
-        #define wxUSE_WCHAR_T 0
-    #elif defined(__UNIX__)
+    #if defined(__UNIX__)
         #if defined(HAVE_WCSTR_H) || defined(HAVE_WCHAR_H) || defined(__FreeBSD__) || defined(__DARWIN__)
             #define wxUSE_WCHAR_T 1
         #else
@@ -51,7 +48,7 @@
 /*
     Standard headers we need here.
 
-    NB: don't include any wxWindows headers here because almost of them include
+    NB: don't include any wxWidgets headers here because almost of them include
         this one!
  */
 
@@ -181,7 +178,7 @@
         typedef wchar_t wxSChar;
         typedef wchar_t wxUChar;
     #else /* __WCHAR_TYPE__ and gcc < 2.96 */
-        /* VS: wxWindows used to define wxChar as __WCHAR_TYPE__ here. However, */
+        /* VS: wxWidgets used to define wxChar as __WCHAR_TYPE__ here. However, */
         /*     this doesn't work with new GCC 3.x compilers because wchar_t is */
         /*     C++'s builtin type in the new standard. OTOH, old compilers (GCC */
         /*     2.x) won't accept new definition of wx{S,U}Char, therefore we */
@@ -215,7 +212,7 @@
 
 /* although global macros with such names are normally bad, we want to have */
 /* another name for _T() which should be used to avoid confusion between _T() */
-/* and _() in wxWindows sources */
+/* and _() in wxWidgets sources */
 #define wxT(x)       _T(x)
 
 /* Unicode-friendly __FILE__, __DATE__ and __TIME__ analogs */
@@ -257,8 +254,13 @@
     #define  wxIsspace   _istspace
     #define  wxIsupper   _istupper
     #define  wxIsxdigit  _istxdigit
-    #define  wxTolower   _totlower
-    #define  wxToupper   _totupper
+
+    /*
+       There is a bug in VC6 C RTL: toxxx() functions dosn't do anything with
+       signed chars < 0, so "fix" it here.
+     */
+    #define  wxTolower(c) _totlower((wxUChar)(c))
+    #define  wxToupper(c) _totupper((wxUChar)(c))
 
     /* locale.h functons */
     #define  wxSetlocale _tsetlocale
@@ -418,21 +420,32 @@
             #define  wxGets      getws
             #define  wxUngetc    ungetwc
 
-            #ifdef HAVE_FPUTWC
-                #define  wxPutc      wputc
-                #define  wxPutchar   wputchar
-                #define  wxPuts      putws
-                #define  wxFputs     fputws
+            #ifdef HAVE_FPUTWS
+                #define wxFputs     fputws
             #else
-                #define wxNEED_FPUTWC
-
+                #define wxNEED_FPUTS
                 #include <stdio.h>
-
                 int wxFputs(const wxChar *ch, FILE *stream);
-                int wxPutc(wxChar ch, FILE *stream);
+            #endif
 
-                #define wxPuts(ws) wxFputs(ws, stdout)
+            #ifdef HAVE_WPUTC
+                #define wxPutc      wputc
+            #else
+                #define wxNEED_PUTC
+                #include <stdio.h>
+                int wxPutc(wxChar ch, FILE *stream);
+            #endif
+
+            #ifdef HAVE_WPUTCHAR
+                #define wxPutchar   wputchar
+            #else
                 #define wxPutchar(wch) wxPutc(wch, stdout)
+            #endif
+            
+            #ifdef HAVE_PUTWS
+                #define wxPuts      putws
+            #else
+                #define wxPuts(ws) wxFputs(ws, stdout)
             #endif
 
             /* we need %s to %ls conversion for printf and scanf etc */
@@ -443,7 +456,7 @@
             #define wxNEED_WX_STDIO_H
             #define wxNEED_WX_STDLIB_H
             #define wxNEED_WX_TIME_H
-        #elif defined(__MWERKS__) && ( defined(macintosh) || defined(__MACH__) )
+        #elif defined(__MWERKS__) && ( defined(__MSL__) || defined(__MACH__) )
             /* ctype.h functions (wctype.h) */
             #define  wxIsalnum   iswalnum
             #define  wxIsalpha   iswalpha
@@ -500,12 +513,15 @@
             #define wxNEED_WX_STDIO_H
 
             /* stdlib.h functions */
+            #ifdef __MACH__
+            #define wxNEED_WX_STDLIB_H
+            #else
             #define  wxAtof      watof
             #define  wxAtoi      watoi
             #define  wxAtol      watol
             #define  wxGetenv(a)    ((wxChar*)NULL)
             #define  wxSystem(a)    ((int)NULL)
-
+            #endif
             /* time.h functions */
             #define  wxAsctime   wasciitime
             #define  wxCtime     wctime
@@ -629,7 +645,7 @@
     #elif defined(__UNIX__) || defined(__GNUWIN32__)
         #define wxStricmp strcasecmp
         #define wxStrnicmp strncasecmp
-    /* #else -- use wxWindows implementation */
+    /* #else -- use wxWidgets implementation */
     #endif
 #endif /* !defined(wxStricmp) */
 
@@ -640,6 +656,10 @@
     #ifdef HAVE_WCSLEN
         #define wxWcslen wcslen
     #else
+	#if defined( __WXMAC_XCODE__ ) && !defined( __cplusplus )
+	/* xcode native targets are giving multiply defined symbols on regex */
+		static
+	#endif
         inline size_t wxWcslen(const wchar_t *s)
         {
             size_t n = 0;
@@ -713,7 +733,7 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
             #define wxVsnprintf_    vswprintf
         #endif
     #else /* ASCII */
-        /* all versions of CodeWarrior supported by wxWindows apparently have */
+        /* all versions of CodeWarrior supported by wxWidgets apparently have */
         /* vsnprintf() */
         #if defined(HAVE_VSNPRINTF) || defined(__MWERKS__) || defined(__WATCOMC__)
             /* assume we have snprintf() too if we have vsnprintf() */
@@ -753,12 +773,7 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
    We choose to always emulate Windows behaviour as more useful for us so even
    if we have wprintf() we still must wrap it in a non trivial wxPrintf().
 
-   However, if we don't have any vswprintf() at all we don't need to redefine
-   anything as our own wxVsnprintf_() already behaves as needed.
 */
-#ifndef wxVsnprintf_
-    #undef wxNEED_PRINTF_CONVERSION
-#endif
 
 #if defined(wxNEED_PRINTF_CONVERSION) || defined(wxNEED_WPRINTF)
     /*
@@ -783,7 +798,11 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
 
 /* these 2 can be simply mapped to the versions with underscore at the end */
 /* if we don't have to do the conversion */
-#ifdef wxNEED_PRINTF_CONVERSION
+/*
+   However, if we don't have any vswprintf() at all we don't need to redefine
+   anything as our own wxVsnprintf_() already behaves as needed.
+*/
+#if defined(wxNEED_PRINTF_CONVERSION) && defined(wxVsnprintf_)
     int wxSnprintf( wxChar *str, size_t size, const wxChar *format, ... ) ATTRIBUTE_PRINTF_3;
     int wxVsnprintf( wxChar *str, size_t size, const wxChar *format, va_list ap );
 #else

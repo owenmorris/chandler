@@ -25,6 +25,40 @@ MAKE_CONST_WXSTRING(ToolBarNameStr);
 
 enum
 {
+    wxSTAY_ON_TOP,
+    wxICONIZE,
+    wxMINIMIZE,
+    wxMAXIMIZE,
+    wxCLOSE_BOX,
+    wxTHICK_FRAME,
+    wxSYSTEM_MENU,
+    wxMINIMIZE_BOX,
+    wxMAXIMIZE_BOX,
+    wxTINY_CAPTION_HORIZ,
+    wxTINY_CAPTION_VERT,
+    wxRESIZE_BOX,
+    wxRESIZE_BORDER,
+
+    wxDIALOG_NO_PARENT,
+    
+    wxDEFAULT_FRAME_STYLE,
+    wxDEFAULT_DIALOG_STYLE,
+
+    wxFRAME_TOOL_WINDOW,
+    wxFRAME_FLOAT_ON_PARENT,
+    wxFRAME_NO_WINDOW_MENU,
+    wxFRAME_NO_TASKBAR,
+    wxFRAME_SHAPED,
+
+    // Obsolete
+    wxDIALOG_MODAL,
+    wxDIALOG_MODELESS,
+    wxUSER_COLOURS,
+    wxNO_3D,
+};    
+
+enum
+{
     wxFULLSCREEN_NOMENUBAR,
     wxFULLSCREEN_NOTOOLBAR,
     wxFULLSCREEN_NOSTATUSBAR,
@@ -35,18 +69,12 @@ enum
     wxTOPLEVEL_EX_DIALOG,
 };
 
-
-
-%typemap(in) (int widths, int* widths_field) {
-    $1 = PyList_Size($input);
-    $2 =  int_LIST_helper($input);
-    if ($2 == NULL) SWIG_fail;
-}
-
-%typemap(freearg) (int widths, int* widths_field) {
-    if ($2) delete [] $2;
-}
-
+// Styles for RequestUserAttention
+enum
+{
+    wxUSER_ATTENTION_INFO = 1,
+    wxUSER_ATTENTION_ERROR = 2
+};
 
 //---------------------------------------------------------------------------
 
@@ -94,6 +122,16 @@ public:
     // is successful.)
     virtual bool SetShape(const wxRegion& region);
 
+
+    // Attracts the users attention to this window if the application is
+    // inactive (should be called when a background event occurs)
+    virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
+
+
+#ifdef __WXMAC__
+    void MacSetMetalAppearance( bool on ) ;
+    bool MacGetMetalAppearance() const ;
+#endif
 };
 
 
@@ -107,19 +145,28 @@ public:
 // is accounted for in client size calculations - all others should be taken
 // care of manually.
 
+MustHaveApp(wxFrame);
+
 class wxFrame : public wxTopLevelWindow {
 public:
     %pythonAppend wxFrame         "self._setOORInfo(self)"
     %pythonAppend wxFrame()       ""
+    %typemap(out) wxFrame*;    // turn off this typemap
 
-    wxFrame(wxWindow* parent, const wxWindowID id, const wxString& title,
+    wxFrame(wxWindow* parent, const wxWindowID id=-1,
+            const wxString& title = wxPyEmptyString,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             long style = wxDEFAULT_FRAME_STYLE,
             const wxString& name = wxPyFrameNameStr);
     %name(PreFrame)wxFrame();
 
-    bool Create(wxWindow* parent, const wxWindowID id, const wxString& title,
+    // Turn it back on again
+    %typemap(out) wxFrame* { $result = wxPyMake_wxObject($1, $owner); }
+
+    
+    bool Create(wxWindow* parent, const wxWindowID id=-1,
+                const wxString& title = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_FRAME_STYLE,
@@ -136,7 +183,7 @@ public:
     // sends a size event to the window using its current size -- this has an
     // effect of refreshing the window layout
     //
-    virtual void SendSizeEvent() { }
+    virtual void SendSizeEvent();
 
 
     // menu bar functions
@@ -209,28 +256,37 @@ public:
     // send wxUpdateUIEvents for all menu items in the menubar,
     // or just for menu if non-NULL
     void DoMenuUpdates(wxMenu* menu = NULL);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxDialog);
+
 class wxDialog : public wxTopLevelWindow {
 public:
     %pythonAppend wxDialog   "self._setOORInfo(self)"
     %pythonAppend wxDialog() ""
+    %typemap(out) wxDialog*;    // turn off this typemap
 
     wxDialog(wxWindow* parent,
-             const wxWindowID id,
-             const wxString& title,
+             const wxWindowID id=-1,
+             const wxString& title = wxPyEmptyString,
              const wxPoint& pos = wxDefaultPosition,
              const wxSize& size = wxDefaultSize,
              long style = wxDEFAULT_DIALOG_STYLE,
              const wxString& name = wxPyDialogNameStr);
     %name(PreDialog)wxDialog();
 
+    // Turn it back on again
+    %typemap(out) wxDialog* { $result = wxPyMake_wxObject($1, $owner); }
+
     bool Create(wxWindow* parent,
-                const wxWindowID id,
-                const wxString& title,
+                const wxWindowID id=-1,
+                const wxString& title = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_DIALOG_STYLE,
@@ -239,8 +295,8 @@ public:
 
     // the modal dialogs have a return code - usually the id of the last
     // pressed button
-    void SetReturnCode(int returnCode) { m_returnCode = returnCode; }
-    int GetReturnCode() const { return m_returnCode; }
+    void SetReturnCode(int returnCode);
+    int GetReturnCode() const;
 
     // splits text up at newlines and places the
     // lines into a vertical wxBoxSizer
@@ -262,15 +318,12 @@ public:
     // may be called to terminate the dialog with the given return code
     virtual void EndModal(int retCode);
 
-    // returns True if we're in a modal loop
-    %extend {
-        bool IsModalShowing() {
-        #ifdef __WXGTK__
-            return self->m_modalShowing;
-        #else
-            return self->IsModalShowing();
-        #endif
-        }
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
+    %pythoncode {
+        def SendSizeEvent(self):
+            self.ProcessEvent(wx.SizeEvent((-1,-1)))
     }
 };
 
@@ -278,19 +331,23 @@ public:
 %newgroup
 
 
+MustHaveApp(wxMiniFrame);
+
 class wxMiniFrame : public wxFrame {
 public:
     %pythonAppend wxMiniFrame         "self._setOORInfo(self)"
     %pythonAppend wxMiniFrame()       ""
 
-    wxMiniFrame(wxWindow* parent, const wxWindowID id, const wxString& title,
+    wxMiniFrame(wxWindow* parent, const wxWindowID id=-1,
+                const wxString& title = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_FRAME_STYLE,
                 const wxString& name = wxPyFrameNameStr);
     %name(PreMiniFrame)wxMiniFrame();
 
-    bool Create(wxWindow* parent, const wxWindowID id, const wxString& title,
+    bool Create(wxWindow* parent, const wxWindowID id=-1,
+                const wxString& title = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_FRAME_STYLE,
@@ -312,6 +369,8 @@ enum {
 };
 
 
+MustHaveApp(wxSplashScreenWindow);
+
 class wxSplashScreenWindow: public wxWindow
 {
 public:
@@ -328,12 +387,14 @@ public:
 };
 
 
+MustHaveApp(wxSplashScreen);
+
 class wxSplashScreen : public wxFrame {
 public:
     %pythonAppend wxSplashScreen         "self._setOORInfo(self)"
 
     wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds,
-                   wxWindow* parent, wxWindowID id,
+                   wxWindow* parent, wxWindowID id=-1,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long style = wxSIMPLE_BORDER|wxFRAME_NO_TASKBAR|wxSTAY_ON_TOP);

@@ -10,7 +10,12 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-%module grid
+%define DOCSTRING
+"Classes for implementing a spreadsheet-like control."
+%enddef
+
+%module(package="wx", docstring=DOCSTRING) grid
+
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -26,7 +31,8 @@
 //---------------------------------------------------------------------------
 
 %import windows.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 
 %include _grid_rename.i
@@ -39,17 +45,17 @@ MAKE_CONST_WXSTRING2(DateTimeFormatStr, wxT("%c"));
 //---------------------------------------------------------------------------
 // OOR related typemaps and helper functions
 
-%typemap(out) wxGridCellRenderer*     { $result = wxPyMake_wxGridCellRenderer($1); }
-%typemap(out) wxGridCellEditor*       { $result = wxPyMake_wxGridCellEditor($1); }
-%typemap(out) wxGridCellAttr*         { $result = wxPyMake_wxGridCellAttr($1); }
-%typemap(out) wxGridCellAttrProvider* { $result = wxPyMake_wxGridCellAttrProvider($1); }
-%typemap(out) wxGridTableBase*        { $result = wxPyMake_wxGridTableBase($1); }
+%typemap(out) wxGridCellRenderer*     { $result = wxPyMake_wxGridCellRenderer($1, $owner); }
+%typemap(out) wxGridCellEditor*       { $result = wxPyMake_wxGridCellEditor($1, $owner); }
+%typemap(out) wxGridCellAttr*         { $result = wxPyMake_wxGridCellAttr($1, $owner); }
+%typemap(out) wxGridCellAttrProvider* { $result = wxPyMake_wxGridCellAttrProvider($1, $owner); }
+%typemap(out) wxGridTableBase*        { $result = wxPyMake_wxGridTableBase($1, $owner); }
 
 
 %{
 
 #define wxPyMake_TEMPLATE(TYPE) \
-PyObject* wxPyMake_##TYPE(TYPE* source) { \
+PyObject* wxPyMake_##TYPE(TYPE* source, bool setThisOwn) { \
     PyObject* target = NULL; \
     if (source) { \
         /* Check if there is already a pointer to a Python object in the \
@@ -57,12 +63,13 @@ PyObject* wxPyMake_##TYPE(TYPE* source) { \
         wxPyOORClientData* data = (wxPyOORClientData*)source->GetClientObject(); \
         if (data) { \
             target = data->m_obj; \
-            Py_INCREF(target); \
+            if (target) \
+                Py_INCREF(target); \
         } \
         /* Otherwise make a new wrapper for it the old fashioned way and \
            give it the OOR treatment */ \
         if (! target) { \
-            target = wxPyConstructObject(source, wxT(#TYPE), False); \
+            target = wxPyConstructObject(source, wxT(#TYPE), setThisOwn); \
             if (target) \
                 source->SetClientObject(new wxPyOORClientData(target)); \
         } \
@@ -120,7 +127,7 @@ wxPyMake_TEMPLATE(wxGridTableBase)
         bool blocked = wxPyBeginBlockThreads();                                                \
         bool found;                                                             \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxGridCellAttr(attr);                      \
+            PyObject* obj = wxPyMake_wxGridCellAttr(attr,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oii)", obj, a, b));  \
             Py_DECREF(obj);                                                     \
         }                                                                       \
@@ -139,7 +146,7 @@ wxPyMake_TEMPLATE(wxGridTableBase)
         bool blocked = wxPyBeginBlockThreads();                                                \
         bool found;                                                             \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxGridCellAttr(attr);                      \
+            PyObject* obj = wxPyMake_wxGridCellAttr(attr,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", obj, val));    \
             Py_DECREF(obj);                                                     \
         }                                                                       \
@@ -515,6 +522,33 @@ const wxRect           wxGridNoCellRect;
 %mutable;
 
 
+%{
+#define wxGRID_DEFAULT_NUMBER_ROWS        WXGRID_DEFAULT_NUMBER_ROWS
+#define wxGRID_DEFAULT_NUMBER_COLS        WXGRID_DEFAULT_NUMBER_COLS
+#define wxGRID_DEFAULT_ROW_HEIGHT         WXGRID_DEFAULT_ROW_HEIGHT
+#define wxGRID_DEFAULT_COL_WIDTH          WXGRID_DEFAULT_COL_WIDTH
+#define wxGRID_DEFAULT_COL_LABEL_HEIGHT   WXGRID_DEFAULT_COL_LABEL_HEIGHT
+#define wxGRID_DEFAULT_ROW_LABEL_WIDTH    WXGRID_DEFAULT_ROW_LABEL_WIDTH
+#define wxGRID_LABEL_EDGE_ZONE            WXGRID_LABEL_EDGE_ZONE
+#define wxGRID_MIN_ROW_HEIGHT             WXGRID_MIN_ROW_HEIGHT
+#define wxGRID_MIN_COL_WIDTH              WXGRID_MIN_COL_WIDTH
+#define wxGRID_DEFAULT_SCROLLBAR_WIDTH    WXGRID_DEFAULT_SCROLLBAR_WIDTH
+%}
+
+enum {
+    wxGRID_DEFAULT_NUMBER_ROWS,
+    wxGRID_DEFAULT_NUMBER_COLS,
+    wxGRID_DEFAULT_ROW_HEIGHT,
+    wxGRID_DEFAULT_COL_WIDTH,
+    wxGRID_DEFAULT_COL_LABEL_HEIGHT,
+    wxGRID_DEFAULT_ROW_LABEL_WIDTH,
+    wxGRID_LABEL_EDGE_ZONE,
+    wxGRID_MIN_ROW_HEIGHT,
+    wxGRID_MIN_COL_WIDTH,
+    wxGRID_DEFAULT_SCROLLBAR_WIDTH
+};
+
+
 //---------------------------------------------------------------------------
 // wxGridCellRenderer is an ABC, and several derived classes are available.
 // Classes implemented in Python should be derived from wxPyGridCellRenderer.
@@ -525,7 +559,8 @@ class wxGridCellRenderer
 public:
     %extend {
         void _setOORInfo(PyObject* _self) {
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
     }
 
@@ -560,9 +595,9 @@ public:
               int row, int col, bool isSelected) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "Draw")) {
-            PyObject* go = wxPyMake_wxObject(&grid);
-            PyObject* dco = wxPyMake_wxObject(&dc);
-            PyObject* ao = wxPyMake_wxGridCellAttr(&attr);
+            PyObject* go = wxPyMake_wxObject(&grid,false);
+            PyObject* dco = wxPyMake_wxObject(&dc,false);
+            PyObject* ao = wxPyMake_wxGridCellAttr(&attr,false);
             PyObject* ro = wxPyConstructObject((void*)&rect, wxT("wxRect"), 0);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OOOOiii)", go, ao, dco, ro,
@@ -582,9 +617,9 @@ public:
         if (wxPyCBH_findCallback(m_myInst, "GetBestSize")) {
             PyObject* ro;
             wxSize*   ptr;
-            PyObject* go = wxPyMake_wxObject(&grid);
-            PyObject* dco = wxPyMake_wxObject(&dc);
-            PyObject* ao = wxPyMake_wxGridCellAttr(&attr);
+            PyObject* go = wxPyMake_wxObject(&grid,false);
+            PyObject* dco = wxPyMake_wxObject(&dc,false);
+            PyObject* ao = wxPyMake_wxGridCellAttr(&attr,false);
 
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OOOii)",
                                                                  go, ao, dco,
@@ -731,7 +766,8 @@ class  wxGridCellEditor
 public:
     %extend {
         void _setOORInfo(PyObject* _self) {
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
     }
 
@@ -776,8 +812,8 @@ public:
     void Create(wxWindow* parent, wxWindowID id, wxEvtHandler* evtHandler) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "Create")) {
-            PyObject* po = wxPyMake_wxObject(parent);
-            PyObject* eo = wxPyMake_wxObject(evtHandler);
+            PyObject* po = wxPyMake_wxObject(parent,false);
+            PyObject* eo = wxPyMake_wxObject(evtHandler,false);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OiO)", po, id, eo));
             Py_DECREF(po);
@@ -790,7 +826,7 @@ public:
     void BeginEdit(int row, int col, wxGrid* grid) {
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "BeginEdit")) {
-            PyObject* go = wxPyMake_wxObject(grid);
+            PyObject* go = wxPyMake_wxObject(grid,false);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)", row, col, go));
             Py_DECREF(go);
         }
@@ -802,7 +838,7 @@ public:
         bool rv = False;
         bool blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(m_myInst, "EndEdit")) {
-            PyObject* go = wxPyMake_wxObject(grid);
+            PyObject* go = wxPyMake_wxObject(grid,false);
             rv = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)", row, col, go));
             Py_DECREF(go);
         }
@@ -833,7 +869,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "Show"))) {
-            PyObject* ao = wxPyMake_wxGridCellAttr(attr);
+            PyObject* ao = wxPyMake_wxGridCellAttr(attr,false);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iO)", show, ao));
             Py_DECREF(ao);
         }
@@ -850,7 +886,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "PaintBackground)"))) {
-            PyObject* ao = wxPyMake_wxGridCellAttr(attr);
+            PyObject* ao = wxPyMake_wxGridCellAttr(attr,false);
             PyObject* ro = wxPyConstructObject((void*)&rectCell, wxT("wxRect"), 0);
 
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", ro, ao));
@@ -898,7 +934,7 @@ IMP_PYCALLBACK_STRING__constpure(wxPyGridCellEditor, wxGridCellEditor, GetValue)
 class wxPyGridCellEditor : public wxGridCellEditor {
 public:
     %pythonAppend wxPyGridCellEditor  "self._setCallbackInfo(self, PyGridCellEditor);self._setOORInfo(self)"
-    
+
     wxPyGridCellEditor();
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -938,7 +974,7 @@ class wxGridCellFloatEditor : public wxGridCellTextEditor
 {
 public:
     %pythonAppend wxGridCellFloatEditor  "self._setOORInfo(self)"
-    wxGridCellFloatEditor();
+    wxGridCellFloatEditor(int width = -1, int precision = -1);
     virtual wxString GetValue();
 };
 
@@ -999,14 +1035,15 @@ public:
 
     %extend {
         void _setOORInfo(PyObject* _self) {
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
     }
-    
+
     %pythonAppend wxGridCellAttr  "self._setOORInfo(self)"
 
     wxGridCellAttr(wxGridCellAttr *attrDefault = NULL);
-
+    
     wxGridCellAttr *Clone() const;
     void MergeWith(wxGridCellAttr *mergefrom);
     void IncRef();
@@ -1039,7 +1076,7 @@ public:
     DocDeclA(
         void, GetAlignment(int *OUTPUT, int *OUTPUT) const,
         "GetAlignment() -> (hAlign, vAlign)");
-    
+
     DocDeclA(
         void, GetSize(int *OUTPUT, int *OUTPUT) const,
         "GetSize() -> (num_rows, num_cols)");
@@ -1049,6 +1086,7 @@ public:
     wxGridCellEditor *GetEditor(wxGrid* grid, int row, int col) const;
 
     bool IsReadOnly() const;
+    wxAttrKind GetKind();
     void SetDefAttr(wxGridCellAttr* defAttr);
 };
 
@@ -1063,7 +1101,8 @@ public:
 
     %extend {
         void _setOORInfo(PyObject* _self) {
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
     }
 
@@ -1124,7 +1163,8 @@ public:
 
     %extend {
         void _setOORInfo(PyObject* _self) {
-            self->SetClientObject(new wxPyOORClientData(_self));
+            if (!self->GetClientObject())
+                self->SetClientObject(new wxPyOORClientData(_self));
         }
     }
 
@@ -1219,6 +1259,11 @@ public:
             PyObject* ro;
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(ii)",row,col));
             if (ro) {
+                if (!PyString_Check(ro) && !PyUnicode_Check(ro)) {
+                    PyObject* old = ro;
+                    ro = PyObject_Str(ro);
+                    Py_DECREF(old);
+                }
                 rval = Py2wxString(ro);
                 Py_DECREF(ro);
             }
@@ -1442,7 +1487,7 @@ bool wxGridCellCoords_helper(PyObject* source, wxGridCellCoords** obj) {
 
 bool wxGridCellCoords_typecheck(PyObject* source) {
     void* ptr;
-    
+
     if (wxPySwigInstance_Check(source) &&
         wxPyConvertSwigPtr(source, (void **)&ptr, wxT("wxGridCellCoords")))
         return True;
@@ -1450,7 +1495,7 @@ bool wxGridCellCoords_typecheck(PyObject* source) {
     PyErr_Clear();
     if (PySequence_Check(source) && PySequence_Length(source) == 2)
         return True;
-    
+
     return False;
 }
 %}
@@ -1504,7 +1549,7 @@ public:
     bool operator!=( const wxGridCellCoords& other ) const;
 
     %extend {
-        PyObject* asTuple() {
+        PyObject* Get() {
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->GetRow()));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->GetCol()));
@@ -1512,9 +1557,10 @@ public:
         }
     }
     %pythoncode {
-    def __str__(self):                   return str(self.asTuple())
-    def __repr__(self):                  return 'wxGridCellCoords'+str(self.asTuple())
-    def __len__(self):                   return len(self.asTuple())
+    asTuple = wx._deprecated(Get, "asTuple is deprecated, use `Get` instead")
+    def __str__(self):                   return str(self.Get())
+    def __repr__(self):                  return 'wxGridCellCoords'+str(self.Get())
+    def __len__(self):                   return len(self.Get())
     def __getitem__(self, index):        return self.asTuple()[index]
     def __setitem__(self, index, val):
         if index == 0: self.SetRow(val)
@@ -1540,17 +1586,34 @@ typedef wxGrid::wxGridSelectionModes WXGRIDSELECTIONMODES;
 
 
 
+MustHaveApp(wxGrid);
+
 class wxGrid : public wxScrolledWindow
 {
 public:
     %pythonAppend wxGrid "self._setOORInfo(self)"
+    %typemap(out) wxGrid*;    // turn off this typemap
 
     wxGrid( wxWindow *parent,
-            wxWindowID id,
+            wxWindowID id=-1,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             long style = wxWANTS_CHARS,
             const wxString& name = wxPyPanelNameStr);
+
+    %name(PreGrid) wxGrid();
+
+    
+    // Turn it back on again
+    %typemap(out) wxGrid* { $result = wxPyMake_wxObject($1, $owner); }
+
+
+    bool Create( wxWindow *parent,
+                 wxWindowID id=-1,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 long style = wxWANTS_CHARS,
+                 const wxString& name = wxPyPanelNameStr );
 
 
     enum wxGridSelectionModes {
@@ -1710,7 +1773,7 @@ public:
     DocDeclA(
         void, GetRowLabelAlignment( int *OUTPUT, int *OUTPUT ),
         "GetRowLabelAlignment() -> (horiz, vert)");
-    
+
     DocDeclA(
         void, GetColLabelAlignment( int *OUTPUT, int *OUTPUT ),
         "GetColLabelAlignment() -> (horiz, vert)");
@@ -1748,11 +1811,22 @@ public:
     void     DisableDragGridSize();
     bool     CanDragGridSize();
 
+    void     EnableDragCell( bool enable = True );
+    void     DisableDragCell();
+    bool     CanDragCell();
+
     // this sets the specified attribute for all cells in this row/col
     void     SetAttr(int row, int col, wxGridCellAttr *attr);
     void     SetRowAttr(int row, wxGridCellAttr *attr);
     void     SetColAttr(int col, wxGridCellAttr *attr);
 
+    // returns the attribute we may modify in place: a new one if this cell
+    // doesn't have any yet or the existing one if it does
+    //
+    // DecRef() must be called on the returned pointer, as usual
+    wxGridCellAttr *GetOrCreateCellAttr(int row, int col) const;
+
+    
     // shortcuts for setting the column parameters
 
     // set the format for the data in the column: default is string
@@ -1780,7 +1854,7 @@ public:
     DocDeclA(
         void, GetDefaultCellAlignment( int *OUTPUT, int *OUTPUT ),
         "GetDefaultCellAlignment() -> (horiz, vert)");
-    
+
     DocDeclA(
         void, GetCellAlignment( int row, int col, int *OUTPUT, int *OUTPUT ),
         "GetCellAlignment() -> (horiz, vert)");
@@ -1937,6 +2011,8 @@ public:
     wxWindow* GetGridCornerLabelWindow();
 
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -2037,6 +2113,7 @@ public:
 %constant wxEventType wxEVT_GRID_EDITOR_SHOWN;
 %constant wxEventType wxEVT_GRID_EDITOR_HIDDEN;
 %constant wxEventType wxEVT_GRID_EDITOR_CREATED;
+%constant wxEventType wxEVT_GRID_CELL_BEGIN_DRAG;
 
 
 
@@ -2057,6 +2134,28 @@ EVT_GRID_SELECT_CELL = wx.PyEventBinder( wxEVT_GRID_SELECT_CELL )
 EVT_GRID_EDITOR_SHOWN = wx.PyEventBinder( wxEVT_GRID_EDITOR_SHOWN )
 EVT_GRID_EDITOR_HIDDEN = wx.PyEventBinder( wxEVT_GRID_EDITOR_HIDDEN )
 EVT_GRID_EDITOR_CREATED = wx.PyEventBinder( wxEVT_GRID_EDITOR_CREATED )
+EVT_GRID_CELL_BEGIN_DRAG = wx.PyEventBinder( wxEVT_GRID_CELL_BEGIN_DRAG )
+
+
+%# The same as above but with the ability to specify an identifier
+EVT_GRID_CMD_CELL_LEFT_CLICK =     wx.PyEventBinder( wxEVT_GRID_CELL_LEFT_CLICK,    1 )
+EVT_GRID_CMD_CELL_RIGHT_CLICK =    wx.PyEventBinder( wxEVT_GRID_CELL_RIGHT_CLICK,   1 )
+EVT_GRID_CMD_CELL_LEFT_DCLICK =    wx.PyEventBinder( wxEVT_GRID_CELL_LEFT_DCLICK,   1 )
+EVT_GRID_CMD_CELL_RIGHT_DCLICK =   wx.PyEventBinder( wxEVT_GRID_CELL_RIGHT_DCLICK,  1 )
+EVT_GRID_CMD_LABEL_LEFT_CLICK =    wx.PyEventBinder( wxEVT_GRID_LABEL_LEFT_CLICK,   1 )
+EVT_GRID_CMD_LABEL_RIGHT_CLICK =   wx.PyEventBinder( wxEVT_GRID_LABEL_RIGHT_CLICK,  1 )
+EVT_GRID_CMD_LABEL_LEFT_DCLICK =   wx.PyEventBinder( wxEVT_GRID_LABEL_LEFT_DCLICK,  1 )
+EVT_GRID_CMD_LABEL_RIGHT_DCLICK =  wx.PyEventBinder( wxEVT_GRID_LABEL_RIGHT_DCLICK, 1 )
+EVT_GRID_CMD_ROW_SIZE =            wx.PyEventBinder( wxEVT_GRID_ROW_SIZE,           1 )
+EVT_GRID_CMD_COL_SIZE =            wx.PyEventBinder( wxEVT_GRID_COL_SIZE,           1 )
+EVT_GRID_CMD_RANGE_SELECT =        wx.PyEventBinder( wxEVT_GRID_RANGE_SELECT,       1 )
+EVT_GRID_CMD_CELL_CHANGE =         wx.PyEventBinder( wxEVT_GRID_CELL_CHANGE,        1 )
+EVT_GRID_CMD_SELECT_CELL =         wx.PyEventBinder( wxEVT_GRID_SELECT_CELL,        1 )
+EVT_GRID_CMD_EDITOR_SHOWN =        wx.PyEventBinder( wxEVT_GRID_EDITOR_SHOWN,       1 )
+EVT_GRID_CMD_EDITOR_HIDDEN =       wx.PyEventBinder( wxEVT_GRID_EDITOR_HIDDEN,      1 )
+EVT_GRID_CMD_EDITOR_CREATED =      wx.PyEventBinder( wxEVT_GRID_EDITOR_CREATED,     1 )
+EVT_GRID_CMD_CELL_BEGIN_DRAG =     wx.PyEventBinder( wxEVT_GRID_CELL_BEGIN_DRAG,    1 )
+    
 }
 
 //---------------------------------------------------------------------------

@@ -19,6 +19,10 @@
 #pragma interface "dirctrlg.h"
 #endif
 
+#if wxUSE_DIRDLG || wxUSE_FILEDLG
+    #include "wx/imaglist.h"
+#endif
+
 #if wxUSE_DIRDLG
 
 #include "wx/treectrl.h"
@@ -30,9 +34,9 @@
 // classes
 //-----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxTextCtrl;
-class WXDLLEXPORT wxImageList;
-class WXDLLEXPORT wxHashTable;
+class WXDLLIMPEXP_CORE wxTextCtrl;
+class WXDLLIMPEXP_CORE wxImageList;
+class WXDLLIMPEXP_BASE wxHashTable;
 
 //-----------------------------------------------------------------------------
 // Extra styles for wxGenericDirCtrl
@@ -82,7 +86,7 @@ class WXDLLEXPORT wxGenericDirCtrl: public wxControl
 {
 public:
     wxGenericDirCtrl();
-    wxGenericDirCtrl(wxWindow *parent, const wxWindowID id = -1,
+    wxGenericDirCtrl(wxWindow *parent, const wxWindowID id = wxID_ANY,
               const wxString &dir = wxDirDialogDefaultFolderStr,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
@@ -94,8 +98,8 @@ public:
         Init();
         Create(parent, id, dir, pos, size, style, filter, defaultFilter, name);
     }
-    
-    bool Create(wxWindow *parent, const wxWindowID id = -1,
+
+    bool Create(wxWindow *parent, const wxWindowID id = wxID_ANY,
               const wxString &dir = wxDirDialogDefaultFolderStr,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
@@ -124,12 +128,12 @@ public:
 
     // Get dir or filename
     virtual wxString GetPath() const;
-    
+
     // Get selected filename path only (else empty string).
     // I.e. don't count a directory as a selection
     virtual wxString GetFilePath() const;
     virtual void SetPath(const wxString& path);
-    
+
     virtual void ShowHidden( bool show );
     virtual bool GetShowHidden() { return m_showHidden; }
 
@@ -146,22 +150,24 @@ public:
 
     // Helper
     virtual void SetupSections();
-    
+
+#if WXWIN_COMPATIBILITY_2_4
     // Parse the filter into an array of filters and an array of descriptions
     virtual int ParseFilter(const wxString& filterStr, wxArrayString& filters, wxArrayString& descriptions);
-    
+#endif // WXWIN_COMPATIBILITY_2_4
+
     // Find the child that matches the first part of 'path'.
     // E.g. if a child path is "/usr" and 'path' is "/usr/include"
     // then the child for /usr is returned.
-    // If the path string has been used (we're at the leaf), done is set to TRUE
+    // If the path string has been used (we're at the leaf), done is set to true
     virtual wxTreeItemId FindChild(wxTreeItemId parentId, const wxString& path, bool& done);
-    
+
     // Resize the components of the control
     virtual void DoResize();
-    
+
     // Collapse & expand the tree, thus re-creating it from scratch:
     virtual void ReCreateTree();
-    
+
 protected:
     virtual void ExpandDir(wxTreeItemId parentId);
     virtual void CollapseDir(wxTreeItemId parentId);
@@ -200,7 +206,7 @@ class WXDLLEXPORT wxDirFilterListCtrl: public wxChoice
 {
 public:
     wxDirFilterListCtrl() { Init(); }
-    wxDirFilterListCtrl(wxGenericDirCtrl* parent, const wxWindowID id = -1,
+    wxDirFilterListCtrl(wxGenericDirCtrl* parent, const wxWindowID id = wxID_ANY,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = 0)
@@ -208,8 +214,8 @@ public:
         Init();
         Create(parent, id, pos, size, style);
     }
-    
-    bool Create(wxGenericDirCtrl* parent, const wxWindowID id = -1,
+
+    bool Create(wxGenericDirCtrl* parent, const wxWindowID id = wxID_ANY,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = 0);
@@ -240,9 +246,13 @@ protected:
 #define wxID_TREECTRL          7000
 #define wxID_FILTERLISTCTRL    7001
 
+#endif // wxUSE_DIRDLG
+
 //-------------------------------------------------------------------------
 // wxFileIconsTable - use wxTheFileIconsTable which is created as necessary
 //-------------------------------------------------------------------------
+
+#if wxUSE_DIRDLG || wxUSE_FILEDLG
 
 class WXDLLEXPORT wxFileIconsTable
 {
@@ -276,7 +286,7 @@ protected:
 // The global fileicons table
 WXDLLEXPORT_DATA(extern wxFileIconsTable *) wxTheFileIconsTable;
 
-#endif // wxUSE_DIRDLG
+#endif // wxUSE_DIRDLG || wxUSE_FILEDLG
 
 #endif
     // _WX_DIRCTRLG_H_

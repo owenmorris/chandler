@@ -10,7 +10,12 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-%module xrc
+%define DOCSTRING
+"The `XmlResource` class allows program resources defining menus, layout of
+controls on a panel, etc. to be loaded from an XML file."
+%enddef
+
+%module(package="wx", docstring=DOCSTRING) xrc
 
 
 %{
@@ -20,13 +25,13 @@
 
 #include <wx/xml/xml.h>
 #include <wx/xrc/xmlres.h>
-
 %}
 
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     22.10.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -27,8 +27,8 @@
 #include "wx/ctrlsub.h"         // base class
 
 // forward declarations are enough here
-class WXDLLEXPORT wxArrayInt;
-class WXDLLEXPORT wxArrayString;
+class WXDLLIMPEXP_BASE wxArrayInt;
+class WXDLLIMPEXP_BASE wxArrayString;
 
 // ----------------------------------------------------------------------------
 // global data

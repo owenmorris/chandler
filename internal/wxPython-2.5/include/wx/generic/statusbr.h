@@ -93,7 +93,7 @@ public:
   void SetBorderY(int y);
 
   void OnPaint(wxPaintEvent& event);
-  
+
   void OnLeftDown(wxMouseEvent& event);
   void OnRightDown(wxMouseEvent& event);
 
@@ -115,9 +115,10 @@ protected:
 
   int               m_borderX;
   int               m_borderY;
-  wxFont            m_defaultStatusBarFont;
   wxPen             m_mediumShadowPen;
   wxPen             m_hilightPen;
+
+  virtual wxSize DoGetBestSize() const;
 
 private:
   DECLARE_EVENT_TABLE()

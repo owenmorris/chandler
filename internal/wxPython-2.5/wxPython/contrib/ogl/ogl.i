@@ -10,8 +10,12 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
+%define DOCSTRING
+"The Object Graphics Library provides for simple drawing and manipulation
+of 2D objects.  (This version is deprecated, please use wx.lib.ogl instead.)"
+%enddef
 
-%module ogl
+%module(package="wx", docstring=DOCSTRING) ogl
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -23,7 +27,14 @@
 //---------------------------------------------------------------------------
 
 %import windows.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
+
+%pythoncode {
+    import warnings
+    warnings.warn("This module is deprecated.  Please use the wx.lib.ogl package instead.",    
+                  DeprecationWarning, stacklevel=2)
+}
 
 
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);
@@ -146,7 +157,10 @@ enum {
 
 //---------------------------------------------------------------------------
 
+MustHaveApp(wxOGLInitialize);
 void wxOGLInitialize();
+
+MustHaveApp(wxOGLCleanUp);
 void wxOGLCleanUp();
 
 
@@ -231,7 +245,7 @@ wxList* wxPy_wxRealPoint_ListHelper(PyObject* pyList) {
 
 //---------------------------------------------------------------------------
 
-PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source) {
+PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source, bool setThisOwn) {
     PyObject* target = NULL;
 
     if (source && wxIsKindOf(source, wxShapeEvtHandler)) {
@@ -246,11 +260,32 @@ PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source) {
         }
     }
     if (! target) {
-        target = wxPyMake_wxObject2(source, FALSE);
+        target = wxPyMake_wxObject2(source, setThisOwn, false);
         if (target != Py_None)
             ((wxShapeEvtHandler*)source)->SetClientObject(new wxPyOORClientData(target));
     }
     return target;
+}
+
+//---------------------------------------------------------------------------
+
+PyObject* wxPy_ConvertRealPointList(wxListBase* listbase) {
+    wxList*     list = (wxList*)listbase;
+    PyObject*   pyList;
+    PyObject*   pyObj;
+    wxObject*   wxObj;
+    wxNode*     node = list->GetFirst();
+    
+    bool blocked = wxPyBeginBlockThreads();
+    pyList = PyList_New(0);
+    while (node) {
+        wxObj = node->GetData();
+        pyObj = wxPyConstructObject(wxObj, wxT("wxRealPoint"), 0);
+        PyList_Append(pyList, pyObj);
+        node = node->GetNext();
+    } 
+    wxPyEndBlockThreads(blocked);
+    return pyList;
 }
 
 //---------------------------------------------------------------------------
@@ -266,7 +301,7 @@ PyObject* wxPy_ConvertShapeList(wxListBase* listbase) {
     pyList = PyList_New(0);
     while (node) {
         wxObj = node->GetData();
-        pyObj = wxPyMake_wxShapeEvtHandler((wxShapeEvtHandler*)wxObj);
+        pyObj = wxPyMake_wxShapeEvtHandler((wxShapeEvtHandler*)wxObj, false);
         PyList_Append(pyList, pyObj);
         node = node->GetNext();
     }

@@ -49,12 +49,15 @@ public:
     virtual bool GetValue() const;
     virtual bool Enable( bool enable = TRUE );
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
     // implementation
 
     virtual bool IsRadioButton() const { return TRUE; }
 
     GSList *m_radioButtonGroup;
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     bool IsOwnGtkWindow( GdkWindow *window );
     void OnInternalIdle();
 

@@ -40,7 +40,10 @@ enum wxPrintMode
 
 class wxPrintData : public wxObject {
 public:
+    %nokwargs wxPrintData;
     wxPrintData();
+    wxPrintData(const wxPrintData& data);  // for making copies
+    
     ~wxPrintData();
 
     int GetNoCopies();
@@ -103,7 +106,9 @@ public:
 
 class wxPageSetupDialogData : public wxObject {
 public:
+    %nokwargs wxPageSetupDialogData;
     wxPageSetupDialogData();
+    wxPageSetupDialogData(const wxPageSetupDialogData& data);  // for making copies
     ~wxPageSetupDialogData();
 
     void EnableHelp(bool flag);
@@ -149,6 +154,8 @@ public:
 
 
 
+MustHaveApp(wxPageSetupDialog);
+
 class wxPageSetupDialog : public wxDialog {
 public:
     %pythonAppend wxPageSetupDialog         "self._setOORInfo(self)"
@@ -166,7 +173,7 @@ class wxPrintDialogData : public wxObject {
 public:
     %nokwargs wxPrintDialogData;
     wxPrintDialogData();
-    wxPrintDialogData(const wxPrintData& printData);
+    wxPrintDialogData(const wxPrintData& printData);  // for making copies
     ~wxPrintDialogData();
 
     int GetFromPage() const;
@@ -217,6 +224,8 @@ public:
 };
 
 
+MustHaveApp(wxPrintDialog);
+
 class wxPrintDialog : public wxDialog {
 public:
     %pythonAppend wxPrintDialog         "self._setOORInfo(self)"
@@ -242,6 +251,8 @@ enum wxPrinterError
     wxPRINTER_ERROR
 };
 
+
+MustHaveApp(wxPrinter);
 
 class wxPrinter : public wxObject {
 public:
@@ -323,6 +334,8 @@ IMP_PYCALLBACK_BOOL_INT(wxPyPrintout, wxPrintout, HasPage);
 %}
 
 
+MustHaveApp(wxPyPrintout);
+
 // Now define the custom class for SWIGging
 %name(Printout) class wxPyPrintout  : public wxObject {
 public:
@@ -377,6 +390,8 @@ public:
 
 
 
+MustHaveApp(wxPreviewCanvas);
+
 class wxPreviewCanvas: public wxScrolledWindow
 {
 public:
@@ -390,6 +405,8 @@ public:
                     const wxString& name = wxPyPreviewCanvasNameStr);
 };
 
+
+MustHaveApp(wxPreviewFrame);
 
 class wxPreviewFrame : public wxFrame {
 public:
@@ -430,6 +447,8 @@ enum {
     wxID_PREVIEW_GOTO
 };
 
+MustHaveApp(wxPreviewControlBar);
+
 class wxPreviewControlBar: public wxPanel
 {
 public:
@@ -457,6 +476,8 @@ public:
 
 
 //---------------------------------------------------------------------------
+
+MustHaveApp(wxPrintPreview);
 
 class wxPrintPreview : public wxObject {
 public:
@@ -529,8 +550,8 @@ public:
         bool found;                                                             \
         bool blocked = wxPyBeginBlockThreads();                                                \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* win = wxPyMake_wxObject(a);                               \
-            PyObject* dc  = wxPyMake_wxObject(&b);                              \
+            PyObject* win = wxPyMake_wxObject(a,false);                               \
+            PyObject* dc  = wxPyMake_wxObject(&b,false);                              \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", win, dc));\
             Py_DECREF(win);                                                     \
             Py_DECREF(dc);                                                      \
@@ -592,6 +613,8 @@ IMP_PYCALLBACK_VOID_        (wxPyPrintPreview, wxPrintPreview, DetermineScaling)
 %}
 
 
+MustHaveApp(wxPyPrintPreview);
+
 class wxPyPrintPreview : public wxPrintPreview
 {
 public:
@@ -650,6 +673,8 @@ IMP_PYCALLBACK_VOID_(wxPyPreviewFrame, wxPreviewFrame, CreateControlBar);
 %}
 
 
+MustHaveApp(wxPyPreviewFrame);
+
 class wxPyPreviewFrame : public wxPreviewFrame
 {
 public:
@@ -703,6 +728,8 @@ IMP_PYCALLBACK_VOID_(wxPyPreviewControlBar, wxPreviewControlBar, CreateButtons);
 IMP_PYCALLBACK_VOID_INT(wxPyPreviewControlBar, wxPreviewControlBar, SetZoomControl);
 %}
 
+
+MustHaveApp(wxPyPreviewControlBar);
 
 class wxPyPreviewControlBar : public wxPreviewControlBar
 {

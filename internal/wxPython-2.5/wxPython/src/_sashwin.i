@@ -48,20 +48,22 @@ enum wxSashEdgePosition {
 // wxSashWindow allows any of its edges to have a sash which can be dragged
 // to resize the window. The actual content window will be created as a child
 // of wxSashWindow.
+MustHaveApp(wxSashWindow);
+
 class wxSashWindow: public wxWindow
 {
 public:
     %pythonAppend wxSashWindow         "self._setOORInfo(self)"
     %pythonAppend wxSashWindow()       ""
 
-    wxSashWindow(wxWindow* parent, wxWindowID id,
+    wxSashWindow(wxWindow* parent, wxWindowID id=-1,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = wxCLIP_CHILDREN | wxSW_3D,
                  const wxString& name = wxPySashNameStr);
     %name(PreSashWindow)wxSashWindow();
 
-    bool Create(wxWindow* parent, wxWindowID id,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = wxCLIP_CHILDREN | wxSW_3D,
@@ -234,20 +236,22 @@ public:
 // This is window that can remember alignment/orientation, does its own layout,
 // and can provide sashes too. Useful for implementing docked windows with sashes in
 // an IDE-style interface.
+MustHaveApp(wxSashLayoutWindow);
+
 class wxSashLayoutWindow: public wxSashWindow
 {
 public:
     %pythonAppend wxSashLayoutWindow         "self._setOORInfo(self)"
     %pythonAppend wxSashLayoutWindow()       ""
     
-    wxSashLayoutWindow(wxWindow* parent, wxWindowID id,
+    wxSashLayoutWindow(wxWindow* parent, wxWindowID id=-1,
                        const wxPoint& pos = wxDefaultPosition,
                        const wxSize& size = wxDefaultSize,
                        long style = wxCLIP_CHILDREN | wxSW_3D,
                        const wxString& name = wxPySashLayoutNameStr);
     %name(PreSashLayoutWindow)wxSashLayoutWindow();
 
-    bool Create(wxWindow* parent, wxWindowID id,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxCLIP_CHILDREN | wxSW_3D,

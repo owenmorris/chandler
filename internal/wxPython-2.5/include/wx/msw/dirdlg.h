@@ -6,7 +6,7 @@
 // Created:     01/02/97
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_DIRDLG_H_
@@ -22,7 +22,7 @@ public:
     wxDirDialog(wxWindow *parent,
                 const wxString& message = wxDirSelectorPromptStr,
                 const wxString& defaultPath = wxEmptyString,
-                long style = 0,
+                long style = wxDD_DEFAULT_STYLE,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 const wxString& name = wxDirDialogNameStr);

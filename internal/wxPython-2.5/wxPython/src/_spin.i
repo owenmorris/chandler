@@ -38,6 +38,7 @@ enum {
 //  wxSP_VERTICAL:     vertical spin button (the default)
 //  wxSP_ARROW_KEYS:   arrow keys increment/decrement value
 //  wxSP_WRAP:         value wraps at either end
+MustHaveApp(wxSpinButton);
 class wxSpinButton : public wxControl
 {
 public:
@@ -68,6 +69,9 @@ public:
 
     // is this spin button vertically oriented?
     bool IsVertical() const;
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -76,6 +80,8 @@ public:
 
 // a spin ctrl is a text control with a spin button which is usually used to
 // prompt the user for a numeric input
+
+MustHaveApp(wxSpinCtrl);
 
 class wxSpinCtrl : public wxControl
 {
@@ -110,6 +116,9 @@ public:
     virtual int GetMin() const;
     virtual int GetMax() const;
     void SetSelection(long from, long to);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 

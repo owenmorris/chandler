@@ -29,6 +29,20 @@ class WXDLLEXPORT wxFrame;
 class WXDLLEXPORT wxToolBar;
 #endif
 
+
+// Not using a combined wxToolBar/wxMenuBar? then use
+// a commandbar in WinCE .NET to implement the
+// menubar, since there is no ::SetMenu function.
+#if defined(__WXWINCE__)
+#   if ((_WIN32_WCE >= 400) && !defined(__POCKETPC__) && !defined(__SMARTPHONE__)) || \
+        defined(__HANDHELDPC__)
+#       define WINCE_WITH_COMMANDBAR
+#   else
+#       define WINCE_WITHOUT_COMMANDBAR
+#   endif
+#endif
+
+
 #include "wx/arrstr.h"
 
 // ----------------------------------------------------------------------------
@@ -102,7 +116,7 @@ private:
     // terminate the current radio group, if any
     void EndRadioGroup();
 
-    // if TRUE, insert a breal before appending the next item
+    // if true, insert a breal before appending the next item
     bool m_doBreak;
 
     // the position of the first item in the current radio group or -1
@@ -129,7 +143,7 @@ public :
     wxMenuInfo() { m_menu = NULL ; }
     virtual ~wxMenuInfo() { }
 
-    void Create( wxMenu *menu , const wxString &title ) 
+    void Create( wxMenu *menu , const wxString &title )
     { m_menu = menu ; m_title = title ; }
     wxMenu* GetMenu() const { return m_menu ; }
     wxString GetTitle() const { return m_title ; }
@@ -145,7 +159,7 @@ WX_DECLARE_EXPORTED_LIST(wxMenuInfo, wxMenuInfoList );
 class WXDLLEXPORT wxMenuBar : public wxMenuBarBase
 {
 public:
-    // ctors & dtor 
+    // ctors & dtor
         // default constructor
     wxMenuBar();
         // unused under MSW
@@ -172,10 +186,15 @@ public:
     virtual void Detach();
     virtual void Attach(wxFrame *frame);
 
-#if wxUSE_TOOLBAR && defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(__WXWINCE__) && wxUSE_TOOLBAR
     // Under WinCE, a menubar is owned by the frame's toolbar
     void SetToolBar(wxToolBar* toolBar) { m_toolBar = toolBar; }
     wxToolBar* GetToolBar() const { return m_toolBar; }
+#endif
+
+#ifdef WINCE_WITH_COMMANDBAR
+    WXHWND GetCommandBar() const { return m_commandBar; }
+    bool AddAdornments(long style);
 #endif
 
 #if wxUSE_ACCEL
@@ -207,7 +226,7 @@ protected:
     WXHMENU       m_hMenu;
 
     // Return the MSW position for a wxMenu which is sometimes different from
-    // the wxWindows position.
+    // the wxWidgets position.
     int MSWPositionForWxMenu(wxMenu *menu, int wxpos);
 #if wxUSE_ACCEL
     // the accelerator table for all accelerators in all our menus
@@ -217,11 +236,10 @@ protected:
 #if defined(__WXWINCE__) && wxUSE_TOOLBAR
     wxToolBar*  m_toolBar;
 #endif
-    // Not using a combined wxToolBar/wxMenuBar? then use
-    // a commandbar in WinCE .NET to implement the
-    // menubar, since there is no ::SetMenu function.
-#if defined(__WXWINCE__) && (_WIN32_WCE >= 400 && !wxUSE_POCKETPC_UI)
+
+#ifdef WINCE_WITH_COMMANDBAR
     WXHWND      m_commandBar;
+    bool        m_adornmentsAdded;
 #endif
 
 private:

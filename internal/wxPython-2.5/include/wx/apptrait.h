@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     19.06.2003
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,10 +24,7 @@ class WXDLLIMPEXP_BASE wxMessageOutput;
 class WXDLLEXPORT wxRendererNative;
 class WXDLLIMPEXP_BASE wxString;
 
-extern "C"
-{
-    struct GSocketGUIFunctionsTable;
-}
+class GSocketGUIFunctionsTable;
 
 // ----------------------------------------------------------------------------
 // toolkit information
@@ -112,7 +109,7 @@ public:
 
 #if wxUSE_SOCKETS
     // return table of GUI callbacks for GSocket code or NULL in wxBase. This
-    // is needed because networking classes are in their own library and so 
+    // is needed because networking classes are in their own library and so
     // they can't directly call GUI functions (the same net library can be
     // used in both GUI and base apps). To complicate it further, GUI library
     // ("wxCore") doesn't depend on networking library and so only a functions
@@ -228,7 +225,7 @@ public:
     #include "wx/mac/apptrait.h"
 #elif defined(__WXPM__)
     #include "wx/os2/apptrait.h"
-#else 
+#else
     // at least, we need an implementation of GetToolkitInfo !
     #if wxUSE_GUI
         class wxGUIAppTraits : public wxGUIAppTraitsBase
@@ -236,7 +233,7 @@ public:
             virtual wxToolkitInfo& GetToolkitInfo();
         };
     #endif // wxUSE_GUI
-    class wxConsoleAppTraits: public wxConsoleAppTraitsBase 
+    class wxConsoleAppTraits: public wxConsoleAppTraitsBase
     {
         virtual wxToolkitInfo& GetToolkitInfo();
     };

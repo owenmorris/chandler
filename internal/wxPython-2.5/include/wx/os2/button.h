@@ -21,7 +21,7 @@ class WXDLLEXPORT wxButton: public wxButtonBase
     inline wxButton() {}
     inline wxButton( wxWindow*          pParent
                     ,wxWindowID         vId
-                    ,const wxString&    rsLabel
+                    ,const wxString&    rsLabel = wxEmptyString
                     ,const wxPoint&     rPos = wxDefaultPosition
                     ,const wxSize&      rSize = wxDefaultSize
                     ,long               lStyle = 0
@@ -42,14 +42,14 @@ class WXDLLEXPORT wxButton: public wxButtonBase
 
     bool Create( wxWindow*          pParent
                 ,wxWindowID         vId
-                ,const wxString&    rsLabel
+                ,const wxString&    rsLabel = wxEmptyString
                 ,const wxPoint&     rPos = wxDefaultPosition
                 ,const wxSize&      rSize = wxDefaultSize
                 ,long               lStyle = 0
                 ,const wxValidator& rValidator = wxDefaultValidator
                 ,const wxString&    rsName = wxButtonNameStr
                );
-
+    
     virtual ~wxButton();
 
     virtual void     SetDefault(void);

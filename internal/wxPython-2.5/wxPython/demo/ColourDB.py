@@ -18,10 +18,6 @@ class TestWindow(wx.ScrolledWindow):
         #self.clrList.sort()
         self.bg_bmp = images.getGridBGBitmap()
 
-        # Event handlers
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-
         # This could also be done by getting the window's default font;
         # either way, we need to have a font loaded for later on.
         #self.SetBackgroundColour("WHITE")
@@ -54,6 +50,11 @@ class TestWindow(wx.ScrolledWindow):
         self.SetScrollbars(
             self.cellWidth, self.lineHeight, numCells, len(self.clrList) + 2
             )
+            
+        # Event handlers - moved here so events won't fire before init is 
+        # finished.
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
 
     # tile the background bitmap loaded in __init__()
@@ -72,7 +73,7 @@ class TestWindow(wx.ScrolledWindow):
         while x < sz.width:
             y = -dy
             while y < sz.height:
-                dc.DrawBitmap(self.bg_bmp, (x, y))
+                dc.DrawBitmap(self.bg_bmp, x, y)
                 y = y + h
 
             x = x + w
@@ -120,13 +121,12 @@ class TestWindow(wx.ScrolledWindow):
             clr = colours[line]
             y = (line+1) * self.lineHeight + 2
 
-            # Updated for 2.5 - now takes tuple for pos
-            dc.DrawText(clr, (self.cellWidth, y))
+            dc.DrawText(clr, self.cellWidth, y)
 
             brush = wx.Brush(clr, wx.SOLID)
             dc.SetBrush(brush)
-            dc.DrawRectangle((12 * self.cellWidth, y),
-                             (6 * self.cellWidth, self.textHeight))
+            dc.DrawRectangle(12 * self.cellWidth, y,
+                             6 * self.cellWidth, self.textHeight)
 
         dc.EndDrawing()
 

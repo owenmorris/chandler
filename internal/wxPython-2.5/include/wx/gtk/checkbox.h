@@ -45,10 +45,13 @@ public:
     virtual void SetLabel( const wxString& label );
     virtual bool Enable( bool enable = TRUE );
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation
     // --------------
 
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     bool IsOwnGtkWindow( GdkWindow *window );
     void OnInternalIdle();
 
@@ -59,6 +62,11 @@ public:
 
 protected:
     virtual wxSize DoGetBestSize() const;
+
+#ifdef __WXGTK20__
+    void DoSet3StateValue(wxCheckBoxState state);
+    wxCheckBoxState DoGet3StateValue() const;
+#endif
 
 private:
     DECLARE_DYNAMIC_CLASS(wxCheckBox)

@@ -99,16 +99,21 @@ public:
 %}
 
 
+MustHaveApp(wxPyShapeCanvas);
+
 class wxPyShapeCanvas : public wxScrolledWindow {
 public:
-    %pythonAppend wxPyShapeEvtHandler "self._setOORandCallbackInfo(PyShapeEvtHandler)"
-    
+    %pythonAppend wxPyShapeCanvas "self._setOORandCallbackInfo(PyShapeCanvas)"
+    %typemap(out) wxPyShapeCanvas*;    // turn off this typemap
+
     wxPyShapeCanvas(wxWindow* parent = NULL, wxWindowID id = -1,
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
                     long style = wxBORDER,
                     const wxString& name = wxPyShapeCanvasNameStr);
 
+    %typemap(out) wxPyShapeCanvas*          { $result = wxPyMake_wxObject($1, $owner); }
+    
     void _setCallbackInfo(PyObject* self, PyObject* _class);
     %pythoncode {
     def _setOORandCallbackInfo(self, _class):

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     12.05.02
 // RCS-ID:      $Id$
-// Copyright:   (c) 1997-2002 wxWindows team
+// Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -65,8 +65,13 @@ protected:
 // platform-specific wxFontDialog implementation
 // ----------------------------------------------------------------------------
 
-#if defined(__WXUNIVERSAL__) || defined(__WXMOTIF__) || defined(__WXMAC__) || defined(__WXCOCOA__) \
-    || defined(__WXWINCE__) || defined(__WXGPE__)
+#if defined(__WXUNIVERSAL__) || \
+    defined(__WXMOTIF__)     || \
+    defined(__WXMAC__)       || \
+    defined(__WXCOCOA__)     || \
+    defined(__WXWINCE__)     || \
+    defined(__WXGPE__)
+
     #include "wx/generic/fontdlgg.h"
     #define wxFontDialog wxGenericFontDialog
 #elif defined(__WXMSW__)

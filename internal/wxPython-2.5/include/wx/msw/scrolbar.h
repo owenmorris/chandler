@@ -46,7 +46,7 @@ public:
 
     virtual void SetThumbPosition(int viewStart);
     virtual void SetScrollbar(int position, int thumbSize, int range, int pageSize,
-            bool refresh = TRUE);
+            bool refresh = true);
 
     // needed for RTTI
     void SetThumbSize( int s ) { SetScrollbar( GetThumbPosition() , s , GetRange() , GetPageSize() , true ) ; }
@@ -60,6 +60,9 @@ public:
                              WXWORD pos, WXHWND control);
 
 protected:
+
+    wxSize DoGetBestSize() const;
+
     int m_pageSize;
     int m_viewSize;
     int m_objectSize;

@@ -19,7 +19,13 @@
 // wxEvtHandler: the base class for all objects handling wxWindows events
 class wxEvtHandler : public wxObject {
 public:
+    // turn off this typemap
+    %typemap(out) wxEvtHandler*;    
+
     wxEvtHandler();
+
+    // Turn it back on again
+    %typemap(out) wxEvtHandler* { $result = wxPyMake_wxObject($1, $owner); }
 
     wxEvtHandler* GetNextHandler();
     wxEvtHandler* GetPreviousHandler();
@@ -53,7 +59,8 @@ public:
                                  &wxPyCallback::EventThunker);
             }
             else {
-                PyErr_SetString(PyExc_TypeError, "Expected callable object or None.");
+                wxPyBLOCK_THREADS(
+                    PyErr_SetString(PyExc_TypeError, "Expected callable object or None."));
             }
         }
 
@@ -84,27 +91,40 @@ public:
             """
             Bind an event to an event handler.
 
-              event     One of the EVT_* objects that specifies the
-                        type of event to bind,
+            :param event: One of the EVT_* objects that specifies the
+                          type of event to bind,
 
-              handler   A callable object to be invoked when the event
-                        is delivered to self.  Pass None to disconnect an
-                        event handler.
+            :param handler: A callable object to be invoked when the
+                          event is delivered to self.  Pass None to
+                          disconnect an event handler.
 
-              source    Sometimes the event originates from a different window
-                        than self, but you still want to catch it in self.  (For
-                        example, a button event delivered to a frame.)  By
-                        passing the source of the event, the event handling
-                        system is able to differentiate between the same event
-                        type from different controls.
+            :param source: Sometimes the event originates from a
+                          different window than self, but you still
+                          want to catch it in self.  (For example, a
+                          button event delivered to a frame.)  By
+                          passing the source of the event, the event
+                          handling system is able to differentiate
+                          between the same event type from different
+                          controls.
 
-              id,id2    Used for menu IDs or for event types that require a
-                        range of IDs
+            :param id: Used to spcify the event source by ID instead
+                       of instance.
+
+            :param id2: Used when it is desirable to bind a handler
+                          to a range of IDs, such as with EVT_MENU_RANGE.
             """
             if source is not None:
                 id  = source.GetId()
             event.Bind(self, id, id2, handler)              
 
+        def Unbind(self, event, source=None, id=wx.ID_ANY, id2=wx.ID_ANY):
+            """
+            Disconencts the event handler binding for event from self.
+            Returns True if successful.
+            """
+            if source is not None:
+                id  = source.GetId()
+            return event.Unbind(self, id, id2)              
     }
 
     

@@ -6,7 +6,7 @@
 // Created:     2003-07-12
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_HELPWCE_H_
@@ -23,8 +23,8 @@
 class WXDLLEXPORT wxWinceHelpController : public wxHelpControllerBase
 {
 public:
-    wxWinceHelpController() { }
-    virtual ~wxWinceHelpController();
+    wxWinceHelpController() {}
+    virtual ~wxWinceHelpController() {}
 
     // Must call this to set the filename
     virtual bool Initialize(const wxString& file);

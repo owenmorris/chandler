@@ -5,12 +5,14 @@
 // Modified by:
 // Created:     10.03.03
 // RCS-ID:      $Id$
-// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_RAWBMP_H_BASE_
 #define _WX_RAWBMP_H_BASE_
+
+#include "wx/image.h"
 
 // ----------------------------------------------------------------------------
 // Abstract Pixel API
@@ -388,9 +390,9 @@ struct WXDLLEXPORT wxPixelDataOut<wxImage>
             // -----------
 
             // access to invidividual colour components
-            ChannelType& Red() { return m_ptr[PixelFormat::RED]; }
-            ChannelType& Green() { return m_ptr[PixelFormat::GREEN]; }
-            ChannelType& Blue() { return m_ptr[PixelFormat::BLUE]; }
+            ChannelType& Red() { return m_pRGB[PixelFormat::RED]; }
+            ChannelType& Green() { return m_pRGB[PixelFormat::GREEN]; }
+            ChannelType& Blue() { return m_pRGB[PixelFormat::BLUE]; }
             ChannelType& Alpha() { return *m_pAlpha; }
 
         // private: -- see comment in the beginning of the file
@@ -426,7 +428,7 @@ struct WXDLLEXPORT wxPixelDataOut<wxImage>
         {
             m_stride = Iterator::SizePixel * m_width;
 
-            InitRect(rect.GetPositions(), rect.GetSize());
+            InitRect(rect.GetPosition(), rect.GetSize());
         }
 
         // we evaluate to true only if we could get access to bitmap data

@@ -67,7 +67,7 @@
 // Generic comment about debugging settings: they are very useful if you don't
 // use any other memory leak detection tools such as Purify/BoundsChecker, but
 // are probably redundant otherwise. Also, Visual C++ CRT has the same features
-// as wxWindows memory debugging subsystem built in since version 5.0 and you
+// as wxWidgets memory debugging subsystem built in since version 5.0 and you
 // may prefer to use it instead of built in memory debugging code because it is
 // faster and more fool proof.
 //
@@ -140,7 +140,7 @@
 // Unicode support
 // ----------------------------------------------------------------------------
 
-// Set wxUSE_UNICODE to 1 to compile wxWindows in Unicode mode: wxChar will be
+// Set wxUSE_UNICODE to 1 to compile wxWidgets in Unicode mode: wxChar will be
 // defined as wchar_t, wxString will use Unicode internally. If you set this
 // to 1, you must use wxT() macro for all literal strings in the program.
 //
@@ -155,7 +155,7 @@
     #define wxUSE_UNICODE 0
 #endif
 
-// Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWindows in Unicode mode
+// Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWidgets in Unicode mode
 // and be able to run compiled apps under Windows 9x as well as NT/2000/XP. This
 // setting enables use of unicows.dll from MSLU (MS Layer for Unicode, see
 // http://www.microsoft.com/globaldev/Articles/mslu_announce.asp). Note that you
@@ -256,7 +256,7 @@
 // Recommended setting: 0 unless you do plan to develop MT applications
 #define wxUSE_THREADS 1
 
-// If enabled (1), compiles wxWindows streams classes
+// If enabled (1), compiles wxWidgets streams classes
 #define wxUSE_STREAMS 1
 
 // Use standard C++ streams if 1. If 0, use wxWin streams implementation.
@@ -424,18 +424,15 @@
 #define wxUSE_ZIPSTREAM 1
 
 // Set to 1 to compile wxZlibInput/OutputStream classes. Also required by
-// wxUSE_LIBPNG and wxUSE_GZSTREAM.
+// wxUSE_LIBPNG
 #define wxUSE_ZLIB          1
-
-// Set to 1 to compile wxGzipInput/OutputStream classes. Requires wxUSE_ZLIB.
-#define wxUSE_GZSTREAM      1
 
 // Set to 1 to enable virtual Internet filesystem (requires wxUSE_FILESYSTEM)
 #define wxUSE_FS_INET 1
 
 // If enabled, the code written by Apple will be used to write, in a portable
 // way, float on the disk. See extended.c for the license which is different
-// from wxWindows one.
+// from wxWidgets one.
 //
 // Default is 1.
 //
@@ -530,7 +527,7 @@
 // Recommended setting: 1 (may be set to 0)
 #define wxUSE_TIPWINDOW    1
 
-// Each of the settings below corresponds to one wxWindows control. They are
+// Each of the settings below corresponds to one wxWidgets control. They are
 // all switched on by default but may be disabled if you are sure that your
 // program (including any standard dialogs it can show!) doesn't need them and
 // if you desperately want to save some space. If you use any of these you must
@@ -589,9 +586,6 @@
 // Recommended setting: 1 for wxUSE_TOOLBAR and 0 for wxUSE_TOOLBAR_NATIVE.
 #define wxUSE_TOOLBAR 1
 #define wxUSE_TOOLBAR_NATIVE 0
-
-// this setting is obsolete, value is ignored
-#define wxUSE_BUTTONBAR 0
 
 // wxNotebook is a control with several "tabs" located on one of its sides. It
 // may be used ot logically organise the data presented to the user instead of
@@ -708,15 +702,6 @@
 // common dialogs
 // ----------------------------------------------------------------------------
 
-// Define 1 to use generic dialogs in Windows, even though they duplicate
-// native common dialog (e.g. wxColourDialog). This is mainly useful for
-// testing.
-//
-// Default is 0
-//
-// Recommended setting: 0
-#define wxUSE_GENERIC_DIALOGS_IN_MSW 0
-
 // On rare occasions (e.g. using DJGPP) may want to omit common dialogs (e.g.
 // file selector, printer dialog). Switching this off also switches off the
 // printing architecture and interactive wxPrinterDC.
@@ -829,6 +814,15 @@
 // ----------------------------------------------------------------------------
 // Big GUI components
 // ----------------------------------------------------------------------------
+
+// Set to 0 to disable MDI support.
+//
+// Requires wxUSE_NOTEBOOK under platforms other than MSW.
+//
+// Default is 1.
+//
+// Recommended setting: 1, can be safely set to 0.
+#define wxUSE_MDI 1
 
 // Set to 0 to disable document/view architecture
 #define wxUSE_DOC_VIEW_ARCHITECTURE 1
@@ -1070,7 +1064,7 @@
 // ----------------------------------------------------------------------------
 #if defined(__WINDOWS__)
 
-// Set this to 1 if you want to use wxWindows and MFC in the same program. This
+// Set this to 1 if you want to use wxWidgets and MFC in the same program. This
 // will override some other settings (see below)
 //
 // Default is 0.

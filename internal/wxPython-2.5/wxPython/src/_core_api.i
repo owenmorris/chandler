@@ -128,8 +128,8 @@ PyObject* wxPyMakeSwigPtr(void* ptr, const wxChar* className) {
 
 
 // Export a C API in a struct.  Other modules will be able to load this from
-// the wx.core module and will then have safe access to these functions, even if
-// they are located in another shared library.
+// the wx._core_ module and will then have safe access to these functions,
+// even if they are located in another shared library.
 static wxPyCoreAPI API = {
 
     (p_SWIG_Python_TypeRegister_t)SWIG_Python_TypeRegister,
@@ -137,6 +137,7 @@ static wxPyCoreAPI API = {
     (p_SWIG_Python_TypeCast_t)SWIG_Python_TypeCast,
     (p_SWIG_Python_TypeDynamicCast_t)SWIG_Python_TypeDynamicCast,
     (p_SWIG_Python_TypeName_t)SWIG_Python_TypeName,
+    (p_SWIG_Python_TypePrettyName_t)SWIG_Python_TypePrettyName,
     (p_SWIG_Python_TypeQuery_t)SWIG_Python_TypeQuery,
     (p_SWIG_Python_TypeClientData_t)SWIG_Python_TypeClientData,
     (p_SWIG_Python_newvarlink_t)SWIG_Python_newvarlink,
@@ -206,7 +207,9 @@ static wxPyCoreAPI API = {
     wxPyCBInputStream_create,
 
     wxPyInstance_Check,
-    wxPySwigInstance_Check
+    wxPySwigInstance_Check,
+
+    wxPyCheckForApp
 
 };
 

@@ -111,6 +111,9 @@ public:
     virtual bool Show( bool show = TRUE );
     virtual bool Enable( bool enable = TRUE );
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
     // implementation
     // --------------
 
@@ -118,11 +121,14 @@ public:
     void GtkDisableEvents();
     void GtkEnableEvents();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
 #if wxUSE_TOOLTIPS
     void ApplyToolTip( GtkTooltips *tips, const wxChar *tip );
 #endif // wxUSE_TOOLTIPS
-    wxSize LayoutItems();
+
+    // reposition the radio buttons correctly unless justCalc == true and
+    // reutrn the total size needed to accomodate them
+    wxSize LayoutItems(bool justCalc) const;
 
     virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO );
     virtual void OnInternalIdle();
@@ -133,6 +139,9 @@ public:
     wxList           m_boxes;
 
 protected:
+    // implement some base class methods
+    virtual wxSize DoGetBestSize() const;
+
     // common part of all ctors
     void Init();
 

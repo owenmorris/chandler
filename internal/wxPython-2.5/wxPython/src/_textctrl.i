@@ -105,9 +105,7 @@ enum wxTextCtrlHitTestResult
 class wxTextAttr
 {
 public:    
-    %nokwargs wxTextAttr;
-    wxTextAttr();
-    wxTextAttr(const wxColour& colText,
+    wxTextAttr(const wxColour& colText = wxNullColour,
                const wxColour& colBack = wxNullColour,
                const wxFont& font = wxNullFont,
                wxTextAttrAlignment alignment = wxTEXT_ALIGNMENT_DEFAULT);
@@ -122,7 +120,7 @@ public:
     void SetFont(const wxFont& font, long flags = wxTEXT_ATTR_FONT);
     void SetAlignment(wxTextAttrAlignment alignment);
     void SetTabs(const wxArrayInt& tabs);
-    void SetLeftIndent(int indent);
+    void SetLeftIndent(int indent, int subIndent=0);
     void SetRightIndent(int indent);
     void SetFlags(long flags);
 
@@ -142,6 +140,7 @@ public:
     wxTextAttrAlignment GetAlignment() const;
     const wxArrayInt& GetTabs() const;
     long GetLeftIndent() const;
+    long GetLeftSubIndent() const;
     long GetRightIndent() const;
     long GetFlags() const;
 
@@ -160,13 +159,15 @@ public:
 
 // wxTextCtrl: a single or multiple line text zone where user can enter and
 // edit text
+MustHaveApp(wxTextCtrl);
 class wxTextCtrl : public wxControl
 {
 public:
     %pythonAppend wxTextCtrl         "self._setOORInfo(self)"
     %pythonAppend wxTextCtrl()       ""
+    %typemap(out) wxTextCtrl*;    // turn off this typemap
 
-    wxTextCtrl(wxWindow* parent, wxWindowID id,
+    wxTextCtrl(wxWindow* parent, wxWindowID id=-1,
                const wxString& value = wxPyEmptyString,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
@@ -175,7 +176,10 @@ public:
                const wxString& name = wxPyTextCtrlNameStr);
     %name(PreTextCtrl)wxTextCtrl();
 
-    bool Create(wxWindow* parent, wxWindowID id,
+    // Turn it back on again
+    %typemap(out) wxTextCtrl* { $result = wxPyMake_wxObject($1, $owner); }
+
+    bool Create(wxWindow* parent, wxWindowID id=-1,
                const wxString& value = wxPyEmptyString,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
@@ -204,7 +208,7 @@ public:
     DocDeclAStr(
         virtual void, GetSelection(long* OUTPUT, long* OUTPUT) const,
         "GetSelection() -> (from, to)",
-        "If the return values from and to are the same, there is no selection.");
+        "If the return values from and to are the same, there is no selection.", "");
 
     virtual wxString GetStringSelection() const;
 
@@ -258,11 +262,21 @@ public:
         virtual wxTextCtrlHitTestResult, HitTest(const wxPoint& pt,
                                                  long* OUTPUT, long* OUTPUT) const,
         "HitTest(Point pt) -> (result, row, col)",
-        "Find the character at position given in pixels.\n"
-        "NB: pt is in device coords (not adjusted for the client area\n"
-        "origin nor scrolling)");
+        "Find the row, col coresponding to the character at the point given in
+pixels. NB: pt is in device coords but is not adjusted for the client
+area origin nor scrolling.", "");
 
 
+    DocDeclAStrName(
+        virtual wxTextCtrlHitTestResult , HitTest(const wxPoint& pt, long *OUTPUT) const,
+        "HitTestPos(Point pt) -> (result, position)",
+        "Find the character position in the text coresponding to the point
+given in pixels. NB: pt is in device coords but is not adjusted for
+the client area origin nor scrolling. ", "",
+        HitTestPos);
+
+    
+    
     // Clipboard operations
     virtual void Copy();
     virtual void Cut();
@@ -309,6 +323,8 @@ public:
         }
     }
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------

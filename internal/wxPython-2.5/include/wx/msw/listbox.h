@@ -32,7 +32,7 @@
 #endif // wxUSE_OWNER_DRAWN
 
 // forward decl for GetSelections()
-class wxArrayInt;
+class WXDLLIMPEXP_BASE wxArrayInt;
 
 // ----------------------------------------------------------------------------
 // List box control
@@ -91,7 +91,7 @@ public:
     virtual int FindString(const wxString& s) const;
 
     virtual bool IsSelected(int n) const;
-    virtual void SetSelection(int n, bool select = TRUE);
+    virtual void SetSelection(int n, bool select = true);
     virtual int GetSelection() const;
     virtual int GetSelections(wxArrayInt& aSelections) const;
 
@@ -129,9 +129,20 @@ public:
     // Windows callbacks
     bool MSWCommand(WXUINT param, WXWORD id);
 
-    virtual void SetupColours();
+    virtual wxVisualAttributes GetDefaultAttributes() const
+    {
+        return GetClassDefaultAttributes(GetWindowVariant());
+    }
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL)
+    {
+        return GetCompositeControlsDefaultAttributes(variant);
+    }
 
 protected:
+    WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
     // free memory (common part of Clear() and dtor)
     void Free();
 

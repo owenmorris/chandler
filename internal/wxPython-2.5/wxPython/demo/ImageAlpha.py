@@ -5,7 +5,7 @@ from Main import opj
 
 #----------------------------------------------------------------------
 
-msg = "This is some text that will appear behind the image..."
+msg = "Some text will appear mixed in the image's shadow..."
 
 class TestPanel(wx.Panel):
     def __init__(self, parent, log):
@@ -21,22 +21,35 @@ class TestPanel(wx.Panel):
         dc.Clear()
 
         dc.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD, True))
-        dc.DrawText("Bitmap alpha blending (on wxMSW and wxMac only)",
-                    (25,25))
-
+        dc.DrawText("Bitmap alpha blending (on all ports but gtk+ 1.2)",
+                    25,25)
+        
         bmp = wx.Bitmap(opj('bitmaps/toucan.png'))
-        if "__WXGTK__" in wx.PlatformInfo:
-            # try to make up for it a bit...
-            bmp.SetMaskColour("black")
+        if "gtk1" in wx.PlatformInfo:
+            # Try to make up for lack of alpha support in wxGTK (gtk+
+            # 1.2) by converting the alpha blending into a
+            # transparency mask.
+
+            # first convert to a wx.Image
+            img = bmp.ConvertToImage()
+
+            # Then convert the alpha channel to a mask, specifying the
+            # threshold below which alpha will be made fully
+            # transparent
+            img.ConvertAlphaToMask(220)
+
+            # convert back to a wx.Bitmap
+            bmp = img.ConvertToBitmap()
+
             
-        dc.DrawBitmap(bmp, (25,100), True)
+        dc.DrawBitmap(bmp, 25,100, True)
 
         dc.SetFont(self.GetFont())
         y = 75
         for line in range(10):
             y += dc.GetCharHeight() + 5
-            dc.DrawText(msg, (200, y))
-        dc.DrawBitmap(bmp, (250,100), True)
+            dc.DrawText(msg, 200, y)
+        dc.DrawBitmap(bmp, 250,100, True)
         
 
 

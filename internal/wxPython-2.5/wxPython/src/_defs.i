@@ -11,17 +11,39 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
+//---------------------------------------------------------------------------
 // Globally turn on the autodoc feature
+
 %feature("autodoc", "1");  // 0 == no param types, 1 == show param types
 
+//---------------------------------------------------------------------------
+// Tell SWIG to wrap all the wrappers with our thread protection by default
+
+%exception {
+    PyThreadState* __tstate = wxPyBeginAllowThreads();
+    $action
+    wxPyEndAllowThreads(__tstate);
+    if (PyErr_Occurred()) SWIG_fail;
+}
+
+
+// This one can be used to add a check for an existing wxApp before the real
+// work is done.  An exception is raised if there isn't one.
+%define MustHaveApp(name)
+%exception name {
+    if (!wxPyCheckForApp()) SWIG_fail;
+    PyThreadState* __tstate = wxPyBeginAllowThreads();
+    $action
+    wxPyEndAllowThreads(__tstate);
+    if (PyErr_Occurred()) SWIG_fail;
+}
+%enddef
+
+    
 
 //---------------------------------------------------------------------------
 // some type definitions to simplify things for SWIG
 
-// typedef int             wxWindowID;
-// typedef int             wxCoord;
-// typedef int             wxInt32;
-// typedef unsigned int    wxUint32;
 typedef int             wxEventType;
 typedef unsigned int    size_t;
 typedef unsigned int    time_t;
@@ -31,10 +53,6 @@ typedef unsigned char   byte;
 #define wxCoord         int
 #define wxInt32         int
 #define wxUint32        unsigned int
-//#define wxEventType     int
-//#define size_t          unsigned int
-//#define time_t          unsigned int
-//#define byte            unsigned char
 
 
 //----------------------------------------------------------------------
@@ -44,6 +62,8 @@ typedef unsigned char   byte;
 #define %pythonPrepend  %feature("pythonprepend")
 #define %kwargs         %feature("kwargs")
 #define %nokwargs       %feature("nokwargs")
+#define %noautodoc %feature("noautodoc")
+
 
 //#ifndef %shadow
 //#define %shadow         %insert("shadow")
@@ -83,44 +103,74 @@ typedef unsigned char   byte;
 
 
 
-// Macros for the docstring and autodoc features of SWIG.
+//----------------------------------------------------------------------
+// Macros for the docstring and autodoc features of SWIG.  These will
+// help make the code look more readable, and pretty, as well as help
+// reduce typing in some cases.
 
 // Set the docsring for the given full or partial declaration
-%define DocStr(decl, docstr)
-    %feature("docstring") decl docstr;
-    //%feature("refdoc") decl "";
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocStr(decl, docstr, details)
+        %feature("docstring") decl docstr details;
+    %enddef
+#else
+    %define DocStr(decl, docstr, details)
+        %feature("docstring") decl docstr;
+    %enddef
+#endif
+
 
 // Set the autodoc string for a full or partial declaration
 %define DocA(decl, astr)
     %feature("autodoc") decl astr;
 %enddef
 
+
 // Set both the autodoc and docstring for a full or partial declaration
-%define DocAStr(decl, astr, docstr)
-    %feature("autodoc") decl astr;
-    %feature("docstring") decl docstr
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocAStr(decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr details
+    %enddef
+#else
+    %define DocAStr(decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr
+    %enddef
+#endif
 
-// Set the detailed reference docs for full or partial declaration
-#define DocRef(decl, str)       %feature("docref") decl str
-
-
+        
 
     
 // Set the docstring for a decl and then define the decl too.  Must use the
 // full declaration of the item.
-%define DocDeclStr(type, decl, docstr)
-    %feature("docstring") decl docstr;
-    type decl
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocDeclStr(type, decl, docstr, details)
+        %feature("docstring") decl docstr details;
+        type decl
+    %enddef
+#else
+    %define DocDeclStr(type, decl, docstr, details)
+        %feature("docstring") decl docstr;
+        type decl
+    %enddef
+#endif
 
+        
+    
 // As above, but also give the decl a new %name    
-%define DocDeclStrName(type, decl, docstr, newname)
-    %feature("docstring") decl docstr;
-    %name(newname) type decl
-%enddef
-
+#ifdef _DO_FULL_DOCS
+    %define DocDeclStrName(type, decl, docstr, details, newname)
+        %feature("docstring") decl docstr details;
+        %name(newname) type decl
+    %enddef
+#else
+    %define DocDeclStrName(type, decl, docstr, details, newname)
+        %feature("docstring") decl docstr;
+        %name(newname) type decl
+    %enddef
+#endif
+        
     
 // Set the autodoc string for a decl and then define the decl too.  Must use the
 // full declaration of the item.
@@ -139,72 +189,117 @@ typedef unsigned char   byte;
 
 // Set the autodoc and the docstring for a decl and then define the decl too.
 // Must use the full declaration of the item.
-%define DocDeclAStr(type, decl, astr, docstr)
-    %feature("autodoc") decl astr;
-    %feature("docstring") decl docstr;
-    type decl
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocDeclAStr(type, decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr details;
+        type decl
+    %enddef
+#else
+    %define DocDeclAStr(type, decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr;
+        type decl
+    %enddef
+#endif
 
+        
 // As above, but also give the decl a new %name    
-%define DocDeclAStrName(type, decl, astr, docstr, newname)
-    %feature("autodoc") decl astr;
-    %feature("docstring") decl docstr;
-    %name(newname) type decl
-%enddef
-
+#ifdef _DO_FULL_DOCS
+    %define DocDeclAStrName(type, decl, astr, docstr, details, newname)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr details;
+        %name(newname) type decl
+    %enddef
+#else
+    %define DocDeclAStrName(type, decl, astr, docstr, details, newname)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr;
+        %name(newname) type decl
+    %enddef
+#endif
 
 
 
 // Set the docstring for a constructor decl and then define the decl too.
 // Must use the full declaration of the item.
-%define DocCtorStr(decl, docstr)
-    %feature("docstring") decl docstr;
-    decl
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocCtorStr(decl, docstr, details)
+        %feature("docstring") decl docstr details;
+        decl
+    %enddef
+#else
+    %define DocCtorStr(decl, docstr, details)
+        %feature("docstring") decl docstr;
+        decl
+    %enddef
+#endif
 
+        
 // As above, but also give the decl a new %name    
-%define DocCtorStrName(decl, docstr, newname)
-    %feature("docstring") decl docstr;
-    %name(newname) decl
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocCtorStrName(decl, docstr, details, newname)
+        %feature("docstring") decl docstr details;
+        %name(newname) decl
+    %enddef
+#else
+    %define DocCtorStrName(decl, docstr, details, newname)
+        %feature("docstring") decl docstr;
+        %name(newname) decl
+    %enddef
+#endif
 
-    
-// Set the autodoc string for a decl and then define the decl too.  Must use the
-// full declaration of the item.
+
+        
+// Set the autodoc string for a constructor decl and then define the decl too.
+// Must use the full declaration of the item.
 %define DocCtorA(decl, astr)
     %feature("autodoc") decl astr;
     decl
 %enddef
 
 // As above, but also give the decl a new %name    
-%define DocCtorAname(decl, astr, newname)
+%define DocCtorAName(decl, astr, newname)
     %feature("autodoc") decl astr;
     %name(newname) decl
 %enddef
 
 
 
-// Set the autodoc and the docstring for a decl and then define the decl too.
-// Must use the full declaration of the item.
-%define DocCtorAStr(decl, astr, docstr)
-    %feature("autodoc") decl astr;
-    %feature("docstring") decl docstr;
-    decl
-%enddef
+// Set the autodoc and the docstring for a constructor decl and then define
+// the decl too.  Must use the full declaration of the item.
+#ifdef _DO_FULL_DOCS
+    %define DocCtorAStr(decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr details;
+        decl
+    %enddef
+#else
+    %define DocCtorAStr(decl, astr, docstr, details)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr;
+        decl
+    %enddef
+#endif
 
+
+        
 // As above, but also give the decl a new %name    
-%define DocCtorAStrName(decl, astr, docstr, newname)
-    %feature("autodoc") decl astr;
-    %feature("docstring") decl docstr;
-    %name(newname) decl
-%enddef
+#ifdef _DO_FULL_DOCS
+    %define DocCtorAStrName(decl, astr, docstr, details, newname)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr details;
+        %name(newname) decl
+    %enddef
+#else
+    %define DocCtorAStrName(decl, astr, docstr, details, newname)
+        %feature("autodoc") decl astr;
+        %feature("docstring") decl docstr;
+        %name(newname) decl
+    %enddef
+#endif
 
-
-// A placeholder for the detailed reference docs.
-%define RefDoc(decl, docstr)
-        %feature("refdoc") decl docstr;       
-%enddef        
-    
+       
     
 %define %newgroup
 %pythoncode {
@@ -215,7 +310,7 @@ typedef unsigned char   byte;
 //---------------------------------------------------------------------------
 // Forward declarations and %renames for some classes, so the autodoc strings
 // will be able to use the right types even when the real class declaration is
-// not in the module being processed.
+// not in the module being processed or seen by %import's.
 
 #ifdef BUILDING_RENAMERS
     #define FORWARD_DECLARE(wxName, Name)
@@ -243,6 +338,7 @@ FORWARD_DECLARE(wxMemoryDC,       MemoryDC);
 FORWARD_DECLARE(wxHtmlTagHandler, HtmlTagHandler);
 FORWARD_DECLARE(wxConfigBase,     ConfigBase);
 FORWARD_DECLARE(wxIcon,           Icon);
+FORWARD_DECLARE(wxStaticBox,      StaticBox);
 
 
 //---------------------------------------------------------------------------
@@ -268,8 +364,6 @@ enum {
     wxSTATIC_BORDER,
     wxTRANSPARENT_WINDOW,
     wxNO_BORDER,
-    wxUSER_COLOURS,
-    wxNO_3D,
 
     wxTAB_TRAVERSAL,
     wxWANTS_CHARS,
@@ -277,31 +371,6 @@ enum {
     wxCENTER_FRAME,
     wxCENTRE_ON_SCREEN,
     wxCENTER_ON_SCREEN,
-
-    wxSTAY_ON_TOP,
-    wxICONIZE,
-    wxMINIMIZE,
-    wxMAXIMIZE,
-    wxCLOSE_BOX,
-    wxTHICK_FRAME,
-    wxSYSTEM_MENU,
-    wxMINIMIZE_BOX,
-    wxMAXIMIZE_BOX,
-    wxTINY_CAPTION_HORIZ,
-    wxTINY_CAPTION_VERT,
-    wxRESIZE_BOX,
-    wxRESIZE_BORDER,
-    wxDIALOG_MODAL,
-    wxDIALOG_MODELESS,
-    wxDIALOG_NO_PARENT,
-    wxDEFAULT_FRAME_STYLE,
-    wxDEFAULT_DIALOG_STYLE,
-
-    wxFRAME_TOOL_WINDOW,
-    wxFRAME_FLOAT_ON_PARENT,
-    wxFRAME_NO_WINDOW_MENU,
-    wxFRAME_NO_TASKBAR,
-    wxFRAME_SHAPED,
 
     wxED_CLIENT_MARGIN,
     wxED_BUTTONS_BOTTOM,
@@ -312,6 +381,8 @@ enum {
     wxCLIP_CHILDREN,
     wxCLIP_SIBLINGS,
 
+    wxALWAYS_SHOW_SB,
+    
     wxRETAINED,
     wxBACKINGSTORE,
 
@@ -475,6 +546,32 @@ enum {
     wxID_RETRY,
     wxID_IGNORE,
 
+    wxID_ADD,
+    wxID_REMOVE,
+
+    wxID_UP,
+    wxID_DOWN,
+    wxID_HOME,
+    wxID_REFRESH,
+    wxID_STOP,
+    wxID_INDEX,
+
+    wxID_BOLD,
+    wxID_ITALIC,
+    wxID_JUSTIFY_CENTER,
+    wxID_JUSTIFY_FILL,
+    wxID_JUSTIFY_RIGHT,
+    wxID_JUSTIFY_LEFT,
+    wxID_UNDERLINE,
+    wxID_INDENT,
+    wxID_UNINDENT,
+    wxID_ZOOM_100,
+    wxID_ZOOM_FIT,
+    wxID_ZOOM_IN,
+    wxID_ZOOM_OUT,
+    wxID_UNDELETE,
+    wxID_REVERT_TO_SAVED,
+   
     wxID_HIGHEST,
 
     wxOPEN,
@@ -609,8 +706,9 @@ enum wxStretch
     wxGROW,
     wxEXPAND,
     wxSHAPED,
-    wxADJUST_MINSIZE,
+    wxFIXED_MINSIZE,
     wxTILE,
+    wxADJUST_MINSIZE,
 };
 
 
@@ -624,6 +722,14 @@ enum wxBorder
     wxBORDER_SUNKEN,
     wxBORDER_DOUBLE,
     wxBORDER_MASK,
+};
+
+
+enum wxBackgroundStyle
+{
+  wxBG_STYLE_SYSTEM,
+  wxBG_STYLE_COLOUR,
+  wxBG_STYLE_CUSTOM
 };
 
 

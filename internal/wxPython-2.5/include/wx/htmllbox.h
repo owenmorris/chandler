@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     31.05.03
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -13,6 +13,10 @@
 #define _WX_HTMLLBOX_H_
 
 #include "wx/vlbox.h"               // base class
+
+#if wxUSE_FILESYSTEM
+    #include "wx/filesys.h"
+#endif // wxUSE_FILESYSTEM
 
 class WXDLLIMPEXP_HTML wxHtmlCell;
 class WXDLLIMPEXP_HTML wxHtmlWinParser;
@@ -66,6 +70,14 @@ public:
     virtual void RefreshAll();
     virtual void SetItemCount(size_t count);
 
+
+#if wxUSE_FILESYSTEM
+    // retrieve the file system used by the wxHtmlWinParser: if you use
+    // relative paths in your HTML, you should use its ChangePathTo() method
+    wxFileSystem& GetFileSystem() { return m_filesystem; }
+    const wxFileSystem& GetFileSystem() const { return m_filesystem; }
+#endif // wxUSE_FILESYSTEM
+
 protected:
     // this method must be implemented in the derived class and should return
     // the body (i.e. without <html>) of the HTML for the given item
@@ -111,6 +123,11 @@ private:
 
     // HTML parser we use
     wxHtmlWinParser *m_htmlParser;
+
+#if wxUSE_FILESYSTEM
+    // file system used by m_htmlParser
+    wxFileSystem m_filesystem;
+#endif // wxUSE_FILESYSTEM
 
     // rendering style for the parser which allows us to customize our colours
     wxHtmlListBoxStyle *m_htmlRendStyle;

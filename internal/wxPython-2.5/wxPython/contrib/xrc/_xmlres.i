@@ -30,8 +30,9 @@ enum {
 
 enum wxXmlResourceFlags
 {
-    wxXRC_USE_LOCALE     = 1,
-    wxXRC_NO_SUBCLASSING = 2
+    wxXRC_USE_LOCALE,
+    wxXRC_NO_SUBCLASSING,
+    wxXRC_NO_RELOADING
 };
 
 
@@ -44,9 +45,8 @@ class wxXmlResource : public wxObject
 {
 public:
 
-    %pythonAppend wxXmlResource(const wxString& filemask, int flags)        "self.InitAllHandlers()"
-
-    %pythonAppend wxXmlResource(int flags)        "val.InitAllHandlers()"
+    %pythonAppend wxXmlResource(const wxString& filemask, int flags)   "self.InitAllHandlers()"
+    %pythonAppend wxXmlResource(int flags)                             "val.InitAllHandlers()"
 
     // Ctors.
     // Flags: wxXRC_USE_LOCALE

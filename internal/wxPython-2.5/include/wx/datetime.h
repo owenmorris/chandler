@@ -463,7 +463,7 @@ public:
         // get the current country
     static Country GetCountry();
 
-        // return TRUE if the country is a West European one (in practice,
+        // return true if the country is a West European one (in practice,
         // this means that the same DST rules as for EEC apply)
     static bool IsWestEuropeanCountry(Country country = Country_Default);
 
@@ -479,7 +479,7 @@ public:
         // return the current month
     static Month GetCurrentMonth(Calendar cal = Gregorian);
 
-        // returns TRUE if the given year is a leap year in the given calendar
+        // returns true if the given year is a leap year in the given calendar
     static bool IsLeapYear(int year = Inv_Year, Calendar cal = Gregorian);
 
         // get the century (19 for 1999, 20 for 2000 and -5 for 492 BC)
@@ -508,7 +508,7 @@ public:
         // get the AM and PM strings in the current locale (may be empty)
     static void GetAmPmStrings(wxString *am, wxString *pm);
 
-        // return TRUE if the given country uses DST for this year
+        // return true if the given country uses DST for this year
     static bool IsDSTApplicable(int year = Inv_Year,
                                 Country country = Country_Default);
 
@@ -664,7 +664,7 @@ public:
     inline wxDateTime GetPrevWeekDay(WeekDay weekday) const;
 
         // set to Nth occurence of given weekday in the given month of the
-        // given year (time is set to 0), return TRUE on success and FALSE on
+        // given year (time is set to 0), return true on success and false on
         // failure. n may be positive (1..5) or negative to count from the end
         // of the month (see helper function SetToLastWeekDay())
     bool SetToWeekDay(WeekDay weekday,
@@ -685,14 +685,23 @@ public:
                                      int year = Inv_Year);
 
         // sets the date to the given day of the given week in the year,
-        // returns TRUE on success and FALSE if given date doesn't exist (e.g.
+        // returns true on success and false if given date doesn't exist (e.g.
         // numWeek is > 53)
-    bool SetToTheWeek(wxDateTime_t numWeek,
-                      WeekDay weekday = Mon,
-                      WeekFlags flags = Monday_First);
-    inline wxDateTime GetWeek(wxDateTime_t numWeek,
-                              WeekDay weekday = Mon,
-                              WeekFlags flags = Monday_First) const;
+        //
+        // these functions are badly defined as they're not the reverse of
+        // GetWeekOfYear(), use SetToTheWeekOfYear() instead
+    wxDEPRECATED( bool SetToTheWeek(wxDateTime_t numWeek,
+                                    WeekDay weekday = Mon,
+                                    WeekFlags flags = Monday_First) );
+    wxDEPRECATED( wxDateTime GetWeek(wxDateTime_t numWeek,
+                                     WeekDay weekday = Mon,
+                                     WeekFlags flags = Monday_First) const );
+
+        // returns the date corresponding to the given week day of the given
+        // week (in ISO notation) of the specified year
+    static wxDateTime SetToWeekOfYear(int year,
+                                      wxDateTime_t numWeek,
+                                      WeekDay weekday = Mon);
 
         // sets the date to the last day of the given (or current) month or the
         // given (or current) year
@@ -759,12 +768,12 @@ public:
     // ------------------------------------------------------------------------
 
         // transform to any given timezone
-    inline wxDateTime ToTimezone(const TimeZone& tz, bool noDST = FALSE) const;
-    wxDateTime& MakeTimezone(const TimeZone& tz, bool noDST = FALSE);
+    inline wxDateTime ToTimezone(const TimeZone& tz, bool noDST = false) const;
+    wxDateTime& MakeTimezone(const TimeZone& tz, bool noDST = false);
 
         // transform to GMT/UTC
-    wxDateTime ToGMT(bool noDST = FALSE) const { return ToTimezone(GMT0, noDST); }
-    wxDateTime& MakeGMT(bool noDST = FALSE) { return MakeTimezone(GMT0, noDST); }
+    wxDateTime ToGMT(bool noDST = false) const { return ToTimezone(GMT0, noDST); }
+    wxDateTime& MakeGMT(bool noDST = false) { return MakeTimezone(GMT0, noDST); }
 
         // is daylight savings time in effect at this moment according to the
         // rules of the specified country?
@@ -854,20 +863,20 @@ public:
     // comparison (see also functions below for operator versions)
     // ------------------------------------------------------------------------
 
-        // returns TRUE if the two moments are strictly identical
+        // returns true if the two moments are strictly identical
     inline bool IsEqualTo(const wxDateTime& datetime) const;
 
-        // returns TRUE if the date is strictly earlier than the given one
+        // returns true if the date is strictly earlier than the given one
     inline bool IsEarlierThan(const wxDateTime& datetime) const;
 
-        // returns TRUE if the date is strictly later than the given one
+        // returns true if the date is strictly later than the given one
     inline bool IsLaterThan(const wxDateTime& datetime) const;
 
-        // returns TRUE if the date is strictly in the given range
+        // returns true if the date is strictly in the given range
     inline bool IsStrictlyBetween(const wxDateTime& t1,
                                   const wxDateTime& t2) const;
 
-        // returns TRUE if the date is in the given range
+        // returns true if the date is in the given range
     inline bool IsBetween(const wxDateTime& t1, const wxDateTime& t2) const;
 
         // do these two objects refer to the same date?
@@ -984,7 +993,7 @@ private:
     // fixed to 1000
     static const long TIME_T_FACTOR;
 
-    // returns TRUE if we fall in range in which we can use standard ANSI C
+    // returns true if we fall in range in which we can use standard ANSI C
     // functions
     inline bool IsInStdRange() const;
 
@@ -1096,11 +1105,11 @@ public:
         // are two timespans equal?
     inline bool IsEqualTo(const wxTimeSpan& ts) const;
         // compare two timestamps: works with the absolute values, i.e. -2
-        // hours is longer than 1 hour. Also, it will return FALSE if the
+        // hours is longer than 1 hour. Also, it will return false if the
         // timespans are equal in absolute value.
     inline bool IsLongerThan(const wxTimeSpan& ts) const;
         // compare two timestamps: works with the absolute values, i.e. 1
-        // hour is shorter than -2 hours. Also, it will return FALSE if the
+        // hour is shorter than -2 hours. Also, it will return false if the
         // timespans are equal in absolute value.
     bool IsShorterThan(const wxTimeSpan& t) const { return !IsLongerThan(t); }
 
@@ -1301,7 +1310,7 @@ class WXDLLIMPEXP_BASE wxDateTimeHolidayAuthority
 {
 friend class wxDateTimeHolidaysModule;
 public:
-    // returns TRUE if the given date is a holiday
+    // returns true if the given date is a holiday
     static bool IsHoliday(const wxDateTime& dt);
 
     // fills the provided array with all holidays in the given range, returns
@@ -1524,15 +1533,6 @@ inline wxDateTime wxDateTime::GetLastWeekDay(WeekDay weekday,
     wxDateTime dt(*this);
 
     return dt.SetToLastWeekDay(weekday, month, year) ? dt : wxInvalidDateTime;
-}
-
-inline wxDateTime wxDateTime::GetWeek(wxDateTime_t numWeek,
-                                      WeekDay weekday,
-                                      WeekFlags flags) const
-{
-    wxDateTime dt(*this);
-
-    return dt.SetToTheWeek(numWeek, weekday, flags) ? dt : wxInvalidDateTime;
 }
 
 inline wxDateTime wxDateTime::GetLastMonthDay(Month month, int year) const

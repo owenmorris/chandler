@@ -3,7 +3,7 @@
 // Purpose:     in-memory file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 2000 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FS_MEM_H_
@@ -20,11 +20,7 @@
 #pragma interface "fs_mem.h"
 #endif
 
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
+#include "wx/defs.h"
 
 #if wxUSE_FILESYSTEM
 
@@ -90,7 +86,9 @@ public:
     }
 
 #if wxUSE_IMAGE
-    static void AddFile(const wxString& filename, wxImage& image, long type);
+    static void AddFile(const wxString& filename,
+                        const wxImage& image,
+                        long type);
 
     static void AddFile(const wxString& filename,
                         const wxBitmap& bitmap,

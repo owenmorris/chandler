@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     05/25/99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +39,7 @@ class WXDLLEXPORT wxDrawObject
 public:
 
     wxDrawObject()
-        : m_isBBoxValid(FALSE)
+        : m_isBBoxValid(false)
         , m_minX(0), m_minY(0), m_maxX(0), m_maxY(0)
     { }
 
@@ -58,7 +58,7 @@ public:
       }
       else
       {
-         m_isBBoxValid = TRUE;
+         m_isBBoxValid = true;
 
          m_minX = x;
          m_minY = y;
@@ -69,7 +69,7 @@ public:
 
     void ResetBoundingBox()
     {
-        m_isBBoxValid = FALSE;
+        m_isBBoxValid = false;
 
         m_minX = m_maxX = m_minY = m_maxY = 0;
     }
@@ -106,10 +106,10 @@ class WXDLLEXPORT wxDCBase : public wxObject
 public:
     wxDCBase()
         : m_colour(wxColourDisplay())
-        , m_ok(TRUE)
-        , m_clipping(FALSE)
+        , m_ok(true)
+        , m_clipping(false)
         , m_isInteractive(0)
-        , m_isBBoxValid(FALSE)
+        , m_isBBoxValid(false)
         , m_logicalOriginX(0), m_logicalOriginY(0)
         , m_deviceOriginX(0), m_deviceOriginY(0)
         , m_logicalScaleX(1.0), m_logicalScaleY(1.0)
@@ -129,10 +129,11 @@ public:
         , m_font()
 #if wxUSE_PALETTE
         , m_palette()
-        , m_hasCustomPalette(FALSE)
+        , m_hasCustomPalette(false)
 #endif // wxUSE_PALETTE
     {
         ResetBoundingBox();
+        ResetClipping();
     }
 
     ~wxDCBase() { }
@@ -250,10 +251,10 @@ public:
         { DoDrawIcon(icon, pt.x, pt.y); }
 
     void DrawBitmap(const wxBitmap &bmp, wxCoord x, wxCoord y,
-                    bool useMask = FALSE)
+                    bool useMask = false)
         { DoDrawBitmap(bmp, x, y, useMask); }
     void DrawBitmap(const wxBitmap &bmp, const wxPoint& pt,
-                    bool useMask = FALSE)
+                    bool useMask = false)
         { DoDrawBitmap(bmp, pt.x, pt.y, useMask); }
 
     void DrawText(const wxString& text, wxCoord x, wxCoord y)
@@ -284,14 +285,14 @@ public:
 
     bool Blit(wxCoord xdest, wxCoord ydest, wxCoord width, wxCoord height,
               wxDC *source, wxCoord xsrc, wxCoord ysrc,
-              int rop = wxCOPY, bool useMask = FALSE, wxCoord xsrcMask = -1, wxCoord ysrcMask = -1)
+              int rop = wxCOPY, bool useMask = false, wxCoord xsrcMask = wxDefaultCoord, wxCoord ysrcMask = wxDefaultCoord)
     {
         return DoBlit(xdest, ydest, width, height,
                       source, xsrc, ysrc, rop, useMask, xsrcMask, ysrcMask);
     }
     bool Blit(const wxPoint& destPt, const wxSize& sz,
               wxDC *source, const wxPoint& srcPt,
-              int rop = wxCOPY, bool useMask = FALSE, const wxPoint& srcPtMask = wxPoint(-1, -1))
+              int rop = wxCOPY, bool useMask = false, const wxPoint& srcPtMask = wxDefaultPosition)
     {
         return DoBlit(destPt.x, destPt.y, sz.x, sz.y,
                       source, srcPt.x, srcPt.y, rop, useMask, srcPtMask.x, srcPtMask.y);
@@ -314,18 +315,18 @@ public:
      *  \param y Upper left corner of bounding box.
      *  \param w Width of bounding box.
      *  \param h Height of bounding box.
-     *  \param sa Starting angle of arc 
+     *  \param sa Starting angle of arc
      *            (counterclockwise, start at 3 o'clock, 360 is full circle).
      *  \param ea Ending angle of arc.
-     *  \param angle Rotation angle, the Arc will be rotated after 
+     *  \param angle Rotation angle, the Arc will be rotated after
      *               calculating begin and end.
      */
-    void DrawEllipticArcRot( wxCoord x, wxCoord y, 
-                             wxCoord width, wxCoord height, 
+    void DrawEllipticArcRot( wxCoord x, wxCoord y,
+                             wxCoord width, wxCoord height,
                              double sa = 0, double ea = 0, double angle = 0 )
     { DoDrawEllipticArcRot( x, y, width, height, sa, ea, angle ); }
-    
-    void DrawEllipticArcRot( const wxPoint& pt, 
+
+    void DrawEllipticArcRot( const wxPoint& pt,
                              const wxSize& sz,
                              double sa = 0, double ea = 0, double angle = 0 )
     { DoDrawEllipticArcRot( pt.x, pt.y, sz.x, sz.y, sa, ea, angle ); }
@@ -334,33 +335,33 @@ public:
                              double sa = 0, double ea = 0, double angle = 0 )
     { DoDrawEllipticArcRot( rect.x, rect.y, rect.width, rect.height, sa, ea, angle ); }
 
-    virtual void DoDrawEllipticArcRot( wxCoord x, wxCoord y, 
-                                       wxCoord w, wxCoord h, 
+    virtual void DoDrawEllipticArcRot( wxCoord x, wxCoord y,
+                                       wxCoord w, wxCoord h,
                                        double sa = 0, double ea = 0, double angle = 0 );
-    
+
     //! Rotates points around center.
     /*! This is a quite straight method, it calculates in pixels
      *  and so it produces rounding errors.
      *  \param points The points inside will be rotated.
      *  \param angle Rotating angle (counterclockwise, start at 3 o'clock, 360 is full circle).
      *  \param center Center of rotation.
-     */ 
+     */
     void Rotate( wxList* points, double angle, wxPoint center = wxPoint() );
 
     // used by DrawEllipticArcRot
     // Careful: wxList gets filled with points you have to delete later.
-    void CalculateEllipticPoints( wxList* points, 
-                                  wxCoord xStart, wxCoord yStart, 
-                                  wxCoord w, wxCoord h, 
+    void CalculateEllipticPoints( wxList* points,
+                                  wxCoord xStart, wxCoord yStart,
+                                  wxCoord w, wxCoord h,
                                   double sa, double ea );
 #endif
-    
+
     // global DC operations
     // --------------------
 
     virtual void Clear() = 0;
 
-    virtual bool StartDoc(const wxString& WXUNUSED(message)) { return TRUE; }
+    virtual bool StartDoc(const wxString& WXUNUSED(message)) { return true; }
     virtual void EndDoc() { }
 
     virtual void StartPage() { }
@@ -390,21 +391,13 @@ public:
     void SetClippingRegion(const wxRegion& region)
         { DoSetClippingRegionAsRegion(region); }
 
-    virtual void DestroyClippingRegion() = 0;
+    virtual void DestroyClippingRegion() { ResetClipping(); }
 
     void GetClippingBox(wxCoord *x, wxCoord *y, wxCoord *w, wxCoord *h) const
         { DoGetClippingBox(x, y, w, h); }
     void GetClippingBox(wxRect& rect) const
         {
-#if 1
           DoGetClippingBox(&rect.x, &rect.y, &rect.width, &rect.height);
-#else
-          // Necessary to use intermediate variables for 16-bit compilation
-          // REMOVE ME if the above is OK for all current platforms
-          wxCoord x, y, w, h;
-          DoGetClippingBox(&x, &y, &w, &h);
-          rect.x = x; rect.y = y; rect.width = w; rect.height = h;
-#endif
         }
 
     // text extent
@@ -432,7 +425,7 @@ public:
     bool GetPartialTextExtents(const wxString& text, wxArrayInt& widths) const
         { return DoGetPartialTextExtents(text, widths); }
 
-    
+
     // size and resolution
     // -------------------
 
@@ -486,26 +479,17 @@ public:
 
     virtual bool Ok() const { return m_ok; }
 
-    // accessors
-    // ---------
+    // accessors and setters
+    // ---------------------
 
-        // const...
     int GetBackgroundMode() const { return m_backgroundMode; }
     const wxBrush&  GetBackground() const { return m_backgroundBrush; }
     const wxBrush&  GetBrush() const { return m_brush; }
     const wxFont&   GetFont() const { return m_font; }
     const wxPen&    GetPen() const { return m_pen; }
-    const wxColour& GetTextBackground() const { return m_textBackgroundColour; }
+
     const wxColour& GetTextForeground() const { return m_textForegroundColour; }
-
-        // ... and non const
-    wxBrush&  GetBackground() { return m_backgroundBrush; }
-    wxBrush&  GetBrush() { return m_brush; }
-    wxFont&   GetFont() { return m_font; }
-    wxPen&    GetPen() { return m_pen; }
-    wxColour& GetTextBackground() { return m_textBackgroundColour; }
-    wxColour& GetTextForeground() { return m_textForegroundColour; }
-
+    const wxColour& GetTextBackground() const { return m_textBackgroundColour; }
     virtual void SetTextForeground(const wxColour& colour)
         { m_textForegroundColour = colour; }
     virtual void SetTextBackground(const wxColour& colour)
@@ -554,7 +538,7 @@ public:
     //
     // FIXME: is this (still) used?
     virtual void SetOptimization(bool WXUNUSED(opt)) { }
-    virtual bool GetOptimization() { return FALSE; }
+    virtual bool GetOptimization() { return false; }
 
     // bounding box
     // ------------
@@ -570,7 +554,7 @@ public:
       }
       else
       {
-         m_isBBoxValid = TRUE;
+         m_isBBoxValid = true;
 
          m_minX = x;
          m_minY = y;
@@ -581,7 +565,7 @@ public:
 
     void ResetBoundingBox()
     {
-        m_isBBoxValid = FALSE;
+        m_isBBoxValid = false;
 
         m_minX = m_maxX = m_minY = m_maxY = 0;
     }
@@ -596,7 +580,6 @@ public:
     // ------------------
 
     // for compatibility with the old code when wxCoord was long everywhere
-#ifndef __WIN16__
     void GetTextExtent(const wxString& string,
                        long *x, long *y,
                        long *descent = NULL,
@@ -645,7 +628,6 @@ public:
         if (w) *w = ww;
         if (h) *h = hh;
     }
-#endif // !Win16
 
 protected:
     // the pure virtual functions which should be implemented by wxDC
@@ -676,7 +658,7 @@ protected:
 
     virtual void DoDrawIcon(const wxIcon& icon, wxCoord x, wxCoord y) = 0;
     virtual void DoDrawBitmap(const wxBitmap &bmp, wxCoord x, wxCoord y,
-                              bool useMask = FALSE) = 0;
+                              bool useMask = false) = 0;
 
     virtual void DoDrawText(const wxString& text, wxCoord x, wxCoord y) = 0;
     virtual void DoDrawRotatedText(const wxString& text,
@@ -685,7 +667,7 @@ protected:
     virtual bool DoBlit(wxCoord xdest, wxCoord ydest,
                         wxCoord width, wxCoord height,
                         wxDC *source, wxCoord xsrc, wxCoord ysrc,
-                        int rop = wxCOPY, bool useMask = FALSE, wxCoord xsrcMask = -1, wxCoord ysrcMask = -1) = 0;
+                        int rop = wxCOPY, bool useMask = false, wxCoord xsrcMask = wxDefaultCoord, wxCoord ysrcMask = wxDefaultCoord) = 0;
 
     virtual void DoGetSize(int *width, int *height) const = 0;
     virtual void DoGetSizeMM(int* width, int* height) const = 0;
@@ -710,17 +692,14 @@ protected:
     virtual void DoGetClippingBox(wxCoord *x, wxCoord *y,
                                   wxCoord *w, wxCoord *h) const
     {
-        if ( m_clipping )
-        {
-            if ( x ) *x = m_clipX1;
-            if ( y ) *y = m_clipY1;
-            if ( w ) *w = m_clipX2 - m_clipX1;
-            if ( h ) *h = m_clipY2 - m_clipY1;
-        }
-        else
-        {
-            *x = *y = *w = *h = 0;
-        }
+        if ( x )
+            *x = m_clipX1;
+        if ( y )
+            *y = m_clipY1;
+        if ( w )
+            *w = m_clipX2 - m_clipX1;
+        if ( h )
+            *h = m_clipY2 - m_clipY1;
     }
 
     virtual void DoGetLogicalOrigin(wxCoord *x, wxCoord *y) const
@@ -740,14 +719,22 @@ protected:
                                  wxCoord *descent = NULL,
                                  wxCoord *externalLeading = NULL,
                                  wxFont *theFont = NULL) const = 0;
-    
+
     virtual bool DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const;
-    
+
 #if wxUSE_SPLINES
     virtual void DoDrawSpline(wxList *points);
 #endif
 
 protected:
+    // unset clipping variables (after clipping region was destroyed)
+    void ResetClipping()
+    {
+        m_clipping = false;
+
+        m_clipX1 = m_clipX2 = m_clipY1 = m_clipY2 = 0;
+    }
+
     // flags
     bool m_colour:1;
     bool m_ok:1;

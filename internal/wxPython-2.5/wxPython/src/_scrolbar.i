@@ -20,6 +20,8 @@ MAKE_CONST_WXSTRING(ScrollBarNameStr);
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxScrollBar);
+
 class wxScrollBar : public wxControl {
 public:
     %pythonAppend wxScrollBar         "self._setOORInfo(self)"
@@ -52,6 +54,9 @@ public:
     virtual void SetScrollbar(int position, int thumbSize,
                               int range, int pageSize,
                               bool refresh = True);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------

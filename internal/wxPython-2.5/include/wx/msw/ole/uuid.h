@@ -2,7 +2,7 @@
 // Name:        ole/uuid.h
 // Purpose:     encapsulates an UUID with some added helper functions
 // Author:      Vadim Zeitlin
-// Modified by: 
+// Modified by:
 // Created:     11.07.97
 // RCS-ID:      $Id$
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
@@ -25,15 +25,13 @@
 // ----- taken from RPC.H
 #ifndef UUID_DEFINED            // in some cases RPC.H will be already
   #ifdef  __WIN32__             // included, so avoid redefinition
-    typedef struct                
+    typedef struct
     {
       unsigned long   Data1;
       unsigned short  Data2;
       unsigned short  Data3;
       unsigned char   Data4[8];
     } UUID;                     // UUID = GUID = CLSID = LIBID = IID
-  #else   // WIN16
-    #error "Don't know about UUIDs on this platform"
   #endif  // WIN32
 #endif  // UUID_DEFINED
 
@@ -53,7 +51,7 @@ class WXDLLEXPORT Uuid
 {
 private:
   UUID  m_uuid;
-  wxUChar *m_pszUuid;   // this string is alloc'd and freed by RPC 
+  wxUChar *m_pszUuid;   // this string is alloc'd and freed by RPC
   wxChar  *m_pszCForm;  // this string is allocated in Set/Create
 
   void  UuidToCForm();
@@ -75,7 +73,7 @@ public:
   // create a brand new UUID
   void Create();
 
-  // set value of UUID 
+  // set value of UUID
   bool Set(const wxChar *pc); // from a string, returns true if ok
   void Set(const UUID& uuid); // from another UUID (never fails)
 

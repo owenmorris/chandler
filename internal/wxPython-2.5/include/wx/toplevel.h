@@ -7,7 +7,7 @@
 // Created:     06.08.01
 // RCS-ID:      $Id$
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
-//                       Vaclav Slavik <vaclav@wxwindows.org>
+//                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +34,57 @@ class WXDLLEXPORT wxTopLevelWindowBase;
 // constants
 // ----------------------------------------------------------------------------
 
+// style common to both wxFrame and wxDialog
+#define wxSTAY_ON_TOP           0x8000
+#define wxICONIZE               0x4000
+#define wxMINIMIZE              wxICONIZE
+#define wxMAXIMIZE              0x2000
+#define wxCLOSE_BOX             0x1000
+
+#define wxSYSTEM_MENU           0x0800
+#define wxMINIMIZE_BOX          0x0400
+#define wxMAXIMIZE_BOX          0x0200
+#define wxTINY_CAPTION_HORIZ    0x0100
+#define wxTINY_CAPTION_VERT     0x0080
+#define wxRESIZE_BORDER         0x0040
+
+// deprecated versions defined for compatibility reasons
+#define wxRESIZE_BOX            wxMAXIMIZE_BOX
+#define wxTHICK_FRAME           wxRESIZE_BORDER
+
+// obsolete styles, unused any more
+#define wxDIALOG_MODAL          0
+#define wxDIALOG_MODELESS       0
+#define wxNO_3D                 0
+#define wxUSER_COLOURS          0
+
+// default style
+//
+// under Windows CE (at least when compiling with eVC 4) we should create
+// top level windows without any styles at all for them to appear
+// "correctly", i.e. as full screen windows with a "hide" button (same as
+// "close" but round instead of squared and just hides the applications
+// instead of closing it) in the title bar
+#if defined(__WXWINCE__)
+	#if defined(__SMARTPHONE__)
+		#define wxDEFAULT_FRAME_STYLE (wxMAXIMIZE)
+    #elif defined(__WINCE_STANDARDSDK__)
+		#define wxDEFAULT_FRAME_STYLE (wxMAXIMIZE|wxCLOSE_BOX)
+	#else
+		#define wxDEFAULT_FRAME_STYLE (0)
+	#endif
+#else // !__WXWINCE__
+    #define wxDEFAULT_FRAME_STYLE \
+            (wxSYSTEM_MENU | \
+             wxRESIZE_BORDER | \
+             wxMINIMIZE_BOX | \
+             wxMAXIMIZE_BOX | \
+             wxCLOSE_BOX | \
+             wxCAPTION | \
+             wxCLIP_CHILDREN)
+#endif
+
+
 // Dialogs are created in a special way
 #define wxTOPLEVEL_EX_DIALOG        0x00000008
 
@@ -51,6 +102,13 @@ enum
     wxFULLSCREEN_ALL         = wxFULLSCREEN_NOMENUBAR | wxFULLSCREEN_NOTOOLBAR |
                                wxFULLSCREEN_NOSTATUSBAR | wxFULLSCREEN_NOBORDER |
                                wxFULLSCREEN_NOCAPTION
+};
+
+// Styles for RequestUserAttention
+enum
+{
+    wxUSER_ATTENTION_INFO = 1,
+    wxUSER_ATTENTION_ERROR = 2
 };
 
 // ----------------------------------------------------------------------------
@@ -113,6 +171,11 @@ public:
     // operation is successful.)
     virtual bool SetShape(const wxRegion& WXUNUSED(region)) { return FALSE; }
 
+    // Attracts the users attention to this window if the application is
+    // inactive (should be called when a background event occurs)
+    virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
+
+
     // implementation only from now on
     // -------------------------------
 
@@ -152,9 +215,10 @@ protected:
 
     // Get the default size for the new window if no explicit size given. If
     // there are better default sizes then these can be changed, just as long
-    // as they are not too small for TLWs.
-    static int WidthDefault(int w) { return w == -1 ? 400 : w; }
-    static int HeightDefault(int h) { return h == -1 ? 250 : h; }
+    // as they are not too small for TLWs (and not larger than screen).
+    static wxSize GetDefaultSize();
+    static int WidthDefault(int w) { return w == -1 ? GetDefaultSize().x : w; }
+    static int HeightDefault(int h) { return h == -1 ? GetDefaultSize().y : h; }
 
     // the frame icon
     wxIconBundle m_icons;

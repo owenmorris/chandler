@@ -22,7 +22,8 @@
 // use debug CRT functions for memory leak detections in VC++ 5.0+ in debug
 // builds
 #undef wxUSE_VC_CRTDBG
-#if defined(__WXDEBUG__) && defined(__VISUALC__) && (__VISUALC__ >= 1000)
+#if defined(__WXDEBUG__) && defined(__VISUALC__) && (__VISUALC__ >= 1000) \
+    && !defined(UNDER_CE)
     // it doesn't combine well with wxWin own memory debugging methods
     #if !wxUSE_GLOBAL_MEMORY_OPERATORS && !wxUSE_MEMORY_TRACING && !defined(__NO_VC_CRTDBG__)
         #define wxUSE_VC_CRTDBG
@@ -35,14 +36,11 @@
         #define _DEBUG
     #endif
 
-    // Need to undef new if including crtdbg.h which redefines new itself
+    // Need to undef new if including crtdbg.h which may redefine new itself
     #ifdef new
         #undef new
     #endif
 
-    // we need this to show file & line number of the allocation that caused
-    // the leak
-    #define _CRTDBG_MAP_ALLOC
     #include <stdlib.h>
     #ifndef _CRTBLD
         // Need when builded with pure MS SDK
@@ -55,7 +53,7 @@
     //
     //      http://support.microsoft.com/support/kb/articles/Q140/8/58.asp
     //
-    // for the details 
+    // for the details
     #define new  new( _NORMAL_BLOCK, __FILE__, __LINE__)
 
     #define wxCrtSetDbgFlag(flag) \

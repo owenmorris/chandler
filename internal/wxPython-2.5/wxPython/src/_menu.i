@@ -17,13 +17,20 @@
 %newgroup
 
 
+MustHaveApp(wxMenu);
+
 class wxMenu : public wxEvtHandler
 {
 public:
     %pythonAppend wxMenu         "self._setOORInfo(self)"
+    %typemap(out) wxMenu*;    // turn off this typemap
+
     wxMenu(const wxString& title = wxPyEmptyString, long style = 0);
 
+    // Turn it back on again
+    %typemap(out) wxMenu* { $result = wxPyMake_wxObject($1, $owner); }
 
+    
     // append any kind of item (normal/check/radio/separator)
     wxMenuItem* Append(int id,
                        const wxString& text,
@@ -203,12 +210,18 @@ public:
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxMenuBar);
+
 class wxMenuBar : public wxWindow
 {
 public:
     %pythonAppend wxMenuBar         "self._setOORInfo(self)"
+    %typemap(out) wxMenuBar*;    // turn off this typemap
+
     wxMenuBar(long style = 0);
 
+    // Turn it back on again
+    %typemap(out) wxMenuBar* { $result = wxPyMake_wxObject($1, $owner); }
 
     // append a menu to the end of menubar, return True if ok
     virtual bool Append(wxMenu *menu, const wxString& title);
@@ -292,7 +305,7 @@ public:
 
 class wxMenuItem : public wxObject {
 public:
-    wxMenuItem(wxMenu* parentMenu=NULL, int id=wxID_SEPARATOR,
+    wxMenuItem(wxMenu* parentMenu=NULL, int id=wxID_ANY,
                const wxString& text = wxPyEmptyString,
                const wxString& help = wxPyEmptyString,
                wxItemKind kind = wxITEM_NORMAL,
@@ -322,6 +335,7 @@ public:
 
     // what kind of menu item we are
     wxItemKind GetKind() const;
+    void SetKind(wxItemKind kind);
 
     virtual void SetCheckable(bool checkable);
     bool IsCheckable() const;

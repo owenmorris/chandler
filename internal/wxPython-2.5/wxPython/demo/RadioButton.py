@@ -10,30 +10,6 @@ class TestPanel( wx.Panel ):
         self.log = log
         panel = wx.Panel( self, -1 )
 
-        # 1st group of controls:
-        self.group1_ctrls = []
-        radio1 = wx.RadioButton( panel, -1, " Radio1 ", style = wx.RB_GROUP )
-        text1 = wx.TextCtrl( panel, -1, "" )
-        radio2 = wx.RadioButton( panel, -1, " Radio2 " )
-        text2 = wx.TextCtrl( panel, -1, "" )
-        radio3 = wx.RadioButton( panel, -1, " Radio3 " )
-        text3 = wx.TextCtrl( panel, -1, "" )
-        self.group1_ctrls.append((radio1, text1))
-        self.group1_ctrls.append((radio2, text2))
-        self.group1_ctrls.append((radio3, text3))
-
-        # 2nd group of controls:
-        self.group2_ctrls = []
-        radio4 = wx.RadioButton( panel, -1, " Radio1 ", style = wx.RB_GROUP )
-        text4 = wx.TextCtrl( panel, -1, "" )
-        radio5 = wx.RadioButton( panel, -1, " Radio2 " )
-        text5 = wx.TextCtrl( panel, -1, "" )
-        radio6 = wx.RadioButton( panel, -1, " Radio3 " )
-        text6 = wx.TextCtrl( panel, -1, "" )
-        self.group2_ctrls.append((radio4, text4))
-        self.group2_ctrls.append((radio5, text5))
-        self.group2_ctrls.append((radio6, text6))
-
         # Layout controls on panel:
         vs = wx.BoxSizer( wx.VERTICAL )
 
@@ -41,23 +17,47 @@ class TestPanel( wx.Panel ):
         box1 = wx.StaticBoxSizer( box1_title, wx.VERTICAL )
         grid1 = wx.FlexGridSizer( 0, 2, 0, 0 )
 
-        for radio, text in self.group1_ctrls:
-            grid1.AddWindow( radio, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
-            grid1.AddWindow( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+        # 1st group of controls:
+        self.group1_ctrls = []
+        radio1 = wx.RadioButton( panel, -1, " Radio1 ", style = wx.RB_GROUP )
+        radio2 = wx.RadioButton( panel, -1, " Radio2 " )
+        radio3 = wx.RadioButton( panel, -1, " Radio3 " )
+        text1 = wx.TextCtrl( panel, -1, "" )
+        text2 = wx.TextCtrl( panel, -1, "" )
+        text3 = wx.TextCtrl( panel, -1, "" )
+        self.group1_ctrls.append((radio1, text1))
+        self.group1_ctrls.append((radio2, text2))
+        self.group1_ctrls.append((radio3, text3))
 
-        box1.AddSizer( grid1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
-        vs.AddSizer( box1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        for radio, text in self.group1_ctrls:
+            grid1.Add( radio, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            grid1.Add( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+
+        box1.Add( grid1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        vs.Add( box1, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
 
         box2_title = wx.StaticBox( panel, -1, "Group 2" )
         box2 = wx.StaticBoxSizer( box2_title, wx.VERTICAL )
         grid2 = wx.FlexGridSizer( 0, 2, 0, 0 )
 
+        # 2nd group of controls:
+        self.group2_ctrls = []
+        radio4 = wx.RadioButton( panel, -1, " Radio1 ", style = wx.RB_GROUP )
+        radio5 = wx.RadioButton( panel, -1, " Radio2 " )
+        radio6 = wx.RadioButton( panel, -1, " Radio3 " )
+        text4 = wx.TextCtrl( panel, -1, "" )
+        text5 = wx.TextCtrl( panel, -1, "" )
+        text6 = wx.TextCtrl( panel, -1, "" )
+        self.group2_ctrls.append((radio4, text4))
+        self.group2_ctrls.append((radio5, text5))
+        self.group2_ctrls.append((radio6, text6))
+        
         for radio, text in self.group2_ctrls:
-            grid2.AddWindow( radio, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
-            grid2.AddWindow( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            grid2.Add( radio, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            grid2.Add( text, 0, wx.ALIGN_CENTRE|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
 
-        box2.AddSizer( grid2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
-        vs.AddSizer( box2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        box2.Add( grid2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
+        vs.Add( box2, 0, wx.ALIGN_CENTRE|wx.ALL, 5 )
 
         panel.SetSizer( vs )
         vs.Fit( panel )

@@ -207,11 +207,12 @@ class KeyLog(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.InsertColumn(1, "Key Name")
         self.InsertColumn(2, "Key Code")
         self.InsertColumn(3, "Modifiers")
-        self.InsertColumn(4, "RawKeyCode")
-        self.InsertColumn(5, "RawKeyFlags")
-        self.InsertColumn(6, "")
+        self.InsertColumn(4, "Unicode")
+        self.InsertColumn(5, "RawKeyCode")
+        self.InsertColumn(6, "RawKeyFlags")
+        self.InsertColumn(7, "")
 
-        for x in range(6):
+        for x in range(7):
             self.SetColumnWidth(x, wx.LIST_AUTOSIZE_USEHEADER)
 
         self.SetColumnWidth(1, 125)
@@ -245,8 +246,9 @@ class KeyLog(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.SetStringItem(id, 1, keyname)
         self.SetStringItem(id, 2, str(keycode))
         self.SetStringItem(id, 3, modifiers)
-        self.SetStringItem(id, 4, str(evt.GetRawKeyCode()))
-        self.SetStringItem(id, 5, str(evt.GetRawKeyFlags()))
+        self.SetStringItem(id, 4, str(evt.GetUnicodeKey()))
+        self.SetStringItem(id, 5, str(evt.GetRawKeyCode()))
+        self.SetStringItem(id, 6, str(evt.GetRawKeyFlags()))
 
         #print ( id, evType, keyname, str(keycode), modifiers, str(evt.GetRawKeyCode()), str(evt.GetRawKeyFlags()))
 
@@ -265,7 +267,7 @@ class TestPanel(wx.Panel):
         self.log = log
         wx.Panel.__init__(self, parent, -1, style=0)
         self.keysink = KeySink(self)
-        self.keysink.SetSize((100, 65))
+        self.keysink.SetMinSize((100, 65))
         self.keylog = KeyLog(self)
 
         btn = wx.Button(self, -1, "Clear Log")

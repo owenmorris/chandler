@@ -10,8 +10,7 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-
-%module windows
+%module(package="wx") _windows
 
 //---------------------------------------------------------------------------
 
@@ -24,9 +23,9 @@
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
 
-%include _windows_rename.i
+%include __windows_rename.i
 
 
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     07.05.02
 // RCS-ID:      $Id$
-// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -13,6 +13,19 @@
 #define _WX_BUILD_H_
 
 #include "wx/version.h"
+
+// NB: This file contains macros for checking binary compatibility of libraries
+//     in multilib buildm, plugins and user components.
+//     The WX_BUILD_OPTIONS_SIGNATURE macro expands into string that should
+//     uniquely identify binary compatible builds: i.e. if two builds of the
+//     library are binary compatible, their signature string should be the
+//     same; if two builds are binary incompatible, their signatures should
+//     be different.
+//
+//     Therefore, wxUSE_XXX flags that affect binary compatibility (vtables,
+//     function signatures) should be accounted for here. So should compilers
+//     and compiler versions (but note that binary compatible compiler versions
+//     such as gcc-2.95.2 and gcc-2.95.3 should have same signature!).
 
 // ----------------------------------------------------------------------------
 // WX_BUILD_OPTIONS_SIGNATURE
@@ -41,12 +54,24 @@
     #define __WX_BO_UNICODE "ANSI"
 #endif
 
-// GCC and Intel C++ share same C++ ABI, check if compiler versions are
-// compatible:
-#if (defined(__GNUG__) || defined(__INTEL_COMPILER) && \
-     defined(__GXX_ABI_VERSION))
+// GCC and Intel C++ share same C++ ABI (and possibly others in the future),
+// check if compiler versions are compatible:
+#if defined(__GXX_ABI_VERSION)
     #define __WX_BO_COMPILER \
             ",compiler with C++ ABI " __WX_BO_STRINGIZE(__GXX_ABI_VERSION)
+#elif defined(__INTEL_COMPILER)
+    #define __WX_BO_COMPILER ",Intel C++"
+#elif defined(__GNUG__)
+    #define __WX_BO_COMPILER ",GCC " \
+            __WX_BO_STRINGIZE(__GNUC__) "." __WX_BO_STRINGIZE(__GNUC_MINOR__)
+#elif defined(__VISUALC__)
+    #define __WX_BO_COMPILER ",Visual C++"
+#elif defined(__BORLANDC__)
+    #define __WX_BO_COMPILER ",Borland C++"
+#elif defined(__DIGITALMARS__)
+    #define __WX_BO_COMPILER ",DigitalMars"
+#elif defined(__WATCOMC__)
+    #define __WX_BO_COMPILER ",Watcom C++"
 #else
     #define __WX_BO_COMPILER
 #endif
@@ -69,7 +94,7 @@
 #else
     #define __WX_BO_STL ",wx containers"
 #endif
- 
+
 // This macro is passed as argument to wxConsoleApp::CheckBuildOptions()
 #define WX_BUILD_OPTIONS_SIGNATURE \
     __WX_BO_VERSION(wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER) \

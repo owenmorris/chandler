@@ -63,8 +63,8 @@ class WXDLLEXPORT wxImageList;
     which item. Each image in an image list can contain a mask, and can be made out
     of either a bitmap, two bitmaps or an icon. See ImagList.h for more details.
 
-    Notifications are passed via the wxWindows 2.0 event system, or using virtual
-    functions in wxWindows 1.66.
+    Notifications are passed via the wxWidgets 2.0 event system, or using virtual
+    functions in wxWidgets 1.66.
 
     See the sample wxListCtrl app for API usage.
 
@@ -90,7 +90,7 @@ public:
     wxListCtrl() { Init(); }
 
     wxListCtrl(wxWindow *parent,
-               wxWindowID id = -1,
+               wxWindowID id = wxID_ANY,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = wxLC_ICON,
@@ -105,7 +105,7 @@ public:
     virtual ~wxListCtrl();
 
     bool Create(wxWindow *parent,
-                wxWindowID id = -1,
+                wxWindowID id = wxID_ANY,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxLC_ICON,
@@ -214,7 +214,7 @@ public:
     long GetTopItem() const ;
 
     // Add or remove a single window style
-    void SetSingleStyle(long style, bool add = TRUE) ;
+    void SetSingleStyle(long style, bool add = true) ;
 
     // Set the whole window style
     void SetWindowStyleFlag(long style) ;
@@ -280,7 +280,7 @@ public:
 
     // Find an item whose label matches this string, starting from the item after 'start'
     // or the beginning if 'start' is -1.
-    long FindItem(long start, const wxString& str, bool partial = FALSE);
+    long FindItem(long start, const wxString& str, bool partial = false);
 
     // Find an item whose data matches this data, starting from the item after 'start'
     // or the beginning if 'start' is -1.
@@ -350,7 +350,17 @@ public:
     // Necessary for drawing hrules and vrules, if specified
     void OnPaint(wxPaintEvent& event);
 
+
     virtual bool ShouldInheritColours() const { return false; }
+
+    virtual wxVisualAttributes GetDefaultAttributes() const
+    {
+        return GetClassDefaultAttributes(GetWindowVariant());
+    }
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
 
     // obsolete stuff, for compatibility only -- don't use
     wxDEPRECATED( int GetItemSpacing(bool isSmall) const);
@@ -380,10 +390,10 @@ protected:
                                     // ListView_GetItemCount
     bool              m_ignoreChangeMessages;
 
-    // TRUE if we have any internal data (user data & attributes)
+    // true if we have any internal data (user data & attributes)
     bool m_AnyInternalData;
 
-    // TRUE if we have any items with custom attributes
+    // true if we have any items with custom attributes
     bool m_hasAnyAttr;
 
     // these functions are only used for virtual list view controls, i.e. the

@@ -6,7 +6,7 @@
 // Created:     2003/03/16
 // RCS-ID:      $Id: 
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WX_COCOA_TEXTCTRL_H__
@@ -114,6 +114,8 @@ public:
 //    virtual void SelectAll();
     virtual void SetEditable(bool editable);
 
+protected:
+    virtual wxSize DoGetBestSize() const;
 };
 
 #endif // __WX_COCOA_TEXTCTRL_H__

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     13.07.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -187,7 +187,7 @@ public:
     void SetFont(const wxFont& font, long flags = wxTEXT_ATTR_FONT) { m_font = font; m_flags |= flags; }
     void SetAlignment(wxTextAttrAlignment alignment) { m_textAlignment = alignment; m_flags |= wxTEXT_ATTR_ALIGNMENT; }
     void SetTabs(const wxArrayInt& tabs) { m_tabs = tabs; m_flags |= wxTEXT_ATTR_TABS; }
-    void SetLeftIndent(int indent) { m_leftIndent = indent; m_flags |= wxTEXT_ATTR_LEFT_INDENT; }
+    void SetLeftIndent(int indent, int subIndent = 0) { m_leftIndent = indent; m_leftSubIndent = subIndent; m_flags |= wxTEXT_ATTR_LEFT_INDENT; }
     void SetRightIndent(int indent) { m_rightIndent = indent; m_flags |= wxTEXT_ATTR_RIGHT_INDENT; }
     void SetFlags(long flags) { m_flags = flags; }
 
@@ -207,6 +207,7 @@ public:
     wxTextAttrAlignment GetAlignment() const { return m_textAlignment; }
     const wxArrayInt& GetTabs() const { return m_tabs; }
     long GetLeftIndent() const { return m_leftIndent; }
+    long GetLeftSubIndent() const { return m_leftSubIndent; }
     long GetRightIndent() const { return m_rightIndent; }
     long GetFlags() const { return m_flags; }
 
@@ -232,6 +233,9 @@ private:
     wxTextAttrAlignment m_textAlignment;
     wxArrayInt          m_tabs; // array of int: tab stops in 1/10 mm
     int                 m_leftIndent; // left indent in 1/10 mm
+    int                 m_leftSubIndent; // left indent for all but the first 
+                                         // line in a paragraph relative to the
+                                         // first line, in 1/10 mm
     int                 m_rightIndent; // right indent in 1/10 mm
 };
 
@@ -326,6 +330,7 @@ public:
     //
     // NB: pt is in device coords (not adjusted for the client area origin nor
     //     scrolling)
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
     virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
                                             wxTextCoord *col,
                                             wxTextCoord *row) const;
@@ -394,6 +399,8 @@ protected:
     #include "wx/x11/textctrl.h"
 #elif defined(__WXUNIVERSAL__)
     #include "wx/univ/textctrl.h"
+#elif defined(__SMARTPHONE__)
+    #include "wx/msw/wince/textctrlce.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/textctrl.h"
 #elif defined(__WXMOTIF__)

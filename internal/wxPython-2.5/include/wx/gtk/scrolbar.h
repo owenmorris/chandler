@@ -68,11 +68,13 @@ public:
     void SetObjectLength( int objectLength );
     void SetViewLength( int viewLength );
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation
     // --------------
 
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
 
     GtkAdjustment  *m_adjust;
     float           m_oldPos;

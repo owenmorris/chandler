@@ -16,7 +16,8 @@
 #pragma interface "helpbest.h"
 #endif
 
-#if wxUSE_HELP && wxUSE_MS_HTML_HELP && defined(__WIN95__) && wxUSE_WXHTML_HELP
+#if wxUSE_HELP && wxUSE_MS_HTML_HELP && defined(__WIN95__) \
+    && wxUSE_WXHTML_HELP && !defined(__WXUNIVERSAL__)
 
 #include "wx/helpbase.h"
 
@@ -86,7 +87,7 @@ public:
     virtual void SetFrameParameters(const wxString& title,
                                     const wxSize& size,
                                     const wxPoint& pos = wxDefaultPosition,
-                                    bool newFrameEachTime = FALSE)
+                                    bool newFrameEachTime = false)
     {
         m_helpController->SetFrameParameters( title, size, pos,
                                               newFrameEachTime );

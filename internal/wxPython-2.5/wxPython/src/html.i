@@ -10,8 +10,11 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
+%define DOCSTRING
+"Classes for a simple HTML rendering window, HTML Help Window, etc."
+%enddef
 
-%module html
+%module(package="wx", docstring=DOCSTRING) html
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -29,7 +32,8 @@
 //---------------------------------------------------------------------------
 
 %import windows.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
 
 %include _html_rename.i
 
@@ -195,6 +199,9 @@ public:
         }
     }
 
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     wxHtmlContainerCell* GetContainer();
     wxHtmlContainerCell* OpenContainer();
     wxHtmlContainerCell *SetContainer(wxHtmlContainerCell *c);
@@ -632,7 +639,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "CanRead"))) {
-            PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file);  // cast away const
+            PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file,false);  // cast away const
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));
             Py_DECREF(obj);
         }
@@ -648,7 +655,7 @@ public:
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "ReadFile"))) {
-            PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file);  // cast away const
+            PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file,false);  // cast away const
             PyObject* ro;
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(O)", obj));
             Py_DECREF(obj);
@@ -781,10 +788,13 @@ wxHtmlOpeningStatus wxPyHtmlWindow::OnOpeningURL(wxHtmlURLType type,
 
 
 
+MustHaveApp(wxPyHtmlWindow);
+
 %name(HtmlWindow) class wxPyHtmlWindow : public wxScrolledWindow {
 public:
     %pythonAppend wxPyHtmlWindow      "self._setCallbackInfo(self, HtmlWindow); self._setOORInfo(self)"
     %pythonAppend wxPyHtmlWindow()    ""
+    %typemap(out) wxPyHtmlWindow*;    // turn off this typemap
     
     wxPyHtmlWindow(wxWindow *parent, int id = -1,
                  const wxPoint& pos = wxDefaultPosition,
@@ -792,6 +802,9 @@ public:
                  int style=wxHW_DEFAULT_STYLE,
                  const wxString& name = wxPyHtmlWindowNameStr);
     %name(PreHtmlWindow)wxPyHtmlWindow();
+
+    // Turn it back on again
+    %typemap(out) wxPyHtmlWindow* { $result = wxPyMake_wxObject($1, $owner); }
 
     bool Create(wxWindow *parent, int id = -1,
                 const wxPoint& pos = wxDefaultPosition,
@@ -855,9 +868,12 @@ public:
         }
     }
 
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     DocDeclStr(
         void, SetTitle(const wxString& title),
-        "");
+        "", "");
 
     // Sets space between text and window borders.
     void SetBorders(int b);
@@ -895,6 +911,11 @@ public:
     void SelectLine(const wxPoint& pos);
     void SelectAll();
 
+    // Convert selection to text:
+    wxString SelectionToText();
+
+    // Converts current page to text:
+    wxString ToText();
     
     void base_OnLinkClicked(const wxHtmlLinkInfo& link);
     void base_OnSetTitle(const wxString& title);
@@ -902,6 +923,9 @@ public:
     void base_OnCellClicked(wxHtmlCell *cell,
                             wxCoord x, wxCoord y,
                             const wxMouseEvent& event);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -911,6 +935,8 @@ public:
 //---------------------------------------------------------------------------
 %newgroup
 
+
+MustHaveApp(wxHtmlDCRenderer);
 
 class wxHtmlDCRenderer : public wxObject {
 public:
@@ -932,6 +958,10 @@ public:
                 delete [] temp;
         }
     }
+
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     int Render(int x, int y, int from = 0, int dont_render = False, int to = INT_MAX,
                //int *known_pagebreaks = NULL, int number_of_pages = 0
                int* choices=NULL, int LCOUNT = 0
@@ -948,6 +978,8 @@ enum {
     wxPAGE_ALL
 };
 
+
+MustHaveApp(wxHtmlPrintout);
 
 class wxHtmlPrintout : public wxPyPrintout {
 public:
@@ -971,6 +1003,10 @@ public:
                 delete [] temp;
         }
     }
+
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     void SetMargins(float top = 25.2, float bottom = 25.2,
                     float left = 25.2, float right = 25.2,
                     float spaces = 5);
@@ -983,6 +1019,8 @@ public:
 };
 
 
+
+MustHaveApp(wxHtmlEasyPrinting);
 
 class wxHtmlEasyPrinting : public wxObject {
 public:
@@ -1009,6 +1047,9 @@ public:
         }
     }
 
+    // Sets font sizes to be relative to the given size or the system default size
+    void NormalizeFontSizes(int size=-1);
+    
     wxPrintData *GetPrintData() {return m_PrintData;}
     wxPageSetupDialogData *GetPageSetupData() {return m_PageSetupData;}
 
@@ -1097,6 +1138,8 @@ public:
 
 //---------------------------------------------------------------------------
 
+MustHaveApp(wxHtmlHelpFrame);
+
 class wxHtmlHelpFrame : public wxFrame {
 public:
     %pythonAppend wxHtmlHelpFrame    "self._setOORInfo(self)"
@@ -1133,6 +1176,8 @@ enum {
     wxHF_DEFAULTSTYLE,
 };
 
+
+MustHaveApp(wxHtmlHelpController);
 
 class wxHtmlHelpController : public wxEvtHandler {
 public:

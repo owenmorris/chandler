@@ -51,7 +51,7 @@ public:
     virtual void GetScrollPixelsPerUnit(int *pixelsPerUnitX,
                                         int *pixelsPerUnitY) const;
 
-    // Enable/disable Windows scrolling in either direction. If TRUE, wxWindows
+    // Enable/disable Windows scrolling in either direction. If TRUE, wxWidgets
     // scrolls the canvas and only a bit of the canvas is invalidated; no
     // Clear() is necessary. If FALSE, the whole canvas is invalidated and a
     // Clear() is necessary. Disable for when the scroll increment is used to

@@ -51,14 +51,13 @@ imported.  It probably is not installed (it's not part of the standard
 Python distribution). See the Python site (http://www.python.org) for
 information on downloading source or binaries."""
 
-    if wx.Platform == '__WXMSW__':
+    print msg
+    if wx.Platform == '__WXMSW__' and wx.GetApp() is not None:
         d = wx.MessageDialog(None, msg, "Numeric not found")
         if d.ShowModal() == wx.ID_CANCEL:
             d = wx.MessageDialog(None, "I kid you not! Pressing Cancel won't help you!", "Not a joke", wx.OK)
             d.ShowModal()
-    else:
-        print msg
-    raise ImportError
+    raise
 
 #
 # Plotting classes...
@@ -135,7 +134,7 @@ class PolyMarker(PolyPoints):
             f(dc, xc, yc, size)
 
     def _circle(self, dc, xc, yc, size=1):
-        dc.DrawEllipse((xc-2.5*size,yc-2.5*size), (5.*size,5.*size))
+        dc.DrawEllipse(xc-2.5*size,yc-2.5*size, 5.*size,5.*size)
 
     def _dot(self, dc, xc, yc, size=1):
         dc.DrawPoint(xc,yc)
@@ -154,12 +153,12 @@ class PolyMarker(PolyPoints):
                        (0.0,0.577350*size*5)],xc,yc)
 
     def _cross(self, dc, xc, yc, size=1):
-        dc.DrawLine((xc-2.5*size, yc-2.5*size), (xc+2.5*size,yc+2.5*size))
-        dc.DrawLine((xc-2.5*size,yc+2.5*size), (xc+2.5*size,yc-2.5*size))
+        dc.DrawLine(xc-2.5*size, yc-2.5*size, xc+2.5*size,yc+2.5*size)
+        dc.DrawLine(xc-2.5*size,yc+2.5*size, xc+2.5*size,yc-2.5*size)
 
     def _plus(self, dc, xc, yc, size=1):
-        dc.DrawLine((xc-2.5*size,yc), (xc+2.5*size,yc))
-        dc.DrawLine((xc,yc-2.5*size,xc), (yc+2.5*size))
+        dc.DrawLine(xc-2.5*size,yc, xc+2.5*size,yc)
+        dc.DrawLine(xc,yc-2.5*size,xc, yc+2.5*size)
 
 class PlotGraphics:
 
@@ -318,12 +317,12 @@ class PlotCanvas(wx.Window):
             for y, d in [(bb1[1], -3), (bb2[1], 3)]:
                 p1 = scale*Numeric.array([lower, y])+shift
                 p2 = scale*Numeric.array([upper, y])+shift
-                dc.DrawLine((p1[0],p1[1]), (p2[0],p2[1]))
+                dc.DrawLine(p1[0],p1[1], p2[0],p2[1])
                 for x, label in xticks:
                     p = scale*Numeric.array([x, y])+shift
-                    dc.DrawLine((p[0],p[1]), (p[0],p[1]+d))
+                    dc.DrawLine(p[0],p[1], p[0],p[1]+d)
                     if text:
-                        dc.DrawText(label, (p[0],p[1]))
+                        dc.DrawText(label, p[0],p[1])
                 text = 0
 
         if yaxis is not None:
@@ -333,13 +332,13 @@ class PlotCanvas(wx.Window):
             for x, d in [(bb1[0], -3), (bb2[0], 3)]:
                 p1 = scale*Numeric.array([x, lower])+shift
                 p2 = scale*Numeric.array([x, upper])+shift
-                dc.DrawLine((p1[0],p1[1]), (p2[0],p2[1]))
+                dc.DrawLine(p1[0],p1[1], p2[0],p2[1])
                 for y, label in yticks:
                     p = scale*Numeric.array([x, y])+shift
-                    dc.DrawLine((p[0],p[1]), (p[0]-d,p[1]))
+                    dc.DrawLine(p[0],p[1], p[0]-d,p[1])
                     if text:
                         dc.DrawText(label, 
-                                    (p[0]-dc.GetTextExtent(label)[0], p[1]-0.5*h))
+                                    p[0]-dc.GetTextExtent(label)[0], p[1]-0.5*h)
                 text = 0
 
     def _ticks(self, lower, upper):

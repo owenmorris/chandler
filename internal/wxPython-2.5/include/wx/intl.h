@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/intl.h
-// Purpose:     Internationalization and localisation for wxWindows
+// Purpose:     Internationalization and localisation for wxWidgets
 // Author:      Vadim Zeitlin
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - plural forms support)
@@ -48,8 +48,8 @@
 // ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxLocale;
-class WXDLLIMPEXP_BASE wxMsgCatalog;
 class WXDLLIMPEXP_BASE wxLanguageInfoArray;
+class wxMsgCatalog;
 
 // ============================================================================
 // locale support
@@ -455,6 +455,8 @@ public:
     //
     // Returns 'true' if it was successfully loaded
     bool AddCatalog(const wxChar *szDomain);
+    bool AddCatalog(const wxChar *szDomain,
+                    wxLanguage msgIdLanguage, const wxChar *msgIdCharset);
 
     // check if the given catalog is loaded
     bool IsLoaded(const wxChar *szDomain) const;
@@ -492,15 +494,19 @@ public:
     // domains are searched in the last to first order, i.e. catalogs
     // added later override those added before.
     const wxChar *GetString(const wxChar *szOrigString,
-                            const wxChar *szDomain = (const wxChar *) NULL) const;
+                            const wxChar *szDomain = NULL) const;
     // plural form version of the same:
     const wxChar *GetString(const wxChar *szOrigString,
                             const wxChar *szOrigString2,
                             size_t n,
-                            const wxChar *szDomain = (const wxChar *) NULL) const;
+                            const wxChar *szDomain = NULL) const;
 
     // Returns the current short name for the locale
     const wxString& GetName() const { return m_strShort; }
+
+    // return the contents of .po file header
+    wxString GetHeaderValue( const wxChar* szHeader,
+                             const wxChar* szDomain = NULL ) const;
 
     // These two methods are for internal use only. First one creates
     // ms_languagesDB if it doesn't already exist, second one destroys

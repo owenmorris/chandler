@@ -33,14 +33,16 @@
 
 
 
+MustHaveApp(wxMDIParentFrame);
+
 class wxMDIParentFrame : public wxFrame {
 public:
     %pythonAppend wxMDIParentFrame         "self._setOORInfo(self)"
     %pythonAppend wxMDIParentFrame()       ""
 
     wxMDIParentFrame(wxWindow *parent,
-                     const wxWindowID id,
-                     const wxString& title,
+                     const wxWindowID id=-1,
+                     const wxString& title = wxPyEmptyString,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      long style = wxDEFAULT_FRAME_STYLE | wxVSCROLL | wxHSCROLL,
@@ -48,8 +50,8 @@ public:
     %name(PreMDIParentFrame)wxMDIParentFrame();
 
     bool Create(wxWindow *parent,
-                     const wxWindowID id,
-                     const wxString& title,
+                     const wxWindowID id=-1,
+                     const wxString& title = wxPyEmptyString,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      long style = wxDEFAULT_FRAME_STYLE | wxVSCROLL | wxHSCROLL,
@@ -78,23 +80,29 @@ public:
 
 //---------------------------------------------------------------------------
 
+MustHaveApp(wxMDIChildFrame);
+
 class wxMDIChildFrame : public wxFrame {
 public:
     %pythonAppend wxMDIChildFrame         "self._setOORInfo(self)"
     %pythonAppend wxMDIChildFrame()       ""
+    %typemap(out) wxMDIChildFrame*;    // turn off this typemap
 
     wxMDIChildFrame(wxMDIParentFrame* parent,
-                    const wxWindowID id,
-                    const wxString& title,
+                    const wxWindowID id=-1,
+                    const wxString& title = wxPyEmptyString,
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
                     long style = wxDEFAULT_FRAME_STYLE,
                     const wxString& name = wxPyFrameNameStr);
     %name(PreMDIChildFrame)wxMDIChildFrame();
 
+    // Turn it back on again
+    %typemap(out) wxMDIChildFrame* { $result = wxPyMake_wxObject($1, $owner); }
+
     bool Create(wxMDIParentFrame* parent,
-                    const wxWindowID id,
-                    const wxString& title,
+                    const wxWindowID id=-1,
+                    const wxString& title = wxPyEmptyString,
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
                     long style = wxDEFAULT_FRAME_STYLE,
@@ -109,13 +117,19 @@ public:
 
 //---------------------------------------------------------------------------
 
+MustHaveApp(wxMDIClientWindow);
+
 class wxMDIClientWindow : public wxWindow {
 public:
     %pythonAppend wxMDIClientWindow         "self._setOORInfo(self)"
     %pythonAppend wxMDIClientWindow()       ""
+    %typemap(out) wxMDIClientWindow*;    // turn off this typemap
 
     wxMDIClientWindow(wxMDIParentFrame* parent, long style = 0);
     %name(PreMDIClientWindow)wxMDIClientWindow();
+
+    // Turn it back on again
+    %typemap(out) wxMDIClientWindow* { $result = wxPyMake_wxObject($1, $owner); }
 
     bool Create(wxMDIParentFrame* parent, long style = 0);
 };

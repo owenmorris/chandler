@@ -17,11 +17,9 @@
 #pragma interface "file.h"
 #endif
 
-#ifndef WX_PRECOMP
-  #include  "wx/string.h"
-  #include  "wx/filefn.h"
-  #include  "wx/strconv.h"
-#endif
+#include  "wx/string.h"
+#include  "wx/filefn.h"
+#include  "wx/strconv.h"
 
 #if wxUSE_FILE
 
@@ -68,7 +66,7 @@ public:
   // ----------------
     // check whether a regular file by this name exists
   static bool Exists(const wxChar *name);
-    // check whetther we can access the given file in given mode
+    // check whether we can access the given file in given mode
     // (only read and write make sense here)
   static bool Access(const wxChar *name, OpenMode mode);
 
@@ -84,7 +82,7 @@ public:
   // open/close
     // create a new file (with the default value of bOverwrite, it will fail if
     // the file already exists, otherwise it will overwrite it and succeed)
-  bool Create(const wxChar *szFileName, bool bOverwrite = FALSE,
+  bool Create(const wxChar *szFileName, bool bOverwrite = false,
               int access = wxS_DEFAULT);
   bool Open(const wxChar *szFileName, OpenMode mode = read,
             int access = wxS_DEFAULT);

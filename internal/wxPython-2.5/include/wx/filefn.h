@@ -17,6 +17,7 @@
 #endif
 
 #include "wx/list.h"
+#include "wx/arrstr.h"
 
 #ifndef __WXWINCE__
 #include <time.h>
@@ -39,8 +40,6 @@
 
 #if defined(__VISUALC__) || ( defined(__MWERKS__) && defined( __INTEL__) )
     typedef _off_t off_t;
-#elif defined(__BORLANDC__) && defined(__WIN16__)
-    typedef long off_t;
 #elif defined(__SYMANTEC__)
     typedef long off_t;
 #elif defined(__MWERKS__) && !defined(__INTEL__) && !defined(__MACH__)
@@ -302,15 +301,13 @@ WXDLLIMPEXP_BASE bool wxRmdir(const wxString& dir, int flags = 0);
 #define wxPATH_SEP_MAC        wxT(";")
 
 // platform independent versions
-#if defined(__UNIX__) && !defined(__CYGWIN__) && !defined(__OS2__)
+#if defined(__UNIX__) && !defined(__OS2__)
+  // CYGWIN also uses UNIX settings
   #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_UNIX
   #define wxPATH_SEP          wxPATH_SEP_UNIX
 #elif defined(__MAC__)
   #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_MAC
   #define wxPATH_SEP          wxPATH_SEP_MAC
-#elif defined(__CYGWIN__) // Cygwin
-  #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_DOS
-  #define wxPATH_SEP          wxPATH_SEP_UNIX
 #else   // Windows and OS/2
   #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_DOS
   #define wxPATH_SEP          wxPATH_SEP_DOS
@@ -354,6 +351,13 @@ WXDLLIMPEXP_BASE wxString wxGetOSDirectory();
 
 // Get file modification time
 WXDLLIMPEXP_BASE time_t wxFileModificationTime(const wxString& filename);
+
+// Parses the wildCard, returning the number of filters.
+// Returns 0 if none or if there's a problem,
+// The arrays will contain an equal number of items found before the error.
+// wildCard is in the form:
+// "All files (*)|*|Image Files (*.jpeg *.png)|*.jpg;*.png"
+WXDLLIMPEXP_BASE int wxParseCommonDialogsFilter(const wxString& wildCard, wxArrayString& descriptions, wxArrayString& filters);
 
 // ----------------------------------------------------------------------------
 // classes

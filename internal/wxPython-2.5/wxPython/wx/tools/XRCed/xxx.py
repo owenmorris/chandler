@@ -368,7 +368,7 @@ class xxxDialog(xxxContainer):
     required = ['title']
     default = {'title': ''}
     winStyles = ['wxDEFAULT_DIALOG_STYLE', 'wxSTAY_ON_TOP',
-                 'wxDIALOG_MODAL', 'wxDIALOG_MODELESS',
+##                 'wxDIALOG_MODAL', 'wxDIALOG_MODELESS',
                  'wxCAPTION', 'wxSYSTEM_MENU', 'wxRESIZE_BORDER', 'wxRESIZE_BOX',
                  'wxTHICK_FRAME',
                  'wxNO_3D', 'wxTAB_TRAVERSAL', 'wxCLIP_CHILDREN']
@@ -496,6 +496,13 @@ class xxxNotebook(xxxContainer):
     paramDict = {'usenotebooksizer': ParamBool}
     winStyles = ['wxNB_FIXEDWIDTH', 'wxNB_LEFT', 'wxNB_RIGHT', 'wxNB_BOTTOM']
 
+class xxxSplitterWindow(xxxContainer):
+    allParams = ['orientation', 'sashpos', 'minsize', 'pos', 'size', 'style']
+    paramDict = {'orientation': ParamOrientation, 'sashpos': ParamUnit, 'minsize': ParamUnit }
+    winStyles = ['wxSP_3D', 'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_BORDER',
+                 'wxSP_NOBORDER', 'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
+                 'wxSP_NO_XP_THEME' ]
+
 class xxxGenericDirCtrl(xxxObject):
     allParams = ['defaultfolder', 'filter', 'defaultfilter', 'pos', 'size', 'style']
     paramDict = {'defaultfilter': ParamInt}
@@ -538,6 +545,11 @@ class xxxSpinCtrl(xxxObject):
     paramDict = {'value': ParamInt}
     winStyles = ['wxSP_HORIZONTAL', 'wxSP_VERTICAL', 'wxSP_ARROW_KEYS', 'wxSP_WRAP']
 
+class xxxToggleButton(xxxObject):
+    allParams = ['label', 'checked', 'pos', 'size', 'style']
+    paramDict = {'checked': ParamBool}
+    required = ['label']
+
 ################################################################################
 # Boxes
 
@@ -555,6 +567,8 @@ class xxxRadioBox(xxxObject):
 class xxxCheckBox(xxxObject):
     allParams = ['label', 'checked', 'pos', 'size', 'style']
     paramDict = {'checked': ParamBool}
+    winStyles = ['wxCHK_2STATE', 'wxCHK_3STATE', 'wxCHK_ALLOW_3RD_STATE_FOR_USER',
+                 'wxALIGN_RIGHT']
     required = ['label']
 
 class xxxComboBox(xxxObject):
@@ -766,6 +780,7 @@ xxxDict = {
     'wxBitmapButton': xxxBitmapButton,
     'wxRadioButton': xxxRadioButton,
     'wxSpinButton': xxxSpinButton,
+    'wxToggleButton' : xxxToggleButton,
 
     'wxStaticBox': xxxStaticBox,
     'wxStaticBitmap': xxxStaticBitmap,
@@ -785,6 +800,7 @@ xxxDict = {
     'wxListCtrl': xxxListCtrl,
     'wxCheckListBox': xxxCheckList,
     'wxNotebook': xxxNotebook,
+    'wxSplitterWindow': xxxSplitterWindow,
     'notebookpage': xxxNotebookPage,
     'wxHtmlWindow': xxxHtmlWindow,
     'wxCalendarCtrl': xxxCalendarCtrl,

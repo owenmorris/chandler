@@ -3,7 +3,7 @@
 // Purpose:     wxMemoryText allows to use wxTextBuffer without a file
 // Created:     14.11.01
 // Author:      Morten Hanssen
-// Copyright:   (c) 2001 wxWindows team
+// Copyright:   (c) 2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx_cw_d.h
-// Purpose:     wxWindows definitions for CodeWarrior builds (Debug)
+// Purpose:     wxWidgets definitions for CodeWarrior builds (Debug)
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     12/10/98
@@ -20,11 +20,15 @@
 #error "profiling is not supported in debug versions"
 #else
 #ifdef __cplusplus
-	#if __POWERPC__
+	#ifdef __MACH__
+		#include <wxshlb_Mach++_d.mch>
+	#elif __POWERPC__
 		#include <wxshlb_Carbon++_d.mch>
 	#endif
 #else
-	#if __POWERPC__
+	#ifdef __MACH__
+		#include <wxshlb_Mach_d.mch>
+	#elif __POWERPC__
 		#include <wxshlb_Carbon_d.mch>
 	#endif
 #endif

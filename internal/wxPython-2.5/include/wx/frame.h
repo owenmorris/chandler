@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     15.11.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -31,6 +31,16 @@ class WXDLLEXPORT wxFrame;
 class WXDLLEXPORT wxMenuBar;
 class WXDLLEXPORT wxStatusBar;
 class WXDLLEXPORT wxToolBar;
+
+// ----------------------------------------------------------------------------
+// constants
+// ----------------------------------------------------------------------------
+
+// wxFrame-specific (i.e. not for wxDialog) styles
+#define wxFRAME_NO_TASKBAR      0x0002  // No taskbar button (MSW only)
+#define wxFRAME_TOOL_WINDOW     0x0004  // No taskbar button, no system menu
+#define wxFRAME_FLOAT_ON_PARENT 0x0008  // Always above its parent
+#define wxFRAME_SHAPED          0x0010  // Create a window that is able to be shaped
 
 // ----------------------------------------------------------------------------
 // wxFrame is a top-level window with optional menubar, statusbar and toolbar
@@ -102,7 +112,8 @@ public:
     virtual wxStatusBar *GetStatusBar() const { return m_frameStatusBar; }
 
     // sets the main status bar
-    void SetStatusBar(wxStatusBar *statBar) { m_frameStatusBar = statBar; }
+    void SetStatusBar(wxStatusBar *statBar)
+        { m_frameStatusBar = statBar; PositionStatusBar(); }
 
     // forward these to status bar
     virtual void SetStatusText(const wxString &text, int number = 0);
@@ -146,7 +157,7 @@ public:
 
     // send wxUpdateUIEvents for all menu items in the menubar,
     // or just for menu if non-NULL
-    void DoMenuUpdates(wxMenu* menu = NULL);
+    virtual void DoMenuUpdates(wxMenu* menu = NULL);
 #endif // wxUSE_MENUS
 
     // do the UI update processing for this window

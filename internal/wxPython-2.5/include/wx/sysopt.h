@@ -17,7 +17,7 @@
 #if wxUSE_SYSTEM_OPTIONS
 
 // ----------------------------------------------------------------------------
-// Enables an application to influence the wxWindows implementation
+// Enables an application to influence the wxWidgets implementation
 // ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxSystemOptions : public wxObject
@@ -25,7 +25,7 @@ class WXDLLIMPEXP_BASE wxSystemOptions : public wxObject
 public:
     wxSystemOptions() { }
 
-    // User-customizable hints to wxWindows or associated libraries
+    // User-customizable hints to wxWidgets or associated libraries
     // These could also be used to influence GetSystem... calls, indeed
     // to implement SetSystemColour/Font/Metric
 

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     19.09.2003 (extracted from wx/fontenc.h)
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -37,7 +37,11 @@ struct WXDLLEXPORT wxNativeEncodingInfo
     wxString facename;          // may be empty meaning "any"
     wxFontEncoding encoding;    // so that we know what this struct represents
 
-#if defined(__WXMSW__) || defined(__WXPM__) || defined(__WXMAC__) || defined(__WXCOCOA__) // FIXME: __WXCOCOA__
+#if defined(__WXMSW__) || \
+    defined(__WXPM__)  || \
+    defined(__WXMAC__) || \
+    defined(__WXCOCOA__) // FIXME: __WXCOCOA__
+
     wxNativeEncodingInfo()
         : facename()
         , encoding(wxFONTENCODING_SYSTEM)

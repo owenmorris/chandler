@@ -333,7 +333,10 @@ name##PluginSentinel  m_pluginsentinel;
 
 // to be replaced by dynamic_cast<> in the future
 #define wxDynamicCast(obj, className) \
- ((className *) wxCheckDynamicCast((wxObject*)(obj), &className::ms_classInfo))
+    ((className *) wxCheckDynamicCast( \
+        wx_const_cast(wxObject *, wx_static_cast(const wxObject *, \
+          wx_const_cast(className *, wx_static_cast(const className *, obj)))), \
+        &className::ms_classInfo))
 
 // The 'this' pointer is always true, so use this version
 // to cast the this pointer and avoid compiler warnings.
@@ -413,7 +416,7 @@ inline void* wxCheckCast(void *ptr)
 #endif // WXDEBUG && wxUSE_MEMORY_TRACING
 
 // ----------------------------------------------------------------------------
-// wxObject: the root class of wxWindows object hierarchy
+// wxObject: the root class of wxWidgets object hierarchy
 // ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxObject
@@ -544,7 +547,7 @@ public:
     // get the runtime identity of this object
     wxClassInfo *GetClassInfo() const
     {
-		return const_cast<wxClassInfo*>((const wxClassInfo*)m_classInfo);
+		return wx_const_cast(wxClassInfo *, m_classInfo);
     }
 
     wxObject* GetSuperClassInstance() const

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     26.07.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -67,6 +67,8 @@ private:
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/choice.h"
+#elif defined(__SMARTPHONE__)
+    #include "wx/msw/wince/choicece.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/choice.h"
 #elif defined(__WXMOTIF__)

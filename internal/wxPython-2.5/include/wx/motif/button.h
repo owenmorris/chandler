@@ -25,7 +25,7 @@ public:
     wxButton() { }
     wxButton(wxWindow *parent,
         wxWindowID id,
-        const wxString& label,
+        const wxString& label = wxEmptyString,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize, long style = 0,
         const wxValidator& validator = wxDefaultValidator,
@@ -34,7 +34,8 @@ public:
         Create(parent, id, label, pos, size, style, validator, name);
     }
     
-    bool Create(wxWindow *parent, wxWindowID id, const wxString& label,
+    bool Create(wxWindow *parent, wxWindowID id,
+        const wxString& label = wxEmptyString,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize, long style = 0,
         const wxValidator& validator = wxDefaultValidator,
@@ -48,6 +49,7 @@ public:
     // Implementation
 private:
     virtual wxSize DoGetBestSize() const;
+    wxSize OldGetBestSize() const;
     void SetDefaultShadowThicknessAndResize();
 };
 

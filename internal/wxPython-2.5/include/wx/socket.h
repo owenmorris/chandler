@@ -24,13 +24,7 @@
 // wxSocket headers
 // ---------------------------------------------------------------------------
 
-#ifdef WXPREC
-  #include "wx/wxprec.h"
-#else
-  #include "wx/event.h"
-  #include "wx/string.h"
-#endif
-
+#include "wx/event.h"
 #include "wx/sckaddr.h"
 #include "wx/gsocket.h"
 #include "wx/list.h"
@@ -80,7 +74,8 @@ enum
   wxSOCKET_NONE = 0,
   wxSOCKET_NOWAIT = 1,
   wxSOCKET_WAITALL = 2,
-  wxSOCKET_BLOCK = 4
+  wxSOCKET_BLOCK = 4,
+  wxSOCKET_REUSEADDR = 8
 };
 
 enum wxSocketType
@@ -123,7 +118,7 @@ public:
   inline bool IsData() { return WaitForRead(0, 0); };
   inline bool IsDisconnected() const { return !IsConnected(); };
   inline wxUint32 LastCount() const { return m_lcount; }
-  inline wxSocketError LastError() const { return (wxSocketError)GSocket_GetError(m_socket); }
+  inline wxSocketError LastError() const { return (wxSocketError)m_socket->GetError(); }
   void SaveState();
   void RestoreState();
 
@@ -150,6 +145,10 @@ public:
   inline wxSocketFlags GetFlags() const { return m_flags; }
   void SetFlags(wxSocketFlags flags);
   void SetTimeout(long seconds);
+
+  bool GetOption(int level, int optname, void *optval, int *optlen);
+  bool SetOption(int level, int optname, const void *optval, int optlen);
+  inline wxUint32 GetLastIOSize() const { return m_lcount; };
 
   // event handling
   void *GetClientData() const { return m_clientData; }

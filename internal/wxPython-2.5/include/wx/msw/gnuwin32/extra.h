@@ -58,6 +58,10 @@ typedef struct {
 #define LPSTR_TEXTCALLBACK LPSTR_TEXTCALLBACKA
 #endif
 
+#ifndef DMLERR_NO_ERROR
+    #define DMLERR_NO_ERROR (0)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

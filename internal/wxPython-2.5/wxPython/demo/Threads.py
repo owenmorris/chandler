@@ -97,18 +97,18 @@ class GraphWindow(wx.Window):
         dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
         dc.Clear()
         dc.SetPen(wx.Pen(wx.BLACK, 3, wx.SOLID))
-        dc.DrawLine((self.linePos, 0), (self.linePos, size.height-10))
+        dc.DrawLine(self.linePos, 0, self.linePos, size.height-10)
 
         bh = ypos = self.barHeight
         for x in range(len(self.values)):
             label, val = self.values[x]
-            dc.DrawText(label, (5, ypos))
+            dc.DrawText(label, 5, ypos)
 
             if val:
                 color = self.colors[ x % len(self.colors) ]
                 dc.SetPen(wx.Pen(color))
                 dc.SetBrush(wx.Brush(color))
-                dc.DrawRectangle((self.linePos+3, ypos), (val, bh))
+                dc.DrawRectangle(self.linePos+3, ypos, val, bh)
 
             ypos = ypos + 2*bh
             if ypos > size[1]-10:
@@ -127,7 +127,7 @@ class GraphWindow(wx.Window):
 
         wdc = wx.PaintDC(self)
         wdc.BeginDrawing()
-        wdc.Blit((0,0), size, dc, (0,0))
+        wdc.Blit(0,0, size[0], size[1], dc, 0,0)
         wdc.EndDrawing()
 
         dc.SelectObject(wx.NullBitmap)
@@ -212,15 +212,31 @@ class TestFrame(wx.Frame):
 
 
 
-#----------------------------------------------------------------------
+#---------------------------------------------------------------------------
+
+class TestPanel(wx.Panel):
+    def __init__(self, parent, log):
+        self.log = log
+        wx.Panel.__init__(self, parent, -1)
+
+        b = wx.Button(self, -1, "Show Threads sample", (50,50))
+        self.Bind(wx.EVT_BUTTON, self.OnButton, b)
+
+
+    def OnButton(self, evt):
+        win = TestFrame(self, self.log)
+        win.Show(True)
+
+
+#---------------------------------------------------------------------------
+
 
 def runTest(frame, nb, log):
-    win = TestFrame(frame, log)
-    frame.otherWin = win
-    win.Show(True)
-    return None
+    win = TestPanel(nb, log)
+    return win
 
 #----------------------------------------------------------------------
+
 
 
 

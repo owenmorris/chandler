@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     04.12.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -15,6 +15,8 @@
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma interface "listctrlbase.h"
 #endif
+
+#include "wx/defs.h" // headers should include this before first wxUSE_XXX check
 
 #if wxUSE_LISTCTRL
 

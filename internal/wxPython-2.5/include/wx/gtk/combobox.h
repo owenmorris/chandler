@@ -96,7 +96,7 @@ public:
     int Number() const { return GetCount(); }
     void SetSelection( int n );
     void Select( int n ) { return SetSelection( n ); }
-    void SetStringSelection( const wxString &string );
+    bool SetStringSelection( const wxString &string );
     void SetString(int n, const wxString &text);
 
     wxString GetValue() const;
@@ -130,10 +130,13 @@ public:
     void EnableEvents();
     GtkWidget* GetConnectWidget();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
 protected:
     virtual int DoAppend(const wxString& item);
     virtual int DoInsert(const wxString& item, int pos);
@@ -144,6 +147,10 @@ protected:
     virtual wxClientData* DoGetItemClientObject( int n ) const;
 
     virtual wxSize DoGetBestSize() const;
+
+    // Widgets that use the style->base colour for the BG colour should
+    // override this and return true.
+    virtual bool UseGTKStyleBase() const { return true; }
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxComboBox)

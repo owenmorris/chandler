@@ -22,6 +22,8 @@ MAKE_CONST_WXSTRING(NOTEBOOK_NAME);
 
 // TODO:  Virtualize this class so other book controls can be derived in Python
 
+MustHaveApp(wxBookCtrl);
+
 //  Common base class for wxList/Tree/Notebook
 class wxBookCtrl : public wxControl
 {
@@ -115,6 +117,9 @@ public:
 
     // cycle thru the pages
     void AdvanceSelection(bool forward = True);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -157,10 +162,13 @@ enum {
 
 
 
+MustHaveApp(wxNotebook);
+
 class wxNotebook : public wxBookCtrl {
 public:
     %pythonAppend wxNotebook         "self._setOORInfo(self)"
     %pythonAppend wxNotebook()       ""
+    %typemap(out) wxNotebook*;    // turn off this typemap
 
     wxNotebook(wxWindow *parent,
                wxWindowID id=-1,
@@ -170,8 +178,11 @@ public:
                const wxString& name = wxPyNOTEBOOK_NAME);
     %name(PreNotebook)wxNotebook();
 
+    // Turn it back on again
+    %typemap(out) wxNotebook* { $result = wxPyMake_wxObject($1, $owner); }
+
     bool Create(wxWindow *parent,
-               wxWindowID id,
+               wxWindowID id=-1,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = 0,
@@ -193,7 +204,8 @@ public:
     DocDeclAStr(
         virtual int, HitTest(const wxPoint& pt, long* OUTPUT) const,
         "HitTest(Point pt) -> (tab, where)",
-        "Returns the tab which is hit, and flags indicating where using wx.NB_HITTEST_ flags.");
+        "Returns the tab which is hit, and flags indicating where using
+wx.NB_HITTEST flags.", "");
 
     // implement some base class functions
     virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const;
@@ -202,6 +214,9 @@ public:
     // Windows only: attempts to apply the UX theme page background to this page
   void ApplyThemeBackground(wxWindow* window, const wxColour& colour);
 #endif
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -279,6 +294,8 @@ enum
 
 
 
+MustHaveApp(wxListbook);
+
 //  wxListCtrl and wxNotebook combination
 class wxListbook : public wxBookCtrl
 {
@@ -295,7 +312,7 @@ public:
     %name(PreListbook)wxListbook();
 
     bool Create(wxWindow *parent,
-                wxWindowID id,
+                wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
@@ -304,6 +321,7 @@ public:
     // returns True if we have wxLB_TOP or wxLB_BOTTOM style
     bool IsVertical() const;
 
+    wxListView* GetListView();    
 };
 
 

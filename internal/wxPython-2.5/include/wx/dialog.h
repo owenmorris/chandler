@@ -20,6 +20,18 @@
 #include "wx/containr.h"
 #include "wx/toplevel.h"
 
+#define wxDIALOG_NO_PARENT      0x0001  // Don't make owned by apps top window
+
+#ifdef __WXWINCE__
+#   ifdef __SMARTPHONE__
+#       define wxDEFAULT_DIALOG_STYLE (wxMAXIMIZE | wxCAPTION)
+#   else
+#       define wxDEFAULT_DIALOG_STYLE (0)
+#   endif
+#else // !__WXWINCE__
+#   define wxDEFAULT_DIALOG_STYLE  (wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
+#endif
+
 WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
 
 class WXDLLEXPORT wxDialogBase : public wxTopLevelWindow

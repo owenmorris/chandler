@@ -564,6 +564,16 @@ public:
     bool AltDown() const;
     bool ShiftDown() const;
 
+    DocDeclStr(
+        bool , CmdDown() const,
+        "\"Cmd\" is a pseudo key which is the same as Control for PC and Unix
+platforms but the special \"Apple\" (a.k.a as \"Command\") key on
+Macs: it makes often sense to use it instead of, say, `ControlDown`
+because Cmd key is used for the same thing under Mac as Ctrl
+elsewhere. The Ctrl still exists, it's just not used for this
+purpose. So for non-Mac platforms this is the same as `ControlDown`
+and Macs this is the same as `MetaDown`.", "");
+    
     // Find which event was just generated
     bool LeftDown() const;
     bool MiddleDown() const;
@@ -597,7 +607,8 @@ public:
 
 
     DocStr(GetPosition,   // sets the docstring for both
-           "Returns the position of the mouse in window coordinates when the event happened.");
+           "Returns the position of the mouse in window coordinates when the event
+happened.", "");
     wxPoint GetPosition();
 
     DocDeclAName(
@@ -684,6 +695,18 @@ public:
     bool MetaDown() const;
     bool AltDown() const;
     bool ShiftDown() const;
+    
+    DocDeclStr(
+        bool , CmdDown() const,
+        "\"Cmd\" is a pseudo key which is the same as Control for PC and Unix
+platforms but the special \"Apple\" (a.k.a as \"Command\") key on
+Macs: it makes often sense to use it instead of, say, `ControlDown`
+because Cmd key is used for the same thing under Mac as Ctrl
+elsewhere. The Ctrl still exists, it's just not used for this
+purpose. So for non-Mac platforms this is the same as `ControlDown`
+and Macs this is the same as `MetaDown`.", "");
+   
+    
 
     // exclude MetaDown() from HasModifiers() because NumLock under X is often
     // configured as mod2 modifier, yet the key events even when it is pressed
@@ -695,14 +718,16 @@ public:
     %pythoncode { KeyCode = GetKeyCode }
 
     %extend {
-        int GetUniChar() {
+        int GetUnicodeKey() {
         %#if wxUSE_UNICODE
-            return self->m_uniChar;
+            return self->GetUnicodeKey();
         %#else
             return 0;
         %#endif
         }
     }
+    %pythoncode { GetUniChar = GetUnicodeKey }
+    
     
     // get the raw key code (platform-dependent)
     wxUint32 GetRawKeyCode() const;
@@ -712,7 +737,7 @@ public:
 
     
     DocStr(GetPosition,   // sets the docstring for both
-           "Find the position of the event.");
+           "Find the position of the event.", "");
     wxPoint GetPosition();
 
     DocDeclAName(
@@ -1103,17 +1128,25 @@ public:
     
     // direction: forward (True) or backward (False)
     bool GetDirection() const;
-    void SetDirection(bool bForward);
+    void SetDirection(bool forward);
 
     // it may be a window change event (MDI, notebook pages...) or a control
     // change event
     bool IsWindowChange() const;
-    void SetWindowChange(bool bIs);
+    void SetWindowChange(bool ischange);
 
+    void SetFlags(long flags);
+    
     // the child which has the focus currently (may be NULL - use
     // wxWindow::FindFocus then)
     wxWindow* GetCurrentFocus() const;
     void SetCurrentFocus(wxWindow *win);
+
+    enum {
+        IsBackward,
+        IsForward,
+        WinChange
+    };
 };
 
 

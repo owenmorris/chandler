@@ -60,9 +60,11 @@ public:
     virtual void SetThumbLength(int lenPixels);
     virtual int GetThumbLength() const;
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
     void GtkDisableEvents();
     void GtkEnableEvents();
 

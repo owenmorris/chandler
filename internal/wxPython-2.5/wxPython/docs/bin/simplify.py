@@ -66,7 +66,7 @@ def processModule(newDocNode, modulename):
 
     # make a module element
     name = getAttr(topNode, "module")
-    assert name == modulename # sanity check    
+    ##assert name == modulename # sanity check    
 
     moduleNode = libxml2.newNode("module")
     moduleNode.setProp("name", name)    
@@ -246,13 +246,10 @@ def doDocStrings(parentNode, srcNode):
     
     autodoc = getAttr(srcNode, "python_autodoc")
     docstr  = getAttr(srcNode, "feature_docstring")
-    refdoc  = getAttr(srcNode, "feature_refdoc")
     if autodoc:
         parentNode.addChild(makeDocElement("autodoc", autodoc))
     if docstr:
         parentNode.addChild(makeDocElement("docstring", docstr))
-    if refdoc:
-        parentNode.addChild(makeDocElement("refdoc", refdoc))
         
 
 

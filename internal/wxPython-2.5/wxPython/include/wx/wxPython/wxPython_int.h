@@ -109,8 +109,8 @@ PyObject* wxPyMakeSwigPtr(void* ptr, const wxChar* classname);
 PyObject* wx2PyString(const wxString& src);
 wxString  Py2wxString(PyObject* source);
 
-PyObject* wxPyMake_wxObject(wxObject* source, bool checkEvtHandler=True);
-PyObject* wxPyMake_wxSizer(wxSizer* source);
+PyObject* wxPyMake_wxObject(wxObject* source, bool setThisOwn, bool checkEvtHandler=True);
+PyObject* wxPyMake_wxSizer(wxSizer* source, bool setThisOwn);
 void      wxPyPtrTypeMap_Add(const char* commonName, const char* ptrName);
 
 PyObject* wxPy_ConvertList(wxListBase* list);
@@ -187,7 +187,9 @@ bool wxPoint2D_helper(PyObject* source, wxPoint2D** obj);
 bool wxPySimple_typecheck(PyObject* source, const wxChar* classname, int seqLen);
 bool wxColour_typecheck(PyObject* source);
 
+bool wxPyCheckForApp();
 
+    
 template<class T>
 bool wxPyTwoIntItem_helper(PyObject* source, T** obj, const wxChar* name)
 {
@@ -336,6 +338,7 @@ typedef swig_type_info* (*p_SWIG_Python_TypeCheck_t)(char *c, swig_type_info *);
 typedef void*           (*p_SWIG_Python_TypeCast_t)(swig_type_info *, void *);
 typedef swig_type_info* (*p_SWIG_Python_TypeDynamicCast_t)(swig_type_info *, void **);
 typedef const char*     (*p_SWIG_Python_TypeName_t)(const swig_type_info *);
+typedef const char *    (*p_SWIG_Python_TypePrettyName_t)(const swig_type_info *);
 typedef swig_type_info* (*p_SWIG_Python_TypeQuery_t)(const char *);
 typedef void            (*p_SWIG_Python_TypeClientData_t)(swig_type_info *, void *);
 typedef PyObject*       (*p_SWIG_Python_newvarlink_t)(void);
@@ -357,6 +360,7 @@ struct wxPyCoreAPI {
     p_SWIG_Python_TypeCast_t           p_SWIG_Python_TypeCast;
     p_SWIG_Python_TypeDynamicCast_t    p_SWIG_Python_TypeDynamicCast;
     p_SWIG_Python_TypeName_t           p_SWIG_Python_TypeName;
+    p_SWIG_Python_TypePrettyName_t     p_SWIG_Python_TypePrettyName; 
     p_SWIG_Python_TypeQuery_t          p_SWIG_Python_TypeQuery;
     p_SWIG_Python_TypeClientData_t     p_SWIG_Python_TypeClientData;
     p_SWIG_Python_newvarlink_t         p_SWIG_Python_newvarlink;
@@ -412,8 +416,8 @@ struct wxPyCoreAPI {
     PyObject*           (*p_wxPyCBH_callCallbackObj)(const wxPyCallbackHelper& cbh, PyObject* argTuple);
     void                (*p_wxPyCBH_delete)(wxPyCallbackHelper* cbh);
 
-    PyObject*           (*p_wxPyMake_wxObject)(wxObject* source, bool checkEvtHandler);
-    PyObject*           (*p_wxPyMake_wxSizer)(wxSizer* source);
+    PyObject*           (*p_wxPyMake_wxObject)(wxObject* source, bool setThisOwn, bool checkEvtHandler);
+    PyObject*           (*p_wxPyMake_wxSizer)(wxSizer* source, bool setThisOwn);
     void                (*p_wxPyPtrTypeMap_Add)(const char* commonName, const char* ptrName);
     bool                (*p_wxPy2int_seq_helper)(PyObject* source, int* i1, int* i2);
     bool                (*p_wxPy4int_seq_helper)(PyObject* source, int* i1, int* i2, int* i3, int* i4);
@@ -428,13 +432,16 @@ struct wxPyCoreAPI {
 
     bool                (*p_wxPyInstance_Check)(PyObject* obj);
     bool                (*p_wxPySwigInstance_Check)(PyObject* obj);
-    
+
+    bool                (*p_wxPyCheckForApp)();
+
 };
 
 #ifdef wxPyUSE_EXPORTED_API
 // Notice that this is static, not extern.  This is by design, each module
 // needs one, but doesn't have to use it.
 static wxPyCoreAPI* wxPyCoreAPIPtr = NULL;
+inline wxPyCoreAPI* wxPyGetCoreAPIPtr();
 #endif // wxPyUSE_EXPORTED_API
 
 //---------------------------------------------------------------------------
@@ -449,7 +456,7 @@ public:
 
     ~wxPyUserData() {
 #ifdef wxPyUSE_EXPORTED_API
-        wxPyCoreAPIPtr->p_wxPyUserData_dtor(this);
+        wxPyGetCoreAPIPtr()->p_wxPyUserData_dtor(this);
 #else
         wxPyUserData_dtor(this);
 #endif
@@ -468,7 +475,7 @@ public:
 
     ~wxPyClientData() {
 #ifdef wxPyUSE_EXPORTED_API
-        wxPyCoreAPIPtr->p_wxPyClientData_dtor(this);
+        wxPyGetCoreAPIPtr()->p_wxPyClientData_dtor(this);
 #else
         wxPyClientData_dtor(this);
 #endif
@@ -486,7 +493,7 @@ public:
 
     ~wxPyOORClientData() {
 #ifdef wxPyUSE_EXPORTED_API
-        wxPyCoreAPIPtr->p_wxPyOORClientData_dtor(this);
+        wxPyGetCoreAPIPtr()->p_wxPyOORClientData_dtor(this);
 #else
         wxPyOORClientData_dtor(this);
 #endif
@@ -515,7 +522,7 @@ public:
 
     ~wxPyCallbackHelper() {
 #ifdef wxPyUSE_EXPORTED_API
-        wxPyCoreAPIPtr->p_wxPyCBH_delete(this);
+        wxPyGetCoreAPIPtr()->p_wxPyCBH_delete(this);
 #else
         wxPyCBH_delete(this);
 #endif
@@ -637,10 +644,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__(CLASS, PCLASS, CBNAME)                         \
     void CLASS::CBNAME() {                                              \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));        \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME();                                           \
     }                                                                   \
@@ -658,10 +665,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_INTINT(CLASS, PCLASS, CBNAME)               \
     bool CLASS::CBNAME(int a, int b) {                                  \
         bool rval=False, found;                                         \
-        bool blocked = wxPyBeginBlockThreads();                    \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(ii)",a,b));    \
-        wxPyEndBlockThreads(blocked);                                     \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             rval = PCLASS::CBNAME(a,b);                                 \
         return rval;                                                    \
@@ -680,10 +687,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_(CLASS, PCLASS, CBNAME)                     \
     void CLASS::CBNAME() {                                              \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));        \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME();                                           \
     }                                                                   \
@@ -701,10 +708,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_INTINT(CLASS, PCLASS, CBNAME)               \
     void CLASS::CBNAME(int a, int b) {                                  \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(ii)",a,b));  \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a,b);                                        \
     }                                                                   \
@@ -722,10 +729,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_INT(CLASS, PCLASS, CBNAME)                  \
     void CLASS::CBNAME(int a) {                                         \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)",a));     \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a);                                          \
     }                                                                   \
@@ -743,10 +750,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_INT4(CLASS, PCLASS, CBNAME)                 \
     void CLASS::CBNAME(int a, int b, int c, int d) {                    \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiii)",a,b,c,d));  \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a,b,c,d);                                    \
     }                                                                   \
@@ -763,10 +770,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_INT5(CLASS, PCLASS, CBNAME)                 \
     void CLASS::CBNAME(int a, int b, int c, int d, int e) {             \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiiii)",a,b,c,d,e));  \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a,b,c,d,e);                                  \
     }                                                                   \
@@ -785,7 +792,7 @@ extern wxPyApp *wxPythonApp;
     void CLASS::CBNAME(int* a, int* b) const {                                  \
         const char* errmsg = #CBNAME " should return a 2-tuple of integers.";   \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -827,7 +834,7 @@ extern wxPyApp *wxPythonApp;
     wxSize CLASS::CBNAME() const {                                              \
         const char* errmsg = #CBNAME " should return a 2-tuple of integers.";   \
         bool found; wxSize rval(0,0);                                           \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -849,7 +856,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             return PCLASS::CBNAME();                                            \
         else                                                                    \
@@ -870,10 +877,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_BOOL(CLASS, PCLASS, CBNAME)                 \
     bool CLASS::CBNAME(bool a) {                                        \
         bool rval=False, found;                                         \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)",a));\
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             rval = PCLASS::CBNAME(a);                                   \
         return rval;                                                    \
@@ -892,10 +899,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_INT(CLASS, PCLASS, CBNAME)                  \
     bool CLASS::CBNAME(int a) {                                         \
         bool rval=False, found;                                         \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)",a));\
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             rval = PCLASS::CBNAME(a);                                   \
         return rval;                                                    \
@@ -910,15 +917,15 @@ extern wxPyApp *wxPythonApp;
     bool CBNAME(int a)
 
 
-#define IMP_PYCALLBACK_BOOL_INT_pure(CLASS, PCLASS, CBNAME)             \
-    bool CLASS::CBNAME(int a) {                                         \
-        bool rval=False;                                                \
-        bool blocked = wxPyBeginBlockThreads();                    \
-        if (wxPyCBH_findCallback(m_myInst, #CBNAME))                    \
-            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)",a));       \
-        else rval = False;                                              \
-        wxPyEndBlockThreads(blocked);                                     \
-        return rval;                                                    \
+#define IMP_PYCALLBACK_BOOL_INT_pure(CLASS, PCLASS, CBNAME)                     \
+    bool CLASS::CBNAME(int a) {                                                 \
+        bool rval=False;                                                        \
+        bool blocked = wxPyBeginBlockThreads();                                 \
+        if (wxPyCBH_findCallback(m_myInst, #CBNAME))                            \
+            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)",a));      \
+        else rval = False;                                                      \
+        wxPyEndBlockThreads(blocked);                                           \
+        return rval;                                                            \
     }
 
 
@@ -932,13 +939,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DC(CLASS, PCLASS, CBNAME)                       \
     void CLASS::CBNAME(wxDC& a) {                                       \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {        \
-            PyObject* obj = wxPyMake_wxObject(&a);                      \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));  \
             Py_DECREF(obj);                                             \
         }                                                               \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a);                                          \
     }                                                                   \
@@ -958,13 +965,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DCBOOL(CLASS, PCLASS, CBNAME)                   \
     void CLASS::CBNAME(wxDC& a, bool b) {                               \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                    \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {        \
-            PyObject* obj = wxPyMake_wxObject(&a);                      \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", obj, (int)b));  \
             Py_DECREF(obj);                                             \
         }                                                               \
-        wxPyEndBlockThreads(blocked);                                     \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a, b);                                       \
     }                                                                   \
@@ -982,13 +989,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DCBOOL(CLASS, PCLASS, CBNAME)                   \
     void CLASS::CBNAME(wxDC& a, bool b) {                               \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                    \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {        \
-            PyObject* obj = wxPyMake_wxObject(&a);                      \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", obj, (int)b));  \
             Py_DECREF(obj);                                             \
         }                                                               \
-        wxPyEndBlockThreads(blocked);                                     \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a, b);                                       \
     }                                                                   \
@@ -1006,10 +1013,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__2DBL(CLASS, PCLASS, CBNAME)                     \
     void CLASS::CBNAME(double a, double b) {                            \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                    \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(dd)",a,b));  \
-        wxPyEndBlockThreads(blocked);                                     \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a, b);                                       \
     }                                                                   \
@@ -1027,11 +1034,11 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__2DBL2INT(CLASS, PCLASS, CBNAME)                 \
     void CLASS::CBNAME(double a, double b, int c, int d) {              \
         bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                    \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(ddii)",      \
                                                        a,b,c,d));       \
-        wxPyEndBlockThreads(blocked);                                     \
+        wxPyEndBlockThreads(blocked);                                   \
         if (! found)                                                    \
             PCLASS::CBNAME(a, b, c, d);                                 \
     }                                                                   \
@@ -1049,13 +1056,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DC4DBLBOOL(CLASS, PCLASS, CBNAME)                               \
     void CLASS::CBNAME(wxDC& a, double b, double c, double d, double e, bool f) {       \
         bool found;                                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                    \
+        bool blocked = wxPyBeginBlockThreads();                                         \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
-            PyObject* obj = wxPyMake_wxObject(&a);                                      \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                                \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oddddi)", obj, b, c, d, e, (int)f));  \
             Py_DECREF(obj);                                                             \
         }                                                                               \
-        wxPyEndBlockThreads(blocked);                                                     \
+        wxPyEndBlockThreads(blocked);                                                   \
         if (! found)                                                                    \
             PCLASS::CBNAME(a, b, c, d, e, f);                                           \
     }                                                                                   \
@@ -1073,14 +1080,14 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_DC4DBLBOOL(CLASS, PCLASS, CBNAME)                           \
     bool CLASS::CBNAME(wxDC& a, double b, double c, double d, double e, bool f) {       \
         bool found;                                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                    \
+        bool blocked = wxPyBeginBlockThreads();                                         \
         bool rval=False;                                                                \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
-            PyObject* obj = wxPyMake_wxObject(&a);                                      \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                                \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oddddi)", obj, b, c, d, e, (int)f));\
             Py_DECREF(obj);                                                             \
         }                                                                               \
-        wxPyEndBlockThreads(blocked);                                                     \
+        wxPyEndBlockThreads(blocked);                                                   \
         if (! found)                                                                    \
             rval = PCLASS::CBNAME(a, b, c, d, e, f);                                    \
         return rval;                                                                    \
@@ -1099,11 +1106,11 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__BOOL2DBL2INT(CLASS, PCLASS, CBNAME)                     \
     void CLASS::CBNAME(bool a, double b, double c, int d, int e) {              \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iddii)",             \
                                                 (int)a,b,c,d,e));               \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c, d, e);                                      \
     }                                                                           \
@@ -1121,13 +1128,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DC4DBL(CLASS, PCLASS, CBNAME)                           \
     void CLASS::CBNAME(wxDC& a, double b, double c, double d, double e) {       \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(&a);                              \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                        \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Odddd)", obj, b, c, d, e));   \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c, d, e);                                      \
     }                                                                           \
@@ -1145,13 +1152,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DCBOOL(CLASS, PCLASS, CBNAME)                           \
     void CLASS::CBNAME(wxDC& a, bool b) {                                       \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(&a);                              \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                        \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", obj, (int)b)); \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b);                                               \
     }                                                                           \
@@ -1170,13 +1177,13 @@ extern wxPyApp *wxPythonApp;
     void CLASS::CBNAME(wxControlPoint* a, bool b, double c, double d,           \
                 int e, int f) {                                                 \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(a);                               \
+            PyObject* obj = wxPyMake_wxObject(a,false);                         \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oiddii)", obj, (int)b, c, d, e, f));\
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c, d, e, f);                                   \
     }                                                                           \
@@ -1195,13 +1202,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__WXCP2DBL2INT(CLASS, PCLASS, CBNAME)                     \
     void CLASS::CBNAME(wxControlPoint* a, double b, double c, int d, int e) {   \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(a);                               \
+            PyObject* obj = wxPyMake_wxObject(a,false);                         \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oddii)", obj, b, c, d, e));   \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c, d, e);                                      \
     }                                                                           \
@@ -1220,10 +1227,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__2DBLINT(CLASS, PCLASS, CBNAME)                          \
     void CLASS::CBNAME(double a, double b, int c) {                             \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(ddi)", a,b,c));      \
-        wxPyEndBlockThreads(blocked);                                             \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c);                                            \
     }                                                                           \
@@ -1241,10 +1248,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__BOOL2DBLINT(CLASS, PCLASS, CBNAME)                      \
     void CLASS::CBNAME(bool a, double b, double c, int d) {                     \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iddi)", (int)a,b,c,d));\
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a, b, c, d);                                         \
     }                                                                           \
@@ -1262,13 +1269,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__STRING(CLASS, PCLASS, CBNAME)                           \
     void CLASS::CBNAME(const wxString& a)  {                                    \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* s = wx2PyString(a);                                       \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", s));            \
             Py_DECREF(s);                                                       \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a);                                                  \
     }                                                                           \
@@ -1286,13 +1293,13 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME(const wxString& a)  {                                    \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* s = wx2PyString(a);                                       \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", s));     \
             Py_DECREF(s);                                                       \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -1309,13 +1316,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_STRING_pure(CLASS, PCLASS, CBNAME)                  \
     bool CLASS::CBNAME(const wxString& a)  {                                    \
         bool rval=False;                                                        \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* s = wx2PyString(a);                                       \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", s));     \
             Py_DECREF(s);                                                       \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
 
@@ -1327,7 +1334,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_STRING_STRING_pure(CLASS, PCLASS, CBNAME)                \
     wxString CLASS::CBNAME(const wxString& a)  {                                \
         wxString rval;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             PyObject* s = wx2PyString(a);                                       \
@@ -1338,7 +1345,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
 
@@ -1352,7 +1359,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME(const wxString& a)  {                                \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             PyObject* s = wx2PyString(a);                                       \
@@ -1365,7 +1372,7 @@ extern wxPyApp *wxPythonApp;
         }                                                                       \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
 
@@ -1377,7 +1384,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_STRING_STRINGINT_pure(CLASS, PCLASS, CBNAME)             \
     wxString CLASS::CBNAME(const wxString& a,int b)  {                          \
         wxString rval;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             PyObject* s = wx2PyString(a);                                       \
@@ -1388,7 +1395,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
 
@@ -1402,7 +1409,7 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME(const wxString& a, const wxString& b) {                  \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* s1 = wx2PyString(a);                                      \
             PyObject* s2 = wx2PyString(b);                                      \
@@ -1410,7 +1417,7 @@ extern wxPyApp *wxPythonApp;
             Py_DECREF(s1);                                                      \
             Py_DECREF(s2);                                                      \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a, b);                                        \
         return rval;                                                            \
@@ -1429,7 +1436,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME() {                                                  \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -1438,7 +1445,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1457,7 +1464,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME() const {                                            \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -1466,7 +1473,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1483,7 +1490,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_STRING__pure(CLASS, PCLASS, CBNAME)                      \
     wxString CLASS::CBNAME() {                                                  \
         wxString rval;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                            \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -1492,7 +1499,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }
 
@@ -1504,7 +1511,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_STRING__constpure(CLASS, PCLASS, CBNAME)                 \
     wxString CLASS::CBNAME() const {                                            \
         wxString rval;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -1513,7 +1520,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }
 
@@ -1526,13 +1533,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_TAG_pure(CLASS, PCLASS, CBNAME)                     \
     bool CLASS::CBNAME(const wxHtmlTag& a)  {                                   \
         bool rval=False;                                                        \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
-            PyObject* obj = wxPyConstructObject((void*)&a, wxT("wxHtmlTag"), 0);     \
+            PyObject* obj = wxPyConstructObject((void*)&a, wxT("wxHtmlTag"), 0);\
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));   \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }
 
@@ -1545,13 +1552,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__CELLINTINT(CLASS, PCLASS, CBNAME)                       \
     void CLASS::CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y) {                \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* obj = wxPyConstructObject((void*)cell, wxT("wxHtmlCell"), 0);  \
             wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(Oii)",obj,x,y));  \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(cell, x, y);                                         \
     }                                                                           \
@@ -1588,23 +1595,23 @@ extern wxPyApp *wxPythonApp;
     void CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e); \
     void base_##CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e)
 
-#define IMP_PYCALLBACK__CELLINTINTME(CLASS, PCLASS, CBNAME)                       \
-    void CLASS::CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e) {                \
-        bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
-        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyConstructObject((void*)cell, wxT("wxHtmlCell"), 0);  \
-            PyObject* o2  = wxPyConstructObject((void*)&e, wxT("wxMouseEvent"), 0);  \
-            wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OiiO)",obj,x,y,o2));  \
-            Py_DECREF(obj);                                                     \
-            Py_DECREF(o2);                                                      \
-        }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
-        if (! found)                                                            \
-            PCLASS::CBNAME(cell, x, y, e);                                      \
-    }                                                                           \
-    void CLASS::base_##CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e) {         \
-        PCLASS::CBNAME(cell, x, y, e);                                          \
+#define IMP_PYCALLBACK__CELLINTINTME(CLASS, PCLASS, CBNAME)                             \
+    void CLASS::CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e) { \
+        bool found;                                                                     \
+        bool blocked = wxPyBeginBlockThreads();                                         \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
+            PyObject* obj = wxPyConstructObject((void*)cell, wxT("wxHtmlCell"), 0);     \
+            PyObject* o2  = wxPyConstructObject((void*)&e, wxT("wxMouseEvent"), 0);     \
+            wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OiiO)",obj,x,y,o2));      \
+            Py_DECREF(obj);                                                             \
+            Py_DECREF(o2);                                                              \
+        }                                                                               \
+        wxPyEndBlockThreads(blocked);                                                   \
+        if (! found)                                                                    \
+            PCLASS::CBNAME(cell, x, y, e);                                              \
+    }                                                                                   \
+    void CLASS::base_##CBNAME(wxHtmlCell *cell, wxCoord x, wxCoord y, const wxMouseEvent& e) {\
+        PCLASS::CBNAME(cell, x, y, e);                                                  \
     }
 
 
@@ -1617,10 +1624,10 @@ extern wxPyApp *wxPythonApp;
 
 #define IMP_PYCALLBACK___pure(CLASS, PCLASS, CBNAME)                            \
     void CLASS::CBNAME() {                                                      \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME))                            \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));                \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
     }
 
 //---------------------------------------------------------------------------
@@ -1633,7 +1640,7 @@ extern wxPyApp *wxPythonApp;
     wxSize CLASS::CBNAME() {                                                    \
         const char* errmsg = #CBNAME " should return a 2-tuple of integers or a wxSize object."; \
         wxSize rval(0,0);                                                       \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             wxSize*   ptr;                                                      \
@@ -1657,7 +1664,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }
 
@@ -1672,13 +1679,13 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME(wxWindow* a) {                                           \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(a);                               \
+            PyObject* obj = wxPyMake_wxObject(a,false);                         \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));   \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -1694,19 +1701,19 @@ extern wxPyApp *wxPythonApp;
     bool base_##CBNAME(wxWindow* a, wxDC& b)
 
 
-#define IMP_PYCALLBACK_BOOL_WXWINDC(CLASS, PCLASS, CBNAME)                        \
+#define IMP_PYCALLBACK_BOOL_WXWINDC(CLASS, PCLASS, CBNAME)                      \
     bool CLASS::CBNAME(wxWindow* a, wxDC& b) {                                  \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* win = wxPyMake_wxObject(a);                               \
-            PyObject* dc  = wxPyMake_wxObject(&b);                              \
+            PyObject* win = wxPyMake_wxObject(a,false);                         \
+            PyObject* dc  = wxPyMake_wxObject(&b,false);                        \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", win, dc));\
             Py_DECREF(win);                                                     \
             Py_DECREF(dc);                                                      \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a, b);                                        \
         return rval;                                                            \
@@ -1725,13 +1732,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_WXWINBASE(CLASS, PCLASS, CBNAME)                    \
     void CLASS::CBNAME(wxWindowBase* a) {                                       \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(a);                               \
+            PyObject* obj = wxPyMake_wxObject(a,false);                         \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));          \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a);                                                  \
     }                                                                           \
@@ -1750,10 +1757,10 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME() {                                                      \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));         \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1773,10 +1780,10 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME() const {                                                \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));         \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1796,10 +1803,10 @@ extern wxPyApp *wxPythonApp;
     wxDragResult CLASS::CBNAME(wxCoord a, wxCoord b, wxDragResult c) {          \
         int rval=0;                                                             \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iii)", a,b,c));\
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a, b, c);                                     \
         return (wxDragResult)rval;                                              \
@@ -1813,25 +1820,25 @@ extern wxPyApp *wxPythonApp;
 #define DEC_PYCALLBACK_FSF_FSSTRING_pure(CBNAME)                        \
     wxFSFile* CBNAME(wxFileSystem& fs, const wxString& location)
 
-#define IMP_PYCALLBACK_FSF_FSSTRING_pure(CLASS, PCLASS, CBNAME)         \
-    wxFSFile* CLASS::CBNAME(wxFileSystem& a,const wxString& b) {        \
-        bool blocked = wxPyBeginBlockThreads();                                        \
-        wxFSFile* rval=0;                                               \
-        if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                  \
-            PyObject* ro;                                               \
-            PyObject* obj = wxPyMake_wxObject(&a);                      \
-            PyObject* s = wx2PyString(b);                               \
-            ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OO)",\
-                                         obj, s));                      \
-            if (ro) {                                                   \
-                wxPyConvertSwigPtr(ro, (void **)&rval, wxT("wxFSFILE"));\
-                Py_DECREF(ro);                                          \
-            }                                                           \
-            Py_DECREF(obj);                                             \
-            Py_DECREF(s);                                               \
-        }                                                               \
-        wxPyEndBlockThreads(blocked);                                          \
-        return rval;                                                    \
+#define IMP_PYCALLBACK_FSF_FSSTRING_pure(CLASS, PCLASS, CBNAME)                 \
+    wxFSFile* CLASS::CBNAME(wxFileSystem& a,const wxString& b) {                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
+        wxFSFile* rval=0;                                                       \
+        if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
+            PyObject* ro;                                                       \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                        \
+            PyObject* s = wx2PyString(b);                                       \
+            ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(OO)",        \
+                                         obj, s));                              \
+            if (ro) {                                                           \
+                wxPyConvertSwigPtr(ro, (void **)&rval, wxT("wxFSFile"));        \
+                Py_DECREF(ro);                                                  \
+            }                                                                   \
+            Py_DECREF(obj);                                                     \
+            Py_DECREF(s);                                                       \
+        }                                                                       \
+        wxPyEndBlockThreads(blocked);                                           \
+        return rval;                                                            \
     };
 
 //---------------------------------------------------------------------------
@@ -1841,20 +1848,20 @@ extern wxPyApp *wxPythonApp;
     bool base_##CBNAME(wxDragResult a)
 
 
-#define IMP_PYCALLBACK_BOOL_DR(CLASS, PCLASS, CBNAME)                   \
-    bool CLASS::CBNAME(wxDragResult a) {                                \
-        bool rval=False;                                                \
-        bool found;                                                     \
-        bool blocked = wxPyBeginBlockThreads();                                        \
-        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))          \
-            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)", a));\
-        wxPyEndBlockThreads(blocked);                                          \
-        if (! found)                                                    \
-            rval = PCLASS::CBNAME(a);                                   \
-        return rval;                                                    \
-    }                                                                   \
-    bool CLASS::base_##CBNAME(wxDragResult a) {                         \
-        return PCLASS::CBNAME(a);                                       \
+#define IMP_PYCALLBACK_BOOL_DR(CLASS, PCLASS, CBNAME)                           \
+    bool CLASS::CBNAME(wxDragResult a) {                                        \
+        bool rval=False;                                                        \
+        bool found;                                                             \
+        bool blocked = wxPyBeginBlockThreads();                                 \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
+            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)", a));     \
+        wxPyEndBlockThreads(blocked);                                           \
+        if (! found)                                                            \
+            rval = PCLASS::CBNAME(a);                                           \
+        return rval;                                                            \
+    }                                                                           \
+    bool CLASS::base_##CBNAME(wxDragResult a) {                                 \
+        return PCLASS::CBNAME(a);                                               \
     }
 
 //---------------------------------------------------------------------------
@@ -1863,15 +1870,15 @@ extern wxPyApp *wxPythonApp;
     wxDragResult CBNAME(wxCoord x, wxCoord y, wxDragResult def)
 
 
-#define IMP_PYCALLBACK_DR_2WXCDR_pure(CLASS, PCLASS, CBNAME)            \
-    wxDragResult CLASS::CBNAME(wxCoord a, wxCoord b, wxDragResult c) {  \
-        bool blocked = wxPyBeginBlockThreads();                                        \
-        int rval=0;                                                     \
-        if (wxPyCBH_findCallback(m_myInst, #CBNAME))                    \
+#define IMP_PYCALLBACK_DR_2WXCDR_pure(CLASS, PCLASS, CBNAME)                    \
+    wxDragResult CLASS::CBNAME(wxCoord a, wxCoord b, wxDragResult c) {          \
+        bool blocked = wxPyBeginBlockThreads();                                 \
+        int rval=0;                                                             \
+        if (wxPyCBH_findCallback(m_myInst, #CBNAME))                            \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iii)", a,b,c));\
-        wxPyEndBlockThreads(blocked);                                          \
-        return (wxDragResult)rval;                                      \
-    }                                                                   \
+        wxPyEndBlockThreads(blocked);                                           \
+        return (wxDragResult)rval;                                              \
+    }                                                                           \
 
 //---------------------------------------------------------------------------
 
@@ -1881,13 +1888,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_INTINTSTR_pure(CLASS, PCLASS, CBNAME)       \
     bool CLASS::CBNAME(int a, int b, const wxString& c) {               \
         bool rval=False;                                                \
-        bool blocked = wxPyBeginBlockThreads();                                        \
+        bool blocked = wxPyBeginBlockThreads();                         \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                  \
             PyObject* s = wx2PyString(c);                               \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)",a,b,s));\
             Py_DECREF(s);                                               \
         }                                                               \
-        wxPyEndBlockThreads(blocked);                                          \
+        wxPyEndBlockThreads(blocked);                                   \
         return rval;                                                    \
     }                                                                   \
 
@@ -1902,10 +1909,10 @@ extern wxPyApp *wxPythonApp;
     size_t CLASS::CBNAME() {                                                    \
         size_t rval=0;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));         \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1921,14 +1928,14 @@ extern wxPyApp *wxPythonApp;
     size_t base_##CBNAME() const
 
 
-#define IMP_PYCALLBACK_SIZET__const(CLASS, PCLASS, CBNAME)                       \
+#define IMP_PYCALLBACK_SIZET__const(CLASS, PCLASS, CBNAME)                      \
     size_t CLASS::CBNAME() const {                                              \
         size_t rval=0;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));         \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -1948,7 +1955,7 @@ extern wxPyApp *wxPythonApp;
     wxDataFormat CLASS::CBNAME(size_t a) {                                      \
         wxDataFormat rval=0;                                                    \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             wxDataFormat* ptr;                                                  \
@@ -1959,7 +1966,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -1978,13 +1985,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__constany(CLASS, PCLASS, CBNAME, Type)                   \
     void CLASS::CBNAME(const Type& a) {                                         \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);           \
+            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);      \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));          \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a);                                                  \
     }                                                                           \
@@ -2003,13 +2010,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__any(CLASS, PCLASS, CBNAME, Type)                        \
     void CLASS::CBNAME(Type& a) {                                               \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);           \
+            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);      \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));          \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a);                                                  \
     }                                                                           \
@@ -2028,13 +2035,13 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME(Type& a) {                                               \
         bool rv=False;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);           \
+            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);      \
             rv = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));     \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rv = PCLASS::CBNAME(a);                                             \
         return rv;                                                              \
@@ -2052,13 +2059,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_bool_anypure(CLASS, PCLASS, CBNAME, Type)                \
     bool CLASS::CBNAME(Type& a) {                                               \
         bool rv=False;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
-            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);           \
+            PyObject* obj = wxPyConstructObject((void*)&a, wxT(#Type), 0);      \
             rv = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));     \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }                                                                           \
 
@@ -2072,7 +2079,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME(long a, long b) const {                              \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(ll)",a,b));  \
@@ -2081,7 +2088,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a,b);                                         \
         return rval;                                                            \
@@ -2101,7 +2108,7 @@ extern wxPyApp *wxPythonApp;
     int CLASS::CBNAME(long a) const {                                           \
         int rval=-1;                                                            \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(l)",a));     \
@@ -2110,7 +2117,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -2131,7 +2138,7 @@ extern wxPyApp *wxPythonApp;
     wxListItemAttr *CLASS::CBNAME(long a) const {                               \
         wxListItemAttr *rval = NULL;                                            \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             wxListItemAttr* ptr;                                                \
@@ -2142,7 +2149,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -2161,7 +2168,7 @@ extern wxPyApp *wxPythonApp;
     bool CLASS::CBNAME(wxMouseEvent& e) {                                       \
         bool rval=False;                                                        \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             PyObject* obj  = wxPyConstructObject((void*)&e, wxT("wxMouseEvent"), 0); \
@@ -2172,7 +2179,7 @@ extern wxPyApp *wxPythonApp;
             }                                                                   \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             return PCLASS::CBNAME(e);                                           \
         return rval;                                                            \
@@ -2190,7 +2197,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_WIZPG__pure(CLASS, PCLASS, CBNAME)                       \
     wxWizardPage* CLASS::CBNAME() const {                                       \
         wxWizardPage* rv = NULL;                                                \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -2199,7 +2206,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }
 
@@ -2211,7 +2218,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BITMAP__pure(CLASS, PCLASS, CBNAME)                      \
     wxBitmap CLASS::CBNAME() const {                                            \
         wxBitmap rv;                                                            \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             wxBitmap* ptr;                                                      \
@@ -2222,7 +2229,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }
 
@@ -2234,7 +2241,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_OBJECT__pure(CLASS, PCLASS, CBNAME)                      \
     wxObject* CLASS::CBNAME() {                                                 \
         wxObject* rv = NULL;                                                    \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
@@ -2243,7 +2250,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }
 
@@ -2255,7 +2262,7 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_OBJECT_STRING_pure(CLASS, PCLASS, CBNAME)                \
     wxObject* CLASS::CBNAME(const wxString& a) {                                \
         wxObject* rv = NULL;                                                    \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
             PyObject* so = wx2PyString(a);                                      \
             PyObject* ro;                                                       \
@@ -2266,7 +2273,7 @@ extern wxPyApp *wxPythonApp;
             }                                                                   \
             Py_DECREF(so);                                                      \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }
 
@@ -2279,13 +2286,13 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_BOOL_NODE_pure(CLASS, PCLASS, CBNAME)                    \
     bool CLASS::CBNAME(wxXmlNode* a) {                                          \
         bool rv=False;                                                          \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if (wxPyCBH_findCallback(m_myInst, #CBNAME)) {                          \
-            PyObject* obj = wxPyConstructObject((void*)a, wxT("wxXmlNode"), 0);      \
+            PyObject* obj = wxPyConstructObject((void*)a, wxT("wxXmlNode"), 0); \
             rv = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));     \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rv;                                                              \
     }                                                                           \
 
@@ -2299,11 +2306,11 @@ extern wxPyApp *wxPythonApp;
     wxCoord CLASS::CBNAME(size_t a) const {                                     \
         wxCoord rval=0;                                                         \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(i)", a));     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
 
@@ -2317,10 +2324,10 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK_VOID_SIZETSIZET_const(CLASS, PCLASS, CBNAME)             \
     void CLASS::CBNAME(size_t a, size_t b) const {                              \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(ii)",a,b));          \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a,b);                                                \
     }                                                                           \
@@ -2339,10 +2346,10 @@ extern wxPyApp *wxPythonApp;
     wxCoord CLASS::CBNAME() const {                                             \
         wxCoord rval=0;                                                         \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME)))                  \
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("()"));         \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME();                                            \
         return rval;                                                            \
@@ -2360,14 +2367,14 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DCRECTSIZET_constpure(CLASS, PCLASS, CBNAME)            \
     void CLASS::CBNAME(wxDC& a, const wxRect& b, size_t c) const {              \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(&a);                              \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                        \
             PyObject* ro = wxPyConstructObject((void*)&b, wxT("wxRect"), 0);    \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OOi)", obj, ro, (int)c)); \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
     }                                                                           \
 
 //---------------------------------------------------------------------------
@@ -2380,14 +2387,14 @@ extern wxPyApp *wxPythonApp;
 #define IMP_PYCALLBACK__DCRECTSIZET_const(CLASS, PCLASS, CBNAME)                \
     void CLASS::CBNAME(wxDC& a, const wxRect& b, size_t c) const {              \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* obj = wxPyMake_wxObject(&a);                              \
+            PyObject* obj = wxPyMake_wxObject(&a,false);                        \
             PyObject* ro = wxPyConstructObject((void*)&b, wxT("wxRect"), 0);    \
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OOi)", obj, ro, (int)c)); \
             Py_DECREF(obj);                                                     \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             PCLASS::CBNAME(a,b,c);                                              \
     }                                                                           \
@@ -2406,7 +2413,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME(size_t a) const {                                    \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(l)",a));     \
@@ -2415,7 +2422,7 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         if (! found)                                                            \
             rval = PCLASS::CBNAME(a);                                           \
         return rval;                                                            \
@@ -2433,7 +2440,7 @@ extern wxPyApp *wxPythonApp;
     wxString CLASS::CBNAME(size_t a) const {                                    \
         wxString rval;                                                          \
         bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
+        bool blocked = wxPyBeginBlockThreads();                                 \
         if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
             PyObject* ro;                                                       \
             ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("(l)",a));     \
@@ -2442,9 +2449,40 @@ extern wxPyApp *wxPythonApp;
                 Py_DECREF(ro);                                                  \
             }                                                                   \
         }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
+        wxPyEndBlockThreads(blocked);                                           \
         return rval;                                                            \
     }                                                                           \
+
+//---------------------------------------------------------------------------
+
+#define DEC_PYCALLBACK_VIZATTR_(CBNAME)                                         \
+    wxVisualAttributes  CBNAME() const;                                         \
+    wxVisualAttributes  base_##CBNAME()
+
+
+#define IMP_PYCALLBACK_VIZATTR_(CLASS, PCLASS, CBNAME)                          \
+    wxVisualAttributes CLASS::CBNAME() const {                                  \
+        wxVisualAttributes rval;                                                \
+        bool found;                                                             \
+        bool blocked = wxPyBeginBlockThreads();                                 \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
+            PyObject* ro;                                                       \
+            wxVisualAttributes* ptr;                                            \
+            ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));        \
+            if (ro) {                                                           \
+                if (wxPyConvertSwigPtr(ro, (void **)&ptr, wxT("wxVisualAttributes"))) \
+                    rval = *ptr;                                                \
+                Py_DECREF(ro);                                                  \
+            }                                                                   \
+        }                                                                       \
+        wxPyEndBlockThreads(blocked);                                           \
+        if (! found)                                                            \
+            rval = PCLASS::CBNAME();                                            \
+        return rval;                                                            \
+    }                                                                           \
+    wxVisualAttributes  CLASS::base_##CBNAME() {                                \
+        return PCLASS::CBNAME();                                                \
+    }
 
 //---------------------------------------------------------------------------
 

@@ -66,10 +66,10 @@ IMP_PYCALLBACK_STRING_STRING(wxPyTipProvider, wxTipProvider, PreprocessTip);
 // Now let SWIG know about it
 class wxPyTipProvider : public wxTipProvider {
 public:
+    %pythonAppend wxPyTipProvider "self._setCallbackInfo(self, PyTipProvider)"
     wxPyTipProvider(size_t currentTip);
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
-    %pragma(python) addtomethod = "__init__:self._setCallbackInfo(self, wxPyTipProvider)"
 };
 
 
@@ -81,11 +81,13 @@ public:
 // not, the dialog on startup depending on its value, not this class).
 //
 // The function returns True if this checkbox is checked, False otherwise.
+MustHaveApp(wxShowTip);
 bool wxShowTip(wxWindow *parent, wxTipProvider *tipProvider, bool showAtStartup = True);
 
 // a function which returns an implementation of wxTipProvider using the
 // specified text file as the source of tips (each line is a tip).
 %newobject wxCreateFileTipProvider;
+MustHaveApp(wxCreateFileTipProvider);
 wxTipProvider* wxCreateFileTipProvider(const wxString& filename, size_t currentTip);
 
 

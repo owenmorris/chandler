@@ -5,7 +5,7 @@
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -213,9 +213,9 @@ WXDLLEXPORT wxString wxGetSingleChoice(const wxString& message,
                                        const wxString& caption,
                                        const wxArrayString& choices,
                                        wxWindow *parent = (wxWindow *) NULL,
-                                       int x = -1,
-                                       int y = -1,
-                                       bool centre = TRUE,
+                                       int x = wxDefaultCoord,
+                                       int y = wxDefaultCoord,
+                                       bool centre = true,
                                        int width = wxCHOICE_WIDTH,
                                        int height = wxCHOICE_HEIGHT);
 
@@ -223,9 +223,9 @@ WXDLLEXPORT wxString wxGetSingleChoice(const wxString& message,
                                        const wxString& caption,
                                        int n, const wxString *choices,
                                        wxWindow *parent = (wxWindow *) NULL,
-                                       int x = -1,
-                                       int y = -1,
-                                       bool centre = TRUE,
+                                       int x = wxDefaultCoord,
+                                       int y = wxDefaultCoord,
+                                       bool centre = true,
                                        int width = wxCHOICE_WIDTH,
                                        int height = wxCHOICE_HEIGHT);
 
@@ -235,9 +235,9 @@ WXDLLEXPORT int wxGetSingleChoiceIndex(const wxString& message,
                                        const wxString& caption,
                                        const wxArrayString& choices,
                                        wxWindow *parent = (wxWindow *) NULL,
-                                       int x = -1,
-                                       int y = -1,
-                                       bool centre = TRUE,
+                                       int x = wxDefaultCoord,
+                                       int y = wxDefaultCoord,
+                                       bool centre = true,
                                        int width = wxCHOICE_WIDTH,
                                        int height = wxCHOICE_HEIGHT);
 
@@ -245,9 +245,9 @@ WXDLLEXPORT int wxGetSingleChoiceIndex(const wxString& message,
                                        const wxString& caption,
                                        int n, const wxString *choices,
                                        wxWindow *parent = (wxWindow *) NULL,
-                                       int x = -1,
-                                       int y = -1,
-                                       bool centre = TRUE,
+                                       int x = wxDefaultCoord,
+                                       int y = wxDefaultCoord,
+                                       bool centre = true,
                                        int width = wxCHOICE_WIDTH,
                                        int height = wxCHOICE_HEIGHT);
 
@@ -257,8 +257,9 @@ WXDLLEXPORT void* wxGetSingleChoiceData(const wxString& message,
                                         const wxArrayString& choices,
                                         void **client_data,
                                         wxWindow *parent = (wxWindow *) NULL,
-                                        int x = -1, int y = -1,
-                                        bool centre = TRUE,
+                                        int x = wxDefaultCoord,
+                                        int y = wxDefaultCoord,
+                                        bool centre = true,
                                         int width = wxCHOICE_WIDTH,
                                         int height = wxCHOICE_HEIGHT);
 
@@ -267,8 +268,9 @@ WXDLLEXPORT void* wxGetSingleChoiceData(const wxString& message,
                                         int n, const wxString *choices,
                                         void **client_data,
                                         wxWindow *parent = (wxWindow *) NULL,
-                                        int x = -1, int y = -1,
-                                        bool centre = TRUE,
+                                        int x = wxDefaultCoord,
+                                        int y = wxDefaultCoord,
+                                        bool centre = true,
                                         int width = wxCHOICE_WIDTH,
                                         int height = wxCHOICE_HEIGHT);
 
@@ -280,9 +282,9 @@ WXDLLEXPORT size_t wxGetMultipleChoices(wxArrayInt& selections,
                                         const wxString& caption,
                                         int n, const wxString *choices,
                                         wxWindow *parent = (wxWindow *) NULL,
-                                        int x = -1,
-                                        int y = -1,
-                                        bool centre = TRUE,
+                                        int x = wxDefaultCoord,
+                                        int y = wxDefaultCoord,
+                                        bool centre = true,
                                         int width = wxCHOICE_WIDTH,
                                         int height = wxCHOICE_HEIGHT);
 
@@ -291,9 +293,9 @@ WXDLLEXPORT size_t wxGetMultipleChoices(wxArrayInt& selections,
                                         const wxString& caption,
                                         const wxArrayString& choices,
                                         wxWindow *parent = (wxWindow *) NULL,
-                                        int x = -1,
-                                        int y = -1,
-                                        bool centre = TRUE,
+                                        int x = wxDefaultCoord,
+                                        int y = wxDefaultCoord,
+                                        bool centre = true,
                                         int width = wxCHOICE_WIDTH,
                                         int height = wxCHOICE_HEIGHT);
 

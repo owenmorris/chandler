@@ -12,11 +12,20 @@ class TestPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
-        self.tree = gizmos.TreeListCtrl(self, -1, style = wx.TR_DEFAULT_STYLE
-                                   #| wx.TR_ROW_LINES
-                                   #| wx.TR_NO_LINES 
-                                   #| wx.TR_TWIST_BUTTONS
+        self.tree = gizmos.TreeListCtrl(self, -1, style =
+                                        wx.TR_DEFAULT_STYLE
+                                        #wx.TR_TWIST_BUTTONS
+                                        #| wx.TR_ROW_LINES
+                                        #| wx.TR_NO_LINES 
+                                        | wx.TR_FULL_ROW_HIGHLIGHT
+
+                                        # By default the style will be adjusted on
+                                        # Mac to use twisty buttons and no lines.  If
+                                        # you would rather control this yourself then
+                                        # add this style.
+                                        #| wx.TR_DONT_ADJUST_MAC
                                    )
+
         isz = (16,16)
         il = wx.ImageList(isz[0], isz[1])
         fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
@@ -73,17 +82,11 @@ class TestPanel(wx.Panel):
 
 
     def OnRightUp(self, evt):
-        # Convert the position from being relative to the subwindow to
-        # being relative to the outer treelist window so HitTest will
-        # have the point it is expecting.
         pos = evt.GetPosition()
-        pos = self.tree.GetMainWindow().ClientToScreen(pos)
-        pos = self.tree.ScreenToClient(pos)
         item, flags, col = self.tree.HitTest(pos)
-
         if item:
-            print flags, col, self.tree.GetItemText(item, col)
-
+            self.log.write('Flags: %s, Col:%s, Text: %s' %
+                           (flags, col, self.tree.GetItemText(item, col)))
 
     def OnSize(self, evt):
         self.tree.SetSize(self.GetSize())

@@ -103,9 +103,13 @@ public:
     virtual bool PositionToXY(long pos, long *x, long *y) const;
 
     virtual void ShowPosition(long pos);
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
     virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
                                             wxTextCoord *col,
-                                            wxTextCoord *row) const;
+                                            wxTextCoord *row) const
+    {
+        return wxTextCtrlBase::HitTest(pt, col, row);
+    }
 
     // Clipboard operations
     virtual void Copy();
@@ -146,12 +150,6 @@ public:
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual WXHBRUSH OnCtlColor(WXHDC pDC, WXHWND pWnd, WXUINT nCtlColor,
             WXUINT message, WXWPARAM wParam, WXLPARAM lParam);
-
-    // In WIN16, need to override normal erasing because
-    // Ctl3D doesn't use the wxWindows background colour.
-#ifdef __WIN16__
-    void OnEraseBackground(wxEraseEvent& event);
-#endif
 
 #if wxUSE_RICHEDIT
     virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
@@ -222,10 +220,10 @@ protected:
 
     // replace the contents of the selection or of the entire control with the
     // given text
-    void DoWriteText(const wxString& text, bool selectionOnly = TRUE);
+    void DoWriteText(const wxString& text, bool selectionOnly = true);
 
     // set the selection possibly without scrolling the caret into view
-    void DoSetSelection(long from, long to, bool scrollCaret = TRUE);
+    void DoSetSelection(long from, long to, bool scrollCaret = true);
 
     // return true if there is a non empty selection in the control
     bool HasSelection() const;
@@ -234,7 +232,7 @@ protected:
     // position
     long GetLengthOfLineContainingPos(long pos) const;
 
-    // send TEXT_UPDATED event, return TRUE if it was handled, FALSE otherwise
+    // send TEXT_UPDATED event, return true if it was handled, false otherwise
     bool SendUpdateEvent();
 
     // override some base class virtuals
@@ -250,7 +248,7 @@ protected:
     int m_verRichEdit;
 #endif // wxUSE_RICHEDIT
 
-    // if TRUE, SendUpdateEvent() will eat the next event (see comments in the
+    // if true, SendUpdateEvent() will eat the next event (see comments in the
     // code as to why this is needed)
     bool m_suppressNextUpdate;
 

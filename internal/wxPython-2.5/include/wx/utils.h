@@ -48,11 +48,11 @@ class WXDLLIMPEXP_BASE wxArrayString;
 // Forward declaration
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_BASE wxProcess;
-class WXDLLIMPEXP_BASE wxFrame;
-class WXDLLIMPEXP_BASE wxWindow;
-class WXDLLIMPEXP_BASE wxWindowList;
-class WXDLLIMPEXP_BASE wxPoint;
+class WXDLLIMPEXP_CORE wxProcess;
+class WXDLLIMPEXP_CORE wxFrame;
+class WXDLLIMPEXP_CORE wxWindow;
+class WXDLLIMPEXP_CORE wxWindowList;
+class WXDLLIMPEXP_CORE wxPoint;
 
 // ----------------------------------------------------------------------------
 // Macros
@@ -90,22 +90,19 @@ WXDLLIMPEXP_BASE int wxGetOsVersion(int *majorVsn = (int *) NULL,
 // Return a string with the current date/time
 WXDLLIMPEXP_BASE wxString wxNow();
 
-// Return path where wxWindows is installed (mostly useful in Unices)
+// Return path where wxWidgets is installed (mostly useful in Unices)
 WXDLLIMPEXP_BASE const wxChar *wxGetInstallPrefix();
 // Return path to wxWin data (/usr/share/wx/%{version}) (Unices)
 WXDLLIMPEXP_BASE wxString wxGetDataDir();
 
 
 #if wxUSE_GUI
-#if defined(__WXMSW__) || defined(__WXMAC__)
-	// Get the state of a key (true if pressed, false if not)
-	// This is generally most useful getting the state of
-	// Caps Lock, Num Lock and Scroll Lock...
 
-	// Note - There is a X11/GTK version which will be here
-	// soon
-	WXDLLEXPORT bool wxGetKeyState(wxKeyCode key);
-#endif
+// Get the state of a key (true if pressed, false if not)
+// This is generally most useful getting the state of
+// the modifier or toggle keys.
+WXDLLEXPORT bool wxGetKeyState(wxKeyCode key);
+
 
 // Don't synthesize KeyUp events holding down a key and producing
 // KeyDown events with autorepeat. On by default and always on
@@ -260,7 +257,13 @@ WXDLLIMPEXP_BASE bool wxShell(const wxString& command, wxArrayString& output);
 WXDLLIMPEXP_BASE void wxSleep(int nSecs);
 
 // Sleep for a given amount of milliseconds
-WXDLLIMPEXP_BASE void wxUsleep(unsigned long milliseconds);
+WXDLLIMPEXP_BASE void wxMilliSleep(unsigned long milliseconds);
+
+// Sleep for a given amount of microseconds
+WXDLLIMPEXP_BASE void wxMicroSleep(unsigned long microseconds);
+
+// Sleep for a given amount of milliseconds (old, bad name), use wxMilliSleep
+wxDEPRECATED( WXDLLIMPEXP_BASE void wxUsleep(unsigned long milliseconds) );
 
 // Get the process id of the current process
 WXDLLIMPEXP_BASE unsigned long wxGetProcessId();
@@ -496,7 +499,7 @@ WXDLLIMPEXP_BASE bool wxYield();
 WXDLLIMPEXP_BASE bool wxYieldIfNeeded();
 
 // ----------------------------------------------------------------------------
-// Error message functions used by wxWindows (deprecated, use wxLog)
+// Error message functions used by wxWidgets (deprecated, use wxLog)
 // ----------------------------------------------------------------------------
 
 #if WXWIN_COMPATIBILITY_2_2

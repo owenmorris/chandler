@@ -22,11 +22,14 @@
 %newgroup
 
 
+MustHaveApp(wxPanel);
+
 class wxPanel : public wxWindow
 {
 public:
     %pythonAppend wxPanel         "self._setOORInfo(self)"
     %pythonAppend wxPanel()       ""
+    %typemap(out) wxPanel*;    // turn off this typemap
 
     wxPanel(wxWindow* parent,
             const wxWindowID id=-1,
@@ -36,8 +39,11 @@ public:
             const wxString& name = wxPyPanelNameStr);
     %name(PrePanel)wxPanel();
 
+    // Turn it back on again
+    %typemap(out) wxPanel* { $result = wxPyMake_wxObject($1, $owner); }
+
     bool Create(wxWindow* parent,
-                const wxWindowID id,
+                const wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxTAB_TRAVERSAL | wxNO_BORDER,
@@ -45,6 +51,8 @@ public:
 
     void InitDialog();
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------
@@ -55,11 +63,14 @@ public:
 //       derive from it and wxPanel.  But what to do about wxGTK where this
 //       is not True?
 
+MustHaveApp(wxScrolledWindow);
+
 class wxScrolledWindow : public wxPanel
 {
 public:
     %pythonAppend wxScrolledWindow         "self._setOORInfo(self)"
     %pythonAppend wxScrolledWindow()       ""
+    %typemap(out) wxScrolledWindow*;    // turn off this typemap
 
     wxScrolledWindow(wxWindow* parent,
                      const wxWindowID id = -1,
@@ -68,6 +79,9 @@ public:
                      long style = wxHSCROLL | wxVSCROLL,
                      const wxString& name = wxPyPanelNameStr);
     %name(PreScrolledWindow)wxScrolledWindow();
+
+    // Turn it back on again
+    %typemap(out) wxScrolledWindow* { $result = wxPyMake_wxObject($1, $owner); }
 
     bool Create(wxWindow* parent,
                 const wxWindowID id = -1,
@@ -96,7 +110,7 @@ public:
     DocDeclAStr(
         virtual void, GetScrollPixelsPerUnit(int *OUTPUT, int *OUTPUT) const,
         "GetScrollPixelsPerUnit() -> (xUnit, yUnit)",
-        "Get the size of one logical unit in physical units.");
+        "Get the size of one logical unit in physical units.", "");
 
     // Enable/disable Windows scrolling in either direction. If True, wxWindows
     // scrolls the canvas and only a bit of the canvas is invalidated; no
@@ -109,7 +123,7 @@ public:
     DocDeclAStr( 
         virtual void, GetViewStart(int *OUTPUT, int *OUTPUT) const,
         "GetViewStart() -> (x,y)",
-        "Get the view start");
+        "Get the view start", "");
     
     // Set the scale factor, used in PrepareDC
     void SetScale(double xs, double ys);
@@ -120,14 +134,14 @@ public:
     %nokwargs CalcScrolledPosition;
     %nokwargs CalcUnscrolledPosition;
     
-    DocStr(CalcScrolledPosition, "Translate between scrolled and unscrolled coordinates.");
+    DocStr(CalcScrolledPosition, "Translate between scrolled and unscrolled coordinates.", "");
     wxPoint CalcScrolledPosition(const wxPoint& pt) const;
     DocDeclA(
         void, CalcScrolledPosition(int x, int y, int *OUTPUT, int *OUTPUT) const,
         "CalcScrolledPosition(int x, int y) -> (sx, sy)");
 
     
-    DocStr(CalcUnscrolledPosition, "Translate between scrolled and unscrolled coordinates.");
+    DocStr(CalcUnscrolledPosition, "Translate between scrolled and unscrolled coordinates.", "");
     wxPoint CalcUnscrolledPosition(const wxPoint& pt) const;
     DocDeclA(
         void, CalcUnscrolledPosition(int x, int y, int *OUTPUT, int *OUTPUT) const,
@@ -156,6 +170,15 @@ public:
     void SetTargetRect(const wxRect& rect);
     wxRect GetTargetRect() const;
 #endif
+
+    // TODO: directorize this?
+    DocDeclStr(
+        virtual void , DoPrepareDC( wxDC & dc ),
+        "Normally what is called by `PrepareDC`.", "");
+
+    
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
     

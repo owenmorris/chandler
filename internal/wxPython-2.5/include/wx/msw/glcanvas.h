@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/msw/glcanvas.h
-// Purpose:     wxGLCanvas, for using OpenGL with wxWindows under Windows
+// Purpose:     wxGLCanvas, for using OpenGL with wxWidgets under Windows
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
@@ -9,12 +9,12 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+#ifndef _WX_GLCANVAS_H_
+#define _WX_GLCANVAS_H_
+
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma interface "glcanvas.h"
 #endif
-
-#ifndef _WX_GLCANVAS_H_
-#define _WX_GLCANVAS_H_
 
 #include "wx/palette.h"
 #include "wx/scrolwin.h"

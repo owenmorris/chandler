@@ -10,6 +10,7 @@
 # Licence:      wxWindows license
 #----------------------------------------------------------------------------
 
+import sys
 import  wx
 import  wx.lib.mixins.listctrl  as  listmix
 
@@ -98,12 +99,16 @@ class TestListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
 
         self.list = TestListCtrl(self, tID,
                                  style=wx.LC_REPORT 
-                                 | wx.SUNKEN_BORDER
+                                 #| wx.BORDER_SUNKEN
+                                 | wx.BORDER_NONE
                                  | wx.LC_EDIT_LABELS
-                                 #| wxLC_NO_HEADER
-                                 #| wxLC_VRULES | wxLC_HRULES
+                                 | wx.LC_SORT_ASCENDING
+                                 #| wx.LC_NO_HEADER
+                                 #| wx.LC_VRULES
+                                 #| wx.LC_HRULES
+                                 #| wx.LC_SINGLE_SEL
                                  )
-
+        
         self.list.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         self.PopulateList()
@@ -161,12 +166,11 @@ class TestListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
             self.list.InsertColumnInfo(2, info)
 
         items = musicdata.items()
-        for x in range(len(items)):
-            key, data = items[x]
-            self.list.InsertImageStringItem(x, data[0], self.idx1)
-            self.list.SetStringItem(x, 1, data[1])
-            self.list.SetStringItem(x, 2, data[2])
-            self.list.SetItemData(x, key)
+        for key, data in items:
+            index = self.list.InsertImageStringItem(sys.maxint, data[0], self.idx1)
+            self.list.SetStringItem(index, 1, data[1])
+            self.list.SetStringItem(index, 2, data[2])
+            self.list.SetItemData(index, key)
 
         self.list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     19.10.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows Team
+// Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +26,7 @@
 
 class WXDLLEXPORT wxDataFormat;
 class WXDLLEXPORT wxDataObject;
+class WXDLLEXPORT wxClipboard;
 
 // ----------------------------------------------------------------------------
 // wxClipboard represents the system clipboard. Normally, you should use
@@ -38,7 +39,7 @@ class WXDLLEXPORT wxDataObject;
 class WXDLLEXPORT wxClipboardBase : public wxObject
 {
 public:
-    wxClipboardBase();
+    wxClipboardBase() {}
 
     // open the clipboard before Add/SetData() and GetData()
     virtual bool Open() = 0;
@@ -64,19 +65,28 @@ public:
 
     // fill data with data on the clipboard (if available)
     virtual bool GetData( wxDataObject& data ) = 0;
-    
+
     // clears wxTheClipboard and the system's clipboard if possible
     virtual void Clear() = 0;
 
     // flushes the clipboard: this means that the data which is currently on
     // clipboard will stay available even after the application exits (possibly
     // eating memory), otherwise the clipboard will be emptied on exit
-    virtual bool Flush() { return FALSE; }
+    virtual bool Flush() { return false; }
 
     // X11 has two clipboards which get selected by this call. Empty on MSW.
-    virtual void UsePrimarySelection( bool WXUNUSED(primary) = FALSE ) { }
+    virtual void UsePrimarySelection( bool WXUNUSED(primary) = false ) { }
 
+    // Returns global instance (wxTheClipboard) of the object:
+    static wxClipboard *Get();
 };
+
+// ----------------------------------------------------------------------------
+// globals
+// ----------------------------------------------------------------------------
+
+// The global clipboard object - backward compatible access macro:
+#define wxTheClipboard   (wxClipboard::Get())
 
 // ----------------------------------------------------------------------------
 // include platform-specific class declaration
@@ -99,13 +109,6 @@ public:
 #elif defined(__WXPM__)
     #include "wx/os2/clipbrd.h"
 #endif
-
-// ----------------------------------------------------------------------------
-// globals
-// ----------------------------------------------------------------------------
-
-// The global clipboard object
-WXDLLEXPORT_DATA(extern wxClipboard *) wxTheClipboard;
 
 // ----------------------------------------------------------------------------
 // helpful class for opening the clipboard and automatically closing it

@@ -23,7 +23,7 @@ import sys, os
 # stuff for debugging
 print "wx.VERSION_STRING = ", wx.VERSION_STRING
 print "pid:", os.getpid()
-##raw_input("Press a key...")
+##raw_input("Press Enter...")
 
 assertMode = wx.PYAPP_ASSERT_DIALOG
 ##assertMode = wx.PYAPP_ASSERT_EXCEPTION
@@ -44,17 +44,16 @@ class RunDemoApp(wx.App):
         self.name = name
         self.demoModule = module
         self.useShell = useShell
-        wx.App.__init__(self, 0)
+        wx.App.__init__(self, redirect=False)
 
 
     def OnInit(self):
-        wx.InitAllImageHandlers()
         wx.Log_SetActiveTarget(wx.LogStderr())
 
         self.SetAssertMode(assertMode)
 
         frame = wx.Frame(None, -1, "RunDemo: " + self.name, pos=(50,50), size=(200,100),
-                        style=wx.NO_FULL_REPAINT_ON_RESIZE|wx.DEFAULT_FRAME_STYLE)
+                        style=wx.DEFAULT_FRAME_STYLE)
         frame.CreateStatusBar()
 
         menuBar = wx.MenuBar()

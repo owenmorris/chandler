@@ -127,9 +127,6 @@
 #define wxUSE_STOPWATCH    1
 #define wxUSE_TAB_DIALOG   1
 #define wxUSE_WXHTML_HELP  1
-#define wxUSE_BUTTONBAR     1
-                                    // Define 1 to use buttonbar classes (enhanced toolbar
-                                    // for MS Windows)
 
 #define wxUSE_RADIOBUTTON   1
                                     // Define 1 to use radio button control
@@ -156,6 +153,8 @@
 
 #define wxUSE_DOC_VIEW_ARCHITECTURE 1
                                   // Set to 0 to disable document/view architecture
+#define wxUSE_MDI 1
+
 #define wxUSE_MDI_ARCHITECTURE  1
                                   // Set to 0 to disable MDI document/view architecture
 #define wxUSE_PRINTING_ARCHITECTURE  1
@@ -226,7 +225,7 @@
                                   // 0 for <iostream>
 
 #define wxUSE_STREAMS       1
-                                  // If enabled (1), compiles wxWindows streams classes
+                                  // If enabled (1), compiles wxWidgets streams classes
 
 #define wxUSE_STD_IOSTREAM  1
                                   // Use standard C++ streams if 1. If 0, use wxWin
@@ -238,9 +237,6 @@
                                   // and make the library thread safe
 #define wxUSE_ZLIB          1
                                   // Use zlib for compression in streams and PNG code
-#define wxUSE_GZSTREAM      1
-                                  // Set to 1 to compile wxGzipInput/OutputStream classes.
-                                  // Requires wxUSE_ZLIB.
 #define wxUSE_IMAGE         1
                                   // Set to 1 for wxImage support (recommended).
 #define wxUSE_LIBPNG        1

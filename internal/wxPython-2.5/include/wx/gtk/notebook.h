@@ -80,8 +80,6 @@ public:
 
   // operations
   // ----------
-    // remove one page from the notebook
-  bool DeletePage(size_t nPage);
     // remove all pages
   bool DeleteAllPages();
 
@@ -98,6 +96,10 @@ public:
     // --------------------------
     void OnNavigationKey(wxNavigationKeyEvent& event);
 
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation
     // --------------
 
@@ -106,10 +108,8 @@ public:
     bool DoPhase(int phase);
 #endif
 
-    // set all page's font
-    bool SetFont(const wxFont& font);
-    
-    void ApplyWidgetStyle();
+    // set all page's attributes
+    void DoApplyWidgetStyle(GtkRcStyle *style);
 
     // report if window belongs to notebook
     bool IsOwnGtkWindow( GdkWindow *window );

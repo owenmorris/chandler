@@ -2,10 +2,10 @@
 // Name:        display.h
 // Purpose:     wxDisplay class customization for WXMSW
 // Author:      Royce Mitchell III
-// Modified by: 
+// Modified by:
 // Created:     06/21/02
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +49,7 @@ private:
     wxArrayVideoModes DoGetModesWindows(const wxVideoMode& modeMatch) const;
     bool DoChangeModeWindows(const wxVideoMode& mode);
 
-    
+
     DECLARE_NO_COPY_CLASS(wxDisplay)
 };
 

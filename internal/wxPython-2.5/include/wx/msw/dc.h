@@ -17,7 +17,6 @@
 #endif
 
 #include "wx/defs.h"
-#include "wx/dc.h"
 
 // ---------------------------------------------------------------------------
 // macros
@@ -114,10 +113,17 @@ public:
     }
 
     WXHDC GetHDC() const { return m_hDC; }
-    void SetHDC(WXHDC dc, bool bOwnsDC = FALSE)
+    void SetHDC(WXHDC dc, bool bOwnsDC = false)
     {
         m_hDC = dc;
         m_bOwnsDC = bOwnsDC;
+
+        // we might have a pre existing clipping region, make sure that we
+        // return it if asked -- but avoid calling ::GetClipBox() right now as
+        // it could be unnecessary wasteful
+        m_clipping = true;
+        m_clipX1 =
+        m_clipX2 = 0;
     }
 
     const wxBitmap& GetSelectedBitmap() const { return m_selectedBitmap; }
@@ -162,7 +168,7 @@ protected:
 
     virtual void DoDrawIcon(const wxIcon& icon, wxCoord x, wxCoord y);
     virtual void DoDrawBitmap(const wxBitmap &bmp, wxCoord x, wxCoord y,
-                              bool useMask = FALSE);
+                              bool useMask = false);
 
     virtual void DoDrawText(const wxString& text, wxCoord x, wxCoord y);
     virtual void DoDrawRotatedText(const wxString& text, wxCoord x, wxCoord y,
@@ -170,7 +176,7 @@ protected:
 
     virtual bool DoBlit(wxCoord xdest, wxCoord ydest, wxCoord width, wxCoord height,
                         wxDC *source, wxCoord xsrc, wxCoord ysrc,
-                        int rop = wxCOPY, bool useMask = FALSE, wxCoord xsrcMask = -1, wxCoord ysrcMask = -1);
+                        int rop = wxCOPY, bool useMask = false, wxCoord xsrcMask = wxDefaultCoord, wxCoord ysrcMask = wxDefaultCoord);
 
     // this is gnarly - we can't even call this function DoSetClippingRegion()
     // because of virtual function hiding
@@ -182,6 +188,8 @@ protected:
     {
         GetClippingBox(x, y, width, height);
     }
+    virtual void DoGetClippingBox(wxCoord *x, wxCoord *y,
+                                  wxCoord *w, wxCoord *h) const;
 
     virtual void DoGetSize(int *width, int *height) const;
     virtual void DoGetSizeMM(int* width, int* height) const;
@@ -201,7 +209,7 @@ protected:
     // (tell windows to translate pixel from other palettes to our custom one
     // and vice versa)
     // Realize tells it to also reset the system palette to this one.
-    void DoSelectPalette(bool realize = FALSE);
+    void DoSelectPalette(bool realize = false);
 
     // Find out what palette our parent window has, then select it into the dc
     void InitializePalette();
@@ -249,7 +257,7 @@ protected:
 };
 
 // ----------------------------------------------------------------------------
-// wxDCTemp: a wxDC which doesn't free the given HDC (used by wxWindows
+// wxDCTemp: a wxDC which doesn't free the given HDC (used by wxWidgets
 // only/mainly)
 // ----------------------------------------------------------------------------
 

@@ -309,10 +309,13 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyTreeCtrl, wxTreeCtrl);
 
 
  
+MustHaveApp(wxPyTreeCtrl);
+
 %name(TreeCtrl)class wxPyTreeCtrl : public wxControl {
 public:
     %pythonAppend wxPyTreeCtrl         "self._setOORInfo(self);self._setCallbackInfo(self, TreeCtrl)"
     %pythonAppend wxPyTreeCtrl()       ""
+    %typemap(out) wxPyTreeCtrl*;    // turn off this typemap
    
     wxPyTreeCtrl(wxWindow *parent, wxWindowID id = -1,
                  const wxPoint& pos = wxDefaultPosition,
@@ -321,6 +324,9 @@ public:
                  const wxValidator& validator = wxDefaultValidator,
                  const wxString& name = wxPyTreeCtrlNameStr);
     %name(PreTreeCtrl)wxPyTreeCtrl();
+
+    // Turn it back on again
+    %typemap(out) wxPyTreeCtrl* { $result = wxPyMake_wxObject($1, $owner); }
 
     bool Create(wxWindow *parent, wxWindowID id = -1,
                 const wxPoint& pos = wxDefaultPosition,
@@ -510,6 +516,7 @@ public:
                 wxTreeItemId *tii = new wxTreeItemId(array.Item(x));
                 PyObject* item = wxPyConstructObject((void*)tii, wxT("wxTreeItemId"), True);
                 PyList_Append(rval, item);
+                Py_DECREF(item);
             }
             wxPyEndBlockThreads(blocked);
             return rval;
@@ -521,6 +528,8 @@ public:
     wxTreeItemId GetItemParent(const wxTreeItemId& item) const;
 
 
+    // NOTE: These are a copy of the same methods in gizmos.i, be sure to
+    // update both at the same time.  (Or find a good way to refactor!)
     %extend {
         // Get the first child of this item.  Returns a wxTreeItemId and an
         // opaque "cookie" value that should be passed to GetNextChild in
@@ -685,10 +694,10 @@ public:
     DocDeclAStr(
         wxTreeItemId, HitTest(const wxPoint& point, int& OUTPUT),
         "HitTest(Point point) -> (item, where)",
-        "Determine which item (if any) belongs the given point.  The\n"
-        "coordinates specified are relative to the client area of tree ctrl\n"
-        "and the where return value is set to a bitmask of wxTREE_HITTEST_xxx\n"
-        "constants.\n");
+        "Determine which item (if any) belongs the given point.  The coordinates
+specified are relative to the client area of tree ctrl and the where return
+value is set to a bitmask of wxTREE_HITTEST_xxx constants.
+", "");
     
 
     %extend {
@@ -707,7 +716,14 @@ public:
         }
     }
 
+#ifdef __WXMSW__
+    // set/get the item state.image (state == -1 means cycle to the next one)
+    void SetState(const wxTreeItemId& node, int state);
+    int GetState(const wxTreeItemId& node);
+#endif
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 

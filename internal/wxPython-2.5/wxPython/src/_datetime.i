@@ -366,7 +366,7 @@ public:
     DocDeclAStr(
         static void, GetAmPmStrings(wxString *OUTPUT, wxString *OUTPUT),
         "GetAmPmStrings() -> (am, pm)",
-        "Get the AM and PM strings in the current locale (may be empty)");
+        "Get the AM and PM strings in the current locale (may be empty)", "");
 
         // return True if the given country uses DST for this year
     static bool IsDSTApplicable(int year = Inv_Year,
@@ -507,6 +507,17 @@ public:
     bool SetToTheWeek(wxDateTime_t numWeek, WeekDay weekday = Mon, WeekFlags flags = Monday_First);
     wxDateTime GetWeek(wxDateTime_t numWeek, WeekDay weekday = Mon, WeekFlags flags = Monday_First);
 
+    %pythoncode {
+        SetToTheWeek = wx._deprecated(SetToTheWeek, "SetToTheWeek is deprecated, use (static) SetToWeekOfYear instead")
+        GetWeek = wx._deprecated(GetWeek, "GetWeek is deprecated, use GetWeekOfYear instead")
+    }
+            
+        // returns the date corresponding to the given week day of the given
+        // week (in ISO notation) of the specified year
+    static wxDateTime SetToWeekOfYear(int year,
+                                      wxDateTime_t numWeek,
+                                      WeekDay weekday = Mon);
+    
         // sets the date to the last day of the given (or current) month or the
         // given (or current) year
     wxDateTime& SetToLastMonthDay(Month month = Inv_Month,
@@ -713,12 +724,39 @@ public:
         wxDateTime __sub__(const wxTimeSpan& other) { return *self - other; }
         wxDateTime __sub__(const wxDateSpan& other) { return *self - other; }
 
-        bool __lt__(const wxDateTime* other) { return other ? (*self <  *other) : False; }
-        bool __le__(const wxDateTime* other) { return other ? (*self <= *other) : False; }
-        bool __gt__(const wxDateTime* other) { return other ? (*self >  *other) : True;  }
-        bool __ge__(const wxDateTime* other) { return other ? (*self >= *other) : True;  }
-        bool __eq__(const wxDateTime* other) { return other ? (*self == *other) : False; }
-        bool __ne__(const wxDateTime* other) { return other ? (*self != *other) : True;  }
+//         bool __lt__(const wxDateTime* other) { return other ? (*self <  *other) : False; }
+//         bool __le__(const wxDateTime* other) { return other ? (*self <= *other) : False; }
+//         bool __gt__(const wxDateTime* other) { return other ? (*self >  *other) : True;  }
+//         bool __ge__(const wxDateTime* other) { return other ? (*self >= *other) : True;  }
+
+
+        // These fall back to just comparing pointers if other is NULL, or if
+        // either operand is invalid.
+        bool __lt__(const wxDateTime* other) { 
+            if (!other || !self->IsValid() || !other->IsValid()) return self <  other; 
+            return (*self <  *other);
+        }
+        bool __le__(const wxDateTime* other) { 
+            if (!other || !self->IsValid() || !other->IsValid()) return self <= other; 
+            return (*self <= *other);
+        }
+        bool __gt__(const wxDateTime* other) { 
+            if (!other || !self->IsValid() || !other->IsValid()) return self >  other; 
+            return (*self >  *other);
+        }
+        bool __ge__(const wxDateTime* other) { 
+            if (!other || !self->IsValid() || !other->IsValid()) return self >= other; 
+            return (*self >= *other);
+        }
+
+        bool __eq__(const wxDateTime* other) {
+            if (!other || !self->IsValid() || !other->IsValid()) return self == other; 
+            return (*self == *other);
+        }
+        bool __ne__(const wxDateTime* other) {
+            if (!other || !self->IsValid() || !other->IsValid()) return self != other; 
+            return (*self != *other);
+        }            
     }
 
         
@@ -809,9 +847,15 @@ public:
 
     %pythoncode {
     def __repr__(self):
-        return '<wxDateTime: \"%s\" at %s>' % ( self.Format(), self.this)
+        if self.IsValid():
+            return '<wx.DateTime: \"%s\" at %s>' % ( self.Format(), self.this)
+        else:
+            return '<wx.DateTime: \"INVALID\" at %s>' % self.this
     def __str__(self):
-        return self.Format()
+        if self.IsValid():
+            return self.Format()
+        else:
+            return "INVALID DateTime"
     }
 };
 
@@ -955,7 +999,7 @@ public:
 
     %pythoncode {
      def __repr__(self):
-         return '<wxTimeSpan: \"%s\" at %s>' % ( self.Format(), self.this)
+         return '<wx.TimeSpan: \"%s\" at %s>' % ( self.Format(), self.this)
      def __str__(self):
          return self.Format()
      }

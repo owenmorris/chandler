@@ -70,6 +70,8 @@ struct wxHtmlHelpFrameCfg
     bool navig_on;
 };
 
+struct wxHtmlHelpMergedIndexItem;
+class wxHtmlHelpMergedIndex;
 
 class WXDLLIMPEXP_CORE wxHelpControllerBase;
 
@@ -113,8 +115,8 @@ public:
     // Displays help window and focuses index.
     bool DisplayIndex();
 
-    // Searches for keyword. Returns TRUE and display page if found, return
-    // FALSE otherwise
+    // Searches for keyword. Returns true and display page if found, return
+    // false otherwise
     // Syntax of keyword is Altavista-like:
     // * words are separated by spaces
     //   (but "\"hello world\"" is only one world "hello world")
@@ -139,10 +141,10 @@ public:
 
     // call this to let wxHtmlHelpFrame know page changed
     void NotifyPageChanged();
-    
+
     // Refreshes Contents and Index tabs
     void RefreshLists();
-    
+
 protected:
     void Init(wxHtmlHelpData* data = NULL);
 
@@ -154,6 +156,10 @@ protected:
 
     // Add books to search choice panel
     void CreateSearch();
+
+    // Updates "merged index" structure that combines indexes of all books
+    // into better searchable structure
+    void UpdateMergedIndex();
 
     // Add custom buttons to toolbar
     virtual void AddToolbarButtons(wxToolBar *toolBar, int style);
@@ -234,6 +240,10 @@ protected:
 
     int m_hfStyle;
 
+private:
+    void DisplayIndexItem(const wxHtmlHelpMergedIndexItem *it);
+    wxHtmlHelpMergedIndex *m_mergedIndex;
+    
     DECLARE_EVENT_TABLE()
     DECLARE_NO_COPY_CLASS(wxHtmlHelpFrame)
 };

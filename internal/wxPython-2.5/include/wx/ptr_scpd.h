@@ -11,7 +11,7 @@
 
 //  This class closely follows the implementation of the boost
 //  library scoped_ptr and is an adaption for c++ macro's in 
-//  the wxWindows project. The original authors of the boost
+//  the wxWidgets project. The original authors of the boost
 //  scoped_ptr are given below with their respective copyrights.
 
 //  (C) Copyright Greg Colvin and Beman Dawes 1998, 1999.

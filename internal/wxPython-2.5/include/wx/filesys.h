@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
 // RCS-ID:      $Id$
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __FILESYS_H__
@@ -30,9 +30,9 @@
 #include "wx/datetime.h"
 #include "wx/filename.h"
 
-class wxFSFile;
-class wxFileSystemHandler;
-class wxFileSystem;
+class WXDLLIMPEXP_BASE wxFSFile;
+class WXDLLIMPEXP_BASE wxFileSystemHandler;
+class WXDLLIMPEXP_BASE wxFileSystem;
 
 //--------------------------------------------------------------------------------
 // wxFSFile

@@ -3,28 +3,46 @@ import  wx
 
 #---------------------------------------------------------------------------
 
+class TestPanel(wx.Panel):
+    def __init__(self, parent, log):
+        self.log = log
+        wx.Panel.__init__(self, parent, -1)
+
+        b = wx.Button(self, -1, "Create and Show a MessageDialog", (50,50))
+        self.Bind(wx.EVT_BUTTON, self.OnButton, b)
+
+
+    def OnButton(self, evt):
+        dlg = wx.MessageDialog(self, 'Hello from Python and wxPython!',
+                               'A Message Box',
+                               wx.OK | wx.ICON_INFORMATION
+                               #wx.YES_NO | wx.NO_DEFAULT | wx.CANCEL | wx.ICON_INFORMATION
+                               )
+        dlg.ShowModal()
+        dlg.Destroy()
+
+
+#---------------------------------------------------------------------------
+
+
 def runTest(frame, nb, log):
-    dlg = wx.MessageDialog(frame, 'Hello from Python and wxPython!',
-                          'A Message Box', wx.OK | wx.ICON_INFORMATION)
-                          #wxYES_NO | wxNO_DEFAULT | wxCANCEL | wxICON_INFORMATION)
-    dlg.ShowModal()
-    dlg.Destroy()
+    win = TestPanel(nb, log)
+    return win
+
 
 #---------------------------------------------------------------------------
 
 
 
 overview = """\
-This class represents a dialog that shows a single or multi-line message, with a 
-choice of OK, Yes, No and Cancel buttons.
+<html><body>
+<h2>wx.MessageDialog</h2>
 
-Additionally, various style flags can determine whether an icon is displayed,
-and, if so, what kind.
-
-The dialog can be modal or not; of modal, the user's response is in the return
-code of ShowModal(). If not, the response can be taken from GetReturnCode() (inherited
-from the wx.Dialog). If not modal and the return code is required, it
-must be retrieved before the dialog is destroyed.
+This class represents a dialog that shows a single or multi-line
+message, with a choice of OK, Yes, No and Cancel buttons.
+Additionally, various style flags can determine whether an icon is
+displayed, and, if so, what kind.  The return value of ShowModal
+indicates which button was pressed.
 
 """
 

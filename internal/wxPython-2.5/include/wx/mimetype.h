@@ -387,7 +387,7 @@ private:
 // global variables
 // ----------------------------------------------------------------------------
 
-// the default mime manager for wxWindows programs
+// the default mime manager for wxWidgets programs
 WXDLLIMPEXP_DATA_BASE(extern wxMimeTypesManager *) wxTheMimeTypesManager;
 
 #endif // wxUSE_MIMETYPE

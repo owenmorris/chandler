@@ -88,6 +88,16 @@ public:
 
     virtual void ShowPosition(long pos);
 
+#ifdef __WXGTK20__
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
+                                            wxTextCoord *col,
+                                            wxTextCoord *row) const
+    {
+        return wxTextCtrlBase::HitTest(pt, col, row);
+    }
+#endif // __WXGTK20__
+
     // Clipboard operations
     virtual void Copy();
     virtual void Cut();
@@ -133,10 +143,16 @@ public:
 
     GtkWidget* GetConnectWidget();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     void CalculateScrollbar();
     void OnInternalIdle();
+
+#ifdef __WXGTK20__
+    void SetUpdateFont(bool WXUNUSED(update)) { }
+#else // !__WXGTK20__
+    void SetUpdateFont(bool update) { m_updateFont = update; }
     void UpdateFontIfNeeded();
+#endif // __WXGTK20__/!__WXGTK20__
 
     void SetModified() { m_modified = TRUE; }
 
@@ -162,6 +178,9 @@ public:
     // should we ignore the changed signal? always resets the flag
     bool IgnoreTextUpdate();
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
 protected:
     virtual wxSize DoGetBestSize() const;
 
@@ -175,6 +194,10 @@ protected:
     // scroll position changed
     bool DoScroll(GtkAdjustment *adj, int diff);
 
+    // Widgets that use the style->base colour for the BG colour should
+    // override this and return true.
+    virtual bool UseGTKStyleBase() const { return true; }
+
 private:
     // change the font for everything in this control
     void ChangeFontGlobally();
@@ -184,7 +207,9 @@ private:
 
     bool        m_modified:1;
     bool        m_vScrollbarVisible:1;
+#ifndef __WXGTK20__
     bool        m_updateFont:1;
+#endif // !__WXGTK20__
     bool        m_ignoreNextUpdate:1;
 
     DECLARE_EVENT_TABLE()

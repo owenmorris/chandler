@@ -29,7 +29,7 @@
 
 #define wxGRID_VALUE_DBAUTO     _T("dbauto")
 
-WX_DECLARE_EXPORTED_OBJARRAY(GenericKey,keyarray);
+WX_DECLARE_USER_EXPORTED_OBJARRAY(GenericKey,keyarray,WXDLLIMPEXP_DBGRID);
 
 static const int wxUSE_QUERY = -1;
 
@@ -118,7 +118,7 @@ class WXDLLIMPEXP_DBGRID wxDbGridTableBase : public wxGridTableBase
 {
 public:
     wxDbGridTableBase(wxDbTable *tab, wxDbGridColInfo *ColInfo,
-              int count = wxUSE_QUERY, bool takeOwnership = TRUE);
+              int count = wxUSE_QUERY, bool takeOwnership = true);
     ~wxDbGridTableBase();
 
     virtual int GetNumberRows()
@@ -150,12 +150,12 @@ public:
 
     virtual wxString GetColLabelValue(int col);
 
-    virtual bool     AssignDbTable(wxDbTable *tab, int count = wxUSE_QUERY, bool takeOwnership=TRUE);
+    virtual bool     AssignDbTable(wxDbTable *tab, int count = wxUSE_QUERY, bool takeOwnership=true);
     virtual void     ValidateRow(int row);
     virtual bool     UpdateRow(int row) const
     {
         if (m_row != row)
-            return TRUE;
+            return true;
         else
             return Writeback();
     }

@@ -67,7 +67,7 @@
 // Generic comment about debugging settings: they are very useful if you don't
 // use any other memory leak detection tools such as Purify/BoundsChecker, but
 // are probably redundant otherwise. Also, Visual C++ CRT has the same features
-// as wxWindows memory debugging subsystem built in since version 5.0 and you
+// as wxWidgets memory debugging subsystem built in since version 5.0 and you
 // may prefer to use it instead of built in memory debugging code because it is
 // faster and more fool proof.
 //
@@ -136,7 +136,7 @@
 // Unicode support
 // ----------------------------------------------------------------------------
 
-// Set wxUSE_UNICODE to 1 to compile wxWindows in Unicode mode: wxChar will be
+// Set wxUSE_UNICODE to 1 to compile wxWidgets in Unicode mode: wxChar will be
 // defined as wchar_t, wxString will use Unicode internally. If you set this
 // to 1, you must use wxT() macro for all literal strings in the program.
 //
@@ -151,7 +151,7 @@
     #define wxUSE_UNICODE 1
 #endif
 
-// Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWindows in Unicode mode
+// Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWidgets in Unicode mode
 // and be able to run compiled apps under Windows 9x as well as NT/2000/XP.
 // This setting enables use of unicows.dll from MSLU (MS Layer for Unicode, see
 // http://www.microsoft.com/globaldev/handson/dev/mslu_announce.mspx). Note that
@@ -248,7 +248,7 @@
 // Recommended setting: 0 unless you do plan to develop MT applications
 #define wxUSE_THREADS 1
 
-// If enabled (1), compiles wxWindows streams classes
+// If enabled (1), compiles wxWidgets streams classes
 #define wxUSE_STREAMS       1
 
 // Use standard C++ streams if 1. If 0, use wxWin streams implementation.
@@ -399,7 +399,7 @@
 
 // If enabled, the code written by Apple will be used to write, in a portable
 // way, float on the disk. See extended.c for the license which is different
-// from wxWindows one.
+// from wxWidgets one.
 //
 // Default is 1.
 //
@@ -483,7 +483,7 @@
 // Recommended setting: 1 (may be set to 0)
 #define wxUSE_TIPWINDOW    1
 
-// Each of the settings below corresponds to one wxWindows control. They are
+// Each of the settings below corresponds to one wxWidgets control. They are
 // all switched on by default but may be disabled if you are sure that your
 // program (including any standard dialogs it can show!) doesn't need them and
 // if you desperately want to save some space. If you use any of these you must
@@ -522,7 +522,11 @@
 // Default is 1
 //
 // Recommended setting: 1
+#ifdef __SMARTPHONE__
+#define wxUSE_STATUSBAR    0
+#else
 #define wxUSE_STATUSBAR    1
+#endif
 
 // Two status bar implementations are available under Win32: the generic one
 // or the wrapper around native control. For native look and feel the native
@@ -542,9 +546,6 @@
 // Recommended setting: 1 for wxUSE_TOOLBAR and wxUSE_TOOLBAR_NATIVE.
 #define wxUSE_TOOLBAR 1
 #define wxUSE_TOOLBAR_NATIVE 1
-
-// this setting is obsolete, value is ignored
-#define wxUSE_BUTTONBAR    1
 
 // wxNotebook is a control with several "tabs" located on one of its sides. It
 // may be used ot logically organise the data presented to the user instead of
@@ -657,20 +658,11 @@
 #define wxUSE_DIB_FOR_BITMAP 0
 
 // Set this to 1 to enable wxDIB
-#define wxUSE_WXDIB 0
+#define wxUSE_WXDIB 1
 
 // ----------------------------------------------------------------------------
 // common dialogs
 // ----------------------------------------------------------------------------
-
-// Define 1 to use generic dialogs in Windows, even though they duplicate
-// native common dialog (e.g. wxColourDialog). This is mainly useful for
-// testing.
-//
-// Default is 0
-//
-// Recommended setting: 0
-#define wxUSE_GENERIC_DIALOGS_IN_MSW 0
 
 // On rare occasions (e.g. using DJGPP) may want to omit common dialogs (e.g.
 // file selector, printer dialog). Switching this off also switches off the
@@ -777,6 +769,15 @@
 
 // Set to 0 to disable document/view architecture
 #define wxUSE_DOC_VIEW_ARCHITECTURE 1
+
+// Set to 0 to disable MDI support.
+//
+// Requires wxUSE_NOTEBOOK under platforms other than MSW.
+//
+// Default is 1.
+//
+// Recommended setting: 1, can be safely set to 0.
+#define wxUSE_MDI 0
 
 // Set to 0 to disable MDI document/view architecture
 #define wxUSE_MDI_ARCHITECTURE    0
@@ -951,16 +952,16 @@
 #define wxUSE_IMAGE         1
 
 // Set to 1 for PNG format support (requires libpng). Also requires wxUSE_ZLIB.
-#define wxUSE_LIBPNG        0
+#define wxUSE_LIBPNG        1
 
 // Set to 1 for JPEG format support (requires libjpeg)
-#define wxUSE_LIBJPEG       0
+#define wxUSE_LIBJPEG       1
 
 // Set to 1 for TIFF format support (requires libtiff)
 #define wxUSE_LIBTIFF       0
 
 // Set to 1 for GIF format support
-#define wxUSE_GIF           0
+#define wxUSE_GIF           1
 
 // Set to 1 for PNM format support
 #define wxUSE_PNM           0
@@ -984,7 +985,7 @@
 // Windows-only settings
 // ----------------------------------------------------------------------------
 
-// Set this to 1 if you want to use wxWindows and MFC in the same program. This
+// Set this to 1 if you want to use wxWidgets and MFC in the same program. This
 // will override some other settings (see below)
 //
 // Default is 0.
@@ -1060,26 +1061,6 @@
 // Set to 1 to auto-adapt to MS Windows XP themes where possible
 // (notably, wxNotebook pages)
 #define wxUSE_UXTHEME_AUTO      0
-
-// Set to 1 if you're developing for MS SmartPhone
-#define wxUSE_SMARTPHONE        0
-
-// Set to 1 if you want to maintain a PocketPC-style UI on
-// Windows CE .NET. If 0, wxWindows will use a commandbar
-// for the menubar, and a normal separate toolbar as per the
-// desktop implementation. If 1, wxWindows will combine
-// the toolbar and menubar as per the PocketPC implementation.
-//
-// Note that at present, the dynamic loading of PocketPC
-// shell functions on WinCE .NET is not yet done, and a
-// simple commandbar implementation is used instead of the
-// PocketPC one. The intention is to use the PocketPC style
-// when available (when wxUSE_POCKETPC_UI is 1).
-//
-// So if you're using WinCE .NET, and wxUSE_POCKETPC_UI is 0,
-// you will be able to create separate toolbars and menubars,
-// but _not_ the combined toolbar/menubar.
-#define wxUSE_POCKETPC_UI       1
 
 // ----------------------------------------------------------------------------
 // obsolete settings

@@ -10,7 +10,7 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-%module controls
+%module(package="wx") _controls
 
 //---------------------------------------------------------------------------
 
@@ -22,9 +22,9 @@
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
 
-%include _controls_rename.i
+%include __controls_rename.i
 
 MAKE_CONST_WXSTRING_NOSWIG(PanelNameStr);
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);

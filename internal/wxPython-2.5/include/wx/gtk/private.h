@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     12.03.02
 // RCS-ID:      $Id$
-// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -130,6 +130,11 @@ inline wxEventType GtkScrollWinTypeToWx(guint scrollType)
     return GtkScrollTypeToWx(scrollType) +
             wxEVT_SCROLLWIN_TOP - wxEVT_SCROLL_TOP;
 }
+
+#ifdef __WXGTK20__
+// Escapes string so that it is valid Pango markup XML string:
+wxString wxEscapeStringForPangoMarkup(const wxString& str);
+#endif
 
 #endif // _WX_GTK_PRIVATE_H_
 

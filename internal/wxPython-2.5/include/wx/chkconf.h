@@ -5,7 +5,7 @@
 * Modified by:
 * Created:     09.08.00
 * RCS-ID:      $Id$
-* Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwindows.org>
+* Copyright:   (c) 2000 Vadim Zeitlin <vadim@wxwidgets.org>
 * Licence:     wxWindows licence
 */
 
@@ -496,6 +496,14 @@
 #   endif
 #endif /* !defined(wxUSE_LOG_DIALOG) */
 
+#ifndef wxUSE_MDI
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_MDI must be defined."
+#   else
+#       define wxUSE_MDI 0
+#   endif
+#endif /* !defined(wxUSE_MDI) */
+
 #ifndef wxUSE_MDI_ARCHITECTURE
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_MDI_ARCHITECTURE must be defined."
@@ -786,17 +794,6 @@
 #   endif
 #endif /* wxUSE_PROTOCOL */
 
-#if wxUSE_GZSTREAM
-#   if !wxUSE_ZLIB
-#       ifdef wxABORT_ON_CONFIG_ERROR
-#           error "wxUSE_GZSTREAM requires wxUSE_ZLIB"
-#       else
-#           undef wxUSE_ZLIB
-#           define wxUSE_ZLIB 1
-#       endif
-#   endif
-#endif /* wxUSE_GZSTREAM */
-
 /* have to test for wxUSE_HTML before wxUSE_FILESYSTEM */
 #if wxUSE_HTML
 #   if !wxUSE_FILESYSTEM
@@ -948,6 +945,17 @@
 #        endif
 #    endif
 #endif /* controls */
+
+#if wxUSE_BMPBUTTON
+#    if !wxUSE_BUTTON
+#        ifdef wxABORT_ON_CONFIG_ERROR
+#            error "wxUSE_BMPBUTTON requires wxUSE_BUTTON"
+#        else
+#            undef wxUSE_BUTTON
+#            define wxUSE_BUTTON 1
+#        endif
+#    endif
+#endif /* wxUSE_BMPBUTTON */
 
 #if wxUSE_NOTEBOOK || wxUSE_LISTBOOK
 #   if defined(wxUSE_BOOKCTRL) && !wxUSE_BOOKCTRL
@@ -1135,12 +1143,12 @@
 #endif /* wxMGL */
 
 /* Hopefully we can emulate these dialogs in due course */
-#if wxUSE_SMARTPHONE
+#ifdef __SMARTPHONE__
 #   ifdef wxUSE_COLOURDLG
 #       undef wxUSE_COLOURDLG
 #       define wxUSE_COLOURDLG 0
 #   endif
-#endif /* wxUSE_SMARTPHONE */
+#endif /* __SMARTPHONE__ */
 
 
 /* generic controls dependencies */
@@ -1202,7 +1210,38 @@
 #            define wxUSE_LISTBOX 1
 #        endif
 #   endif
-#endif /* wxUSE_RADIOBTN */
+#endif /* wxUSE_CHECKLISTBOX */
+
+#if wxUSE_CHOICEDLG
+#   if !wxUSE_LISTBOX
+#        ifdef wxABORT_ON_CONFIG_ERROR
+#            error "Choice dialogs requires wxListBox"
+#        else
+#            undef wxUSE_LISTBOX
+#            define wxUSE_LISTBOX 1
+#        endif
+#   endif
+#endif /* wxUSE_CHOICEDLG */
+
+#if wxUSE_HELP
+#   if !wxUSE_BMPBUTTON
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_HELP requires wxUSE_BMPBUTTON"
+#       else
+#           undef wxUSE_BMPBUTTON
+#           define wxUSE_BMPBUTTON 1
+#       endif
+#   endif
+
+#   if !wxUSE_CHOICEDLG
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_HELP requires wxUSE_CHOICEDLG"
+#       else
+#           undef wxUSE_CHOICEDLG
+#           define wxUSE_CHOICEDLG 1
+#       endif
+#   endif
+#endif /* wxUSE_HELP */
 
 #if wxUSE_WXHTML_HELP
 #   if !wxUSE_HELP || !wxUSE_HTML || !wxUSE_COMBOBOX || !wxUSE_NOTEBOOK
@@ -1329,6 +1368,15 @@
 #        endif
 #   endif
 
+#   if !wxUSE_CHOICEDLG
+#        ifdef wxABORT_ON_CONFIG_ERROR
+#            error "DocView requires wxUSE_CHOICEDLG"
+#        else
+#            undef wxUSE_CHOICEDLG
+#            define wxUSE_CHOICEDLG 1
+#        endif
+#   endif
+
 #   if !wxUSE_STREAMS && !wxUSE_STD_IOSTREAM
 #        ifdef wxABORT_ON_CONFIG_ERROR
 #            error "DocView requires wxUSE_STREAMS or wxUSE_STD_IOSTREAM"
@@ -1351,6 +1399,15 @@
 #endif /* wxUSE_PRINTING_ARCHITECTURE */
 
 #if wxUSE_MDI_ARCHITECTURE
+#   if !wxUSE_MDI
+#        ifdef wxABORT_ON_CONFIG_ERROR
+#            error "MDI requires wxUSE_MDI"
+#        else
+#            undef wxUSE_MDI
+#            define wxUSE_MDI 1
+#        endif
+#   endif
+
 #   if !wxUSE_DOC_VIEW_ARCHITECTURE
 #        ifdef wxABORT_ON_CONFIG_ERROR
 #            error "MDI requires wxUSE_DOC_VIEW_ARCHITECTURE"
@@ -1371,6 +1428,25 @@
 #       endif
 #   endif
 #endif /* wxUSE_FILEDLG */
+
+#if !wxUSE_BUTTON
+#   if wxUSE_PROGRESSDLG || \
+       wxUSE_FONTDLG || \
+       wxUSE_FILEDLG || \
+       wxUSE_CHOICEDLG || \
+       wxUSE_NUMBERDLG || \
+       wxUSE_TEXTDLG || \
+       wxUSE_DIRDLG || \
+       wxUSE_STARTUP_TIPS || \
+       wxUSE_WIZARDDLG
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "Common and generic dialogs require wxUSE_BUTTON"
+#       else
+#           undef wxUSE_BUTTON
+#           define wxUSE_BUTTON 1
+#       endif
+#   endif
+#endif /* wxUSE_PROGRESSDLG */
 
 #if !wxUSE_TOOLBAR
 #   if wxUSE_TOOLBAR_NATIVE
@@ -1438,12 +1514,14 @@
 #endif /* wxUSE_LOGWINDOW */
 
 #if wxUSE_LOG_DIALOG
-#    if !wxUSE_LISTCTRL
+#    if !wxUSE_LISTCTRL || !wxUSE_BUTTON
 #        ifdef wxABORT_ON_CONFIG_ERROR
-#            error "wxUSE_LOG_DIALOG requires wxUSE_LISTCTRL"
+#            error "wxUSE_LOG_DIALOG requires wxUSE_LISTCTRL and wxUSE_BUTTON"
 #        else
 #            undef wxUSE_LISTCTRL
 #            define wxUSE_LISTCTRL 1
+#            undef wxUSE_BUTTON
+#            define wxUSE_BUTTON 1
 #        endif
 #    endif
 #endif /* wxUSE_LOG_DIALOG */

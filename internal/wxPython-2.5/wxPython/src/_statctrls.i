@@ -23,23 +23,34 @@ MAKE_CONST_WXSTRING(StaticTextNameStr);
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxStaticBox);
+
 class wxStaticBox : public wxControl {
 public:
     %pythonAppend wxStaticBox         "self._setOORInfo(self)"
     %pythonAppend wxStaticBox()       ""
+    %typemap(out) wxStaticBox*;    // turn off this typemap
 
-    wxStaticBox(wxWindow* parent, wxWindowID id, const wxString& label,
+    wxStaticBox(wxWindow* parent, wxWindowID id=-1,
+                const wxString& label = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
                 const wxString& name = wxPyStaticBoxNameStr);
     %name(PreStaticBox)wxStaticBox();
 
-    bool Create(wxWindow* parent, wxWindowID id, const wxString& label,
+    // Turn it back on again
+    %typemap(out) wxStaticBox* { $result = wxPyMake_wxObject($1, $owner); }
+
+    bool Create(wxWindow* parent, wxWindowID id=-1,
+                const wxString& label = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
                 const wxString& name = wxPyStaticBoxNameStr);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -47,19 +58,21 @@ public:
 %newgroup
 
 
+MustHaveApp(wxStaticLine);
+
 class wxStaticLine : public wxControl {
 public:
     %pythonAppend wxStaticLine         "self._setOORInfo(self)"
     %pythonAppend wxStaticLine()       ""
 
-    wxStaticLine( wxWindow *parent, wxWindowID id,
+    wxStaticLine( wxWindow *parent, wxWindowID id=-1,
                   const wxPoint &pos = wxDefaultPosition,
                   const wxSize &size = wxDefaultSize,
                   long style = wxLI_HORIZONTAL,
                   const wxString& name = wxPyStaticTextNameStr);
     %name(PreStaticLine)wxStaticLine();
 
-    bool Create( wxWindow *parent, wxWindowID id,
+    bool Create( wxWindow *parent, wxWindowID id=-1,
                   const wxPoint &pos = wxDefaultPosition,
                   const wxSize &size = wxDefaultSize,
                   long style = wxLI_HORIZONTAL,
@@ -71,49 +84,60 @@ public:
     // get the default size for the "lesser" dimension of the static line
     static int GetDefaultSize();
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
 //---------------------------------------------------------------------------
 %newgroup
+
+MustHaveApp(wxStaticText);
 
 class wxStaticText : public wxControl {
 public:
     %pythonAppend wxStaticText         "self._setOORInfo(self)"
     %pythonAppend wxStaticText()       ""
 
-    wxStaticText(wxWindow* parent, wxWindowID id, const wxString& label,
+    wxStaticText(wxWindow* parent, wxWindowID id=-1,
+                 const wxString& label = wxPyEmptyString,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
                  const wxString& name = wxPyStaticTextNameStr);
     %name(PreStaticText)wxStaticText();
 
-    bool Create(wxWindow* parent, wxWindowID id, const wxString& label,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
+                const wxString& label = wxPyEmptyString,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
                  const wxString& name = wxPyStaticTextNameStr);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------
 %newgroup
+
+MustHaveApp(wxStaticBitmap);
 
 class wxStaticBitmap : public wxControl {
 public:
     %pythonAppend wxStaticBitmap         "self._setOORInfo(self)"
     %pythonAppend wxStaticBitmap()       ""
 
-    wxStaticBitmap(wxWindow* parent, wxWindowID id,
-                   const wxBitmap& bitmap,
+    wxStaticBitmap(wxWindow* parent, wxWindowID id=-1,
+                   const wxBitmap& bitmap = wxNullBitmap,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long style = 0,
                    const wxString& name = wxPyStaticBitmapNameStr);
     %name(PreStaticBitmap)wxStaticBitmap();
 
-    bool Create(wxWindow* parent, wxWindowID id,
-                   const wxBitmap& bitmap,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
+                   const wxBitmap& bitmap = wxNullBitmap,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long style = 0,
@@ -122,6 +146,9 @@ public:
     wxBitmap GetBitmap();
     void SetBitmap(const wxBitmap& bitmap);
     void SetIcon(const wxIcon& icon);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------

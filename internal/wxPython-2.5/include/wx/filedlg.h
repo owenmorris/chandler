@@ -30,7 +30,9 @@ enum
     wxOPEN              = 0x0001,
     wxSAVE              = 0x0002,
     wxOVERWRITE_PROMPT  = 0x0004,
+#if WXWIN_COMPATIBILITY_2_4
     wxHIDE_READONLY     = 0x0008,
+#endif
     wxFILE_MUST_EXIST   = 0x0010,
     wxMULTIPLE          = 0x0020,
     wxCHANGE_DIR        = 0x0040
@@ -76,6 +78,7 @@ public:
 
     // Utility functions
 
+#if WXWIN_COMPATIBILITY_2_4
     // Parses the wildCard, returning the number of filters.
     // Returns 0 if none or if there's a problem,
     // The arrays will contain an equal number of items found before the error.
@@ -84,6 +87,7 @@ public:
     static int ParseWildcard(const wxString& wildCard,
                              wxArrayString& descriptions,
                              wxArrayString& filters);
+#endif // WXWIN_COMPATIBILITY_2_4
 
     // Append first extension to filePath from a ';' separated extensionList
     // if filePath = "path/foo.bar" just return it as is

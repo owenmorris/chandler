@@ -5,12 +5,14 @@
 // Modified by:
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_COLORDLG_H_BASE_
 #define _WX_COLORDLG_H_BASE_
+
+#include "wx/defs.h"
 
 #if wxUSE_COLOURDLG
 
@@ -18,6 +20,8 @@
     #include "wx/msw/colordlg.h"
 #elif defined(__WXMAC__) && !defined(__WXUNIVERSAL__)
     #include "wx/mac/colordlg.h"
+#elif defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
+    #include "wx/gtk/colordlg.h"
 #else
     #include "wx/generic/colrdlgg.h"
 

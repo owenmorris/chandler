@@ -6,7 +6,7 @@
 // Created:     2002/11/27
 // RCS-ID:      
 // Copyright:   (c) David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_COCOA_CURSOR_H_

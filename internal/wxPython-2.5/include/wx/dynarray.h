@@ -141,7 +141,7 @@ protected:                                                          \
   T& Item(size_t uiIndex) const                                     \
     { wxASSERT( uiIndex < size() ); return (T&)operator[](uiIndex); }   \
                                                                     \
-  int Index(T e, bool bFromEnd = FALSE) const;                      \
+  int Index(T e, bool bFromEnd = false) const;                      \
   int Index(T lItem, CMPFUNC fnCompare) const;                      \
   size_t IndexForInsert(T lItem, CMPFUNC fnCompare) const;          \
   void Add(T lItem, size_t nInsert = 1)                             \
@@ -178,7 +178,7 @@ public:                                                             \
   void Shrink();                                                    \
                                                                     \
   size_t GetCount() const { return m_nCount; }                      \
-  void SetCount(size_t n, T defval = T(0));                         \
+  void SetCount(size_t n, T defval = T());                          \
   bool IsEmpty() const { return m_nCount == 0; }                    \
   size_t Count() const { return m_nCount; }                         \
                                                                     \
@@ -189,7 +189,7 @@ protected:                                                          \
     { wxASSERT( uiIndex < m_nCount ); return m_pItems[uiIndex]; }   \
   T& operator[](size_t uiIndex) const { return Item(uiIndex); }     \
                                                                     \
-  int Index(T lItem, bool bFromEnd = FALSE) const;                  \
+  int Index(T lItem, bool bFromEnd = false) const;                  \
   int Index(T lItem, CMPFUNC fnCompare) const;                      \
   size_t IndexForInsert(T lItem, CMPFUNC fnCompare) const;          \
   void Add(T lItem, size_t nInsert = 1);                            \
@@ -293,7 +293,7 @@ public:                                                               \
   T& Last() const                                                     \
     { return Item(Count() - 1); }                                     \
                                                                       \
-  int Index(T e, bool bFromEnd = FALSE) const                         \
+  int Index(T e, bool bFromEnd = false) const                         \
     { return base::Index(e, bFromEnd); }                              \
                                                                       \
   void Add(T Item, size_t nInsert = 1)                                \
@@ -313,7 +313,7 @@ public:                                                               \
 }
 
 #define  _WX_DEFINE_TYPEARRAY_PTR(T, name, base, classexp)         \
-		_WX_DEFINE_TYPEARRAY(T, name, base, classexp)
+         _WX_DEFINE_TYPEARRAY(T, name, base, classexp)
 
 #else // if !wxUSE_STL
 
@@ -342,7 +342,7 @@ public:                                                               \
   T& Last() const                                                     \
     { return (T&)(base::operator[](Count() - 1)); }                   \
                                                                       \
-  int Index(T Item, bool bFromEnd = FALSE) const                      \
+  int Index(T Item, bool bFromEnd = false) const                      \
     { return base::Index((base_type)Item, bFromEnd); }                \
                                                                       \
   void Add(T Item, size_t nInsert = 1)                                \
@@ -564,6 +564,7 @@ public:                                                                  \
   size_t GetCount() const { return base_array::size(); }                 \
   size_t size() const { return base_array::size(); }                     \
   bool IsEmpty() const { return base_array::empty(); }                   \
+  bool empty() const { return base_array::empty(); }                     \
   size_t Count() const { return base_array::size(); }                    \
   void Shrink() { base::Shrink(); }                                      \
                                                                          \
@@ -574,7 +575,7 @@ public:                                                                  \
   T& Last() const                                                        \
     { return *(T*)(base::operator[](size() - 1)); }                      \
                                                                          \
-  int Index(const T& Item, bool bFromEnd = FALSE) const;                 \
+  int Index(const T& Item, bool bFromEnd = false) const;                 \
                                                                          \
   void Add(const T& Item, size_t nInsert = 1);                           \
   void Add(const T* pItem)                                               \
@@ -612,7 +613,7 @@ private:                                                                 \
 // same except that they use an additional __declspec(dllexport) or equivalent
 // under Windows if needed.
 //
-// The first (just EXPORTED) macros do it if wxWindows was compiled as a DLL
+// The first (just EXPORTED) macros do it if wxWidgets was compiled as a DLL
 // and so must be used used inside the library. The second kind (USER_EXPORTED)
 // allow the user code to do it when it wants. This is needed if you have a dll
 // that wants to export a wxArray daubed with your own import/export goo.
@@ -788,7 +789,7 @@ private:                                                                 \
 #define WX_DECLARE_OBJARRAY_WITH_DECL(T, name, decl) \
     typedef T _wxObjArray##name;                            \
     _WX_DECLARE_OBJARRAY(_wxObjArray##name, name, wxArrayPtrVoid, decl)
-    
+
 #define WX_DECLARE_USER_EXPORTED_OBJARRAY(T, name, expmode) \
     WX_DECLARE_OBJARRAY_WITH_DECL(T, name, class expmode)
 

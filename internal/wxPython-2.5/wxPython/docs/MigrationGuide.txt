@@ -3,10 +3,10 @@ wxPython 2.5 Migration Guide
 ============================
 
 This document will help explain some of the major changes in wxPython
-2.5 and let you know what you need to do to adapt your programs to
-those changes.  Be sure to also check in the CHANGES_ file like
-usual to see info about the not so major changes and other things that
-have been added to wxPython.
+2.5 since the 2.4 series and let you know what you need to do to adapt
+your programs to those changes.  Be sure to also check in the CHANGES_
+file like usual to see info about the not so major changes and other
+things that have been added to wxPython.
 
 .. _CHANGES: CHANGES.html
 
@@ -20,8 +20,8 @@ The **wxWindows** project and library is now known as
 .. _here: http://www.wxwidgets.org/name.htm
 
 This won't really affect wxPython all that much, other than the fact
-that the wxwindows.org domain name will be changing to wxwidgets.org,
-so mail list, CVS, and etc. addresses will be changing.  We're going
+that the wxwindows.org domain name has changed to wxwidgets.org,
+so mail list, CVS, and etc. addresses have also changed.  We're going
 to try and smooth the transition as much as possible, but I wanted you
 all to be aware of this change if you run into any issues.
 
@@ -52,6 +52,12 @@ Also, you will probably not be able to do any kind of GUI or bitmap
 operation unless you first have created an app object, (even on
 Windows where most anything was possible before.)
 
+**[Changed in 2.5.2.x]** All the Window and GDI (pen, bitmap, etc.)
+class constructors and also many toplevel functions and static methods
+will now check that a wx.App object has already been created and will
+raise a wx.PyNoAppError exception if not.
+
+
 
 
 SWIG 1.3
@@ -62,26 +68,28 @@ customizations added that I hope to get folded back into the main SWIG
 distribution.)  This has some far reaching ramifications:
 
     All classes derive from object and so all are now "new-style
-    classes"
+    classes."  This also allows you to use mixin classes that are
+    new-style and to use properties, staticmethod, etc.
 
     Public data members of the C++ classes are wrapped as Python
-    properties using property() instead of using __getattr__/__setattr__
-    like before.  Normally you shouldn't notice any difference, but if
-    you were previously doing something with __getattr__/__setattr__
-    in derived classes then you may have to adjust things.
+    properties using property() instead of using
+    __getattr__/__setattr__ hacks like before.  Normally you shouldn't
+    notice any difference, but if you were previously doing something
+    with __getattr__/__setattr__ in derived classes then you may have
+    to adjust things.
 
-    Static C++ methods are wrapped using the staticmethod()
-    feature of Python and so are accessible as ClassName.MethodName
-    as expected.  They are still available as top level functions
+    Static C++ methods are wrapped using the staticmethod() feature of
+    Python and so are accessible as ClassName.MethodName as expected.
+    They are still also available as top level functions named like
     ClassName_MethodName as before.
 
     The relationship between the wxFoo and wxFooPtr classes have
     changed for the better.  Specifically, all instances that you see
-    will be wxFoo even if they are created internally using wxFooPtr,
-    because wxFooPtr.__init__ will change the instance's __class__ as
+    will be wx.Foo even if they are created internally using wx.FooPtr,
+    because wx.FooPtr.__init__ will change the instance's __class__ as
     part of the initialization.  If you have any code that checks
-    class type using something like isinstance(obj, wxFooPtr) you will
-    need to change it to isinstance(obj, wxFoo).
+    class type using something like isinstance(obj, wx.FooPtr) you will
+    need to change it to isinstance(obj, wx.Foo).
 
     
 
@@ -152,7 +160,7 @@ values::
      
 If you create your own custom event types and EVT_* functions, and you
 want to be able to use them with the Bind method above then you should
-change your EVT_* to be an instance of wxPyEventBinder instead of a
+change your EVT_* to be an instance of wx.PyEventBinder instead of a
 function.  For example, if you used to have something like this::
 
     myCustomEventType = wxNewEventType()
@@ -168,6 +176,15 @@ Change it like so::
 The second parameter is an integer in [0, 1, 2] that specifies the
 number of IDs that are needed to be passed to Connect.
 
+**[Changed in 2.5.2.x]** There is also an Unbind method added to
+wx.EvtHandler that can be used to disconenct event handlers.  It looks
+like this::
+
+    def Unbind(self, event, source=None, id=wx.ID_ANY, id2=wx.ID_ANY):
+        """
+        Disconencts the event handler binding for event from self.
+        Returns True if successful.
+        """
 
 
 
@@ -184,12 +201,13 @@ Instead of dynamically changing the names at module load time like in
 2.4, the compatibility modules are generated at build time and contain
 assignment statements like this::
 
-    wxWindow = wx.core.Window
+    wxWindow = wx._core.Window
 
-Don't let the "core" in the name bother you.  That and some other
+Don't let the "_core" in the name bother you.  That and some other
 modules are implementation details, and everything that was in the
 wxPython.wx module before will still be in the wx package namespace
-after this change.  So from your code you would use it as wx.Window.
+after this change.  So from your code you would use it as wx.Window or
+wxWindow if you import from the wxPython.wx module.
 
 A few notes about how all of this was accomplished might be
 interesting...  SWIG is now run twice for each module that it is
@@ -239,121 +257,79 @@ just fine.
 New wx.DC Methods
 -----------------
 
-Many of the Draw methods of wx.DC have alternate forms in C++ that take
-wxPoint or wxSize parameters (let's call these *Type A*) instead of
-the individual x, y, width, height, etc. parameters (and we'll call
-these *Type B*).  In the rest of the library I normally made the *Type
-A* forms of the methods be the default method with the "normal" name,
-and had renamed the *Type B* forms of the methods to some similar
-name.  For example in wx.Window we have these Python methods::
-
-    SetSize(size)               # Type A
-    SetSizeWH(width, height)    # Type B
+**[Changed in 2.5.2.x]** In wxPython 2.5.1.5 there was a new
+implementation of the wx.DC Draw and other methods that broke
+backwards compatibility in the name of consistency.  That change has
+been reverted and the wx.DC Draw methods with 2.4 compatible
+signatures have been restored.  In addition a new set of methods have
+been added that take wx.Point and/or wx.Size parameters instead of
+separate integer parameters.  The Draw and etc. methods now available
+in the wx.DC class are::
 
 
-For various reasons the new *Type A* methods in wx.DC were never added
-and the existing *Type B* methods were never renamed.  Now that lots
-of other things are also changing in wxPython it has been decided that
-it is a good time to also do the method renaming in wx.DC too in order
-to be consistent with the rest of the library.  The methods in wx.DC
-that are affected are listed here::
+    FloodFill(self, x, y, colour, style = wx.FLOOD_SURFACE)
+    FoodFillPoint(self, pt, colour, style = wx.FLOOD_SURFACE)
 
-    FloodFillXY(x, y, colour, style = wx.FLOOD_SURFACE)
-    FloodFill(point, colour,  style = wx.FLOOD_SURFACE)
-
-    GetPixelXY(x, y)
-    GetPixel(point)
-
-    DrawLineXY(x1, y1, x2, y2)
-    DrawLine(point1, point2)
-
-    CrossHairXY(x, y)
-    CrossHair(point)
-
-    DrawArcXY(x1, y1, x2, y2, xc, yc)
-    DrawArc(point1, point2, center)
-
-    DrawCheckMarkXY(x, y, width, height)
-    DrawCheckMark(rect)
-
-    DrawEllipticArcXY(x, y, w, h, start_angle, end_angle)
-    DrawEllipticArc(point, size, start_angle, end_angle)
-
-    DrawPointXY(x, y)
-    DrawPoint(point)
-
-    DrawRectangleXY(x, y, width, height)
-    DrawRectangle(point, size)
-    DrawRectangleRect(rect)
-
-    DrawRoundedRectangleXY(x, y, width, height, radius)
-    DrawRoundedRectangle(point, size, radius)
-    DrawRoundedRectangleRect(rect, radius)
-
-    DrawCircleXY(x, y, radius)
-    DrawCircle(point, radius)
-
-    DrawEllipseXY(x, y, width, height)
-    DrawEllipse(point, size)
-    DrawEllipseRect(rect)
-
-    DrawIconXY(icon, x, y)
-    DrawIcon(icon, point)
-
-    DrawBitmapXY(bmp, x, y, useMask = FALSE)
-    DrawBitmap(bmp, point, useMask = FALSE)
-
-    DrawTextXY(text, x, y)
-    DrawText(text, point)
-
-    DrawRotatedTextXY(text, x, y, angle)
-    DrawRotatedText(text, point, angle)
-
+    GetPixel(self, x,y)
+    GetPixelPoint(self, pt) 
     
-    BlitXY(xdest, ydest, width, height, sourceDC, xsrc, ysrc,
-           rop = wxCOPY, useMask = FALSE, xsrcMask = -1, ysrcMask = -1)
-    Blit(destPt, size, sourceDC, srcPt,
-         rop = wxCOPY, useMask = FALSE, srcPtMask = wx.DefaultPosition)
+    DrawLine(self, x1, y1, x2, y2)
+    DrawLinePoint(self, pt1, pt2)
 
-    SetClippingRegionXY(x, y, width, height)
-    SetClippingRegion(point, size)
-    SetClippingRect(rect)
-    SetClippingRegionAsRegion(region);
+    CrossHair(self, x, y)
+    CrossHairPoint(self, pt)
 
-	
-If you have code that draws on a DC and you are using the new wx
-namespace then you **will** get errors because of these changes, but
-it should be easy to fix the code.  You can either change the name of
-the *Type B* method called to the names shown above, or just add
-parentheses around the parameters as needed to turn them into tuples
-and let the SWIG typemaps turn them into the wx.Point or wx.Size
-object that is expected.  Then you will be calling the new *Type A*
-method.  For example, if you had this code before::
+    DrawArc(self, x1, y1, x2, y2, xc, yc)
+    DrawArcPoint(self, pt1, pt2, centre)
 
-    dc.DrawRectangle(x, y, width, height)
+    DrawCheckMark(self, x, y, width, height)
+    DrawCheckMarkRect(self, rect)
 
-You could either continue to use the *Type B* method bu changing the
-name to DrawRectabgleXY, or just change it to the new *Type A* by
-adding some parentheses like this::
+    DrawEllipticArc(self, x, y, w, h, sa, ea)
+    DrawEllipticArcPointSize(self, pt, sz, sa, ea)
 
-    dc.DrawRectangle((x, y), (width, height))
+    DrawPoint(self, x, y)
+    DrawPointPoint(self, pt)
 
-Or if you were already using a point and size::
+    DrawRectangle(self, x, y, width, height)
+    DrawRectangleRect(self, rect)
+    DrawRectanglePointSize(self, pt, sz)
 
-    dc.DrawRectangle(p.x, p.y, s.width, s.height)
+    DrawRoundedRectangle(self, x, y, width, height, radius)
+    DrawRoundedRectangleRect(self, r, radius)
+    DrawRoundedRectanglePointSize(self, pt, sz, radius)
 
-Then you can just simplify it like this::
+    DrawCircle(self, x, y, radius)
+    DrawCirclePoint(self, pt, radius)
 
-    dc.DrawRectangle(p, s)
+    DrawEllipse(self, x, y, width, height)
+    DrawEllipseRect(self, rect)
+    DrawEllipsePointSize(self, pt, sz)
 
-Now before you start yelling and screaming at me for breaking all your
-code, take note that I said above "...using the new wx namespace..."
-That's because if you are still importing from wxPython.wx then there
-are some classes defined there with Draw and etc. methods that have
-2.4 compatible signatures.  However if/when the old wxPython.wx
-namespace is removed then these classes will be removed too so you
-should plan on migrating to the new namespace and new DC Draw methods
-before that time.
+    DrawIcon(self, icon, x, y)
+    DrawIconPoint(self, icon, pt)
+
+    DrawBitmap(self, bmp, x, y, useMask = False)
+    DrawBitmapPoint(self, bmp, pt, useMask = False)
+
+    DrawText(self, text, x, y)
+    DrawTextPoint(self, text, pt)
+
+    DrawRotatedText(self, text, x, y, angle)
+    DrawRotatedTextPoint(self, text, pt, angle)
+
+    bool Blit(self, xdest, ydest, width, height, sourceDC, xsrc, ysrc,
+              rop = wx.COPY, useMask = False, xsrcMask = -1, ysrcMask = -1)
+    BlitPointSize(self, destPt, sz, sourceDC, srcPt, rop = wx.COPY, 
+                  useMask = False, srcPtMask = wxDefaultPosition)
+
+
+    SetClippingRegion(self, x, y, width, height)
+    SetClippingRegionPointSize(self, pt, sz)
+    SetClippingRegionAsRegion(self, region)
+    SetClippingRect(self, rect)
+
+
 
 
 
@@ -367,22 +343,22 @@ aware that you now need to also build the ogl, stc, xrc, and gizmos
 libraries in addition to the main wx lib.  
 
 The wxPython.h and other header files are now in
-.../wxPython/include/wx/wxPython instead of in wxPython/src.  You should
-include it via the "wx/wxPython/wxPython.h" path and add
+.../wxPython/include/wx/wxPython instead of in wxPython/src.  You
+should include it via the "wx/wxPython/wxPython.h" path and add
 .../wxPython/include to your list of include paths.  On OSX and
 unix-like systems the wxPython headers are installed to the same place
-that the wxWidgets headers are installed, so if you building wxPython
-compatible extensions on those platforms then your include path shoudl
-already be set properly.
+that the wxWidgets headers are installed, so if you are building
+wxPython compatible extensions on those platforms then your include
+path should already be set properly.
 
 If you are also using SWIG for your extension then you'll need to
 adapt how the wxPython .i files are imported into your .i files.  See
 the wxPython sources for examples.  Your modules will need to at least
 ``%import core.i``, and possibly others if you need the definition of
-other classes.  Since you will need them to build your modules, the
-main wxPython .i files are also installed with the wxPython headers in
-an i_files sibdirectory.  It should be enough to pass a -I/pathname on
-the command line for it to find the files.
+other classes.  Since you will need them to build your modules using
+SWIG, the main wxPython .i files are also installed with the wxPython
+headers in an i_files sibdirectory.  It should be enough to pass a
+-I/pathname on the command line for SWIG to find the files.
 
 The bulk of wxPython's setup.py has been moved to another module,
 wx/build/config.py.  This module will be installed as part of wxPython
@@ -427,11 +403,19 @@ Sizers
 ------
 
 The hack allowing the old "option" keyword parameter has been removed.
-If you use keyworkd args with w.xSizer Add, Insert, or Prepend methods
-then you will need to use the ``proportion`` name instead of ``option``.
+If you use keyword args with w.xSizer Add, Insert, or Prepend methods
+then you will need to use the ``proportion`` name instead of
+``option``.  (The ``proportion`` keyword was also allowed in 2.4.2.4.)
 
 When adding a spacer to a sizer you now need to use a wx.Size or a
 2-integer sequence instead of separate width and height parameters.
+This was optionally allowed in 2.4, but now it is required.  This
+allows for more consistency in how you add the various types of items
+to a sizer.  The first parameter defines the item (instead of the
+possibily first two, depending on if you are doing a spacer or not,)
+and that item can either be a window, a sizer or a spacer (which can
+be a sequence or a wx.Size.)  Removing the option for separate width
+and height parameters greatly simplified the wrapper code.
 
 The wx.GridBagSizer class (very similar to the RowColSizer in the
 library) has been added to C++ and wrapped for wxPython.  It can also
@@ -439,7 +423,100 @@ be used from XRC.
 
 You should not use AddWindow, AddSizer, AddSpacer (and similar for
 Insert, Prepend, and etc.) methods any longer.  Just use Add and the
-wrappers will figure out what to do.
+wrappers will figure out what to do.  **[Changed in 2.5.2.x]**
+AddWindow, AddSizer, AddSpacer and etc. will now issue a
+DeprecationWarning. 
+
+**[Changed in 2.5.2.x]** The Sizers have had some fundamental internal
+changes in the 2.5.2.x release intended to make them do more of the
+"Right Thing" but also be as backwards compatible as possible.
+First a bit about how things used to work:
+
+    * The size that a window had when Add()ed to the sizer was assumed
+      to be its minimal size, and that size would always be used by
+      default when calculating layout size and positions, and the
+      sizer itself would keep track of that minimal size.
+
+    * If the window item was added with the ``wx.ADJUST_MINSIZE``
+      flag then when layout was calculated the item's ``GetBestSize``
+      would be used to reset the minimal size that the sizer used.
+
+The main thrust of the new Sizer changes was to make behaviour like
+``wx.ADJUST_MINSIZE`` be the default, and also to push the tracking of
+the minimal size to the window itself (since it knows its own needs)
+instead of having the sizer take care of it.  Consequently these
+changes were made:
+
+    * The ``wx.FIXED_MINSIZE`` flag was added to allow for the old
+      behaviour.  When this flag is used the size a window has when
+      added to the sizer will be treated as its minimal size and it
+      will not be readjusted on each layout.
+
+    * The min size stored in ``wx.Window`` and settable with
+      ``SetSizeHints`` or ``SetMinSize`` will by default be used by
+      the sizer (if it was set) as the minimal size of the sizer item.
+      If the min size was not set (or was only partially set) then the
+      window's best size is fetched and it is used instead of (or
+      blended with) the min size.  ``wx.Window.GetBestFittingSize``
+      was added to facilitate getting the size to be used by the
+      sizers.
+
+    * The best size of a window is cached so it doesn't need to
+      recaculated on every layout.  ``wx.Window.InvalidateBestSize``
+      was added and should be called (usually just internally in
+      control methods) whenever something is done that would make the
+      best size change.
+
+    * All wxControls were changed to set the minsize to what is passed
+      to the constructor or Create method, and also to set the real
+      size of the control to the blending of the min size and best
+      size.  ``wx.Window.SetBestFittingSize`` was added to help with
+      this, although most controls don't need to call it directly
+      because it is called indirectly via the ``SetInitialSize``
+      called in the base classes.
+
+At this time, the only situation known not to work the same as before
+is the following::
+
+	 win = SomeWidget(parent)
+	 win.SetSize(SomeNonDefaultSize)
+	 sizer.Add(win)
+
+In this case the old code would have used the new size as the minimum,
+but now the sizer will use the default size as the minimum rather than
+the size set later.  It is an easy fix though, just move the
+specification of the size to the constructor (assuming that SomeWidget
+will set its minsize there like the rest of the controls do) or call
+``SetMinSize`` instead of ``SetSize``.
+
+In order to fit well with this new scheme of things, all wxControls or
+custom controls should do the following things.  (Depending on how
+they are used you may also want to do the same thing for non-control
+custom windows.)
+
+    * Either override or inherit a meaningful ``DoGetBestSize`` method
+      that calculates whatever size is "best" for the control.  Once
+      that size is calculated then there should normally be a call to
+      ``CacheBestSize`` to save it for later use, unless for some
+      reason you want the best size to be recalculated on every
+      layout.  
+
+      Note: In order to successfully override ``DoGetBestSize`` in
+      Python the class needs to be derived from ``wx.PyWindow``,
+      ``wx.PyControl``, or etc.  If your class instead derives from
+      one of the standard wx classes then just be sure that the min
+      size gets explicitly set to what would have been the best size
+      and things should work properly in almost all situations.
+
+    * Any method that changes the attributes of the control such that
+      the best size will change should call ``InvalidateBestSize`` so
+      it will be recalculated the next time it is needed.
+
+    * The control's constructor and/or Create method should ensure
+      that the minsize is set to the size passed in, and that the
+      control is sized to a blending of the min size and best size.
+      This can be done by calling ``SetBestFittingSize``.
+
 
 
 PlatformInfo
@@ -578,8 +655,88 @@ provided by the makers of the ActiveX control that you are using.
 
 
 
-Other Stuff
------------
+
+PNG Images
+----------
+
+Prior to 2.5 the PNG image handler would convert all alpha channel
+information to a mask when the image was loaded.  Pixels that were
+more than halfway transparent would be made fully transparent by the
+mask and the rest would be made fully opaque.
+
+In 2.5 the image handler has been updated to preserve the alpha
+channel and will now only create a mask when all the pixels in the
+image are either fully transparent or fully opaque.  In addition, the
+wx.DC.DrawBitmap and wx.DC.Blit methods are able to correctly blend
+the pixels in the image with partially transparent alpha values.
+(Currently only on MSW and Mac, if anybody knows how to do it for GTK
+then please submit a patch!)
+
+If you are using a PNG with an alpha channel but you need to have a
+wx.Mask like you automatically got in 2.4 then you can do one of the
+following:
+
+    * Edit the image and make all the partially transparent pixels be
+      fully transparent.
+
+    * Use a different image type.
+
+    * Set a mask based on colour after you load the image.
+
+
+
+OGL is dead! LONG LIVE OGL!
+---------------------------
+
+**[Changed in 2.5.2.x]** 
+
+The wx.ogl module has been deprecated in favor of the new Python port
+of the OGL library located at wx.lib.ogl contributed by Pierre Hjälm.
+This will hopefully greatly extend the life of OGL within wxPython by
+making it more easily maintainable and less prone to getting rusty as
+there seems to be less and less interest in maintaining the C++
+version.  
+
+There are only a few known compatibility issues at this time.  First
+is that the ogl.DrawnShape has not been reimplemented yet.  Next is the
+location of OGL.  The deprecated version is located in the wx.ogl
+module, and the new version is in the wx.lib.ogl package.  So this
+just means that to start using the new version you need to adjust your
+imports.  So if your code currently has something like this::
+
+     import wx
+     import wx.ogl as ogl
+
+Then just change it to this::
+
+     import wx
+     import wx.lib.ogl as ogl
+
+The other compatibility issue deals with removing a wart in the
+original API that was necessary in order to allow overloaded methods
+in derived classes to call the same method in the base class when
+using the old SWIG.  Instead dedaling with the wart you can now just
+call the base class method like you woudl for any other Python class.
+For example, if you had to do something like this previously::
+
+    class MyDividedShape(ogl.DividedShape):
+        ...
+        def OnSizingEndDragLeft(self, pt, x, y, keys, attch):
+            self.base_OnSizingEndDragLeft(pt, x, y, keys, attch)
+            ...
+
+You will need to change it to be like this::
+
+    class MyDividedShape(ogl.DividedShape):
+        ...
+        def OnSizingEndDragLeft(self, pt, x, y, keys, attch):
+            ogl.DividedShape.OnSizingEndDragLeft(self, pt, x, y, keys, attch)
+            ...    
+
+
+
+Obsolete Modules
+----------------
 
 Instead of over a dozen separate extension modules linked together
 into a single extension module, the "core" module is now just a few
@@ -588,10 +745,51 @@ later into the main namespace via Python code.
 
 Because of the above and also because of the way the new SWIG works,
 the "internal" module names have changed, but you shouldn't have been
-using them anyway so it shouldn't bother you. ;-)
+using them anyway so it shouldn't bother you. ;-) In case you were
+erroneously using them in 2.4, here are the internal extension modules
+no longer exist:
+
+    * clip_dnd
+    * cmndlgs
+    * controls
+    * controls2
+    * events
+    * filesys
+    * fonts
+    * frames
+    * gdi
+    * image
+    * mdi
+    * misc
+    * misc2
+    * printfw
+    * sizers
+    * stattool
+    * streams
+    * utils
+    * windows
+    * windows2
+    * windows3
+
+They have been replaced by the following, but please remember that
+these are just "implementation details" and you should really be using
+the objects in these modules only via the wx or wxPython.wx packages:
+
+    * _core
+    * _gdi
+    * _windows
+    * _controls
+    * _misc
+
 
 The help module no longer exists and the classes therein are now part
 of the core module imported with wxPython.wx or the wx package.
+
+
+
+
+Other Stuff
+-----------
 
 wxPyDefaultPosition and wxPyDefaultSize are gone.  Use the
 wxDefaultPosition and wxDefaultSize objects instead.
@@ -600,6 +798,15 @@ Similarly, the wxSystemSettings backwards compatibiility aliases for
 GetSystemColour, GetSystemFont and GetSystemMetric have also gone into
 the bit-bucket.  Use GetColour, GetFont and GetMetric instead.
 
+Use the Python True/False constants instead of the true, TRUE, false,
+FALSE that used to be provided with wxPython.
+
+Use None instead of the ancient and should have been removed a long
+time ago wx.NULL alias.
+
+wx.TreeCtrl.GetFirstChild no longer needs to be passed the cookie
+variable as the 2nd parameter.  It still returns it though, for use
+with GetNextChild.
 
 The wx.NO_FULL_REPAINT_ON_RESIZE style is now the default style for
 all windows.  The name still exists for compatibility, but it is set
@@ -618,15 +825,15 @@ there are compatibility aliases for much of the above items.
 The wxWave class has been renamed to wxSound, and now has a slightly
 different API.
 
-wx.TaskbarIcon works on wxGTK-based platforms now, however you have to
-manage it a little bit more than you did before.  Basically, the app
-will treat it like a top-level frame in that if the wx.TaskBarIcon
-still exists when all the frames are closed then the app will still
-not exit.  You need to ensure that the wx.TaskBarIcon is destroyed
-when your last Frame is closed.  For wxPython apps it is usually
-enough if your main frame object holds the only reference to the
-wx.TaskBarIcon, then when the frame is closed Python reference
-counting takes care of the rest.
+wx.TaskbarIcon works on wxGTK-based platforms (for some window
+managers,) however you have to manage it a little bit more than you
+did before.  Basically, the app will treat it like a top-level frame
+in that if the wx.TaskBarIcon still exists when all the frames are
+closed then the app will still not exit.  You need to ensure that the
+wx.TaskBarIcon is destroyed when your last Frame is closed.  For
+wxPython apps it is usually enough if your main frame object holds the
+only reference to the wx.TaskBarIcon, then when the frame is closed
+Python reference counting takes care of the rest.
 
 Before Python 2.3 it was possible to pass a floating point object as a
 parameter to a function that expected an integer, and the
@@ -634,7 +841,7 @@ PyArg_ParseTuple family of functions would automatically convert to
 integer by truncating the fractional portion of the number.  With
 Python 2.3 that behavior was deprecated and a deprecation warning is
 raised when you pass a floating point value, (for example, calling
-wx.DC.DrawLineXY with floats for the position and size,) and lots of
+wx.DC.DrawLine with floats for the position and size,) and lots of
 developers using wxPython had to scramble to change their code to call
 int() before calling wxPython methods.  Recent changes in SWIG have
 moved the conversion out of PyArg_ParseTuple to custom code that SWIG
@@ -648,3 +855,30 @@ functions in wxPython for parameters that are expecting an integer.
 If the object is not already an integer then it will be asked to
 convert itself to one.  A similar conversion fragment is in place for
 parameters that expect floating point values.
+
+**[Changed in 2.5.2.x]**  The MaskedEditCtrl modules have been moved
+to their own sub-package, wx.lib.masked.  See the docstrings and demo
+for changes in capabilities, usage, etc.
+
+**[Changed in 2.5.2.x]** wx.MaskColour constructor has been deprecated
+and will raise a DeprecationWarning if used.  The main wx.Mask
+constructor has been modified to be compatible with wx.MaskColour so
+you should use it instead.
+
+**[Changed in 2.5.2.x]** In wx.TextCtrls that have the
+wx.TE_PROCESS_TAB style the TAB key will be treated like an ordinary
+character and will not cause any tab traversal navigation at all.  If
+you use this style but would still like to have the normal tab
+traversal take place then you should send your own
+wx.NavigationKeyEvent from the wx.EVT_KEY_DOWN handler.  There is a
+new Navigate method in the wx.Window class to help send the event and
+it is used something like this::
+
+	flags = wx.NavigationKeyEvent.IsForward
+	if event.ShiftDown():
+	    flags = wx.NavigationKeyEvent.IsBackward
+	if event.ControlDown():
+	    flags |= wx.NavigationKeyEvent.WinChange
+	self.Navigate(flags)
+
+

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     22.04.01
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,11 @@ class WXDLLEXPORT wxImage;
 class WXDLLEXPORT wxMask;
 class WXDLLEXPORT wxPalette;
 
-#if defined(__WXMGL__) || defined(__WXMAC__) || defined(__WXCOCOA__) || defined(__WXMOTIF__) || defined(__WXX11__)
+#if defined(__WXMGL__) || \
+    defined(__WXMAC__) || \
+    defined(__WXCOCOA__) || \
+    defined(__WXMOTIF__) || \
+    defined(__WXX11__)
 // Only used by some ports
 // FIXME -- make all ports (but MSW which uses wxGDIImage) use these base classes
 

@@ -47,7 +47,7 @@
         #pragma warning "Your compiler does not appear to support 64 bit "\
                         "integers, using emulation class instead.\n" \
                         "Please report your compiler version to " \
-                        "wx-dev@lists.wxwindows.org!"
+                        "wx-dev@lists.wxwidgets.org!"
     #endif
 
     #define wxUSE_LONGLONG_WX 1

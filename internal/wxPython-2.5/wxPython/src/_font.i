@@ -118,7 +118,8 @@ enum wxFontEncoding
     wxFONTENCODING_ISO8859_MAX,
 
     // Cyrillic charset soup (see http://czyborra.com/charsets/cyrillic.html)
-    wxFONTENCODING_KOI8,            // we don't support any of KOI8 variants
+    wxFONTENCODING_KOI8,            // KOI8 Russian
+    wxFONTENCODING_KOI8_U,          // KOI8 Ukrainian
     wxFONTENCODING_ALTERNATIVE,     // same as MS-DOS CP866
     wxFONTENCODING_BULGARIAN,       // used under Linux in Bulgaria
 
@@ -373,6 +374,12 @@ public:
     // NB: hard-coded now, but might change later (read it from config?)
     static wxString GetEncodingDescription(wxFontEncoding encoding);
 
+    // find the encoding corresponding to the given name, inverse of
+    // GetEncodingName() and less general than CharsetToEncoding()
+    //
+    // returns wxFONTENCODING_MAX if the name is not a supported encoding
+    static wxFontEncoding GetEncodingFromName(const wxString& name);
+
 
     // set the config object to use (may be NULL to use default)
     void SetConfig(wxConfigBase *config);
@@ -404,7 +411,8 @@ public:
 
 
     // checks whether given encoding is available in given face or not.
-    // If no facename is given,
+    // If no facename is given (default), return true if it's available in any
+    // facename at all.
     bool IsEncodingAvailable(wxFontEncoding encoding,
                              const wxString& facename = wxPyEmptyString);
 
@@ -422,8 +430,14 @@ public:
 %newgroup
 
 
+MustHaveApp(wxFont);
+MustHaveApp(wxFont::GetDefaultEncoding);
+MustHaveApp(wxFont::SetDefaultEncoding);
+
 class wxFont : public wxGDIObject {
 public:
+    %pythonPrepend wxFont   "if kwargs.has_key('faceName'): kwargs['face'] = kwargs['faceName'];del kwargs['faceName']"
+
     wxFont( int pointSize, int family, int style, int weight,
             bool underline=False, const wxString& face = wxPyEmptyString,
             wxFontEncoding encoding=wxFONTENCODING_DEFAULT);
@@ -438,10 +452,10 @@ public:
         }
 
         %name(Font2) wxFont(int pointSize,
-                              wxFontFamily family,
-                              int flags = wxFONTFLAG_DEFAULT,
-                              const wxString& face = wxPyEmptyString,
-                              wxFontEncoding encoding = wxFONTENCODING_DEFAULT) {
+                            wxFontFamily family,
+                            int flags = wxFONTFLAG_DEFAULT,
+                            const wxString& face = wxPyEmptyString,
+                            wxFontEncoding encoding = wxFONTENCODING_DEFAULT) {
             return wxFont::New(pointSize, family, flags, face, encoding);
         }
     }
@@ -492,7 +506,7 @@ public:
 
     // Unofficial API, don't use
     virtual void SetNoAntiAliasing( bool no = True );
-    virtual bool GetNoAntiAliasing();
+    virtual bool GetNoAntiAliasing() const;
 
     // the default encoding is used for creating all fonts with default
     // encoding parameter
@@ -523,6 +537,8 @@ IMP_PYCALLBACK_BOOL_STRINGSTRING(wxPyFontEnumerator, wxFontEnumerator, OnFontEnc
 
 %}
 
+MustHaveApp(wxPyFontEnumerator);
+
 %name(FontEnumerator) class wxPyFontEnumerator {
 public:
     %pythonAppend wxPyFontEnumerator "self._setCallbackInfo(self, FontEnumerator, 0)"
@@ -542,12 +558,18 @@ public:
     %extend {
         PyObject* GetEncodings() {
             wxArrayString* arr = self->GetEncodings();
-            return wxArrayString2PyList_helper(*arr);
+            if (arr)
+                return wxArrayString2PyList_helper(*arr);
+            else
+                return PyList_New(0);
         }
 
         PyObject* GetFacenames() {
             wxArrayString* arr = self->GetFacenames();
-            return wxArrayString2PyList_helper(*arr);
+            if (arr)
+                return wxArrayString2PyList_helper(*arr);
+            else
+                return PyList_New(0);
         }
     }
 };

@@ -148,6 +148,12 @@ enum wxSystemScreenType
 
 //---------------------------------------------------------------------------
 
+MustHaveApp(wxSystemSettings::GetColour);
+MustHaveApp(wxSystemSettings::GetFont);
+MustHaveApp(wxSystemSettings::GetMetric);
+MustHaveApp(wxSystemSettings::HasFeature);
+MustHaveApp(wxSystemSettings::GetScreenType);
+MustHaveApp(wxSystemSettings::SetScreenType);
 
 class wxSystemSettings
 {
@@ -176,6 +182,8 @@ public:
 
 
 //---------------------------------------------------------------------------
+
+MAKE_CONST_WXSTRING(WINDOW_DEFAULT_VARIANT);
 
 class wxSystemOptions : public wxObject
 {

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     31.05.03
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -192,6 +192,14 @@ public:
     virtual void ApplyParentThemeBackground(const wxColour& WXUNUSED(bg))
         { /* do nothing */ }
 
+    
+    virtual wxVisualAttributes GetDefaultAttributes() const
+    {
+        return GetClassDefaultAttributes(GetWindowVariant());
+    }
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
     
 protected:
     // the derived class must implement this function to actually draw the item

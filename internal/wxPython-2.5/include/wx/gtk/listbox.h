@@ -96,13 +96,16 @@ public:
     virtual void DoSetItemClientObject(int n, wxClientData* clientData);
     virtual wxClientData* DoGetItemClientObject(int n) const;
 
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+    
     // implementation from now on
 
     void GtkAddItem( const wxString &item, int pos=-1 );
     int GtkGetIndex( GtkWidget *item ) const;
     GtkWidget *GetConnectWidget();
     bool IsOwnGtkWindow( GdkWindow *window );
-    void ApplyWidgetStyle();
+    void DoApplyWidgetStyle(GtkRcStyle *style);
     void OnInternalIdle();
 
 #if wxUSE_TOOLTIPS
@@ -126,6 +129,10 @@ protected:
 
     // return the string label for the given item
     wxString GetRealLabel(struct _GList *item) const;
+
+    // Widgets that use the style->base colour for the BG colour should
+    // override this and return true.
+    virtual bool UseGTKStyleBase() const { return true; }
 
 private:
     // this array is only used for controls with wxCB_SORT style, so only

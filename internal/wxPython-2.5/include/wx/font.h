@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     20.09.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -185,7 +185,7 @@ public:
 
     // Unofficial API, don't use
     virtual void SetNoAntiAliasing( bool WXUNUSED(no) = TRUE ) {  }
-    virtual bool GetNoAntiAliasing() { return FALSE; }
+    virtual bool GetNoAntiAliasing() const { return FALSE; }
 
     // the default encoding is used for creating all fonts with default
     // encoding parameter

@@ -12,7 +12,7 @@
 #ifndef _WX_APP_H_
 #define _WX_APP_H_
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma interface "app.h"
 #endif
 
@@ -21,6 +21,7 @@
 // ----------------------------------------------------------------------------
 
 #include "wx/event.h"
+#include "wx/hashmap.h"
 
 // ----------------------------------------------------------------------------
 // forward declarations
@@ -33,11 +34,13 @@ class WXDLLEXPORT wxKeyEvent;
 class WXDLLEXPORT wxLog;
 class WXDLLEXPORT wxEventLoop;
 class WXDLLEXPORT wxXVisualInfo;
-class wxPerDisplayDataMap;
+class WXDLLEXPORT wxPerDisplayData;
 
 // ----------------------------------------------------------------------------
 // the wxApp class for Motif - see wxAppBase for more details
 // ----------------------------------------------------------------------------
+
+WX_DECLARE_VOIDPTR_HASH_MAP( wxPerDisplayData*, wxPerDisplayDataMap );
 
 class WXDLLEXPORT wxApp : public wxAppBase
 {
@@ -73,10 +76,13 @@ public:
     // Motif-specific
     WXAppContext   GetAppContext() const { return m_appContext; }
     WXWidget       GetTopLevelWidget();
+    WXWidget       GetTopLevelRealizedWidget();
     WXColormap     GetMainColormap(WXDisplay* display);
     WXDisplay*     GetInitialDisplay() const { return m_initialDisplay; }
 
     void           SetTopLevelWidget(WXDisplay* display, WXWidget widget);
+    void           SetTopLevelRealizedWidget(WXDisplay* display,
+                                             WXWidget widget);
 
     // This handler is called when a property change event occurs
     virtual void   HandlePropertyChange(WXEvent *event);

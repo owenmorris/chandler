@@ -12,7 +12,7 @@ resourceText = r'''<?xml version="1.0"?>
 <object class="MyCustomPanel" name="MyPanel">
     <size>200,100</size>
     <object class="wxStaticText" name="label1">
-        <label>This blue panel is a class derived from wx.Panel,\nand is loaded by a custom XmlResourceHandler.</label>
+        <label>This panel is a custom class derived from wx.Panel,\nand is loaded by a custom XmlResourceHandler.</label>
         <pos>10,10</pos>
     </object>
 </object>
@@ -71,10 +71,10 @@ class MyCustomPanelXmlHandler(xrc.XmlResourceHandler):
     def __init__(self):
         xrc.XmlResourceHandler.__init__(self)
         # Specify the styles recognized by objects of this type
-        self.AddStyle("wx.NO_3D", wx.NO_3D);
-        self.AddStyle("wx.TAB_TRAVERSAL", wx.TAB_TRAVERSAL);
-        self.AddStyle("wx.WS_EX_VALIDATE_RECURSIVELY", wx.WS_EX_VALIDATE_RECURSIVELY);
-        self.AddStyle("wx.CLIP_CHILDREN", wx.CLIP_CHILDREN);
+        self.AddStyle("wxNO_3D", wx.NO_3D);
+        self.AddStyle("wxTAB_TRAVERSAL", wx.TAB_TRAVERSAL);
+        self.AddStyle("wxWS_EX_VALIDATE_RECURSIVELY", wx.WS_EX_VALIDATE_RECURSIVELY);
+        self.AddStyle("wxCLIP_CHILDREN", wx.CLIP_CHILDREN);
         self.AddWindowStyles();
 
     # This method and the next one are required for XmlResourceHandlers

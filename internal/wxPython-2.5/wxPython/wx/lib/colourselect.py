@@ -96,9 +96,21 @@ class ColourSelect(wx.BitmapButton):
         self.SetBitmap(bmp)
 
 
+    def SetLabel(self, label):
+        self.label = label
+
+    def GetLabel(self):
+        return self.label
+
+
     def MakeBitmap(self):
-        bdr = 10
+        bdr = 8
         width, height = self.GetSize()
+
+        # yes, this is weird, but it appears to work around a bug in wxMac
+        if "wxMac" in wx.PlatformInfo and width == height:
+            height -= 1
+            
         bmp = wx.EmptyBitmap(width-bdr, height-bdr)
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
@@ -126,7 +138,8 @@ class ColourSelect(wx.BitmapButton):
         self.SetBitmapDisabled(bmp)
         self.SetBitmapFocus(bmp)
         self.SetBitmapSelected(bmp)
-
+        self.Refresh()
+        
 
     def OnChange(self):
         wx.PostEvent(self, ColourSelectEvent(self.GetId(), self.GetValue()))
@@ -137,13 +150,12 @@ class ColourSelect(wx.BitmapButton):
         data = wx.ColourData()
         data.SetChooseFull(True)
         data.SetColour(self.colour)
-        dlg = wx.ColourDialog(self.GetParent(), data)
+        dlg = wx.ColourDialog(wx.GetTopLevelParent(self), data)
         changed = dlg.ShowModal() == wx.ID_OK
 
         if changed:
             data = dlg.GetColourData()
             self.SetColour(data.GetColour())
-
         dlg.Destroy()
 
         # moved after dlg.Destroy, since who knows what the callback will do...

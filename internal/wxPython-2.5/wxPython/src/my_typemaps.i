@@ -11,20 +11,27 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-//---------------------------------------------------------------------------
-// Tell SWIG to wrap all the wrappers with our thread protection
-
-%exception {
-    PyThreadState* __tstate = wxPyBeginAllowThreads();
-    $action
-    wxPyEndAllowThreads(__tstate);
-    if (PyErr_Occurred()) SWIG_fail;
-}
-
-
 //----------------------------------------------------------------------
 // Typemaps to convert a list of items to an int (size) and an array
 
+%define MAKE_INT_ARRAY_TYPEMAPS(NAME, ARR_NAME)
+    %typemap(in) (int NAME, int* ARR_NAME) {
+        $1 = PyList_Size($input);
+        $2 =  int_LIST_helper($input);
+        if ($2 == NULL) SWIG_fail;
+    }
+
+    %typemap(freearg) (int NAME, int* ARR_NAME) {
+        if ($2) delete [] $2;
+    }
+%enddef
+
+MAKE_INT_ARRAY_TYPEMAPS(widths, widths_field)
+MAKE_INT_ARRAY_TYPEMAPS(styles, styles_field)
+
+    
+
+// Same things for a wxString
 %typemap(in) (int choices, wxString* choices_array ) {
     $1 = PyList_Size($input);
     $2 = wxString_LIST_helper($input);
@@ -33,6 +40,7 @@
 %typemap(freearg) (int choices, wxString* choices_array ) {
     if ($2) delete [] $2;
 }
+
 
 
 //---------------------------------------------------------------------------
@@ -103,6 +111,7 @@
     $1 = new wxMemoryBuffer(len);
     temp = True;
     memcpy($1->GetData(), str, len);
+    $1->SetDataLen(len);
 }
 
 %typemap(freearg) wxMemoryBuffer& {
@@ -197,6 +206,7 @@
 %#else
         PyObject* str  = PyObject_Str(item);
 %#endif
+        if (PyErr_Occurred())  SWIG_fail;
         $1->Add(Py2wxString(str));
         Py_DECREF(item);
         Py_DECREF(str);
@@ -256,7 +266,7 @@
 
 
 
-// Typemaps to convert an array of ints to a list for return values
+// Typemaps to convert an array of strings to a list for return values
 %typemap(out) wxArrayString& {
     $result = wxArrayString2PyList_helper(*$1);
 }
@@ -271,62 +281,6 @@
 %typemap(out) bool {
     $result = $1 ? Py_True : Py_False; Py_INCREF($result);
 }
-
-
-// These fragments are iserted in modules that need to convert PyObjects to
-// integer values, my versions allow any numeric type to be used, as long as
-// it can be converted to a PyInt.  (Specifically, I allow floats where the
-// default SWIG_AsLong would raise an obsucre exception from within
-// PyLong_AsLong.)
-
-%fragment("SWIG_AsLong","header") %{
-SWIGSTATICINLINE(long)
-SWIG_AsLong(PyObject * obj)
-{
-    if (PyNumber_Check(obj))
-        return PyInt_AsLong(obj);
-    else {
-        PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
-                                               obj->ob_type->tp_name);
-        PyErr_SetObject(PyExc_TypeError, errmsg);
-        Py_DECREF(errmsg);
-        return 0;
-    }
-}
-%}
-
-%fragment("SWIG_AsUnsignedLong","header", fragment="SWIG_AsLong") %{
-SWIGSTATICINLINE(unsigned long)
-SWIG_AsUnsignedLong(PyObject * obj) 
-{
-  if (PyLong_Check(obj)) {
-    return PyLong_AsUnsignedLong(obj);
-  } else {
-    long i = SWIG_AsLong(obj);
-    if ( !PyErr_Occurred() && (i < 0)) {
-      PyErr_SetString(PyExc_TypeError, "negative value received for unsigned type");
-    }
-    return i;
-  }
-}
-%}
-
-
-%fragment("SWIG_AsDouble","header") %{
-SWIGSTATICINLINE(double)
-SWIG_AsDouble(PyObject *obj)
-{
-    if (PyNumber_Check(obj))
-        return PyFloat_AsDouble(obj);
-    else {
-        PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
-                                               obj->ob_type->tp_name);
-        PyErr_SetObject(PyExc_TypeError, errmsg);
-        Py_DECREF(errmsg);
-        return 0;
-    }
-}
-%}
 
 
 //---------------------------------------------------------------------------
@@ -349,55 +303,55 @@ SWIG_AsDouble(PyObject *obj)
 // to the real derived type, if possible.  See wxPyMake_wxObject in
 // helpers.cpp
 
-%typemap(out) wxEvtHandler*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMenu*                   { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxValidator*              { $result = wxPyMake_wxObject($1); }
+// NOTE: For those classes that also call _setOORInfo these typemaps should be
+// disabled for the constructor.
 
-%typemap(out) wxApp*                    { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxPyApp*                  { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxDC*                     { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxFSFile*                 { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxFileSystem*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxGridTableBase*          { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxImageList*              { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxListItem*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMenuItem*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMouseEvent*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxObject*                 { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxPyPrintout*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxToolBarToolBase*        { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxToolTip*                { $result = wxPyMake_wxObject($1); }
+%typemap(out) wxEvtHandler*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMenu*                   { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxValidator*              { $result = wxPyMake_wxObject($1, $owner); }
 
-
-%typemap(out) wxBitmapButton*           { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxButton*                 { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxControl*                { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxFrame*                  { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxGrid*                   { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxListCtrl*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMDIChildFrame*          { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMDIClientWindow*        { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxMenuBar*                { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxNotebook*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxStaticBox*              { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxStatusBar*              { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxTextCtrl*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxToolBar*                { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxToolBarBase*            { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxTreeCtrl*               { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxPyTreeCtrl*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxWindow*                 { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxHtmlWindow*             { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxPyHtmlWindow*           { $result = wxPyMake_wxObject($1); }
-%typemap(out) wxWizardPage*             { $result = wxPyMake_wxObject($1); }
-
-%typemap(out) wxSizer*                  { $result = wxPyMake_wxSizer($1); }
+%typemap(out) wxApp*                    { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPyApp*                  { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxDC*                     { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxFSFile*                 { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxFileSystem*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxImageList*              { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxListItem*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMenuItem*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMouseEvent*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxObject*                 { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPyPrintout*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxToolBarToolBase*        { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxToolTip*                { $result = wxPyMake_wxObject($1, $owner); }
 
 
-//%typemap(python, out) wxHtmlCell*               { $target = wxPyMake_wxObject($source); }
-//%typemap(python, out) wxHtmlContainerCell*      { $target = wxPyMake_wxObject($source); }
-//%typemap(python, out) wxHtmlParser*             { $target = wxPyMake_wxObject($source); }
-//%typemap(python, out) wxHtmlWinParser*          { $target = wxPyMake_wxObject($source); }
+%typemap(out) wxBitmapButton*           { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxButton*                 { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxControl*                { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxFrame*                  { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxGrid*                   { $result = wxPyMake_wxObject($1, $owner); }
+//%typemap(out) wxListCtrl*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMDIChildFrame*          { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMDIClientWindow*        { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxMenuBar*                { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxNotebook*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxStaticBox*              { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxStatusBar*              { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxTextCtrl*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxToolBar*                { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxToolBarBase*            { $result = wxPyMake_wxObject($1, $owner); }
+//%typemap(out) wxTreeCtrl*               { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPyTreeCtrl*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxWindow*                 { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPyHtmlWindow*           { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxWizardPage*             { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPyWizardPage*           { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxPanel*                  { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxDialog*                 { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxScrolledWindow*         { $result = wxPyMake_wxObject($1, $owner); }
+
+%typemap(out) wxSizer*                  { $result = wxPyMake_wxSizer($1, $owner); }
+
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     07.02.04 (extracted from textdlgg.cpp)
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

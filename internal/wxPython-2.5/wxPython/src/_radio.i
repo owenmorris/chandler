@@ -21,6 +21,8 @@ MAKE_CONST_WXSTRING(RadioButtonNameStr);
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxRadioBox);
+
 class wxRadioBox : public wxControl
 {
 public:
@@ -29,8 +31,8 @@ public:
     %pythonAppend  wxRadioBox         "self._setOORInfo(self)"
     %pythonAppend  wxRadioBox()       ""
 
-    wxRadioBox(wxWindow* parent, wxWindowID id,
-               const wxString& label,
+    wxRadioBox(wxWindow* parent, wxWindowID id=-1,
+               const wxString& label = wxPyEmptyString,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                //int choices = 0, wxString* choices_array = NULL,
@@ -41,8 +43,8 @@ public:
                const wxString& name = wxPyRadioBoxNameStr);
     %name(PreRadioBox)wxRadioBox();
 
-    bool Create(wxWindow* parent, wxWindowID id,
-                const wxString& label,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
+                const wxString& label = wxPyEmptyString,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 //int choices = 0, wxString* choices_array = NULL,
@@ -86,11 +88,15 @@ public:
     }
 #endif
         
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
     
 
 //---------------------------------------------------------------------------
 %newgroup
+
+MustHaveApp(wxRadioButton);
 
 class wxRadioButton : public wxControl
 {
@@ -98,8 +104,8 @@ public:
     %pythonAppend wxRadioButton         "self._setOORInfo(self)"
     %pythonAppend wxRadioButton()       ""
 
-    wxRadioButton(wxWindow* parent, wxWindowID id,
-                  const wxString& label,
+    wxRadioButton(wxWindow* parent, wxWindowID id=-1,
+                  const wxString& label = wxPyEmptyString,
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
                   long style = 0,
@@ -107,8 +113,8 @@ public:
                   const wxString& name = wxPyRadioButtonNameStr);
     %name(PreRadioButton)wxRadioButton();
 
-    bool Create(wxWindow* parent, wxWindowID id,
-                  const wxString& label,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
+                  const wxString& label = wxPyEmptyString,
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
                   long style = 0,
@@ -117,6 +123,9 @@ public:
 
     bool GetValue();
     void SetValue(bool value);
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 //---------------------------------------------------------------------------

@@ -51,14 +51,14 @@ TICKS_DECIMAL       = 16
 TICKS_ROMAN         = 32
 
 
-class AnalogClockWindow(wx.Window):
+class AnalogClockWindow(wx.PyWindow):
     """An analog clock window"""
 
     def __init__(self, parent, ID=-1, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=0, name="clock"):
         
         # Initialize the wxWindow...
-        wx.Window.__init__(self, parent, ID, pos, size, style, name)
+        wx.PyWindow.__init__(self, parent, ID, pos, size, style, name)
 
         # Initialize some variables and defaults...
         self.clockStep = 1
@@ -103,11 +103,17 @@ class AnalogClockWindow(wx.Window):
 
         self.currentTime=None
 
+        size = wx.Size(*size)
+        bestSize = self.GetBestSize()
+        size.x = max(size.x, bestSize.x)
+        size.y = max(size.y, bestSize.y)
+        self.SetSize(size)
+        
         # Make an initial bitmap for the face, it will be updated and
         # painted at the first EVT_SIZE event.
         W, H = size
         self.faceBitmap = wx.EmptyBitmap(max(W,1), max(H,1))
-
+        
         # Set event handlers...
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
@@ -117,7 +123,6 @@ class AnalogClockWindow(wx.Window):
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightClick)         
 
-
         # Initialize the timer that drives the update of the clock
         # face.  Update every half second to ensure that there is at
         # least one true update during each realtime second.
@@ -125,8 +130,13 @@ class AnalogClockWindow(wx.Window):
         self.timer.Start(500)
 
 
+    def DoGetBestSize(self):
+        return wx.Size(25,25)
+
+
     def OnPaint(self, event):
-        self._doDrawHands(wx.BufferedPaintDC(self), True)
+        dc = wx.BufferedPaintDC(self)
+        self._doDrawHands(dc, True)
 
 
     def OnTimerExpire(self, event):
@@ -185,6 +195,9 @@ class AnalogClockWindow(wx.Window):
         # The faceBitmap init is done here, to make sure the buffer is always
         # the same size as the Window
         size  = self.GetClientSize()
+        if size.x < 1 or size.y < 1:
+            return
+        
         self.faceBitmap = wx.EmptyBitmap(size.width, size.height)
 
         # Update drawing coordinates...
@@ -219,7 +232,7 @@ class AnalogClockWindow(wx.Window):
         hour, minutes, seconds = currentTime
 
         # Start by drawing the face bitmap
-        drawDC.DrawBitmap(self.faceBitmap, (0,0))
+        drawDC.DrawBitmap(self.faceBitmap, 0,0)
 
 
         # NOTE:  All this hand drawing code below should be refactored into a helper function.
@@ -238,10 +251,10 @@ class AnalogClockWindow(wx.Window):
             drawDC.SetPen(wx.Pen(self.shadowPenColour,
                                  int(self.handHoursThickness * self.scale),
                                  wx.SOLID))
-            drawDC.DrawLineXY(int(self.centerX + self.shadowDistance),
-                              int(self.centerY + self.shadowDistance),
-                              int(x + self.shadowDistance),
-                              int(y + self.shadowDistance))
+            drawDC.DrawLine(self.centerX + self.shadowDistance,
+                            self.centerY + self.shadowDistance,
+                            x + self.shadowDistance,
+                            y + self.shadowDistance)
 
         # Draw minutes hand shadow
         angle = minutes * 6
@@ -251,10 +264,10 @@ class AnalogClockWindow(wx.Window):
             drawDC.SetPen(wx.Pen(self.shadowPenColour,
                                  int(self.handMinutesThickness * self.scale),
                                  wx.SOLID))
-            drawDC.DrawLineXY(int(self.centerX + self.shadowDistance),
-                              int(self.centerY + self.shadowDistance),
-                              int(x + self.shadowDistance),
-                              int(y + self.shadowDistance))
+            drawDC.DrawLine(self.centerX + self.shadowDistance,
+                            self.centerY + self.shadowDistance,
+                            x + self.shadowDistance,
+                            y + self.shadowDistance)
 
         # Draw seconds hand shadow if required
         if seconds >= 0:
@@ -265,10 +278,10 @@ class AnalogClockWindow(wx.Window):
                 drawDC.SetPen(wx.Pen(self.shadowPenColour,
                                      int(self.handSecondsThickness * self.scale),
                                      wx.SOLID))
-                drawDC.DrawLineXY(int(self.centerX + self.shadowDistance),
-                                  int(self.centerY + self.shadowDistance),
-                                  int(x + self.shadowDistance),
-                                  int(y + self.shadowDistance))
+                drawDC.DrawLine(self.centerX + self.shadowDistance,
+                                self.centerY + self.shadowDistance,
+                                x + self.shadowDistance,
+                                y + self.shadowDistance)
 
 
         # Draw hours hand
@@ -283,7 +296,7 @@ class AnalogClockWindow(wx.Window):
             drawDC.SetPen(wx.Pen(self.handHoursColour,
                                  int(self.handHoursThickness * self.scale),
                                  wx.SOLID))
-            drawDC.DrawLineXY(int(self.centerX), int(self.centerY), int(x), int(y))
+            drawDC.DrawLine(self.centerX, self.centerY, x, y)
 
         # Draw minutes hand
         angle = minutes * 6
@@ -293,7 +306,7 @@ class AnalogClockWindow(wx.Window):
             drawDC.SetPen(wx.Pen(self.handMinutesColour,
                                  int(self.handMinutesThickness * self.scale),
                                  wx.SOLID))
-            drawDC.DrawLineXY(int(self.centerX), int(self.centerY), int(x), int(y))
+            drawDC.DrawLine(self.centerX, self.centerY, x, y)
 
         # Draw seconds hand if required
         if seconds >= 0:
@@ -303,7 +316,7 @@ class AnalogClockWindow(wx.Window):
                 drawDC.SetPen(wx.Pen(self.handSecondsColour,
                                      int(self.handSecondsThickness * self.scale),
                                      wx.SOLID))
-                drawDC.DrawLineXY(int(self.centerX), int(self.centerY), int(x), int(y))
+                drawDC.DrawLine(self.centerX, self.centerY, x, y)
 
 
 
@@ -369,11 +382,11 @@ class AnalogClockWindow(wx.Window):
 
         if style & TICKS_CIRCLE:
             x, y = self._center2corner(x, y, tipo)
-            drawDC.DrawEllipse((x, y), (int(size), int(size)))
+            drawDC.DrawEllipse(x, y, size, size)
 
         elif style & TICKS_SQUARE:
             x, y = self._center2corner(x, y, tipo)
-            drawDC.DrawRectangle((x, y), (int(size), int(size)))
+            drawDC.DrawRectangle(x, y, size, size)
 
         elif (style & TICKS_DECIMAL) or (style & TICKS_ROMAN):
             self._draw_rotate_text(drawDC, x, y, tipo, angle)
@@ -396,12 +409,12 @@ class AnalogClockWindow(wx.Window):
             y = int(y - 
                     ((math.cos((angle) * radiansPerDegree)*lY) - 
                      (math.sin((angle) * radiansPerDegree)*lX)))
-            drawDC.DrawRotatedText(text, (x,y), angle)
+            drawDC.DrawRotatedText(text, x,y, angle)
 
         else:
             x = x - lX
             y = y - lY
-            drawDC.DrawText(text, (x, y))
+            drawDC.DrawText(text, x, y)
 
 
     def _draw_rotate_polygon(self, drawDC, x, y, tipo, angle):
@@ -442,17 +455,17 @@ class AnalogClockWindow(wx.Window):
         drawDC.DrawPolygon(points)
 
 
-    def _pol2rect(self, r, w, deg=1):		# radian if deg=0; degree if deg=1
+    def _pol2rect(self, r, w, deg=1):        # radian if deg=0; degree if deg=1
         if deg:
-    	     w = math.pi * w / 180.0
+             w = math.pi * w / 180.0
         return r * math.cos(w), r * math.sin(w)
 
 
-    def _rect2pol(self, x, y, deg=1):		# radian if deg=0; degree if deg=1
+    def _rect2pol(self, x, y, deg=1):        # radian if deg=0; degree if deg=1
         if deg:
-    	    return math.hypot(x, y), 180.0 * math.atan2(y, x) / math.pi
+            return math.hypot(x, y), 180.0 * math.atan2(y, x) / math.pi
         else:
-    	    return math.hypot(x, y), math.atan2(y, x)
+            return math.hypot(x, y), math.atan2(y, x)
 
 
     def _center2corner(self, x, y, tipo, drawDC=None):
@@ -525,7 +538,7 @@ class AnalogClockWindow(wx.Window):
                 drawDC.SetBrush(self.watchBrush)
             else:
                 drawDC.SetBrush(wx.Brush(self.GetBackgroundColour(), wx.SOLID))
-            drawDC.DrawCircle((self.centerX, self.centerY), self.radius_watch)
+            drawDC.DrawCircle(self.centerX, self.centerY, self.radius_watch)
 
 
     def _calcSteps(self):
@@ -572,7 +585,7 @@ class AnalogClockWindow(wx.Window):
                     f=False
                 coords["ticks_minutes"][3][i][2]=f
 
-        self.coords=coords
+        self.coords = coords
 
 
     def _getCoords(self, tipo, angle):
@@ -722,21 +735,23 @@ class AnalogClockWindow(wx.Window):
 
     def SetClockStyle(self, style):
         """
-        Set the clock style, acording to the options:
+        Set the clock style, acording to these options:
 
-            SHOW_QUARTERS_TICKS - Show marks for hours 3, 6, 9, 12
-            SHOW_HOURS_TICKS    - Show marks for all hours
-            SHOW_MINUTES_TICKS  - Show marks for minutes
+            ====================  ================================
+            SHOW_QUARTERS_TICKS   Show marks for hours 3, 6, 9, 12
+            SHOW_HOURS_TICKS      Show marks for all hours
+            SHOW_MINUTES_TICKS    Show marks for minutes
 
-            SHOW_HOURS_HAND     - Show hours hand
-            SHOW_MINUTES_HAND   - Show minutes hand
-            SHOW_SECONDS_HAND   - Show seconds hand
+            SHOW_HOURS_HAND       Show hours hand
+            SHOW_MINUTES_HAND     Show minutes hand
+            SHOW_SECONDS_HAND     Show seconds hand
 
-            SHOW_SHADOWS        - Show hands and marks shadows
+            SHOW_SHADOWS          Show hands and marks shadows
 
-            ROTATE_TICKS        - Align tick marks to watch
-            OVERLAP_TICKS       - Draw tick marks for minutes even
+            ROTATE_TICKS          Align tick marks to watch
+            OVERLAP_TICKS         Draw tick marks for minutes even
                                   when they match the hours marks.
+            ====================  ================================
         """
 
         self.clockStyle = style
@@ -746,14 +761,17 @@ class AnalogClockWindow(wx.Window):
         """
         Set the ticks styles, acording to the options below.
 
-            TICKS_NONE          = Don't show tick marks.
-            TICKS_SQUARE        = Use squares as tick marks.
-            TICKS_CIRCLE        = Use circles as tick marks.
-            TICKS_POLY          = Use a polygon as tick marks. The polygon
-                                  must be passed using SetTickShapes,
-                                  otherwise the default polygon will be used.
-            TICKS_DECIMAL       = Use decimal numbers.
-            TICKS_ROMAN         = Use Roman numbers.
+            =================   =====================================
+            TICKS_NONE          Don't show tick marks.
+            TICKS_SQUARE        Use squares as tick marks.
+            TICKS_CIRCLE        Use circles as tick marks.
+            TICKS_POLY          Use a polygon as tick marks. The
+                                polygon must be passed using
+                                SetTickShapes, otherwise the default
+                                polygon will be used.
+            TICKS_DECIMAL       Use decimal numbers.
+            TICKS_ROMAN         Use Roman numbers.
+            =================   =====================================
         """
 
         if h:

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        glcanvas.h
-// Purpose:     wxGLCanvas, for using OpenGL with wxWindows 2.0 for Motif.
+// Purpose:     wxGLCanvas, for using OpenGL with wxWidgets 2.0 for Motif.
 //              Uses the GLX extension.
 // Author:      Julian Smart and Wolfram Gloger
 // Modified by:
@@ -10,12 +10,12 @@
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+#ifndef _WX_GLCANVAS_H_
+#define _WX_GLCANVAS_H_
+
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma interface "glcanvas.h"
 #endif
-
-#ifndef _WX_GLCANVAS_H_
-#define _WX_GLCANVAS_H_
 
 #include "wx/setup.h"
 

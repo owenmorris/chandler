@@ -17,8 +17,8 @@
 
 %{
 #include <wx/listctrl.h>
-
 %}
+
 MAKE_CONST_WXSTRING2(ListCtrlNameStr, _T("wxListCtrl"));
 
 //---------------------------------------------------------------------------
@@ -398,6 +398,8 @@ IMP_PYCALLBACK_LISTATTR_LONG(wxPyListCtrl, wxListCtrl, OnGetItemAttr);
 
 
 
+MustHaveApp(wxPyListCtrl);
+
 %name(ListCtrl)class wxPyListCtrl : public wxControl {
 public:
 
@@ -639,8 +641,8 @@ public:
     DocDeclAStr(
         long, HitTest(const wxPoint& point, int& OUTPUT),
         "HitTest(Point point) -> (item, where)",
-        "Determines which item (if any) is at the specified point,\n"
-        "giving details in the second return value (see wxLIST_HITTEST_... flags.)");
+        "Determines which item (if any) is at the specified point, giving
+details in the second return value (see wxLIST_HITTEST_... flags.)", "");
 
     // Inserts an item, returning the index of the new item if successful,
     // -1 otherwise.
@@ -767,6 +769,9 @@ public:
         #endif
         }
     }
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
@@ -774,6 +779,8 @@ public:
 //---------------------------------------------------------------------------
 %newgroup
 
+
+MustHaveApp(wxListView);
 
 // wxListView: a class which provides a little better API for list control
 class wxListView : public wxPyListCtrl

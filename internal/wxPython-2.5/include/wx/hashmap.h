@@ -18,10 +18,35 @@
 
 #include "wx/string.h"
 
-#include <stddef.h>             // for ptrdiff_t
+#if (defined(HAVE_EXT_HASH_MAP) || defined(HAVE_HASH_MAP)) \
+    && (defined(HAVE_GNU_CXX_HASH_MAP) || defined(HAVE_STD_HASH_MAP))
+    #define HAVE_STL_HASH_MAP
+#endif
+
+#if wxUSE_STL && defined(HAVE_STL_HASH_MAP)
+
+#if defined(HAVE_EXT_HASH_MAP)
+    #include <ext/hash_map>
+#elif defined(HAVE_HASH_MAP)
+    #include <hash_map>
+#endif
+
+#if defined(HAVE_GNU_CXX_HASH_MAP)
+    #define WX_HASH_MAP_NAMESPACE __gnu_cxx
+#elif defined(HAVE_STD_HASH_MAP)
+    #define WX_HASH_MAP_NAMESPACE std
+#endif
+
+#define _WX_DECLARE_HASH_MAP( KEY_T, VALUE_T, HASH_T, KEY_EQ_T, CLASSNAME, CLASSEXP ) \
+    typedef WX_HASH_MAP_NAMESPACE::hash_map< KEY_T, VALUE_T, HASH_T, KEY_EQ_T > CLASSNAME;
+
+#else // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
+
 
 #ifdef __WXWINCE__
 typedef int ptrdiff_t;
+#else
+#include <stddef.h>             // for ptrdiff_t
 #endif
 
 // private
@@ -118,8 +143,8 @@ public: \
         value_type m_value; \
     }; \
  \
-    struct Iterator; \
-    friend struct Iterator; \
+    CLASSEXP Iterator; \
+    friend CLASSEXP Iterator; \
 protected: \
     static void DeleteNode( _wxHashTable_NodeBase* node ) \
     { \
@@ -129,8 +154,9 @@ public: \
     /*                  */ \
     /* forward iterator */ \
     /*                  */ \
-    struct Iterator \
+    CLASSEXP Iterator \
     { \
+    public: \
         Node* m_node; \
         Self* m_ht; \
  \
@@ -161,8 +187,9 @@ public: \
     }; \
  \
 public: \
-    struct iterator:public Iterator \
+    CLASSEXP iterator : public Iterator \
     { \
+    public: \
         iterator() : Iterator() {} \
         iterator( Node* node, Self* ht ) : Iterator( node, ht ) {} \
         iterator& operator++() { PlusPlus(); return *this; } \
@@ -171,8 +198,9 @@ public: \
         pointer operator ->() const { return &(m_node->m_value); } \
     }; \
  \
-    struct const_iterator:public Iterator \
+    CLASSEXP const_iterator : public Iterator \
     { \
+    public: \
         const_iterator() : Iterator() {} \
         const_iterator( Node* node, const Self* ht ) \
             : Iterator( node, (Self*)ht ) {} \
@@ -270,7 +298,7 @@ protected: \
     } \
     static Node* CopyNode( Node* node ) { return new Node( *node ); } \
  \
-    Node* GetOrCreateNode( const value_type& value ) \
+    Node* GetOrCreateNode( const value_type& value, bool& created ) \
     { \
         const const_key_type& key = m_getKey( value ); \
         size_t bucket = m_hasher( key ) % m_tableBuckets; \
@@ -279,10 +307,14 @@ protected: \
         while( node ) \
         { \
             if( m_equals( m_getKey( node->m_value ), key ) ) \
+            { \
+                created = false; \
                 return node; \
+            } \
             node = node->m_next(); \
         } \
- 	return CreateNode( value  , bucket); \
+        created = true; \
+        return CreateNode( value, bucket); \
     }\
     Node * CreateNode( const value_type& value, size_t bucket ) \
     {\
@@ -408,6 +440,8 @@ inline bool grow_lf70( size_t buckets, size_t items )
     return float(items)/float(buckets) >= 0.85;
 }
 
+#endif // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
+
 // ----------------------------------------------------------------------------
 // hashing and comparison functors
 // ----------------------------------------------------------------------------
@@ -415,6 +449,31 @@ inline bool grow_lf70( size_t buckets, size_t items )
 // NB: implementation detail: all of these classes must have dummy assignment
 //     operators to suppress warnings about "statement with no effect" from gcc
 //     in the hash table class assignment operator (where they're assigned)
+
+#if wxUSE_STL && defined(HAVE_STL_HASH_MAP)
+
+// integer types
+class WXDLLIMPEXP_BASE wxIntegerHash
+{
+    WX_HASH_MAP_NAMESPACE::hash<long> longHash;
+    WX_HASH_MAP_NAMESPACE::hash<unsigned long> ulongHash;
+    WX_HASH_MAP_NAMESPACE::hash<int> intHash;
+    WX_HASH_MAP_NAMESPACE::hash<unsigned int> uintHash;
+    WX_HASH_MAP_NAMESPACE::hash<short> shortHash;
+    WX_HASH_MAP_NAMESPACE::hash<unsigned short> ushortHash;
+public:
+    wxIntegerHash() { }
+    size_t operator()( long x ) const { return longHash( x ); }
+    size_t operator()( unsigned long x ) const { return ulongHash( x ); }
+    size_t operator()( int x ) const { return intHash( x ); }
+    size_t operator()( unsigned int x ) const { return uintHash( x ); }
+    size_t operator()( short x ) const { return shortHash( x ); }
+    size_t operator()( unsigned short x ) const { return ushortHash( x ); }
+
+    wxIntegerHash& operator=(const wxIntegerHash&) { return *this; }
+};
+
+#else // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
 
 // integer types
 class WXDLLIMPEXP_BASE wxIntegerHash
@@ -430,6 +489,8 @@ public:
 
     wxIntegerHash& operator=(const wxIntegerHash&) { return *this; }
 };
+
+#endif // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
 
 class WXDLLIMPEXP_BASE wxIntegerEqual
 {
@@ -453,7 +514,11 @@ public:
 
     // TODO: this might not work well on architectures with 64 bit pointers but
     //       32 bit longs, we should use % ULONG_MAX there
+#if wxUSE_STL && defined(HAVE_STL_HASH_MAP)
+    size_t operator()( const void* k ) const { return (size_t)k; }
+#else
     unsigned long operator()( const void* k ) const { return (unsigned long)wxPtrToULong(k); }
+#endif
 
     wxPointerHash& operator=(const wxPointerHash&) { return *this; }
 };
@@ -502,6 +567,8 @@ public:
     wxStringEqual& operator=(const wxStringEqual&) { return *this; }
 };
 
+#if !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
+
 #define _WX_DECLARE_HASH_MAP( KEY_T, VALUE_T, HASH_T, KEY_EQ_T, CLASSNAME, CLASSEXP ) \
 _WX_DECLARE_PAIR( KEY_T, VALUE_T, CLASSNAME##_wxImplementation_Pair, CLASSEXP ) \
 _WX_DECLARE_HASH_MAP_KEY_EX( KEY_T, CLASSNAME##_wxImplementation_Pair, CLASSNAME##_wxImplementation_KeyEx, CLASSEXP ) \
@@ -510,6 +577,7 @@ CLASSEXP CLASSNAME:public CLASSNAME##_wxImplementation_HashTable \
 { \
 public: \
     typedef VALUE_T mapped_type; \
+    _WX_DECLARE_PAIR( iterator, bool, Insert_Result, CLASSEXP ) \
  \
     wxEXPLICIT CLASSNAME( size_type hint = 100, hasher hf = hasher(),        \
                           key_equal eq = key_equal() )                       \
@@ -518,7 +586,10 @@ public: \
  \
     mapped_type& operator[]( const const_key_type& key ) \
     { \
-        return GetOrCreateNode( CLASSNAME##_wxImplementation_Pair( key, mapped_type() ) )->m_value.second; \
+        bool created; \
+        return GetOrCreateNode( \
+                CLASSNAME##_wxImplementation_Pair( key, mapped_type() ), \
+                created)->m_value.second; \
     } \
  \
     const_iterator find( const const_key_type& key ) const \
@@ -531,7 +602,16 @@ public: \
         return iterator( GetNode( key ), this ); \
     } \
  \
-    void insert( const value_type& v ) { (*this)[v.first] = v.second; } \
+    Insert_Result insert( const value_type& v ) \
+    { \
+        bool created; \
+        Node *node = GetOrCreateNode( \
+                CLASSNAME##_wxImplementation_Pair( v.first, v.second ), \
+                created); \
+        if ( !created ) \
+            node->m_value.second = v.second; \
+        return Insert_Result(iterator(node, this), created); \
+    } \
  \
     size_type erase( const key_type& k ) \
         { return CLASSNAME##_wxImplementation_HashTable::erase( k ); } \
@@ -542,6 +622,8 @@ public: \
     size_type count( const const_key_type& key ) \
         { return GetNode( key ) ? 1 : 0; } \
 }
+
+#endif // !wxUSE_STL || !defined(HAVE_STL_HASH_MAP)
 
 // these macros are to be used in the user code
 #define WX_DECLARE_HASH_MAP( KEY_T, VALUE_T, HASH_T, KEY_EQ_T, CLASSNAME) \
@@ -593,6 +675,13 @@ public: \
             delete it->second;                                               \
         (hashmap).clear();                                                   \
     }
+
+//---------------------------------------------------------------------------
+// Declarations of common hashmap classes
+
+WX_DECLARE_HASH_MAP_WITH_DECL( long, long, wxIntegerHash, wxIntegerEqual,
+                               wxLongToLongHashMap, class WXDLLIMPEXP_BASE );
+
 
 #endif // _WX_HASHMAP_H_
 

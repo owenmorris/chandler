@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     16.05.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -27,8 +27,7 @@
 
 // CreateDialog
 
-#if !defined(__WXWINCE__) && defined(CreateDialog)
-// #if defined(CreateDialog)
+#if defined(CreateDialog)
     #undef CreateDialog
 
     inline HWND CreateDialog(HINSTANCE hInstance,
@@ -318,6 +317,7 @@
     inline BOOL IsMaximized(HWND hwnd)
     {
 #ifdef __WXWINCE__
+        wxUnusedVar(hwnd);
         return FALSE;
 #else
         return IsZoomed(hwnd);
@@ -332,6 +332,7 @@
     inline HWND GetFirstChild(HWND hwnd)
     {
 #ifdef __WXWINCE__
+        wxUnusedVar(hwnd);
         return 0;
 #else
         return GetTopWindow(hwnd);
@@ -394,7 +395,7 @@
 
 #if defined(__WXWINCE__) && defined(DrawIcon) //#ifdef DrawIcon
     #undef DrawIcon
-    inline BOOL DrawIcon(HDC hdc, int x, int y, HICON hicon) 
+    inline BOOL DrawIcon(HDC hdc, int x, int y, HICON hicon)
     {
         return DrawIconEx(hdc,x,y,hicon,0,0,0,NULL, DI_NORMAL) ;
     }

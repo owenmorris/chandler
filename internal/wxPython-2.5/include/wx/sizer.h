@@ -21,14 +21,15 @@
 #include "wx/window.h"
 #include "wx/frame.h"
 #include "wx/dialog.h"
+#include "wx/bookctrl.h"
 
 //---------------------------------------------------------------------------
 // classes
 //---------------------------------------------------------------------------
 
-class wxSizerItem;
-class wxSizer;
-class wxBoxSizer;
+class WXDLLEXPORT wxSizerItem;
+class WXDLLEXPORT wxSizer;
+class WXDLLEXPORT wxBoxSizer;
 
 //---------------------------------------------------------------------------
 // wxSizerItem
@@ -74,8 +75,17 @@ public:
 
     wxSize GetMinSize() const
         { return m_minSize; }
+    wxSize GetMinSizeWithBorder() const;
+
+    void SetMinSize(const wxSize& size)
+        {
+            if (IsWindow()) m_window->SetMinSize(size);
+            m_minSize = size;
+        }
+    void SetMinSize( int x, int y )
+        { SetMinSize(wxSize(x, y)); }
     void SetInitSize( int x, int y )
-        { m_minSize.x = x; m_minSize.y = y; }
+        { SetMinSize(wxSize(x, y)); }
 
     void SetRatio( int width, int height )
         // if either of dimensions is zero, ratio is assumed to be 1
@@ -189,6 +199,9 @@ public:
                       wxObject* userData = NULL );
     virtual void Add( wxSizerItem *item );
 
+    virtual void AddSpacer(int size);
+    virtual void AddStretchSpacer(int prop = 1);
+
     virtual void Insert( size_t index,
                          wxWindow *window,
                          int proportion = 0,
@@ -211,6 +224,9 @@ public:
     virtual void Insert( size_t index,
                          wxSizerItem *item );
 
+    virtual void InsertSpacer(size_t index, int size);
+    virtual void InsertStretchSpacer(size_t index, int prop = 1);
+
     virtual void Prepend( wxWindow *window,
                           int proportion = 0,
                           int flag = 0,
@@ -228,6 +244,9 @@ public:
                           int border = 0,
                           wxObject* userData = NULL );
     virtual void Prepend( wxSizerItem *item );
+
+    virtual void PrependSpacer(int size);
+    virtual void PrependStretchSpacer(int prop = 1);
 
     // Deprecated in 2.6 since historically it does not delete the window,
     // use Detach instead.
@@ -289,23 +308,23 @@ public:
 
     // Manage whether individual scene items are considered
     // in the layout calculations or not.
-    void Show( wxWindow *window, bool show = true );
-    void Show( wxSizer *sizer, bool show = true );
-    void Show( size_t index, bool show = true );
+    bool Show( wxWindow *window, bool show = true, bool recursive = false );
+    bool Show( wxSizer *sizer, bool show = true, bool recursive = false );
+    bool Show( size_t index, bool show = true );
 
-    void Hide( wxSizer *sizer )
-        { Show( sizer, false ); }
-    void Hide( wxWindow *window )
-        { Show( window, false ); }
-    void Hide( size_t index )
-        { Show( index, false ); }
+    bool Hide( wxSizer *sizer, bool recursive = false )
+        { return Show( sizer, false, recursive ); }
+    bool Hide( wxWindow *window, bool recursive = false )
+        { return Show( window, false, recursive ); }
+    bool Hide( size_t index )
+        { return Show( index, false ); }
 
     bool IsShown( wxWindow *window ) const;
     bool IsShown( wxSizer *sizer ) const;
     bool IsShown( size_t index ) const;
 
     // Recursively call wxWindow::Show () on all sizer items.
-    void ShowItems (bool show);
+    virtual void ShowItems (bool show);
 
 protected:
     wxSize              m_size;
@@ -416,7 +435,7 @@ public:
     // Read-only access to the row heights and col widths arrays
     const wxArrayInt& GetRowHeights() const { return m_rowHeights; }
     const wxArrayInt& GetColWidths() const  { return m_colWidths; }
-    
+
     // implementation
     virtual void RecalcSizes();
     virtual wxSize CalcMin();
@@ -425,7 +444,7 @@ protected:
     void AdjustForFlexDirection();
     void AdjustForGrowables(const wxSize& sz, const wxSize& minsz,
                             int nrows, int ncols);
-    
+
     // the heights/widths of all rows/columns
     wxArrayInt  m_rowHeights,
                 m_colWidths;
@@ -442,6 +461,9 @@ protected:
     // both directions or only one
     int m_flexDirection;
     wxFlexSizerGrowMode m_growMode;
+
+    // saves CalcMin result to optimize RecalcSizes
+    wxSize m_calculatedMinSize;
 
 private:
     DECLARE_CLASS(wxFlexGridSizer)
@@ -497,6 +519,9 @@ public:
     wxStaticBox *GetStaticBox() const
         { return m_staticBox; }
 
+    // override to hide/show the static box as well
+    virtual void ShowItems (bool show);
+
 protected:
     wxStaticBox   *m_staticBox;
 
@@ -506,6 +531,11 @@ private:
 };
 
 #endif // wxUSE_STATBOX
+
+
+#if WXWIN_COMPATIBILITY_2_4
+// NB: wxBookCtrlSizer and wxNotebookSizer are deprecated, they
+//     don't do anything. wxBookCtrl::DoGetBestSize does the job now.
 
 // ----------------------------------------------------------------------------
 // wxBookCtrlSizer
@@ -520,14 +550,18 @@ class WXDLLEXPORT wxBookCtrl;
 class WXDLLEXPORT wxBookCtrlSizer : public wxSizer
 {
 public:
-    wxBookCtrlSizer(wxBookCtrl *bookctrl);
+    wxDEPRECATED( wxBookCtrlSizer(wxBookCtrl *bookctrl) );
+
+    wxBookCtrl *GetControl() const { return m_bookctrl; }
 
     virtual void RecalcSizes();
     virtual wxSize CalcMin();
 
-    wxBookCtrl *GetControl() const { return m_bookctrl; }
-
 protected:
+    // this protected ctor lets us mark the real one above as deprecated
+    // and still have warning-free build of the library itself:
+    wxBookCtrlSizer() {}
+
     wxBookCtrl *m_bookctrl;
 
 private:
@@ -545,7 +579,7 @@ class WXDLLEXPORT wxNotebook;
 class WXDLLEXPORT wxNotebookSizer : public wxBookCtrlSizer
 {
 public:
-    wxNotebookSizer(wxNotebook *nb);
+    wxDEPRECATED( wxNotebookSizer(wxNotebook *nb) );
 
     wxNotebook *GetNotebook() const { return (wxNotebook *)m_bookctrl; }
 
@@ -557,6 +591,9 @@ private:
 #endif // wxUSE_NOTEBOOK
 
 #endif // wxUSE_BOOKCTRL
+
+#endif // WXWIN_COMPATIBILITY_2_4
+
 
 #endif // __WXSIZER_H__
 

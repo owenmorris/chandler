@@ -26,13 +26,15 @@ MAKE_CONST_WXSTRING(ListBoxNameStr);
 //---------------------------------------------------------------------------
 %newgroup
 
+MustHaveApp(wxListBox);
+
 class wxListBox : public wxControlWithItems
 {
 public:
     %pythonAppend wxListBox         "self._setOORInfo(self)"
     %pythonAppend wxListBox()       ""
 
-    wxListBox(wxWindow* parent, wxWindowID id,
+    wxListBox(wxWindow* parent, wxWindowID id=-1,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               //int choices=0, wxString* choices_array = NULL,
@@ -42,7 +44,7 @@ public:
               const wxString& name = wxPyListBoxNameStr);
     %name(PreListBox)wxListBox();
 
-    bool Create(wxWindow* parent, wxWindowID id,
+    bool Create(wxWindow* parent, wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 //int choices=0, wxString* choices_array = NULL,
@@ -127,12 +129,17 @@ public:
             %#endif
         }
     }
+    
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
 //---------------------------------------------------------------------------
 %newgroup
 
+
+MustHaveApp(wxCheckListBox);
 
 // wxCheckListBox: a listbox whose items may be checked
 class wxCheckListBox : public wxListBox
@@ -141,7 +148,7 @@ public:
     %pythonAppend wxCheckListBox         "self._setOORInfo(self)"
     %pythonAppend wxCheckListBox()       ""
 
-    wxCheckListBox(wxWindow *parent, wxWindowID id,
+    wxCheckListBox(wxWindow *parent, wxWindowID id=-1,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    //int choices = 0, wxString* choices_array = NULL,
@@ -151,7 +158,7 @@ public:
                    const wxString& name = wxPyListBoxNameStr);
     %name(PreCheckListBox)wxCheckListBox();
 
-    bool Create(wxWindow *parent, wxWindowID id,
+    bool Create(wxWindow *parent, wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 //int choices = 0, wxString* choices_array = NULL,

@@ -80,7 +80,7 @@
 // Generic comment about debugging settings: they are very useful if you don't
 // use any other memory leak detection tools such as Purify/BoundsChecker, but
 // are probably redundant otherwise. Also, Visual C++ CRT has the same features
-// as wxWindows memory debugging subsystem built in since version 5.0 and you
+// as wxWidgets memory debugging subsystem built in since version 5.0 and you
 // may prefer to use it instead of built in memory debugging code because it is
 // faster and more fool proof.
 //
@@ -155,7 +155,7 @@
 // Unicode support
 // ----------------------------------------------------------------------------
 
-// Set wxUSE_UNICODE to 1 to compile wxWindows in Unicode mode: wxChar will be
+// Set wxUSE_UNICODE to 1 to compile wxWidgets in Unicode mode: wxChar will be
 // defined as wchar_t, wxString will use Unicode internally. If you set this
 // to 1, you must use wxT() macro for all literal strings in the program.
 //
@@ -226,14 +226,14 @@
 // library without it if you have no use for it - this will result in a
 // somewhat smaller and faster operation.
 //
-// This is ignored under Win16, threads are only supported under Win32.
+// Threads are only supported under Win32.
 //
 // Default is 1
 //
 // Recommended setting: 0 unless you do plan to develop MT applications
 #define wxUSE_THREADS 1
 
-// If enabled (1), compiles wxWindows streams classes
+// If enabled (1), compiles wxWidgets streams classes
 #define wxUSE_STREAMS       1
 
 // Use standard C++ streams if 1. If 0, use wxWin streams implementation.
@@ -375,15 +375,12 @@
 #define wxUSE_ZIPSTREAM     1
 
 // Set to 1 to compile wxZlibInput/OutputStream classes. Also required by
-// wxUSE_LIBPNG and wxUSE_GZSTREAM.
+// wxUSE_LIBPNG
 #define wxUSE_ZLIB          1
-
-// Set to 1 to compile wxGzipInput/OutputStream classes. Requires wxUSE_ZLIB.
-#define wxUSE_GZSTREAM      1
 
 // If enabled, the code written by Apple will be used to write, in a portable
 // way, float on the disk. See extended.c for the license which is different
-// from wxWindows one.
+// from wxWidgets one.
 //
 // Default is 1.
 //
@@ -467,7 +464,7 @@
 // Recommended setting: 0
 #define wxUSE_TIPWINDOW    0
 
-// Each of the settings below corresponds to one wxWindows control. They are
+// Each of the settings below corresponds to one wxWidgets control. They are
 // all switched on by default but may be disabled if you are sure that your
 // program (including any standard dialogs it can show!) doesn't need them and
 // if you desperately want to save some space. If you use any of these you must
@@ -526,9 +523,6 @@
 // Recommended setting: 1 for wxUSE_TOOLBAR and wxUSE_TOOLBAR_NATIVE.
 #define wxUSE_TOOLBAR 1
 #define wxUSE_TOOLBAR_NATIVE 1
-
-// this setting is obsolete, value is ignored
-#define wxUSE_BUTTONBAR    1
 
 // wxNotebook is a control with several "tabs" located on one of its sides. It
 // may be used ot logically organise the data presented to the user instead of
@@ -742,10 +736,21 @@
 // Big GUI components
 // ----------------------------------------------------------------------------
 
+// Set to 0 to disable MDI support.
+//
+// Requires wxUSE_NOTEBOOK under platforms other than MSW.
+//
+// Default is 1.
+//
+// Recommended setting: 1, can be safely set to 0.
+#define wxUSE_MDI 1
+
 // Set to 0 to disable document/view architecture
 #define wxUSE_DOC_VIEW_ARCHITECTURE 1
 
 // Set to 0 to disable MDI document/view architecture
+//
+// Requires wxUSE_MDI && wxUSE_DOC_VIEW_ARCHITECTURE
 #define wxUSE_MDI_ARCHITECTURE    1
 
 // Set to 0 to disable print/preview architecture code
@@ -759,6 +764,11 @@
 // Recommended setting: 1 (wxHTML is great!), set to 0 if you want compile a
 // smaller library.
 #define wxUSE_HTML          1
+
+// wxWebKit is a wrapper for Apple's WebKit framework, use it if you want to embed
+// the Safari browser control
+// 0 by default because of Jaguar compatibility problems
+#define wxUSE_WEBKIT	0
 
 // OpenGL canvas
 #define wxUSE_GLCANVAS       0
@@ -928,6 +938,10 @@
 // If 1, enables provision of run-time type information.
 // NOW MANDATORY: don't change.
 #define wxUSE_DYNAMIC_CLASSES     1
+
+// Set to 0 for no libmspack
+#define wxUSE_LIBMSPACK     0
+
 
 #endif
     // _WX_SETUP_H_

@@ -19,16 +19,16 @@ __wxPyPtrTypeMap['wxStatusBar95']   = 'wxStatusBar'
 
 #----------------------------------------------------------------------------
 # Load version numbers from __version__...  Ensure that major and minor
-# versions are the same for both wxPython and wxWindows.
+# versions are the same for both wxPython and wxWidgets.
 
 from __version__ import *
 __version__ = VERSION_STRING
 
-assert MAJOR_VERSION == _core.MAJOR_VERSION, "wxPython/wxWindows version mismatch"
-assert MINOR_VERSION == _core.MINOR_VERSION, "wxPython/wxWindows version mismatch"
-if RELEASE_VERSION != _core.RELEASE_VERSION:
+assert MAJOR_VERSION == _core_.MAJOR_VERSION, "wxPython/wxWidgets version mismatch"
+assert MINOR_VERSION == _core_.MINOR_VERSION, "wxPython/wxWidgets version mismatch"
+if RELEASE_VERSION != _core_.RELEASE_VERSION:
     import warnings
-    warnings.warn("wxPython/wxWindows release number mismatch")
+    warnings.warn("wxPython/wxWidgets release number mismatch")
 
 #----------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ class PyUnbornObjectError(AttributeError):
 
 class _wxPyUnbornObject(object):
     """
-    Some stock objects are created when the wx.core module is
+    Some stock objects are created when the wx._core module is
     imported, but their C++ instance is not created until the wx.App
     object is created and initialized.  These object instances will
     temporarily have their __class__ changed to this class so an
@@ -96,10 +96,13 @@ def CallAfter(callable, *args, **kw):
     """
     Call the specified function after the current and pending event
     handlers have been completed.  This is also good for making GUI
-    method calls from non-GUI threads.
+    method calls from non-GUI threads.  Any extra positional or
+    keyword args are passed on to the callable when it is called.
+
+    :see: `wx.FutureCall`
     """
     app = wx.GetApp()
-    assert app, 'No wxApp created yet'
+    assert app is not None, 'No wx.App created yet'
 
     global _wxPyCallAfterId
     if _wxPyCallAfterId is None:
@@ -122,7 +125,7 @@ class FutureCall:
     A convenience class for wx.Timer, that calls the given callable
     object once after the given amount of milliseconds, passing any
     positional or keyword args.  The return value of the callable is
-    availbale after it has been run with the GetResult method.
+    availbale after it has been run with the `GetResult` method.
 
     If you don't need to get the return value or restart the timer
     then there is no need to hold a reference to this object.  It will
@@ -130,6 +133,8 @@ class FutureCall:
     has a reference to self.Notify) but the cycle will be broken when
     the timer completes, automatically cleaning up the wx.FutureCall
     object.
+
+    :see: `wx.CallAfter`
     """
     def __init__(self, millis, callable, *args, **kwargs):
         self.millis = millis
@@ -213,20 +218,46 @@ class FutureCall:
             wx.CallAfter(self.Stop)
 
 
+
+#----------------------------------------------------------------------------
+# Control which items in this module should be documented by epydoc.
+# We allow only classes and functions, which will help reduce the size
+# of the docs by filtering out the zillions of constants, EVT objects,
+# and etc that don't make much sense by themselves, but are instead
+# documented (or will be) as part of the classes/functions/methods
+# where they should be used.
+
+class __DocFilter:
+    """
+    A filter for epydoc that only allows non-Ptr classes and
+    fucntions, in order to reduce the clutter in the API docs.
+    """
+    def __init__(self, globals):
+        self._globals = globals
+        
+    def __call__(self, name):
+        import types
+        obj = self._globals.get(name, None)
+        if type(obj) not in [type, types.ClassType, types.FunctionType, types.BuiltinFunctionType]:
+            return False
+        if name.startswith('_') or name.endswith('Ptr') or name.startswith('EVT'):
+            return False
+        return True
+
 #----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
 
 # Import other modules in this package that should show up in the
 # "core" wx namespace
-from gdi import *
-from windows import *
-from controls import *
-from misc import *
+from _gdi import *
+from _windows import *
+from _controls import *
+from _misc import *
 
 
 # Fixup the stock objects since they can't be used yet.  (They will be
 # restored in wx.PyApp.OnInit.)
-_core._wxPyFixStockObjects()
+_core_._wxPyFixStockObjects()
 
 #----------------------------------------------------------------------------
 #----------------------------------------------------------------------------

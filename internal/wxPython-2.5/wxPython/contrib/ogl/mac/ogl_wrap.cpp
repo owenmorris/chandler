@@ -43,6 +43,7 @@ private:
 #define SWIG_TypeCast        SWIG_Python_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Python_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Python_TypeName
+#define SWIG_TypePrettyName  SWIG_Python_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Python_TypeQuery
 #define SWIG_TypeClientData  SWIG_Python_TypeClientData
 #define SWIG_PackData        SWIG_Python_PackData 
@@ -113,6 +114,7 @@ SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
 SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
 SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
+SWIGIMPORT(const char *)     SWIG_TypePrettyName(const swig_type_info *);
 SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
 SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
 SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
@@ -123,6 +125,7 @@ SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
 }
 #endif
 
+
 /***********************************************************************
  * pyrun.swg for wxPython
  *
@@ -132,8 +135,6 @@ SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
  * anyway.
  *
  ************************************************************************/
-
-#include "Python.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -204,6 +205,7 @@ SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_con
 #endif
 
 
+
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define  SWIGTYPE_p_wxOGLConstraint swig_types[0] 
@@ -259,47 +261,64 @@ static swig_type_info *swig_types[42];
 
 #define SWIG_name    "_ogl"
 
-/* Auxiliar swig  macros */
+/* Auxiliar swig  macros that appear in the header */
+
+#define SWIG_OLDOBJ  1
+#define SWIG_NEWOBJ  SWIG_OLDOBJ + 1
+#define SWIG_PYSTR   SWIG_NEWOBJ + 1
 
 #ifdef __cplusplus
 #define SWIGSTATICINLINE(a) static inline a
 #define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) (new type[(size)])
+#define swig_new_array(size,Type) (new Type[(size)])
+#define swig_delete(cptr) delete cptr
 #define swig_delete_array(cptr) delete[] cptr
-#define swig_const_cast(type,a) const_cast<type>(a)
-#define swig_static_cast(type,a) static_cast<type>(a)
-#define swig_reinterpret_cast(type,a) reinterpret_cast<type>(a)
-
-#ifdef HAVE_NUMERIC_CAST
-#define swig_numeric_cast(type,a) numeric_cast<type>(a)
-#else
-#define swig_numeric_cast(type,a) static_cast<type>(a)
-#endif
+#define swig_const_cast(a,Type) const_cast<Type >(a)
+#define swig_static_cast(a,Type) static_cast<Type >(a)
+#define swig_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
+#define swig_new_copy(ptr,Type) (new Type(*ptr))
+#define swig_numeric_cast(a,Type) static_cast<Type >(a)
 
 #else /* C case */
 
 #define SWIGSTATICINLINE(a) static a
 #define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) ((type*) malloc((size)*sizeof(type)))
+#define swig_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define swig_delete(cptr) free((char*)cptr)
 #define swig_delete_array(cptr) free((char*)cptr)
-#define swig_const_cast(type,a) (type)(a)
-#define swig_static_cast(type,a) (type)(a)
-#define swig_reinterpret_cast(type,a) (type)(a)
-#define swig_numeric_cast(type,a) (type)(a)
+#define swig_const_cast(a,Type) (Type)(a)
+#define swig_static_cast(a,Type) (Type)(a)
+#define swig_reinterpret_cast(a,Type) (Type)(a)
+#define swig_numeric_cast(a,Type) (Type)(a)
+#define swig_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 
 #endif /* __cplusplus */
 
 
-#define SWIG_FromSignedChar     PyInt_FromLong
-#define SWIG_FromUnsignedChar   PyInt_FromLong
-#define SWIG_FromShort         PyInt_FromLong
-#define SWIG_FromUnsignedShort  PyInt_FromLong
-#define SWIG_FromInt           PyInt_FromLong
-#define SWIG_FromLong          PyInt_FromLong
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_signed_SS_char PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_unsigned_SS_char PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_short PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_unsigned_SS_short PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_int PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_long PyInt_FromLong
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_float PyFloat_FromDouble
+/*@@*/
+/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+#define SWIG_From_double PyFloat_FromDouble
+/*@@*/
 
 
 #include "wx/wxPython/wxPython.h"
@@ -309,117 +328,159 @@ static swig_type_info *swig_types[42];
 
  static const wxString wxPyEmptyString(wxEmptyString); 
 
-SWIGSTATICINLINE(double)
-SWIG_AsDouble(PyObject *obj)
+// See my_fragments.i
+SWIGSTATICINLINE(int)
+SWIG_AsVal_double(PyObject *obj, double* val)
 {
-    if (PyNumber_Check(obj))
-        return PyFloat_AsDouble(obj);
+    if (PyNumber_Check(obj)) {
+        if (val) *val = PyFloat_AsDouble(obj);
+        return 1;
+    }
     else {
         PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
                                                obj->ob_type->tp_name);
         PyErr_SetObject(PyExc_TypeError, errmsg);
         Py_DECREF(errmsg);
-        return 0;
     }
+    return 0;
 }
 
 
-SWIGSTATICINLINE(int)
-SWIG_CheckDouble(PyObject* obj)
+SWIGSTATICINLINE(double)
+SWIG_As_double(PyObject* obj)
 {
-  SWIG_AsDouble(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  double v;
+  if (!SWIG_AsVal_double(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(double));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_double(PyObject* obj)
+{
+  return SWIG_AsVal_double(obj, (double*)0);
 }
 
 
 #include <limits.h>
 
 
-SWIGSTATICINLINE(long)
-SWIG_CheckLongInRange(long value, const char* type,
-		      long min_value, long max_value)
+SWIGSTATICINLINE(int)
+  SWIG_CheckLongInRange(long value, long min_value, long max_value,
+			const char *errmsg)
 {
-  if (!PyErr_Occurred()) {
-    if (value < min_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is less than '%s' minimum %ld", 
-			    value, type, min_value);
-      
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
-    } else if (value > max_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is greater than '%s' maximum %ld", 
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
+  if (value < min_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError, 
+		   "value %ld is less than '%s' minimum %ld", 
+		   value, errmsg, min_value);
     }
+    return 0;    
+  } else if (value > max_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError,
+		   "value %ld is greater than '%s' maximum %ld", 
+		   value, errmsg, max_value);
+    }
+    return 0;
   }
-  return value;
+  return 1;
 }
 
 
-SWIGSTATICINLINE(long)
-SWIG_AsLong(PyObject * obj)
+// See my_fragments.i
+SWIGSTATICINLINE(int)
+SWIG_AsVal_long(PyObject* obj, long* val)
 {
-    if (PyNumber_Check(obj))
-        return PyInt_AsLong(obj);
+    if (PyNumber_Check(obj)) {
+        if (val) *val = PyInt_AsLong(obj);
+        return 1;
+    }
     else {
         PyObject* errmsg = PyString_FromFormat("Expected number, got %s",
                                                obj->ob_type->tp_name);
         PyErr_SetObject(PyExc_TypeError, errmsg);
         Py_DECREF(errmsg);
-        return 0;
     }
+    return 0;
 }
 
 
 #if INT_MAX != LONG_MAX
 SWIGSTATICINLINE(int)
-SWIG_AsInt(PyObject *obj)
+  SWIG_AsVal_int(PyObject *obj, int *val)
 { 
-  return swig_numeric_cast(int,
-    SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			  "int", INT_MIN, INT_MAX));
+  const char* errmsg = val ? "int" : 0;
+  long v;
+  if (SWIG_AsVal_long(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, INT_MIN,INT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, int);
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "an int is expected");
+  }
+  return 0;    
 }
 #else
-#define SWIG_AsInt SWIG_AsLong
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_int(PyObject *obj, int *val)
+{
+  return SWIG_AsVal_long(obj,(long*)val);
+}
 #endif
 
 
 SWIGSTATICINLINE(int)
-SWIG_CheckInt(PyObject* obj)
+SWIG_As_int(PyObject* obj)
 {
-  SWIG_AsInt(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  int v;
+  if (!SWIG_AsVal_int(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(int));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_int(PyObject* obj)
+{
+  return SWIG_AsVal_int(obj, (int*)0);
 }
 
 
-static PyObject* t_output_helper(PyObject* target, PyObject* o) {
+  static PyObject* t_output_helper(PyObject* target, PyObject* o) {
     PyObject*   o2;
     PyObject*   o3;
-
+    
     if (!target) {                   
         target = o;
     } else if (target == Py_None) {  
         Py_DECREF(Py_None);
         target = o;
-    } else {                         
+    } else {
         if (!PyTuple_Check(target)) {
             o2 = target;
             target = PyTuple_New(1);
             PyTuple_SetItem(target, 0, o2);
-        }
+        }            
         o3 = PyTuple_New(1);            
         PyTuple_SetItem(o3, 0, o);      
 
@@ -429,7 +490,8 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
         Py_DECREF(o3);
     }
     return target;
-}
+  }
+
 
 
     WXSHAPE_IMP_CALLBACKS(wxPyShapeEvtHandler,wxShapeEvtHandler);
@@ -438,23 +500,50 @@ void wxPyShapeEvtHandler__setOORInfo(wxPyShapeEvtHandler *self,PyObject *_self){
             self->SetClientObject(new wxPyOORClientData(_self));
         }
 
-SWIGSTATICINLINE(bool)
-SWIG_AsBool(PyObject *obj)
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_bool(PyObject *obj, bool *val)
 {
-  return PyObject_IsTrue(obj) ? true : false;
+  /*  if (val) *val = PyObject_IsTrue(obj); return 1; */
+  if (obj == Py_True) {
+    if (val) *val = true;
+    return 1;
+  }
+  if (obj == Py_False) {
+    if (val) *val = false;
+    return 1;
+  }
+  int res = 0;
+  if (SWIG_AsVal_int(obj, &res)) {    
+    if (val) *val = (bool)res;
+    return 1;
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a bool is expected");
+  }
+  return 0;
 }
 
 
-SWIGSTATICINLINE(int)
-SWIG_CheckBool(PyObject* obj)
+SWIGSTATICINLINE(bool)
+SWIG_As_bool(PyObject* obj)
 {
-  SWIG_AsBool(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  bool v;
+  if (!SWIG_AsVal_bool(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(bool));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_bool(PyObject* obj)
+{
+  return SWIG_AsVal_bool(obj, (bool*)0);
 }
 
 
@@ -464,21 +553,42 @@ PyObject *wxPyShape_GetChildren(wxPyShape *self){
             wxList& list = self->GetChildren();
             return wxPy_ConvertShapeList(&list);
         }
+
+SWIGSTATICINLINE(PyObject*)
+  SWIG_From_bool(bool value)
+{
+  PyObject *obj = value ? Py_True : Py_False;
+  Py_INCREF(obj);
+  return obj;
+}
+
+
+
 PyObject *wxPyShape_GetLines(wxPyShape *self){
             wxList& list = self->GetLines();
             return wxPy_ConvertShapeList(&list);
         }
 
-SWIGSTATICINLINE(int)
-SWIG_CheckLong(PyObject* obj)
+SWIGSTATICINLINE(long)
+SWIG_As_long(PyObject* obj)
 {
-  SWIG_AsLong(obj);
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
-    return 0;
-  } else {
-    return 1;
+  long v;
+  if (!SWIG_AsVal_long(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(long));
   }
+  return v;
+}
+
+  
+SWIGSTATICINLINE(int)
+SWIG_Check_long(PyObject* obj)
+{
+  return SWIG_AsVal_long(obj, (long*)0);
 }
 
 PyObject *wxPyShape_GetRegions(wxPyShape *self){
@@ -584,7 +694,25 @@ void wxPyLineShape_AddArrowOrdered(wxPyLineShape *self,wxArrowHead *arrow,PyObje
         }
 PyObject *wxPyLineShape_GetLineControlPoints(wxPyLineShape *self){
             wxList* list = self->GetLineControlPoints();
-            return wxPy_ConvertShapeList(list);
+            return wxPy_ConvertRealPointList(list);
+        }
+void wxPyLineShape_SetLineControlPoints(wxPyLineShape *self,PyObject *list){
+            wxList* real_point_list = wxPy_wxRealPoint_ListHelper(list);
+            self->MakeLineControlPoints((int)(real_point_list->GetCount()));
+            wxList* old_control_points = self->GetLineControlPoints();
+            wxNode* old_node = old_control_points->GetFirst();
+            wxNode* real_node = real_point_list->GetFirst();
+            while(old_node)
+            {
+                wxRealPoint* old_point = (wxRealPoint*)old_node->GetData();
+                wxRealPoint* new_point = (wxRealPoint*)real_node->GetData();
+                old_point->x = new_point->x;
+                old_point->y = new_point->y;
+                old_node = old_node->GetNext();
+                real_node = real_node->GetNext();
+            }
+            self->ClearPointList(*real_point_list);
+            delete real_point_list;
         }
 
     WXSHAPE_IMP_CALLBACKS(wxPyPolygonShape, wxPolygonShape);
@@ -600,21 +728,7 @@ PyObject *wxPyPolygonShape_Create(wxPyPolygonShape *self,PyObject *points){
         }
 PyObject *wxPyPolygonShape_GetPoints(wxPyPolygonShape *self){
             wxList* list = self->GetPoints();
-            PyObject*   pyList;
-            PyObject*   pyObj;
-            wxObject*   wxObj;
-            wxNode*     node = list->GetFirst();
-
-            bool blocked = wxPyBeginBlockThreads();
-            pyList = PyList_New(0);
-            while (node) {
-                wxObj = node->GetData();
-                pyObj = wxPyConstructObject(wxObj, wxT("wxRealPoint"), 0);
-                PyList_Append(pyList, pyObj);
-                node = node->GetNext();
-            }
-            wxPyEndBlockThreads(blocked);
-            return pyList;
+            return wxPy_ConvertRealPointList(list);
         }
 PyObject *wxPyPolygonShape_GetOriginalPoints(wxPyPolygonShape *self){
             wxList* list = self->GetOriginalPoints();
@@ -736,7 +850,7 @@ wxList* wxPy_wxRealPoint_ListHelper(PyObject* pyList) {
 
 //---------------------------------------------------------------------------
 
-PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source) {
+PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source, bool setThisOwn) {
     PyObject* target = NULL;
 
     if (source && wxIsKindOf(source, wxShapeEvtHandler)) {
@@ -751,11 +865,32 @@ PyObject*  wxPyMake_wxShapeEvtHandler(wxShapeEvtHandler* source) {
         }
     }
     if (! target) {
-        target = wxPyMake_wxObject2(source, FALSE);
+        target = wxPyMake_wxObject2(source, setThisOwn, false);
         if (target != Py_None)
             ((wxShapeEvtHandler*)source)->SetClientObject(new wxPyOORClientData(target));
     }
     return target;
+}
+
+//---------------------------------------------------------------------------
+
+PyObject* wxPy_ConvertRealPointList(wxListBase* listbase) {
+    wxList*     list = (wxList*)listbase;
+    PyObject*   pyList;
+    PyObject*   pyObj;
+    wxObject*   wxObj;
+    wxNode*     node = list->GetFirst();
+    
+    bool blocked = wxPyBeginBlockThreads();
+    pyList = PyList_New(0);
+    while (node) {
+        wxObj = node->GetData();
+        pyObj = wxPyConstructObject(wxObj, wxT("wxRealPoint"), 0);
+        PyList_Append(pyList, pyObj);
+        node = node->GetNext();
+    } 
+    wxPyEndBlockThreads(blocked);
+    return pyList;
 }
 
 //---------------------------------------------------------------------------
@@ -771,7 +906,7 @@ PyObject* wxPy_ConvertShapeList(wxListBase* listbase) {
     pyList = PyList_New(0);
     while (node) {
         wxObj = node->GetData();
-        pyObj = wxPyMake_wxShapeEvtHandler((wxShapeEvtHandler*)wxObj);
+        pyObj = wxPyMake_wxShapeEvtHandler((wxShapeEvtHandler*)wxObj, false);
         PyList_Append(pyList, pyObj);
         node = node->GetNext();
     }
@@ -935,9 +1070,9 @@ static PyObject *_wrap_ShapeRegion_SetMinSize(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ShapeRegion_SetMinSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -968,9 +1103,9 @@ static PyObject *_wrap_ShapeRegion_SetSize(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ShapeRegion_SetSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1001,9 +1136,9 @@ static PyObject *_wrap_ShapeRegion_SetPosition(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ShapeRegion_SetPosition",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1034,9 +1169,9 @@ static PyObject *_wrap_ShapeRegion_SetProportions(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ShapeRegion_SetProportions",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1065,7 +1200,7 @@ static PyObject *_wrap_ShapeRegion_SetFormatMode(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ShapeRegion_SetFormatMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1227,14 +1362,16 @@ static PyObject *_wrap_ShapeRegion_GetMinSize(PyObject *, PyObject *args, PyObje
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ShapeRegion_GetMinSize",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -1246,14 +1383,10 @@ static PyObject *_wrap_ShapeRegion_GetMinSize(PyObject *, PyObject *args, PyObje
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -1266,14 +1399,16 @@ static PyObject *_wrap_ShapeRegion_GetProportion(PyObject *, PyObject *args, PyO
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ShapeRegion_GetProportion",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -1285,14 +1420,10 @@ static PyObject *_wrap_ShapeRegion_GetProportion(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -1305,14 +1436,16 @@ static PyObject *_wrap_ShapeRegion_GetSize(PyObject *, PyObject *args, PyObject 
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ShapeRegion_GetSize",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -1324,14 +1457,10 @@ static PyObject *_wrap_ShapeRegion_GetSize(PyObject *, PyObject *args, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -1344,14 +1473,16 @@ static PyObject *_wrap_ShapeRegion_GetPosition(PyObject *, PyObject *args, PyObj
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ShapeRegion_GetPosition",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -1363,14 +1494,10 @@ static PyObject *_wrap_ShapeRegion_GetPosition(PyObject *, PyObject *args, PyObj
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -1396,7 +1523,7 @@ static PyObject *_wrap_ShapeRegion_GetFormatMode(PyObject *, PyObject *args, PyO
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -1577,7 +1704,7 @@ static PyObject *_wrap_ShapeRegion_GetPenStyle(PyObject *, PyObject *args, PyObj
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -1597,7 +1724,7 @@ static PyObject *_wrap_ShapeRegion_SetPenStyle(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ShapeRegion_SetPenStyle",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1699,7 +1826,7 @@ static PyObject *_wrap_ShapeRegion_GetWidth(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -1725,7 +1852,7 @@ static PyObject *_wrap_ShapeRegion_GetHeight(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -1779,15 +1906,15 @@ static PyObject *_wrap_new_AttachmentPoint(PyObject *, PyObject *args, PyObject 
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OOO:new_AttachmentPoint",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (double) SWIG_AsDouble(obj1); 
+        arg2 = (double)SWIG_As_double(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (double) SWIG_AsDouble(obj2); 
+        arg3 = (double)SWIG_As_double(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -1817,7 +1944,7 @@ static PyObject *_wrap_AttachmentPoint_m_id_set(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:AttachmentPoint_m_id_set",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxAttachmentPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (arg1) (arg1)->m_id = arg2;
     
@@ -1842,7 +1969,7 @@ static PyObject *_wrap_AttachmentPoint_m_id_get(PyObject *, PyObject *args, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     result = (int) ((arg1)->m_id);
     
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -1862,7 +1989,7 @@ static PyObject *_wrap_AttachmentPoint_m_x_set(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:AttachmentPoint_m_x_set",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxAttachmentPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (arg1) (arg1)->m_x = arg2;
     
@@ -1887,7 +2014,7 @@ static PyObject *_wrap_AttachmentPoint_m_x_get(PyObject *, PyObject *args, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     result = (double) ((arg1)->m_x);
     
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -1907,7 +2034,7 @@ static PyObject *_wrap_AttachmentPoint_m_y_set(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:AttachmentPoint_m_y_set",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxAttachmentPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (arg1) (arg1)->m_y = arg2;
     
@@ -1932,7 +2059,7 @@ static PyObject *_wrap_AttachmentPoint_m_y_get(PyObject *, PyObject *args, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     result = (double) ((arg1)->m_y);
     
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -1973,9 +2100,7 @@ static PyObject *_wrap_new_PyShapeEvtHandler(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
-    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxPyShapeEvtHandler, 1);
     return resultobj;
     fail:
     return NULL;
@@ -2090,7 +2215,7 @@ static PyObject *_wrap_PyShapeEvtHandler_GetShape(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -2147,7 +2272,7 @@ static PyObject *_wrap_PyShapeEvtHandler_GetPreviousHandler(PyObject *, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -2175,7 +2300,7 @@ static PyObject *_wrap_PyShapeEvtHandler_CreateNewCopy(PyObject *, PyObject *arg
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -2299,7 +2424,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnDrawBranches(PyObject *, PyObjec
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2471,16 +2596,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnLeftClick(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2516,16 +2641,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnLeftDoubleClick(PyObject *, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2561,16 +2686,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnRightClick(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2602,9 +2727,9 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShapeEvtHandler_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -2651,16 +2776,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMovePre(PyObject *, PyObject *ar
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2709,16 +2834,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMovePost(PyObject *, PyObject *a
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2756,18 +2881,18 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyShapeEvtHandler_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2803,16 +2928,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnBeginDragLeft(PyObject *, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2848,16 +2973,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnEndDragLeft(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2895,18 +3020,18 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyShapeEvtHandler_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2942,16 +3067,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnBeginDragRight(PyObject *, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -2987,16 +3112,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnEndDragRight(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeEvtHandler_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3041,13 +3166,13 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnDrawOutline(PyObject *, PyObject
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3154,7 +3279,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMoveLink(PyObject *, PyObject *a
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3196,18 +3321,18 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnSizingDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3247,16 +3372,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnSizingBeginDragLeft(PyObject *, 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3296,16 +3421,16 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnSizingEndDragLeft(PyObject *, Py
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -3337,9 +3462,9 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnBeginSize(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShapeEvtHandler_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3370,9 +3495,9 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnEndSize(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShapeEvtHandler_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeEvtHandler,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3416,9 +3541,7 @@ static PyObject *_wrap_new_PyShape(PyObject *, PyObject *args, PyObject *kwargs)
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
-    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxPyShape, 1);
     return resultobj;
     fail:
     return NULL;
@@ -3462,14 +3585,16 @@ static PyObject *_wrap_PyShape_GetBoundingBoxMax(PyObject *, PyObject *args, PyO
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:PyShape_GetBoundingBoxMax",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -3481,14 +3606,10 @@ static PyObject *_wrap_PyShape_GetBoundingBoxMax(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -3501,14 +3622,16 @@ static PyObject *_wrap_PyShape_GetBoundingBoxMin(PyObject *, PyObject *args, PyO
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:PyShape_GetBoundingBoxMin",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -3520,14 +3643,10 @@ static PyObject *_wrap_PyShape_GetBoundingBoxMin(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -3545,7 +3664,9 @@ static PyObject *_wrap_PyShape_GetPerimeterPoint(PyObject *, PyObject *args, PyO
     double *arg7 = (double *) 0 ;
     bool result;
     double temp6 ;
+    int res6 = 0 ;
     double temp7 ;
+    int res7 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -3555,18 +3676,18 @@ static PyObject *_wrap_PyShape_GetPerimeterPoint(PyObject *, PyObject *args, PyO
         (char *) "self",(char *) "x1",(char *) "y1",(char *) "x2",(char *) "y2", NULL 
     };
     
-    arg6 = &temp6;
-    arg7 = &temp7;
+    arg6 = &temp6; res6 = SWIG_NEWOBJ;
+    arg7 = &temp7; res7 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:PyShape_GetPerimeterPoint",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3578,14 +3699,10 @@ static PyObject *_wrap_PyShape_GetPerimeterPoint(PyObject *, PyObject *args, PyO
     {
         resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
     }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg6));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg7));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res6 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg6)) : SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res7 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg7)) : SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -3612,7 +3729,7 @@ static PyObject *_wrap_PyShape_GetCanvas(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -3761,7 +3878,7 @@ static PyObject *_wrap_PyShape_GetX(PyObject *, PyObject *args, PyObject *kwargs
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -3787,7 +3904,7 @@ static PyObject *_wrap_PyShape_GetY(PyObject *, PyObject *args, PyObject *kwargs
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -3807,7 +3924,7 @@ static PyObject *_wrap_PyShape_SetX(PyObject *, PyObject *args, PyObject *kwargs
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetX",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3836,7 +3953,7 @@ static PyObject *_wrap_PyShape_SetY(PyObject *, PyObject *args, PyObject *kwargs
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetY",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -3872,7 +3989,7 @@ static PyObject *_wrap_PyShape_GetParent(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -3929,7 +4046,7 @@ static PyObject *_wrap_PyShape_GetTopAncestor(PyObject *, PyObject *args, PyObje
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -4001,7 +4118,7 @@ static PyObject *_wrap_PyShape_SetDrawHandles(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetDrawHandles",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4146,7 +4263,7 @@ static PyObject *_wrap_PyShape_GetEventHandler(PyObject *, PyObject *args, PyObj
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -4302,7 +4419,7 @@ static PyObject *_wrap_PyShape_Select(PyObject *, PyObject *args, PyObject *kwar
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
@@ -4339,11 +4456,11 @@ static PyObject *_wrap_PyShape_SetHighlight(PyObject *, PyObject *args, PyObject
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4460,11 +4577,11 @@ static PyObject *_wrap_PyShape_SetSensitivityFilter(PyObject *, PyObject *args, 
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4500,7 +4617,7 @@ static PyObject *_wrap_PyShape_GetSensitivityFilter(PyObject *, PyObject *args, 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -4522,10 +4639,10 @@ static PyObject *_wrap_PyShape_SetDraggable(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PyShape_SetDraggable",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4557,9 +4674,9 @@ static PyObject *_wrap_PyShape_SetFixedSize(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_SetFixedSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4581,14 +4698,16 @@ static PyObject *_wrap_PyShape_GetFixedSize(PyObject *, PyObject *args, PyObject
     bool *arg2 = (bool *) 0 ;
     bool *arg3 = (bool *) 0 ;
     bool temp2 ;
+    int res2 = 0 ;
     bool temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:PyShape_GetFixedSize",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -4600,14 +4719,10 @@ static PyObject *_wrap_PyShape_GetFixedSize(PyObject *, PyObject *args, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_bool((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_bool, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_bool((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_bool, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -4683,7 +4798,7 @@ static PyObject *_wrap_PyShape_SetSpaceAttachments(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetSpaceAttachments",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4742,10 +4857,10 @@ static PyObject *_wrap_PyShape_SetShadowMode(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PyShape_SetShadowMode",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -4781,7 +4896,7 @@ static PyObject *_wrap_PyShape_GetShadowMode(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -4797,7 +4912,9 @@ static PyObject *_wrap_PyShape_HitTest(PyObject *, PyObject *args, PyObject *kwa
     double *arg5 = (double *) 0 ;
     bool result;
     int temp4 ;
+    int res4 = 0 ;
     double temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -4805,14 +4922,14 @@ static PyObject *_wrap_PyShape_HitTest(PyObject *, PyObject *args, PyObject *kwa
         (char *) "self",(char *) "x",(char *) "y", NULL 
     };
     
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_HitTest",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4824,14 +4941,10 @@ static PyObject *_wrap_PyShape_HitTest(PyObject *, PyObject *args, PyObject *kwa
     {
         resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
     }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -4851,7 +4964,7 @@ static PyObject *_wrap_PyShape_SetCentreResize(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetCentreResize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4908,7 +5021,7 @@ static PyObject *_wrap_PyShape_SetMaintainAspectRatio(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetMaintainAspectRatio",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -4991,7 +5104,7 @@ static PyObject *_wrap_PyShape_SetDisableLabel(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetDisableLabel",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5048,7 +5161,7 @@ static PyObject *_wrap_PyShape_SetAttachmentMode(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetAttachmentMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5083,7 +5196,7 @@ static PyObject *_wrap_PyShape_GetAttachmentMode(PyObject *, PyObject *args, PyO
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -5103,7 +5216,7 @@ static PyObject *_wrap_PyShape_SetId(PyObject *, PyObject *args, PyObject *kwarg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetId",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long) SWIG_AsLong(obj1); 
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5138,7 +5251,7 @@ static PyObject *_wrap_PyShape_GetId(PyObject *, PyObject *args, PyObject *kwarg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromLong((long)result);
+    resultobj = SWIG_From_long((long)result);
     return resultobj;
     fail:
     return NULL;
@@ -5246,7 +5359,7 @@ static PyObject *_wrap_PyShape_Show(PyObject *, PyObject *args, PyObject *kwargs
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_Show",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5316,12 +5429,12 @@ static PyObject *_wrap_PyShape_Move(PyObject *, PyObject *args, PyObject *kwargs
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (bool) SWIG_AsBool(obj4); 
+        arg5 = (bool)SWIG_As_bool(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -5550,12 +5663,12 @@ static PyObject *_wrap_PyShape_SetSize(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShape_SetSize",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -5587,9 +5700,9 @@ static PyObject *_wrap_PyShape_SetAttachmentSize(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_SetAttachmentSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -5715,19 +5828,19 @@ static PyObject *_wrap_PyShape_AddLine(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -5767,7 +5880,7 @@ static PyObject *_wrap_PyShape_GetLinePosition(PyObject *, PyObject *args, PyObj
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -5923,7 +6036,7 @@ static PyObject *_wrap_PyShape_FormatText(PyObject *, PyObject *args, PyObject *
         temp3 = True;
     }
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -5963,10 +6076,10 @@ static PyObject *_wrap_PyShape_SetFormatMode(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PyShape_SetFormatMode",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -5998,7 +6111,7 @@ static PyObject *_wrap_PyShape_GetFormatMode(PyObject *, PyObject *args, PyObjec
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6008,7 +6121,7 @@ static PyObject *_wrap_PyShape_GetFormatMode(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -6053,7 +6166,7 @@ static PyObject *_wrap_PyShape_SetFont(PyObject *, PyObject *args, PyObject *kwa
         arg2 = NULL;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6085,7 +6198,7 @@ static PyObject *_wrap_PyShape_GetFont(PyObject *, PyObject *args, PyObject *kwa
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6124,7 +6237,7 @@ static PyObject *_wrap_PyShape_SetTextColour(PyObject *, PyObject *args, PyObjec
         temp2 = True;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6164,7 +6277,7 @@ static PyObject *_wrap_PyShape_GetTextColour(PyObject *, PyObject *args, PyObjec
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6206,7 +6319,7 @@ static PyObject *_wrap_PyShape_GetNumberOfTextRegions(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -6235,7 +6348,7 @@ static PyObject *_wrap_PyShape_SetRegionName(PyObject *, PyObject *args, PyObjec
         temp2 = True;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6274,7 +6387,7 @@ static PyObject *_wrap_PyShape_GetRegionName(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_GetRegionName",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6323,7 +6436,7 @@ static PyObject *_wrap_PyShape_GetRegionId(PyObject *, PyObject *args, PyObject 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     {
         if (temp2)
         delete arg2;
@@ -6495,13 +6608,14 @@ static PyObject *_wrap_PyShape_FindRegion(PyObject *, PyObject *args, PyObject *
     wxPyShape *result;
     bool temp2 = False ;
     int temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
         (char *) "self",(char *) "regionName", NULL 
     };
     
-    arg3 = &temp3;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_FindRegion",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -6518,12 +6632,10 @@ static PyObject *_wrap_PyShape_FindRegion(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
     {
         if (temp2)
         delete arg2;
@@ -6586,7 +6698,7 @@ static PyObject *_wrap_PyShape_ClearText(PyObject *, PyObject *args, PyObject *k
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -6643,7 +6755,9 @@ static PyObject *_wrap_PyShape_GetAttachmentPosition(PyObject *, PyObject *args,
     wxPyLineShape *arg7 = (wxPyLineShape *) NULL ;
     bool result;
     double temp3 ;
+    int res3 = 0 ;
     double temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -6653,19 +6767,19 @@ static PyObject *_wrap_PyShape_GetAttachmentPosition(PyObject *, PyObject *args,
         (char *) "self",(char *) "attachment",(char *) "nth",(char *) "no_arcs",(char *) "line", NULL 
     };
     
-    arg3 = &temp3;
-    arg4 = &temp4;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OOO:PyShape_GetAttachmentPosition",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg5 = (int) SWIG_AsInt(obj2); 
+        arg5 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg6 = (int) SWIG_AsInt(obj3); 
+        arg6 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
@@ -6682,14 +6796,10 @@ static PyObject *_wrap_PyShape_GetAttachmentPosition(PyObject *, PyObject *args,
     {
         resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
     }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -6715,7 +6825,7 @@ static PyObject *_wrap_PyShape_GetNumberOfAttachments(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -6736,7 +6846,7 @@ static PyObject *_wrap_PyShape_AttachmentIsValid(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_AttachmentIsValid",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6791,7 +6901,9 @@ static PyObject *_wrap_PyShape_GetAttachmentPositionEdge(PyObject *, PyObject *a
     wxPyLineShape *arg7 = (wxPyLineShape *) NULL ;
     bool result;
     double temp3 ;
+    int res3 = 0 ;
     double temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -6801,19 +6913,19 @@ static PyObject *_wrap_PyShape_GetAttachmentPositionEdge(PyObject *, PyObject *a
         (char *) "self",(char *) "attachment",(char *) "nth",(char *) "no_arcs",(char *) "line", NULL 
     };
     
-    arg3 = &temp3;
-    arg4 = &temp4;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OOO:PyShape_GetAttachmentPositionEdge",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg5 = (int) SWIG_AsInt(obj2); 
+        arg5 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg6 = (int) SWIG_AsInt(obj3); 
+        arg6 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
@@ -6830,14 +6942,10 @@ static PyObject *_wrap_PyShape_GetAttachmentPositionEdge(PyObject *, PyObject *a
     {
         resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
     }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -6876,9 +6984,9 @@ static PyObject *_wrap_PyShape_CalcSimpleAttachment(PyObject *, PyObject *args, 
         arg3 = &temp3;
         if ( ! wxRealPoint_helper(obj2, &arg3)) SWIG_fail;
     }
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj4); 
+    arg5 = (int)SWIG_As_int(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj5,(void **)(&arg6),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -6920,7 +7028,7 @@ static PyObject *_wrap_PyShape_AttachmentSortTest(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyShape_AttachmentSortTest",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = &temp3;
@@ -6971,11 +7079,11 @@ static PyObject *_wrap_PyShape_EraseLinks(PyObject *, PyObject *args, PyObject *
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7017,11 +7125,11 @@ static PyObject *_wrap_PyShape_DrawLinks(PyObject *, PyObject *args, PyObject *k
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (bool) SWIG_AsBool(obj3); 
+        arg4 = (bool)SWIG_As_bool(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7067,9 +7175,9 @@ static PyObject *_wrap_PyShape_MoveLineToNewAttachment(PyObject *, PyObject *arg
     }
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7129,7 +7237,7 @@ static PyObject *_wrap_PyShape_GetBranchingAttachmentRoot(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_GetBranchingAttachmentRoot",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7175,7 +7283,7 @@ static PyObject *_wrap_PyShape_GetBranchingAttachmentInfo(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOO:PyShape_GetBranchingAttachmentInfo",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = &temp3;
@@ -7231,9 +7339,9 @@ static PyObject *_wrap_PyShape_GetBranchingAttachmentPoint(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:PyShape_GetBranchingAttachmentPoint",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg4 = &temp4;
@@ -7273,7 +7381,7 @@ static PyObject *_wrap_PyShape_GetAttachmentLineCount(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_GetAttachmentLineCount",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7282,7 +7390,7 @@ static PyObject *_wrap_PyShape_GetAttachmentLineCount(PyObject *, PyObject *args
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7302,7 +7410,7 @@ static PyObject *_wrap_PyShape_SetBranchNeckLength(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetBranchNeckLength",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7337,7 +7445,7 @@ static PyObject *_wrap_PyShape_GetBranchNeckLength(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7357,7 +7465,7 @@ static PyObject *_wrap_PyShape_SetBranchStemLength(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetBranchStemLength",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7392,7 +7500,7 @@ static PyObject *_wrap_PyShape_GetBranchStemLength(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7412,7 +7520,7 @@ static PyObject *_wrap_PyShape_SetBranchSpacing(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetBranchSpacing",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7447,7 +7555,7 @@ static PyObject *_wrap_PyShape_GetBranchSpacing(PyObject *, PyObject *args, PyOb
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7467,7 +7575,7 @@ static PyObject *_wrap_PyShape_SetBranchStyle(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetBranchStyle",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long) SWIG_AsLong(obj1); 
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7502,7 +7610,7 @@ static PyObject *_wrap_PyShape_GetBranchStyle(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromLong((long)result);
+    resultobj = SWIG_From_long((long)result);
     return resultobj;
     fail:
     return NULL;
@@ -7523,7 +7631,7 @@ static PyObject *_wrap_PyShape_PhysicalToLogicalAttachment(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_PhysicalToLogicalAttachment",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7532,7 +7640,7 @@ static PyObject *_wrap_PyShape_PhysicalToLogicalAttachment(PyObject *, PyObject 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7553,7 +7661,7 @@ static PyObject *_wrap_PyShape_LogicalToPhysicalAttachment(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_LogicalToPhysicalAttachment",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7562,7 +7670,7 @@ static PyObject *_wrap_PyShape_LogicalToPhysicalAttachment(PyObject *, PyObject 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -7646,11 +7754,11 @@ static PyObject *_wrap_PyShape_CreateNewCopy(PyObject *, PyObject *args, PyObjec
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (bool) SWIG_AsBool(obj1); 
+        arg2 = (bool)SWIG_As_bool(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -7661,7 +7769,7 @@ static PyObject *_wrap_PyShape_CreateNewCopy(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -7754,11 +7862,11 @@ static PyObject *_wrap_PyShape_Rotate(PyObject *, PyObject *args, PyObject *kwar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyShape_Rotate",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7793,7 +7901,7 @@ static PyObject *_wrap_PyShape_GetRotation(PyObject *, PyObject *args, PyObject 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -7813,7 +7921,7 @@ static PyObject *_wrap_PyShape_SetRotation(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyShape_SetRotation",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -8098,7 +8206,7 @@ static PyObject *_wrap_PyShape_base_OnDrawBranches(PyObject *, PyObject *args, P
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8270,16 +8378,16 @@ static PyObject *_wrap_PyShape_base_OnLeftClick(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8315,16 +8423,16 @@ static PyObject *_wrap_PyShape_base_OnLeftDoubleClick(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8360,16 +8468,16 @@ static PyObject *_wrap_PyShape_base_OnRightClick(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8401,9 +8509,9 @@ static PyObject *_wrap_PyShape_base_OnSize(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -8450,16 +8558,16 @@ static PyObject *_wrap_PyShape_base_OnMovePre(PyObject *, PyObject *args, PyObje
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8508,16 +8616,16 @@ static PyObject *_wrap_PyShape_base_OnMovePost(PyObject *, PyObject *args, PyObj
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8555,18 +8663,18 @@ static PyObject *_wrap_PyShape_base_OnDragLeft(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8602,16 +8710,16 @@ static PyObject *_wrap_PyShape_base_OnBeginDragLeft(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8647,16 +8755,16 @@ static PyObject *_wrap_PyShape_base_OnEndDragLeft(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8694,18 +8802,18 @@ static PyObject *_wrap_PyShape_base_OnDragRight(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8741,16 +8849,16 @@ static PyObject *_wrap_PyShape_base_OnBeginDragRight(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8786,16 +8894,16 @@ static PyObject *_wrap_PyShape_base_OnEndDragRight(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8840,13 +8948,13 @@ static PyObject *_wrap_PyShape_base_OnDrawOutline(PyObject *, PyObject *args, Py
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -8953,7 +9061,7 @@ static PyObject *_wrap_PyShape_base_OnMoveLink(PyObject *, PyObject *args, PyObj
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -8995,18 +9103,18 @@ static PyObject *_wrap_PyShape_base_OnSizingDragLeft(PyObject *, PyObject *args,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -9046,16 +9154,16 @@ static PyObject *_wrap_PyShape_base_OnSizingBeginDragLeft(PyObject *, PyObject *
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -9095,16 +9203,16 @@ static PyObject *_wrap_PyShape_base_OnSizingEndDragLeft(PyObject *, PyObject *ar
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -9136,9 +9244,9 @@ static PyObject *_wrap_PyShape_base_OnBeginSize(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9169,9 +9277,9 @@ static PyObject *_wrap_PyShape_base_OnEndSize(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9210,7 +9318,7 @@ static PyObject *_wrap_new_PseudoMetaFile(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 1); 
     }
     return resultobj;
     fail:
@@ -9267,9 +9375,9 @@ static PyObject *_wrap_PseudoMetaFile_Draw(PyObject *, PyObject *args, PyObject 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9359,9 +9467,9 @@ static PyObject *_wrap_PseudoMetaFile_Scale(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_Scale",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9392,9 +9500,9 @@ static PyObject *_wrap_PseudoMetaFile_ScaleTo(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_ScaleTo",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9425,9 +9533,9 @@ static PyObject *_wrap_PseudoMetaFile_Translate(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_Translate",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9460,11 +9568,11 @@ static PyObject *_wrap_PseudoMetaFile_Rotate(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PseudoMetaFile_Rotate",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9615,7 +9723,7 @@ static PyObject *_wrap_PseudoMetaFile_SetRotateable(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PseudoMetaFile_SetRotateable",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9674,9 +9782,9 @@ static PyObject *_wrap_PseudoMetaFile_SetSize(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_SetSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9845,7 +9953,7 @@ static PyObject *_wrap_PseudoMetaFile_SetOutlineOp(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PseudoMetaFile_SetOutlineOp",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -9880,7 +9988,7 @@ static PyObject *_wrap_PseudoMetaFile_GetOutlineOp(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -10006,7 +10114,7 @@ static PyObject *_wrap_PseudoMetaFile_DrawRoundedRectangle(PyObject *, PyObject 
         arg2 = &temp2;
         if ( ! wxRect_helper(obj1, &arg2)) SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10090,9 +10198,9 @@ static PyObject *_wrap_PseudoMetaFile_DrawEllipticArc(PyObject *, PyObject *args
         arg2 = &temp2;
         if ( ! wxRect_helper(obj1, &arg2)) SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10227,18 +10335,17 @@ static PyObject *_wrap_PseudoMetaFile_DrawLines(PyObject *, PyObject *args, PyOb
     wxPoint *arg3 = (wxPoint *) 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points", NULL 
+        (char *) "self",(char *) "points", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_DrawLines",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PseudoMetaFile_DrawLines",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         (arg1)->DrawLines(arg2,arg3);
@@ -10247,8 +10354,14 @@ static PyObject *_wrap_PseudoMetaFile_DrawLines(PyObject *, PyObject *args, PyOb
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -10262,20 +10375,19 @@ static PyObject *_wrap_PseudoMetaFile_DrawPolygon(PyObject *, PyObject *args, Py
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points",(char *) "flags", NULL 
+        (char *) "self",(char *) "points",(char *) "flags", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PseudoMetaFile_DrawPolygon",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PseudoMetaFile_DrawPolygon",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
+    if (obj2) {
+        arg4 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -10286,8 +10398,14 @@ static PyObject *_wrap_PseudoMetaFile_DrawPolygon(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -10299,18 +10417,17 @@ static PyObject *_wrap_PseudoMetaFile_DrawSpline(PyObject *, PyObject *args, PyO
     wxPoint *arg3 = (wxPoint *) 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points", NULL 
+        (char *) "self",(char *) "points", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PseudoMetaFile_DrawSpline",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PseudoMetaFile_DrawSpline",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         (arg1)->DrawSpline(arg2,arg3);
@@ -10319,8 +10436,14 @@ static PyObject *_wrap_PseudoMetaFile_DrawSpline(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -10416,7 +10539,7 @@ static PyObject *_wrap_PseudoMetaFile_SetPen(PyObject *, PyObject *args, PyObjec
         arg2 = NULL;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -10465,7 +10588,7 @@ static PyObject *_wrap_PseudoMetaFile_SetBrush(PyObject *, PyObject *args, PyObj
         arg2 = NULL;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -10608,7 +10731,7 @@ static PyObject *_wrap_PseudoMetaFile_SetBackgroundMode(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PseudoMetaFile_SetBackgroundMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPseudoMetaFile,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10644,11 +10767,11 @@ static PyObject *_wrap_new_PyRectangleShape(PyObject *, PyObject *args, PyObject
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_PyRectangleShape",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (double) SWIG_AsDouble(obj0); 
+        arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (double) SWIG_AsDouble(obj1); 
+        arg2 = (double)SWIG_As_double(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -10709,7 +10832,7 @@ static PyObject *_wrap_PyRectangleShape_SetCornerRadius(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyRectangleShape_SetCornerRadius",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -10744,7 +10867,7 @@ static PyObject *_wrap_PyRectangleShape_GetCornerRadius(PyObject *, PyObject *ar
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -10867,7 +10990,7 @@ static PyObject *_wrap_PyRectangleShape_base_OnDrawBranches(PyObject *, PyObject
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11039,16 +11162,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnLeftClick(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11084,16 +11207,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnLeftDoubleClick(PyObject *, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11129,16 +11252,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnRightClick(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11170,9 +11293,9 @@ static PyObject *_wrap_PyRectangleShape_base_OnSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyRectangleShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11219,16 +11342,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnMovePre(PyObject *, PyObject *arg
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11277,16 +11400,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnMovePost(PyObject *, PyObject *ar
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11324,18 +11447,18 @@ static PyObject *_wrap_PyRectangleShape_base_OnDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyRectangleShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11371,16 +11494,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnBeginDragLeft(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11416,16 +11539,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnEndDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11463,18 +11586,18 @@ static PyObject *_wrap_PyRectangleShape_base_OnDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyRectangleShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11510,16 +11633,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnBeginDragRight(PyObject *, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11555,16 +11678,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnEndDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyRectangleShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11609,13 +11732,13 @@ static PyObject *_wrap_PyRectangleShape_base_OnDrawOutline(PyObject *, PyObject 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11722,7 +11845,7 @@ static PyObject *_wrap_PyRectangleShape_base_OnMoveLink(PyObject *, PyObject *ar
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11764,18 +11887,18 @@ static PyObject *_wrap_PyRectangleShape_base_OnSizingDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11815,16 +11938,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnSizingBeginDragLeft(PyObject *, P
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11864,16 +11987,16 @@ static PyObject *_wrap_PyRectangleShape_base_OnSizingEndDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -11905,9 +12028,9 @@ static PyObject *_wrap_PyRectangleShape_base_OnBeginSize(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyRectangleShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11938,9 +12061,9 @@ static PyObject *_wrap_PyRectangleShape_base_OnEndSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyRectangleShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyRectangleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -11992,19 +12115,19 @@ static PyObject *_wrap_new_PyControlPoint(PyObject *, PyObject *args, PyObject *
         SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (double) SWIG_AsDouble(obj2); 
+        arg3 = (double)SWIG_As_double(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (double) SWIG_AsDouble(obj3); 
+        arg4 = (double)SWIG_As_double(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (double) SWIG_AsDouble(obj4); 
+        arg5 = (double)SWIG_As_double(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12065,7 +12188,7 @@ static PyObject *_wrap_PyControlPoint_SetCornerRadius(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyControlPoint_SetCornerRadius",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12197,7 +12320,7 @@ static PyObject *_wrap_PyControlPoint_base_OnDrawBranches(PyObject *, PyObject *
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12369,16 +12492,16 @@ static PyObject *_wrap_PyControlPoint_base_OnLeftClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12414,16 +12537,16 @@ static PyObject *_wrap_PyControlPoint_base_OnLeftDoubleClick(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12459,16 +12582,16 @@ static PyObject *_wrap_PyControlPoint_base_OnRightClick(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12500,9 +12623,9 @@ static PyObject *_wrap_PyControlPoint_base_OnSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyControlPoint_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -12549,16 +12672,16 @@ static PyObject *_wrap_PyControlPoint_base_OnMovePre(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12607,16 +12730,16 @@ static PyObject *_wrap_PyControlPoint_base_OnMovePost(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12654,18 +12777,18 @@ static PyObject *_wrap_PyControlPoint_base_OnDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyControlPoint_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12701,16 +12824,16 @@ static PyObject *_wrap_PyControlPoint_base_OnBeginDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12746,16 +12869,16 @@ static PyObject *_wrap_PyControlPoint_base_OnEndDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12793,18 +12916,18 @@ static PyObject *_wrap_PyControlPoint_base_OnDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyControlPoint_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12840,16 +12963,16 @@ static PyObject *_wrap_PyControlPoint_base_OnBeginDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12885,16 +13008,16 @@ static PyObject *_wrap_PyControlPoint_base_OnEndDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyControlPoint_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -12939,13 +13062,13 @@ static PyObject *_wrap_PyControlPoint_base_OnDrawOutline(PyObject *, PyObject *a
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13052,7 +13175,7 @@ static PyObject *_wrap_PyControlPoint_base_OnMoveLink(PyObject *, PyObject *args
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13094,18 +13217,18 @@ static PyObject *_wrap_PyControlPoint_base_OnSizingDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13145,16 +13268,16 @@ static PyObject *_wrap_PyControlPoint_base_OnSizingBeginDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13194,16 +13317,16 @@ static PyObject *_wrap_PyControlPoint_base_OnSizingEndDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13235,9 +13358,9 @@ static PyObject *_wrap_PyControlPoint_base_OnBeginSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyControlPoint_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13268,9 +13391,9 @@ static PyObject *_wrap_PyControlPoint_base_OnEndSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyControlPoint_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13601,7 +13724,7 @@ static PyObject *_wrap_PyBitmapShape_base_OnDrawBranches(PyObject *, PyObject *a
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13773,16 +13896,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnLeftClick(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13818,16 +13941,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnLeftDoubleClick(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13863,16 +13986,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnRightClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -13904,9 +14027,9 @@ static PyObject *_wrap_PyBitmapShape_base_OnSize(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyBitmapShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -13953,16 +14076,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnMovePre(PyObject *, PyObject *args, 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14011,16 +14134,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnMovePost(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14058,18 +14181,18 @@ static PyObject *_wrap_PyBitmapShape_base_OnDragLeft(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyBitmapShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14105,16 +14228,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnBeginDragLeft(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14150,16 +14273,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnEndDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14197,18 +14320,18 @@ static PyObject *_wrap_PyBitmapShape_base_OnDragRight(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyBitmapShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14244,16 +14367,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnBeginDragRight(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14289,16 +14412,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnEndDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyBitmapShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14343,13 +14466,13 @@ static PyObject *_wrap_PyBitmapShape_base_OnDrawOutline(PyObject *, PyObject *ar
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14456,7 +14579,7 @@ static PyObject *_wrap_PyBitmapShape_base_OnMoveLink(PyObject *, PyObject *args,
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14498,18 +14621,18 @@ static PyObject *_wrap_PyBitmapShape_base_OnSizingDragLeft(PyObject *, PyObject 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14549,16 +14672,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnSizingBeginDragLeft(PyObject *, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14598,16 +14721,16 @@ static PyObject *_wrap_PyBitmapShape_base_OnSizingEndDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -14639,9 +14762,9 @@ static PyObject *_wrap_PyBitmapShape_base_OnBeginSize(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyBitmapShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14672,9 +14795,9 @@ static PyObject *_wrap_PyBitmapShape_base_OnEndSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyBitmapShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyBitmapShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14859,7 +14982,7 @@ static PyObject *_wrap_PyDrawnShape_DrawAtAngle(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDrawnShape_DrawAtAngle",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14897,9 +15020,9 @@ static PyObject *_wrap_PyDrawnShape_DrawEllipticArc(PyObject *, PyObject *args, 
         arg2 = &temp2;
         if ( ! wxRect_helper(obj1, &arg2)) SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14961,18 +15084,17 @@ static PyObject *_wrap_PyDrawnShape_DrawLines(PyObject *, PyObject *args, PyObje
     wxPoint *arg3 = (wxPoint *) 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points", NULL 
+        (char *) "self",(char *) "points", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_DrawLines",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDrawnShape_DrawLines",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         (arg1)->DrawLines(arg2,arg3);
@@ -14981,8 +15103,14 @@ static PyObject *_wrap_PyDrawnShape_DrawLines(PyObject *, PyObject *args, PyObje
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -15028,20 +15156,19 @@ static PyObject *_wrap_PyDrawnShape_DrawPolygon(PyObject *, PyObject *args, PyOb
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points",(char *) "flags", NULL 
+        (char *) "self",(char *) "points",(char *) "flags", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyDrawnShape_DrawPolygon",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:PyDrawnShape_DrawPolygon",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
+    if (obj2) {
+        arg4 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -15052,8 +15179,14 @@ static PyObject *_wrap_PyDrawnShape_DrawPolygon(PyObject *, PyObject *args, PyOb
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -15110,7 +15243,7 @@ static PyObject *_wrap_PyDrawnShape_DrawRoundedRectangle(PyObject *, PyObject *a
         arg2 = &temp2;
         if ( ! wxRect_helper(obj1, &arg2)) SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15133,18 +15266,17 @@ static PyObject *_wrap_PyDrawnShape_DrawSpline(PyObject *, PyObject *args, PyObj
     wxPoint *arg3 = (wxPoint *) 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "PCOUNT",(char *) "points", NULL 
+        (char *) "self",(char *) "points", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_DrawSpline",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDrawnShape_DrawSpline",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPoint,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        arg3 = wxPoint_LIST_helper(obj1, &arg2);
+        if (arg3 == NULL) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         (arg1)->DrawSpline(arg2,arg3);
@@ -15153,8 +15285,14 @@ static PyObject *_wrap_PyDrawnShape_DrawSpline(PyObject *, PyObject *args, PyObj
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
+    {
+        if (arg3) delete [] arg3;
+    }
     return resultobj;
     fail:
+    {
+        if (arg3) delete [] arg3;
+    }
     return NULL;
 }
 
@@ -15226,7 +15364,7 @@ static PyObject *_wrap_PyDrawnShape_GetAngle(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -15281,7 +15419,7 @@ static PyObject *_wrap_PyDrawnShape_GetRotation(PyObject *, PyObject *args, PyOb
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -15349,11 +15487,11 @@ static PyObject *_wrap_PyDrawnShape_Rotate(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyDrawnShape_Rotate",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15446,7 +15584,7 @@ static PyObject *_wrap_PyDrawnShape_SetDrawnBackgroundMode(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDrawnShape_SetDrawnBackgroundMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15494,7 +15632,7 @@ static PyObject *_wrap_PyDrawnShape_SetDrawnBrush(PyObject *, PyObject *args, Py
         arg2 = NULL;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -15594,7 +15732,7 @@ static PyObject *_wrap_PyDrawnShape_SetDrawnPen(PyObject *, PyObject *args, PyOb
         arg2 = NULL;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -15658,9 +15796,9 @@ static PyObject *_wrap_PyDrawnShape_Scale(PyObject *, PyObject *args, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_Scale",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15689,7 +15827,7 @@ static PyObject *_wrap_PyDrawnShape_SetSaveToFile(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDrawnShape_SetSaveToFile",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15720,9 +15858,9 @@ static PyObject *_wrap_PyDrawnShape_Translate(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_Translate",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -15854,7 +15992,7 @@ static PyObject *_wrap_PyDrawnShape_base_OnDrawBranches(PyObject *, PyObject *ar
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16026,16 +16164,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnLeftClick(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16071,16 +16209,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnLeftDoubleClick(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16116,16 +16254,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnRightClick(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16157,9 +16295,9 @@ static PyObject *_wrap_PyDrawnShape_base_OnSize(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -16206,16 +16344,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnMovePre(PyObject *, PyObject *args, P
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16264,16 +16402,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnMovePost(PyObject *, PyObject *args, 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16311,18 +16449,18 @@ static PyObject *_wrap_PyDrawnShape_base_OnDragLeft(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDrawnShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16358,16 +16496,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnBeginDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16403,16 +16541,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnEndDragLeft(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16450,18 +16588,18 @@ static PyObject *_wrap_PyDrawnShape_base_OnDragRight(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDrawnShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16497,16 +16635,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnBeginDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16542,16 +16680,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnEndDragRight(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDrawnShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16596,13 +16734,13 @@ static PyObject *_wrap_PyDrawnShape_base_OnDrawOutline(PyObject *, PyObject *arg
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -16709,7 +16847,7 @@ static PyObject *_wrap_PyDrawnShape_base_OnMoveLink(PyObject *, PyObject *args, 
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16751,18 +16889,18 @@ static PyObject *_wrap_PyDrawnShape_base_OnSizingDragLeft(PyObject *, PyObject *
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16802,16 +16940,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnSizingBeginDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16851,16 +16989,16 @@ static PyObject *_wrap_PyDrawnShape_base_OnSizingEndDragLeft(PyObject *, PyObjec
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -16892,9 +17030,9 @@ static PyObject *_wrap_PyDrawnShape_base_OnBeginSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -16925,9 +17063,9 @@ static PyObject *_wrap_PyDrawnShape_base_OnEndSize(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDrawnShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDrawnShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -16964,7 +17102,7 @@ static PyObject *_wrap_new_OGLConstraint(PyObject *, PyObject *args, PyObject *k
     };
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:new_OGLConstraint",kwnames,&obj0,&obj1,&obj2)) goto fail;
-    arg1 = (int) SWIG_AsInt(obj0); 
+    arg1 = (int)SWIG_As_int(obj0); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -16977,7 +17115,7 @@ static PyObject *_wrap_new_OGLConstraint(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 1); 
     }
     return resultobj;
     fail:
@@ -17028,9 +17166,9 @@ static PyObject *_wrap_OGLConstraint_SetSpacing(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:OGLConstraint_SetSpacing",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxOGLConstraint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -17062,9 +17200,9 @@ static PyObject *_wrap_OGLConstraint_Equals(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:OGLConstraint_Equals",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxOGLConstraint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -17201,7 +17339,7 @@ static PyObject *_wrap_PyCompositeShape_AddConstraint(PyObject *, PyObject *args
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -17227,7 +17365,7 @@ static PyObject *_wrap_PyCompositeShape_AddConstrainedShapes(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyCompositeShape_AddConstrainedShapes",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -17240,7 +17378,7 @@ static PyObject *_wrap_PyCompositeShape_AddConstrainedShapes(PyObject *, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -17266,7 +17404,7 @@ static PyObject *_wrap_PyCompositeShape_AddSimpleConstraint(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyCompositeShape_AddSimpleConstraint",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -17280,7 +17418,7 @@ static PyObject *_wrap_PyCompositeShape_AddSimpleConstraint(PyObject *, PyObject
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -17423,7 +17561,7 @@ static PyObject *_wrap_PyCompositeShape_FindContainerImage(PyObject *, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -17681,7 +17819,7 @@ static PyObject *_wrap_PyCompositeShape_base_OnDrawBranches(PyObject *, PyObject
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -17853,16 +17991,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnLeftClick(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -17898,16 +18036,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnLeftDoubleClick(PyObject *, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -17943,16 +18081,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnRightClick(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -17984,9 +18122,9 @@ static PyObject *_wrap_PyCompositeShape_base_OnSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCompositeShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -18033,16 +18171,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnMovePre(PyObject *, PyObject *arg
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18091,16 +18229,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnMovePost(PyObject *, PyObject *ar
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18138,18 +18276,18 @@ static PyObject *_wrap_PyCompositeShape_base_OnDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyCompositeShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18185,16 +18323,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnBeginDragLeft(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18230,16 +18368,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnEndDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18277,18 +18415,18 @@ static PyObject *_wrap_PyCompositeShape_base_OnDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyCompositeShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18324,16 +18462,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnBeginDragRight(PyObject *, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18369,16 +18507,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnEndDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCompositeShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18423,13 +18561,13 @@ static PyObject *_wrap_PyCompositeShape_base_OnDrawOutline(PyObject *, PyObject 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -18536,7 +18674,7 @@ static PyObject *_wrap_PyCompositeShape_base_OnMoveLink(PyObject *, PyObject *ar
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18578,18 +18716,18 @@ static PyObject *_wrap_PyCompositeShape_base_OnSizingDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18629,16 +18767,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnSizingBeginDragLeft(PyObject *, P
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18678,16 +18816,16 @@ static PyObject *_wrap_PyCompositeShape_base_OnSizingEndDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -18719,9 +18857,9 @@ static PyObject *_wrap_PyCompositeShape_base_OnBeginSize(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCompositeShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -18752,9 +18890,9 @@ static PyObject *_wrap_PyCompositeShape_base_OnEndSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCompositeShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCompositeShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -18790,11 +18928,11 @@ static PyObject *_wrap_new_PyDividedShape(PyObject *, PyObject *args, PyObject *
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_PyDividedShape",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (double) SWIG_AsDouble(obj0); 
+        arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (double) SWIG_AsDouble(obj1); 
+        arg2 = (double)SWIG_As_double(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19008,7 +19146,7 @@ static PyObject *_wrap_PyDividedShape_base_OnDrawBranches(PyObject *, PyObject *
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19180,16 +19318,16 @@ static PyObject *_wrap_PyDividedShape_base_OnLeftClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19225,16 +19363,16 @@ static PyObject *_wrap_PyDividedShape_base_OnLeftDoubleClick(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19270,16 +19408,16 @@ static PyObject *_wrap_PyDividedShape_base_OnRightClick(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19311,9 +19449,9 @@ static PyObject *_wrap_PyDividedShape_base_OnSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDividedShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -19360,16 +19498,16 @@ static PyObject *_wrap_PyDividedShape_base_OnMovePre(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19418,16 +19556,16 @@ static PyObject *_wrap_PyDividedShape_base_OnMovePost(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19465,18 +19603,18 @@ static PyObject *_wrap_PyDividedShape_base_OnDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDividedShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19512,16 +19650,16 @@ static PyObject *_wrap_PyDividedShape_base_OnBeginDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19557,16 +19695,16 @@ static PyObject *_wrap_PyDividedShape_base_OnEndDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19604,18 +19742,18 @@ static PyObject *_wrap_PyDividedShape_base_OnDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDividedShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19651,16 +19789,16 @@ static PyObject *_wrap_PyDividedShape_base_OnBeginDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19696,16 +19834,16 @@ static PyObject *_wrap_PyDividedShape_base_OnEndDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDividedShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19750,13 +19888,13 @@ static PyObject *_wrap_PyDividedShape_base_OnDrawOutline(PyObject *, PyObject *a
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -19863,7 +20001,7 @@ static PyObject *_wrap_PyDividedShape_base_OnMoveLink(PyObject *, PyObject *args
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19905,18 +20043,18 @@ static PyObject *_wrap_PyDividedShape_base_OnSizingDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -19956,16 +20094,16 @@ static PyObject *_wrap_PyDividedShape_base_OnSizingBeginDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -20005,16 +20143,16 @@ static PyObject *_wrap_PyDividedShape_base_OnSizingEndDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -20046,9 +20184,9 @@ static PyObject *_wrap_PyDividedShape_base_OnBeginSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDividedShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20079,9 +20217,9 @@ static PyObject *_wrap_PyDividedShape_base_OnEndSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDividedShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDividedShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20119,9 +20257,7 @@ static PyObject *_wrap_new_PyDivisionShape(PyObject *, PyObject *args, PyObject 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
-    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxPyDivisionShape, 1);
     return resultobj;
     fail:
     return NULL;
@@ -20174,9 +20310,9 @@ static PyObject *_wrap_PyDivisionShape_AdjustBottom(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_AdjustBottom",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20207,9 +20343,9 @@ static PyObject *_wrap_PyDivisionShape_AdjustLeft(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_AdjustLeft",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20240,9 +20376,9 @@ static PyObject *_wrap_PyDivisionShape_AdjustRight(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_AdjustRight",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20273,9 +20409,9 @@ static PyObject *_wrap_PyDivisionShape_AdjustTop(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_AdjustTop",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20304,7 +20440,7 @@ static PyObject *_wrap_PyDivisionShape_Divide(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDivisionShape_Divide",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20333,7 +20469,7 @@ static PyObject *_wrap_PyDivisionShape_EditEdge(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDivisionShape_EditEdge",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20369,7 +20505,7 @@ static PyObject *_wrap_PyDivisionShape_GetBottomSide(PyObject *, PyObject *args,
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -20396,7 +20532,7 @@ static PyObject *_wrap_PyDivisionShape_GetHandleSide(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -20423,7 +20559,7 @@ static PyObject *_wrap_PyDivisionShape_GetLeftSide(PyObject *, PyObject *args, P
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -20509,7 +20645,7 @@ static PyObject *_wrap_PyDivisionShape_GetRightSide(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -20537,7 +20673,7 @@ static PyObject *_wrap_PyDivisionShape_GetTopSide(PyObject *, PyObject *args, Py
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -20588,11 +20724,11 @@ static PyObject *_wrap_PyDivisionShape_ResizeAdjoining(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyDivisionShape_ResizeAdjoining",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (bool) SWIG_AsBool(obj3); 
+    arg4 = (bool)SWIG_As_bool(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20623,9 +20759,9 @@ static PyObject *_wrap_PyDivisionShape_PopupMenu(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_PopupMenu",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -20683,7 +20819,7 @@ static PyObject *_wrap_PyDivisionShape_SetHandleSide(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyDivisionShape_SetHandleSide",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -21074,7 +21210,7 @@ static PyObject *_wrap_PyDivisionShape_base_OnDrawBranches(PyObject *, PyObject 
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21246,16 +21382,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnLeftClick(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21291,16 +21427,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnLeftDoubleClick(PyObject *, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21336,16 +21472,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnRightClick(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21377,9 +21513,9 @@ static PyObject *_wrap_PyDivisionShape_base_OnSize(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -21426,16 +21562,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnMovePre(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21484,16 +21620,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnMovePost(PyObject *, PyObject *arg
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21531,18 +21667,18 @@ static PyObject *_wrap_PyDivisionShape_base_OnDragLeft(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDivisionShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21578,16 +21714,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnBeginDragLeft(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21623,16 +21759,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnEndDragLeft(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21670,18 +21806,18 @@ static PyObject *_wrap_PyDivisionShape_base_OnDragRight(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyDivisionShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21717,16 +21853,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnBeginDragRight(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21762,16 +21898,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnEndDragRight(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyDivisionShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21816,13 +21952,13 @@ static PyObject *_wrap_PyDivisionShape_base_OnDrawOutline(PyObject *, PyObject *
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -21929,7 +22065,7 @@ static PyObject *_wrap_PyDivisionShape_base_OnMoveLink(PyObject *, PyObject *arg
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -21971,18 +22107,18 @@ static PyObject *_wrap_PyDivisionShape_base_OnSizingDragLeft(PyObject *, PyObjec
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22022,16 +22158,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnSizingBeginDragLeft(PyObject *, Py
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22071,16 +22207,16 @@ static PyObject *_wrap_PyDivisionShape_base_OnSizingEndDragLeft(PyObject *, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22112,9 +22248,9 @@ static PyObject *_wrap_PyDivisionShape_base_OnBeginSize(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -22145,9 +22281,9 @@ static PyObject *_wrap_PyDivisionShape_base_OnEndSize(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyDivisionShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyDivisionShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -22183,11 +22319,11 @@ static PyObject *_wrap_new_PyEllipseShape(PyObject *, PyObject *args, PyObject *
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_PyEllipseShape",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (double) SWIG_AsDouble(obj0); 
+        arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (double) SWIG_AsDouble(obj1); 
+        arg2 = (double)SWIG_As_double(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22326,7 +22462,7 @@ static PyObject *_wrap_PyEllipseShape_base_OnDrawBranches(PyObject *, PyObject *
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22498,16 +22634,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnLeftClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22543,16 +22679,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnLeftDoubleClick(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22588,16 +22724,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnRightClick(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22629,9 +22765,9 @@ static PyObject *_wrap_PyEllipseShape_base_OnSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyEllipseShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -22678,16 +22814,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnMovePre(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22736,16 +22872,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnMovePost(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22783,18 +22919,18 @@ static PyObject *_wrap_PyEllipseShape_base_OnDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyEllipseShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22830,16 +22966,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnBeginDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22875,16 +23011,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnEndDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22922,18 +23058,18 @@ static PyObject *_wrap_PyEllipseShape_base_OnDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyEllipseShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -22969,16 +23105,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnBeginDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23014,16 +23150,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnEndDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyEllipseShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23068,13 +23204,13 @@ static PyObject *_wrap_PyEllipseShape_base_OnDrawOutline(PyObject *, PyObject *a
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -23181,7 +23317,7 @@ static PyObject *_wrap_PyEllipseShape_base_OnMoveLink(PyObject *, PyObject *args
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23223,18 +23359,18 @@ static PyObject *_wrap_PyEllipseShape_base_OnSizingDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23274,16 +23410,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnSizingBeginDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23323,16 +23459,16 @@ static PyObject *_wrap_PyEllipseShape_base_OnSizingEndDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23364,9 +23500,9 @@ static PyObject *_wrap_PyEllipseShape_base_OnBeginSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyEllipseShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -23397,9 +23533,9 @@ static PyObject *_wrap_PyEllipseShape_base_OnEndSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyEllipseShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyEllipseShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -23433,7 +23569,7 @@ static PyObject *_wrap_new_PyCircleShape(PyObject *, PyObject *args, PyObject *k
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|O:new_PyCircleShape",kwnames,&obj0)) goto fail;
     if (obj0) {
-        arg1 = (double) SWIG_AsDouble(obj0); 
+        arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23572,7 +23708,7 @@ static PyObject *_wrap_PyCircleShape_base_OnDrawBranches(PyObject *, PyObject *a
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23744,16 +23880,16 @@ static PyObject *_wrap_PyCircleShape_base_OnLeftClick(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23789,16 +23925,16 @@ static PyObject *_wrap_PyCircleShape_base_OnLeftDoubleClick(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23834,16 +23970,16 @@ static PyObject *_wrap_PyCircleShape_base_OnRightClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23875,9 +24011,9 @@ static PyObject *_wrap_PyCircleShape_base_OnSize(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCircleShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -23924,16 +24060,16 @@ static PyObject *_wrap_PyCircleShape_base_OnMovePre(PyObject *, PyObject *args, 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -23982,16 +24118,16 @@ static PyObject *_wrap_PyCircleShape_base_OnMovePost(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24029,18 +24165,18 @@ static PyObject *_wrap_PyCircleShape_base_OnDragLeft(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyCircleShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24076,16 +24212,16 @@ static PyObject *_wrap_PyCircleShape_base_OnBeginDragLeft(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24121,16 +24257,16 @@ static PyObject *_wrap_PyCircleShape_base_OnEndDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24168,18 +24304,18 @@ static PyObject *_wrap_PyCircleShape_base_OnDragRight(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyCircleShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24215,16 +24351,16 @@ static PyObject *_wrap_PyCircleShape_base_OnBeginDragRight(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24260,16 +24396,16 @@ static PyObject *_wrap_PyCircleShape_base_OnEndDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyCircleShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24314,13 +24450,13 @@ static PyObject *_wrap_PyCircleShape_base_OnDrawOutline(PyObject *, PyObject *ar
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -24427,7 +24563,7 @@ static PyObject *_wrap_PyCircleShape_base_OnMoveLink(PyObject *, PyObject *args,
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24469,18 +24605,18 @@ static PyObject *_wrap_PyCircleShape_base_OnSizingDragLeft(PyObject *, PyObject 
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24520,16 +24656,16 @@ static PyObject *_wrap_PyCircleShape_base_OnSizingBeginDragLeft(PyObject *, PyOb
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24569,16 +24705,16 @@ static PyObject *_wrap_PyCircleShape_base_OnSizingEndDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24610,9 +24746,9 @@ static PyObject *_wrap_PyCircleShape_base_OnBeginSize(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCircleShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -24643,9 +24779,9 @@ static PyObject *_wrap_PyCircleShape_base_OnEndSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyCircleShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyCircleShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -24693,19 +24829,19 @@ static PyObject *_wrap_new_ArrowHead(PyObject *, PyObject *args, PyObject *kwarg
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OOOOOOO:new_ArrowHead",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) goto fail;
     if (obj0) {
-        arg1 = (int) SWIG_AsInt(obj0); 
+        arg1 = (int)SWIG_As_int(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
-        arg3 = (double) SWIG_AsDouble(obj2); 
+        arg3 = (double)SWIG_As_double(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (double) SWIG_AsDouble(obj3); 
+        arg4 = (double)SWIG_As_double(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
@@ -24720,7 +24856,7 @@ static PyObject *_wrap_new_ArrowHead(PyObject *, PyObject *args, PyObject *kwarg
         SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (long) SWIG_AsLong(obj6); 
+        arg7 = (long)SWIG_As_long(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -24731,7 +24867,7 @@ static PyObject *_wrap_new_ArrowHead(PyObject *, PyObject *args, PyObject *kwarg
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 1); 
     }
     {
         if (temp5)
@@ -24791,7 +24927,7 @@ static PyObject *_wrap_ArrowHead__GetType(PyObject *, PyObject *args, PyObject *
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -24817,7 +24953,7 @@ static PyObject *_wrap_ArrowHead_GetPosition(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -24837,7 +24973,7 @@ static PyObject *_wrap_ArrowHead_SetPosition(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ArrowHead_SetPosition",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -24872,7 +25008,7 @@ static PyObject *_wrap_ArrowHead_GetXOffset(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -24898,7 +25034,7 @@ static PyObject *_wrap_ArrowHead_GetYOffset(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -24924,7 +25060,7 @@ static PyObject *_wrap_ArrowHead_GetSpacing(PyObject *, PyObject *args, PyObject
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -24950,7 +25086,7 @@ static PyObject *_wrap_ArrowHead_GetSize(PyObject *, PyObject *args, PyObject *k
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -25002,7 +25138,7 @@ static PyObject *_wrap_ArrowHead_SetXOffset(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ArrowHead_SetXOffset",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25031,7 +25167,7 @@ static PyObject *_wrap_ArrowHead_SetYOffset(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ArrowHead_SetYOffset",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25067,7 +25203,7 @@ static PyObject *_wrap_ArrowHead_GetMetaFile(PyObject *, PyObject *args, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -25094,7 +25230,7 @@ static PyObject *_wrap_ArrowHead_GetId(PyObject *, PyObject *args, PyObject *kwa
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromLong((long)result);
+    resultobj = SWIG_From_long((long)result);
     return resultobj;
     fail:
     return NULL;
@@ -25120,7 +25256,7 @@ static PyObject *_wrap_ArrowHead_GetArrowEnd(PyObject *, PyObject *args, PyObjec
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -25146,7 +25282,7 @@ static PyObject *_wrap_ArrowHead_GetArrowSize(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -25166,7 +25302,7 @@ static PyObject *_wrap_ArrowHead_SetSize(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ArrowHead_SetSize",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25195,7 +25331,7 @@ static PyObject *_wrap_ArrowHead_SetSpacing(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ArrowHead_SetSpacing",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25298,18 +25434,18 @@ static PyObject *_wrap_PyLineShape_AddArrow(PyObject *, PyObject *args, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|OOOOOO:PyLineShape_AddArrow",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj2) {
-        arg3 = (int) SWIG_AsInt(obj2); 
+        arg3 = (int)SWIG_As_int(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj3) {
-        arg4 = (double) SWIG_AsDouble(obj3); 
+        arg4 = (double)SWIG_As_double(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (double) SWIG_AsDouble(obj4); 
+        arg5 = (double)SWIG_As_double(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
@@ -25324,7 +25460,7 @@ static PyObject *_wrap_PyLineShape_AddArrow(PyObject *, PyObject *args, PyObject
         SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     }
     if (obj7) {
-        arg8 = (long) SWIG_AsLong(obj7); 
+        arg8 = (long)SWIG_As_long(obj7); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -25369,7 +25505,7 @@ static PyObject *_wrap_PyLineShape_AddArrowOrdered(PyObject *, PyObject *args, P
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg3 = obj2;
-    arg4 = (int) SWIG_AsInt(obj3); 
+    arg4 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25443,7 +25579,7 @@ static PyObject *_wrap_PyLineShape_ClearArrowsAtPosition(PyObject *, PyObject *a
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -25488,9 +25624,9 @@ static PyObject *_wrap_PyLineShape_DrawArrow(PyObject *, PyObject *args, PyObjec
     }
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxArrowHead,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (bool) SWIG_AsBool(obj4); 
+    arg5 = (bool)SWIG_As_bool(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25520,7 +25656,7 @@ static PyObject *_wrap_PyLineShape_DeleteArrowHeadId(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_DeleteArrowHeadId",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long) SWIG_AsLong(obj1); 
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25555,7 +25691,7 @@ static PyObject *_wrap_PyLineShape_DeleteArrowHead(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_DeleteArrowHead",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -25676,9 +25812,9 @@ static PyObject *_wrap_PyLineShape_DrawRegion(PyObject *, PyObject *args, PyObje
     }
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25722,9 +25858,9 @@ static PyObject *_wrap_PyLineShape_EraseRegion(PyObject *, PyObject *args, PyObj
     }
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_wxShapeRegion,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25754,7 +25890,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHeadId(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_FindArrowHeadId",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long) SWIG_AsLong(obj1); 
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25764,7 +25900,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHeadId(PyObject *, PyObject *args, P
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -25789,7 +25925,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHead(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_FindArrowHead",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         arg3 = wxString_in_helper(obj2);
@@ -25804,7 +25940,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHead(PyObject *, PyObject *args, PyO
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     {
         if (temp3)
@@ -25828,18 +25964,22 @@ static PyObject *_wrap_PyLineShape_FindLineEndPoints(PyObject *, PyObject *args,
     double *arg4 = (double *) 0 ;
     double *arg5 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     double temp4 ;
+    int res4 = 0 ;
     double temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:PyLineShape_FindLineEndPoints",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -25851,22 +25991,14 @@ static PyObject *_wrap_PyLineShape_FindLineEndPoints(PyObject *, PyObject *args,
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -25889,9 +26021,9 @@ static PyObject *_wrap_PyLineShape_FindLinePosition(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_FindLinePosition",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25900,7 +26032,7 @@ static PyObject *_wrap_PyLineShape_FindLinePosition(PyObject *, PyObject *args, 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -25926,7 +26058,7 @@ static PyObject *_wrap_PyLineShape_FindMinimumWidth(PyObject *, PyObject *args, 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -25941,7 +26073,9 @@ static PyObject *_wrap_PyLineShape_FindNth(PyObject *, PyObject *args, PyObject 
     int *arg4 = (int *) 0 ;
     bool arg5 ;
     int temp3 ;
+    int res3 = 0 ;
     int temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -25949,14 +26083,14 @@ static PyObject *_wrap_PyLineShape_FindNth(PyObject *, PyObject *args, PyObject 
         (char *) "self",(char *) "image",(char *) "incoming", NULL 
     };
     
-    arg3 = &temp3;
-    arg4 = &temp4;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_FindNth",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg5 = (bool) SWIG_AsBool(obj2); 
+    arg5 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25966,14 +26100,10 @@ static PyObject *_wrap_PyLineShape_FindNth(PyObject *, PyObject *args, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -25999,7 +26129,7 @@ static PyObject *_wrap_PyLineShape_GetAttachmentFrom(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -26025,7 +26155,7 @@ static PyObject *_wrap_PyLineShape_GetAttachmentTo(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -26040,18 +26170,22 @@ static PyObject *_wrap_PyLineShape_GetEnds(PyObject *, PyObject *args, PyObject 
     double *arg4 = (double *) 0 ;
     double *arg5 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     double temp4 ;
+    int res4 = 0 ;
     double temp5 ;
+    int res5 = 0 ;
     PyObject * obj0 = 0 ;
     char *kwnames[] = {
         (char *) "self", NULL 
     };
     
-    arg2 = &temp2;
-    arg3 = &temp3;
-    arg4 = &temp4;
-    arg5 = &temp5;
+    arg2 = &temp2; res2 = SWIG_NEWOBJ;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
+    arg5 = &temp5; res5 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:PyLineShape_GetEnds",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -26063,22 +26197,14 @@ static PyObject *_wrap_PyLineShape_GetEnds(PyObject *, PyObject *args, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg5));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res5 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg5)) : SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -26105,7 +26231,7 @@ static PyObject *_wrap_PyLineShape_GetFrom(PyObject *, PyObject *args, PyObject 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -26120,19 +26246,21 @@ static PyObject *_wrap_PyLineShape_GetLabelPosition(PyObject *, PyObject *args, 
     double *arg3 = (double *) 0 ;
     double *arg4 = (double *) 0 ;
     double temp3 ;
+    int res3 = 0 ;
     double temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
         (char *) "self",(char *) "position", NULL 
     };
     
-    arg3 = &temp3;
-    arg4 = &temp4;
+    arg3 = &temp3; res3 = SWIG_NEWOBJ;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_GetLabelPosition",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26142,14 +26270,10 @@ static PyObject *_wrap_PyLineShape_GetLabelPosition(PyObject *, PyObject *args, 
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -26206,7 +26330,7 @@ static PyObject *_wrap_PyLineShape_GetTo(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -26341,7 +26465,7 @@ static PyObject *_wrap_PyLineShape_MakeLineControlPoints(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_MakeLineControlPoints",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26383,6 +26507,34 @@ static PyObject *_wrap_PyLineShape_GetLineControlPoints(PyObject *, PyObject *ar
 }
 
 
+static PyObject *_wrap_PyLineShape_SetLineControlPoints(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxPyLineShape *arg1 = (wxPyLineShape *) 0 ;
+    PyObject *arg2 = (PyObject *) 0 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "list", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_SetLineControlPoints",kwnames,&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = obj1;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        wxPyLineShape_SetLineControlPoints(arg1,arg2);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
 static PyObject *_wrap_PyLineShape_SetAttachmentFrom(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxPyLineShape *arg1 = (wxPyLineShape *) 0 ;
@@ -26396,7 +26548,7 @@ static PyObject *_wrap_PyLineShape_SetAttachmentFrom(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_SetAttachmentFrom",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26427,9 +26579,9 @@ static PyObject *_wrap_PyLineShape_SetAttachments(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_SetAttachments",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26458,7 +26610,7 @@ static PyObject *_wrap_PyLineShape_SetAttachmentTo(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_SetAttachmentTo",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26493,13 +26645,13 @@ static PyObject *_wrap_PyLineShape_SetEnds(PyObject *, PyObject *args, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:PyLineShape_SetEnds",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26557,7 +26709,7 @@ static PyObject *_wrap_PyLineShape_SetIgnoreOffsets(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_SetIgnoreOffsets",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26586,7 +26738,7 @@ static PyObject *_wrap_PyLineShape_SetSpline(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_SetSpline",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26702,9 +26854,9 @@ static PyObject *_wrap_PyLineShape_SetAlignmentOrientation(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_SetAlignmentOrientation",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26735,9 +26887,9 @@ static PyObject *_wrap_PyLineShape_SetAlignmentType(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_SetAlignmentType",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (int) SWIG_AsInt(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26767,7 +26919,7 @@ static PyObject *_wrap_PyLineShape_GetAlignmentOrientation(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_GetAlignmentOrientation",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26799,7 +26951,7 @@ static PyObject *_wrap_PyLineShape_GetAlignmentType(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyLineShape_GetAlignmentType",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -26808,7 +26960,7 @@ static PyObject *_wrap_PyLineShape_GetAlignmentType(PyObject *, PyObject *args, 
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -26834,7 +26986,7 @@ static PyObject *_wrap_PyLineShape_GetAlignmentStart(PyObject *, PyObject *args,
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -26860,7 +27012,7 @@ static PyObject *_wrap_PyLineShape_GetAlignmentEnd(PyObject *, PyObject *args, P
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -26958,7 +27110,7 @@ static PyObject *_wrap_PyLineShape_base_OnDrawBranches(PyObject *, PyObject *arg
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27130,16 +27282,16 @@ static PyObject *_wrap_PyLineShape_base_OnLeftClick(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27175,16 +27327,16 @@ static PyObject *_wrap_PyLineShape_base_OnLeftDoubleClick(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27220,16 +27372,16 @@ static PyObject *_wrap_PyLineShape_base_OnRightClick(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27261,9 +27413,9 @@ static PyObject *_wrap_PyLineShape_base_OnSize(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -27310,16 +27462,16 @@ static PyObject *_wrap_PyLineShape_base_OnMovePre(PyObject *, PyObject *args, Py
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27368,16 +27520,16 @@ static PyObject *_wrap_PyLineShape_base_OnMovePost(PyObject *, PyObject *args, P
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27415,18 +27567,18 @@ static PyObject *_wrap_PyLineShape_base_OnDragLeft(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyLineShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27462,16 +27614,16 @@ static PyObject *_wrap_PyLineShape_base_OnBeginDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27507,16 +27659,16 @@ static PyObject *_wrap_PyLineShape_base_OnEndDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27554,18 +27706,18 @@ static PyObject *_wrap_PyLineShape_base_OnDragRight(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyLineShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27601,16 +27753,16 @@ static PyObject *_wrap_PyLineShape_base_OnBeginDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27646,16 +27798,16 @@ static PyObject *_wrap_PyLineShape_base_OnEndDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyLineShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27700,13 +27852,13 @@ static PyObject *_wrap_PyLineShape_base_OnDrawOutline(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -27813,7 +27965,7 @@ static PyObject *_wrap_PyLineShape_base_OnMoveLink(PyObject *, PyObject *args, P
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27855,18 +28007,18 @@ static PyObject *_wrap_PyLineShape_base_OnSizingDragLeft(PyObject *, PyObject *a
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27906,16 +28058,16 @@ static PyObject *_wrap_PyLineShape_base_OnSizingBeginDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27955,16 +28107,16 @@ static PyObject *_wrap_PyLineShape_base_OnSizingEndDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -27996,9 +28148,9 @@ static PyObject *_wrap_PyLineShape_base_OnBeginSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -28029,9 +28181,9 @@ static PyObject *_wrap_PyLineShape_base_OnEndSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyLineShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyLineShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -28150,7 +28302,7 @@ static PyObject *_wrap_PyPolygonShape_AddPolygonPoint(PyObject *, PyObject *args
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28206,7 +28358,7 @@ static PyObject *_wrap_PyPolygonShape_DeletePolygonPoint(PyObject *, PyObject *a
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28294,7 +28446,7 @@ static PyObject *_wrap_PyPolygonShape_GetOriginalWidth(PyObject *, PyObject *arg
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -28320,7 +28472,7 @@ static PyObject *_wrap_PyPolygonShape_GetOriginalHeight(PyObject *, PyObject *ar
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -28340,7 +28492,7 @@ static PyObject *_wrap_PyPolygonShape_SetOriginalWidth(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyPolygonShape_SetOriginalWidth",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -28369,7 +28521,7 @@ static PyObject *_wrap_PyPolygonShape_SetOriginalHeight(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:PyPolygonShape_SetOriginalHeight",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -28501,7 +28653,7 @@ static PyObject *_wrap_PyPolygonShape_base_OnDrawBranches(PyObject *, PyObject *
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28673,16 +28825,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnLeftClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28718,16 +28870,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnLeftDoubleClick(PyObject *, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28763,16 +28915,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnRightClick(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28804,9 +28956,9 @@ static PyObject *_wrap_PyPolygonShape_base_OnSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyPolygonShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -28853,16 +29005,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnMovePre(PyObject *, PyObject *args,
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28911,16 +29063,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnMovePost(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -28958,18 +29110,18 @@ static PyObject *_wrap_PyPolygonShape_base_OnDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyPolygonShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29005,16 +29157,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnBeginDragLeft(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29050,16 +29202,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnEndDragLeft(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29097,18 +29249,18 @@ static PyObject *_wrap_PyPolygonShape_base_OnDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyPolygonShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29144,16 +29296,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnBeginDragRight(PyObject *, PyObject
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29189,16 +29341,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnEndDragRight(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyPolygonShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29243,13 +29395,13 @@ static PyObject *_wrap_PyPolygonShape_base_OnDrawOutline(PyObject *, PyObject *a
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -29356,7 +29508,7 @@ static PyObject *_wrap_PyPolygonShape_base_OnMoveLink(PyObject *, PyObject *args
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29398,18 +29550,18 @@ static PyObject *_wrap_PyPolygonShape_base_OnSizingDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29449,16 +29601,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnSizingBeginDragLeft(PyObject *, PyO
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29498,16 +29650,16 @@ static PyObject *_wrap_PyPolygonShape_base_OnSizingEndDragLeft(PyObject *, PyObj
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29539,9 +29691,9 @@ static PyObject *_wrap_PyPolygonShape_base_OnBeginSize(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyPolygonShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -29572,9 +29724,9 @@ static PyObject *_wrap_PyPolygonShape_base_OnEndSize(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyPolygonShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyPolygonShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -29610,11 +29762,11 @@ static PyObject *_wrap_new_PyTextShape(PyObject *, PyObject *args, PyObject *kwa
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|OO:new_PyTextShape",kwnames,&obj0,&obj1)) goto fail;
     if (obj0) {
-        arg1 = (double) SWIG_AsDouble(obj0); 
+        arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (double) SWIG_AsDouble(obj1); 
+        arg2 = (double)SWIG_As_double(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29778,7 +29930,7 @@ static PyObject *_wrap_PyTextShape_base_OnDrawBranches(PyObject *, PyObject *arg
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29950,16 +30102,16 @@ static PyObject *_wrap_PyTextShape_base_OnLeftClick(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -29995,16 +30147,16 @@ static PyObject *_wrap_PyTextShape_base_OnLeftDoubleClick(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnLeftDoubleClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30040,16 +30192,16 @@ static PyObject *_wrap_PyTextShape_base_OnRightClick(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30081,9 +30233,9 @@ static PyObject *_wrap_PyTextShape_base_OnSize(PyObject *, PyObject *args, PyObj
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyTextShape_base_OnSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -30130,16 +30282,16 @@ static PyObject *_wrap_PyTextShape_base_OnMovePre(PyObject *, PyObject *args, Py
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30188,16 +30340,16 @@ static PyObject *_wrap_PyTextShape_base_OnMovePost(PyObject *, PyObject *args, P
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj6) {
-        arg7 = (bool) SWIG_AsBool(obj6); 
+        arg7 = (bool)SWIG_As_bool(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30235,18 +30387,18 @@ static PyObject *_wrap_PyTextShape_base_OnDragLeft(PyObject *, PyObject *args, P
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyTextShape_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30282,16 +30434,16 @@ static PyObject *_wrap_PyTextShape_base_OnBeginDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30327,16 +30479,16 @@ static PyObject *_wrap_PyTextShape_base_OnEndDragLeft(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30374,18 +30526,18 @@ static PyObject *_wrap_PyTextShape_base_OnDragRight(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OO:PyTextShape_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30421,16 +30573,16 @@ static PyObject *_wrap_PyTextShape_base_OnBeginDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30466,16 +30618,16 @@ static PyObject *_wrap_PyTextShape_base_OnEndDragRight(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyTextShape_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30520,13 +30672,13 @@ static PyObject *_wrap_PyTextShape_base_OnDrawOutline(PyObject *, PyObject *args
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -30633,7 +30785,7 @@ static PyObject *_wrap_PyTextShape_base_OnMoveLink(PyObject *, PyObject *args, P
         SWIG_fail;
     }
     if (obj2) {
-        arg3 = (bool) SWIG_AsBool(obj2); 
+        arg3 = (bool)SWIG_As_bool(obj2); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30675,18 +30827,18 @@ static PyObject *_wrap_PyTextShape_base_OnSizingDragLeft(PyObject *, PyObject *a
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (bool) SWIG_AsBool(obj2); 
+    arg3 = (bool)SWIG_As_bool(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj6) {
-        arg7 = (int) SWIG_AsInt(obj6); 
+        arg7 = (int)SWIG_As_int(obj6); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30726,16 +30878,16 @@ static PyObject *_wrap_PyTextShape_base_OnSizingBeginDragLeft(PyObject *, PyObje
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30775,16 +30927,16 @@ static PyObject *_wrap_PyTextShape_base_OnSizingEndDragLeft(PyObject *, PyObject
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxPyControlPoint,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
-        arg6 = (int) SWIG_AsInt(obj5); 
+        arg6 = (int)SWIG_As_int(obj5); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -30816,9 +30968,9 @@ static PyObject *_wrap_PyTextShape_base_OnBeginSize(PyObject *, PyObject *args, 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyTextShape_base_OnBeginSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -30849,9 +31001,9 @@ static PyObject *_wrap_PyTextShape_base_OnEndSize(PyObject *, PyObject *args, Py
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:PyTextShape_base_OnEndSize",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyTextShape,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -30890,7 +31042,7 @@ static PyObject *_wrap_new_Diagram(PyObject *, PyObject *args, PyObject *kwargs)
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 1); 
     }
     return resultobj;
     fail:
@@ -31020,13 +31172,13 @@ static PyObject *_wrap_Diagram_DrawOutline(PyObject *, PyObject *args, PyObject 
         PyErr_SetString(PyExc_TypeError,"null reference");
         SWIG_fail;
     }
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (double) SWIG_AsDouble(obj4); 
+    arg5 = (double)SWIG_As_double(obj4); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (double) SWIG_AsDouble(obj5); 
+    arg6 = (double)SWIG_As_double(obj5); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31056,7 +31208,7 @@ static PyObject *_wrap_Diagram_FindShape(PyObject *, PyObject *args, PyObject *k
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_FindShape",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long) SWIG_AsLong(obj1); 
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31066,7 +31218,7 @@ static PyObject *_wrap_Diagram_FindShape(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
     return resultobj;
     fail:
@@ -31094,7 +31246,7 @@ static PyObject *_wrap_Diagram_GetCanvas(PyObject *, PyObject *args, PyObject *k
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -31121,7 +31273,7 @@ static PyObject *_wrap_Diagram_GetCount(PyObject *, PyObject *args, PyObject *kw
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -31147,7 +31299,7 @@ static PyObject *_wrap_Diagram_GetGridSpacing(PyObject *, PyObject *args, PyObje
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromDouble((double)result);
+    resultobj = SWIG_From_double((double)result);
     return resultobj;
     fail:
     return NULL;
@@ -31173,7 +31325,7 @@ static PyObject *_wrap_Diagram_GetMouseTolerance(PyObject *, PyObject *args, PyO
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_FromInt((int)result);
+    resultobj = SWIG_From_int((int)result);
     return resultobj;
     fail:
     return NULL;
@@ -31455,7 +31607,7 @@ static PyObject *_wrap_Diagram_SetGridSpacing(PyObject *, PyObject *args, PyObje
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_SetGridSpacing",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31484,7 +31636,7 @@ static PyObject *_wrap_Diagram_SetMouseTolerance(PyObject *, PyObject *args, PyO
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_SetMouseTolerance",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (int) SWIG_AsInt(obj1); 
+    arg2 = (int)SWIG_As_int(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31513,7 +31665,7 @@ static PyObject *_wrap_Diagram_SetQuickEditMode(PyObject *, PyObject *args, PyOb
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_SetQuickEditMode",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31542,7 +31694,7 @@ static PyObject *_wrap_Diagram_SetSnapToGrid(PyObject *, PyObject *args, PyObjec
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_SetSnapToGrid",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31571,7 +31723,7 @@ static PyObject *_wrap_Diagram_ShowAll(PyObject *, PyObject *args, PyObject *kwa
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:Diagram_ShowAll",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31593,7 +31745,9 @@ static PyObject *_wrap_Diagram_Snap(PyObject *, PyObject *args, PyObject *kwargs
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -31605,14 +31759,20 @@ static PyObject *_wrap_Diagram_Snap(PyObject *, PyObject *args, PyObject *kwargs
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxDiagram,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
-        temp2 = PyFloat_AsDouble(obj1);
-        if (PyErr_Occurred()) SWIG_fail;
-        arg2 = &temp2;
+        if (!(SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_double,0) != -1)) {
+            temp2 = SWIG_As_double(obj1);
+            if (PyErr_Occurred()) SWIG_fail;
+            arg2 = &temp2;
+            res2 = SWIG_NEWOBJ;
+        }
     }
     {
-        temp3 = PyFloat_AsDouble(obj2);
-        if (PyErr_Occurred()) SWIG_fail;
-        arg3 = &temp3;
+        if (!(SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_double,0) != -1)) {
+            temp3 = SWIG_As_double(obj2);
+            if (PyErr_Occurred()) SWIG_fail;
+            arg3 = &temp3;
+            res3 = SWIG_NEWOBJ;
+        }
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31622,14 +31782,10 @@ static PyObject *_wrap_Diagram_Snap(PyObject *, PyObject *args, PyObject *kwargs
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -31674,7 +31830,7 @@ static PyObject *_wrap_new_PyShapeCanvas(PyObject *, PyObject *args, PyObject *k
         SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     }
     if (obj1) {
-        arg2 = (int) SWIG_AsInt(obj1); 
+        arg2 = (int)SWIG_As_int(obj1); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj2) {
@@ -31690,7 +31846,7 @@ static PyObject *_wrap_new_PyShapeCanvas(PyObject *, PyObject *args, PyObject *k
         }
     }
     if (obj4) {
-        arg5 = (long) SWIG_AsLong(obj4); 
+        arg5 = (long)SWIG_As_long(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     if (obj5) {
@@ -31701,15 +31857,14 @@ static PyObject *_wrap_new_PyShapeCanvas(PyObject *, PyObject *args, PyObject *k
         }
     }
     {
+        if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         result = (wxPyShapeCanvas *)new wxPyShapeCanvas(arg1,arg2,(wxPoint const &)*arg3,(wxSize const &)*arg4,arg5,(wxString const &)*arg6);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = wxPyMake_wxObject(result); 
-    }
+    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxPyShapeCanvas, 1);
     {
         if (temp6)
         delete arg6;
@@ -31800,6 +31955,7 @@ static PyObject *_wrap_PyShapeCanvas_FindShape(PyObject *, PyObject *args, PyObj
     wxPyShape *arg6 = (wxPyShape *) NULL ;
     wxPyShape *result;
     int temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -31809,13 +31965,13 @@ static PyObject *_wrap_PyShapeCanvas_FindShape(PyObject *, PyObject *args, PyObj
         (char *) "self",(char *) "x1",(char *) "y",(char *) "info",(char *) "notImage", NULL 
     };
     
-    arg4 = &temp4;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|OO:PyShapeCanvas_FindShape",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
         if ((SWIG_ConvertPtr(obj3,(void **)(&arg5),SWIGTYPE_p_wxClassInfo,
@@ -31833,12 +31989,10 @@ static PyObject *_wrap_PyShapeCanvas_FindShape(PyObject *, PyObject *args, PyObj
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -31854,6 +32008,7 @@ static PyObject *_wrap_PyShapeCanvas_FindFirstSensitiveShape(PyObject *, PyObjec
     int arg5 ;
     wxPyShape *result;
     int temp4 ;
+    int res4 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -31862,15 +32017,15 @@ static PyObject *_wrap_PyShapeCanvas_FindFirstSensitiveShape(PyObject *, PyObjec
         (char *) "self",(char *) "x1",(char *) "y",(char *) "op", NULL 
     };
     
-    arg4 = &temp4;
+    arg4 = &temp4; res4 = SWIG_NEWOBJ;
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:PyShapeCanvas_FindFirstSensitiveShape",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (int) SWIG_AsInt(obj3); 
+    arg5 = (int)SWIG_As_int(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -31880,12 +32035,10 @@ static PyObject *_wrap_PyShapeCanvas_FindFirstSensitiveShape(PyObject *, PyObjec
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxShapeEvtHandler(result); 
+        resultobj = wxPyMake_wxShapeEvtHandler(result, 0); 
     }
-    {
-        PyObject *o = PyInt_FromLong((long) (*arg4));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res4 == SWIG_NEWOBJ) ?
+    SWIG_From_int((*arg4)) : SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -31912,7 +32065,7 @@ static PyObject *_wrap_PyShapeCanvas_GetDiagram(PyObject *, PyObject *args, PyOb
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = wxPyMake_wxObject(result); 
+        resultobj = wxPyMake_wxObject(result, 0); 
     }
     return resultobj;
     fail:
@@ -31994,12 +32147,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnBeginDragLeft(PyObject *, PyObject *
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnBeginDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32033,12 +32186,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnBeginDragRight(PyObject *, PyObject 
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnBeginDragRight",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32072,12 +32225,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnEndDragLeft(PyObject *, PyObject *ar
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnEndDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32111,12 +32264,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnEndDragRight(PyObject *, PyObject *a
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnEndDragRight",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32152,14 +32305,14 @@ static PyObject *_wrap_PyShapeCanvas_base_OnDragLeft(PyObject *, PyObject *args,
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|O:PyShapeCanvas_base_OnDragLeft",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32195,14 +32348,14 @@ static PyObject *_wrap_PyShapeCanvas_base_OnDragRight(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|O:PyShapeCanvas_base_OnDragRight",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (bool) SWIG_AsBool(obj1); 
+    arg2 = (bool)SWIG_As_bool(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (double) SWIG_AsDouble(obj3); 
+    arg4 = (double)SWIG_As_double(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj4) {
-        arg5 = (int) SWIG_AsInt(obj4); 
+        arg5 = (int)SWIG_As_int(obj4); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32236,12 +32389,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnLeftClick(PyObject *, PyObject *args
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnLeftClick",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32275,12 +32428,12 @@ static PyObject *_wrap_PyShapeCanvas_base_OnRightClick(PyObject *, PyObject *arg
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO|O:PyShapeCanvas_base_OnRightClick",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (double) SWIG_AsDouble(obj1); 
+    arg2 = (double)SWIG_As_double(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (double) SWIG_AsDouble(obj2); 
+    arg3 = (double)SWIG_As_double(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     if (obj3) {
-        arg4 = (int) SWIG_AsInt(obj3); 
+        arg4 = (int)SWIG_As_int(obj3); 
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
@@ -32395,7 +32548,9 @@ static PyObject *_wrap_PyShapeCanvas_Snap(PyObject *, PyObject *args, PyObject *
     double *arg2 = (double *) 0 ;
     double *arg3 = (double *) 0 ;
     double temp2 ;
+    int res2 = 0 ;
     double temp3 ;
+    int res3 = 0 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -32407,14 +32562,20 @@ static PyObject *_wrap_PyShapeCanvas_Snap(PyObject *, PyObject *args, PyObject *
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxPyShapeCanvas,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
-        temp2 = PyFloat_AsDouble(obj1);
-        if (PyErr_Occurred()) SWIG_fail;
-        arg2 = &temp2;
+        if (!(SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_double,0) != -1)) {
+            temp2 = SWIG_As_double(obj1);
+            if (PyErr_Occurred()) SWIG_fail;
+            arg2 = &temp2;
+            res2 = SWIG_NEWOBJ;
+        }
     }
     {
-        temp3 = PyFloat_AsDouble(obj2);
-        if (PyErr_Occurred()) SWIG_fail;
-        arg3 = &temp3;
+        if (!(SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_double,0) != -1)) {
+            temp3 = SWIG_As_double(obj2);
+            if (PyErr_Occurred()) SWIG_fail;
+            arg3 = &temp3;
+            res3 = SWIG_NEWOBJ;
+        }
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -32424,14 +32585,10 @@ static PyObject *_wrap_PyShapeCanvas_Snap(PyObject *, PyObject *args, PyObject *
         if (PyErr_Occurred()) SWIG_fail;
     }
     Py_INCREF(Py_None); resultobj = Py_None;
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg2));
-        resultobj = t_output_helper(resultobj,o);
-    }
-    {
-        PyObject *o = PyFloat_FromDouble((double) (*arg3));
-        resultobj = t_output_helper(resultobj,o);
-    }
+    resultobj = t_output_helper(resultobj, ((res2 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg2)) : SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_double, 0)));
+    resultobj = t_output_helper(resultobj, ((res3 == SWIG_NEWOBJ) ?
+    SWIG_From_double((*arg3)) : SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, 0)));
     return resultobj;
     fail:
     return NULL;
@@ -32453,6 +32610,7 @@ static PyObject *_wrap_OGLInitialize(PyObject *, PyObject *args, PyObject *kwarg
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)":OGLInitialize",kwnames)) goto fail;
     {
+        if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         wxOGLInitialize();
         
@@ -32474,6 +32632,7 @@ static PyObject *_wrap_OGLCleanUp(PyObject *, PyObject *args, PyObject *kwargs) 
     
     if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)":OGLCleanUp",kwnames)) goto fail;
     {
+        if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
         wxOGLCleanUp();
         
@@ -33192,6 +33351,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"PyLineShape_IsSpline", (PyCFunction) _wrap_PyLineShape_IsSpline, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"PyLineShape_MakeLineControlPoints", (PyCFunction) _wrap_PyLineShape_MakeLineControlPoints, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"PyLineShape_GetLineControlPoints", (PyCFunction) _wrap_PyLineShape_GetLineControlPoints, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"PyLineShape_SetLineControlPoints", (PyCFunction) _wrap_PyLineShape_SetLineControlPoints, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"PyLineShape_SetAttachmentFrom", (PyCFunction) _wrap_PyLineShape_SetAttachmentFrom, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"PyLineShape_SetAttachments", (PyCFunction) _wrap_PyLineShape_SetAttachments, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"PyLineShape_SetAttachmentTo", (PyCFunction) _wrap_PyLineShape_SetAttachmentTo, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -34371,70 +34531,70 @@ SWIGEXPORT(void) SWIG_init(void) {
     }
     SWIG_InstallConstants(d,swig_const_table);
     
-    PyDict_SetItemString(d,"oglMETAFLAGS_OUTLINE", SWIG_FromInt((int)oglMETAFLAGS_OUTLINE));
-    PyDict_SetItemString(d,"oglMETAFLAGS_ATTACHMENTS", SWIG_FromInt((int)oglMETAFLAGS_ATTACHMENTS));
-    PyDict_SetItemString(d,"KEY_SHIFT", SWIG_FromInt((int)KEY_SHIFT));
-    PyDict_SetItemString(d,"KEY_CTRL", SWIG_FromInt((int)KEY_CTRL));
-    PyDict_SetItemString(d,"ARROW_NONE", SWIG_FromInt((int)ARROW_NONE));
-    PyDict_SetItemString(d,"ARROW_END", SWIG_FromInt((int)ARROW_END));
-    PyDict_SetItemString(d,"ARROW_BOTH", SWIG_FromInt((int)ARROW_BOTH));
-    PyDict_SetItemString(d,"ARROW_MIDDLE", SWIG_FromInt((int)ARROW_MIDDLE));
-    PyDict_SetItemString(d,"ARROW_START", SWIG_FromInt((int)ARROW_START));
-    PyDict_SetItemString(d,"ARROW_HOLLOW_CIRCLE", SWIG_FromInt((int)ARROW_HOLLOW_CIRCLE));
-    PyDict_SetItemString(d,"ARROW_FILLED_CIRCLE", SWIG_FromInt((int)ARROW_FILLED_CIRCLE));
-    PyDict_SetItemString(d,"ARROW_ARROW", SWIG_FromInt((int)ARROW_ARROW));
-    PyDict_SetItemString(d,"ARROW_SINGLE_OBLIQUE", SWIG_FromInt((int)ARROW_SINGLE_OBLIQUE));
-    PyDict_SetItemString(d,"ARROW_DOUBLE_OBLIQUE", SWIG_FromInt((int)ARROW_DOUBLE_OBLIQUE));
-    PyDict_SetItemString(d,"ARROW_METAFILE", SWIG_FromInt((int)ARROW_METAFILE));
-    PyDict_SetItemString(d,"ARROW_POSITION_END", SWIG_FromInt((int)ARROW_POSITION_END));
-    PyDict_SetItemString(d,"ARROW_POSITION_START", SWIG_FromInt((int)ARROW_POSITION_START));
-    PyDict_SetItemString(d,"CONTROL_POINT_VERTICAL", SWIG_FromInt((int)CONTROL_POINT_VERTICAL));
-    PyDict_SetItemString(d,"CONTROL_POINT_HORIZONTAL", SWIG_FromInt((int)CONTROL_POINT_HORIZONTAL));
-    PyDict_SetItemString(d,"CONTROL_POINT_DIAGONAL", SWIG_FromInt((int)CONTROL_POINT_DIAGONAL));
-    PyDict_SetItemString(d,"CONTROL_POINT_ENDPOINT_TO", SWIG_FromInt((int)CONTROL_POINT_ENDPOINT_TO));
-    PyDict_SetItemString(d,"CONTROL_POINT_ENDPOINT_FROM", SWIG_FromInt((int)CONTROL_POINT_ENDPOINT_FROM));
-    PyDict_SetItemString(d,"CONTROL_POINT_LINE", SWIG_FromInt((int)CONTROL_POINT_LINE));
-    PyDict_SetItemString(d,"FORMAT_NONE", SWIG_FromInt((int)FORMAT_NONE));
-    PyDict_SetItemString(d,"FORMAT_CENTRE_HORIZ", SWIG_FromInt((int)FORMAT_CENTRE_HORIZ));
-    PyDict_SetItemString(d,"FORMAT_CENTRE_VERT", SWIG_FromInt((int)FORMAT_CENTRE_VERT));
-    PyDict_SetItemString(d,"FORMAT_SIZE_TO_CONTENTS", SWIG_FromInt((int)FORMAT_SIZE_TO_CONTENTS));
-    PyDict_SetItemString(d,"LINE_ALIGNMENT_HORIZ", SWIG_FromInt((int)LINE_ALIGNMENT_HORIZ));
-    PyDict_SetItemString(d,"LINE_ALIGNMENT_VERT", SWIG_FromInt((int)LINE_ALIGNMENT_VERT));
-    PyDict_SetItemString(d,"LINE_ALIGNMENT_TO_NEXT_HANDLE", SWIG_FromInt((int)LINE_ALIGNMENT_TO_NEXT_HANDLE));
-    PyDict_SetItemString(d,"LINE_ALIGNMENT_NONE", SWIG_FromInt((int)LINE_ALIGNMENT_NONE));
-    PyDict_SetItemString(d,"SHADOW_NONE", SWIG_FromInt((int)SHADOW_NONE));
-    PyDict_SetItemString(d,"SHADOW_LEFT", SWIG_FromInt((int)SHADOW_LEFT));
-    PyDict_SetItemString(d,"SHADOW_RIGHT", SWIG_FromInt((int)SHADOW_RIGHT));
-    PyDict_SetItemString(d,"OP_CLICK_LEFT", SWIG_FromInt((int)OP_CLICK_LEFT));
-    PyDict_SetItemString(d,"OP_CLICK_RIGHT", SWIG_FromInt((int)OP_CLICK_RIGHT));
-    PyDict_SetItemString(d,"OP_DRAG_LEFT", SWIG_FromInt((int)OP_DRAG_LEFT));
-    PyDict_SetItemString(d,"OP_DRAG_RIGHT", SWIG_FromInt((int)OP_DRAG_RIGHT));
-    PyDict_SetItemString(d,"OP_ALL", SWIG_FromInt((int)OP_ALL));
-    PyDict_SetItemString(d,"ATTACHMENT_MODE_NONE", SWIG_FromInt((int)ATTACHMENT_MODE_NONE));
-    PyDict_SetItemString(d,"ATTACHMENT_MODE_EDGE", SWIG_FromInt((int)ATTACHMENT_MODE_EDGE));
-    PyDict_SetItemString(d,"ATTACHMENT_MODE_BRANCHING", SWIG_FromInt((int)ATTACHMENT_MODE_BRANCHING));
-    PyDict_SetItemString(d,"BRANCHING_ATTACHMENT_NORMAL", SWIG_FromInt((int)BRANCHING_ATTACHMENT_NORMAL));
-    PyDict_SetItemString(d,"BRANCHING_ATTACHMENT_BLOB", SWIG_FromInt((int)BRANCHING_ATTACHMENT_BLOB));
-    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_VERTICALLY", SWIG_FromInt((int)gyCONSTRAINT_CENTRED_VERTICALLY));
-    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_HORIZONTALLY", SWIG_FromInt((int)gyCONSTRAINT_CENTRED_HORIZONTALLY));
-    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_BOTH", SWIG_FromInt((int)gyCONSTRAINT_CENTRED_BOTH));
-    PyDict_SetItemString(d,"gyCONSTRAINT_LEFT_OF", SWIG_FromInt((int)gyCONSTRAINT_LEFT_OF));
-    PyDict_SetItemString(d,"gyCONSTRAINT_RIGHT_OF", SWIG_FromInt((int)gyCONSTRAINT_RIGHT_OF));
-    PyDict_SetItemString(d,"gyCONSTRAINT_ABOVE", SWIG_FromInt((int)gyCONSTRAINT_ABOVE));
-    PyDict_SetItemString(d,"gyCONSTRAINT_BELOW", SWIG_FromInt((int)gyCONSTRAINT_BELOW));
-    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_TOP", SWIG_FromInt((int)gyCONSTRAINT_ALIGNED_TOP));
-    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_BOTTOM", SWIG_FromInt((int)gyCONSTRAINT_ALIGNED_BOTTOM));
-    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_LEFT", SWIG_FromInt((int)gyCONSTRAINT_ALIGNED_LEFT));
-    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_RIGHT", SWIG_FromInt((int)gyCONSTRAINT_ALIGNED_RIGHT));
-    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_TOP", SWIG_FromInt((int)gyCONSTRAINT_MIDALIGNED_TOP));
-    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_BOTTOM", SWIG_FromInt((int)gyCONSTRAINT_MIDALIGNED_BOTTOM));
-    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_LEFT", SWIG_FromInt((int)gyCONSTRAINT_MIDALIGNED_LEFT));
-    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_RIGHT", SWIG_FromInt((int)gyCONSTRAINT_MIDALIGNED_RIGHT));
-    PyDict_SetItemString(d,"DIVISION_SIDE_NONE", SWIG_FromInt((int)DIVISION_SIDE_NONE));
-    PyDict_SetItemString(d,"DIVISION_SIDE_LEFT", SWIG_FromInt((int)DIVISION_SIDE_LEFT));
-    PyDict_SetItemString(d,"DIVISION_SIDE_TOP", SWIG_FromInt((int)DIVISION_SIDE_TOP));
-    PyDict_SetItemString(d,"DIVISION_SIDE_RIGHT", SWIG_FromInt((int)DIVISION_SIDE_RIGHT));
-    PyDict_SetItemString(d,"DIVISION_SIDE_BOTTOM", SWIG_FromInt((int)DIVISION_SIDE_BOTTOM));
+    PyDict_SetItemString(d,"oglMETAFLAGS_OUTLINE", SWIG_From_int((int)oglMETAFLAGS_OUTLINE));
+    PyDict_SetItemString(d,"oglMETAFLAGS_ATTACHMENTS", SWIG_From_int((int)oglMETAFLAGS_ATTACHMENTS));
+    PyDict_SetItemString(d,"KEY_SHIFT", SWIG_From_int((int)KEY_SHIFT));
+    PyDict_SetItemString(d,"KEY_CTRL", SWIG_From_int((int)KEY_CTRL));
+    PyDict_SetItemString(d,"ARROW_NONE", SWIG_From_int((int)ARROW_NONE));
+    PyDict_SetItemString(d,"ARROW_END", SWIG_From_int((int)ARROW_END));
+    PyDict_SetItemString(d,"ARROW_BOTH", SWIG_From_int((int)ARROW_BOTH));
+    PyDict_SetItemString(d,"ARROW_MIDDLE", SWIG_From_int((int)ARROW_MIDDLE));
+    PyDict_SetItemString(d,"ARROW_START", SWIG_From_int((int)ARROW_START));
+    PyDict_SetItemString(d,"ARROW_HOLLOW_CIRCLE", SWIG_From_int((int)ARROW_HOLLOW_CIRCLE));
+    PyDict_SetItemString(d,"ARROW_FILLED_CIRCLE", SWIG_From_int((int)ARROW_FILLED_CIRCLE));
+    PyDict_SetItemString(d,"ARROW_ARROW", SWIG_From_int((int)ARROW_ARROW));
+    PyDict_SetItemString(d,"ARROW_SINGLE_OBLIQUE", SWIG_From_int((int)ARROW_SINGLE_OBLIQUE));
+    PyDict_SetItemString(d,"ARROW_DOUBLE_OBLIQUE", SWIG_From_int((int)ARROW_DOUBLE_OBLIQUE));
+    PyDict_SetItemString(d,"ARROW_METAFILE", SWIG_From_int((int)ARROW_METAFILE));
+    PyDict_SetItemString(d,"ARROW_POSITION_END", SWIG_From_int((int)ARROW_POSITION_END));
+    PyDict_SetItemString(d,"ARROW_POSITION_START", SWIG_From_int((int)ARROW_POSITION_START));
+    PyDict_SetItemString(d,"CONTROL_POINT_VERTICAL", SWIG_From_int((int)CONTROL_POINT_VERTICAL));
+    PyDict_SetItemString(d,"CONTROL_POINT_HORIZONTAL", SWIG_From_int((int)CONTROL_POINT_HORIZONTAL));
+    PyDict_SetItemString(d,"CONTROL_POINT_DIAGONAL", SWIG_From_int((int)CONTROL_POINT_DIAGONAL));
+    PyDict_SetItemString(d,"CONTROL_POINT_ENDPOINT_TO", SWIG_From_int((int)CONTROL_POINT_ENDPOINT_TO));
+    PyDict_SetItemString(d,"CONTROL_POINT_ENDPOINT_FROM", SWIG_From_int((int)CONTROL_POINT_ENDPOINT_FROM));
+    PyDict_SetItemString(d,"CONTROL_POINT_LINE", SWIG_From_int((int)CONTROL_POINT_LINE));
+    PyDict_SetItemString(d,"FORMAT_NONE", SWIG_From_int((int)FORMAT_NONE));
+    PyDict_SetItemString(d,"FORMAT_CENTRE_HORIZ", SWIG_From_int((int)FORMAT_CENTRE_HORIZ));
+    PyDict_SetItemString(d,"FORMAT_CENTRE_VERT", SWIG_From_int((int)FORMAT_CENTRE_VERT));
+    PyDict_SetItemString(d,"FORMAT_SIZE_TO_CONTENTS", SWIG_From_int((int)FORMAT_SIZE_TO_CONTENTS));
+    PyDict_SetItemString(d,"LINE_ALIGNMENT_HORIZ", SWIG_From_int((int)LINE_ALIGNMENT_HORIZ));
+    PyDict_SetItemString(d,"LINE_ALIGNMENT_VERT", SWIG_From_int((int)LINE_ALIGNMENT_VERT));
+    PyDict_SetItemString(d,"LINE_ALIGNMENT_TO_NEXT_HANDLE", SWIG_From_int((int)LINE_ALIGNMENT_TO_NEXT_HANDLE));
+    PyDict_SetItemString(d,"LINE_ALIGNMENT_NONE", SWIG_From_int((int)LINE_ALIGNMENT_NONE));
+    PyDict_SetItemString(d,"SHADOW_NONE", SWIG_From_int((int)SHADOW_NONE));
+    PyDict_SetItemString(d,"SHADOW_LEFT", SWIG_From_int((int)SHADOW_LEFT));
+    PyDict_SetItemString(d,"SHADOW_RIGHT", SWIG_From_int((int)SHADOW_RIGHT));
+    PyDict_SetItemString(d,"OP_CLICK_LEFT", SWIG_From_int((int)OP_CLICK_LEFT));
+    PyDict_SetItemString(d,"OP_CLICK_RIGHT", SWIG_From_int((int)OP_CLICK_RIGHT));
+    PyDict_SetItemString(d,"OP_DRAG_LEFT", SWIG_From_int((int)OP_DRAG_LEFT));
+    PyDict_SetItemString(d,"OP_DRAG_RIGHT", SWIG_From_int((int)OP_DRAG_RIGHT));
+    PyDict_SetItemString(d,"OP_ALL", SWIG_From_int((int)OP_ALL));
+    PyDict_SetItemString(d,"ATTACHMENT_MODE_NONE", SWIG_From_int((int)ATTACHMENT_MODE_NONE));
+    PyDict_SetItemString(d,"ATTACHMENT_MODE_EDGE", SWIG_From_int((int)ATTACHMENT_MODE_EDGE));
+    PyDict_SetItemString(d,"ATTACHMENT_MODE_BRANCHING", SWIG_From_int((int)ATTACHMENT_MODE_BRANCHING));
+    PyDict_SetItemString(d,"BRANCHING_ATTACHMENT_NORMAL", SWIG_From_int((int)BRANCHING_ATTACHMENT_NORMAL));
+    PyDict_SetItemString(d,"BRANCHING_ATTACHMENT_BLOB", SWIG_From_int((int)BRANCHING_ATTACHMENT_BLOB));
+    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_VERTICALLY", SWIG_From_int((int)gyCONSTRAINT_CENTRED_VERTICALLY));
+    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_HORIZONTALLY", SWIG_From_int((int)gyCONSTRAINT_CENTRED_HORIZONTALLY));
+    PyDict_SetItemString(d,"gyCONSTRAINT_CENTRED_BOTH", SWIG_From_int((int)gyCONSTRAINT_CENTRED_BOTH));
+    PyDict_SetItemString(d,"gyCONSTRAINT_LEFT_OF", SWIG_From_int((int)gyCONSTRAINT_LEFT_OF));
+    PyDict_SetItemString(d,"gyCONSTRAINT_RIGHT_OF", SWIG_From_int((int)gyCONSTRAINT_RIGHT_OF));
+    PyDict_SetItemString(d,"gyCONSTRAINT_ABOVE", SWIG_From_int((int)gyCONSTRAINT_ABOVE));
+    PyDict_SetItemString(d,"gyCONSTRAINT_BELOW", SWIG_From_int((int)gyCONSTRAINT_BELOW));
+    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_TOP", SWIG_From_int((int)gyCONSTRAINT_ALIGNED_TOP));
+    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_BOTTOM", SWIG_From_int((int)gyCONSTRAINT_ALIGNED_BOTTOM));
+    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_LEFT", SWIG_From_int((int)gyCONSTRAINT_ALIGNED_LEFT));
+    PyDict_SetItemString(d,"gyCONSTRAINT_ALIGNED_RIGHT", SWIG_From_int((int)gyCONSTRAINT_ALIGNED_RIGHT));
+    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_TOP", SWIG_From_int((int)gyCONSTRAINT_MIDALIGNED_TOP));
+    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_BOTTOM", SWIG_From_int((int)gyCONSTRAINT_MIDALIGNED_BOTTOM));
+    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_LEFT", SWIG_From_int((int)gyCONSTRAINT_MIDALIGNED_LEFT));
+    PyDict_SetItemString(d,"gyCONSTRAINT_MIDALIGNED_RIGHT", SWIG_From_int((int)gyCONSTRAINT_MIDALIGNED_RIGHT));
+    PyDict_SetItemString(d,"DIVISION_SIDE_NONE", SWIG_From_int((int)DIVISION_SIDE_NONE));
+    PyDict_SetItemString(d,"DIVISION_SIDE_LEFT", SWIG_From_int((int)DIVISION_SIDE_LEFT));
+    PyDict_SetItemString(d,"DIVISION_SIDE_TOP", SWIG_From_int((int)DIVISION_SIDE_TOP));
+    PyDict_SetItemString(d,"DIVISION_SIDE_RIGHT", SWIG_From_int((int)DIVISION_SIDE_RIGHT));
+    PyDict_SetItemString(d,"DIVISION_SIDE_BOTTOM", SWIG_From_int((int)DIVISION_SIDE_BOTTOM));
     
     
     //     initoglbasicc();

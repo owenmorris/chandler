@@ -26,21 +26,23 @@ import  layoutf
 #----------------------------------------------------------------------
 
 class ScrolledMessageDialog(wx.Dialog):
-    def __init__(self, parent, msg, caption, pos = wx.DefaultPosition, 
-                 size = (500,300)):
-        wx.Dialog.__init__(self, parent, -1, caption, pos, size)
+    def __init__(self, parent, msg, caption,
+                 pos=wx.DefaultPosition, size=(500,300),
+                 style=wx.DEFAULT_DIALOG_STYLE):
+        wx.Dialog.__init__(self, parent, -1, caption, pos, size, style)
         x, y = pos
         if x == -1 and y == -1:
             self.CenterOnScreen(wx.BOTH)
 
-        text = wx.TextCtrl(self, -1, msg, wx.DefaultPosition, wx.DefaultSize,
-                           wx.TE_MULTILINE | wx.TE_READONLY)
+        text = wx.TextCtrl(self, -1, msg, 
+                           style=wx.TE_MULTILINE | wx.TE_READONLY)
 
         ok = wx.Button(self, wx.ID_OK, "OK")
+        ok.SetDefault()
         lc = layoutf.Layoutf('t=t5#1;b=t5#2;l=l5#1;r=r5#1', (self,ok)) 
         text.SetConstraints(lc)
 
-        lc = layoutf.Layoutf('b=b5#1;x%w50#1;w!80;h!25', (self,))
+        lc = layoutf.Layoutf('b=b5#1;x%w50#1;w!80;h*', (self,))
         ok.SetConstraints(lc)
         self.SetAutoLayout(1)
         self.Layout()
@@ -65,6 +67,7 @@ class MultipleChoiceDialog(wx.Dialog):
                                lst, wx.LB_MULTIPLE)
 
         ok = wx.Button(self, wx.ID_OK, "OK")
+        ok.SetDefault()
         cancel = wx.Button(self, wx.ID_CANCEL, "Cancel")
         lc = layoutf.Layoutf('t=t10#1;l=l5#1;r=r5#1;h!%d' % (height,), (self,)) 
         stat.SetConstraints(lc)
@@ -72,10 +75,10 @@ class MultipleChoiceDialog(wx.Dialog):
         lc = layoutf.Layoutf('t=b10#2;l=l5#1;r=r5#1;b=t5#3', (self, stat, ok)) 
         self.lbox.SetConstraints(lc)
 
-        lc = layoutf.Layoutf('b=b5#1;x%w25#1;w!80;h!25', (self,))
+        lc = layoutf.Layoutf('b=b5#1;x%w25#1;w!80;h*', (self,))
         ok.SetConstraints(lc)
 
-        lc = layoutf.Layoutf('b=b5#1;x%w75#1;w!80;h!25', (self,))
+        lc = layoutf.Layoutf('b=b5#1;x%w75#1;w!80;h*', (self,))
         cancel.SetConstraints(lc)
         
         self.SetAutoLayout(1)
@@ -150,13 +153,14 @@ def returnedString(ret):
 ## this dialog is always modal, while wxFindReplaceDialog is
 ## modeless and so doesn't lend itself to a function wrapper
 def findDialog(parent=None, searchText='', wholeWordsOnly=0, caseSensitive=0):
-    dlg = wx.Dialog(parent, -1, "Find", wx.DefaultPosition, (370, 120))
+    dlg = wx.Dialog(parent, -1, "Find", wx.DefaultPosition, (380, 120))
 
     wx.StaticText(dlg, -1, 'Find what:', (7, 10))
-    wSearchText = wx.TextCtrl(dlg, -1, searchText, (70, 7), (195, -1))
+    wSearchText = wx.TextCtrl(dlg, -1, searchText, (80, 7), (195, -1))
     wSearchText.SetValue(searchText)
-    wx.Button(dlg, wx.ID_OK, "Find Next", (280, 5), wx.DefaultSize).SetDefault()
-    wx.Button(dlg, wx.ID_CANCEL, "Cancel", (280, 35), wx.DefaultSize)
+    wx.Button(dlg, wx.ID_OK, "Find Next", (285, 5), wx.DefaultSize).SetDefault()
+    wx.Button(dlg, wx.ID_CANCEL, "Cancel", (285, 35), wx.DefaultSize)
+
     wWholeWord = wx.CheckBox(dlg, -1, 'Match whole word only',
                             (7, 35), wx.DefaultSize, wx.NO_BORDER)
 
@@ -172,9 +176,9 @@ def findDialog(parent=None, searchText='', wholeWordsOnly=0, caseSensitive=0):
     wSearchText.SetFocus()
 
     result = DialogResults(dlg.ShowModal())
-    result.text = wSearchText.GetValue()
-    result.wholeword = wWholeWord.GetValue()
-    result.casesensitive = wCase.GetValue()
+    result.searchText = wSearchText.GetValue()
+    result.wholeWordsOnly = wWholeWord.GetValue()
+    result.caseSensitive = wCase.GetValue()
     dlg.Destroy()
     return result
 
@@ -222,7 +226,7 @@ def fontDialog(parent=None, fontData=None, font=None):
         fontData.SetInitialFont(wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT))
 
     if font is not None:
-        aFontData.SetInitialFont(font)
+        fontData.SetInitialFont(font)
 
     dialog = wx.FontDialog(parent, fontData)
     result = DialogResults(dialog.ShowModal())
@@ -321,7 +325,7 @@ directoryDialog = dirDialog
 
 def singleChoiceDialog(parent=None, message='', title='', lst=[], 
                        style=wx.OK | wx.CANCEL | wx.CENTRE):
-    dialog = wx.SingleChoiceDialog(parent, message, title, lst, style)
+    dialog = wx.SingleChoiceDialog(parent, message, title, list(lst), style | wx.DEFAULT_DIALOG_STYLE)
     result = DialogResults(dialog.ShowModal())
     result.selection = dialog.GetStringSelection()
     dialog.Destroy()
@@ -345,7 +349,7 @@ if __name__ == '__main__':
     class MyApp(wx.App):
 
         def OnInit(self):
-            self.frame = frame = wx.Frame(None, -1, "Dialogs", size=(400, 200))
+            self.frame = frame = wx.Frame(None, -1, "Dialogs", size=(400, 240))
             panel = wx.Panel(frame, -1)
             self.panel = panel
 

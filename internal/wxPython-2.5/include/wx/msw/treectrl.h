@@ -69,7 +69,7 @@ public:
     // --------
     wxTreeCtrl() { Init(); }
 
-    wxTreeCtrl(wxWindow *parent, wxWindowID id = -1,
+    wxTreeCtrl(wxWindow *parent, wxWindowID id = wxID_ANY,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT,
@@ -81,7 +81,7 @@ public:
 
     virtual ~wxTreeCtrl();
 
-    bool Create(wxWindow *parent, wxWindowID id = -1,
+    bool Create(wxWindow *parent, wxWindowID id = wxID_ANY,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT,
@@ -163,13 +163,13 @@ public:
         // allow the user to expand the items which don't have any children now
         // - but instead add them only when needed, thus minimizing memory
         // usage and loading time.
-    void SetItemHasChildren(const wxTreeItemId& item, bool has = TRUE);
+    void SetItemHasChildren(const wxTreeItemId& item, bool has = true);
 
         // the item will be shown in bold
-    void SetItemBold(const wxTreeItemId& item, bool bold = TRUE);
+    void SetItemBold(const wxTreeItemId& item, bool bold = true);
 
         // the item will be shown with a drop highlight
-    void SetItemDropHighlight(const wxTreeItemId& item, bool highlight = TRUE);
+    void SetItemDropHighlight(const wxTreeItemId& item, bool highlight = true);
 
         // set the items text colour
     void SetItemTextColour(const wxTreeItemId& item, const wxColour& col);
@@ -197,15 +197,15 @@ public:
     // number of children
     // ------------------
 
-        // if 'recursively' is FALSE, only immediate children count, otherwise
+        // if 'recursively' is false, only immediate children count, otherwise
         // the returned number is the number of all items in this branch
     size_t GetChildrenCount(const wxTreeItemId& item,
-                            bool recursively = TRUE) const;
+                            bool recursively = true) const;
 
     // navigation
     // ----------
 
-    // wxTreeItemId.IsOk() will return FALSE if there is no such item
+    // wxTreeItemId.IsOk() will return false if there is no such item
 
         // get the root tree item
     wxTreeItemId GetRootItem() const;
@@ -225,9 +225,9 @@ public:
 #if WXWIN_COMPATIBILITY_2_2
         // deprecated:  Use GetItemParent instead.
     wxTreeItemId GetParent(const wxTreeItemId& item) const
-    	{ return GetItemParent( item ); }
+        { return GetItemParent( item ); }
 
-    	// Expose the base class method hidden by the one above.
+        // Expose the base class method hidden by the one above.
     wxWindow *GetParent() const { return wxControl::GetParent(); }
 #endif  // WXWIN_COMPATIBILITY_2_2
 
@@ -340,7 +340,7 @@ public:
         // edited simultaneously)
     wxTextCtrl* GetEditControl() const;
         // end editing and accept or discard the changes to item label
-    void EndEditLabel(const wxTreeItemId& item, bool discardChanges = FALSE);
+    void EndEditLabel(const wxTreeItemId& item, bool discardChanges = false);
 
     // sorting
         // this function is called to compare 2 items and should return -1, 0
@@ -371,14 +371,14 @@ public:
         // get the bounding rectangle of the item (or of its label only)
     bool GetBoundingRect(const wxTreeItemId& item,
                          wxRect& rect,
-                         bool textOnly = FALSE) const;
+                         bool textOnly = false) const;
 
     // deprecated
     // ----------
 
 #if WXWIN_COMPATIBILITY_2_4
     // these methods are deprecated and will be removed in future versions of
-    // wxWindows, they're here for compatibility only, don't use them in new
+    // wxWidgets, they're here for compatibility only, don't use them in new
     // code (the comments indicate why these methods are now useless and how to
     // replace them)
 
@@ -408,10 +408,20 @@ public:
                                             long& cookie) const );
 #endif // WXWIN_COMPATIBILITY_2_4
 
-    virtual bool ShouldInheritColours() const { return false; }
 
     // implementation
     // --------------
+
+    virtual bool ShouldInheritColours() const { return false; }
+
+    virtual wxVisualAttributes GetDefaultAttributes() const
+    {
+        return GetClassDefaultAttributes(GetWindowVariant());
+    }
+
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
 
     virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
     virtual bool MSWCommand(WXUINT param, WXWORD id);
@@ -423,7 +433,7 @@ public:
 
     // get/set the check state for the item (only for wxTR_MULTIPLE)
     bool IsItemChecked(const wxTreeItemId& item) const;
-    void SetItemCheck(const wxTreeItemId& item, bool check = TRUE);
+    void SetItemCheck(const wxTreeItemId& item, bool check = true);
 
     // set/get the item state.image (state == -1 means cycle to the next one)
     void SetState(const wxTreeItemId& node, int state);
@@ -436,10 +446,14 @@ protected:
     // refresh a single item
     void RefreshItem(const wxTreeItemId& item);
 
-    wxTextCtrl  *m_textCtrl;        // used while editing the item label
+    // data used only while editing the item label:
+    wxTextCtrl  *m_textCtrl;        // text control in which it is edited
+    wxTreeItemId m_idEdited;        // the item being edited
+
     wxImageList *m_imageListNormal, // images for tree elements
                 *m_imageListState;  // special images for app defined states
-    bool         m_ownsImageListNormal, m_ownsImageListState;
+    bool         m_ownsImageListNormal,
+                 m_ownsImageListState;
 
 private:
     // the common part of all ctors
@@ -477,7 +491,7 @@ private:
     // the hash storing the items attributes (indexed by item ids)
     wxMapTreeAttr m_attrs;
 
-    // TRUE if the hash above is not empty
+    // true if the hash above is not empty
     bool m_hasAnyAttr;
 
     // used for dragging

@@ -131,7 +131,7 @@ protected:
                                 ) const;
 
     //
-    // Translate wxWindows flags into OS flags
+    // Translate wxWidgets flags into OS flags
     //
     virtual WXDWORD OS2GetStyle( long     lFlag
                                 ,WXDWORD* pdwExstyle

@@ -157,7 +157,7 @@ enum wxKeyType
             dummy();                                                          \
         };                                                                    \
     protected:                                                                \
-        iterator find( elT e )                                                \
+        iterator find( const elT e )                                          \
         {                                                                     \
             iterator it, en;                                                  \
             for( it = begin(), en = end(); it != en; ++it )                   \
@@ -166,7 +166,7 @@ enum wxKeyType
             return it;                                                        \
         }                                                                     \
     public:                                                                   \
-        liT() {};                                                             \
+        liT() {}                                                              \
                                                                               \
         citer Append( elT e ) { push_back( e ); return GetLast(); }           \
         void Clear() { clear(); }                                             \
@@ -188,7 +188,7 @@ enum wxKeyType
         {                                                                     \
             erase( it.m_iter );                                               \
         }                                                                     \
-        citer Find( elT e ) const { return citer( this, ((liT*)this)->find( e ) ); } \
+        citer Find( const elT e ) const { return citer( this, ((liT*)this)->find( e ) ); } \
         citer Member( elT e ) const { return Find( e ); }                     \
         citer Insert( elT e )                                                 \
             { push_front( e ); return citer( this, begin() ); }               \
@@ -371,7 +371,7 @@ private:
 // a double-linked list class
 // -----------------------------------------------------------------------------
 
-class wxList;
+class WXDLLIMPEXP_BASE wxList;
 
 class WXDLLIMPEXP_BASE wxListBase : public wxObject
 {
@@ -446,11 +446,8 @@ public:
     wxListBase(void *object, ... /* terminate with NULL */);
 
 protected:
-        // copy ctor and assignment operator
-    wxListBase(const wxListBase& list) : wxObject()
-        { Init(); DoCopy(list); }
-    wxListBase& operator=(const wxListBase& list)
-        { Clear(); DoCopy(list); return *this; }
+    void Assign(const wxListBase& list)
+        { Clear(); DoCopy(list); }
 
         // get list head/tail
     wxNodeBase *GetFirst() const { return m_nodeFirst; }
@@ -497,7 +494,7 @@ protected:
 
     // search (all return NULL if item not found)
         // by data
-    wxNodeBase *Find(void *object) const;
+    wxNodeBase *Find(const void *object) const;
 
         // by key
     wxNodeBase *Find(const wxListKey& key) const;
@@ -604,11 +601,13 @@ private:
                                                                             \
         name(wxKeyType keyType = wxKEY_NONE) : wxListBase(keyType)          \
             { }                                                             \
+        name(const name& list) : wxListBase(list.GetKeyType())              \
+            { Assign(list); }                                               \
         name(size_t count, T *elements[])                                   \
             : wxListBase(count, (void **)elements) { }                      \
                                                                             \
         name& operator=(const name& list)                                   \
-            { (void) wxListBase::operator=(list); return *this; }           \
+            { Assign(list); return *this; }                                 \
                                                                             \
         nodetype *GetFirst() const                                          \
             { return (nodetype *)wxListBase::GetFirst(); }                  \
@@ -647,7 +646,7 @@ private:
         void Erase(compatibility_iterator it)                               \
             { DeleteNode(it); }                                             \
                                                                             \
-        nodetype *Find(Tbase *object) const                                 \
+        nodetype *Find(const Tbase *object) const                           \
             { return (nodetype *)wxListBase::Find(object); }                \
                                                                             \
         virtual nodetype *Find(const wxListKey& key) const                  \

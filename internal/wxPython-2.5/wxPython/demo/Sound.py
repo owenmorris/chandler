@@ -9,7 +9,7 @@ class TestPanel(wx.Panel):
     def __init__(self, parent, log):
         wx.Panel.__init__(self, parent, -1)
         self.log = log
-        
+
         b = wx.Button(self, -1, "Play Sound 1 (sync)", (25, 25))
         self.Bind(wx.EVT_BUTTON, self.OnButton1, b)
 
@@ -32,7 +32,13 @@ class TestPanel(wx.Panel):
 
     def OnButton2(self, evt):
         try:
-            sound = wx.Sound(opj('data/plan.wav'))
+            if True:
+                sound = wx.Sound(opj('data/plan.wav'))
+            else:
+                # sounds can also be loaded from a buffer object
+                data = open(opj('data/plan.wav'), 'rb').read()
+                sound = wx.SoundFromData(data)
+                
             self.log.write("before Play...\n")
             sound.Play(wx.SOUND_ASYNC)
             wx.YieldIfNeeded()
@@ -48,12 +54,16 @@ class TestPanel(wx.Panel):
                             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             try:
-                sound = wx.Sound(dlg.GetPath())
-                sound.Play()
+                #sound = wx.Sound(dlg.GetPath())
+                #sound.Play()
+
+                # another way to do it.
+                wx.Sound.PlaySound(dlg.GetPath())
+                
             except NotImplementedError, v:
                 wx.MessageBox(str(v), "Exception Message")
         dlg.Destroy()
-            
+
 
 #----------------------------------------------------------------------
 
@@ -66,8 +76,8 @@ def runTest(frame, nb, log):
 
 overview = """<html><body>
 <h2>Sound</h2>
-This class represents a short wave file, in Windows WAV format, that can 
-be stored in memory and played. Currently this class is implemented on Windows 
+This class represents a short wave file, in Windows WAV format, that can
+be stored in memory and played. Currently this class is implemented on Windows
 and GTK (Linux) only.
 <p>
 This demo offers two examples, both driven by buttons, but obviously the event

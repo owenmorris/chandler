@@ -51,7 +51,7 @@ public:
            int family,
            int style,
            int weight,
-           bool underlined = FALSE,
+           bool underlined = false,
            const wxString& face = wxEmptyString,
            wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
     {
@@ -64,7 +64,7 @@ public:
                 int family,
                 int style,
                 int weight,
-                bool underlined = FALSE,
+                bool underlined = false,
                 const wxString& face = wxEmptyString,
                 wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
 
@@ -95,8 +95,8 @@ public:
     virtual void SetUnderlined( bool underlined );
     virtual void SetEncoding(wxFontEncoding encoding);
 
-    virtual void SetNoAntiAliasing( bool no = TRUE );
-    virtual bool GetNoAntiAliasing();
+    virtual void SetNoAntiAliasing( bool no = true );
+    virtual bool GetNoAntiAliasing() const ;
 
     // implementation from now on
     void Unshare();

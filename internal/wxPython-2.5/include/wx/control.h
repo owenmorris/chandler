@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     26.07.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -47,17 +47,24 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxControlNameStr);
 
-    // simulates the event of given type (i.e. wxButton::Command() is just as
-    // if the button was clicked)
-    virtual void Command(wxCommandEvent &event);
-
     // get the control alignment (left/right/centre, top/bottom/centre)
     int GetAlignment() const { return m_windowStyle & wxALIGN_MASK; }
+
 
     // controls by default inherit the colours of their parents, if a
     // particular control class doesn't want to do it, it can override
     // ShouldInheritColours() to return false
     virtual bool ShouldInheritColours() const { return true; }
+
+
+    // WARNING: this doesn't work for all controls nor all platforms!
+    //
+    // simulates the event of given type (i.e. wxButton::Command() is just as
+    // if the button was clicked)
+    virtual void Command(wxCommandEvent &event);
+
+    virtual void SetLabel( const wxString &label );
+    virtual bool SetFont(const wxFont& font);
 
 protected:
     // creates the control (calls wxWindowBase::CreateBase inside) and adds it
@@ -70,11 +77,19 @@ protected:
                        const wxValidator& validator,
                        const wxString& name);
 
-    // inherit colour and font settings from the parent window
-    void InheritAttributes();
-
     // initialize the common fields of wxCommandEvent
     void InitCommandEvent(wxCommandEvent& event) const;
+
+    // set the initial window size if none is given (i.e. at least one of the
+    // components of the size passed to ctor/Create() is -1)
+    //
+    // normally just calls SetBestSize() but can be overridden not to do it for
+    // the controls which have to do some additional initialization (e.g. add
+    // strings to list box) before their best size can be accurately calculated
+    virtual void SetInitialBestSize(const wxSize& size)
+    {
+        SetBestSize(size);
+    }
 
     DECLARE_NO_COPY_CLASS(wxControlBase)
 };

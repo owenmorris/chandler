@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/wx.h
-// Purpose:     wxWindows central header including the most often used ones
+// Purpose:     wxWidgets central header including the most often used ones
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97

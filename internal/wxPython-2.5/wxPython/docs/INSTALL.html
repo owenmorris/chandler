@@ -65,9 +65,11 @@ all.</p>
 </li>
 <li><p class="first">In addition to building wxPython as described in BUILD.txt, you can
 install it to Python's site-packages dir, as well as some scripts
-into the same bin dir used by Python by using this command:</p>
+into the same bin dir used by Python by using this command, plus
+whatever WXPORT, UNICODE, etc. settings you used for the initial
+build step:</p>
 <pre class="literal-block">
-python2.3 setup.py install
+python2.3 setup.py install 
 </pre>
 <p>If you would like to install to some place besides the prefix where
 Python is installed, (such as to your home directory) then you can
@@ -97,8 +99,8 @@ install MacPython-OSX-2.3 from <a class="reference" href="http://www.python.org/
 Python Framework will then be installed in /Library/Frameworks.  On
 10.3 (Panther) Apple supplies the Python Framework as part of the
 OS install, but it will be located in /System/Library/Frameworks
-instead.  However, on Panther the site-pacakges dir is sym-linked
-to /Library/Python/2.3 so the wxPython pacakges will end up there,
+instead.  However, on Panther the site-packages dir is sym-linked
+to /Library/Python/2.3 so the wxPython packages will end up there,
 although they will still be visible from site-packages.  If you are
 building distributions of wxPython to be installed on other
 machines be careful to install to /Library/Python/2.3.  To
@@ -119,7 +121,8 @@ assertions into Python exceptions, then use &quot;release&quot; instead of
 &quot;hybrid&quot; when building wxWidgets and add &quot;FINAL=1&quot; to the setup.py
 command line.</p>
 </li>
-<li><p class="first">Install wxPython like this:</p>
+<li><p class="first">Install wxPython like this.  Remember to add any additional flags
+you added for the build such as UNICODE or USE_SWIG:</p>
 <pre class="literal-block">
 python setup.py install
 </pre>
@@ -128,7 +131,7 @@ python setup.py install
 found at runtime by the extension modules without requiring that
 they be installed on the PATH:</p>
 <pre class="literal-block">
-copy %WXWIN%\lib\vc_dll\wx*h_*.dll c:\Python23\Lib\site-pacakges\wx
+copy %WXWIN%\lib\vc_dll\wx*h_*.dll c:\Python23\Lib\site-packages\wx
 </pre>
 </li>
 </ol>

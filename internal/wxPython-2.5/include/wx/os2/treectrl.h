@@ -532,7 +532,7 @@ public:
 
 #if WXWIN_COMPATIBILITY_2_4
     // These methods are deprecated and will be removed in future versions of
-    // wxWindows, they're here for compatibility only, don't use them in new
+    // wxWidgets, they're here for compatibility only, don't use them in new
     // code (the comments indicate why these methods are now useless and how to
     // replace them)
     //

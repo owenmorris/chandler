@@ -42,9 +42,10 @@ class PythonSTC(stc.StyledTextCtrl):
 
     fold_symbols = 2
     
-    def __init__(self, parent, ID, style=0):
-        stc.StyledTextCtrl.__init__(self, parent, ID,
-                                  style = style|wx.NO_FULL_REPAINT_ON_RESIZE)
+    def __init__(self, parent, ID,
+                 pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=0):
+        stc.StyledTextCtrl.__init__(self, parent, ID, pos, size, style)
 
         self.CmdKeyAssign(ord('B'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMIN)
         self.CmdKeyAssign(ord('N'), stc.STC_SCMOD_CTRL, stc.STC_CMD_ZOOMOUT)
@@ -59,6 +60,7 @@ class PythonSTC(stc.StyledTextCtrl):
         self.SetViewWhiteSpace(False)
         #self.SetBufferedDraw(False)
         #self.SetViewEOL(True)
+        #self.SetEOLMode(stc.STC_EOL_CRLF)
         #self.SetUseAntiAliasing(True)
         
         self.SetEdgeMode(stc.STC_EDGE_BACKGROUND)

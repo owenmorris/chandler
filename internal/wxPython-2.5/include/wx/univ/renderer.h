@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-   wxRenderer class is used to draw all wxWindows controls. This is an ABC and
+   wxRenderer class is used to draw all wxWidgets controls. This is an ABC and
    the look of the application is determined by the concrete derivation of
    wxRenderer used in the program.
 
@@ -84,7 +84,7 @@ public:
                                 const wxRect& rect,
                                 int flags )
         { DrawBackground( dc, col, rect, flags ); }
-                                
+
 
     // draw the label inside the given rectangle with the specified alignment
     // and optionally emphasize the character with the given index
@@ -288,7 +288,7 @@ public:
     virtual void DrawStatusField(wxDC& dc,
                                  const wxRect& rect,
                                  const wxString& label,
-                                 int flags = 0) = 0;
+                                 int flags = 0, int style = 0) = 0;
 
     // draw complete frame/dialog titlebar
     virtual void DrawFrameTitleBar(wxDC& dc,
@@ -701,8 +701,8 @@ public:
     virtual void DrawStatusField(wxDC& dc,
                                  const wxRect& rect,
                                  const wxString& label,
-                                 int flags = 0)
-        { m_renderer->DrawStatusField(dc, rect, label, flags); }
+                                 int flags = 0, int style = 0)
+        { m_renderer->DrawStatusField(dc, rect, label, flags, style); }
 
     virtual void DrawFrameTitleBar(wxDC& dc,
                                    const wxRect& rect,
@@ -897,7 +897,7 @@ private:
     // common part of DrawItems() and DrawCheckItems()
     void DoDrawItems(const wxListBox *listbox,
                      size_t itemFirst, size_t itemLast,
-                     bool isCheckLbox = FALSE);
+                     bool isCheckLbox = false);
 
     wxWindow *m_window;
     wxRenderer *m_renderer;

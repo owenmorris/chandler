@@ -11,7 +11,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-%module iewin
+%module(package="wx") iewin
 
 %{
 #include "wx/wxPython/wxPython.h"
@@ -24,7 +24,13 @@
 //---------------------------------------------------------------------------
 
 %import core.i
-%pythoncode { wx = core }
+%pythoncode { wx = _core }
+%pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
+%pythoncode {
+    import warnings
+    warnings.warn("This module is deprecated.  Please use the wx.lib.iewin module instead.",    
+                  DeprecationWarning, stacklevel=2)
+}
 
 MAKE_CONST_WXSTRING_NOSWIG(PanelNameStr);
 
@@ -71,6 +77,8 @@ enum wxIEHtmlRefreshLevel {
     wxIEHTML_REFRESH_COMPLETELY = 3
 };
 
+
+MustHaveApp(wxIEHtmlWin);
 
 class wxIEHtmlWin : public wxWindow /* wxActiveX */ 
 {

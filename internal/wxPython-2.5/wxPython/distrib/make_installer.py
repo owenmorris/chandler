@@ -74,17 +74,17 @@ Name: manifest; Description: "Manifest files for XP LnF";     Types: full
 ;;------------------------------------------------------------
 
 [Files]
-Source: "%(SYSDIR)s\MSVCRT.dll";        DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
-Source: "%(SYSDIR)s\MSVCIRT.dll";       DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
-Source: "%(SYSDIR)s\MSVCP60.dll";       DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
+Source: "distrib\msw\MSVCRT.dll";        DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
+Source: "distrib\msw\MSVCIRT.dll";       DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
+Source: "distrib\msw\MSVCP60.dll";       DestDir: "{code:GetPythonDir}"; CopyMode: alwaysskipifsameorolder; Flags: uninsneveruninstall; Components: core
 
 Source: "%(WXDIR)s\lib\vc_dll\wx*%(WXDLLVER)s_*.dll";  DestDir: "{app}\wx"; Components: core
 %(MSLU)s
-Source: "wx\_core.pyd";                        DestDir: "{app}\wx"; Components: core
-Source: "wx\_gdi.pyd";                         DestDir: "{app}\wx"; Components: core
-Source: "wx\_windows.pyd";                     DestDir: "{app}\wx"; Components: core
-Source: "wx\_controls.pyd";                    DestDir: "{app}\wx"; Components: core
-Source: "wx\_misc.pyd";                        DestDir: "{app}\wx"; Components: core
+Source: "wx\_core_.pyd";                       DestDir: "{app}\wx"; Components: core
+Source: "wx\_gdi_.pyd";                        DestDir: "{app}\wx"; Components: core
+Source: "wx\_windows_.pyd";                    DestDir: "{app}\wx"; Components: core
+Source: "wx\_controls_.pyd";                   DestDir: "{app}\wx"; Components: core
+Source: "wx\_misc_.pyd";                       DestDir: "{app}\wx"; Components: core
 Source: "wx\_calendar.pyd";                    DestDir: "{app}\wx"; Components: core
 Source: "wx\_grid.pyd";                        DestDir: "{app}\wx"; Components: core
 Source: "wx\_html.pyd";                        DestDir: "{app}\wx"; Components: core
@@ -101,11 +101,14 @@ Source: "wx\_xrc.pyd";                         DestDir: "{app}\wx"; Components: 
 Source: "wx\*.py";                             DestDir: "{app}\wx"; Components: core
 Source: "wx\build\*.py";                       DestDir: "{app}\wx\build"; Components: core
 Source: "wx\lib\*.py";                         DestDir: "{app}\wx\lib"; Components: core
-Source: "wx\lib\*.wdr";                        DestDir: "{app}\wx\lib"; Components: core
+;;Source: "wx\lib\*.wdr";                        DestDir: "{app}\wx\lib"; Components: core
 Source: "wx\lib\colourchooser\*.py";           DestDir: "{app}\wx\lib\colourchooser"; Components: core
 Source: "wx\lib\editor\*.py";                  DestDir: "{app}\wx\lib\editor"; Components: core
 Source: "wx\lib\editor\*.txt";                 DestDir: "{app}\wx\lib\editor"; Components: core
 Source: "wx\lib\mixins\*.py";                  DestDir: "{app}\wx\lib\mixins"; Components: core
+Source: "wx\lib\masked\*.py";                  DestDir: "{app}\wx\lib\masked"; Components: core
+Source: "wx\lib\ogl\*.py";                     DestDir: "{app}\wx\lib\ogl"; Components: core
+Source: "wx\lib\floatcanvas\*.py";             DestDir: "{app}\wx\lib\floatcanvas"; Components: core
 Source: "wx\py\*.py";                          DestDir: "{app}\wx\py"; Components: core
 Source: "wx\py\*.txt";                         DestDir: "{app}\wx\py"; Components: core
 Source: "wx\py\*.ico";                         DestDir: "{app}\wx\py"; Components: core
@@ -194,10 +197,11 @@ Source: "scripts\pyshell";                  DestDir: "{code:GetPythonDir}\Script
 Source: "scripts\pycrust";                  DestDir: "{code:GetPythonDir}\Scripts"; Components: core
 Source: "scripts\pywrap";                   DestDir: "{code:GetPythonDir}\Scripts"; Components: core
 Source: "scripts\xrced";                    DestDir: "{code:GetPythonDir}\Scripts"; Components: core
-Source: "%(WXDIR)s\lib\vc_dll\wxrc.exe";           DestDir: "{code:GetPythonDir}\Scripts"; Components: core
+Source: "%(WXDIR)s\lib\vc_dll\wxrc.exe";    DestDir: "{code:GetPythonDir}\Scripts"; Components: core
 
 Source: "samples\doodle\*.py";              DestDir: "{app}\wx\samples\doodle"; Components: samples
 Source: "samples\doodle\*.txt";             DestDir: "{app}\wx\samples\doodle"; Components: samples
+Source: "samples\doodle\*.bat";             DestDir: "{app}\wx\samples\doodle"; Components: samples
 Source: "samples\doodle\sample.ddl";        DestDir: "{app}\wx\samples\doodle"; Components: samples
 Source: "samples\doodle\superdoodle.iss";   DestDir: "{app}\wx\samples\doodle"; Components: samples
 
@@ -253,7 +257,7 @@ Name: "{group}\Resource Editor";       Filename: "{code:GetPythonDir}\pythonw.ex
 
 Name: "{group}\Sample Apps";           Filename: "{app}\wx\samples"; Components: samples
 
-Name: "{group}\wxWindows Reference";   Filename: "{app}\wx\docs\wx.chm";                Components: docs
+Name: "{group}\wxWidgets Reference";   Filename: "{app}\wx\docs\wx.chm";                Components: docs
 Name: "{group}\Migration Guide";       Filename: "{app}\wx\docs\MigrationGuide.html";   Components: docs
 Name: "{group}\Recent Changes";        Filename: "{app}\wx\docs\CHANGES.html";          Components: docs
 Name: "{group}\Other Docs";            Filename: "{app}\wx\docs";                       Components: docs
@@ -275,6 +279,13 @@ Type: files; Name: "{app}\wx\lib\editor\*.pyc";
 Type: files; Name: "{app}\wx\lib\editor\*.pyo";
 Type: files; Name: "{app}\wx\lib\mixins\*.pyc";
 Type: files; Name: "{app}\wx\lib\mixins\*.pyo";
+Type: files; Name: "{app}\wx\lib\masked\*.pyc";
+Type: files; Name: "{app}\wx\lib\masked\*.pyo";
+Type: files; Name: "{app}\wx\lib\ogl\*.pyc";
+Type: files; Name: "{app}\wx\lib\ogl\*.pyo";
+Type: files; Name: "{app}\wx\lib\floatcanvas\*.pyc";
+Type: files; Name: "{app}\wx\lib\floatcanvas\*.pyo";
+
 Type: files; Name: "{app}\wx\py\*.pyc";
 Type: files; Name: "{app}\wx\py\*.pyo";
 Type: files; Name: "{app}\wx\py\tests\*.pyc";
@@ -423,7 +434,7 @@ def find_DLLs():
 
     WXDLLVER = PYTHONVER = None
 
-    proc = os.popen(r"dumpbin /imports wx\_core.pyd", "r")
+    proc = os.popen(r"dumpbin /imports wx\_core_.pyd", "r")
     lines = proc.readlines()
     proc.close()
     for line in lines:
@@ -454,7 +465,7 @@ def build_locale_string():
             if not os.path.isdir(filename):
                 lst.append( locale_template % (filename, dirname) )
 
-    os.path.walk('wxPython\\locale', walk_helper, stringlst)
+    os.path.walk('wx\\locale', walk_helper, stringlst)
     return '\n'.join(stringlst)
 
 def get_system_dir():
@@ -509,7 +520,7 @@ def main():
 
     MSLU=''
     if len(sys.argv) > 1 and sys.argv[1] == "UNICODE=1":
-        MSLU=r'Source: "%(WXDIR)s\lib\vc_dll\unicows.dll";  DestDir: "{code:GetPythonDir}"; Components: core' % vars()
+        MSLU=r'Source: "distrib\msw\unicows.dll";  DestDir: "{code:GetPythonDir}"; Components: core' % vars()
 
     f = open(ISSFILE, "w")
     f.write(ISS_Template % vars())
@@ -519,7 +530,10 @@ def main():
     f.write(IFS_Template % vars())
     f.close()
 
-    os.system(ISCC % (os.environ['TOOLS'], ISSFILE))
+    TOOLS = os.environ['TOOLS']
+    if TOOLS.startswith('/cygdrive'):
+        TOOLS = r"c:\TOOLS"  # temporary hack until I convert everything over to bash
+    os.system(ISCC % (TOOLS, ISSFILE))
 
     if not KEEP_TEMPS:
         time.sleep(1)

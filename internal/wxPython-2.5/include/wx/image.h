@@ -18,9 +18,6 @@
 #include "wx/object.h"
 #include "wx/string.h"
 #include "wx/gdicmn.h"
-#if WXWIN_COMPATIBILITY_2_2
-#  include "wx/bitmap.h"
-#endif
 #include "wx/hashmap.h"
 
 #if wxUSE_STREAMS
@@ -188,7 +185,8 @@ public:
     void Replace( unsigned char r1, unsigned char g1, unsigned char b1,
                   unsigned char r2, unsigned char g2, unsigned char b2 );
 
-    // convert to monochrome image (<r,g,b> will be replaced by white, everything else by black)
+    // convert to monochrome image (<r,g,b> will be replaced by white,
+    // everything else by black)
     wxImage ConvertToMono( unsigned char r, unsigned char g, unsigned char b ) const;
 
     // these routines are slow but safe
@@ -198,7 +196,7 @@ public:
     unsigned char GetBlue( int x, int y ) const;
 
     void SetAlpha(int x, int y, unsigned char alpha);
-    unsigned char GetAlpha(int x, int y);
+    unsigned char GetAlpha(int x, int y) const;
 
     // find first colour that is not used in the image and has higher
     // RGB values than <startR,startG,startB>
@@ -208,6 +206,10 @@ public:
     // Set image's mask to the area of 'mask' that has <r,g,b> colour
     bool SetMaskFromImage(const wxImage & mask,
                           unsigned char mr, unsigned char mg, unsigned char mb);
+
+    // converts image's alpha channel to mask, if it has any, does nothing
+    // otherwise:
+    bool ConvertAlphaToMask(unsigned char threshold = 128);
 
     static bool CanRead( const wxString& name );
     static int GetImageCount( const wxString& name, long type = wxBITMAP_TYPE_ANY );
