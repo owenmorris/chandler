@@ -1,5 +1,5 @@
 
-VERSION=0.3-12
+VERSION=0.3-13
 
 include Makefile.inc
 
@@ -19,13 +19,14 @@ SYSTEMS=persistence/db \
         SOAPpy \
         zope \
         twisted \
-        pychecker
+        pychecker \
+        yapps
 
 SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/Python-2.3.3.tgz \
         python/bzip2-1.0.2.tar.gz \
         python/zlib-1.2.1.tar.gz \
-        swig/swig-1.3.21.tar.gz \
+        swig/swig-20Feb04.tar.gz \
         epydoc/epydoc-2.1.tar.gz \
         PyLucene/PyLucene-0.5.1.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
@@ -39,7 +40,8 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         SOAPpy/SOAPpy-0.10.2.tar.gz \
         zope/ZopeInterface-3.0.0b1.tgz \
         twisted/Twisted-r11245.tar.gz \
-        pychecker/pychecker-0.8.13.tar.gz
+        pychecker/pychecker-0.8.13.tar.gz \
+        yapps/yapps2.1.1.zip
 
 .PHONY: sources expand binaries $(SYSTEMS)
 
