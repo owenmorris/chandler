@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="uuidof"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:me="http://testparcels.org/uuidof" >
+
+    <namespace value="http://testparcels.org/uuidof" />
+
+    <cm:NamedCollection itsName="myColl">
+        <inclusions uuidOf="me:item0"/>
+        <inclusions uuidOf="me:item1"/>
+        <inclusions uuidOf="me:item2"/>
+    </cm:NamedCollection>
+
+    <Item itsName="item0" />
+    <Item itsName="item1" />
+    <Item itsName="item2" />
+
+</Parcel>

@@ -716,6 +716,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     """
     _DELAYED_REFERENCE = 0
     _DELAYED_LITERAL   = 1
+    _DELAYED_UUIDOF    = 2
 
     def saveErrorState(self, message, file=None, line=None):
         if not file:
@@ -809,6 +810,13 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.itemsCreated.append(self.currentItem)
             self.currentAssigments = []
 
+        elif attrs.has_key((None, 'uuidOf')):
+            # We need to get the UUID of the target item and assign it
+            # to the attribute
+            element = 'UuidOf'
+            self.currentValue = attrs.getValue((None, 'uuidOf'))
+            self.currentCopyName = None
+
         elif attrs.has_key((None, 'itemref')):
             # If it has an itemref, assume its a reference attribute
             # print "Deprecation warning: itemref should now be ref"
@@ -899,6 +907,22 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                "name"       : name,
                "key"        : None,
                "copyName"   : self.currentCopyName,
+               "file"       : self.locator.getSystemId(),
+               "line"       : self.locator.getLineNumber()
+            }
+            self.currentAssigments.append(assignment)
+
+        # If we need to assign the UUID of an item rather than a reference
+        # to that item; delay it until later.
+        elif element == 'UuidOf':
+            (namespace, name) = self.getNamespaceName(self.currentValue)
+            assignment = {
+               "assignType" : self._DELAYED_UUIDOF,
+               "attrName"   : local,
+               "namespace"  : namespace,
+               "name"       : name,
+               "key"        : None,
+               "copyName"   : None,
                "file"       : self.locator.getSystemId(),
                "line"       : self.locator.getLineNumber()
             }
@@ -1201,6 +1225,15 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                                   alias=reference.itsName)
                 else:
                     item.addValue(attributeName, reference)
+
+            elif assignment["assignType"] == self._DELAYED_UUIDOF:
+                namespace = assignment["namespace"]
+                name = assignment["name"]
+                reference = self.findItem(namespace, name, line)
+                if reference is None:
+                    raise self.saveErrorState("Referenced item doesn't " \
+                     "exist: %s:%s" % (namespace, name), file, line)
+                item.addValue(attributeName, reference.itsUUID)
 
             elif assignment["assignType"] == self._DELAYED_LITERAL:
 
