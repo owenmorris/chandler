@@ -521,6 +521,8 @@ def generateDocs(buildenv):
     xslFiles =  ["Kinds", "Attributes", "Aliass", "Enumerations", "index", 
      "Types"]
     fileList = _findFiles(".", "parcel.xml")
+    indexList = [('index.html', 'Main Schema Documentation'),
+                 ('sentences.html', 'Sentences Describing Schema')]
 
     for xsl in xslFiles:
         _transformFilesXslt(buildenv, 
@@ -531,18 +533,19 @@ def generateDocs(buildenv):
          fileList
         )
 
-    indexFile = file(os.path.join("..",buildenv['version'],"docs","index.html"),
-     'w+')
-    indexFile.write("<html><head><title>Chandler Schema Documents</title></head>")
-    indexFile.write("<body><h1>Schema Documentation</h1>")
-    indexFile.write("<h3>Generated %s</h3>" % time.strftime("%m/%d %I:%M%p"))
-    indexFile.write("<ul>")
-    for xmlFile in fileList:
-        (head, tail) = os.path.split(xmlFile[2:])
-        indexFile.write("<li>")
-        indexFile.write("<a href=%s/index.html>%s</a> " % (head, head))
-        indexFile.write("\n")
-    indexFile.write("</ul>")
-    indexFile.write("</body>")
-    indexFile.write("</html>")
-    indexFile.close()
+    for index, title in indexList:
+        indexFile = file(os.path.join("..",buildenv['version'],"docs",index),
+         'w+')
+        indexFile.write("<html><head><title>Chandler Schema Documents</title></head>")
+        indexFile.write("<body><h1>%s</h1>" % title)
+        indexFile.write("<h3>Generated %s</h3>" % time.strftime("%m/%d %I:%M%p"))        
+        indexFile.write("<ul>")
+        for xmlFile in fileList:
+            (head, tail) = os.path.split(xmlFile[2:])
+            indexFile.write("<li>")
+            indexFile.write("<a href=%s/%s>%s</a> " % (head, index, head))
+            indexFile.write("\n")
+        indexFile.write("</ul>")
+        indexFile.write("</body>")
+        indexFile.write("</html>")
+        indexFile.close()
