@@ -101,8 +101,8 @@ def main():
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
                 newDirName = nowString
-                newDirName = newDirName.replace(" ", "")
-                newDir = os.path.join(outputDir, nowString)
+                newDirName = newDirName.replace(" ", "@")
+                newDir = os.path.join(outputDir, newDirName)
                 print "newDir =", newDir
                 os.rename(os.path.join(buildDir, "output"), newDir)
                 log.write("Calling CreateIndex with " + newDir + "\n")
