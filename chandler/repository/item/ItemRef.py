@@ -742,9 +742,8 @@ class RefDict(LinkedMap):
             sd = self._setFlag(RefDict.SETDIRTY, False)
             key = self.firstKey()
             while key is not None:
-                nextKey = self.nextKey(key)
                 del self[key]
-                key = nextKey
+                key = self.firstKey()
         finally:
             self._setFlag(RefDict.SETDIRTY, sd)
 
