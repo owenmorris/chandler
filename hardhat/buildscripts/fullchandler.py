@@ -94,11 +94,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         for mod in cvsModules:
             cvsChanges[mod] = True
 
-        # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
-        for releaseMode in ('release', 'debug'):
+        for releaseMode in releaseModes:
             doBuild(releaseMode, workingDir, log, cvsChanges, clean='')
 
-        for releaseMode in ('release', 'debug'):
+        for releaseMode in releaseModes:
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
 
         if skipTests:
@@ -143,9 +142,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
                 if ret != 'success':
                     break
 
-        if upload and (changes in ('-changes', '-first-run')) and ret == 'success':
-            for releaseMode in releaseModes:
-                doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+    if upload and (changes in ('-changes', '-first-run')) and ret == 'success':
+        for releaseMode in releaseModes:
+            doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
 
     return ret + changes 
 
@@ -279,7 +278,7 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
     try:
         upload = ' uploadworld UPLOAD=' + uploadDir
         print "Doing make " + dbgStr + upload
-        log.write("Doing make " + dbgStr + upload)
+        log.write("Doing make " + dbgStr + upload + "\n")
 
         outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, upload])
         hardhatutil.dumpOutputList(outputList, log)
@@ -296,8 +295,9 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
     except Exception, e:
         print "upload error"
         log.write("***Error during upload***\n")
-        log.write(separator)        
-        log.write("No build log!\n")
+        log.write(separator)
+        log.write(str(e) + "\n")
+        log.write("(No build log!)\n")
         log.write(separator)
 
 
