@@ -138,8 +138,8 @@ def RotateDirectories(dir):
 
     dirs = os.listdir(dir)
     dirs.sort()
-    for dir in dirs[:-3]:
-        hardhatutil.rmdirRecursive(dir)
+    for subdir in dirs[:-3]:
+        hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
 
 main()
