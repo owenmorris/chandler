@@ -438,4 +438,3 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, fileList):
              srcFile, transformFile 
              ], 
              "XSLT: " + file )
-
