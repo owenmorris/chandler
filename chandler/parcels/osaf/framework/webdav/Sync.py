@@ -21,8 +21,14 @@ def syncItem(dav, item):
 
     etag = item.getAttributeValue('etag', default=None)
     if etag:
+        davETag = dav.etag
         # set serverChanges based on if the etags match
-        serverChanges = (etag != dav.etag)
+        serverChanges = (etag != davETag)
+
+        # I need to understand the difference between strong etags
+        # and weak ones...  for now, pretend they are the same!
+        if serverChanges:
+            serverChanges = (etag != str('W/' + davETag))
     else:
         # this is the first time this item has been shared.
         needsPut = True
@@ -46,10 +52,8 @@ def syncItem(dav, item):
         davItem = DAVItem.DAVItem(dav)
 
         # merge any local changes with server changes
-        try:
-            merge(dav, item, davItem, localChanges)
-        except:
-            pass
+        merge(dav, item, davItem, localChanges)
+
 
     if localChanges:
         # put back merged local changes
@@ -71,7 +75,6 @@ def merge(dav, item, davItem, hasLocalChanges):
     # for now, just pull changes from the server and overwrite local changes...
     print 'Doing merge'
     item.etag = davItem.etag
-
     syncFromServer(item, davItem)
 
 
@@ -116,7 +119,9 @@ def syncToServer(dav, item):
                     DAV(durl).put(i)
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
-                    listData += '<value>' + value + '</value>'
+                    #XXX fix this (Value is a PersistentList here??)
+                    #listData += '<value>' + value + '</value>'
+                    pass
             props += makePropString(name, namespace, listData)
 
         elif acard == 'single':
@@ -228,11 +233,11 @@ def syncFromServer(item, davItem):
 
         print 'Merging itemCollection'
         # for now, just sync with whatever the server gave us
-        for i in serverCollections:
+        for i in serverCollectionResults:
             if i not in item:
                 item.add(i)
         for i in item:
-            if i not in serverCollections:
+            if i not in serverCollectionResults:
                 item.remove(i)
     #
     # End refactor

@@ -45,7 +45,7 @@ class DAV(object):
         return r
 
     def _getETag(self):
-        return unicode(self.getHeaders().getheader('ETag', default=''))
+        return self.getHeaders().getheader('ETag', default='')
 
     def _getLastModified(self):
         return self.getHeaders().getheader('Last-Modified', default='')

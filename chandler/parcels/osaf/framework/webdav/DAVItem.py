@@ -68,7 +68,7 @@ class DAVItem(object):
         return UUID(value)
 
     def _getETag(self):
-        return unicode(self._getAttribute('getetag', 'DAV:'))
+        return self._getAttribute('getetag', 'DAV:')
 
     def _getLastModified(self):
         return self._getAttribute('getlastmodified', 'DAV:')
