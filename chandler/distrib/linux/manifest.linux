@@ -56,7 +56,6 @@ python2.3
 # Grab the DB libraries
 dest=release/db/lib
 src=chandler/release/db/lib
-libdb_cxx-4.3.so
 libdb-4.3.so
 libdb_java-4.3.so
 src=chandler/release/lib
