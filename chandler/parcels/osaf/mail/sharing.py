@@ -1,6 +1,6 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 #twisted imports
@@ -20,8 +20,9 @@ import chandlerdb.util.UUID as UUID
 
 #Chandler Mail Service imports
 import smtp as smtp
-import common as common
+import constants as constants
 import message as message
+import utils as utils
 
 """
 TO DO:
@@ -131,7 +132,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
                 email, code, str = recipient
 
                 """If the recipient was accepted skip"""
-                if code == common.SMTPConstants.SUCCESS:
+                if code == constants.SMTP_SUCCESS:
                     continue
 
                 e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName,
@@ -141,7 +142,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
             err = '\n'.join(errorText)
 
-            common.NotifyUIAsync(_(err), self.log.error, alert=True)
+            utils.NotifyUIAsync(_(err), self.log.error, alert=True)
 
     def __invitationFailure(self, result):
         if __debug__:
@@ -155,12 +156,12 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
         e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url,
                                                              desc)
 
-        common.NotifyUIAsync(e, self.log.error, alert=True)
+        utils.NotifyUIAsync(e, self.log.error, alert=True)
 
     def __createMessageText(self):
-        sendStr = "%s%s%s" % (self.url, common.SharingConstants.SHARING_DIVIDER, self.collectionName)
+        sendStr = "%s%s%s" % (self.url, constants.SHARING_DIVIDER, self.collectionName)
 
-        messageObject = common.getChandlerTransportMessage()
+        messageObject = utils.getChandlerTransportMessage()
 
         """Add the chandler sharing header"""
         messageObject[getChandlerSharingHeader()] = sendStr
@@ -177,4 +178,4 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
 
 def getChandlerSharingHeader():
-    return message.createChandlerHeader(common.SharingConstants.SHARING_HEADER)
+    return message.createChandlerHeader(constants.SHARING_HEADER)

@@ -1,23 +1,23 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 #python / mx imports
 import email as email
 import email.Header as Header
 import email.Message as Message
-import email.Utils as Utils
+import email.Utils as emailUtils
 import mx.DateTime as DateTime
 import logging as logging
 
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
-from repository.util.Lob import Text
 
 #Chandler Mail Service imports
-import common as common
+import constants as constants
+import utils as utils
 
 """
 Notes:
@@ -36,45 +36,28 @@ Notes:
    Content-Type or Content-Disposition ect
 """
 
-def decodeHeader(header, charset=common.DEFAULT_CHARSET):
+def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
     try:
         decoded    = Header.make_header(Header.decode_header(header))
         unicodeStr = decoded.__unicode__()
-        line       = Utils.UEMPTYSTRING.join(unicodeStr.splitlines())
+        line       = emailUtils.UEMPTYSTRING.join(unicodeStr.splitlines())
 
         return line.encode(charset, 'replace')
 
     except(UnicodeError, LookupError):
-        return Utils.EMPTYSTRING.join(header.splitlines())
+        return emailUtils.EMPTYSTRING.join(header.splitlines())
 
+def createChandlerHeader(postfix):
+    """Creates a chandler header with postfix provided"""
+    assert utils.hasValue(postfix), "You must pass a String"
 
-def dateTimeToRFC2882Date(dateTime):
-    """Converts a C{mx.DateTime} object to a
-       RFC2882 Date String
+    return constants.CHANDLER_HEADER_PREFIX + postfix
 
-       @param dateTime: a C{mx.DateTime} instance
-       @type dateTime: C{mx.DateTime}
+def isChandlerHeader(header):
+    """Returns true if the header is Chandler defined header"""
+    assert utils.hasValue(header), "You must pass a String"
 
-       @return: RFC2882 Date String
-    """
-    return Utils.formatdate(dateTime.ticks(), True)
-
-def createMessageID():
-    """Creates a unique message id
-       @return: String containing the unique message id"""
-    return Utils.make_msgid()
-
-def hasValue(value):
-    """
-    This method determines if a String has one or more non-whitespace characters.
-    This is useful in checking that a Subject or To address field was filled in with
-    a useable value
-
-    @param value: The String value to check against. The value can be None
-    @type value: C{String}
-    @return: C{Boolean}
-    """
-    if __isString(value) and len(value.strip()) > 0:
+    if header.startswith(constants.CHANDLER_HEADER_PREFIX):
         return True
 
     return False
@@ -87,22 +70,7 @@ def isPlainTextContentType(contentType):
        @return bool: True if content-type='text/plain'
     """
     #XXX: is this needed
-    if __isString(contentType) and contentType.lower().strip() == common.MIME_TEXT_PLAIN:
-        return True
-
-    return False
-
-def createChandlerHeader(postfix):
-    """Creates a chandler header with postfix provided"""
-    assert hasValue(postfix), "You must pass a String"
-
-    return common.CHANDLER_HEADER_PREFIX + postfix
-
-def isChandlerHeader(header):
-    """Returns true if the header is Chandler defined header"""
-    assert hasValue(header), "You must pass a String"
-
-    if header.startswith(common.CHANDLER_HEADER_PREFIX):
+    if utils.isString(contentType) and contentType.lower().strip() == constants.MIME_TEXT_PLAIN:
         return True
 
     return False
@@ -113,7 +81,7 @@ def populateStaticHeaders(messageObject):
     #XXX: Will be expanded when i18n is in place
 
     if not messageObject.has_key('User-Agent'):
-        messageObject['User-Agent'] = common.CHANDLER_USERAGENT
+        messageObject['User-Agent'] = constants.CHANDLER_USERAGENT
 
     if not messageObject.has_key('MIME-Version'):
         messageObject['MIME-Version'] = "1.0"
@@ -129,11 +97,11 @@ def populateParam(messageObject, param, var, type='String'):
     #XXX: Need to document method
 
     if type == 'String':
-        if hasValue(var):
+        if utils.hasValue(var):
             messageObject[param] = var
 
     elif(type == 'EmailAddress'):
-        if var is not None and hasValue(var.emailAddress):
+        if var is not None and utils.hasValue(var.emailAddress):
             messageObject[param] = Mail.EmailAddress.format(var)
 
 def populateEmailAddresses(mailMessage, messageObject):
@@ -149,7 +117,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key):
     addrs = []
 
     for address in emailAddressList:
-        if hasValue(address.emailAddress):
+        if utils.hasValue(address.emailAddress):
             addrs.append(Mail.EmailAddress.format(address))
 
     if len(addrs) > 0:
@@ -190,7 +158,7 @@ def messageObjectToKind(messageObject, messageText=None, root=True):
     # Save the original message text in a text blob
     #XXX: Only save this if it is the root element
     if root:
-        m.rfc2822Message = strToText(m, "rfc2822Message", messageText)
+        m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
 
     if messageObject.is_multipart():
         mimeParts = messageObject.get_payload()
@@ -201,15 +169,15 @@ def messageObjectToKind(messageObject, messageText=None, root=True):
         for mimePart in mimeParts:
             if isPlainTextContentType(mimePart.get_content_type()):
                 # Note: while grabbing the body, strip all CR
-                m.body = strToText(m, "body", mimePart.get_payload().replace("\r", ""))
+                m.body = utils.strToText(m, "body", mimePart.get_payload().replace("\r", ""))
                 found = True
 
         if not found:
-            m.body = strToText(m, "body", common.ATTACHMENT_BODY_WARNING)
+            m.body = utils.strToText(m, "body", constants.ATTACHMENT_BODY_WARNING)
 
     else:
         # Note: while grabbing the body, strip all CR
-        m.body = strToText(m, "body",
+        m.body = utils.strToText(m, "body",
          messageObject.get_payload().replace("\r", ""))
 
     __parseHeaders(m, messageObject)
@@ -232,13 +200,13 @@ def kindToMessageObject(mailMessage):
     messageObject = Message.Message()
 
     """Create a messageId if none exists"""
-    if not hasValue(mailMessage.messageId):
-        mailMessage.messageId = createMessageID()
+    if not utils.hasValue(mailMessage.messageId):
+        mailMessage.messageId = utils.createMessageID()
 
     """Create a dateSent if none exists"""
-    if not hasValue(mailMessage.dateSentString):
+    if not utils.hasValue(mailMessage.dateSentString):
         mailMessage.dateSent = DateTime.now()
-        mailMessage.dateSentString = dateTimeToRFC2882Date(mailMessage.dateSent)
+        mailMessage.dateSentString = utils.dateTimeToRFC2882Date(mailMessage.dateSent)
 
     populateParam(messageObject, 'Message-ID', mailMessage.messageId)
     populateParam(messageObject, 'Date', mailMessage.dateSentString)
@@ -263,7 +231,7 @@ def kindToMessageObject(mailMessage):
     except AttributeError:
         payloadStr = ""
     else:
-        payloadStr = textToStr(payload)
+        payloadStr = utils.textToStr(payload)
 
     messageObject.set_payload(payloadStr)
 
@@ -288,30 +256,12 @@ def kindToMessageText(mailMessage, saveMessage=True):
 
     messageText = messageObject.as_string()
 
+    #XXX: Want to compress this and store as a binary type of lob
     if saveMessage:
-        mailMessage.rfc2882Message = strToText(mailMessage, "rfc2822Message", messageText)
+        mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", messageText)
 
     return messageText
 
-
-def strToText(contentItem, attribute, string):
-    """Converts a C{str} to C{Text}"""
-    if not __isString(string):
-        return None
-
-    return contentItem.getAttributeAspect(attribute, 'type').makeValue(string, indexed=False)
-
-
-
-def textToStr(text):
-    """Converts a C{Text} to a C{str}"""
-    assert isinstance(text, Text), "Must pass a Text instance"
-
-    reader = text.getReader()
-    string = reader.read()
-    reader.close()
-
-    return string
 
 def __parseHeaders(m, messageObject):
 
@@ -319,7 +269,7 @@ def __parseHeaders(m, messageObject):
 
     if date is not None:
         #XXX: look at using Utils.parsedate_tz
-        parsed = Utils.parsedate(date)
+        parsed = emailUtils.parsedate(date)
 
         """It is a non-rfc date string"""
         if parsed is None:
@@ -337,7 +287,7 @@ def __parseHeaders(m, messageObject):
         del messageObject['Date']
 
     else:
-        m.dateSent = common.getEmptyDate()
+        m.dateSent = utils.getEmptyDate()
         m.dateSentString = ""
 
     __assignToKind(m, messageObject, 'Subject', 'String', 'subject')
@@ -387,9 +337,9 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
     elif type == "EmailAddress":
         keyArgs = {}
-        addr = Utils.parseaddr(messageObject[key])
+        addr = emailUtils.parseaddr(messageObject[key])
 
-        if hasValue(addr[0]):
+        if utils.hasValue(addr[0]):
             keyArgs['fullName'] = addr[0]
 
         # Use any existing EmailAddress, but don't update them
@@ -403,10 +353,10 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
             logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
 
     elif type == "EmailAddressList":
-        for addr in Utils.getaddresses(messageObject.get_all(key, [])):
+        for addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
             keyArgs = {}
 
-            if hasValue(addr[0]):
+            if utils.hasValue(addr[0]):
                 keyArgs['fullName'] = addr[0]
 
             # Use any existing EmailAddress, but don't update them
@@ -426,8 +376,38 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 def __decodeHeader(messageObject, key):
     messageObject.replace_header(key, decodeHeader(messageObject[key]))
 
-def __isString(var):
-    if isinstance(var, (str, unicode)):
-        return True
+def __parseMessage(parentMIMEContainer):
+    """
+        need the parent container passed
+        with. The container can be a rfc822 message
+        or multipart container (alternative unlikely, multipart/report)
 
-    return False
+    """
+
+def __parseMultipart(parentMIMEContainer):
+    """
+        Disregard any multipart container
+        that is not required (alternative)
+
+        Need the parent which will be the
+        message that the multipart c
+    """
+
+def __parseApplication():
+    """
+        Handles unkown types
+    """
+
+def __parseVideo():
+    pass
+
+def __parseImage():
+    pass
+
+def __parseText():
+    pass
+
+def __parseAudio():
+    pass
+
+

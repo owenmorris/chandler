@@ -1,6 +1,6 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 #twisted imports
@@ -15,7 +15,6 @@ import twisted.protocols.policies as policies
 #python / mx imports
 import mx.DateTime as DateTime
 import email as email
-import email.Utils as Utils
 import logging as logging
 
 #Chandler imports
@@ -31,7 +30,8 @@ import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import message as message
 import sharing as sharing
 import errors as errors
-import common as common
+import constants as constants
+import utils as utils
 
 """
   Bug:
@@ -41,7 +41,7 @@ import common as common
 """
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
-    timeout = common.TIMEOUT
+    timeout = constants.TIMEOUT
 
     def serverGreeting(self, caps):
         """
@@ -78,7 +78,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         self.factory.imapDownloader.catchErrors(exc)
 
     def __getCapabilities(self, caps):
-        self._capCache = common.disableTwistedTLS(caps)
+        self._capCache = utils.disableTwistedTLS(caps)
         self.factory.imapDownloader.loginClient()
 
 
@@ -192,7 +192,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         #XXX: When IMAP Errors are saved to Repository will need to
         #     wait for commit to complete before doing a Notification
-        common.NotifyUIAsync(_("Error: %s") % err, self.log.error, alert=True)
+        utils.NotifyUIAsync(_("Error: %s") % err, self.log.error, alert=True)
 
     def loginClient(self):
         """
@@ -236,7 +236,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         if __debug__:
             self.printCurrentView("selectInbox ***Could be wrong view***")
 
-        common.NotifyUIAsync(_("Checking Inbox for new mail messages"), self.__printInfo)
+        utils.NotifyUIAsync(_("Checking Inbox for new mail messages"), self.__printInfo)
 
         return self.proto.select("INBOX").addCallbacks(self.__checkForNewMessages, self.catchErrors)
 
@@ -262,7 +262,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         else:
             self.__disconnect()
-            common.NotifyUIAsync(_("No messages present to download"), self.__printInfo)
+            utils.NotifyUIAsync(_("No messages present to download"), self.__printInfo)
 
 
     def __getMessagesFromUIDS(self, msgs):
@@ -283,7 +283,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         if high <= self.__getLastUID():
             self.__disconnect()
-            common.NotifyUIAsync(_("No new messages found"), self.__printInfo)
+            utils.NotifyUIAsync(_("No new messages found"), self.__printInfo)
 
         else:
             if self.__getLastUID() == 0:
@@ -317,7 +317,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         foundInvitation = False
         sharingInvitations = {}
         sharingHeader = sharing.getChandlerSharingHeader()
-        div = common.SharingConstants.SHARING_DIVIDER
+        div = constants.SHARING_DIVIDER
 
         for msg in msgs:
             messageText = msgs[msg]['RFC822']
@@ -375,7 +375,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         @return: C{None}
         """
 
-        common.NotifyUIAsync(self.downloadedStr, self.__printInfo)
+        utils.NotifyUIAsync(self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
         self.account = None
 

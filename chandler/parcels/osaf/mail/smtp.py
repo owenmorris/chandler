@@ -1,6 +1,6 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 #twisted imports
@@ -25,9 +25,10 @@ import crypto.ssl as ssl
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 
 #Chandler Mail Service imports
-import common as common
+import constants as constants
 import errors as errors
 import message as message
+import utils as utils
 
 
 """
@@ -59,7 +60,7 @@ class ChandlerESMTPSender(smtp.ESMTPSender):
            Calls C{twisted.mail.smtp.ESMTPSender.tryTLS}
         """
         if not self.requireTransportSecurity:
-            items = common.disableTwistedTLS(items)
+            items = utils.disableTwistedTLS(items)
 
         smtp.ESMTPSender.tryTLS(self, code, resp, items)
 
@@ -162,7 +163,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         now = DateTime.now()
         self.mailMessage.dateSent = now
-        self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(now)
+        self.mailMessage.dateSentString = utils.dateTimeToRFC2882Date(now)
 
         self.mailMessage.deliveryExtension.sendSucceeded()
 
@@ -190,7 +191,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         for recipient in result[1]:
             email, code, str = recipient
 
-            if recipient[1] != common.SMTPConstants.SUCCESS:
+            if recipient[1] != constants.SMTP_SUCCESS:
                 deliveryError = Mail.MailDeliveryError()
                 deliveryError.errorCode = code
                 deliveryError.errorString = "%s: %s" % (email, str)
@@ -322,7 +323,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         else:
             key = "displaySMTPSendSuccess"
 
-        common.NotifyUIAsync(self.mailMessage, callable=key)
+        utils.NotifyUIAsync(self.mailMessage, callable=key)
         self.account = None
         self.mailMessage = None
 
@@ -399,8 +400,8 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          deferred, account.numRetries, common.TIMEOUT, sslContext,
-                                          heloFallback, authRequired, account.useSSL)
+                                          deferred, account.numRetries, constants.TIMEOUT,
+                                          sslContext, heloFallback, authRequired, account.useSSL)
 
         factory.protocol = ChandlerESMTPSender
         wrappingFactory = policies.WrappingFactory(factory)

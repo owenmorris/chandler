@@ -7,10 +7,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import MailTestCase as MailTestCase
 import osaf.mail.message as message
+import osaf.mail.utils as utils
 import osaf.contentmodel.mail.Mail as Mail
 import email as email
 import email.Message as Message
-import email.Utils as Utils
+import email.Utils as emailUtils
 import unittest as unittest
 from repository.item.RefCollections import RefList
 
@@ -81,11 +82,11 @@ This is the body"""
         m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
 
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
-        m.dateSent = MXDateTime.mktime(Utils.parsedate(dateString))
+        m.dateSent = MXDateTime.mktime(emailUtils.parsedate(dateString))
         m.dateSentString = dateString
 
-        m.body = message.strToText(m, "body", "This is the body")
-        m.rfc2822Message = message.strToText(m, "rfc2822Message", self.__mail)
+        m.body = utils.strToText(m, "body", "This is the body")
+        m.rfc2822Message = utils.strToText(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
 
@@ -138,8 +139,8 @@ This is the body"""
         self.assertEquals(mOne.headers['Content-Type'], mTwo.headers['Content-Type'])
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
-        self.assertEquals(message.textToStr(mOne.body), message.textToStr(mTwo.body))
-        self.assertEquals(message.textToStr(mOne.rfc2822Message), message.textToStr(mTwo.rfc2822Message))
+        self.assertEquals(utils.textToStr(mOne.body), utils.textToStr(mTwo.body))
+        self.assertEquals(utils.textToStr(mOne.rfc2822Message), utils.textToStr(mTwo.rfc2822Message))
 
 
     def __compareMessageObjects(self, mOne, mTwo):
@@ -156,8 +157,8 @@ This is the body"""
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
 
 
-        dOne = Utils.parsedate(mOne['Date'])
-        dTwo = Utils.parsedate(mTwo['Date'])
+        dOne = emailUtils.parsedate(mOne['Date'])
+        dTwo = emailUtils.parsedate(mTwo['Date'])
 
         for i in range(6):
             if dOne[i] != dTwo[i]:
