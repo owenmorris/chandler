@@ -336,7 +336,7 @@
   <MenuItem itsName="NewNoteItem">
     <blockName>NewNoteItem</blockName>
     <title>Note</title>
-    <accel>N</accel>
+    <accel>Ctrl+N</accel>
     <helpString>Create a new Note</helpString>
     <event itemref="doc:NewNote"/>
   </MenuItem>
@@ -344,7 +344,7 @@
   <MenuItem itsName="NewMessageItem">
     <blockName>NewMessageItem</blockName>
     <title>Message</title>
-    <accel>M</accel>
+    <accel>Ctrl+M</accel>
     <helpString>Create a new Message</helpString>
     <event itemref="doc:NewMailMessage"/>
   </MenuItem>
@@ -378,7 +378,7 @@
   <MenuItem itsName="NewTabItem">
     <blockName>NewTabItem</blockName>
     <title>New Tab</title>
-    <accel>T</accel>
+    <accel>Ctrl+T</accel>
     <helpString>Open a new blank tab</helpString>
     <event itemref="events:New"/>
   </MenuItem>
@@ -400,7 +400,7 @@
   <MenuItem itsName="CloseTabItem">
     <blockName>CloseTabItem</blockName>
     <title>Close Tab</title>
-    <accel>W</accel>
+    <accel>Ctrl+W</accel>
     <helpString>Close the current tab</helpString>
     <event itemref="events:Close"/>
   </MenuItem>
@@ -486,7 +486,7 @@
   <MenuItem itsName="PrefsAccountsItem">
     <blockName>PrefsAccountsItem</blockName>
     <title>Accounts...</title>
-    <accel>A</accel>
+    <accel>Ctrl+A</accel>
     <helpString>Account Preferences</helpString>
     <event itemref="events:EditAccountPreferences"/>
   </MenuItem>
@@ -494,7 +494,7 @@
   <MenuItem itsName="QuitItem">
     <blockName>QuitItem</blockName>
     <title>Quit</title>
-    <accel>Q</accel>
+    <accel>Ctrl+Q</accel>
     <helpString value="Quit Chandler"/>
     <event itemref="events:Quit"/>
   </MenuItem>
@@ -502,7 +502,7 @@
   <MenuItem itsName="UndoItem">
     <blockName>UndoItem</blockName>
     <title>Undo</title>
-    <accel>Z</accel>
+    <accel>Ctrl+Z</accel>
     <event itemref="events:Undo"/>
     <helpString value="Can't Undo"/>
   </MenuItem>
@@ -510,7 +510,7 @@
   <MenuItem itsName="RedoItem">
     <blockName>RedoItem</blockName>
     <title>Redo</title>
-    <accel>Y</accel>
+    <accel>Ctrl+Y</accel>
     <event itemref="events:Redo"/>
     <helpString value="Can't Redo"/>
   </MenuItem>
@@ -523,21 +523,21 @@
   <MenuItem itsName="CutItem">
     <blockName>CutItem</blockName>
     <title>Cut</title>
-    <accel>X</accel>
+    <accel>Ctrl+X</accel>
     <event itemref="events:Cut"/>
   </MenuItem>
 
   <MenuItem itsName="CopyItem">
     <blockName>CopyItem</blockName>
     <title>Copy</title>
-    <accel>C</accel>
+    <accel>Ctrl+C</accel>
     <event itemref="events:Copy"/>
   </MenuItem>
 
   <MenuItem itsName="PasteItem">
     <blockName>PasteItem</blockName>
     <title>Paste</title>
-    <accel>V</accel>
+    <accel>Ctrl+V</accel>
     <event itemref="events:Paste"/>
   </MenuItem>
   
@@ -1280,7 +1280,6 @@
   <Table itsName="Sidebar"
          itemClass="osaf.views.main.SideBar.Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
-    <selection itemref="content:AllView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>

@@ -491,8 +491,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
+        self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
 
@@ -517,6 +516,35 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
 
         
+    def OnRangeSelect(self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            topRow = event.GetTopRow()
+            bottomRow = event.GetBottomRow()
+            selecting = event.Selecting()
+            if topRow == 0 and bottomRow == (self.GetElementCount() -1):
+                self.blockItem.selection = []
+                if not selecting:
+                    return
+            self.blockItem.selection.append ([topRow, bottomRow, selecting])
+
+            topLeftList = self.GetSelectionBlockTopLeft()
+            topLeftList.sort()
+            try:
+                (row, column) = topLeftList [0]
+            except IndexError:
+                item = None
+            else:
+                item = self.blockItem.contents [row]
+
+            if item != self.blockItem.selectedItemToView:
+                self.blockItem.selectedItemToView = item
+                if item:
+                    gridTable = self.GetTable()
+                    for columnIndex in xrange (gridTable.GetNumberCols()):
+                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                self.blockItem.PostASelectionChangedEvent (item)
+        event.Skip()
+
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = event.GetSize()
@@ -537,22 +565,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             columnIndex = event.GetRowOrCol()
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
-    def OnSelectCell(self, event):
-        # Called by wxWidgets when a new cell is selected
-        currentItem = self.blockItem.selection
-        if currentItem is not None:
-            currentRow = self.blockItem.contents.index (currentItem)
-            selectedRow = event.GetRow()
-            if selectedRow != currentRow:
-                # selection moved up or down
-                self.SelectRow (selectedRow)
-                # remember the new selection
-                selectedItem = self.blockItem.contents [selectedRow]
-                self.blockItem.selection = selectedItem
-                # post a selection changed event
-                self.blockItem.PostASelectionChangedEvent (selectedItem)
-        event.Skip()
-
     def OnItemDrag(self, event):
         self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
 
@@ -560,26 +572,11 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         item = Globals.repository.findUUID(itemUUID)
         self.blockItem.contents.add (item)
 
-    def OnWXSelectionChanged(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            item = self.blockItem.contents [event.GetRow()]
-            if self.blockItem.selection != item:
-                self.blockItem.selection = item
-
-                ## Redraw headers
-                gridTable = self.GetTable()
-                for columnIndex in xrange (gridTable.GetNumberCols()):
-                    self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-
-            self.blockItem.PostASelectionChangedEvent (item)
-            self.blockItem.selectedColumn = self.blockItem.columnData [event.GetCol()]
-        event.Skip()
-        
     def OnRightClick(self, event):
         self.blockItem.DisplayContextMenu(event.GetPosition(),
                                           self.blockItem.contents [event.GetRow()])
 
-    def Reset(self): 
+    def wxSynchronizeWidget(self):
         """
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change
@@ -614,6 +611,19 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         for columnIndex in xrange (newColumns):
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
+        self.ClearSelection()
+        for range in self.blockItem.selection:
+            if range [2]:
+                self.SelectBlock (range[0], 0, range[1], newColumns, True)
+            else:
+                for row in xrange (range[0], range[1] + 1):
+                    self.DeselectRow (row)
+        try:
+            row = self.blockItem.contents.index (self.blockItem.selectedItemToView)
+        except ValueError:
+            pass
+        else:
+            self.MakeCellVisible (row, 0)
         self.EndBatch() 
 
         #Update all displayed values
@@ -622,10 +632,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         self.ForceRefresh () 
 
-    def wxSynchronizeWidget(self):
-        self.Reset()
-        self.GoToItem (self.blockItem.selection)
-
     def GoToItem(self, item):
         if item:
             try:
@@ -633,17 +639,40 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             except ValueError:
                 item = None
         if item:
-            cursorColumn = 0
-            selectedColumn = self.blockItem.selectedColumn
-            for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                if self.blockItem.columnData [columnIndex] == selectedColumn:
-                    cursorColumn = columnIndex
-                    break
-            self.SelectRow (row)
-            self.SetGridCursor (row, cursorColumn)
+            self.blockItem.selection.append ([row, row, True])
+            self.blockItem.selectedItemToView = row
+            self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
+            self.MakeCellVisible (row, 0)
         else:
+            self.blockItem.selection = []
+            self.blockItem.selectedItemToView = None
             self.ClearSelection()
             self.blockItem.PostASelectionChangedEvent (item)
+
+    def DeleteSelection (self):
+        self.blockItem.contents.beginUpdate()
+        topLeftList = self.GetSelectionBlockTopLeft()
+        bottomRightList = self.GetSelectionBlockBottomRight()
+        """
+          Clear the selection before removing the elements from the collection
+        otherwise our delegate will get called asking for deleted items
+        """
+        self.ClearSelection()
+        selectionRanges = []
+        for topLeft in topLeftList:
+            bottomRight = bottomRightList.pop (0)
+            selectionRanges.append ([topLeft[0], bottomRight[0]])
+        selectionRanges.sort()
+        selectionRanges.reverse()
+        contents = self.blockItem.contents
+        for range in selectionRanges:
+            for row in xrange (range[1], range [0] - 1, -1):
+                contents.remove (contents [row])
+        self.blockItem.selection = []
+        self.blockItem.selectedItemToView = None
+        Globals.repository.commit()
+        self.blockItem.contents.endUpdate()
+        self.blockItem.PostASelectionChangedEvent (None)
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -764,44 +793,29 @@ class ImageRenderer (wx.grid.PyGridCellRenderer):
 class Table (RectangularChild):
     def __init__(self, *arguments, **keywords):
         super (Table, self).__init__ (*arguments, **keywords)
-        self.selection = None
 
     def instantiateWidget (self):
         return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
 
     def onSelectionChangedEvent (self, notification):
-        """
-          Display the item in the widget.
-        """
-        self.selection = notification.data['item']
-        self.widget.GoToItem (self.selection)
+        item = notification.data ['item']
+        self.selectedItemToView = item
+        if item:
+            try:
+                row = self.contents.index (item)
+            except ValueError:
+                row = -1
+        if row < 0:
+            self.widget.ClearSelection()
+        else:
+            self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
+        self.PostASelectionChangedEvent (item)
 
     def onDeleteEvent (self, notification):
-        self.contents.beginUpdate()
-        for row in self.widget.GetSelectedRows():
-            self.contents.remove (self.contents [row])
-        self.contents.endUpdate()
+        self.widget.DeleteSelection()
         
     def onDeleteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = self.widget.IsSelection()
-
-    def onRequestSelectItemEvent (self, notification):
-        # request the Table part of the Active View to change selection
-        newSelection = notification.data['item']
-        # A request to select None causes everything to be deselected
-        # If the 'collection' flag is set, select the collection in
-        # the Detail View.
-        if newSelection is None:
-            # deselect
-            self.onSelectionChangedEvent (notification)
-            if notification.data['collection'] == True:
-                # tell the Detail View to select the whole collection
-                self.PostASelectionChangedEvent (self.contents)
-        elif newSelection in self.contents:
-            # select the item
-            self.onSelectionChangedEvent (notification)
-            # tell the Detail View about the new selection
-            self.PostASelectionChangedEvent (newSelection)
+        notification.data ['Enable'] = len (self.selection) != 0
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):

@@ -412,8 +412,8 @@ class wxMenuItem (wx.MenuItem):
             else:
                 assert (False)        
             title = block.title
-            if len(block.accel) > 0:
-                title = title + "\tCtrl+" + block.accel
+            if len (block.accel) > 0:
+                title = title + '\t' + block.accel
             
             """
               When inserting ourself into a MenuItem, we must actually

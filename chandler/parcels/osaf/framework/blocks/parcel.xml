@@ -769,9 +769,15 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.Table</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Attribute itsName="selectedColumn">
-      <type itemref="String"/>
-      <initialValue type="String"></initialValue>
+    <Attribute itsName="selection">
+      <cardinality>list</cardinality>
+      <type itemref="List"/>
+      <initialValue />
+    </Attribute>
+    
+    <Attribute itsName="selectedItemToView">
+      <type itemref="SingleRef"/>
+      <initialValue itemref="None"/>
     </Attribute>
     
     <Attribute itsName="hideColumnHeadings">
@@ -786,7 +792,9 @@
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
-    <attributes itemref="docSchema:selection"/>
+    <attributes itemref="docSchema:Table/selection"/>
+    <attributes itemref="docSchema:Table/selectedItemToView"/>
+    <attributes itemref="docSchema:Table/hideColumnHeadings"/>
   </Kind>  
 
   <!--

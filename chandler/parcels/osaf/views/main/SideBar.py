@@ -60,12 +60,5 @@ class Sidebar (ControlBlocks.Table):
             else:
                 return
 
-        # Got the item. First tell ourself about it.
         self.onSelectionChangedEvent (notification)
-
-        # Next broadcast inside our boundary to tell dependent
-        self.Post (Globals.repository.findPath \
-                   ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':item})
-
 

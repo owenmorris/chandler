@@ -153,12 +153,12 @@ class View(BoxContainer):
         while (block):
             for child in block.childrenBlocks:
                 try:
-                    method = child.isDynamicChild
+                    method = getattr (type (child), 'isDynamicChild')
                 except AttributeError:
                     pass
                 else:
                     candidate = child
-                    isChild = method()
+                    isChild = method(child)
                     if isChild:
                         synchToDynamicBlock (child, True)
                         return

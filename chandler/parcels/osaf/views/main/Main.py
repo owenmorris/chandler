@@ -95,24 +95,20 @@ class MainView(View):
 
         # lookup our Request Select Events
         rootPath = '//parcels/osaf/framework/blocks/Events/'
-        requestSelectSidebarItem = Globals.repository.findPath \
-                                (rootPath + 'RequestSelectSidebarItem')
-        requestSelectItem = Globals.repository.findPath \
-                                   (rootPath + 'RequestSelectItem')
+        requestSelectSidebarItem = \
+          Globals.repository.findPath (rootPath + 'RequestSelectSidebarItem')
+        selectionChangedInsideActiveView = \
+          Globals.repository.findPath (rootPath + 'SelectionChangedInsideActiveView')
 
-        # Tell the sidebar we want to go to the 'All' box
-        args = {}
-        args['itemName'] = 'AllView'
-        contactKind = Contacts.ContactsParcel.getContactKind ()
-        if newItem.isItemOf (contactKind):
-            # go to Contacts for a new Contact
-            args['itemName'] = 'ContactTableView'
-        self.Post(requestSelectSidebarItem, args)
+        # Tell the sidebar we want to go to the All or contacts box
+        if newItem.isItemOf (Contacts.ContactsParcel.getContactKind ()):
+            itemName = 'ContactTableView'
+        else:
+            itemName = 'AllTableView'
+        self.Post(requestSelectSidebarItem, {'itemName':itemName})
 
         # Tell the ActiveView to select our new item
-        args = {}
-        args['item'] = newItem
-        self.Post(requestSelectItem, args)
+        self.Post (selectionChangedInsideActiveView, {'item':newItem})
 
     def onNewEventUpdateUI (self, notification):
         notification.data ['Enable'] = True
@@ -209,7 +205,7 @@ class MainView(View):
         """
         sidebarPath = '//parcels/osaf/views/main/Sidebar'
         sidebar = Globals.repository.findPath (sidebarPath)
-        selectedBlock = sidebar.selection
+        selectedBlock = sidebar.contents [sidebar.widget.GetGridCursorRow ()]
         assert selectedBlock, "No selected block in the Sidebar"
         try:
             selectionContents = selectedBlock.contents
@@ -346,16 +342,15 @@ class MainView(View):
             return
 
         # lookup the Request Select Event
-        rootPath = '//parcels/osaf/framework/blocks/Events/'
-        requestSelectItem = Globals.repository.findPath \
-                                   (rootPath + 'RequestSelectItem')
+        selectionChangedInsideActiveView = \
+          Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChangedInsideActiveView')
 
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
-        args = {}
-        args['item'] = None
-        args['collection'] = True
-        self.Post(requestSelectItem, args)
+
+
+
+        self.Post (selectionChangedInsideActiveView, {'item':self.getSidebarSelectedCollection ()})
 
     def onShareOrManageEventUpdateUI (self, notification):
         """
@@ -530,20 +525,15 @@ class MainView(View):
             detail view """
 
         rootPath = '//parcels/osaf/framework/blocks/Events/'
-        requestSelectSidebarItem = Globals.repository.findPath \
-                                (rootPath + 'RequestSelectSidebarItem')
-        requestSelectItem = Globals.repository.findPath \
-                                   (rootPath + 'RequestSelectItem')
+        requestSelectSidebarItem = \
+          Globals.repository.findPath (rootPath + 'RequestSelectSidebarItem')
+        selectionChangedInsideActiveView = \
+          Globals.repository.findPath (rootPath + 'SelectionChangedInsideActiveView')
 
         # Tell the sidebar we want to select this view
-        args = {}
-        args['item'] = view
-        self.Post(requestSelectSidebarItem, args)
+        self.Post(requestSelectSidebarItem, {'item':view})
 
         if showDetailView:
             # Tell the ActiveView to select the collection
             # It will pass the collection on to the Detail View.
-            args = {}
-            args['item'] = None
-            args['collection'] = True
-            self.Post(requestSelectItem, args)
+            self.Post (selectionChangedInsideActiveView, {'item':view})
