@@ -142,7 +142,7 @@ else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
             echo GCJ_HOME is incorrect; \
             echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/gcc-3.4.2; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/$(GCC_VERSION); \
             false; \
         else \
             $(GCJ_HOME)/bin/gcj --v; \
