@@ -252,9 +252,48 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [buildenv['make'], "binaries" ],
              "Making internal binaries")
 
-        
-
     try: # build
+        if mode == "debug":
+            print "Building debug"
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Building debug..." + "\n")
+            os.chdir(extModuleDir)
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], "DEBUG=1" ],
+             "Making external programs")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], "DEBUG=1", "binaries" ],
+             "Making external binaries")
+            os.chdir(intModuleDir)
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], "DEBUG=1" ],
+             "Making internal programs")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], "DEBUG=1", "binaries" ],
+             "Making internal binaries")
+
+        if mode == "release":
+            print "Building release"
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Building release..." + "\n")
+            os.chdir(extModuleDir)
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'] ],
+             "Making external programs")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             buildenv, info['name'],
+             [buildenv['make'], "binaries" ],
+             "Making external binaries")
+            os.chdir(intModuleDir)
+            outputList = hardhatutil.executeCommandReturnOutput(
+             buildenv, info['name'],
+             [buildenv['make'] ],
+             "Making internal programs")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             buildenv, info['name'],
+             [buildenv['make'], "binaries" ],
+             "Making internal binaries")
+        
     except Exception, e:
         print "a build error"
         log.write("***Error during build***" + "\n")
