@@ -53,6 +53,7 @@ public:
 		wxWindow		*parentW,
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
+		bool				bUseUnicode,
 		bool				bVisibleSelection );
 
 	long HitTest(

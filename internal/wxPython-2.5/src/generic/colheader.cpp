@@ -42,7 +42,7 @@
 	#include "wx/listbox.h"
 	#include "wx/dcclient.h"
 	#include "wx/bitmap.h"
-#endif // WX_PRECOMP
+#endif
 
 #include "wx/renderer.h"
 #include "wx/colheader.h"
@@ -991,6 +991,8 @@ wxColumnHeaderItem		*itemRef;
 	if (itemRef != NULL)
 	{
 		itemRef->SetUIExtent( extentPt.x, extentPt.y );
+
+		RecalculateItemExtents();
 		RefreshItem( itemIndex );
 	}
 }
@@ -1095,14 +1097,14 @@ long			resultV;
 		}
 	}
 
-#elif 1 || defined(__WXMAC__)
+#else
 wxClientDC	dc( this );
 
 	// NB: this case being used for both Mac and GTK
 	// no DC needed for Mac rendering (except for bitmaps)
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR, m_BVisibleSelection );
+			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 #endif
 
 	return resultV;
@@ -1453,7 +1455,8 @@ void wxColumnHeaderItem::SetItemData(
 	m_BSortAscending = info->m_BSortAscending;
 
 	SetLabelText( info->m_LabelTextRef );
-	if (m_BitmapRef != NULL)
+
+	if (info->m_BitmapRef != m_BitmapRef)
 		SetBitmapRef( *(info->m_BitmapRef), NULL );
 }
 
@@ -1536,11 +1539,12 @@ void wxColumnHeaderItem::SetUIExtent(
 	long			originX,
 	long			extentX )
 {
-	// FIXME: range-check these properly!
-	if (originX >= 0)
+	if ((originX >= 0) && (m_OriginX != originX))
 		m_OriginX = originX;
-	if (extentX >= 0)
-		m_ExtentX = extentX;
+
+	// NB: not currently permitted
+//	if ((extentX >= 0) && (m_ExtentX != extentX))
+//		m_ExtentX = extentX;
 }
 
 bool wxColumnHeaderItem::GetFlagAttribute(
@@ -1624,6 +1628,7 @@ long wxColumnHeaderItem::DrawItem(
 	wxWindow		*parentW,
 	wxClientDC		*dc,
 	const wxRect		*boundsR,
+	bool				bUseUnicode,
 	bool				bVisibleSelection )
 {
 //	if ((boundsR == NULL) || boundsR->IsEmpty())
@@ -1633,6 +1638,7 @@ long wxColumnHeaderItem::DrawItem(
 #if defined(__WXMSW__)
 	wxUnusedVar( parentW );
 	wxUnusedVar( dc );
+	wxUnusedVar( bUseUnicode );
 	wxUnusedVar( bVisibleSelection );
 
 	// NB: implementation not needed
@@ -1706,13 +1712,6 @@ OSStatus				errStatus;
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
 	CFStringRef			cfLabelText;
-	bool				bUseUnicode;
-
-#if wxUSE_UNICODE
-		bUseUnicode = TRUE;
-#else
-		bUseUnicode = FALSE;
-#endif
 
 		cfLabelText =
 			(bUseUnicode
@@ -1798,6 +1797,7 @@ bool					bSelected, bHasIcon;
 	if (bSelected && m_BSortEnabled)
 	{
 #if defined(__WXGTK__)
+		// NB: should the first arg be the original "boundsR" arg ??
 		GTKGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
 		GTKDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 #else
@@ -1808,6 +1808,7 @@ bool					bSelected, bHasIcon;
 	// render the bitmap, should one be present
 	if (bHasIcon)
 	{
+		// NB: should the first arg be the original "boundsR" arg ??
 		GetBitmapItemBounds( &localBoundsR, m_TextJust, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
