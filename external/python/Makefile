@@ -105,6 +105,9 @@ installext:
 sources:: bzip2-$(BZIP2VERSION).tar.gz zlib-$(ZLIBVERSION).tar.gz
 
 expand:: bzip2-$(BZIP2VERSION)-expanded zlib-$(ZLIBVERSION)-expanded
+ifeq ($(VERSION),2.4)
+	rm -f $(SRC)/PCbuild/pcbuild.sln
+endif
 
 clean:
 	rm -rf bzip2-$(BZIP2VERSION)/$(BUILD) bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib

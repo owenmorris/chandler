@@ -22,6 +22,8 @@ Upgrading python build
    - edit _bsddb.vcproj to use libdb43.lib and reset IgnoreDefaultLibraryNames
    - edit zlib.vcproj to point at zlib 1.2.1 instead of zlib 1.1.4
    - edit zlib.vcproj to remove the VCPreLinkEventTool checking for zlib
+   - edit bz2.vcproj to remove the VCPreLinkEventTool checking for bzip2
+   - disable the _ssl, _testcapi, _tkinter, winsound, win9xpopen projects
    - make
 
  On other OS:
