@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- Copyright (c) 2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="views"
+        xmlns="//Schema/Core"
+        xmlns:blocks="//parcels/OSAF/framework/blocks"
+        xmlns:views="//parcels/OSAF/examples/stockquote/views"
+        itemClass="OSAF.examples.stockquote.StockQuote.StockQuoteViewParcel">
+
+  <!-- The main block for the view: -->
+
+  <blocks:BoxContainer itemName="StockQuoteView"
+        itemClass="OSAF.examples.stockquote.StockQuote.StockQuoteView">
+
+    <displayName>Stock Quote</displayName>
+    <childrenBlocks itemref="views:StockQuoteView/TitleLabel"/>
+    <childrenBlocks itemref="views:StockQuoteView/layout"/>
+    <orientationEnum>Vertical</orientationEnum>
+    <open>True</open>
+    <size>0,0</size>
+    <minimumSize>0,0</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+    <blockEvents itemref="views:GetQuoteEvent"/>
+
+    <blocks:BoxContainer itemName="layout">
+      <childrenBlocks itemref="views:StockQuoteView/GetQuoteButton"/>
+      <childrenBlocks itemref="views:StockQuoteView/SymbolText"/>
+      <childrenBlocks itemref="views:StockQuoteView/ValueLabel"/>
+      <orientationEnum>Horizontal</orientationEnum>
+      <open>True</open>
+      <size>0,0</size>
+      <minimumSize>0,0</minimumSize>
+      <border>0.0, 0.0, 0.0, 0.0</border>
+      <alignmentEnum>grow</alignmentEnum>
+      <stretchFactor>1.0</stretchFactor>
+    </blocks:BoxContainer>
+
+    <!-- The button -->
+
+    <blocks:Button itemName="GetQuoteButton">
+      <title>Get Quote</title>
+      <buttonKind>Text</buttonKind>
+      <event itemref="views:GetQuoteEvent"/>
+      <open>True</open>
+      <size>80,20</size>
+      <minimumSize>80,20</minimumSize>
+      <border>0.0, 0.0, 0.0, 0.0</border>
+      <alignmentEnum>alignCenter</alignmentEnum>
+      <stretchFactor>0.0</stretchFactor>
+    </blocks:Button>
+
+    <!-- The text box -->
+
+    <blocks:EditText itemName="SymbolText">
+      <lineStyleEnum>SingleLine</lineStyleEnum>
+      <textAlignmentEnum>Left</textAlignmentEnum>
+      <textStyleEnum>PlainText</textStyleEnum>
+      <readOnly>False</readOnly>
+      <characterStyle itemref="views:StockQuoteView/TextStyle"/>
+      <!-- XXX Should somehow set a default value here -->
+      <!-- XXX Pressing enter should send same event as button -->
+      <open>True</open>
+      <size>80,20</size>
+      <minimumSize>80,20</minimumSize>
+      <border>0.0, 0.0, 0.0, 0.0</border>
+      <alignmentEnum>alignCenter</alignmentEnum>
+      <stretchFactor>0.0</stretchFactor>
+    </blocks:EditText>
+
+    <!-- The value label -->
+    <blocks:StaticText itemName="ValueLabel">
+      <textAlignmentEnum>Left</textAlignmentEnum>
+      <characterStyle itemref="views:StockQuoteView/TextStyle"/>
+      <title>$</title>
+      <size>80,20</size>
+      <minimumSize>80,20</minimumSize>
+      <border>3.0, 3.0, 3.0, 3.0</border>
+      <alignmentEnum>alignCenter</alignmentEnum>
+      <stretchFactor>0.0</stretchFactor>
+    </blocks:StaticText>  
+
+    <!-- The Title Label -->
+    <blocks:StaticText itemName="TitleLabel">
+      <textAlignmentEnum>Center</textAlignmentEnum>
+      <characterStyle itemref="views:StockQuoteView/TitleStyle"/>
+      <title>Web Services Sample Parcel</title>
+      <size>160,40</size>
+      <minimumSize>160,40</minimumSize>
+      <border>3.0, 3.0, 3.0, 3.0</border>
+      <stretchFactor>0.0</stretchFactor>
+    </blocks:StaticText>  
+
+    <!-- A style for normal text -->
+    <blocks:CharacterStyle itemName="TextStyle">
+      <fontFamily>DefaultUIFont</fontFamily>
+      <fontSize>10.0</fontSize>
+      <fontStyle></fontStyle>
+      <fontName></fontName>
+    </blocks:CharacterStyle>
+
+    <!-- A style for title text -->
+    <blocks:CharacterStyle itemName="TitleStyle">
+      <fontFamily>DefaultUIFont</fontFamily>
+      <fontSize>16.0</fontSize>
+      <fontStyle>bold</fontStyle>
+      <fontName></fontName>
+    </blocks:CharacterStyle>
+
+  </blocks:BoxContainer>
+
+  <!-- The event that the button fires -->
+
+  <blocks:BlockEvent itemName="GetQuoteEvent">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="views:StockQuoteView"/>
+    <methodName>OnGetQuoteEvent</methodName>
+  </blocks:BlockEvent>
+
+  <!-- The node that is added to the side bar -->
+
+  <blocks:Node itemName="StockQuoteViewNode">
+    <displayName>Stock Quote</displayName>
+    <item itemref="views:StockQuoteView"/>
+  </blocks:Node>
+
+</Parcel>
