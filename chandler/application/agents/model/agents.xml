@@ -43,8 +43,20 @@
     <cardinality>single</cardinality>
   </Attribute>
   
+  <Attribute itemName="agents:actionValue">
+    <displayName>Action Script</displayName>
+    <type itemref="types:String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+    <Attribute itemName="agents:actionFilePath">
+    <displayName>Action Script</displayName>
+    <type itemref="types:String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
   <Attribute itemName="agents:asyncFlag">
-    <displayName>Asynchrounous Flag</displayName>
+    <displayName>Asynchronous Flag</displayName>
     <type itemref="types:Bool"/>
     <cardinality>single</cardinality>
   </Attribute>
@@ -70,6 +82,8 @@
       <attributes itemref="agents:actionDescription"/>
       <attributes itemref="agents:actionType"/>
       <attributes itemref="agents:actionScript"/>
+      <attributes itemref="agents:actionValue"/>
+      <attributes itemref="agents:actionFilePath"/>     
       <attributes itemref="agents:asyncFlag"/>
       <attributes itemref="agents:actionOwner"/>
       <attributes itemref="agents:actionRepertoireOwner"/>

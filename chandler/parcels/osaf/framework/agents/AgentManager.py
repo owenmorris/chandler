@@ -28,7 +28,7 @@ class AgentManager:
         
         self.agentMap = {}
         self.activeAgents = {}
-        
+
         self._LoadAgents()
         self._CheckForNewAgents()
         

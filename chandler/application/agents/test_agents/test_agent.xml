@@ -15,9 +15,9 @@
          <attribute name="conditionValue">.*differnet.com</attribute>     
       </condition>
       
-      <action name="Test Action">
+      <action name="Print Message Body">
          <attribute name="actionType">inline</attribute>
-         <attribute name="actionDescription">an action for messing around with possibities</attribute>
+         <attribute name="actionDescription">this action prints the body attribute to standard output</attribute>
          <attribute name="actionScript">print data['body']</attribute>
       </action>     
    </instruction> 

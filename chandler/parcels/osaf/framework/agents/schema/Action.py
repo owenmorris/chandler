@@ -7,6 +7,7 @@ import os
 import os.path
 
 from model.item.Item import Item
+from wxPython.wx import wxWave
 
 """
 The Action Class is a persistent object containing information about a particular action that can be
@@ -46,13 +47,22 @@ class Action(Item):
         '''
         result = None
         script = self.actionScript
+        actionType = self.actionType
+                
+        # set up an optional value to be used by the script
+        if self.hasAttributeValue('actionValue'):
+            actionValue = self.actionValue
+        else:
+            actionValue = None
+                
+        # execute the script according to the action type
         try:
-            if self.actionType == 'script': 
+            if actionType == 'script': 
                 scriptPath = os.path.join("application", "agents", "scripts", script)
                 execfile(scriptPath)
-            elif self.actionType == 'expression':
+            elif actionType == 'expression':
                 result = eval(script)
-            elif self.actionType == 'inline':
+            elif actionType == 'inline':
                 exec script
             else:
                 # FIXME: should probably throw an exception here

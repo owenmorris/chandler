@@ -65,6 +65,9 @@ class Condition(Item):
         if compareMode == 'equals':
             return attributeValue == conditionValue
         
+        if compareMode == 'notequals':
+            return attributeValue != conditionValue
+        
         if compareMode == 'contains':
             return attributeValue.find(conditionValue) >= 0
         
