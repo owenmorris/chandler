@@ -38,6 +38,7 @@
                     <object class="separator">
                     </object>
                     <object class="wxTextCtrl" name="uriBox">
+                        <style>wxTE_PROCESS_ENTER</style>
                         <option>1</option>
                         <size>160,18</size>
                         <value></value>
