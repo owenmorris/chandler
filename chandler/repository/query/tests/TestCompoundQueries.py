@@ -43,5 +43,4 @@ if __name__ == "__main__":
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-#    unittest.main()
-    pass
+    unittest.main()

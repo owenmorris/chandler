@@ -56,6 +56,11 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         results = self._executeQuery(u'for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ('arc' in i.itsName and not len(i.attributes) >= 4), results)
 
+    def testMethodCallQuery(self):
+        """  """
+        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
+        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+
     def testWithData(self):
         """ Test a multiple item path traversal in the query predicate """
         tools.timing.reset()
@@ -91,5 +96,4 @@ if __name__ == "__main__":
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-#    unittest.main()
-    pass
+    unittest.main()
