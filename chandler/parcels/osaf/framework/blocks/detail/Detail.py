@@ -1209,13 +1209,13 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
             except AttributeError:
                 reminderDelta = None
             if reminderDelta is None:
-                reminderChoice = _("No reminder")
+                reminderChoice = _("None")
             else:
                 reminderChoice = (reminderDelta.minutes == 1) and _("1 minute") or (_("%i minutes") % reminderDelta.minutes)
             choiceIndex = self.widget.FindString(reminderChoice)
-            # If we can't find the choice, just show "no reminder" - this'll happen if this event's reminder has been "snoozed"
+            # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
             if choiceIndex == -1:
-                choiceIndex = self.widget.FindString(_("No reminder"))
+                choiceIndex = self.widget.FindString(_("None"))
             self.widget.Select(choiceIndex)
         return hasChanged
 
@@ -1223,7 +1223,7 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
         item = self.selectedItem()
         if item is not None:
             reminderChoice = self.widget.GetStringSelection()
-            if reminderChoice == _('No reminder'):
+            if reminderChoice == _('None'):
                 item.reminderDelta = None
             else:
                 # @@@BJS Assumes the menu item is of the form "nn Minutes"

@@ -330,7 +330,22 @@ class ShownSynchronizer:
     def wxSynchronizeWidget(self):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
-    
+
+# These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
+_wxFlagMappings = {
+    'grow': wx.GROW,
+    'growConstrainAspectRatio': wx.SHAPED, 
+    'alignCenter': wx.ALIGN_CENTER,
+    'alignTopCenter': wx.ALIGN_TOP,
+    'alignMiddleLeft': wx.ALIGN_LEFT,
+    'alignBottomCenter': wx.ALIGN_BOTTOM,
+    'alignMiddleRight': wx.ALIGN_RIGHT, 
+    'alignTopLeft': wx.ALIGN_TOP | wx.ALIGN_LEFT,
+    'alignTopRight': wx.ALIGN_TOP | wx.ALIGN_RIGHT,
+    'alignBottomLeft': wx.ALIGN_BOTTOM | wx.ALIGN_LEFT,
+    'alignBottomRight': wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT,
+}
+
 class wxRectangularChild (ShownSynchronizer, wx.Panel):
     def __init__(self, *arguments, **keywords):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
@@ -357,28 +372,8 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
     CalculateWXBorder = classmethod(CalculateWXBorder)
 
     def CalculateWXFlag (theClass, block):
-        if block.alignmentEnum == 'grow':
-            flag = wx.GROW
-        elif block.alignmentEnum == 'growConstrainAspectRatio':
-            flag = wx.SHAPED
-        elif block.alignmentEnum == 'alignCenter':
-            flag = wx.ALIGN_CENTER
-        elif block.alignmentEnum == 'alignTopCenter':
-            flag = wx.ALIGN_TOP
-        elif block.alignmentEnum == 'alignMiddleLeft':
-            flag = wx.ALIGN_LEFT
-        elif block.alignmentEnum == 'alignBottomCenter':
-            flag = wx.ALIGN_BOTTOM
-        elif block.alignmentEnum == 'alignMiddleRight':
-            flag = wx.ALIGN_RIGHT
-        elif block.alignmentEnum == 'alignTopLeft':
-            flag = wx.ALIGN_TOP | wx.ALIGN_LEFT
-        elif block.alignmentEnum == 'alignTopRight':
-            flag = wx.ALIGN_TOP | wx.ALIGN_RIGHT
-        elif block.alignmentEnum == 'alignBottomLeft':
-            flag = wx.ALIGN_BOTTOM | wx.ALIGN_LEFT
-        elif block.alignmentEnum == 'alignBottomRight':
-            flag = wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT
+        # Map from the alignmentEnum string to wx constant(s)
+        flag = _wxFlagMappings[block.alignmentEnum]
 
         # @@@ Temporary solution to allow for borders on a single side
         numBordersSpecified = 0
@@ -467,11 +462,15 @@ class DetailBlock(Block):
                            newView.stretchFactor, 
                            wxRectangularChild.CalculateWXFlag (newView), 
                            wxRectangularChild.CalculateWXBorder (newView))
-                self.widget.Layout()
+                
+                # @@@BJS Probably unnecessary - I'm leaving it out for now.
+                # self.widget.Layout()
 
     def onSelectItemEvent (self, event):
         self.contents = event.arguments['item']
         self.SetChildBlock()
+
+# @@@BJS: "reload parcels" needs to blow away this cache!
 
 class DetailViewCache (Item):
     def GetViewForItem (self, item):

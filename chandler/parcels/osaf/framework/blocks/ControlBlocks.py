@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
+import os, sys
 import application.Globals as Globals
 from application.Application import mixinAClass
 from Block import *
@@ -1215,12 +1215,15 @@ class Timer(Block):
         timer = self.widget
         timer.Stop()
 
-        # Set the new time, if we have one. If it's in the past, fire "really soon".
+        # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
+        # don't bother firing.
         if when is not None:
-            millisecondsUntilFiring = (when - mx.DateTime.now()).seconds * 1000
+            millisecondsUntilFiring = (when - mx.DateTime.now()).seconds * 1000                
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
-                
+            elif millisecondsUntilFiring > sys.maxint:
+                millisecondsUntilFiring = sys.maxint
+
             # print "*** setFiringTime: will fire at %s in %s minutes" % (when, millisecondsUntilFiring / 60000)
             timer.Start(millisecondsUntilFiring, True)
         else:

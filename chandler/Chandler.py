@@ -4,10 +4,9 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 def main():
-    try:
-        message = "while trying to start."
-
-        import sys, logging, traceback, wx
+    message = "while trying to start."
+    
+    def realMain():
         if __debug__ and '-wing' in sys.argv:
             """
               Check for -wing command line argument; if specified, try to connect to
@@ -42,19 +41,29 @@ def main():
         message = "and had to shut down."
         application.MainLoop()
 
-    except Exception, exception:
-        type, value, stack = sys.exc_info()
-        formattedBacktrace = "".join (traceback.format_exception (type, value, stack))
-
-        message = "Chandler encountered an unexpected problem %s\n\n%s" % (message, formattedBacktrace)
-        logging.exception(message)
-        # @@@ 25Issue - Cannot create wxItems if the app failed to initialize
-        dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
-        dialog.ShowModal()
-        dialog.Destroy()
-        
-        #Reraising the exception, so wing catches it.
-        raise
+    import sys
+    if '-nocatch' in sys.argv:
+        # When debugging, it's handy to run without the outer exception frame
+        import logging, traceback, wx
+        realMain()
+    else:
+        # The normal way: wrap the app in an exception frame
+        try:
+            import logging, traceback, wx
+            realMain()
+        except Exception, exception:
+            type, value, stack = sys.exc_info()
+            formattedBacktrace = "".join (traceback.format_exception (type, value, stack))
+    
+            message = "Chandler encountered an unexpected problem %s\n\n%s" % (message, formattedBacktrace)
+            logging.exception(message)
+            # @@@ 25Issue - Cannot create wxItems if the app failed to initialize
+            dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
+            
+            #Reraising the exception, so wing catches it.
+            raise
 
     #@@@Temporary testing tool written by Morgen -- DJA
     # import tools.timing

@@ -549,6 +549,7 @@
     <blockName value="CalendarDetailsArea"/>
     <childrenBlocks itemref="doc:EditAllDay"/>
     <childrenBlocks itemref="doc:CalDetailsLeftSpacer"/>
+    <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
     <childrenBlocks itemref="doc:EditReminder"/>
     <childrenBlocks itemref="doc:CalDetailsRightSpacer"/>
     <!-- Attributes -->
@@ -580,10 +581,20 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
   </StaticText>
 
+  <StaticText itsName="CalDetailsReminderLabel">
+    <blockName value="CalDetailsReminderLabel"/>
+    <title>alarm:</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>50, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+  </StaticText>
+
   <Choice itsName="EditReminder"
             itemClass="osaf.framework.blocks.detail.Detail.EditReminder">
     <blockName value="EditReminder"/>
-    <choices>No reminder</choices>
+    <choices>None</choices>
     <choices>1 minute</choices>
     <choices>5 minutes</choices>
     <choices>10 minutes</choices>

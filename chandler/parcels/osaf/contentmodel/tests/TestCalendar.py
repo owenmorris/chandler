@@ -12,6 +12,7 @@ import unittest, os
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
+import repository.item
 
 import mx.DateTime as DateTime
 
@@ -125,6 +126,13 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
         self.assertEqual(firstItem.startTime,
                          DateTime.DateTime(2003, 3, 4, 12, 45))
+        
+        # Test reminderTime
+        firstItem.SetReminderDelta(DateTime.DateTimeDeltaFrom(minutes=30))
+        self.assertEqual(firstItem.reminderTime, DateTime.DateTime(2003, 3, 4, 12, 15))
+        firstItem.SetReminderDelta(None)
+        self.failIf(firstItem.hasAttributeValue('reminderTime'))
+        
 
     def testDeleteItem(self):
         """ Test calendar event deletion """

@@ -197,10 +197,9 @@ class CalendarEventMixin(Item.Item):
 
     def GetReminderDelta(self):
         """ Returns the difference between startTime and reminderTime, an mxDateTimeDelta """
-        if (self.hasAttributeValue("startTime") and
-            self.hasAttributeValue("reminderTime")):
+        try:
             return self.startTime - self.reminderTime
-        else:
+        except AttributeError:
             return None
    
     def SetReminderDelta(self, reminderDelta):
@@ -208,7 +207,11 @@ class CalendarEventMixin(Item.Item):
             if reminderDelta is not None:
                 self.reminderTime = self.startTime - reminderDelta
             else:
-                del self.reminderTime
+                
+                try:
+                    del self.reminderTime
+                except AttributeError:
+                    pass
     
     reminderDelta = property(GetReminderDelta, SetReminderDelta,
                              doc="reminderDelta: the amount of time in advance of the event that we want a reminder")
