@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>AttrDef</name>
-    <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">KindKind</class>
+  <name>AttrDef</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
 
-    <ref name="AttrDefs">
-        <ref name="Required" type="path">//Schema/Model/Attributes/Required</ref>
-        <ref name="Persist" type="path">//Schema/Model/Attributes/Persist</ref>
-        <ref name="Cardinality" type="path">//Schema/Model/Attributes/Cardinality</ref>
-        <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
-        <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>
-        <ref name="OtherName" type="path">//Schema/Model/Attributes/OtherName</ref>
-        <ref name="DeletePolicy" type="path">//Schema/Model/Attributes/DeletePolicy</ref>
-        <ref name="CopyPolicy" type="path">//Schema/Model/Attributes/CopyPolicy</ref>
-        <ref name="CountPolicy" type="path">//Schema/Model/Attributes/CountPolicy</ref>
-        <ref name="DisplayName" type="path">//Schema/Model/Attributes/DisplayName</ref>
-        <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
-    </ref>
-    <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>
+  <ref name="AttrDefs">
+    <ref name="Required" type="path">/Model/Attributes/Required</ref>
+    <ref name="Persist" type="path">/Model/Attributes/Persist</ref>
+    <ref name="Cardinality" type="path">/Model/Attributes/Cardinality</ref>
+    <ref name="Type" type="path">/Model/Attributes/Type</ref>
+    <ref name="Default" type="path">/Model/Attributes/Default</ref>
+    <ref name="InheritFrom" type="path">/Model/Attributes/InheritFrom</ref>
+    <ref name="OtherName" type="path">/Model/Attributes/OtherName</ref>
+    <ref name="DeletePolicy" type="path">/Model/Attributes/DeletePolicy</ref>
+    <ref name="CopyPolicy" type="path">/Model/Attributes/CopyPolicy</ref>
+    <ref name="CountPolicy" type="path">/Model/Attributes/CountPolicy</ref>
+    <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
+    <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
+  </ref>
+
+  <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>
+
 </item>

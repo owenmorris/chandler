@@ -33,6 +33,7 @@ class Item(object):
 
         self._deleted = False
         self._attributes = _kwds.get('_attributes') or {}
+        self._references = _kwds.get('_references') or {}
         self._uuid = _kwds.get('_uuid') or UUID()
         
         self._name = name or self._uuid.str64()
@@ -54,8 +55,8 @@ class Item(object):
     
     def __repr__(self):
 
-        return ("<" + type(self).__name__ + ": " +
-                self._name + " " + str(self._uuid) + ">")
+        return "<%s: %s %s>" %(type(self).__name__, self._name,
+                               self._uuid.str16())
 
     def __getattr__(self, name):
 
@@ -66,15 +67,22 @@ class Item(object):
 
     def __setattr__(self, name, value):
 
-        if name[0] != '_' and self._attributes.has_key(name):
-            self.setAttribute(name, value)
-        else:
-            super(Item, self).__setattr__(name, value)
+        if name[0] != '_':
+            if self._attributes.has_key(name):
+                self.setAttribute(name, value, _attrDict=self._attributes)
+                return
+            elif self._references.has_key(name):
+                self.setAttribute(name, value, _attrDict=self._references)
+                return
+
+        super(Item, self).__setattr__(name, value)
 
     def __delattr__(self, name):
 
         if self._attributes.has_key(name):
-            self.removeAttribute(name)
+            self.removeAttribute(name, _attrDict=self._attributes)
+        elif self._references.has_key(name):
+            self.removeAttribute(name, _attrDict=self._references)
         else:
             super(Item, self).__delattr__(name)
 
@@ -99,75 +107,117 @@ class Item(object):
 
         return default
 
-    def setAttribute(self, name, value=None):
-        '''Create and/or set a Chandler attribute.
+    def setAttribute(self, name, value=None, _attrDict=None):
+        """Create and/or set a Chandler attribute.
 
         This method is only required when the Chandler attribute doesn't yet
         exist or when there is an ambiguity between a python and a Chandler
-        attribute, a situation best avoided.'''
+        attribute, a situation best avoided."""
 
-        old = self._attributes.get(name)
+        isItem = isinstance(value, Item)
+        isRef = not isItem and (isinstance(value, ItemRef) or
+                                isinstance(value, RefDict))
 
-        if isinstance(old, ItemRef):
-            if isinstance(value, Item):
-                old._reattach(self, old.other(self), value,
-                              self._otherName(name))
+        if _attrDict is None:
+            if self._attributes.has_key(name):
+                _attrDict = self._attributes
+            elif self._references.has_key(name):
+                _attrDict = self._references
+
+        if _attrDict is self._references:
+            if not (isItem or isRef):
+                del _attrDict[name]
             else:
-                old._detach(self, old.other(self), self._otherName(name))
+                old = _attrDict.get(name)
+
+                if isinstance(old, ItemRef):
+                    old._reattach(self, old.other(self), value,
+                                  self._otherName(name))
+                    return
+                else:
+                    old.clear()
+
+        elif (isItem or isRef) and _attrDict is self._attributes:
+            del _attrDict[name]
+
+        if isItem:
+            otherName = self._otherName(name)
+            value = ItemRef(self, value, otherName)
+            card = self.getAttrAspect(name, 'Cardinality', 'single')
+
+            if card == 'dict':
+                refs = RefDict(self, name, otherName)
+                refs[value._item.refName(name)] = value
+                value = refs
+            elif card == 'list':
+                refs = RefList(self, name, otherName)
+                refs[value._item.refName(name)] = value
+                value = refs
+
+            self._references[name] = value
+
+        elif isRef:
+            self._references[name] = value
+
         else:
-            if isinstance(old, RefDict):
-                old.clear()
-
-            if isinstance(value, Item):
-                otherName = self._otherName(name)
-                value = ItemRef(self, value, otherName)
-                card = self.getAttrAspect(name, 'Cardinality', 'single')
-
-                if card == 'dict':
-                    refs = RefDict(self, name, otherName)
-                    refs[value._item.refName(name)] = value
-                    value = refs
-                elif card == 'list':
-                    refs = RefList(self, name, otherName)
-                    refs[value._item.refName(name)] = value
-                    value = refs
-                    
             self._attributes[name] = value
 
-    def getAttribute(self, name):
-        '''Return the named Chandler attribute value or raise KeyError when not found.
+    def getAttribute(self, name, _attrDict=None):
+        '''Return the named Chandler attribute value or raise AttributeError when not found.
 
-        This method is only required when there is an ambiguity between a
-        python and a Chandler attribute, a situation best avoided.'''
+        Calling this method is only required when there is a name ambiguity
+        between a python and a Chandler attribute, a situation best avoided.'''
 
         try:
-            value = self._attributes[name]
+            if (_attrDict is self._attributes or
+                _attrDict is None and self._attributes.has_key(name)):
+                return self._attributes[name]
+
+            elif (_attrDict is self._references or
+                  _attrDict is None and self._references.has_key(name)):
+                value = self._references[name]
+                if isinstance(value, ItemRef):
+                    return value.other(self)
+                return value
+
         except KeyError:
-            value = self.getAttrAspect(name, 'Default', None)
-            if value is None:
-                raise
+            pass
 
-        if isinstance(value, ItemRef):
-            return value.other(self)
-        else:
+        value = self.getAttrAspect(name, 'Default', None)
+        if value is not None:
             return value
+        else:
+            raise AttributeError, name
 
-    def removeAttribute(self, name):
+    def removeAttribute(self, name, _attrDict=None):
         'Remove a Chandler attribute.'
-        
-        value = self._attributes[name]
-        del self._attributes[name]
 
-        if isinstance(value, ItemRef):
-            value._detach(self, value.other(self), self._otherName(name))
-        elif isinstance(value, RefDict):
-            value.clear()
+        if _attrDict is None:
+            if self._attributes.has_key(name):
+                _attrDict = self._attributes
+            elif self._references.has_key(name):
+                _attrDict = self._references
 
-    def getValue(self, attribute, key, default=None):
+        if _attrDict is self._attributes:
+            del _attrDict[name]
+        elif _attrDict is self._references:
+            value = _attrDict[name]
+            del _attrDict[name]
+
+            if isinstance(value, ItemRef):
+                value._detach(self, value.other(self), self._otherName(name))
+            elif isinstance(value, RefDict):
+                value.clear()
+
+    def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'
 
-        value = self._attributes.get(attribute, None)
-
+        if _attrDict is None:
+            value = (self._attributes.get(attribute, None) or
+                     self._references.get(attribute, None))
+        else:
+            value = _attrDict.get(attribute, None)
+            
         if value is None:
             return default
 
@@ -182,10 +232,16 @@ class Item(object):
 
         raise TypeError, attribute + " is not multi-valued"
 
-    def setValue(self, attribute, value, key):
+    def setValue(self, attribute, value, key, _attrDict=None):
         'Set a value for a multi-valued attribute for a given key.'
 
-        attrValue = self._attributes.get(attribute, None)
+        if _attrDict is None:
+            if isinstance(value, Item):
+                _attrDict = self._references
+            else:
+                _attrDict = self._attributes
+                
+        attrValue = _attrDict.get(attribute, None)
 
         if attrValue is None:
             card = self.getAttrAspect(attribute, 'Cardinality', 'single')
@@ -196,7 +252,7 @@ class Item(object):
                     attrValue = RefDict(self, attribute,
                                         self._otherName(attribute))
                 else:
-                    attrValue = {key: value}
+                    attrValue = { key: value }
                     return
             elif card == 'list':
                 if isItem:
@@ -208,17 +264,23 @@ class Item(object):
             else:
                 raise TypeError, attribute + " is not multi-valued"
 
-            self._attributes[attribute] = attrValue
+            _attrDict[attribute] = attrValue
 
         attrValue[key] = value
 
-    def addValue(self, attribute, value, key=None):
+    def addValue(self, attribute, value, key=None, _attrDict=None):
         'Add a value for a multi-valued attribute for a given optional key.'
 
-        attrValue = self._attributes.get(attribute, None)
+        if _attrDict is None:
+            if isinstance(value, Item):
+                _attrDict = self._references
+            else:
+                _attrDict = self._attributes
+                
+        attrValue = _attrDict.get(attribute, None)
 
         if attrValue is None:
-            self.setValue(attribute, key, value)
+            self.setValue(attribute, key, value, _attrDict=_attrDict)
         elif isinstance(attrValue, dict):
             attrValue[key] = value
         elif isinstance(attrValue, list):
@@ -229,7 +291,8 @@ class Item(object):
     def hasKey(self, attribute, key):
         'Tell where a multi-valued attribute has a value for a given key.'
 
-        value = self._attributes.get(attribute, None)
+        value = (self._attributes.get(attribute, None) or
+                 self._references.get(attribute, None))
 
         if isinstance(value, dict):
             return value.has_key(key)
@@ -243,7 +306,8 @@ class Item(object):
     def hasValue(self, attribute, value):
         'Tell where a multi-valued attribute has a given value.'
 
-        attrValue = self._attributes.get(attribute, None)
+        attrValue = (self._attributes.get(attribute, None) or
+                     self._references.get(attribute, None))
 
         if isinstance(attrValue, dict):
             for v in attrValue.itervalues():
@@ -259,10 +323,14 @@ class Item(object):
 
         return False
 
-    def removeValue(self, attribute, key):
+    def removeValue(self, attribute, key, _attrDict=None):
         'Remove a value from multi-valued attribute for a given key.'
 
-        value = self._attributes.get(attribute, None)
+        if _attrDict is not None:
+            value = _attrDict.get(attribute, None)
+        else:
+            value = (self._attributes.get(attribute, None) or
+                     self._references.get(attribute, None))
 
         if isinstance(value, dict):
             del value[key]
@@ -277,21 +345,24 @@ class Item(object):
         The item is added to the endpoint if it is multi-valued. The item
         replaces the endpoint if it is single-valued.'''
         
-        self.addValue(attribute, item, item.refName(attribute))
+        self.addValue(attribute, item, item.refName(attribute),
+                      _attrDict = self._references)
 
     def detach(self, attribute, item):
         'Detach an item from an attribute.'
 
-        self.removeValue(attribute, item.refName(attribute))
+        self.removeValue(attribute, item.refName(attribute),
+                         _attrDict = self._references)
 
     def _removeRef(self, name):
 
-        del self._attributes[name]
+        del self._references[name]
 
     def hasAttribute(self, name):
         'Check for existence of a Chandler attribute.'
 
-        return self._attributes.has_key(name)
+        return (self._attributes.has_key(name) or
+                self._references.has_key(name))
     
     def delete(self):
         '''Delete this item and disconnect all its item references.
@@ -310,17 +381,19 @@ class Item(object):
                 for item in self._children.values():
                     item.delete()
 
-            for name in self._attributes.keys():
+            self._attributes.clear()
+
+            for name in self._references.keys():
                 policy = self.getAttrAspect(name, 'DeletePolicy', 'remove')
                 if policy == 'cascade':
-                    value = self._attributes[name]
+                    value = self._references[name]
                     if value is not None:
                         if isinstance(value, ItemRef):
                             others.append(value.other(self))
                         elif isinstance(value, RefDict):
                             others.extend(value.others())
                     
-                self.__delattr__(name)
+                self.removeAttribute(name, _attrDict=self._references)
 
             self._parent._removeItem(self)
             self._setRoot(None)
@@ -356,15 +429,10 @@ class Item(object):
         count = 0
 
         if not self._deleted:
-            for name in self._attributes.iterkeys():
+            for name in self._references.iterkeys():
                 policy = self.getAttrAspect(name, 'CountPolicy', 'none')
                 if policy == 'count':
-                    value = self._attributes[name]
-                    if value is not None:
-                        if isinstance(value, ItemRef):
-                            count += 1
-                        elif isinstance(value, RefDict):
-                            count += len(value)
+                    count += self._references[name]._refCount()
 
         return count
         
@@ -508,8 +576,9 @@ class Item(object):
         elif isinstance(spec, UUID):
             return self.getRepository().find(spec)
 
-        elif isinstance(spec, str):
-            if len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
+        elif isinstance(spec, str) or isinstance(spec, unicode):
+            if (spec[0] != '/' and
+                (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
                 return self.find(UUID(spec))
 
             return self.find(Path(spec))
@@ -527,7 +596,7 @@ class Item(object):
         'Generate the XML representation for this item.'
 
         kind = self._kind
-        generator.startElement('item', { 'uuid': str(self._uuid) })
+        generator.startElement('item', { 'uuid': self._uuid.str16() })
 
         self._xmlTag('name', {}, self._name, generator)
 
@@ -548,15 +617,20 @@ class Item(object):
                 attrType = self.getAttrAspect(attr[0], 'Type')
                 attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
                 self._xmlValue(attr[0], attr[1], 'attribute',
-                               attrType, attrCard, '\n    ',
+                               attrType, attrCard, '\n  ',
                                generator, withSchema)
+
+        for attr in self._references.iteritems():
+            if self.getAttrAspect(attr[0], 'Persist', True):
+                attr[1]._xmlValue(attr[0], self, '\n  ',
+                                  generator, withSchema)
 
         generator.characters('\n')
         generator.endElement('item')
 
     def _xmlTag(self, tag, attrs, value, generator):
 
-        generator.characters('\n    ')
+        generator.characters('\n  ')
         generator.startElement(tag, attrs)
         generator.characters(value)
         generator.endElement(tag)
@@ -577,68 +651,52 @@ class Item(object):
             else:
                 return type(value).__name__
             
-        if isinstance(value, ItemRef):
-            other = value.other(self)
-            if other is None:
-                raise ValueError, "dangling ref on " + str(self.getPath()) + '.' + name
-            self._xmlValue(name, value.other(self).getUUID(), 'ref',
-                           attrType, 'single', indent, generator, withSchema)
-        else:
-            attrs = {}
+        attrs = {}
             
-            if name is not None:
+        if name is not None:
+            if not isinstance(name, str) and not isinstance(name, unicode):
+                attrs['nameType'] = typeName(name)
                 attrs['name'] = str(name)
-                if not isinstance(name, str) and not isinstance(name, unicode):
-                    attrs['nameType'] = typeName(value)
-
-            if tag != 'value':
-                if attrCard != 'single':
-                    attrs['cardinality'] = attrCard
-                if withSchema and tag == 'ref':
-                    attrs['otherName'] = self._otherName(name)
-
-            if isinstance(value, RefDict):
-                tag = 'ref'
-                if withSchema:
-                    attrs['otherName'] = self._otherName(name)
-                    withSchema = False
-            elif not isinstance(value, str):
-                if (tag == 'value' or
-                    ((tag == 'attribute' or
-                      tag == 'ref') and attrCard == 'single')):
-                    if attrType is None:
-                        attrs['type'] = typeName(value)
-                    elif withSchema:
-                        attrs['type'] = attrType.handlerName()
-
-            generator.characters(indent)
-            generator.startElement(tag, attrs)
-
-            if isinstance(value, dict):
-                i = indent + '    '
-                for val in value.iteritems():
-                    self._xmlValue(val[0], val[1], 'value', attrType, 'single',
-                                   i, generator, withSchema)
-                generator.characters(indent)
-            elif isinstance(value, list):
-                i = indent + '    '
-                for val in value:
-                    self._xmlValue(None, val, 'value', attrType, 'single',
-                                   i, generator, withSchema)
-                generator.characters(indent)
             else:
+                attrs['name'] = name
+
+        if attrCard == 'single':
+            if not isinstance(value, str):
                 if attrType is None:
-                    typeHandler = ItemHandler.typeHandlers.get(type(value))
+                    attrs['type'] = typeName(value)
+                elif withSchema:
+                    attrs['type'] = attrType.handlerName()
+        else:
+            attrs['cardinality'] = attrCard
 
-                    if typeHandler is not None:
-                        value = typeHandler.makeString(value)
-                    else:
-                        value = str(value)
+        generator.characters(indent)
+        generator.startElement(tag, attrs)
+
+        if isinstance(value, dict):
+            i = indent + '  '
+            for val in value.iteritems():
+                self._xmlValue(val[0], val[1], 'value', attrType, 'single',
+                               i, generator, withSchema)
+            generator.characters(indent)
+        elif isinstance(value, list):
+            i = indent + '  '
+            for val in value:
+                self._xmlValue(None, val, 'value', attrType, 'single',
+                               i, generator, withSchema)
+            generator.characters(indent)
+        else:
+            if attrType is None:
+                typeHandler = ItemHandler.typeHandlers.get(type(value))
+
+                if typeHandler is not None:
+                    value = typeHandler.makeString(value)
                 else:
-                    value = attrType.serialize(value, withSchema)
-                generator.characters(value)
+                    value = str(value)
+            else:
+                value = attrType.serialize(value, withSchema)
+            generator.characters(value)
 
-            generator.endElement(tag)
+        generator.endElement(tag)
 
 
 class ItemHandler(xml.sax.ContentHandler):
@@ -657,6 +715,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tagAttrs = []
         self.tags = []
         self.attributes = {}
+        self.references = {}
         self.refs = []
         self.collections = []
         self.attrDefs = []
@@ -720,9 +779,10 @@ class ItemHandler(xml.sax.ContentHandler):
         cls = self.cls or (self.kind and self.kind.Class) or Item
         self.item = item = cls(self.name, self.repository, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
-                               _attributes = self.attributes)
+                               _attributes = self.attributes,
+                               _references = self.references)
 
-        for value in item._attributes.itervalues():
+        for value in item._references.itervalues():
             if isinstance(value, RefDict):
                 value._item = item
 
@@ -741,7 +801,7 @@ class ItemHandler(xml.sax.ContentHandler):
             if len(ref) == 2:
                 name = ref[0][0]
                 otherName = ref[0][1]
-                valueDict = item._attributes
+                valueDict = item._references
             else:
                 name = ref[0]
                 if name is None:
@@ -754,7 +814,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 valueDict._item = item
                 
             if other is not None:
-                value = other._attributes.get(otherName)
+                value = other._references.get(otherName)
                 if value is None:
                     value = ItemRef(item, other, otherName)
                 elif isinstance(value, ItemRef):
@@ -846,7 +906,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         else:
             value = self.collections.pop()
-            self.attributes[attrs['name']] = value
+            self.references[attrs['name']] = value
 
     def valueEnd(self, attrs):
 

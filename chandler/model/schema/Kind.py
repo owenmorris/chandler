@@ -19,9 +19,10 @@ class Kind(Item):
         
     def getAttrDef(self, name):
 
-        attrDef = self.getValue('AttrDefs', name)
+        attrDef = self.getValue('AttrDefs', name, _attrDict=self._references)
         if attrDef is None:
-            attrDef = self.getValue('InheritedAttrDefs', name)
+            attrDef = self.getValue('InheritedAttrDefs', name,
+                                    _attrDict=self._references)
             if attrDef is None:
                 return self.inheritAttrDef(name)
 

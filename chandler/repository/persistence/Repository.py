@@ -110,30 +110,31 @@ class Repository(object):
                 return None
 
         elif isinstance(spec, str):
-            if len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
+            if (spec[0] != '/' and
+                (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
                 return self.find(UUID(spec))
             else:
                 return self.find(Path(spec))
 
         return None
 
-    def load(self):
+    def load(self, verbose=False):
         'Load items from the directory the repository was initialized with.'
         
         if os.path.isdir(self._dir):
             contents = file(os.path.join(self._dir, 'contents.lst'), 'r')
             
             for dir in contents.readlines():
-                self._loadRoot(dir[:-1])
+                self._loadRoot(dir[:-1], verbose=verbose)
 
-    def _loadRoot(self, dir):
+    def _loadRoot(self, dir, verbose=False):
 
         cover = Repository.stub(self)
 
         contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
             self._loadItem(os.path.join(self._dir, dir, uuid[:-1] + '.item'),
-                           cover)
+                           cover, verbose=verbose)
         contents.close()
         
         for item in cover:
@@ -143,8 +144,11 @@ class Repository(object):
 
         cover._resolveKinds()
         
-    def _loadItem(self, path, cover, parent=None):
+    def _loadItem(self, path, cover, parent=None, verbose=False):
 
+        if verbose:
+            print path
+            
         handler = ItemHandler(cover, parent or self)
         xml.sax.parse(path, handler)
 

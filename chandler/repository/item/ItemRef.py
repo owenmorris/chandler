@@ -5,6 +5,8 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import Item
+from model.util.UUID import UUID
+from model.util.Path import Path
 
 
 class ItemRef(object):
@@ -46,12 +48,12 @@ class ItemRef(object):
                 card = other.getAttrAspect(name, 'Cardinality', 'single')
                 if card == 'dict':
                     old = RefDict(other, name, other._otherName(name))
-                    other._attributes[name] = old
+                    other._references[name] = old
                     old[item.refName(name)] = self
                     return
                 elif card == 'list':
                     old = RefList(other, name, other._otherName(name))
-                    other._attributes[name] = old
+                    other._references[name] = old
                     old[item.refName(name)] = self
                     return
             
@@ -60,7 +62,7 @@ class ItemRef(object):
     def _detach(self, item, other, name):
 
         if other is not None:
-            old = other.getAttribute(name)
+            old = other.getAttribute(name, _attrDict=other._references)
             if isinstance(old, RefDict):
                 old._removeRef(item.refName(name))
             else:
@@ -80,6 +82,43 @@ class ItemRef(object):
             return self._item
         else:
             return None
+
+    def _refCount(self):
+
+        return 1
+
+    def _xmlValue(self, name, item, indent, generator, withSchema):
+
+        def typeName(value):
+            
+            if isinstance(value, UUID):
+                return 'uuid'
+            if isinstance(value, Path):
+                return 'path'
+
+            raise ValueError, type(value) + " not supported here."
+
+        other = self.other(item)
+        if other is None:
+            raise ValueError, ("dangling ref at " +
+                               str(item.getPath()) + '.' + name)
+
+        attrs = { 'type': 'uuid' }
+
+        if not isinstance(name, str) and not isinstance(name, unicode):
+            attrs['nameType'] = typeName(name)
+            attrs['name'] = str(name)
+        else:
+            attrs['name'] = name
+
+        if withSchema:
+            attrs['otherName'] = item._otherName(name)
+
+        generator.characters(indent)
+        generator.startElement('ref', attrs)
+        generator.characters(other.getUUID().str16())
+        generator.endElement('ref')
+        generator.characters('\n')
 
 
 class RefDict(dict):
@@ -179,6 +218,31 @@ class RefDict(dict):
 
         return others
 
+    def _refCount(self):
+
+        return len(self)
+
+    def _getCard(self):
+
+        return 'dict'
+
+    def _xmlValue(self, name, item, indent, generator, withSchema):
+
+        attrs = { 'name': name }
+        if withSchema:
+            attrs['cardinality'] = self._getCard()
+            attrs['otherName'] = item._otherName(name)
+
+        generator.characters(indent)
+        generator.startElement('ref', attrs)
+
+        i = indent + '  '
+        for ref in self.iteritems():
+            ref[1]._xmlValue(ref[0], item, i, generator, False)
+
+        generator.characters(indent)
+        generator.endElement('ref')
+
 
 class RefList(RefDict):
 
@@ -255,3 +319,7 @@ class RefList(RefDict):
                 return self._refList[self._iter.next()]
 
         return keyIter(self)
+
+    def _getCard(self):
+
+        return 'list'

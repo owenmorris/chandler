@@ -37,6 +37,7 @@ class Type(Item):
     makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)    
 
+
 class String(Type):
 
     def makeValue(cls, data):
