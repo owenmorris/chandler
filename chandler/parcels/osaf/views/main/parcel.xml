@@ -46,53 +46,53 @@
     <dispatchToBlock itemref="doc:StatusBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="SyncAll">
+  <BlockEvent itsName="SyncAll">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onSyncAllEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
-  <BlockEvent itemName="SyncWebDAV">
+  <BlockEvent itsName="SyncWebDAV">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onSyncWebDAVEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
-  <BlockEvent itemName="ShareOrManage">
+  <BlockEvent itsName="ShareOrManage">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShareOrManageEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
-  <KindParameterizedEvent itemName="NewMailMessage">
+  <KindParameterizedEvent itsName="NewMailMessage">
     <kindParameter itemref="mail:MailMessage"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <KindParameterizedEvent itemName="NewTask">
+  <KindParameterizedEvent itsName="NewTask">
     <kindParameter itemref="tasks:Task"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <KindParameterizedEvent itemName="NewCalendarEvent">
+  <KindParameterizedEvent itsName="NewCalendarEvent">
     <kindParameter itemref="calendarModel:CalendarEvent"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <KindParameterizedEvent itemName="NewNote">
+  <KindParameterizedEvent itsName="NewNote">
     <kindParameter itemref="contentModel:Note"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <KindParameterizedEvent itemName="NewContact">
+  <KindParameterizedEvent itsName="NewContact">
     <kindParameter itemref="contacts:Contact"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
@@ -995,7 +995,7 @@
   <!--
     NavigationBar
   -->
-  <Toolbar itemName="NavigationBar">
+  <Toolbar itsName="NavigationBar">
     <blockName>NavigationBar</blockName>
     <!-- Children -->
     <childrenBlocks itemref="doc:SyncButton"/>
@@ -1054,7 +1054,7 @@
   <!--
     KindFilterBar
   -->
-  <Toolbar itemName="KindFilterBar">
+  <Toolbar itsName="KindFilterBar">
     <blockName>NavigationBar</blockName>
     <!-- Children -->
     <childrenBlocks itemref="doc:KindFilterAll"/>
@@ -1081,8 +1081,8 @@
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itemName="KindFilterAllEvent">
-    <kindParameter ref="core:None" />
+  <KindParameterizedEvent itsName="KindFilterAllEvent">
+    <kindParameter itemref="core:None" />
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -1097,7 +1097,7 @@
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itemName="KindFilterMessageEvent">
+  <KindParameterizedEvent itsName="KindFilterMessageEvent">
     <kindParameter itemref="mail:MailMessage"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
@@ -1113,7 +1113,7 @@
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itemName="KindFilterEventEvent">
+  <KindParameterizedEvent itsName="KindFilterEventEvent">
     <kindParameter itemref="calendarModel:CalendarEvent"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
@@ -1129,7 +1129,7 @@
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itemName="KindFilterTaskEvent">
+  <KindParameterizedEvent itsName="KindFilterTaskEvent">
     <kindParameter itemref="tasks:Task"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
@@ -1145,7 +1145,7 @@
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itemName="KindFilterNotesEvent">
+  <KindParameterizedEvent itsName="KindFilterNotesEvent">
     <kindParameter itemref="contentModel:Note"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
@@ -1159,7 +1159,7 @@
   </StatusBar>
 
   <!-- LayoutSelector -->
-  <Toolbar itemName="LayoutSelector">
+  <Toolbar itsName="LayoutSelector">
     <blockName>LayoutSelector</blockName>
     <childrenBlocks itemref="doc:ListViewButton"/>
     <childrenBlocks itemref="doc:MonthViewButton"/>
@@ -1172,7 +1172,7 @@
     <subscribeWhenVisibleEvents itemref="doc:ChangeLayout"/>
   </Toolbar>
 
-  <BlockEvent itemName="ChangeLayout">
+  <BlockEvent itsName="ChangeLayout">
     <methodName>onChangeLayoutEvent</methodName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>

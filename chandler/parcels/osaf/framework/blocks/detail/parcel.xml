@@ -65,13 +65,13 @@
     <dispatchToBlock itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 
-  <BlockEvent itemName="ButtonPressed">
+  <BlockEvent itsName="ButtonPressed">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onButtonPressed</methodName>
     <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="SendShareItem">
+  <BlockEvent itsName="SendShareItem">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onSendShareItemEvent</methodName>
     <dispatchToBlock itemref="doc:DetailRootTemplate"/>
@@ -82,7 +82,7 @@
   -->
   
   <!-- Root -->
-  <SelectionContainer itemName="DetailRootTemplate"
+  <SelectionContainer itsName="DetailRootTemplate"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <blockName value="DetailRootTemplate"/>
     <childrenBlocks itemref="doc:DetailTrunk"/>
@@ -90,7 +90,7 @@
     <subscribeWhenVisibleEvents itemref="doc:NULL"/>
   </SelectionContainer>
 
-  <ContentItemDetail itemName="DetailTrunk">
+  <ContentItemDetail itsName="DetailTrunk">
     <!-- child blocks -->
     <blockName value="DetailTrunk"/>
     <childrenBlocks itemref="doc:MarkupBar"/>
@@ -107,7 +107,7 @@
   </ContentItemDetail>
 
   <!-- MarkupBar -->
-  <Toolbar itemName="MarkupBar"
+  <Toolbar itsName="MarkupBar"
            itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
     <blockName>MarkupBar</blockName>
     <!-- Children Blocks-->

@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/depB/depC"
-        itemName="depC"
+        itsName="depC"
         xmlns="http://osafoundation.org/parcels/core">
 
   <namespace value="http://testparcels.org/parcels/depB/depC" />
@@ -16,7 +16,7 @@
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
 
-  <Attribute itemName="TestAttribute">
+  <Attribute itsName="TestAttribute">
     <displayName>Test Attribute</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>

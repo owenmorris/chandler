@@ -13,9 +13,9 @@
     <password>chandler</password>
     <useSSL>False</useSSL>
     <!-- This points replyToAddress to the email address item below-->
-    <replyToAddress ref="mail:ReplyAddress" />
+    <replyToAddress itemref="mail:ReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
-    <defaultSMTPAccount ref="mail:SMTPAccountOne" />
+    <defaultSMTPAccount itemref="mail:SMTPAccountOne" />
   </content:IMAPAccount>
 
   <content:EmailAddress itsName="ReplyAddress">

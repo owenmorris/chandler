@@ -15,16 +15,16 @@
     <!-- These three items make up the "template" -->
 
     <cp:TestKind itsName="templateParent">
-        <myChildren ref="me:templateChild0"/>
-        <myChildren ref="me:templateChild1"/>
+        <myChildren itemref="me:templateChild0"/>
+        <myChildren itemref="me:templateChild1"/>
     </cp:TestKind>
 
     <cp:TestKind itsName="templateChild0">
-        <myChildren ref="me:templateChild2"/>
+        <myChildren itemref="me:templateChild2"/>
     </cp:TestKind>
 
     <cp:TestKind itsName="templateChild1">
-        <myChildren ref="me:templateChild2"/>
+        <myChildren itemref="me:templateChild2"/>
     </cp:TestKind>
 
     <cp:TestKind itsName="templateChild2">
@@ -34,7 +34,7 @@
     <!-- An item which will make use of the template:  -->
 
     <cp:TestKind itsName="realParent">
-        <myChildren ref="me:templateParent" copy="copiedChild"/>
+        <myChildren itemref="me:templateParent" copy="copiedChild"/>
     </cp:TestKind>
 
 

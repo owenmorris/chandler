@@ -5,7 +5,7 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="contact"
+<Parcel itsName="contact"
         describes="//parcels/circular/contact"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:cal="http://testparcels.org/calendar"
@@ -13,18 +13,18 @@
 
   <namespace value="http://testparcels.org/contact"/>
 
-  <Attribute itemName="participatingIn">
+  <Attribute itsName="participatingIn">
     <displayName>Participant in Events</displayName>
     <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
     <inverseAttribute itemref="cal:participants"/>
   </Attribute>
 
-  <Kind itemName="Contact">
+  <Kind itsName="Contact">
     <displayName>Contact</displayName>
     <attributes itemref="con:participatingIn"/>
   </Kind>
 
-  <con:Contact itemName="person1"/>
+  <con:Contact itsName="person1"/>
 
 </Parcel>

@@ -18,35 +18,35 @@
 
   <Kind itsName="TestKind">
     <displayName value="Test Kind" />
-    <attributes ref="simple:TestAttribute"/>
-    <attributes ref="simple:ListAttribute"/>
-    <attributes ref="simple:DictAttribute"/>
-    <displayAttribute ref="simple:TestAttribute"/>
+    <attributes itemref="simple:TestAttribute"/>
+    <attributes itemref="simple:ListAttribute"/>
+    <attributes itemref="simple:DictAttribute"/>
+    <displayAttribute itemref="simple:TestAttribute"/>
   </Kind>
 
   <Kind itsName="SubKind">
-    <superKinds ref="simple:TestKind"/>
+    <superKinds itemref="simple:TestKind"/>
     <displayName value="Subclass Test Kind" />
   </Kind>
 
   <Attribute itsName="TestAttribute">
     <displayName value="Test Attribute" />
     <cardinality value="single" />
-    <type ref="String"/>
+    <type itemref="String"/>
     <initialValue type="String" value="XYZZY" />
   </Attribute>
 
   <Attribute itsName="ListAttribute">
     <displayName value="List Attribute" />
     <cardinality value="list" />
-    <type ref="String"/>
+    <type itemref="String"/>
     <initialValue/>
   </Attribute>
 
   <Attribute itsName="DictAttribute">
     <displayName value="Dict Attribute" />
     <cardinality value="dict" />
-    <type ref="String"/>
+    <type itemref="String"/>
     <initialValue/>
   </Attribute>
 

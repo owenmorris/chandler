@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/depA"
-        itemName="depA"
+        itsName="depA"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:depC="http://testparcels.org/parcels/depB/depC">
 
@@ -17,7 +17,7 @@
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
 
-  <Kind itemName="TestKind">
+  <Kind itsName="TestKind">
     <displayName>Test Kind</displayName>
     <attributes itemref="depC:TestAttribute"/>
   </Kind>

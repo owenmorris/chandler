@@ -366,28 +366,28 @@
             <includePolicy value="byCloud"/>
             <cloudAlias value="default"/>
         </Endpoint>
-        <endpoints ref="docSchema:Block/DefaultCloud/contents"/>
+        <endpoints itemref="docSchema:Block/DefaultCloud/contents"/>
         <Endpoint itsName="childrenBlocks">
             <attribute value="childrenBlocks"/>
             <includePolicy value="byCloud"/>
             <cloudAlias value="default"/>
         </Endpoint>
-        <endpoints ref="docSchema:Block/DefaultCloud/childrenBlocks"/>
+        <endpoints itemref="docSchema:Block/DefaultCloud/childrenBlocks"/>
         <Endpoint itsName="subscribeAlwaysEvents">
             <attribute value="subscribeAlwaysEvents"/>
             <includePolicy value="byMethod"/>
             <method value="includePolicyMethod"/>
         </Endpoint>
-        <endpoints ref="docSchema:Block/DefaultCloud/subscribeAlwaysEvents"/>
+        <endpoints itemref="docSchema:Block/DefaultCloud/subscribeAlwaysEvents"/>
         <Endpoint itsName="subscribeWhenVisibleEvents">
             <attribute value="subscribeWhenVisibleEvents"/>
             <includePolicy value="byMethod"/>
             <method value="includePolicyMethod"/>
         </Endpoint>
-        <endpoints ref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
+        <endpoints itemref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
     </Cloud>
     <!-- Link this cloud with the Block kind -->
-    <clouds alias="default" ref="docSchema:Block/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:Block/DefaultCloud"/>
 
   </Kind>
   
@@ -491,10 +491,10 @@
     They include Menus, and Toolbars.
     Used as a mixin class for other blocks.
   -->
-  <Kind itemName="DynamicContainer">
+  <Kind itsName="DynamicContainer">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.DynamicContainer</classes>
 
-    <Attribute itemName="dynamicChildren">
+    <Attribute itsName="dynamicChildren">
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:DynamicChild/dynamicParent"/>
@@ -502,7 +502,7 @@
       <required>False</required>
     </Attribute>
     
-    <Attribute itemName="collectionSpecifier">
+    <Attribute itsName="collectionSpecifier">
       <redirectTo>dynamicChildren</redirectTo>
       <copyPolicy value="copy"/>
     </Attribute>
@@ -516,10 +516,10 @@
             <includePolicy value="byCloud"/>
             <cloudAlias value="default"/>
         </Endpoint>
-        <endpoints ref="docSchema:DynamicContainer/DefaultCloud/dynamicChildren"/>
+        <endpoints itemref="docSchema:DynamicContainer/DefaultCloud/dynamicChildren"/>
     </Cloud>
     <!-- Link this cloud with the Block kind -->
-    <clouds alias="default" ref="docSchema:DynamicContainer/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:DynamicContainer/DefaultCloud"/>
 
   </Kind>
   
@@ -528,17 +528,17 @@
     They include MenuItems, Menus, and ToolbarItems.
     Used as a mixin class for other blocks.
   -->
-  <Kind itemName="DynamicChild">
+  <Kind itsName="DynamicChild">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.DynamicChild</classes>
 
-    <Attribute itemName="dynamicParent">
+    <Attribute itsName="dynamicParent">
       <type itemref="docSchema:Block"/>
       <inverseAttribute itemref="docSchema:DynamicContainer/dynamicChildren"/>
       <required>False</required>
       <initialValue itemref="None"/>
     </Attribute>
     
-    <Attribute itemName="title">
+    <Attribute itsName="title">
       <type itemref="String"/>
       <initialValue type="String"></initialValue>
     </Attribute>
@@ -549,12 +549,12 @@
       <values>Delete</values>
     </Enumeration>
     
-    <Attribute itemName="operation">
+    <Attribute itsName="operation">
       <type itemref="docSchema:DynamicChild/operationEnumType"/>
       <initialValue type="docSchema:DynamicChild/operationEnumType">InsertBefore</initialValue>
     </Attribute>
     
-    <Attribute itemName="location">
+    <Attribute itsName="location">
       <type itemref="String"/>
     </Attribute>
     
@@ -579,7 +579,7 @@
   <!--
     MenuItem
   -->
-  <Kind itemName="MenuItem">
+  <Kind itsName="MenuItem">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.MenuItem</classes>
     <superKinds itemref="docSchema:Block"/>
     <superKinds itemref="docSchema:DynamicChild"/>
@@ -609,7 +609,7 @@
   <!--
     Menu
   -->
-  <Kind itemName="Menu">
+  <Kind itsName="Menu">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.Menu</classes>
     <superKinds itemref="docSchema:Block"/>
     <superKinds itemref="docSchema:DynamicContainer"/>
@@ -619,7 +619,7 @@
   <!--
     MenuBar
   -->
-  <Kind itemName="MenuBar">
+  <Kind itsName="MenuBar">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.MenuBar</classes>
     <superKinds itemref="docSchema:Block"/>
     <superKinds itemref="docSchema:DynamicContainer"/>
@@ -665,9 +665,9 @@
             <attribute value="characterStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="docSchema:Button/DefaultCloud/characterStyle"/>
+        <endpoints itemref="docSchema:Button/DefaultCloud/characterStyle"/>
     </Cloud>
-    <clouds alias="default" ref="docSchema:Button/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:Button/DefaultCloud"/>
   </Kind>
   
   <!--
@@ -769,9 +769,9 @@
             <attribute value="characterStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="docSchema:EditText/DefaultCloud/characterStyle"/>
+        <endpoints itemref="docSchema:EditText/DefaultCloud/characterStyle"/>
     </Cloud>
-    <clouds alias="default" ref="docSchema:EditText/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:EditText/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -949,9 +949,9 @@
             <attribute value="characterStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="docSchema:StaticText/DefaultCloud/characterStyle"/>
+        <endpoints itemref="docSchema:StaticText/DefaultCloud/characterStyle"/>
     </Cloud>
-    <clouds alias="default" ref="docSchema:StaticText/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:StaticText/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -992,7 +992,7 @@
   <!--
     Toolbar
   -->
-  <Kind itemName="Toolbar">
+  <Kind itsName="Toolbar">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.Toolbar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     <superKinds itemref="docSchema:DynamicContainer"/>
@@ -1027,20 +1027,20 @@
             <attribute value="colorStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="docSchema:Toolbar/DefaultCloud/colorStyle"/>
+        <endpoints itemref="docSchema:Toolbar/DefaultCloud/colorStyle"/>
     </Cloud>
-    <clouds alias="default" ref="docSchema:Toolbar/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:Toolbar/DefaultCloud"/>
   </Kind>
 
   <!--
     ToolbarItem
   -->
-  <Kind itemName="ToolbarItem">
+  <Kind itsName="ToolbarItem">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:Block"/>
     <superKinds itemref="docSchema:DynamicChild"/>
 
-    <Attribute itemName="bitmap">
+    <Attribute itsName="bitmap">
       <type itemref="String"/>
     </Attribute>
     
@@ -1063,18 +1063,18 @@
       <type itemref="docSchema:ToolbarItem/toolbarItemKindEnumType"/>
     </Attribute>
     
-    <Attribute itemName="prototype">
+    <Attribute itsName="prototype">
       <description>The prototype block to be placed in the Toolbar</description>
       <type itemref="docSchema:Block"/>
     </Attribute>
     
-    <Attribute itemName="label">
+    <Attribute itsName="label">
       <description>The label that goes under this ToolbarItem</description>
       <type itemref="String"/> 
       <initialValue type="String"></initialValue>
     </Attribute>
     
-    <Attribute itemName="toggle">
+    <Attribute itsName="toggle">
       <description>For Buttons, makes it stay pressed down until pressed again.</description>
       <type itemref="Boolean"/> 
       <initialValue type="Boolean">False</initialValue>
@@ -1091,10 +1091,10 @@
             <attribute value="prototype"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="docSchema:ToolbarItem/DefaultCloud/prototype"/>
+        <endpoints itemref="docSchema:ToolbarItem/DefaultCloud/prototype"/>
     </Cloud>
     <!-- Link this cloud with the ToolbarItem kind -->
-    <clouds alias="default" ref="docSchema:ToolbarItem/DefaultCloud"/>
+    <clouds alias="default" itemref="docSchema:ToolbarItem/DefaultCloud"/>
 
   </Kind>
   

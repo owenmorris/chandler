@@ -5,20 +5,20 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="data"
+<Parcel itsName="data"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:simple="http://testparcels.org/simple" >
 
   <namespace value="http://testparcels.org/simple/data" />
 
-  <simple:TestKind itemName="item1">
+  <simple:TestKind itsName="item1">
     <TestAttribute>xyzzy</TestAttribute>
   </simple:TestKind>
 
-  <simple:SubKind itemName="item2">
+  <simple:SubKind itsName="item2">
     <TestAttribute>plugh</TestAttribute>
   </simple:SubKind>
 
-  <simple:TestKind itemName="item3"/>
+  <simple:TestKind itsName="item3"/>
 
 </Parcel>

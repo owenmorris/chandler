@@ -5,18 +5,18 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="sub"
+<Parcel itsName="sub"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:sub="http://testparcels.org/sub"
         xmlns:super="http://testparcels.org/super" >
 
   <namespace value="http://testparcels.org/sub" />
 
-  <Kind itemName="MySubKind">
+  <Kind itsName="MySubKind">
     <displayName>My Sub Kind</displayName>
     <superKinds itemref="super:MySuperKind"/>
   </Kind>
 
-  <sub:MySubKind itemName="itemSub"/>
+  <sub:MySubKind itsName="itemSub"/>
 
 </Parcel>

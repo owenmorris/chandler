@@ -16,15 +16,15 @@
     <Kind itsName="TestKind">
         <Attribute itsName="myChildren">
             <cardinality value="list"/>
-            <type ref="me:TestKind"/>
-            <inverseAttribute ref="me:TestKind/myParent"/>
+            <type itemref="me:TestKind"/>
+            <inverseAttribute itemref="me:TestKind/myParent"/>
             <initialValue/>
         </Attribute>
 
         <Attribute itsName="myParent">
             <cardinality value="list"/>
-            <type ref="me:TestKind"/>
-            <inverseAttribute ref="me:TestKind/myChildren"/>
+            <type itemref="me:TestKind"/>
+            <inverseAttribute itemref="me:TestKind/myChildren"/>
             <initialValue/>
         </Attribute>
         <Cloud itsName="TestKindCloud">
@@ -33,9 +33,9 @@
                 <cloudAlias value="default"/>
                 <attribute value="myChildren"/>
             </Endpoint>
-            <endpoints ref="me:TestKind/TestKindCloud/myChildren"/>
+            <endpoints itemref="me:TestKind/TestKindCloud/myChildren"/>
         </Cloud>
-        <clouds alias="default" ref="me:TestKind/TestKindCloud"/>
+        <clouds alias="default" itemref="me:TestKind/TestKindCloud"/>
     </Kind>
 
 

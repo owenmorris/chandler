@@ -5,14 +5,14 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="localattrs"
+<Parcel itsName="localattrs"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:local="http://testparcels.org/localattrs" >
 
   <namespace value="http://testparcels.org/localattrs"/>
 
-  <Kind itemName="TestKind">
-      <Attribute itemName="TestAttribute">
+  <Kind itsName="TestKind">
+      <Attribute itsName="TestAttribute">
         <cardinality>single</cardinality>
         <type itemref="String"/>
       </Attribute>

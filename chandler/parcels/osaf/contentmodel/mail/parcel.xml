@@ -22,7 +22,7 @@
 
 
     <Kind itsName="AccountBase">
-        <superKinds ref="Item" />
+        <superKinds itemref="Item" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.AccountBase" />
         <displayName value="Account base kind" />
         <description value="The base kind for various account kinds, such as IMAP, SMTP, WebDav" />
@@ -30,43 +30,43 @@
         <Attribute itsName="username">
             <displayName value="Username" />
             <description value="The account login name" />
-            <type ref="String" />
-            <initialValue ref="None" />
+            <type itemref="String" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="password">
             <displayName value="Password" />
             <description value="This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type." />
             <issues value="This should not be a simple string. We need some solution for encrypting it." />
-            <type ref="String" />
-            <initialValue ref="None" />
+            <type itemref="String" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="host">
             <displayName value="Host" />
             <description value="The hostname of the account" />
-            <type ref="String" />
-            <initialValue ref="None" />
+            <type itemref="String" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="port">
             <displayName value="Port" />
             <description value="The non-SSL port number to use" />
-            <type ref="Integer" />
-            <initialValue ref="None" />
+            <type itemref="Integer" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="useSSL">
             <displayName value="Use secure connection (SSL/TLS)" />
             <description value="Whether or not to use SSL/TLS" />
-            <type ref="Boolean" />
+            <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
         <Attribute itsName="pollingFrequency">
             <displayName value="Polling frequency" />
             <description value="Frequency in seconds" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="300" />
         </Attribute>
 
@@ -74,15 +74,15 @@
             <displayName value="Mail Messages" />
             <description value="Mail Messages sent or retrieved with this account " />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/parentAccount" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/parentAccount" />
             <initialValue />
         </Attribute>
 
         <Attribute itsName="accountType">
             <displayName value="Account Type" />
             <description value="POP, IMAP, or SMTP" />
-            <type ref="mail:AccountBase/accountType/accountTypeEnum" />
+            <type itemref="mail:AccountBase/accountType/accountTypeEnum" />
 
             <Enumeration itsName="accountTypeEnum">
                 <values value="POP" />
@@ -93,7 +93,7 @@
     </Kind>
 
     <Kind itsName="IMAPAccount">
-        <superKinds ref="mail:AccountBase" />
+        <superKinds itemref="mail:AccountBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPAccount" />
         <displayName value="IMAP Account" />
         <description value="An IMAP Account" />
@@ -101,30 +101,30 @@
         <Attribute itsName="port">
             <displayName value="Port" />
             <description value="The non-SSL port number to use" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="143" />
             <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
         </Attribute>
 
         <Attribute itsName="messageDownloadSequence">
             <displayName value="Message Download Sequence" />
-            <type ref="Long" />
+            <type itemref="Long" />
             <initialValue type="Long" value="0" />
         </Attribute>
 
         <Attribute itsName="defaultSMTPAccount">
             <displayName value="Default SMTP Account" />
             <description value="Which SMTP account to use for sending mail from this account" />
-            <type ref="mail:SMTPAccount" />
-            <inverseAttribute ref="mail:SMTPAccount/accounts" />
-            <initialValue ref="None" />
+            <type itemref="mail:SMTPAccount" />
+            <inverseAttribute itemref="mail:SMTPAccount/accounts" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="replyToAddress">
             <displayName value="Reply-To Address" />
-            <type ref="mail:EmailAddress" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:EmailAddress/accounts" />
+            <type itemref="mail:EmailAddress" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:EmailAddress/accounts" />
         </Attribute>
 
         <Attribute itsName="emailAddress">
@@ -140,7 +140,7 @@
     </Kind>
 
     <Kind itsName="SMTPAccount">
-        <superKinds ref="mail:AccountBase" />
+        <superKinds itemref="mail:AccountBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.SMTPAccount" />
         <displayName value="SMTP Account" />
         <description value="An SMTP Account" />
@@ -148,7 +148,7 @@
         <Attribute itsName="port">
             <displayName value="Port" />
             <description value="The non-SSL port number to use" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="25" />
             <issues value="In order to get a custom initialValue for this attribute for an SMTPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
         </Attribute>
@@ -156,14 +156,14 @@
         <Attribute itsName="useAuth">
             <displayName value="Use Authentication" />
             <description value="Whether or not to use authentication when sending mail" />
-            <type ref="Boolean" />
+            <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
         <Attribute itsName="numRetries">
             <displayName value="Number of Retries" />
             <description value="How many times to retry before giving up" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="3" />
         </Attribute>
 
@@ -171,8 +171,8 @@
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
             <description value="Which IMAP accounts use this SMTP account as their default" />
-            <type ref="mail:IMAPAccount" />
-            <inverseAttribute ref="mail:IMAPAccount/defaultSMTPAccount" />
+            <type itemref="mail:IMAPAccount" />
+            <inverseAttribute itemref="mail:IMAPAccount/defaultSMTPAccount" />
             <cardinality value="list" />
             <initialValue />
         </Attribute>
@@ -180,7 +180,7 @@
     </Kind>
 
     <Kind itsName="MailDeliveryError">
-        <superKinds ref="Item" />
+        <superKinds itemref="Item" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryError" />
         <displayName value="Mail Delivery Error kind" />
         <description value="Contains the error data associated with a MailDelivery Type" />
@@ -188,31 +188,31 @@
         <Attribute itsName="errorCode">
             <displayName value="The Error Code" />
             <description value="The Error Code returned by the Delivery Transport" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="0" />
         </Attribute>
 
         <Attribute itsName="errorString">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="errorDate">
-            <type ref="DateTime" />
+            <type itemref="DateTime" />
         </Attribute>
 
         <Attribute itsName="mailDelivery">
             <displayName value="Mail Delivery" />
             <description value="The Mail Delivery that cause this error" />
-            <type ref="mail:MailDeliveryBase" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:MailDeliveryBase/deliveryErrors" />
+            <type itemref="mail:MailDeliveryBase" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:MailDeliveryBase/deliveryErrors" />
         </Attribute>
     </Kind>
 
 
     <Kind itsName="MailDeliveryBase">
-        <superKinds ref="Item" />
+        <superKinds itemref="Item" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryBase" />
         <displayName value="Mail Delivery base kind" />
         <description value="Parent kind for delivery-specific attributes of a MailMessage" />
@@ -220,7 +220,7 @@
         <Attribute itsName="deliveryType">
             <displayName value="Delivery Type" />
             <description value="One of POP, IMAP, or SMTP" />
-            <type ref="mail:MailDeliveryBase/deliveryType/deliveryTypeEnum" />
+            <type itemref="mail:MailDeliveryBase/deliveryType/deliveryTypeEnum" />
 
             <Enumeration itsName="deliveryTypeEnum">
                 <values value="POP" />
@@ -232,24 +232,24 @@
         <Attribute itsName="mailMessage">
             <displayName value="Message" />
             <description value="Message which this delivery item refers to" />
-            <type ref="mail:MailMessageMixin" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:MailMessageMixin/deliveryExtension" />
+            <type itemref="mail:MailMessageMixin" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:MailMessageMixin/deliveryExtension" />
         </Attribute>
 
         <Attribute itsName="deliveryErrors">
             <displayName value="Mail Delivery Errors" />
             <description value="Mail Delivery Errors associated with this transport" />
             <cardinality value="list" />
-            <type ref="mail:MailDeliveryError" />
-            <inverseAttribute ref="mail:MailDeliveryError/mailDelivery" />
+            <type itemref="mail:MailDeliveryError" />
+            <inverseAttribute itemref="mail:MailDeliveryError/mailDelivery" />
             <initialValue />
         </Attribute>
     </Kind>
 
 
     <Kind itsName="SMTPDelivery">
-        <superKinds ref="mail:MailDeliveryBase" />
+        <superKinds itemref="mail:MailDeliveryBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.SMTPDelivery" />
         <displayName value="SMTP Delivery" />
         <description value="Tracks the status of an outgoing message" />
@@ -257,7 +257,7 @@
 
         <Attribute itsName="history">
             <displayName value="History" />
-            <type ref="mail:SMTPDelivery/history/historyEnum" />
+            <type itemref="mail:SMTPDelivery/history/historyEnum" />
             <cardinality value="list" />
             <initialValue />
 
@@ -272,7 +272,7 @@
         <Attribute itsName="tries">
             <displayName value="Number of tries" />
             <description value="How many times we have tried to send it" />
-            <type ref="Integer" />
+            <type itemref="Integer" />
             <initialValue type="Integer" value="0" />
         </Attribute>
 
@@ -280,7 +280,7 @@
             <displayName value="State" />
             <description value="The current state of the message" />
             <issues value="We don't appear to be able to set an initialValue for an attribute whose enumeration is defined in the same file (a deficiency in the parcel loader)" />
-            <type ref="mail:SMTPDelivery/state/stateEnum" />
+            <type itemref="mail:SMTPDelivery/state/stateEnum" />
 
             <Enumeration itsName="stateEnum">
                 <values value="DRAFT" />
@@ -294,42 +294,42 @@
     </Kind>
 
     <Kind itsName="IMAPDelivery">
-        <superKinds ref="mail:MailDeliveryBase" />
+        <superKinds itemref="mail:MailDeliveryBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPDelivery" />
         <displayName value="IMAP Delivery" />
         <description value="Tracks the state of an inbound message" />
 
         <Attribute itsName="folder">
             <displayName value="Folder" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="uid">
             <displayName value="IMAP UID" />
             <description value="The unique IMAP ID for the message" />
-            <type ref="Long" />
+            <type itemref="Long" />
             <initialValue type="Long" value="0"/>
         </Attribute>
 
         <Attribute itsName="namespace">
             <displayName value="Namespace" />
             <description value="The namespace of the message" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="flags">
             <displayName value="Flags" />
             <cardinality value="list" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue />
         </Attribute>
 
     </Kind>
 
     <Kind itsName="MIMEBase">
-        <superKinds ref="Item" />
+        <superKinds itemref="Item" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBase" />
         <displayName value="MIME Base Kind" />
         <description value="Super kind for MailMessage and the various MIME kinds" />
@@ -337,48 +337,48 @@
         <Attribute itsName="additionalHeaders">
             <description value="Catch-all for headers not belonging to one of the other attributes" />
             <cardinality value="dict" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue />
         </Attribute>
 
         <Attribute itsName="contentType">
             <description value="Content-Type: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentLength">
             <description value="Content-Length: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentTransferEncoding">
             <description value="Content-Transfer-Encoding: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentDescription">
             <description value="Content-Description: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentId">
             <description value="Content-Id: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentDisposition">
             <description value="Content-Disposition: header" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="mimeType">
-            <type ref="mail:MIMEBase/mimeType/mimeTypeEnum" />
+            <type itemref="mail:MIMEBase/mimeType/mimeTypeEnum" />
 
             <Enumeration itsName="mimeTypeEnum">
                 <values value="MESSAGE" />
@@ -405,31 +405,31 @@
         </Attribute>
 
         <Attribute itsName="mimeContainer">
-            <type ref="mail:MIMEContainer" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:MIMEContainer/mimeParts" />
+            <type itemref="mail:MIMEContainer" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:MIMEContainer/mimeParts" />
         </Attribute>
 
     </Kind>
 
     <Kind itsName="MIMENote">
-        <superKinds ref="mail:MIMEBase" />
-        <superKinds ref="content:Note" />
+        <superKinds itemref="mail:MIMEBase" />
+        <superKinds itemref="content:Note" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMENote" />
         <displayName value="MIME Note" />
         <description value="MIMEBase and Note, rolled into one" />
     </Kind>
 
     <Kind itsName="MailMessage">
-        <superKinds ref="mail:MailMessageMixin" />
-        <superKinds ref="content:Note" />
+        <superKinds itemref="mail:MailMessageMixin" />
+        <superKinds itemref="content:Note" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessage" />
         <displayName value="Mail Message" />
         <description value="MailMessageMixin, and Note, all rolled up into one" />
     </Kind>
 
     <Kind itsName="MailMessageMixin">
-        <superKinds ref="mail:MIMEContainer" />
+        <superKinds itemref="mail:MIMEContainer" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessageMixin" />
         <displayName value="Mail Message Mixin" />
         <description value="Used to mixin mail message attributes into a content item" />
@@ -437,123 +437,123 @@
         <issues value="Really not sure what to do with the 'downloadAccount' attribute and how it should be included in the cloud.  For now it's by value." />
 
         <Attribute itsName="deliveryExtension">
-            <type ref="mail:MailDeliveryBase" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:MailDeliveryBase/mailMessage" />
+            <type itemref="mail:MailDeliveryBase" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:MailDeliveryBase/mailMessage" />
         </Attribute>
 
         <Attribute itsName="isOutbound">
-            <type ref="Boolean" />
+            <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
         <Attribute itsName="isInbound">
-            <type ref="Boolean" />
+            <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
         <Attribute itsName="parentAccount">
-            <type ref="mail:AccountBase" />
-            <initialValue ref="None" />
-            <inverseAttribute ref="mail:AccountBase/mailMessages" />
+            <type itemref="mail:AccountBase" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="mail:AccountBase/mailMessages" />
         </Attribute>
 
         <Attribute itsName="spamScore">
-            <type ref="Float" />
+            <type itemref="Float" />
             <initialValue type="Float" value="0" />
         </Attribute>
 
         <Attribute itsName="rfc2822Message">
-            <type ref="Text" />
+            <type itemref="Text" />
         </Attribute>
 
         <Attribute itsName="dateSentString">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="dateSent">
-            <type ref="DateTime" />
+            <type itemref="DateTime" />
         </Attribute>
 
         <Attribute itsName="dateReceived">
-            <type ref="DateTime" />
+            <type itemref="DateTime" />
         </Attribute>
 
         <Attribute itsName="messageId">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="references">
-            <type ref="String" />
+            <type itemref="String" />
             <cardinality value="list" />
             <initialValue />
         </Attribute>
 
         <Attribute itsName="received">
-            <type ref="String" />
+            <type itemref="String" />
             <cardinality value="list" />
             <initialValue />
         </Attribute>
 
         <Attribute itsName="returnPath">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="inReplyTo">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
 
         <Attribute itsName="toAddress">
-            <type ref="mail:EmailAddress" />
+            <type itemref="mail:EmailAddress" />
             <cardinality value="list" />
             <initialValue />
-            <inverseAttribute ref="mail:EmailAddress/messagesTo" />
+            <inverseAttribute itemref="mail:EmailAddress/messagesTo" />
         </Attribute>
 
         <Attribute itsName="fromAddress">
-            <type ref="mail:EmailAddress" />
-            <initialValue ref="None"/>
-            <inverseAttribute ref="mail:EmailAddress/messagesFrom" />
+            <type itemref="mail:EmailAddress" />
+            <initialValue itemref="None"/>
+            <inverseAttribute itemref="mail:EmailAddress/messagesFrom" />
         </Attribute>
 
         <Attribute itsName="replyToAddress">
-            <type ref="mail:EmailAddress" />
-            <initialValue ref="None"/>
-            <inverseAttribute ref="mail:EmailAddress/messagesReplyTo" />
+            <type itemref="mail:EmailAddress" />
+            <initialValue itemref="None"/>
+            <inverseAttribute itemref="mail:EmailAddress/messagesReplyTo" />
         </Attribute>
 
         <Attribute itsName="bccAddress">
-            <type ref="mail:EmailAddress" />
+            <type itemref="mail:EmailAddress" />
             <cardinality value="list" />
             <initialValue />
-            <inverseAttribute ref="mail:EmailAddress/messagesBcc" />
+            <inverseAttribute itemref="mail:EmailAddress/messagesBcc" />
         </Attribute>
 
         <Attribute itsName="ccAddress">
-            <type ref="mail:EmailAddress" />
+            <type itemref="mail:EmailAddress" />
             <cardinality value="list" />
             <initialValue />
-            <inverseAttribute ref="mail:EmailAddress/messagesCc" />
+            <inverseAttribute itemref="mail:EmailAddress/messagesCc" />
         </Attribute>
 
         <Attribute itsName="subject">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="chandlerHeaders">
-            <type ref="String" />
+            <type itemref="String" />
             <cardinality value="dict" />
             <initialValue />
         </Attribute>
 
         <Attribute itsName="mimeVersion">
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
@@ -584,71 +584,71 @@
             <attribute value="fromAddress"/>
             <includePolicy value="byValue"/>
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/fromAddress"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/fromAddress"/>
 
           <Endpoint itsName="toAddress">
             <attribute value="toAddress"/>
             <includePolicy value="byValue"/>
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/toAddress"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/toAddress"/>
 
           <Endpoint itsName="ccAddress">
             <attribute value="ccAddress"/>
             <includePolicy value="byValue"/>
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/ccAddress"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/ccAddress"/>
 
           <Endpoint itsName="bccAddress">
             <attribute value="bccAddress"/>
             <includePolicy value="byValue"/>
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/bccAddress"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/bccAddress"/>
 
           <Endpoint itsName="replyToAddress">
             <attribute value="replyToAddress"/>
             <includePolicy value="byValue"/>
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/replyToAddress"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/replyToAddress"/>
 
           <Endpoint itsName="mimeParts">
             <attribute value="mimeParts" />
             <includePolicy value="byCloud" />
             <cloudAlias value="default" />
           </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/mimeParts"/>
+          <endpoints itemref="mail:MailMessageMixin/Cloud/mimeParts"/>
         </Cloud>
-        <clouds alias="default" ref="mail:MailMessageMixin/Cloud"/>
+        <clouds alias="default" itemref="mail:MailMessageMixin/Cloud"/>
 
     </Kind>
 
     <Kind itsName="MIMEBinary">
-        <superKinds ref="mail:MIMENote" />
+        <superKinds itemref="mail:MIMENote" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBinary" />
         <displayName value="MIME Binary Kind" />
 
         <Attribute itsName="filename">
             <displayName value="File name" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
     </Kind>
 
     <Kind itsName="MIMEText">
-        <superKinds ref="mail:MIMENote" />
+        <superKinds itemref="mail:MIMENote" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEText" />
         <displayName value="MIME Text Kind" />
 
         <Attribute itsName="charset">
             <displayName value="Character set" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="ISO=8859-1" />
         </Attribute>
 
     </Kind>
 
     <Kind itsName="MIMEContainer">
-        <superKinds ref="mail:MIMEBase" />
+        <superKinds itemref="mail:MIMEBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEContainer" />
         <displayName value="MIME Container Kind" />
 
@@ -659,50 +659,50 @@
         <Attribute itsName="mimeParts">
             <displayName value="MIME Parts" />
             <cardinality value="list" />
-            <type ref="mail:MIMEBase" />
+            <type itemref="mail:MIMEBase" />
             <initialValue />
-            <inverseAttribute ref="mail:MIMEBase/mimeContainer" />
+            <inverseAttribute itemref="mail:MIMEBase/mimeContainer" />
         </Attribute>
 
     </Kind>
 
     <Kind itsName="MIMESecurity">
-        <superKinds ref="mail:MIMEBase" />
+        <superKinds itemref="mail:MIMEBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMESecurity" />
         <displayName value="MIME Security Kind" />
     </Kind>
 
 
     <Kind itsName="EmailAddress">
-        <superKinds ref="content:ContentItem" />
+        <superKinds itemref="content:ContentItem" />
         <displayName value="Email Address Kind" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.EmailAddress" />
         <examples value="abe@osafoundation.org" />
         <description value="An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address." />
         <issues value="Someday we might want to have other attributes.  One example might be an 'is operational' flag that tells whether this address is still in service, or whether mail to this has been bouncing lately. Another example might be a 'superceded by' attribute, which would point to another Email Address item." />
         <issues value="Depending on how we end up using the 'emailAddress' attribute, we might want to break it into two attributes, one for the 'Abe Lincoln' part, and one for the 'abe@osafoundation.org' part. Alternatively, we might want to use one of Andi's compound types, with two fields." />
-        <displayAttribute ref="mail:EmailAddress/emailAddress"/>
+        <displayAttribute itemref="mail:EmailAddress/emailAddress"/>
 
         <Attribute itsName="emailAddress">
             <displayName value="Email Address" />
             <examples>"abe@osafoundation.org"</examples>
             <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
             <description value="An RFC 822 email address." />
-            <type ref="String" />
-            <initialValue ref="None" />
+            <type itemref="String" />
+            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="fullName">
             <displayName value="Full Name" />
             <description value="A first and last name associated with this email address" />
-            <type ref="String" />
+            <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="vcardType">
             <displayName value="vCard type" />
             <description>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</description>
-            <type ref="String"/>
+            <type itemref="String"/>
             <initialValue type="String" value="" />
         </Attribute>
 
@@ -711,16 +711,16 @@
             <description value="A list of Email Accounts that use this Email Address as the reply address for mail sent from the account." />
             <cardinality value="list" />
             <initialValue />
-            <type ref="mail:IMAPAccount" />
-            <inverseAttribute ref="mail:IMAPAccount/replyToAddress" />
+            <type itemref="mail:IMAPAccount" />
+            <inverseAttribute itemref="mail:IMAPAccount/replyToAddress" />
         </Attribute>
 
         <Attribute itsName="messagesBcc">
             <displayName value="Messages Bcc" />
             <description value="A list of messages with their Bcc: header referring to this address" />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/bccAddress" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/bccAddress" />
             <initialValue />
         </Attribute>
 
@@ -728,8 +728,8 @@
             <displayName value="Messages cc" />
             <description value="A list of messages with their cc: header referring to this address" />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/ccAddress" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/ccAddress" />
             <initialValue />
         </Attribute>
 
@@ -737,8 +737,8 @@
             <displayName value="Messages From" />
             <description value="A list of messages with their From: header referring to this address" />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/fromAddress" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/fromAddress" />
             <initialValue />
         </Attribute>
 
@@ -746,8 +746,8 @@
             <displayName value="Messages Reply To" />
             <description value="A list of messages with their Reply-To: header referring to this address" />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/replyToAddress" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/replyToAddress" />
             <initialValue />
         </Attribute>
 
@@ -755,8 +755,8 @@
             <displayName value="Messages To" />
             <description value="A list of messages with their To: header referring to this address" />
             <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/toAddress" />
+            <type itemref="mail:MailMessageMixin" />
+            <inverseAttribute itemref="mail:MailMessageMixin/toAddress" />
             <initialValue />
         </Attribute>
 
@@ -765,8 +765,8 @@
             <description value="The set of items this email address is the sharer of" />
             <issues value="This feels dirty having this attribute here, but once we support Contacts (or however we model people), this attribute will move out of EmailAddress.  Right now we have no other way to identify people." />
             <cardinality value="list" />
-            <type ref="content:ContentItem" />
-            <inverseAttribute ref="content:ContentItem/sharer" />
+            <type itemref="content:ContentItem" />
+            <inverseAttribute itemref="content:ContentItem/sharer" />
             <initialValue />
         </Attribute>
 
@@ -775,20 +775,20 @@
             <description value="The set of items this email address is a sharee of" />
             <issues value="This feels dirty having this attribute here, but once we support Contacts (or however we model people), this attribute will move out of EmailAddress.  Right now we have no other way to identify people." />
             <cardinality value="list" />
-            <type ref="content:ContentItem" />
-            <inverseAttribute ref="content:ContentItem/sharees" />
+            <type itemref="content:ContentItem" />
+            <inverseAttribute itemref="content:ContentItem/sharees" />
             <initialValue />
         </Attribute>
 
 
         <!-- Additional external attributes -->
 
-        <attributes ref="contact:onceBelongedTo"/>
-        <attributes ref="contact:emailAddressOwner"/>
-        <attributes ref="contact:itemsCreated"/>
-        <attributes ref="calendar:participatingIn"/>
-        <attributes ref="tasks:requestedTasks"/>
-        <attributes ref="tasks:taskRequests"/>
+        <attributes itemref="contact:onceBelongedTo"/>
+        <attributes itemref="contact:emailAddressOwner"/>
+        <attributes itemref="contact:itemsCreated"/>
+        <attributes itemref="calendar:participatingIn"/>
+        <attributes itemref="tasks:requestedTasks"/>
+        <attributes itemref="tasks:taskRequests"/>
 
     </Kind>
 

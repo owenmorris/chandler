@@ -82,9 +82,9 @@
             <attribute value="characterStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="calBlocks:MonthBlock/DefaultCloud/characterStyle"/>
+        <endpoints itemref="calBlocks:MonthBlock/DefaultCloud/characterStyle"/>
     </Cloud>
-    <clouds alias="default" ref="calBlocks:MonthBlock/DefaultCloud"/>
+    <clouds alias="default" itemref="calBlocks:MonthBlock/DefaultCloud"/>
   </Kind>
 
   <Kind itsName="WeekBlock">
@@ -119,9 +119,9 @@
             <attribute value="characterStyle"/>
             <includePolicy value="byRef"/>
         </Endpoint>
-        <endpoints ref="calBlocks:WeekBlock/DefaultCloud/characterStyle"/>
+        <endpoints itemref="calBlocks:WeekBlock/DefaultCloud/characterStyle"/>
     </Cloud>
-    <clouds alias="default" ref="calBlocks:WeekBlock/DefaultCloud"/>
+    <clouds alias="default" itemref="calBlocks:WeekBlock/DefaultCloud"/>
   </Kind>
 
   <Kind itsName="MiniCalendar">

@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/items"
-        itemName="items"
+        itsName="items"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:items="http://testparcels.org/items"
         xmlns:super="http://testparcels.org/super">
@@ -18,24 +18,24 @@
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
 
-  <Attribute itemName="StringAttribute">
+  <Attribute itsName="StringAttribute">
     <displayName>String Attribute</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="Kind2">
+  <Kind itsName="Kind2">
     <superKinds itemref="super:Kind1"/>
     <displayName>Test Kind 2</displayName>
     <attributes itemref="items:StringAttribute"/>
   </Kind>
 
-  <items:Kind2 itemName="TestInstance1">
+  <items:Kind2 itsName="TestInstance1">
     <RefAttribute itemref="items:TestInstance2"/>
     <EnumAttribute>B</EnumAttribute>
     <StringAttribute>XYZZY</StringAttribute>
   </items:Kind2>
 
-  <items:Kind2 itemName="TestInstance2" />
+  <items:Kind2 itsName="TestInstance2" />
 
 </Parcel>

@@ -5,37 +5,37 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="collections"
+<Parcel itsName="collections"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:coll="http://testparcels.org/collections" >
 
   <namespace value="http://testparcels.org/collections" />
 
-  <Kind itemName="Block">
+  <Kind itsName="Block">
     <superKinds itemref="Item"/>
 
-      <Attribute itemName="parentBlock">
+      <Attribute itsName="parentBlock">
          <type itemref="coll:Block"/>
          <cardinality>single</cardinality>
          <inverseAttribute itemref="coll:Block/childrenBlocks"/>
          <initialValue itemref="None"/>
        </Attribute>
 
-       <Attribute itemName="childrenBlocks">
+       <Attribute itsName="childrenBlocks">
          <type itemref="coll:Block"/>
          <cardinality>list</cardinality>
          <inverseAttribute itemref="coll:Block/parentBlock"/>
          <initialValue/>
        </Attribute>
 
-       <Attribute itemName="foo">
+       <Attribute itsName="foo">
          <type itemref="coll:Block"/>
          <cardinality>dict</cardinality>
          <inverseAttribute itemref="coll:Block/oof"/>
          <initialValue/>
        </Attribute>
 
-       <Attribute itemName="oof">
+       <Attribute itsName="oof">
          <type itemref="coll:Block"/>
          <cardinality>dict</cardinality>
          <inverseAttribute itemref="coll:Block/foo"/>

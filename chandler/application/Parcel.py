@@ -842,7 +842,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         nameString = None
         if attrs.has_key((None, 'itemName')):
-            # print "Deprecation warning: itemName should now be itsName"
+            print "Deprecation warning: 'itemName' should be 'itsName' at", \
+             self.locator.getSystemId(), self.locator.getLineNumber()
             nameString = attrs.getValue((None, 'itemName'))
         elif attrs.has_key((None, 'itsName')):
             nameString = attrs.getValue((None, 'itsName'))
@@ -892,7 +893,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         elif attrs.has_key((None, 'itemref')):
             # If it has an itemref, assume its a reference attribute
-            # print "Deprecation warning: itemref should now be ref"
             element = 'Reference'
             self.currentValue = attrs.getValue((None, 'itemref'))
             if attrs.has_key((None, 'copy')):
@@ -906,6 +906,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         elif attrs.has_key((None, 'ref')):
             # If it has a ref, assume its a reference attribute
+            print "Deprecation warning: 'ref' should be 'itemref' at", \
+             self.locator.getSystemId(), self.locator.getLineNumber()
             element = 'Reference'
             self.currentValue = attrs.getValue((None, 'ref'))
             if attrs.has_key((None, 'copy')):

@@ -25,7 +25,7 @@
 
 <!-- Content Item -->
   
-  <core:Attribute itemName="body">
+  <core:Attribute itsName="body">
     <core:displayName>Body</core:displayName>
     <core:type itemref="core:Text"/>
     <core:description>All Content Items may have a body to contain notes.  It's not decided yet whether
@@ -34,7 +34,7 @@
         from the notes because payload needs to know MIME type, etc.</core:description>
   </core:Attribute>
 
-  <core:Enumeration itemName="ImportanceEnum">
+  <core:Enumeration itsName="ImportanceEnum">
     <core:displayName>Importance Enum</core:displayName>
     <core:values>important</core:values>
     <core:values>normal</core:values>
@@ -126,26 +126,26 @@
     <core:Attribute itsName="sharer">
       <description value="The person who initially published this item" />
       <issues value="Eventually this will point to a Contact or equivalent" />
-      <type ref="mail:EmailAddress" />
+      <type itemref="mail:EmailAddress" />
       <cardinality value="single" />
-      <initialValue ref="core:None" />
-      <inverseAttribute ref="mail:EmailAddress/sharerOf" />
+      <initialValue itemref="core:None" />
+      <inverseAttribute itemref="mail:EmailAddress/sharerOf" />
     </core:Attribute>
 
     <core:Attribute itsName="sharees">
       <description value="The people who were invited to share in this item" />
       <issues value="Eventually this will point to a Contact or equivalent" />
-      <type ref="mail:EmailAddress" />
+      <type itemref="mail:EmailAddress" />
       <cardinality value="list" />
       <initialValue />
-      <inverseAttribute ref="mail:EmailAddress/shareeOf" />
+      <inverseAttribute itemref="mail:EmailAddress/shareeOf" />
     </core:Attribute>
 
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 
   <!-- Processing Item -->
-  <core:Enumeration itemName="processingStatusEnum">
+  <core:Enumeration itsName="processingStatusEnum">
     <core:displayName>Processing Status Enum</core:displayName>
     <core:values>processing</core:values>
     <core:values>deferred</core:values>
@@ -453,29 +453,29 @@
         <attribute value="_inclusions"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints ref="ItemCollection/DefaultCloud/_inclusions"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/_inclusions"/>
       <core:Endpoint itsName="_exclusions">
         <attribute value="_exclusions"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints ref="ItemCollection/DefaultCloud/_exclusions"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/_exclusions"/>
       <core:Endpoint itsName="_filterKinds">
         <attribute value="_filterKinds"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints ref="ItemCollection/DefaultCloud/_filterKinds"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/_filterKinds"/>
       <core:Endpoint itsName="_results">
         <attribute value="_results"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints ref="ItemCollection/DefaultCloud/_results"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/_results"/>
       <core:Endpoint itsName="collectionOwner">
         <attribute value="collectionOwner"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints ref="ItemCollection/DefaultCloud/collectionOwner"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/collectionOwner"/>
     </core:Cloud>
-    <clouds alias="default" ref="ItemCollection/DefaultCloud"/>
+    <clouds alias="default" itemref="ItemCollection/DefaultCloud"/>
 
   </core:Kind>
 
