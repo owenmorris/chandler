@@ -29,7 +29,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         GenerateItems.GenerateContacts(100)
         contact = GenerateItems.GenerateContact()
-        contact.displayName = "Alexis"
+        contact.contactName.firstName = "Alexis"
 
         self.rep.commit()
 
@@ -83,7 +83,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         note = GenerateItems.GenerateNote()
         note.displayName = "story idea"
         contact = GenerateItems.GenerateContact()
-        contact.displayName = "Alexis"
+        contact.contactName.firstName = "Alexis"
         
         self.rep.commit()
 
