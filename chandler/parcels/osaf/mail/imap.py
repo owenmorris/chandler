@@ -41,28 +41,13 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         """
 
         if not self.useSSL:
-            self.serverCapabilities =  self.__disableTLS(caps)
+            self.serverCapabilities =  common.disableTwistedTLS(caps)
 
         d = defer.Deferred()
         d.addCallback(self.factory.callback, self)
         d.addErrback(self.factory.errback)
 
         d.callback(True)
-
-
-    def __disableTLS(self, caps):
-        """Disables SSL support for debugging so
-           a tcpflow trace can be done on the Client / Server
-           command exchange"""
-
-        if caps != None:
-            try:
-                del caps["STARTTLS"]
-
-            except KeyError:
-                pass
-
-        return caps
 
 
 class ChandlerIMAP4Factory(protocol.ClientFactory):

@@ -36,3 +36,22 @@ def getChandlerTransportMessage():
     """
 
     return email.message_from_string(message)
+
+
+
+def disableTwistedTLS(items):
+    """Disables SSL support for debugging so
+       a tcpflow trace can be done on the Client / Server
+       command exchange
+    """
+
+    if items != None:
+        try:
+            del items["STARTTLS"]
+
+        except KeyError:
+            pass
+
+    return items
+
+

@@ -22,6 +22,26 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+class ChandlerESMTPSender(smtp.ESMTPSender):
+
+    def tryTLS(self, code, resp, items):
+        if not self.factory.useSSL:
+            items = common.disableTwistedTLS(items)
+
+        smtp.ESMTPSender.tryTLS(self, code, resp, items)
+
+class ChandlerESMTPSenderFactory(smtp.ESMTPSenderFactory):
+
+    protocol = ChandlerESMTPSender
+
+    def __init__(self, username, password, fromEmail, toEmail, file, deferred, retries=5, contextFactory=None,
+                 heloFallback=False, requireAuthentication=True, requireTransportSecurity=True, useSSL=False):
+
+        self.useSSL = useSSL
+
+        smtp.ESMTPSenderFactory.__init__(self, username, password, fromEmail, toEmail, file, deferred, retries,
+                                         contextFactory, heloFallback, requireAuthentication, requireTransportSecurity)
+
 
 class SMTPException(common.MailException):
     pass
@@ -108,14 +128,12 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
            self.restorePreviousView()
 
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
-                                          0, contextFactory=sslContext, requireAuthentication=authRequired,
-                                          requireTransportSecurity=False)
+        factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
+                                             0, sslContext, False, authRequired, useSSL, useSSL)
         #XXX: Is this correct
-        if useSSL:
-            reactor.connectSSL(host, port, factory, sslContext)
-        else:
-            reactor.connectTCP(host, port, factory)
+        #if useSSL:
+        #    reactor.connectSSL(host, port, factory, sslContext)
+        reactor.connectTCP(host, port, factory)
 
 
     def __mailSuccess(self, result):
