@@ -594,7 +594,7 @@ class ShownSynchronizer:
     """
     A mixin that handles isShown-ness: Make sure my visibility matches my block's.
     """
-    def wxSynchronizeWidget(self):
+    def wxSynchronizeWidget(self, *arguments, **keywords):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
 

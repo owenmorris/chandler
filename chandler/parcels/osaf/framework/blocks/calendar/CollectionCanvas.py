@@ -393,6 +393,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # solutions...
         if event.ButtonDown():
             self.GrabFocusHack()
+            self.SetFocus()
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)
@@ -732,8 +733,12 @@ class CollectionBlock(Block.RectangularChild):
     
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
-        assert (item, ItemCollection.ItemCollection)
+        assert isinstance (item, ItemCollection.ItemCollection)
         self.contents = item
+        """
+          Clear the selection each time we view a new contents
+        """
+        self.selection = None
 
     def onSelectItemEvent(self, event):
         """
@@ -748,3 +753,13 @@ class CollectionBlock(Block.RectangularChild):
         """
         self.postEventByName('SelectItemBroadcast', {'item':self.selection})
 
+    def onRemoveEvent(self, event):
+        if self.selection is not None:
+            self.contents.source.remove(self.selection)
+            self.selection = None
+            self.postSelectItemBroadcast ()
+            self.itsView.commit()
+
+    def onRemoveEventUpdateUI(self, event):
+        return (self.selection is not None)
+    

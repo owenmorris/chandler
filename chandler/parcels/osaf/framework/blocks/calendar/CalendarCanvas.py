@@ -554,6 +554,8 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
                                                 event.startTime.hour,
                                                 event.startTime.minute))
             event.allDay = True
+
+            self.parent.blockItem.contents.source.add(event)
             self.OnSelectItem(event)
             view.commit()
         return None
@@ -838,6 +840,8 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             event = Calendar.CalendarEvent(view=view)
             event.InitOutgoingAttributes()
             event.ChangeStart(newTime)
+
+            self.parent.blockItem.contents.source.add(event)
             self.OnSelectItem(event)
 
             # @@@ Bug#1854 currently this is too slow,
@@ -1167,6 +1171,8 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
                                                 newTime.day,
                                                 event.startTime.hour,
                                                 event.startTime.minute))
+
+            self.blockItem.contents.source.add(event)
             self.OnSelectItem(event)
             
             # @@@ Bug#1854 currently this is too slow,

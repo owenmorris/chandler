@@ -138,17 +138,25 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
             """ 
-              This test is a temporary place holder for a better, more complicated solution to the problem.
-            Bryan argued that the better solution shouldn't be implmented until we decide the UI is final
-            since he thinks the UI will likely change
+              This test is a temporary place holder for a better, more complicated solution
+            to the problem if figuring out when to show the calendar view. We also use
+            a single calendar view for all item collections and a separate table for
+            each item collection.
+              Bryan argued that the better solution shouldn't be implmented until we decide
+            the UI is final since he thinks the UI is too confusing so will likely change
             """
             if (sidebar.filterKind is self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin") and
                 keyItem.displayName != u"In filtered by Calendar Event Mixin Kind" and
                 keyItem.displayName != u"Out filtered by Calendar Event Mixin Kind"):
-                templatePath = self.calendarTemplatePath
+                trunk = self.findPath (self.calendarTemplatePath)
+                keyUUID = trunk.itsUUID
+                try:
+                    trunk = self.keyUUIDToTrunk[keyUUID]
+                except KeyError:
+                    trunk = self._copyItem(trunk, onlyIfReadOnly=True)
+                    self.keyUUIDToTrunk[keyUUID] = trunk
             else:
-                templatePath = self.tableTemplatePath
-            trunk = self.findPath (templatePath)
+                trunk = self.findPath (self.tableTemplatePath)
         else:
             trunk = keyItem
         

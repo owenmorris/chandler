@@ -916,8 +916,8 @@ class Table (RectangularChild):
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
-        if isinstance (item, ItemCollection):
-            self.contents = item
+        assert isinstance (item, ItemCollection)
+        self.contents = item
 
     def onSelectItemEvent (self, event):
         item = event.arguments ['item']

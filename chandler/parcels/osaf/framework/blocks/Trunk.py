@@ -7,6 +7,7 @@ import sys
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from repository.item.Item import Item
+import osaf.contentmodel.ContentModel as ContentModel
 
 """
 Trunk.py - Classes for dynamically substituting child trees-of-blocks.
@@ -25,7 +26,7 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     """
     def wxSynchronizeWidget(self, *arguments, **keywords):
         if self.blockItem.isShown:
-            self.blockItem.installTreeOfBlocks()
+            self.blockItem.installTreeOfBlocks(**keywords)
         super(wxTrunkParentBlock, self).wxSynchronizeWidget(*arguments, **keywords)
         self.blockItem.synchronizeColor()
     
@@ -38,7 +39,12 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
     def onSelectItemEvent (self, event):
-        self.detailItem = event.arguments['item']
+        item = event.arguments['item']
+        if item != self.detailItem:
+            self.detailItem = event.arguments['item']
+            keywords = {'rerenderHint': True}
+        else:
+            keywords = {}
         """
           Occasionally a block that contains a TrunkParentBlock will send
         a selectItem event to set detailItem when it can't be set in parcel
@@ -51,9 +57,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         except AttributeError:
             pass
         else:
-            widget.wxSynchronizeWidget()
+            widget.wxSynchronizeWidget (**keywords)
 
-    def installTreeOfBlocks(self):
+    def installTreeOfBlocks(self,  **keywords):
         """ Maybe replace our children with a trunk of blocks appropriate for our content """
         newView = None
         try:
@@ -66,7 +72,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
             
         oldView = self.childrenBlocks.first()
-        if not newView is oldView:
+        if (newView is not  oldView) or ('rerenderHint' in keywords):
             if not oldView is None:
                 oldView.unRender()
 
@@ -80,9 +86,6 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 assert newView.eventBoundary
                 self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
                 newView.render()
-        elif not newView is None:
-            self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
-            newView.synchronizeWidget()
 
     def synchronizeColor (self):
         # if there's a color style defined, synchronize the color
@@ -112,10 +115,10 @@ class TrunkDelegate(Item):
         if not keyItem is None:
             keyUUID = keyItem.itsUUID
             try:
-                trunk = self.keyUUIDToTrunkUUID[keyUUID]
+                trunk = self.keyUUIDToTrunk[keyUUID]
             except KeyError:
                 trunk = self._makeTrunkForCacheKey(keyItem)
-                self.keyUUIDToTrunkUUID[keyUUID] = trunk
+                self.keyUUIDToTrunk[keyUUID] = trunk
         return trunk
 
     def _mapItemToCacheKeyItem(self, item):
