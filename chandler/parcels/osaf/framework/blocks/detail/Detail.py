@@ -257,7 +257,11 @@ class KindLabel (StaticTextLabel):
         """
           Display the item's Kind in the wxWidget.
         """
-        return item.itsKind.displayName
+        try:
+            kindName = item.itsKind.displayName
+        except AttributeError:
+            kindName = item.itsKind.itsName
+        return kindName
         
 class StaticRedirectAttribute (StaticTextLabel):
     """
@@ -555,9 +559,6 @@ class EditRedirectAttribute (EditTextAttribute):
         except AttributeError:
             value = ''
         widget.SetValue(value)
-
-        # also update editablility based on shared collection status
-        self.nonEditableIfSharedCollection (item)
 
 class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
