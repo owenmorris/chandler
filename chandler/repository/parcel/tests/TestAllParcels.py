@@ -21,7 +21,8 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         parcelDir = os.path.join(self.rootdir, 'Chandler', 'parcels')
         LoadParcels(parcelDir, self.rep)
-        # PrintItem("//parcels", self.rep)
+        PrintItem("//Schema", self.rep)
+        PrintItem("//parcels", self.rep)
 
 if __name__ == "__main__":
     unittest.main()
