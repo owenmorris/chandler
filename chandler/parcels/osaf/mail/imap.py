@@ -39,16 +39,17 @@ import repository.item.Query as Query
 
 def NotifyUIAsync(message, logger=logging.info, **keys):
     logger(message)
-    Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
-                                               'setStatusMessage',
-                                               message, **keys)
+    if Globals.wxApplication is not None: # test framework has no wxApplication
+        Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
+                                                  'setStatusMessage',
+                                                   message, **keys)
 
 class IMAPException(common.MailException):
     pass
 
 class ChandlerIMAP4Client(imap4.IMAP4Client, policies.TimeoutMixin):
 
-    timeout = 60 #seconds
+    timeout = 40 #seconds
 
     def __init__(self, contextFactory=None):
         imap4.IMAP4Client.__init__(self, contextFactory)
