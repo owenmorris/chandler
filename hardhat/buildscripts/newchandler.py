@@ -155,10 +155,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
     os.chdir(testDir)
 
     if mode == "debug":
-        dashT = '-dt'
+        dashT = '-dvt'
     else:
-        dashT = '-rt'
-
+        dashT = '-vrt'
+    
     try: # test
         print "Testing " + mode
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
