@@ -50,6 +50,30 @@
     <rule itemref="view:mixedQuery"/>
   </contentModel:NamedCollection>
 
+  <contentModel:Query itsName="inQuery">
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="inItemCollection">
+    <rule itemref="view:inQuery"/>
+  </contentModel:NamedCollection>
+
+  <contentModel:Query itsName="outQuery">
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="outItemCollection">
+    <rule itemref="view:outQuery"/>
+  </contentModel:NamedCollection>
+
+  <contentModel:Query itsName="junkQuery">
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="junkItemCollection">
+    <rule itemref="view:junkQuery"/>
+  </contentModel:NamedCollection>
+
+  <contentModel:Query itsName="trashQuery">
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="trashItemCollection">
+    <rule itemref="view:trashQuery"/>
+  </contentModel:NamedCollection>
+
   <!-- Calendar List -->
   <List itsName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
@@ -114,9 +138,87 @@
   <Table itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
-    <columnHeadings>whoAttribute</columnHeadings>
-    <columnHeadings>aboutAttribute</columnHeadings>
-    <columnHeadings>dateAttribute</columnHeadings>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- In List -->
+  <Table itsName="InList">
+    <contents itemref="view:inItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Out List -->
+  <Table itsName="OutList">
+    <contents itemref="view:outItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- New Calendar List -->
+  <Table itsName="NewCalendarList">
+    <contents itemref="view:calendarItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- New Contact List -->
+  <Table itsName="NewContactList">
+    <contents itemref="view:contactItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Junk List -->
+  <Table itsName="JunkList">
+    <contents itemref="view:junkItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Trash List -->
+  <Table itsName="TrashList">
+    <contents itemref="view:trashItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -128,6 +230,30 @@
   </ItemDetail>
 
   <ItemDetail itsName="MixedItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="InItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="OutItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="NewCalendarItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="NewContactItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="JunkItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
+  <ItemDetail itsName="TrashItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
@@ -173,6 +299,60 @@
   <SplitterWindow itsName="MixedListView">
     <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="view:MixedItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- In View -->
+  <SplitterWindow itsName="InListView">
+    <childrenBlocks itemref="view:InList"/>
+    <childrenBlocks itemref="view:InItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- Out View -->
+  <SplitterWindow itsName="OutListView">
+    <childrenBlocks itemref="view:OutList"/>
+    <childrenBlocks itemref="view:OutItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- New Calendar View -->
+  <SplitterWindow itsName="NewCalendarListView">
+    <childrenBlocks itemref="view:NewCalendarList"/>
+    <childrenBlocks itemref="view:NewCalendarItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- New Contact View -->
+  <SplitterWindow itsName="NewContactListView">
+    <childrenBlocks itemref="view:NewContactList"/>
+    <childrenBlocks itemref="view:NewContactItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- Junk View -->
+  <SplitterWindow itsName="JunkListView">
+    <childrenBlocks itemref="view:JunkList"/>
+    <childrenBlocks itemref="view:JunkItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- Trash View -->
+  <SplitterWindow itsName="TrashListView">
+    <childrenBlocks itemref="view:TrashList"/>
+    <childrenBlocks itemref="view:TrashItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

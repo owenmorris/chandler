@@ -23,98 +23,12 @@
   -->
   <Node itsName="URLRoot">
     <displayName></displayName>
-    <children itemref="doc:AboutChandler"/>
-    <children itemref="doc:Repository"/>
-    <children itemref="doc:Demo"/>
-    <children itemref="doc:ZaoBao"/>
-    <children itemref="doc:MixedView"/>
     <children itemref="doc:CalendarView"/>
-    <children itemref="doc:ContactsView"/>
-    <children itemref="doc:NotesView"/>
-    <children itemref="doc:MonthView"/>
-    <children itemref="doc:WeekView"/>
-  </Node>
-
-  <Node itsName="AboutChandler">
-    <displayName>About Chandler</displayName>
-    <item itemref="main:AboutChandlerHTML"/>
-  </Node>
-
-  <Node itsName="Repository">
-    <displayName>Repository</displayName>
-    <item itemref="repository:RepositoryBox"/>
-  </Node>
-
-  <Node itsName="Demo">
-    <displayName>Block Demo</displayName>
-    <item itemref="demo:TabBox"/>
-  </Node>
-
-  <Node itsName="ZaoBao">
-    <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:AboutZaoBao"/>
-    <children itemref="doc:OSAFRSS"/>
-    <children itemref="doc:ZaoBaoRSS"/>
-    <children itemref="doc:TedRSS"/>
-    <children itemref="doc:ChaoRSS"/>
-    <children itemref="doc:LessigRSS"/>
-    <children itemref="doc:MarkRSS"/>
-  </Node>
-
-  <Node itsName="OSAFRSS">
-    <displayName>OSAF News</displayName>
-    <item itemref="zaobao:ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="TedRSS">
-    <displayName>Ted Leung on the air</displayName>
-    <item itemref="zaobao:ted_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="ZaoBaoRSS">
-    <displayName>ZaoBao News</displayName>
-    <item itemref="zaobao:zaobao_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="ChaoRSS">
-    <displayName>Chao's Blog</displayName>
-    <item itemref="zaobao:chao_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="LessigRSS">
-    <displayName>Lessig Blog</displayName>
-    <item itemref="zaobao:lessig_ZaoBaoChannelView"/>
-  </Node>
-
-  <Node itsName="MarkRSS">
-    <displayName>dive in to mark</displayName>
-    <item itemref="zaobao:mark_ZaoBaoChannelView"/>
   </Node>
 
   <Node itsName="CalendarView">
     <displayName>Calendar</displayName>
     <item itemref="content:CalendarListView"/>
-  </Node>
-
-  <Node itsName="ContactsView">
-    <displayName>Contacts</displayName>
-    <item itemref="content:ContactListView"/>
-  </Node>
-
-  <Node itsName="NotesView">
-    <displayName>Notes</displayName>
-    <item itemref="content:NoteListView"/>
-  </Node>
-
-  <Node itsName="MixedView">
-    <displayName>Mixed</displayName>
-    <item itemref="content:MixedListView"/>
-  </Node>
-
-  <Node itsName="MonthView">
-    <displayName>Month</displayName>
-    <item itemref="content:MonthView"/>
-  </Node>
-
-  <Node itsName="WeekView">
-    <displayName>Week</displayName>
-    <item itemref="content:WeekView"/>
   </Node>
 
 </core:Parcel>

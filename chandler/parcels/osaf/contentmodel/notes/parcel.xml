@@ -36,10 +36,25 @@
     <inverseAttribute itemref="notes:attachedNotes"/>
   </Attribute>
 
+  <Attribute itsName="who">
+    <redirectTo>creator</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="about">
+    <redirectTo>displayName</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="date">
+    <redirectTo>createdOn</redirectTo>
+  </Attribute>
+
   <Kind itsName="Note">
     <displayName>Note</displayName>
     <superKinds itemref="content:ContentItem"/>
     <attributes itemref="notes:attachedToItems"/>
+    <attributes itemref="notes:who"/>
+    <attributes itemref="notes:about"/>
+    <attributes itemref="notes:date"/>
     <classes key="python">osaf.contentmodel.notes.Notes.Note</classes>
   </Kind>
 

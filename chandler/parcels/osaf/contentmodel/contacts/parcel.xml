@@ -131,6 +131,18 @@
     <inverseAttribute itemref="contact:onceBelongedTo"/>
   </Attribute>
 
+  <Attribute itsName="who">
+    <redirectTo>contactName</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="about">
+    <redirectTo>displayName</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="date">
+    <redirectTo>createdOn</redirectTo>
+  </Attribute>
+
   <Kind itsName="Contact">
     <displayName>Contact</displayName>
     <description>An entry in an address book. Typically represents either a person or a company.</description>
@@ -149,6 +161,9 @@
     <attributes itemref="calendar:participatingIn"/>
     <attributes itemref="tasks:requestedTasks"/>
     <attributes itemref="tasks:taskRequests"/>
+    <attributes itemref="contact:who"/>
+    <attributes itemref="contact:about"/>
+    <attributes itemref="contact:date"/>
     <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 

@@ -322,29 +322,30 @@ class wxTableData(wx.grid.PyGridTableBase):
 
 class AttributeDelegate (ListDelegate):
     def GetElementValue (self, row, column):
-        if column == 1:
-            return "calendar"
+        item = self.blockItem.contents [row]
+        attributeName = self.blockItem.columnHeadings [column]
+        try:
+            value = item.getAttributeValue (attributeName)
+        except AttributeError:
+            value = ""
         else:
-            item = self.blockItem.contents [row]
-            attributeName = self.blockItem.columnHeadings [column]
-            try:
-                indirectAttributeName = item.getAttributeValue (attributeName)
-                value = item.getAttributeValue (indirectAttributeName)
-            except AttributeError:
+            # @@@ getAttributeAspect of a indirectAttribute returns
+            # the aspect of the indirectAttribute rather than the 
+            # attribute itself.  This code should be changed once
+            # that is fixed.            
+#            if item.getAttributeAspect (attributeName, "cardinality") == "list":
+                compoundValue = value
                 value = ""
-            else:
-                if item.getAttributeAspect (indirectAttributeName, "cardinality") == "list":
-                    compoundValue = value
-                    value = ""
+                try:
                     for part in compoundValue:
                         if value:
                             value = value + ", "
                         value = value + part.getItemDisplayName()
-            return value
+                except:
+                    return compoundValue
+        return value
 
     def GetElementType (self, row, column):
-        if column == 1:
-            return "image"
         return "string"
 
     def GetColumnHeading (self, column):
@@ -353,8 +354,7 @@ class AttributeDelegate (ListDelegate):
             row = self.GetGridCursorCol()
             item = self.blockItem.contents [row]
             attributeName = self.blockItem.columnHeadings [column]
-            indirectAttributeName = item.getAttributeValue (attributeName)
-            attribute = item.itsKind.getAttribute (indirectAttributeName)
+            attribute = item.itsKind.getAttribute (attributeName)
             heading = attribute.getItemDisplayName()
         return heading
 

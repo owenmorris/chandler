@@ -13,8 +13,7 @@
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
-             xmlns:zaobao="http://osafoundation.org/parcels/osaf/views/zaobao">
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content">
 
   <core:version>0.3</core:version>
 
@@ -287,16 +286,25 @@
   -->
   <Node itsName="URLRoot">
     <displayName></displayName>
+    <children itemref="doc:InView"/>
+    <children itemref="doc:OutView"/>
     <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
     <children itemref="doc:Demo"/>
-    <children itemref="doc:ZaoBao"/>
-    <children itemref="doc:MixedView"/>
     <children itemref="doc:CalendarView"/>
     <children itemref="doc:ContactsView"/>
-    <children itemref="doc:NotesView"/>
-    <children itemref="doc:MonthView"/>
-    <children itemref="doc:WeekView"/>
+    <children itemref="doc:JunkView"/>
+    <children itemref="doc:TrashView"/>    
+  </Node>
+
+  <Node itsName="InView">
+    <displayName>In</displayName>
+    <item itemref="content:InListView"/>
+  </Node>
+
+  <Node itsName="OutView">
+    <displayName>Out</displayName>
+    <item itemref="content:OutListView"/>
   </Node>
 
   <Node itsName="AboutChandler">
@@ -314,81 +322,24 @@
     <item itemref="demo:TabBox"/>
   </Node>
 
-  <Node itsName="ZaoBao">
-    <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:AboutZaoBao"/>
-    <children itemref="doc:OSAFRSS"/>
-    <children itemref="doc:ZaoBaoRSS"/>
-    <children itemref="doc:ChandlerWikiRSS"/>
-    <children itemref="doc:JungleWikiRSS"/>
-    <children itemref="doc:TedRSS"/>
-    <children itemref="doc:ChaoRSS"/>
-    <children itemref="doc:LessigRSS"/>
-    <children itemref="doc:MarkRSS"/>
-  </Node>
-
-  <Node itsName="OSAFRSS">
-    <displayName>OSAF News</displayName>
-    <item itemref="zaobao:ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="TedRSS">
-    <displayName>Ted Leung on the air</displayName>
-    <item itemref="zaobao:ted_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="ChandlerWikiRSS">
-    <displayName>Chandler Wiki</displayName>
-    <item itemref="zaobao:chandlerwiki_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="JungleWikiRSS">
-    <displayName>Jungle Wiki</displayName>
-    <item itemref="zaobao:junglewiki_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="ZaoBaoRSS">
-    <displayName>ZaoBao News</displayName>
-    <item itemref="zaobao:zaobao_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="ChaoRSS">
-    <displayName>Chao's Blog</displayName>
-    <item itemref="zaobao:chao_ZaoBaoChannelView"/>
-  </Node>
-  <Node itsName="LessigRSS">
-    <displayName>Lessig Blog</displayName>
-    <item itemref="zaobao:lessig_ZaoBaoChannelView"/>
-  </Node>
-
-  <Node itsName="MarkRSS">
-    <displayName>dive in to mark</displayName>
-    <item itemref="zaobao:mark_ZaoBaoChannelView"/>
-  </Node>
-
   <Node itsName="CalendarView">
     <displayName>Calendar</displayName>
-    <item itemref="content:CalendarListView"/>
+    <item itemref="content:NewCalendarListView"/>
   </Node>
 
   <Node itsName="ContactsView">
     <displayName>Contacts</displayName>
-    <item itemref="content:ContactListView"/>
+    <item itemref="content:NewContactListView"/>
   </Node>
 
-  <Node itsName="NotesView">
-    <displayName>Notes</displayName>
-    <item itemref="content:NoteListView"/>
+  <Node itsName="JunkView">
+    <displayName>Junk</displayName>
+    <item itemref="content:JunkListView"/>
   </Node>
 
-  <Node itsName="MixedView">
-    <displayName>Mixed</displayName>
-    <item itemref="content:MixedListView"/>
-  </Node>
-
-  <Node itsName="MonthView">
-    <displayName>Month</displayName>
-    <item itemref="content:MonthView"/>
-  </Node>
-
-  <Node itsName="WeekView">
-    <displayName>Week</displayName>
-    <item itemref="content:WeekView"/>
+  <Node itsName="TrashView">
+    <displayName>Trash</displayName>
+    <item itemref="content:TrashListView"/>
   </Node>
 
   <!--
@@ -397,23 +348,11 @@
   <Node itsName="BookmarksRoot">
     <displayName></displayName>
     <children itemref="doc:RepositoryBookmark"/>
-    <children itemref="doc:ZaoBaoBookmark"/>
-    <children itemref="doc:ContactsViewBookmark"/>
   </Node>
 
   <Node itsName="RepositoryBookmark">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
-  </Node>
-
-  <Node itsName="ZaoBaoBookmark">
-    <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:ZaoBaoView"/>
-  </Node>
-  
-  <Node itsName="ContactsViewBookmark">
-    <displayName>Contacts</displayName>
-    <item itemref="content:ContactListView"/>
   </Node>
 
   <!--
@@ -422,11 +361,11 @@
   <TabbedContainer itsName="TabbedView"
                    itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:AboutChandlerHTML"/>
+    <childrenBlocks itemref="content:InListView"/>
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
-    <tabNames>About Chandler</tabNames>
+    <tabNames>In</tabNames>
     
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  
@@ -434,10 +373,10 @@
   <Tree itsName="Sidebar">
     <!-- Attributes -->
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
-    <selection itemref="doc:AboutChandler"/>
+    <selection itemref="doc:InView"/>
 
     <useButtons>False</useButtons>
-    <rootPath  itemref="doc:URLRoot"/>
+    <rootPath itemref="doc:URLRoot"/>
   </Tree>
  
   <BookmarksBar itsName="BookmarksBar">

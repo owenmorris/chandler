@@ -115,6 +115,18 @@
     <displayName>Time Transparency</displayName>
     <type itemref="cal:TimeTransparencyEnum"/>
   </Attribute>
+  
+  <Attribute itsName="who">
+    <redirectTo>participants</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="about">
+    <redirectTo>displayName</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="date">
+    <redirectTo>startTime</redirectTo>
+  </Attribute>  
 
   <Kind itsName="CalendarEvent">
     <displayName>Calendar Event</displayName>
@@ -134,6 +146,9 @@
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
+    <attributes itemref="cal:who"/>
+    <attributes itemref="cal:about"/>
+    <attributes itemref="cal:date"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
