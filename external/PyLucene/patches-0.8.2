@@ -1,5 +1,5 @@
---- PyLucene-0.8.2/Makefile	Mon Oct 25 11:45:31 2004
-+++ PyLucene-0.8.2-patched/Makefile	Mon Nov  1 14:52:29 2004
+--- PyLucene-0.8.2/Makefile	Tue Nov  2 11:08:16 2004
++++ PyLucene-0.8.2-patched/Makefile	Tue Nov  2 15:27:54 2004
 @@ -137,19 +137,21 @@
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
@@ -41,7 +41,7 @@
  SWIG_OPT=-D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
-@@ -525,16 +527,19 @@
+@@ -532,16 +534,19 @@
  
  
  all: env sources $(BINDIR) $(LIBS)
@@ -61,7 +61,7 @@
  	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -542,22 +547,25 @@
+@@ -549,22 +554,25 @@
  	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
  else
  
@@ -88,9 +88,9 @@
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
---- PyLucene-0.8.2/PyLucene.i	Mon Oct 25 11:16:26 2004
-+++ PyLucene-0.8.2-patched/PyLucene.i	Mon Nov  1 14:53:16 2004
-@@ -2130,16 +2130,37 @@
+--- PyLucene-0.8.2/PyLucene.i	Tue Nov  2 15:16:27 2004
++++ PyLucene-0.8.2-patched/PyLucene.i	Tue Nov  2 15:28:26 2004
+@@ -2348,16 +2348,37 @@
  #endif
  
      objects = new java::util::Hashtable();
