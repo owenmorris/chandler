@@ -88,3 +88,10 @@ upload:	$(SNAP)-$(VERSION).tar.gz
 
 install: $(SNAP)-$(VERSION).tar.gz
 	tar -C .. -xvzf $(SNAP)-$(VERSION).tar.gz
+
+build:
+	@for system in $(SYSTEMS); \
+		do \
+			$(MAKE) -C $$system DEBUG=$(DEBUG) ; \
+		done
+

@@ -29,12 +29,19 @@ clean: env
 
 upload:
 	@for system in $(SYSTEMS); \
-        do \
-            $(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
-        done
+		do \
+			$(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
+		done
 
 install:
 	@for system in $(SYSTEMS); \
-        do \
-            $(MAKE) -C $$system DEBUG=$(DEBUG) install; \
-        done
+		do \
+			$(MAKE) -C $$system DEBUG=$(DEBUG) install; \
+		done
+
+build:
+	@for system in $(SYSTEMS); \
+		do \
+			$(MAKE) -C $$system DEBUG=$(DEBUG) ; \
+		done
+
