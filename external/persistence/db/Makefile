@@ -58,9 +58,6 @@ $(SRC)/$(BUILD)/Makefile: patches
 build: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
-expand: db-$(VERSION).tar.gz
-	tar xvzf db-$(VERSION).tar.gz
-
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
@@ -70,4 +67,5 @@ snap:
 
 endif
 
-all: build
+expand: db-$(VERSION).tar.gz
+	tar xvzf db-$(VERSION).tar.gz
