@@ -98,6 +98,9 @@ class Block(Item):
                                                                subscribedBlocks [block.itsUUID],
                                                                Globals.mainView.dispatchEvent)
 
+                doFreeze = isinstance (widget, wx.Window)
+                if doFreeze:
+                    widget.Freeze()
                 for child in self.childrenBlocks:
                     child.render()
                 """
@@ -110,6 +113,8 @@ class Block(Item):
                     self.synchronizeWidget()
                 finally:
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                if doFreeze:
+                    widget.Thaw()
 
     def onCollectionChanged (self, notification):
         """
