@@ -2,7 +2,8 @@
 setlocal
 if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
+echo CHANDLERHOME is %CHANDLERHOME%
 echo CHANDLERBIN is %CHANDLERBIN%
 path %CHANDLERBIN%\release\bin
-"%CHANDLERBIN%\release\bin\python.exe" -O Chandler.py %*
+"%CHANDLERBIN%\release\bin\python.exe" -O "%CHANDLERHOME%\Chandler.py" %*
 endlocal

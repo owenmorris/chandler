@@ -10,4 +10,4 @@ then
     CHANDLERBIN=$CHANDLERHOME
 fi
 
-$CHANDLERBIN/release/RunPython -O Chandler.py $*
+$CHANDLERBIN/release/RunPython -O $CHANDLERHOME/Chandler.py $*

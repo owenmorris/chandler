@@ -10,4 +10,4 @@ then
     CHANDLERBIN=$CHANDLERHOME
 fi
 
-$CHANDLERBIN/debug/RunPython Chandler.py $*
+$CHANDLERBIN/debug/RunPython $CHANDLERHOME/Chandler.py $*
