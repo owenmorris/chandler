@@ -35,7 +35,7 @@ class Item(object):
         self._attributes = _kwds.get('_attributes') or {}
         self._uuid = _kwds.get('_uuid') or UUID()
         
-        self._name = name
+        self._name = name or self._uuid.str64()
         self._root = None
         self._parent = parent
         self._kind = kind
@@ -297,20 +297,40 @@ class Item(object):
         '''Delete this item and disconnect all its item references.
 
         If this item has children, they are recursively deleted first.
+        If this item has references to other items and the references delete
+        policy is 'cascade' then these other items are deleted last.
         A deleted item is no longer reachable through the repository or other
         items. It is an error to access deleted item reference.'''
+        print "deleting", self._name
+        if not self._deleted and not hasattr(self, '_deleting'):
+            self._deleting = True
+            others = []
+            
+            if hasattr(self, '_children'):
+                for item in self._children.values():
+                    item.delete()
 
-        if hasattr(self, '_children'):
-            for item in self._children.values():
-                item.delete()
+            for name in self._attributes.keys():
+                policy = self.getAttrAspect(name, 'DeletePolicy', 'remove')
+                if policy == 'cascade':
+                    value = self._attributes[name]
+                    if value is not None:
+                        if isinstance(value, ItemRef):
+                            others.append(value.other(self))
+                        elif isinstance(value, RefDict):
+                            others.extend(value.others())
+                    
+                self.__delattr__(name)
 
-        for attr in self._attributes.keys():
-            self.__delattr__(attr)
+            self._parent._removeItem(self)
+            self._setRoot(None)
 
-        self._parent._removeItem(self)
-        self._setRoot(None)
+            self._deleted = True
+            del self._deleting
 
-        self._deleted = True
+            for other in others:
+                if other.refCount() == 0:
+                    other.delete()
         
     def getName(self):
         '''Return this item's name.
@@ -325,10 +345,29 @@ class Item(object):
         '''Return the reference name for this item.
 
         The reference name is used as a key into multi-valued attribute
-        dictionaries storing ItemRefs to this and other items.'''
+        dictionaries storing ItemRefs to this and other items.
+        By default, this name is the UUID of the item.'''
         
         return self._uuid
 
+    def refCount(self):
+        'Return the total ref count for counted references on this item.'
+
+        count = 0
+
+        if not self._deleted:
+            for name in self._attributes.iterkeys():
+                policy = self.getAttrAspect(name, 'CountPolicy', 'none')
+                if policy == 'count':
+                    value = self._attributes[name]
+                    if value is not None:
+                        if isinstance(value, ItemRef):
+                            count += 1
+                        elif isinstance(value, RefDict):
+                            count += len(value)
+
+        return count
+        
     def getUUID(self):
         'Return the Universally Unique ID for this item.'
         
@@ -539,6 +578,9 @@ class Item(object):
                 return type(value).__name__
             
         if isinstance(value, ItemRef):
+            other = value.other(self)
+            if other is None:
+                raise ValueError, "dangling ref on " + str(self.getPath()) + '.' + name
             self._xmlValue(name, value.other(self).getUUID(), 'ref',
                            attrType, 'single', indent, generator, withSchema)
         else:
@@ -618,6 +660,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.refs = []
         self.collections = []
         self.attrDefs = []
+        self.name = None
         self.kind = None
         self.cls = None
         
@@ -659,7 +702,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if self.tags[-1] == 'item':
             name = attrs['name']
-            attrDef = self.getAttrDef(attrs['name'])
+            attrDef = self.getAttrDef(name)
             self.attrDefs.append(attrDef)
 
             cardinality = self.getCardinality(attrDef, attrs)
@@ -800,6 +843,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 otherName = self.getOtherName(name, self.getAttrDef(name),
                                               attrs)
                 self.refs.append(((name, otherName), ref))
+
         else:
             value = self.collections.pop()
             self.attributes[attrs['name']] = value
@@ -874,8 +918,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
             return typeHandler.makeValue(data)
 
-        if typeName == 'str' or typeName == 'unicode':
-            return data
+        if typeName == 'str':
+            return str(data)
+
+        if typeName == 'unicode':
+            return unicode(data)
 
         if typeName == 'uuid':
             return UUID(data)
@@ -897,5 +944,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if typeName == 'complex':
             return complex(data)
+
+        if typeName == 'class':
+            data = str(data)
+            lastDot = data.rindex('.')
+            module = data[:lastDot]
+            name = data[lastDot+1:]
+            return getattr(__import__(module, {}, {}, name), name)
 
         raise ValueError, "Unknown type: " + typeName

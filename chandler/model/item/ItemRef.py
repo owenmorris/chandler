@@ -72,7 +72,7 @@ class ItemRef(object):
         self._attach(item, new, name)
 
     def other(self, item):
-        'Return the other end of the link relative to item.'
+        'Return the other end of the ref relative to item.'
 
         if self._item is item:
             return self._other
@@ -169,6 +169,15 @@ class RefDict(dict):
                 return self._refDict[self._iter.next()]
 
         return keyIter(self)
+
+    def others(self):
+        'Return the list of other ends of the refs relative to item.'
+
+        others = []
+        for item in self:
+            other.append(item)
+
+        return others
 
 
 class RefList(RefDict):

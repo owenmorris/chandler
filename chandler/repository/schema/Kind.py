@@ -73,5 +73,4 @@ Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
                                                    'Cardinality': 'list',
                                                    'Persist': False },
                              'Class': { 'Required': False,
-                                        'Default': 'model.schema.item.Item',
                                         'Cardinality': 'single' } })

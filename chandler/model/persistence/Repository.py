@@ -12,6 +12,7 @@ import re
 
 from model.util.UUID import UUID
 from model.util.Path import Path
+from model.item.Item import Item
 from model.item.Item import ItemHandler
 
 
@@ -109,10 +110,10 @@ class Repository(object):
                 return None
 
         elif isinstance(spec, str):
-            if spec.find('/') >= 0:
-                return self.find(Path(spec))
-            elif len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
+            if len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
                 return self.find(UUID(spec))
+            else:
+                return self.find(Path(spec))
 
         return None
 
@@ -153,8 +154,7 @@ class Repository(object):
         'Load items from the pack definition file at path.'
 
         cover = Repository.stub(self)
-        xml.sax.parse(path, PackHandler(os.path.dirname(path), parent, cover,
-                                        verbose))
+        xml.sax.parse(path, PackHandler(path, parent, cover, verbose))
 
     def purge(self):
         'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
@@ -182,7 +182,7 @@ class Repository(object):
                 self.dir(child, path)
             path.pop()
         
-    def save(self, encoding='iso-8859-1', purge=False):
+    def save(self, encoding='iso-8859-1', purge=False, verbose=False):
         '''Save all items into the directory the repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
@@ -197,14 +197,14 @@ class Repository(object):
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
-            self._saveRoot(self.getRoot('Schema'), encoding, True)
+            self._saveRoot(self.getRoot('Schema'), encoding, True, verbose)
             contents.write('Schema')
             contents.write('\n')
         
         for root in self._roots.itervalues():
             name = root.getName()
             if name != 'Schema':
-                self._saveRoot(root, encoding, not hasSchema)
+                self._saveRoot(root, encoding, not hasSchema, verbose)
                 contents.write(name)
                 contents.write('\n')
                 
@@ -213,7 +213,8 @@ class Repository(object):
         if purge:
             self.purge()
 
-    def _saveRoot(self, root, encoding='iso-8859-1', withSchema=False):
+    def _saveRoot(self, root, encoding='iso-8859-1',
+                  withSchema=False, verbose=False):
 
         name = root.getName()
         dir = os.path.join(self._dir, name)
@@ -225,11 +226,15 @@ class Repository(object):
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
         root.save(self, contents=rootContents,
-                  encoding = encoding, withSchema = withSchema)
+                  encoding = encoding, withSchema = withSchema,
+                  verbose = verbose)
         rootContents.close()
 
     def saveItem(self, item, **args):
 
+        if args.get('verbose'):
+            print item.getPath()
+            
         uuid = str(item.getUUID())
         filename = os.path.join(self._dir, item.getRoot().getName(),
                                 uuid + '.item')
@@ -283,22 +288,36 @@ class Repository(object):
                 del item._kindRef
                 item._kind = item.find(ref)
 
-        def _resolveRefs(self):
+        def _resolveRefs(self, verbose=True):
 
-            for ref in self.itemRefs:
+            i = 0
+            for ref in self.itemRefs[:]:
                 if ref[3]._other is None:
-                    ref[3]._attach(ref[0], ref[0].find(ref[1]), ref[2])
+                    other = ref[0].find(ref[1])
+                    if other is None:
+                        if verbose:
+                            print ref, ref[1], "is missing"
+                            i += 1
+                            continue
+
+                    ref[3]._attach(ref[0], other, ref[2])
+                    
+                self.itemRefs.pop(i)
 
         def find(self, spec):
             return self.repository.find(spec)
+
+        def loadPack(self, path, parent=None, verbose=False):
+            return self.repository.loadPack(path, parent, verbose)
 
 
 class PackHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading packs.'
 
-    def __init__(self, cwd, parent, cover, verbose):
+    def __init__(self, path, parent, cover, verbose):
 
-        self.cwd = [ cwd ]
+        self.path = path
+        self.cwd = [ os.path.dirname(path) ]
         self.parent = [ parent ]
         self.cover = cover
         self.verbose = verbose
@@ -311,7 +330,7 @@ class PackHandler(xml.sax.ContentHandler):
     def endDocument(self):
 
         self.cover._resolveKinds()
-        self.cover._resolveRefs()
+        self.cover._resolveRefs(True)
         
     def startElement(self, tag, attrs):
 
@@ -340,7 +359,20 @@ class PackHandler(xml.sax.ContentHandler):
         if attrs.has_key('cwd'):
             self.cwd[-1] = os.path.join(self.cwd[-1], attrs['cwd'])
 
-        self.name = attrs['name']
+        if attrs.has_key('file'):
+            if not self.cover.find(Path('//', 'Packs', attrs['name'])):
+                self.cover.loadPack(os.path.join(self.cwd[-1], attrs['file']),
+                                    self.parent[-1],
+                                    self.verbose)
+
+        else:
+            self.name = attrs['name']
+
+            packs = self.cover.find('Packs')
+            if not packs:
+                packs = Item('Packs', self.cover.repository, None)
+
+            Item(self.name, packs, None).setAttribute('File', self.path)
 
     def cwdStart(self, attrs):
 
@@ -382,6 +414,9 @@ class PackHandler(xml.sax.ContentHandler):
 
         if attrs.has_key('cwd'):
             self.cwd.pop()
+
+        if len(self.parent) == 1:
+            self.cover._resolveRefs()
 
     def loadItem(self, file, parent):
 

@@ -21,8 +21,8 @@ class Type(Item):
     def makeString(cls, value):
         return str(value)
 
-    def handlerName(self):
-        return "%s.%s" %(type(self).__module__, type(self).__name__)
+    def handlerName(cls):
+        return "%s.%s" %(cls.__module__, cls.__name__)
 
     def serialize(self, value, withSchema=False):
         return Type.makeString(value)
@@ -35,7 +35,7 @@ class Type(Item):
                                          'OtherName': 'Type' }})
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
-    
+    handlerName = classmethod(handlerName)    
 
 class String(Type):
 
@@ -128,6 +128,7 @@ class Path(Type):
 class Class(Type):
 
     def makeValue(cls, data):
+        data = str(data)
         lastDot = data.rindex('.')
         module = data[:lastDot]
         name = data[lastDot+1:]
@@ -162,8 +163,12 @@ class Enum(Type):
 
     def serialize(self, value, withSchema=False):
 
-        number = self.Values.index(value)
-        
+        try:
+            number = self.Values.index(value)
+        except ValueError:
+            print value
+            raise ValueError, "%d not in %s enum" %(value, self._name)
+            
         if withSchema:
             return value
         else:
@@ -174,7 +179,7 @@ class Enum(Type):
         if data[0] >= '0' and data[0] <= '9':
             return self.Values[int(data)]
 
-        return self.Values.index(data) and data
+        return self.Values[self.Values.index(data)]
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
@@ -201,7 +206,7 @@ class DateTime(Type):
 class RelativeDateTime(Type):
 
     def makeValue(cls, data):
-        return mx.DateTime.RelativeDateTimeFrom(data)
+        return mx.DateTime.RelativeDateTimeFrom(str(data))
 
     def unserialize(self, data):
         return RelativeDateTime.makeValue(data)
