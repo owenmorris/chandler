@@ -94,6 +94,10 @@ class Values(dict):
 
         return self._getFlags(key) & Values.TRANSIENT != 0
 
+    def _clearTransient(self, key):
+
+        self._flags[key] &= ~Values.TRANSIENT
+
     def _xmlValues(self, generator, withSchema, version, mode):
 
         from repository.item.ItemHandler import ItemHandler

@@ -205,7 +205,8 @@ class Kind(Item):
             inheritedAttributes = self.inheritedAttributes
             for superKind in self._getSuperKinds():
                 for name, attribute in superKind.iterAttributes():
-                    if not attribute._uuid in inheritedAttributes:
+                    if (attribute._uuid not in inheritedAttributes and
+                        inheritedAttributes.resolveAlias(name) is None):
                         inheritedAttributes.append(attribute, alias=name)
             for uuid, link in inheritedAttributes._iteritems():
                 name = link._alias
@@ -381,7 +382,8 @@ class Kind(Item):
 
         # clear auto-generated composite class
         if self._values._isTransient('classes'):
-            del self._values['classes']['python']
+            self._values._clearTransient('classes')
+            del self._values['classes']
 
         for subKind in self.getAttributeValue('subKinds',
                                               _attrDict=self._references,

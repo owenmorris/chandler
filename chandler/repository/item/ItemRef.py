@@ -638,9 +638,9 @@ class RefDict(LinkedMap):
         
         key = self.firstKey()
         while key is not None:
-            next = self.nextKey(key)
+            nextKey = self.nextKey(key)
             del self[key]
-            key = next
+            key = nextKey
 
     def dir(self):
         """

@@ -19,7 +19,10 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
     # more than one attribute with redirectTo aspect, the ordering
     # changes when reloading the repository.
 
-    def _createNoteAndTaskKinds(self):
+    def setUp(self):
+
+        super(RedirectAttributeOrderingTest, self).setUp()
+
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
@@ -55,10 +58,15 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         taskKind.addValue('superKinds', noteKind)
         taskKind.addValue('superKinds', taskMixin)
 
-        return (noteKind, taskMixin, taskKind)
+        self.noteKind = noteKind.itsUUID
+        self.taskMixin = taskMixin.itsUUID
+        self.taskKind = taskKind.itsUUID
 
     def testRedirectTo(self):
-        noteKind, taskMixin, taskKind = self._createNoteAndTaskKinds()
+
+        noteKind = self.rep.find(self.noteKind)
+        taskMixin = self.rep.find(self.taskMixin)
+        taskKind = self.rep.find(self.taskKind)
 
         aNote = noteKind.newItem('aNote', self.rep)
         aTaskMixin = taskMixin.newItem('aTaskMixin', self.rep)
@@ -77,7 +85,7 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(aTaskMixin.who == taskMixinWho)
         self.assert_(aTaskMixin.participant == taskMixinWho)
         self.assert_(aTask.who == taskWho)
-        self.assert_(aTask.participant == taskWho)
+        self.assert_(aTask.creator == taskWho)
         self.rep.commit()
         print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
 
@@ -95,12 +103,33 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(aNote.creator == noteWho)
         self.assert_(aTaskMixin.who == taskMixinWho)
         self.assert_(aTaskMixin.participant == taskMixinWho)
-        # test that the participant value is still there
-        self.assert_(aTask.participant == taskWho)
+
+        # test that the creator value is still there
+        self.assert_(aTask.creator == taskWho)
         print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
-        # should still be redirected to participant, but now it's creator
-        # Andi, reenable the line below when you fix it
-        #self.assert_(aTask.who == taskWho)
+        self.assert_(aTask.who == taskWho)
+        
+    def testRearrange(self):
+
+        taskKind = self.rep.find(self.taskKind)
+
+        aTask = self._find('//aTask')
+        if aTask is None:
+            aTask = taskKind.newItem('aTask', self.rep)
+
+        redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
+        print "who points to " + aTask.getAttributeAspect('who', 'redirectTo')
+        self.assert_(redirectTo == 'creator')
+
+        # place the last superKind first
+        taskKind.superKinds.placeItem(taskKind.superKinds.last(), None)
+
+        # flush kind caches after re-arranging superKinds
+        taskKind.flushCaches()
+
+        redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
+        print "who points to " + aTask.getAttributeAspect('who', 'redirectTo')
+        self.assert_(redirectTo == 'participant')
         
                   
 if __name__ == "__main__":
