@@ -32,6 +32,17 @@ def presenceCallback(connection, presenceElement):
 def iqCallback(connection, iqElement):
     connection.jabberclient.HandleIq(iqElement)
 
+class PresenceState:
+    def __init__(self, who, type, status, resource):
+        self.who = who
+        self.type = type
+        self.status = status
+        self.resource = resource
+        self.available_views = None
+        
+    def setAvailableViews(self, available_views):
+        self.avialable_views = None
+    
 class JabberClient:
     def __init__(self, viewer):
         self.viewer = viewer
@@ -46,9 +57,7 @@ class JabberClient:
         self.loggedIn = false
         self.timer = None
         
-        self.resourceMap = {}
-        self.statusMap = {}
-        self.accessibleViews = {}
+        self.presenceStateMap = {}
         self.openPeers = {}
                 
         self.ReadAccountFromPreferences()
@@ -64,7 +73,10 @@ class JabberClient:
         return self.connection != None
 
     def IsPresent(self, jabberID):		
-        return self.roster.getOnline(jabberID) == 'online'
+        presenceState = self.GetPresenceState(jabberID)
+        if presenceState == None:
+            return false
+        return presenceState.type == 'available'
         
     # extract the username from the jabber_id
     def GetUsername(self):
@@ -85,7 +97,7 @@ class JabberClient:
         self.name = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/username')
         self.email = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/emailaddress')
                                         
-# login to the Jabber server
+    # login to the Jabber server
     def Login(self):
         if self.loggedIn or not self.HasLoginInfo():
             return
@@ -123,18 +135,25 @@ class JabberClient:
             # arrange to get called periodically while we're looged in
             self.timer = JabberTimer(self)
             self.timer.Start(400)    
+        
+            # request the roster to gather initial presence state
+            self.roster = self.connection.requestRoster()
+            
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             self.Logout()
 
     # return all the status info about a given ID
-    def GetStatusInfo(self, jabberID):
-        name = self.roster.getName(jabberID)
-        status = roster.getStatus(id)
-        isOnline = roster.isOnline(id)
-    
-        return (name, status, isOnline)
-    
+    def GetPresenceState(self, jabberID):
+        key = str(jabberID)
+        if self.presenceStateMap.has_key(key):
+            return self.presenceStateMap[key]
+        return None
+   
+    def SetPresenceState(self, jabberID, state):
+        key = str(jabberID)
+        self.presenceStateMap[key] = state
+       
     # dump the roster, mainly for debugging
     def DumpRoster(self):
         print "resources ", self.resourceMap
@@ -164,58 +183,26 @@ class JabberClient:
         if self.connection == None:
             return []
 
-        self.roster = self.connection.requestRoster()
+        #self.roster = self.connection.requestRoster()
         ids = self.roster.getJIDs()
+         
         activeIDs = []
         inactiveIDs = []
         
         for id in ids:
-            basicID = id.getStripped()
-            if chandlerOnly:
+             if chandlerOnly:
                 if not self.IsChandlerClient(id):
                     continue
-                    
-            if self.roster.getOnline(id) == 'online':
-                activeIDs.append(id)		
-            else:
-                inactiveIDs.append(id)
+                   
+             if self.IsPresent(id):
+                 activeIDs.append(id)		
+             else:
+                 inactiveIDs.append(id)
         
         for id in inactiveIDs:
             activeIDs.append(id)
             
         return activeIDs
-        
-    # return the list of jabber_ids of online members of roster
-    # optionally, filter for Chandler clients only
-    def GetActiveIDs(self, chandlerOnly):
-        if self.connection == None:
-            return []
-            
-        self.roster = self.connection.requestRoster()
-        ids = self.roster.getJIDs()
-        activeIds = []
-        for id in ids:
-            basicID = id.getStripped()
-            if chandlerOnly:
-                if not self.IsChandlerClient(id):
-                    continue
-                    
-            if self.roster.getOnline(id) == 'online':
-                activeIds.append(id)		
-        
-        return activeIds
-    
-    def GetInactiveIDs(self):
-        if self.connection == None:
-            return []
-        
-        self.roster = self.connection.requestRoster()
-        ids = self.roster.getJIDs()
-        inactiveIds = []
-        for id in ids:
-            if self.roster.getOnline(id) != 'online':
-                inactiveIds.append(id)		
-        return inactiveIds
             
     def Logout(self):
         if self.connected:
@@ -329,18 +316,15 @@ class JabberClient:
             type = 'available'
         
         resource = fromAddress.getResource()
-        self.resourceMap[who] = resource
 
-        #if type == 'unavailable':
-            #self.viewer.location_bar.notify_unavailable(who)
-                            
+        state = PresenceState(who, type, status, resource)
+        self.SetPresenceState(who, state)
+        
         # invoke a dialog to confirm the subscription request if necessary
         if type == 'subscribe' or type == 'unsubscribe':
             self.ConfirmSubscription(type, who)
         else:
-            if not self.statusMap.has_key(who) or self.statusMap[who] != status:
-                self.statusMap[who] = status
-                self.NotifyPresenceChanged(who)
+            self.NotifyPresenceChanged(who)
             
     # handle iq requests
     # FIXME: do we need this - we're not really doing anything with it now...

@@ -71,11 +71,7 @@ class PresencePanel(wxScrolledWindow):
     def ToggleOpen(self, jabberID):
         key = str(jabberID)
         self.SetOpen(key, not self.IsOpen(key))
-        
-    # return the present state of the passed in jabberID
-    def IsPresent(self, jabberID):
-        return self.jabberClient.IsPresent(jabberID)
-    
+            
     # render the presence panel
     def RenderWidgets(self):
         self.DestroyChildren()
@@ -90,23 +86,24 @@ class PresencePanel(wxScrolledWindow):
     # render a presence entry for the passed-in ID
     def RenderPresenceEntry(self, jabberID):
         entryContainer = wxBoxSizer(wxHORIZONTAL)
-
-        # add the disclosure triangle 
-        if self.IsOpen(jabberID):
-            image = self.downTriangle
-        else:
-            image = self.rightTriangle   
         
-        triangleWidget = wxStaticBitmap(self, -1, image)
-        handler = OpenHandler(self, jabberID)
-        EVT_LEFT_DOWN(triangleWidget, handler.ClickedTriangle)
-        entryContainer.Add(triangleWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST, 2)
-
-        # add the presence state image
-        if self.IsPresent(jabberID):
+        # add the disclosure triangle if necessary
+        if self.jabberClient.IsPresent(jabberID):
+            if self.IsOpen(jabberID):
+                image = self.downTriangle
+            else:
+                image = self.rightTriangle   
+        
+            triangleWidget = wxStaticBitmap(self, -1, image)
+            handler = OpenHandler(self, jabberID)
+            EVT_LEFT_DOWN(triangleWidget, handler.ClickedTriangle)
+            entryContainer.Add(triangleWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST, 2)
+            
             image = self.presentBitmap
             textColor = wxBLACK
         else:
+            entryContainer.Add(12, -1)
+            
             image = self.absentBitmap
             textColor = wxColor(31, 31, 31)
             
