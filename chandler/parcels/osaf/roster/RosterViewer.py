@@ -44,7 +44,8 @@ class RosterViewer(ViewerParcel):
     def GetNotificationList(self):
         return ['chandler/im/presence-changed']
     
-    # for now, just say that we received it
+    # FIXME: for now, just say that we received it, because we're still being called by
+    # the callback
     def ReceiveNotification(self, notification):
         print "Roster Received Notification", notification.name
         
@@ -78,8 +79,6 @@ class RosterViewer(ViewerParcel):
         if jabberName == None:
             jabberName = str(jabberID)
             
-        #if app.jabberClient.IsPresent(jabberID):
-            #jabberName = '* ' + jabberName
         self.nameToIDMap[jabberName] = str(jabberID)
         return self.displayName + '/' + jabberName
         

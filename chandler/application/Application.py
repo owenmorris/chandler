@@ -653,11 +653,11 @@ class wxApplication (wxApp):
           FIXME:  this routine is temporary scaffolding - we'll use the
         real database stuff with indexing when it's developed.
         """
-        repository = Repository()
-        for item in repository.thingList:
-            if item.__class__.__name__ == 'Contact':
+        for item in self.repository.find("//Contacts"):
+            if item.__class__.__name__ == 'ContactEntity':
                 if item.HasContactMethod('jabberID', jabberID):
                     return item.GetFullName()
+                
         return None
     
     def PresenceWindowClosed(self, event):

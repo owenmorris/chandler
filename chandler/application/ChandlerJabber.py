@@ -570,21 +570,23 @@ class JabberClient:
         
         self.confirmDialog.Destroy()
         self.confirmDialog = None
-        
-                        
+                            
     # post a notification that the presence state has changed
     def NotifyPresenceChanged(self, who):
         presenceChangedNotification = Notification("chandler/im/presence-changed","whoType", None)
-        presenceChangedNotification.SetData(who)
+        data = {}
+        data['who'] = who
+        presenceChangedNotification.SetData(data)
         self.application.model.notificationManager.PostNotification(presenceChangedNotification)
         
+        # we should eventually get rid of these callbacks and use notifications instead. One
+        # issue is the roster parcel needs to receive its notification even when it's not
+        # the active parcel (to maintain the sidebar), which we don't support yet.
         app = application.Application.app
         if app.presenceWindow != None:
             app.presenceWindow.PresenceChanged(who)
         if self.rosterParcel != None:
             self.rosterParcel.PresenceChanged(who)
-        if self.contactsParcel != None:
-            self.contactsParcel.PresenceChanged(who)
             
     # register the user
     def Register(self):

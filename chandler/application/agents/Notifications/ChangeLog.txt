@@ -35,3 +35,8 @@
 
     * made the notification manager be persisent.  This means registrations, subscriptions and
       declarations persist between program launches, but the actual queued notifications do not.
+
+2003-09-01 Andy Hertzfeld <andy@differnet.com>
+
+    * made _postNotification call wxWakeUpIdle so we can use idle events to poll for
+      notifications, whilw still allowing the main loop to sleep most of the time

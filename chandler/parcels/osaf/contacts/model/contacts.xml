@@ -151,6 +151,22 @@
     <pythonClass>OSAF.contacts.model.ContactMethod.ContactMethod</pythonClass>
   </Kind>
 
+  <!-- Attributes used in JabberContactMethod -->
+
+  <AttributeDefinition id="contacts:jabberAddress">
+    <label>Jabber ID</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <!-- JabberContactMethod Item Definition -->
+  <Kind id="contacts:JabberContactMethod">
+    <label>Jabber Contact Method</label>
+    <attribute itemref="contacts:jabberAddress"/>
+    <superKind itemref="contacts:ContactMethod"/>
+    <pythonClass>OSAF.contacts.model.ContactMethod.ContactMethod</pythonClass>
+  </Kind>
+
   <!-- Attributes used in ContactFormat -->
 
   <AttributeDefinition id="contacts:headerAttributes">

@@ -515,13 +515,13 @@ class wxViewerParcel(wxPanel):
     def OnIdle(self, event):
         """
           at idle time, fetch notifications for the parcel and call it if we have one
+          we don't need to call RequestMore, since the notification manager will wake
+          us up when new events are posted.
         """
         notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
         if notification != None:
             self.model.ReceiveNotification(notification)
-            
-        event.RequestMore()
-        
+                    
     def OnReload(self):
         """
           Called when the reload button is clicked.  Override to add the

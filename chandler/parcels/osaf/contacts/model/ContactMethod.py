@@ -20,6 +20,8 @@ class ContactMethodFactory:
             kind = "//Schema/ContactsSchema/PhoneContactMethod"
         elif addressType == 'email':
             kind = "//Schema/ContactsSchema/EmailContactMethod"         
+        elif addressType == 'jabberID':
+            kind = "//Schema/ContactsSchema/JabberContactMethod"           
         else:
             kind = "//Schema/ContactsSchema/ContactMethod"
         
@@ -100,7 +102,7 @@ class ContactMethod(Item):
         elif addressType == 'email':
             attributeList = ['emailaddress']
         elif addressType == 'jabberID':
-            attributeList = ['address']
+            attributeList = ['jabberAddress']
         elif addressType == 'website':
             attributeList = ['url']
         elif addressType == 'note':

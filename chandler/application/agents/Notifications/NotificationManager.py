@@ -19,6 +19,8 @@ import Queue
 import re
 import thread
 
+from wxPython.wx import wxWakeUpIdle
+
 from persistence import Persistent 
 from persistence.list import PersistentList
 from persistence.dict import PersistentDict
@@ -229,6 +231,9 @@ class NotificationManager(Persistent):
                    pass
                    
            result = Status(True)
+           
+           # call wxWakeUpIdle to give a chance for idle handlers to notice the notification
+           wxWakeUpIdle()
         else:
            result = Status(False, NotificationManager.DECLARATION_NOT_FOUND)
        

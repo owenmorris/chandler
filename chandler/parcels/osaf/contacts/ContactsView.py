@@ -158,6 +158,17 @@ class ContactsViewer(ViewerParcel):
             viewer = app.association[myID]
             viewer.PresenceChanged(who)
 
+    # return the list of notifications to subscribe to
+    def GetNotificationList(self):
+        return ['chandler/im/presence-changed']
+    
+    # handle the presence changed notification
+    def ReceiveNotification(self, notification):
+         if notification.name == 'chandler/im/presence-changed':
+            data = notification.GetData()
+            who = data['who']
+            self.PresenceChanged(who)
+
     # iterate through the repository to find a contact with the passed in name
     def FindContactByName(self, targetName):
         for item in app.repository.find("//Contacts"):
