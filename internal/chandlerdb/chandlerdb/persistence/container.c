@@ -68,6 +68,7 @@ static PyObject *t_container_new(PyTypeObject *type,
 static int t_container_init(t_container *self, PyObject *args, PyObject *kwds);
 
 static PyUUID_Check_fn PyUUID_Check;
+static PyUUID_Make16_fn PyUUID_Make16;
 
 static PyMemberDef t_container_members[] = {
     { "db", T_OBJECT, offsetof(t_container, db), READONLY, "" },
@@ -324,6 +325,8 @@ static PyObject *t_value_container_new(PyTypeObject *type,
                                        PyObject *args, PyObject *kwds);
 static int t_value_container_init(t_value_container *self,
                                   PyObject *args, PyObject *kwds);
+static PyObject *t_value_container_loadValue(t_value_container *self,
+                                             PyObject *args);
 static PyObject *t_value_container_saveValue(t_value_container *self,
                                              PyObject *args);
 
@@ -333,6 +336,8 @@ static PyMemberDef t_value_container_members[] = {
 };
 
 static PyMethodDef t_value_container_methods[] = {
+    { "loadValue", (PyCFunction) t_value_container_loadValue, METH_VARARGS,
+      "saveValue" },
     { "saveValue", (PyCFunction) t_value_container_saveValue, METH_VARARGS,
       "saveValue" },
     { NULL, NULL, 0, NULL }
@@ -398,6 +403,67 @@ static int t_value_container_init(t_value_container *self,
                                   PyObject *args, PyObject *kwds)
 {
     return ContainerType.tp_init((PyObject *) self, args, kwds);
+}
+
+static PyObject *t_value_container_loadValue(t_value_container *self,
+                                             PyObject *args)
+{
+    PyObject *txn, *uValue;
+
+    if (!PyArg_ParseTuple(args, "OO", &txn, &uValue))
+        return NULL;
+    else
+    {
+        DB *db = ((DBObject *) (((t_container *) self)->db))->db;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
+        DBT key, data;
+        int err;
+
+        memset(&key, 0, sizeof(key));
+        key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
+        key.size = PyString_GET_SIZE(((t_uuid *) uValue)->uuid);
+        
+        memset(&data, 0, sizeof(data));
+        data.flags = DB_DBT_MALLOC;
+
+        while (1) {
+            Py_BEGIN_ALLOW_THREADS;
+            err = db->get(db, db_txn, &key, &data, 0);
+            Py_END_ALLOW_THREADS;
+
+            switch (err) {
+              case 0:
+              {
+                  PyObject *tuple = PyTuple_New(2);
+                  PyObject *uuid =
+                      PyString_FromStringAndSize((char *) data.data, 16);
+                  PyObject *value = 
+                      PyString_FromStringAndSize((char *) data.data + 36,
+                                                 data.size - 36);
+
+                  free(data.data);
+                  PyTuple_SET_ITEM(tuple, 0, PyUUID_Make16(uuid));
+                  PyTuple_SET_ITEM(tuple, 1, value);
+
+                  return tuple;
+              }
+              case DB_NOTFOUND:
+              {
+                  PyObject *tuple = PyTuple_New(2);
+
+                  PyTuple_SET_ITEM(tuple, 0, Py_None); Py_INCREF(Py_None);
+                  PyTuple_SET_ITEM(tuple, 1, Py_None); Py_INCREF(Py_None);
+
+                  return tuple;
+              }
+              case DB_LOCK_DEADLOCK:
+                if (!db_txn)
+                    continue;
+              default:
+                return raiseDBError(err);
+            }
+        }
+    }
 }
 
 static PyObject *t_value_container_saveValue(t_value_container *self,
@@ -616,6 +682,7 @@ void initcontainer(void)
 
             m = PyImport_ImportModule("chandlerdb.util.uuid");
             LOAD_FN(m, PyUUID_Check);
+            LOAD_FN(m, PyUUID_Make16);
             Py_DECREF(m);
         }
     }

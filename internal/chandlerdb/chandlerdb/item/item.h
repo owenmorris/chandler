@@ -7,6 +7,12 @@ typedef struct {
     PyObject_HEAD
     unsigned long lastAccess;
     unsigned long status;
+    unsigned long version;
+    PyObject *uuid;
+    PyObject *name;
+    PyObject *values;
+    PyObject *references;
+    PyObject *kind;
 } t_item;
 
 enum {

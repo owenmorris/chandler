@@ -258,6 +258,17 @@ int PyUUID_Check(PyObject *obj)
     return obj->ob_type == &UUIDType;
 }
 
+PyObject *PyUUID_Make16(PyObject *str16)
+{
+    t_uuid *uuid = (t_uuid *) PyObject_New(t_uuid, &UUIDType);
+    
+    /* steals reference */
+    uuid->uuid = str16;
+    uuid->hash = hash_bytes(PyString_AS_STRING(str16), 16);
+
+    return (PyObject *) uuid;
+}
+
 
 void inituuid(void)
 {
@@ -274,6 +285,8 @@ void inituuid(void)
 
             cobj = PyCObject_FromVoidPtr(PyUUID_Check, NULL);
             PyModule_AddObject(m, "PyUUID_Check", cobj);
+            cobj = PyCObject_FromVoidPtr(PyUUID_Make16, NULL);
+            PyModule_AddObject(m, "PyUUID_Make16", cobj);
         }
     }
 }

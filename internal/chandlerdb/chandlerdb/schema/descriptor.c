@@ -141,11 +141,10 @@ static PyObject *get_attrdict(PyObject *obj, PyObject *flags)
 {
     switch (PyInt_AS_LONG(flags) & DICTMASK) {
       case VALUE:
-        return PyObject_GetAttrString(obj, "_values");
+        return ((t_item *) obj)->values;
       case REF:
-        return PyObject_GetAttrString(obj, "_references");
+        return ((t_item *) obj)->references;
       case REDIRECT:
-        Py_INCREF(Py_None);
         return Py_None;
       default:
         return NULL;
@@ -171,14 +170,12 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
     }
     else
     {
-        PyObject *kind = PyObject_GetAttrString(obj, "_kind");
+        PyObject *kind = ((t_item *) obj)->kind;
 
         if (kind != Py_None)
         {
-            PyObject *uuid = PyObject_GetAttrString(kind, "_uuid");
+            PyObject *uuid = ((t_item *) kind)->uuid;
             PyObject *tuple = PyDict_GetItem(self->attrs, uuid);
-
-            Py_DECREF(uuid);
 
             if (tuple != NULL)
             {
@@ -212,9 +209,6 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
                 else
                     value = PyObject_CallMethodObjArgs(obj, getAttributeValue_NAME, self->name, attrDict, attrID, NULL);
 
-                Py_DECREF(attrDict);
-                Py_DECREF(kind);
-
                 return value;
             }
         }
@@ -224,7 +218,6 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
             PyObject *value = PyDict_GetItem(dict, self->name);
 
             Py_DECREF(dict);
-            Py_DECREF(kind);
 
             if (value == NULL)
                 PyErr_SetObject(PyExc_AttributeError, self->name);

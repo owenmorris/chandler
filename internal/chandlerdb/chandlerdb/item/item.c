@@ -67,6 +67,12 @@ static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyMemberDef t_item_members[] = {
     { "_lastAccess", T_UINT, offsetof(t_item, lastAccess), 0, "access stamp" },
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
+    { "_version", T_UINT, offsetof(t_item, version), 0, "item version" },
+    { "_uuid", T_OBJECT, offsetof(t_item, uuid), 0, "item uuid" },
+    { "_name", T_OBJECT, offsetof(t_item, name), 0, "item name" },
+    { "_values", T_OBJECT, offsetof(t_item, values), 0, "literals" },
+    { "_references", T_OBJECT, offsetof(t_item, references), 0, "references" },
+    { "_kind", T_OBJECT, offsetof(t_item, kind), 0, "item kind" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -147,6 +153,12 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     {
         self->lastAccess = 0;
         self->status = RAW;
+        self->version = 0;
+        self->uuid = NULL;
+        self->name = NULL;
+        self->values = NULL;
+        self->references = NULL;
+        self->kind = NULL;
     }
 
     return (PyObject *) self;
