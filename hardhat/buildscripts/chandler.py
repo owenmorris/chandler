@@ -169,9 +169,7 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildId, clobber, log):
             print "Building release"
             log.write("building release" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rB"])
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-D"])
+             [hardhatScript, "-rBD"])
     except Exception, e:
         print "a build error"
         log.write("error during build" + "\n")
