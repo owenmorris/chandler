@@ -84,3 +84,8 @@ install: $(ARCHIVES) $(notdir $(ARCHIVES))
 clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
 	rm -f chandler.log randpool.dat
+
+realclean: clean
+	rm -f $(ARCHIVES)
+	rm -fr $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
+
