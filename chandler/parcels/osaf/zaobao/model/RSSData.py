@@ -12,10 +12,10 @@ import time
 import os
 
 #Chandler modules
+import application.Globals as Globals
 from repository.item.Item import Item
 from repository.schema import Kind
 from application.Application import app
-from application.agents.Notifications.NotificationManager import NotificationManager
 from application.agents.Notifications.Notification import Notification
 
 # ZaoBao modules
@@ -42,7 +42,7 @@ def OnInit(loader):
                                   'zaobao.xml')
         loader.load(zaobaoPath)
         Item("Items",app.repository.find('//ZaoBao'),None)
-        notificationManager = app.model.notificationManager
+        notificationManager = Globals.notificationManager
         notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
                                                 NotificationManager.SYSTEM_CLIENT,
                                                 'unknown','')
@@ -191,7 +191,7 @@ class RSSChannel(Item):
            feedsChangedNotification = Notification(FEED_CHANGED_NOTIFICATION,
                                                    "RSSChannel",'zaobaoDaemon')
            feedsChangedNotification.SetData(self)
-           app.model.notificationManager.PostNotification(feedsChangedNotification)
+           Globals.notificationManager.PostNotification(feedsChangedNotification)
            if doSave:
                app.repository.commit()
        
