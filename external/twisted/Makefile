@@ -1,6 +1,6 @@
 
 VERSION=r11303
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-2
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
 
@@ -24,7 +24,7 @@ applym2:
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: expand apply applym2 applysmtp applyimap4
+build: expand apply applysmtp applyimap4 applym2
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
