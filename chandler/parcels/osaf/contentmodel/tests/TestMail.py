@@ -38,6 +38,9 @@ class MailTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(Mail.MailParcel.getSMTPAccountKind(),
                          self.rep.find(Path(mailPath, 'SMTPAccount')))
 
+        self.assertEqual(Mail.MailParcel.getMailDeliveryErrorKind(),
+                         self.rep.find(Path(mailPath, 'MailDeliveryError')))
+
         self.assertEqual(Mail.MailParcel.getMailDeliveryBaseKind(),
                          self.rep.find(Path(mailPath, 'MailDeliveryBase')))
 
@@ -79,6 +82,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         accountBaseItem = Mail.AccountBase("accountBaseItem")
         imapAccountItem = Mail.IMAPAccount("imapAccountItem")
         smtpAccountItem = Mail.SMTPAccount("smtpAccountItem")
+        mailDeliveryErrorItem = Mail.MailDeliveryError("mailDeliveryErrorItem")
         mailDeliveryBaseItem = Mail.MailDeliveryBase("mailDeliveryBaseItem")
         smtpDeliveryItem = Mail.SMTPDelivery("smtpDeliveryItem")
         imapDeliveryItem = Mail.IMAPDelivery("imapDeliveryItem")
@@ -101,6 +105,9 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         self.assertEqual(smtpAccountItem.itsKind,
                          Mail.MailParcel.getSMTPAccountKind())
+
+        self.assertEqual(mailDeliveryErrorItem.itsKind,
+                         Mail.MailParcel.getMailDeliveryErrorKind())
 
         self.assertEqual(mailDeliveryBaseItem.itsKind,
                          Mail.MailParcel.getMailDeliveryBaseKind())
@@ -142,9 +149,14 @@ class MailTest(TestContentModel.ContentModelTestCase):
         smtpAccountItem = self.__populateAccount(smtpAccountItem)
         imapAccountItem = self.__populateAccount(imapAccountItem)
 
+        mailDeliveryErrorItem.errorCode = 25
+        mailDeliveryErrorItem.errorString = "Test String"
+        mailDeliveryErrorItem.errorDate = DateTime.now()
+
         mailDeliveryBaseItem.deliveryType = "POP"
         smtpDeliveryItem.deliveryType = "SMTP"
         smtpDeliveryItem.state = "DRAFT"
+        smtpDeliveryItem.deliveryError = mailDeliveryErrorItem
         imapDeliveryItem.deliveryType = "IMAP"
         imapDeliveryItem.uid = 0
         mimeBaseItem.mimeType = "SGML"

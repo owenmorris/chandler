@@ -32,6 +32,9 @@ class MailParcel(application.Parcel.Parcel):
         smtpAccountKind = self['SMTPAccount']
         MailParcel.smtpAccountKindID = smtpAccountKind.itsUUID
 
+        mailDeliveryErrorKind = self['MailDeliveryError']
+        MailParcel.mailDeliveryErrorKindID = mailDeliveryErrorKind.itsUUID
+
         mailDeliveryBaseKind = self['MailDeliveryBase']
         MailParcel.mailDeliveryBaseKindID = mailDeliveryBaseKind.itsUUID
 
@@ -85,6 +88,12 @@ class MailParcel(application.Parcel.Parcel):
         return Globals.repository[cls.smtpAccountKindID]
 
     getSMTPAccountKind = classmethod(getSMTPAccountKind)
+
+    def getMailDeliveryErrorKind(cls):
+        assert cls.mailDeliveryErrorKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.mailDeliveryErrorKindID]
+
+    getMailDeliveryErrorKind = classmethod(getMailDeliveryErrorKind)
 
     def getMailDeliveryBaseKind(cls):
         assert cls.mailDeliveryBaseKindID, "Mail parcel not yet loaded"
@@ -162,6 +171,7 @@ class MailParcel(application.Parcel.Parcel):
     accountBaseKindID = None
     imapAccountKindID = None
     smtpAccountKindID = None
+    mailDeliveryErrorKindID = None
     mailDeliveryBaseKindID = None
     smtpDeliveryKindID = None
     imapDeliveryKindID = None
@@ -202,6 +212,16 @@ class IMAPAccount(AccountBase):
         super (IMAPAccount, self).__init__(name, parent, kind)
 
         self.accountType = "IMAP"
+
+
+class MailDeliveryError(Item.Item):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentModel.ContentModel.getContentItemParent()
+        if not kind:
+            kind = MailParcel.getMailDeliveryErrorKind()
+        super (MailDeliveryError, self).__init__(name, parent, kind)
+
 
 class MailDeliveryBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):

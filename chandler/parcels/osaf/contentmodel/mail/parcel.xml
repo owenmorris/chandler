@@ -178,6 +178,38 @@
 
     </Kind>
 
+    <Kind itsName="MailDeliveryError">
+        <superKinds ref="Item" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryError" />
+        <displayName value="Mail Delivery Error kind" />
+        <description value="Contains the error data associated with a MailDelivery Type" />
+
+        <Attribute itsName="errorCode">
+            <displayName value="The Error Code" />
+            <description value="The Error Code returned by the Delivery Transport" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="0" />
+        </Attribute>
+
+        <Attribute itsName="errorString">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="errorDate">
+            <type ref="DateTime" />
+        </Attribute>
+
+        <Attribute itsName="mailDelivery">
+            <displayName value="Mail Delivery" />
+            <description value="The Mail Delivery that cause this error" />
+            <type ref="mail:MailDeliveryBase" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:MailDeliveryBase/deliveryError" />
+        </Attribute>
+    </Kind>
+
+
     <Kind itsName="MailDeliveryBase">
         <superKinds ref="Item" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryBase" />
@@ -204,7 +236,16 @@
             <inverseAttribute ref="mail:MailMessageMixin/deliveryExtension" />
         </Attribute>
 
+        <Attribute itsName="deliveryError">
+            <displayName value="Mail Delivery Error" />
+            <description value="The Mail Delivery Error" />
+            <type ref="mail:MailDeliveryError" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:MailDeliveryError/mailDelivery" />
+        </Attribute>
+
     </Kind>
+
 
     <Kind itsName="SMTPDelivery">
         <superKinds ref="mail:MailDeliveryBase" />
