@@ -113,7 +113,7 @@
 	</xsl:template>
 	
 	<xsl:template match="core:Attribute">
-	    <xsl:param name="done" select="exsl:node-set('')"/>
+	    <xsl:param name="done" select="exsl:node-set($empty)"/>
 		<ul>
             <xsl:for-each select="*">
                <xsl:variable name = "x" select = "." />

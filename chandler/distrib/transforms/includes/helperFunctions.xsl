@@ -6,6 +6,9 @@
      extension-element-prefixes="exsl func">
 
    <xsl:variable name = "root" select = "/" />
+   <xsl:variable name = "empty">
+      <empty/>
+   </xsl:variable>
 
 <!-- 
      createRelativePath creates a relative path from two absolute (UNIX style) paths.
@@ -416,10 +419,6 @@
    </xsl:choose>
 </func:function>
 
-<xsl:variable name = "test">
-<empty/>
-</xsl:variable>
-
 <func:function name="func:getAttributeValue">
    <xsl:param name="context"/>
    <xsl:param name="attribute"/>
@@ -448,7 +447,7 @@
       	   <func:result select="func:getAttributeValue($coreDoc//core:Kind[@itemName='Item'],$attribute)" />
       	</xsl:when>
       	<xsl:otherwise>
-      	   <func:result select="exsl:node-set($test)"/>
+      	   <func:result select="exsl:node-set($empty)"/>
       	</xsl:otherwise>
       </xsl:choose>
 </func:function>
