@@ -454,18 +454,16 @@ def getItem(dav):
     if newItem.isItemOf(repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
         contentItemKind = repository.findPath('//parcels/osaf/contentmodel/ContentItem')
         for i in newItem:
-            clouds = i.itsKind.getClouds('default')
-            for cloud in clouds:
-                for k in cloud.getItems(i):
-                    # we only support publishing content items
+            for k in i.getItemCloud('default'):
+                # we only support publishing content items
 
-                    if not k.isItemOf(contentItemKind):
-                        log.warning('Skipping %s -- Not a ContentItem' % (str(k)))
-                        continue
-                    if not k.hasAttributeValue('sharedURL'):
-                        k.sharedURL = dav.url.join(k.itsUUID.str16())
+                if not k.isItemOf(contentItemKind):
+                    log.warning('Skipping %s -- Not a ContentItem' % (str(k)))
+                    continue
+                if not k.hasAttributeValue('sharedURL'):
+                    k.sharedURL = dav.url.join(k.itsUUID.str16())
 
-                    Dav.DAV(k.sharedURL).sync(k)
+                Dav.DAV(k.sharedURL).sync(k)
 
     dav.sync(newItem)
 

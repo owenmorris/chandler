@@ -80,10 +80,15 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                              recurrenceItem, reminderItem)
 
         # Check cloud membership - event + location
+
+        # the code below is wrong. It should be:
+        #     items = calendarEventItem.getItemCloud('default')
+        #     self.assertEqual(len(items), 2)
+
         cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/calendar",
            "CalendarEventMixin/Cloud")
 
-        items = cloud.getItems(calendarEventItem)
+        items = cloud.getItems(calendarEventItem, 'default')
         self.assertEqual(len(items), 2)
 
         # Re-examine items

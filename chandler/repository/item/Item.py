@@ -1304,7 +1304,7 @@ class Item(object):
 
         return False
 
-    def getItemCloud(self, cloudAlias):
+    def getItemCloud(self, cloudAlias, items=None):
         """
         Get the items in a cloud by using this item as entrypoint.
 
@@ -1316,10 +1316,11 @@ class Item(object):
 
         if self._kind is None:
             raise KindlessItemError, self
-        
-        items = {}
+
+        if items is None:
+            items = {}
         for cloud in self._kind.getClouds(cloudAlias):
-            cloud.getItems(self, items, None, cloudAlias)
+            cloud.getItems(self, cloudAlias, items)
 
         return items.values()
 

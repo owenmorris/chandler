@@ -27,11 +27,7 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # This is how you determine which items would get copied if you
         # were doing a cloud copy:
-        items = {}
-        clouds = widgetA.itsKind.getClouds("default")
-        for cloud in clouds:
-            for item in cloud.getItems(widgetA, cloudAlias="default"):
-                items[item.itsUUID] = item
+        items = widgetA.getItemCloud('default')
 
         expectedItems = [
             "//parcels/clouds/data/widgetA",
@@ -42,9 +38,10 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             "//parcels/clouds/data/sprocketC",
         ]
 
-        for item in items.itervalues():
-            self.assert_(str(item.itsPath) in expectedItems)
-            expectedItems.remove(str(item.itsPath))
+        for item in items:
+            path = str(item.itsPath)
+            self.assert_(path in expectedItems)
+            expectedItems.remove(path)
         self.assertEquals(len(expectedItems), 0)
 
 

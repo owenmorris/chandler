@@ -183,10 +183,15 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mailMessageItem = outbound.getItemChild("mailMessageItem")
 
         #Test cloud membership
+
+        # the code below is wrong. It should be:
+        #     items = mailMessageItem.getItemCloud('default')
+        #     self.assertEqual(len(items), 1)
+
         cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/mail",
            "MailMessageMixin/Cloud")
 
-        items = cloud.getItems(mailMessageItem)
+        items = cloud.getItems(mailMessageItem, 'default')
         self.assertEqual(len(items), 1)
 
     def __populateAccount(self, account):

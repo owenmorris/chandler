@@ -127,21 +127,19 @@ class DAV(object):
 
         contentItemKind = item.itsView.findPath('//parcels/osaf/contentmodel/ContentItem')
 
-        clouds = item.itsKind.getClouds('default')
-        for cloud in clouds:
-            for i in cloud.getItems(item):
-                # we only support publishing content items
-                if not i.isItemOf(contentItemKind):
-                    log.warning('Skipping %s -- Not a ContentItem' % (str(i)))
-                    continue
-                try:
-                    durl = i.sharedURL
-                except AttributeError:
-                    durl = self.url.join(i.itsUUID.str16())
-                    i.sharedURL = durl
+        for i in item.getItemCloud('default'):
+            # we only support publishing content items
+            if not i.isItemOf(contentItemKind):
+                log.warning('Skipping %s -- Not a ContentItem' % (str(i)))
+                continue
+            try:
+                durl = i.sharedURL
+            except AttributeError:
+                durl = self.url.join(i.itsUUID.str16())
+                i.sharedURL = durl
 
-                sharing.itemMap[i.itsUUID] = i.itsUUID
-                DAV(durl).sync(i)
+            sharing.itemMap[i.itsUUID] = i.itsUUID
+            DAV(durl).sync(i)
 
         #self.sync(item)
 
