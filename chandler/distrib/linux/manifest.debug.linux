@@ -20,6 +20,13 @@ dest=debug
 glob=libwx*
 lib
 
+# Grab the OpenSSL libs
+src=chandler/debug
+recursive=no
+dest=release
+glob=libssl*,libcrypto*
+lib
+
 # Recursively grab python libraries
 src=chandler/debug/lib
 dest=debug/lib
