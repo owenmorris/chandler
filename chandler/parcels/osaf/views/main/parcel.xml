@@ -121,12 +121,12 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
-    <items itemref="content:MixedTableView"/>
+    <items itemref="content:MixedView"/>
     <items itemref="stockQuote:StockQuoteView"/>
-    <items itemref="content:NoteTableView"/>
-    <items itemref="content:ContactTableView"/>
-    <items itemref="content:TaskTableView"/>
-    <items itemref="content:MailTableView"/>
+    <items itemref="content:NotesView"/>
+    <items itemref="content:ContactsView"/>
+    <items itemref="content:TasksView"/>
+    <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddDemoView">
@@ -143,11 +143,11 @@
     <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddMixedTableView">
+  <ModifyContentsEvent itsName="AddMixedView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MixedTableView"/>
+    <items itemref="content:MixedView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddStockQuoteView">
@@ -157,41 +157,41 @@
     <items itemref="stockQuote:StockQuoteView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddNoteTableView">
+  <ModifyContentsEvent itsName="AddNotesView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NoteTableView"/>
+    <items itemref="content:NotesView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddContactTableView">
+  <ModifyContentsEvent itsName="AddContactsView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:ContactTableView"/>
+    <items itemref="content:ContactsView"/>
   </ModifyContentsEvent>
 
-  <ModifyContentsEvent itsName="AddTaskTableView">
+  <ModifyContentsEvent itsName="AddTasksView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:TaskTableView"/>
+    <items itemref="content:TasksView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddMailTableView">
+  <ModifyContentsEvent itsName="AddMailView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MailTableView"/>
+    <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NoteTableView"/>
-    <items itemref="content:TaskTableView"/>
-    <items itemref="content:MailTableView"/>
+    <items itemref="content:NotesView"/>
+    <items itemref="content:TasksView"/>
+    <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <!--
@@ -856,9 +856,9 @@
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddMixedViewItem"/>
     <childrenBlocks itemref="doc:TestSeparator2"/>
-    <childrenBlocks itemref="doc:AddNoteViewItem"/>
-    <childrenBlocks itemref="doc:AddContactViewItem"/>
-    <childrenBlocks itemref="doc:AddTaskViewItem"/>
+    <childrenBlocks itemref="doc:AddNotesViewItem"/>
+    <childrenBlocks itemref="doc:AddContactsViewItem"/>
+    <childrenBlocks itemref="doc:AddTasksViewItem"/>
     <childrenBlocks itemref="doc:AddMailViewItem"/>
     <childrenBlocks itemref="doc:AddKindViewsItem"/>
     <childrenBlocks itemref="doc:TestSeparator3"/>
@@ -894,7 +894,7 @@
   <MenuItem itsName="AddMixedViewItem">
     <blockName>AddMixedViewItem</blockName>
     <title>Add Mixed View</title>
-    <event itemref="doc:AddMixedTableView"/>
+    <event itemref="doc:AddMixedView"/>
     <helpString>Adds the mixed list view to the sidebar</helpString>
   </MenuItem>
 
@@ -903,31 +903,31 @@
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itsName="AddNoteViewItem">
-    <blockName>AddNoteViewItem</blockName>
+  <MenuItem itsName="AddNotesViewItem">
+    <blockName>AddNotesViewItem</blockName>
     <title>Add Note-Kind View</title>
-    <event itemref="doc:AddNoteTableView"/>
+    <event itemref="doc:AddNotesView"/>
     <helpString>Adds the Note-Kind view to the sidebar</helpString>
   </MenuItem>
   
-  <MenuItem itsName="AddContactViewItem">
-    <blockName>AddContactViewItem</blockName>
+  <MenuItem itsName="AddContactsViewItem">
+    <blockName>AddContactsViewItem</blockName>
     <title>Add Contact-Kind View</title>
-    <event itemref="doc:AddContactTableView"/>
+    <event itemref="doc:AddContactsView"/>
     <helpString>Adds the Contact-Kind view to the sidebar</helpString>
   </MenuItem>
 
-  <MenuItem itsName="AddTaskViewItem">
-    <blockName>AddTaskViewItem</blockName>
+  <MenuItem itsName="AddTasksViewItem">
+    <blockName>AddTasksViewItem</blockName>
     <title>Add Task-Kind View</title>
-    <event itemref="doc:AddTaskTableView"/>
+    <event itemref="doc:AddTasksView"/>
     <helpString>Adds the Task-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddMailViewItem">
     <blockName>AddMailViewItem</blockName>
     <title>Add Mail-Kind View</title>
-    <event itemref="doc:AddMailTableView"/>
+    <event itemref="doc:AddMailView"/>
     <helpString>Adds the Mail-Kind view to the sidebar</helpString>
   </MenuItem>
 
@@ -1227,7 +1227,7 @@
   <TabbedContainer itsName="TabbedView"
                    itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="content:AllTableView"/>
+    <childrenBlocks itemref="content:AllView"/>
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
@@ -1249,10 +1249,10 @@
   </BoxContainer>
 
   <contentModel:ItemCollection itsName="sidebarItemCollection">
-    <_inclusions itemref="content:AllTableView"/>
-    <_inclusions itemref="content:InTableView"/>
-    <_inclusions itemref="content:OutTableView"/>
-    <_inclusions itemref="content:CalendarTableView"/>
+    <_inclusions itemref="content:AllView"/>
+    <_inclusions itemref="content:InView"/>
+    <_inclusions itemref="content:OutView"/>
+    <_inclusions itemref="content:CalendarView"/>
   </contentModel:ItemCollection>
   
   <ContextMenu itsName="sidebarContextMenu">
@@ -1273,7 +1273,7 @@
   <Table itsName="Sidebar"
          itemClass="osaf.views.main.SideBar.Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
-    <selection itemref="content:AllTableView"/>
+    <selection itemref="content:AllView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
@@ -1320,13 +1320,13 @@
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMixedTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>    
-    <subscribeWhenVisibleEvents itemref="doc:AddContactTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMailView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMixedView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddNotesView"/>    
+    <subscribeWhenVisibleEvents itemref="doc:AddContactsView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddTasksView"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterAllEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterEventEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterMessageEvent"/>

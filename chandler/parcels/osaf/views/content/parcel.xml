@@ -248,8 +248,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Contact Table -->
-  <Table itsName="ContactTable">
+  <!-- Contacts Table -->
+  <Table itsName="ContactsTable">
     <contents itemref="view:contactItemCollection"/>
 
     <columnHeadings></columnHeadings>
@@ -273,8 +273,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Note Table -->
-  <Table itsName="NoteTable">
+  <!-- Notes Table -->
+  <Table itsName="NotesTable">
     <contents itemref="view:notesItemCollection"/>
 
     <columnHeadings></columnHeadings>
@@ -298,8 +298,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Task Table -->
-  <Table itsName="TaskTable">
+  <!-- Tasks Table -->
+  <Table itsName="TasksTable">
     <contents itemref="view:taskItemCollection"/>
 
     <columnHeadings></columnHeadings>
@@ -380,11 +380,13 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Note View -->
-  <SplitterWindow itsName="NoteTableView">
+  <!-- Views -->
+
+  <!-- Notes View -->
+  <SplitterWindow itsName="NotesView">
     <contents itemref="view:notesItemCollection"/>
 
-    <childrenBlocks itemref="view:NoteTable"/>
+    <childrenBlocks itemref="view:NotesTable"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -392,11 +394,11 @@
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
-  <!-- Task View -->
-  <SplitterWindow itsName="TaskTableView">
+  <!-- Tasks View -->
+  <SplitterWindow itsName="TasksView">
     <contents itemref="view:taskItemCollection"/>
 
-    <childrenBlocks itemref="view:TaskTable"/>
+    <childrenBlocks itemref="view:TasksTable"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -405,7 +407,7 @@
   </SplitterWindow>
 
   <!-- Mail View -->
-  <SplitterWindow itsName="MailTableView">
+  <SplitterWindow itsName="MailView">
     <contents itemref="view:mailItemCollection"/>
 
     <childrenBlocks itemref="view:MailTable"/>
@@ -417,7 +419,7 @@
   </SplitterWindow>
 
   <!-- Mixed View -->
-  <SplitterWindow itsName="MixedTableView">
+  <SplitterWindow itsName="MixedView">
     <contents itemref="view:mixedItemCollection"/>
 
     <childrenBlocks itemref="view:MixedTable"/>
@@ -429,7 +431,7 @@
   </SplitterWindow>
 
   <!-- All View -->
-  <SplitterWindow itsName="AllTableView">
+  <SplitterWindow itsName="AllView">
     <contents itemref="view:allItemCollection"/>
 
     <childrenBlocks itemref="view:AllSummary"/>
@@ -441,7 +443,7 @@
   </SplitterWindow>
 
   <!-- In View -->
-  <SplitterWindow itsName="InTableView">
+  <SplitterWindow itsName="InView">
     <contents itemref="view:inItemCollection"/>
 
     <childrenBlocks itemref="view:InSummary"/>
@@ -453,7 +455,7 @@
   </SplitterWindow>
 
   <!-- Out View -->
-  <SplitterWindow itsName="OutTableView">
+  <SplitterWindow itsName="OutView">
     <contents itemref="view:outItemCollection"/>
 
     <childrenBlocks itemref="view:OutSummary"/>
@@ -465,7 +467,7 @@
   </SplitterWindow>
 
   <!-- Calendar View -->
-  <SplitterWindow itsName="CalendarTableView">
+  <SplitterWindow itsName="CalendarView">
     <contents itemref="view:calendarItemCollection"/>
 
     <childrenBlocks itemref="view:CalendarSummary"/>
@@ -476,11 +478,11 @@
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
-  <!-- Contact View -->
-  <SplitterWindow itsName="ContactTableView">
+  <!-- Contacts View -->
+  <SplitterWindow itsName="ContactsView">
     <contents itemref="view:contactItemCollection"/>
 
-    <childrenBlocks itemref="view:ContactTable"/>
+    <childrenBlocks itemref="view:ContactsTable"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
