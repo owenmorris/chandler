@@ -6,6 +6,7 @@ from repository.item.Query import KindQuery
 import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
 import osaf.framework.sharing.WebDAV as WebDAV
+import application.Parcel
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
@@ -240,9 +241,10 @@ class AccountPreferencesDialog(wx.Dialog):
         self.view.refresh()
 
         accountIndex = 0 # which account to select first
-        imapAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "IMAPAccount")
-        smtpAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "SMTPAccount")
-        webDavAccountKind = application.Globals.parcelManager.lookup(SHARING_MODEL, "WebDAVAccount")
+        pm = application.Parcel.Manager.get(self.view)
+        imapAccountKind = pm.lookup(MAIL_MODEL, "IMAPAccount")
+        smtpAccountKind = pm.lookup(MAIL_MODEL, "SMTPAccount")
+        webDavAccountKind = pm.lookup(SHARING_MODEL, "WebDAVAccount")
 
         accounts = []
 

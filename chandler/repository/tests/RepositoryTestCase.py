@@ -57,7 +57,7 @@ class RepositoryTestCase(TestCase):
             self.rep.commit()
 
         self.manager = \
-         ParcelManager.getManager(self.rep.view, \
+         ParcelManager.get(self.rep.view, \
          path=[os.path.join(self.rootdir, 'parcels')])
 
     def setUp(self, ramdb=True):
@@ -86,7 +86,7 @@ class RepositoryTestCase(TestCase):
             self.rep.open()
 
         self.manager = \
-         ParcelManager.getManager(self.rep.view, \
+         ParcelManager.get(self.rep.view, \
          path=[os.path.join(self.rootdir, 'parcels')])
 
     def _find(self, path):

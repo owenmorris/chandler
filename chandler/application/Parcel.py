@@ -33,17 +33,17 @@ class Manager(Item):
     the repository and providing a namespace --> item mapping function.
 
     To use the parcel manager, retrieve an instance of it by using the class
-    method getManager()::
+    method get()::
 
         import application
-        mgr = application.Parcel.Manager.getManager(view, path=parcelSearchPath)
+        mgr = application.Parcel.Manager.get(view, path=parcelSearchPath)
         mgr.loadParcels()
 
     if "path" is not passed in, it will use
     os.path.join(Globals.chandlerDirectory, "parcels").
     """
 
-    def getManager(cls, view, path=None):
+    def get(cls, view, path=None):
         """
         Class method for getting an instance of the parcel manager.
 
@@ -79,7 +79,7 @@ class Manager(Item):
 
         return manager
 
-    getManager = classmethod(getManager)
+    get = classmethod(get)
 
     def __init__(self, name, parent, kind):
         super(Manager, self).__init__(name, parent, kind)
@@ -1752,7 +1752,7 @@ def __test():
     rep = __prepareRepo()
 
     parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
-    manager = Manager.getManager(rep.view, path=parcelPath)
+    manager = Manager.get(rep.view, path=parcelPath)
     manager.loadParcels()
 
     if False:

@@ -83,7 +83,7 @@ def initLogger(file):
     handler.setFormatter(formatter)
     logging.getLogger().addHandler(handler)
 
-def initParcels():
+def initParcels(rep):
     """
     Load all parcels under the 'parcels' directory
     """
@@ -105,9 +105,8 @@ def initParcels():
             sys.path.insert (2, debugParcelDir)
             parcelSearchPath.append( debugParcelDir )
 
-    from application.Parcel import Manager
-    manager = Manager.getManager(path=parcelSearchPath)
-    manager.loadParcels()
+    application.Parcel.Manager.get(rep.view,
+                                   path=parcelSearchPath).loadParcels()
 
 def setup(directory, destroy=False):
     """
@@ -122,8 +121,8 @@ def setup(directory, destroy=False):
 
     Globals.chandlerDirectory = directory
     initLogger(os.path.join(directory, 'chandler.log'))
-    initRepository(os.path.join(directory, '__repository__'), destroy)
-    initParcels()
+    rep = initRepository(os.path.join(directory, '__repository__'), destroy)
+    initParcels(rep)
     return rep
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -133,7 +132,7 @@ import osaf.framework.twisted.TwistedReactorManager as trm
 
 
 # Bind some useful variables:
-pm = application.Parcel.Manager.getManager()
+pm = application.Parcel.Manager.get(r.view)
 Kind = r.findPath("//Schema/Core/Kind")
 Item = r.findPath("//Schema/Core/Item")
 parcels = r.findPath("//parcels")
@@ -149,9 +148,9 @@ def find(view, path):
 
 def lp(uri=None):
     if uri is None:
-        application.Parcel.Manager.getManager().loadParcels()
+        application.Parcel.Manager.get(r.view).loadParcels()
     else:
-        application.Parcel.Manager.getManager().loadParcels([uri])
+        application.Parcel.Manager.get(r.view).loadParcels([uri])
 
 def start():
     global twistedmgr

@@ -12,7 +12,6 @@ import unittest, os, sys
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 
 import application
-import application.Globals as Globals
 
 class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
 
@@ -23,7 +22,3 @@ class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
         self.testdir = os.path.join(self.rootdir, 'application', 'tests')
 
         super(ParcelLoaderTestCase, self)._openRepository(self)
-
-        view = self.rep.view
-        Globals.parcelManager = application.Parcel.Manager.getManager(view)
-

@@ -227,10 +227,8 @@ class wxApplication (wx.App):
         if debugParcelDir:
             parcelSearchPath.append( debugParcelDir )
 
-        application.Globals.parcelManager = \
-         application.Parcel.Manager.getManager(self.UIRepositoryView,
-                                               path=parcelSearchPath)
-        application.Globals.parcelManager.loadParcels()
+        application.Parcel.Manager.get(self.UIRepositoryView,
+                                       path=parcelSearchPath).loadParcels()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
@@ -582,7 +580,6 @@ class wxApplication (wx.App):
         import wx.py
         rootObjects = {
          "globals" : application.Globals,
-         "parcelManager" : application.Globals.parcelManager,
          "parcelsRoot" : self.UIRepositoryView.findPath("//parcels"),
          "repository" : self.UIRepositoryView.repository,
          "wxApplication" : self,

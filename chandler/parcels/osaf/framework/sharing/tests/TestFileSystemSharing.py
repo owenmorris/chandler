@@ -54,8 +54,8 @@ class SharingTestCase(unittest.TestCase):
         self.mgrs = []
         for i in xrange(2):
             self.repos.append(self._initRamDB(packs))
-            self.mgrs.append(Parcel.Manager.getManager(self.repos[i].view,
-                                                       path=parcelpath))
+            self.mgrs.append(Parcel.Manager.get(self.repos[i].view,
+                                                path=parcelpath))
             self.mgrs[i].loadParcels(namespaces)
             # create a sandbox root
             Item.Item("sandbox", self.repos[i], None)

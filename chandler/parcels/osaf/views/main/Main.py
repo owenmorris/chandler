@@ -13,7 +13,7 @@ import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.imap
 from application.SplashScreen import SplashScreen
-from application.Parcel import Manager as ParcelManager
+import application.Parcel
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
@@ -442,7 +442,7 @@ class MainView(View):
         theApp = wx.GetApp()
         theApp.UnRenderMainView ()
 
-        ParcelManager.getManager(self.itsView).loadParcels()
+        application.Parcel.Manager.get(self.itsView).loadParcels()
 
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()

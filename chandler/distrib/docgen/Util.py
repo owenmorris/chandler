@@ -10,6 +10,7 @@ framework
 
 import os, sys
 import application.Globals as Globals
+import application.Parcel
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -81,9 +82,8 @@ def parcels(repository):
             sys.path.insert (2, debugParcelDir)
             parcelSearchPath.append( debugParcelDir )
 
-    from application.Parcel import Manager
-    manager = Manager.getManager(repository.view, path=parcelSearchPath)
-    manager.loadParcels()
+    application.Parcel.Manager.get(repository.view,
+                                   path=parcelSearchPath).loadParcels()
 
 def setup(directory, destroy=False):
     """

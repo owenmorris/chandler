@@ -46,8 +46,8 @@ class ICalendarTestCase(unittest.TestCase):
         ]
 
         self.repo = self._initRamDB(packs)
-        self.manager = Parcel.Manager.getManager(self.repo.view,
-                                                 path=parcelpath)
+        self.manager = Parcel.Manager.get(self.repo.view,
+                                          path=parcelpath)
         self.manager.loadParcels(namespaces)
         # create a sandbox root
         Item.Item("sandbox", self.repo, None)
