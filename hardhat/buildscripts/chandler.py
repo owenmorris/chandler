@@ -163,7 +163,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     print "Main module dir =", mainModuleDir
 
     if not changesAtAll:
-        log.write("There were no changes")
         return 0
 
     if needToScrubAll:

@@ -56,9 +56,9 @@ def main():
         startInt = int(time.time())
         startTime = str(startInt)
 
-        if( (startInt - 60) < prevStartInt):
-            print "Sleeping 60 seconds"
-            time.sleep(60)
+        if( (startInt - (5 * 60) < prevStartInt):
+            print "Sleeping 5 minutes"
+            time.sleep(5 * 60)
 
         prevStartInt = startInt
 
@@ -105,7 +105,7 @@ def main():
                 RotateDirectories(outputDir)
             else:
                 print "There were no changes"
-                log.write("There were no changes in CVS")
+                log.write("There were no changes in CVS\n")
                 status = "success"
 
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S"))
