@@ -37,7 +37,7 @@
      JvInitClass(&org::osafoundation::util::PythonRef::class$);
  %}
 --- PyLucene-0.6.1/Makefile	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 17:30:54 2004
++++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 18:11:51 2004
 @@ -135,19 +135,21 @@
  ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
@@ -118,7 +118,7 @@
  install::
  ifdef DB
 -	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
-+	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/bin
++	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
  endif
  endif
  endif
