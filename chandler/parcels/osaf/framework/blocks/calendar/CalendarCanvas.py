@@ -61,7 +61,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """ Returns true if the given date appears on the calendar """
         begin = self.rangeStart
         end = begin + self.rangeIncrement
-        return ((date > begin) and (date < end))
+        return ((date >= begin) and (date < end))
 
     def incrementRange(self):
         """ Increments the calendar's current range """
@@ -78,7 +78,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
-            if ((item.startTime > date) and (item.startTime < nextDate)):
+            if ((item.startTime >= date) and (item.startTime < nextDate)):
                 items.append(item)
         return items
 
