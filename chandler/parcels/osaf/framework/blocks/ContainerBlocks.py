@@ -113,12 +113,14 @@ class wxLayoutChooser(wxBoxContainer):
                     if id == toolbarItem.widget.GetId():
                         return index
                     index += 1
-        return -1
+        return LayoutChooser.NONE_SELECTED
     
 
 class LayoutChooser(BoxContainer):
+    NONE_SELECTED = -1
+    
     def instantiateWidget (self):
-        self.selection = -1
+        self.selection = LayoutChooser.NONE_SELECTED
         if self.orientationEnum == 'Horizontal':
             orientation = wx.HORIZONTAL
         else:
