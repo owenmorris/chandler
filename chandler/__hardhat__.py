@@ -26,14 +26,12 @@ def clean(buildenv):
 def run(buildenv):
     
     if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + 
-         os.pathsep + os.environ['path']
+        path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + os.pathsep + os.environ['path']
         python = buildenv['python_d']
 
 
     if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + 
-         os.pathsep + os.environ['path']
+        path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + os.pathsep + os.environ['path']
         python = buildenv['python']
 
 
