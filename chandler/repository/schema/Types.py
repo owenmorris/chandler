@@ -699,11 +699,7 @@ class Dictionary(Collection):
 
     def makeString(self, value):
 
-        strings = []
-        for k, v in self.value.iteritems():
-            strings.append("%s:%s" %(k, v))
-
-        return ",".join(strings)
+        return ",".join(["%s:%s" %(k, v) for k, v in value.iteritems()])
 
     def _empty(self):
 
@@ -774,7 +770,7 @@ class Text(Lob):
         return self.getRepository().getLobType('text')
 
     def makeValue(self, data,
-                  encoding='utf-8', mimeType='text/plain', compression='bz2'):
+                  encoding='utf-8', mimetype='text/plain', compression='bz2'):
 
         text = self.getImplementationType()(encoding, mimetype)
         if data:
