@@ -82,6 +82,9 @@ $(SYSTEMS):
 
 all: env sources-$(VERSION)-expanded $(SYSTEMS)
 
+world: all binaries install
+	make -C ../internal DEBUG=$(DEBUG) all binaries install
+
 clean: env
 	@for system in $(SYSTEMS); \
 	do \
