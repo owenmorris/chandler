@@ -138,7 +138,7 @@ class Values(dict):
             if kind is not None:
                 attribute = kind.getAttribute(key)
             else:
-                attribute = None
+                attribute = None                
                 
             if attribute is not None:
                 persist = attribute.getAspect('persist', default=True)

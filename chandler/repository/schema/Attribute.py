@@ -39,8 +39,7 @@ class Attribute(Item):
 
         if self._kind is not None:
             aspectAttr = self._kind.getAttribute(name)
-            if aspectAttr.hasAttributeValue('defaultValue'):
-                return aspectAttr.getAttributeValue('defaultValue')
+            return aspectAttr.getAttributeValue('defaultValue', default=None)
         
         return None
 

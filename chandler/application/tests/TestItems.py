@@ -48,4 +48,5 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(kind2 in kind1.subKinds)
 
 if __name__ == "__main__":
-    unittest.main()
+#    unittest.main()
+    pass

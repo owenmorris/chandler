@@ -116,14 +116,12 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self._reopenRepository()
         managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
-        self.assert_(employeesAttribute is not None)
         self.assertEquals(employeesAttribute.cardinality, 'list')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')
         employeeKind = self._find('//employee')
         managerAttribute = employeeKind.getAttribute('manager')
-        self.assert_(managerAttribute is not None)
-        self.assertEquals(managerAttribute.otherName,'employees')
+        self.assertEquals(managerAttribute.otherName, 'employees')
 
         # add employees to manager
         manager = managerKind.newItem('boss', self.rep)
@@ -179,13 +177,11 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self._reopenRepository()
         managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
-        self.assert_(employeesAttribute is not None)
         self.assertEquals(employeesAttribute.cardinality, 'dict')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')        
         employeeKind = self._find('//employee')
         managerAttribute = employeeKind.getAttribute('manager')
-        self.assert_(managerAttribute is not None)
         self.assertEquals(managerAttribute.otherName,'employees')
 
         # add employees to manager

@@ -178,7 +178,7 @@ class Item(object):
 
     def hasAttributeAspect(self, name, aspect):
         """
-        Tell whether an attribute as value set for the aspect.
+        Tell whether an attribute has a value set for the aspect.
 
         See the L{getAttributeAspect} method for more information on
         attribute aspects.
@@ -190,9 +190,10 @@ class Item(object):
         """
 
         if self._kind is not None:
-            attribute = self._kind.getAttribute(name)
-            if attribute is not None:
-                return attribute.hasAspect(aspect)
+            try:
+                return self._kind.getAttribute(name).hasAspect(aspect)
+            except AttributeError:
+                pass
 
         return False
 
@@ -275,8 +276,11 @@ class Item(object):
               C{countPolicy} is set to C{count}. By default, an attribute's
               C{countPolicy} is C{none}. This aspect takes a string value.
 
-        If an attribute's C{redirectTo} aspect is set, this method is
+        If the attribute's C{redirectTo} aspect is set, this method is
         redirected just like C{getAttributeValue}.
+
+        If the attribute is not defined for the item's kind,
+        C{AttributeError} is raised.
 
         @param name: the name of the attribute being queried
         @type name: a string
@@ -284,27 +288,25 @@ class Item(object):
         @type aspect: a string
         @param kwds: optional keywords of which only C{default} is
         supported and used to return a default value for an aspect that has
-        no set value for this attribute.
+        no value set for the attribute.
         @return: a value
         """
 
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
-            if attribute is not None:
-                if aspect != 'redirectTo':
-                    redirect = attribute.getAspect('redirectTo', default=None)
-                    if redirect is not None:
-                        item = self
-                        names = redirect.split('.')
-                        for i in xrange(len(names) - 1):
-                            item = item.getAttributeValue(names[i])
-                        return item.getAttributeAspect(names[-1], aspect,
-                                                       **kwds)
+            if aspect != 'redirectTo':
+                redirect = attribute.getAspect('redirectTo', default=None)
+                if redirect is not None:
+                    item = self
+                    names = redirect.split('.')
+                    for i in xrange(len(names) - 1):
+                        item = item.getAttributeValue(names[i])
+                    return item.getAttributeAspect(names[-1], aspect, **kwds)
                     
-                return attribute.getAspect(aspect, **kwds)
+            return attribute.getAspect(aspect, **kwds)
 
         return kwds.get('default', None)
-
+        
     def setAttributeValue(self, name, value=None, setAliases=False,
                           _attrDict=None):
         """
@@ -329,7 +331,7 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
-            elif self._kind.getOtherName(name, default=None):
+            elif self._kind.getOtherName(name, default=None) is not None:
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(name, 'redirectTo',
@@ -493,10 +495,7 @@ class Item(object):
 
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
-        else:
-            attribute = None
-            
-        if attribute is not None:
+
             inherit = attribute.getAspect('inheritFrom', default=None)
             if inherit is not None:
                 value = self
@@ -513,15 +512,17 @@ class Item(object):
                     value = value.getAttributeValue(attr)
                 return value
 
-        if 'default' in kwds:
-            return kwds['default']
+            if 'default' in kwds:
+                return kwds['default']
 
-        if attribute is not None:
             value = attribute.getAspect('defaultValue', default=Item.Nil)
             if value is not Item.Nil:
                 if isinstance(value, PersistentCollection):
                     value.setReadOnly(True)
                 return value
+
+        elif 'default' in kwds:
+            return kwds['default']
 
         raise AttributeError, "%s has no value for '%s'" %(self.itsPath,
                                                            name)
@@ -727,15 +728,16 @@ class Item(object):
             return True
 
         for key, value in self._values.iteritems():
-            attribute = self._kind.getAttribute(key)
-            if attribute is None:
+            try:
+                attribute = self._kind.getAttribute(key)
+            except AttributeError:
                 logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', self.itsPath, key, self._kind.itsPath)
                 result = False
             else:
-                attrType = self.getAttributeAspect(key, 'type', default=None)
+                attrType = attribute.getAspect('type', default=None)
                 if attrType is not None:
-                    attrCard = self.getAttributeAspect(key, 'cardinality',
-                                                       default='single')
+                    attrCard = attribute.getAspect('cardinality',
+                                                   default='single')
                     if attrCard == 'single':
                         check = checkValue(key, value, attrType)
                         result = result and check
@@ -1525,7 +1527,10 @@ class Item(object):
                     def removeOrphans(attrDict):
                         for name in attrDict.keys():
                             curAttr = self._kind.getAttribute(name)
-                            newAttr = kind.getAttribute(name)
+                            try:
+                                newAttr = kind.getAttribute(name)
+                            except AttributeError:
+                                newAttr = None
                             if curAttr is not newAttr:
                                 self.removeAttributeValue(name,
                                                           _attrDict=attrDict)
@@ -1904,8 +1909,6 @@ class Item(object):
         attrName = kwds.get('attribute', None)
         if attrName is not None:
             attr = self._kind.getAttribute(attrName)
-            if attr is None:
-                raise TypeError, 'Attribute %s not found for item %s of kind %s' %(attrName, self.itsPath, self._kind.itsPath)
         else:
             attr = None
         

@@ -117,6 +117,18 @@ class Kind(Item):
         return None
 
     def getAttribute(self, name):
+        """
+        Get an attribute definition item.
+
+        The attribute is sought on the kind and on its superKinds in a left
+        to right depth-first manner. If no attribute is found
+        C{AttributeError} is raised.
+
+        @param name: the name of the attribute sought
+        @type name: a string
+        @return: an L{Attribute<repository.schema.Attribute.Attribute>} item
+        instance
+        """
 
         uuid = self.resolve(name)
         if uuid is not None:
@@ -132,6 +144,10 @@ class Kind(Item):
                                           _attrDict=self._references)
             else:
                 attribute = self._inheritAttribute(name)
+
+        if attribute is None:
+            raise AttributeError, 'Kind %s has no attribute %s' %(self.itsPath,
+                                                                  name)
 
         return attribute
 
@@ -152,10 +168,7 @@ class Kind(Item):
                                            _attrDict=self._values).get(name)
 
         if otherName is None:
-            attribute = self.getAttribute(name)
-            if attribute is not None:
-                otherName = attribute.getAspect('otherName')
-
+            otherName = self.getAttribute(name).getAspect('otherName')
             if otherName is None:
                 if 'default' in kwds:
                     return kwds['default']
@@ -221,7 +234,11 @@ class Kind(Item):
         cache = True
         for superKind in self._getSuperKinds():
             if superKind is not None:
-                attribute = superKind.getAttribute(name)
+                try:
+                    attribute = superKind.getAttribute(name)
+                except AttributeError:
+                    attribute = None
+
                 if attribute is not None:
                     # during core schema loading _kind can be None
                     if attribute._kind is not None:

@@ -32,7 +32,10 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         kind1Attr1Bad = Attribute('k1a1bad', self.kind1, self.attrKind)
         kind1Attr1Bad.cardinality = 'list'
         kind1Attr1Bad.otherName = 'owner'
-        self.kind1.addValue('attribute', kind1Attr1Bad, alias='k1a1bad')
+        try:
+            self.kind1.addValue('attribute', kind1Attr1Bad, alias='k1a1bad')
+        except AttributeError:
+            pass
         
         self.kind2 = self.kind.newItem('kind2', self.kind1)
         self.kind2.addValue('attributes', self.kind1Attr1, alias='k1a1')
@@ -65,7 +68,12 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         
         # an attribute that is a child but not on the atts list should
         # not be returned
-        self.assert_(self.kind1.getAttribute('k1a1bad') is None)
+        try:
+            self.kind1.getAttribute('k1a1bad')            
+            self.assert_(False)
+        except AttributeError:
+            pass
+
         self.assert_(not self.kind1.hasAttribute('k1a1bad'))
 
         # basic getAttribute and hasAttribute

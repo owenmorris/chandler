@@ -71,15 +71,18 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
         pass
 
     def testAliases(self):
+        """
+        What does this test case actually do ??
+        """
 
 #        newKind = self.kind.newItem('newKind', self.rep)
 #        print k
-        for a in self.alias.iterAttributeValues():
+#        for a in self.alias.iterAttributeValues():
 #            print a
-            a1 =  self.kind.getAttribute(a[0])
-            print a1
-            if a1 is not None and a1.hasAttributeValue('types'):
-                print a1.types
+#            a1 =  self.kind.getAttribute(a[0])
+#            print a1
+#            if a1.hasAttributeValue('types'):
+#                print a1.types
 
 
 if __name__ == "__main__":

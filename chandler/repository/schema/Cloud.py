@@ -237,6 +237,10 @@ class Endpoint(Item):
                                            _attrDict=self._references)
             if cloud is None:
                 kind = item._kind
+                if cloudAlias is None:
+                    cloudAlias = self.getAttributeValue('cloudAlias',
+                                                        default=None,
+                                                        _attrDict=self._values)
                 if cloudAlias is not None:
                     cloud = kind.getCloud(cloudAlias)
                 else:

@@ -12,7 +12,7 @@
 
       <!-- 
          - plus local attributes below:
-         -     clouds, attribute, includePolicy, cloud
+         -     clouds, attribute, includePolicy, cloud, cloudAlias
         -->
     </ref>
 
@@ -86,6 +86,23 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="otherName">cloudFor</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>cloudAlias</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Endpoint</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
   </item>
 
 </items>

@@ -1107,9 +1107,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 raise ParcelException(explanation)
 
             kindItem = item.itsKind
-            attributeItem = kindItem.getAttribute(attributeName)
-
-            if attributeItem is None:
+            try:
+                attributeItem = kindItem.getAttribute(attributeName)
+            except AttributeError:
                 explanation = \
                  "Kind %s does not have the attribute '%s'" \
                   % (kindItem.itsPath, attributeName)
@@ -1436,7 +1436,13 @@ class ValueSet(object):
         if attrName not in self.assignments:
             return False
 
-        card = self.item.getAttributeAspect(attrName, "cardinality")
+        if attrName == 'inverseAttribute':
+            actualName = 'otherName'
+        else:
+            actualName = attrName
+
+        card = self.item.getAttributeAspect(actualName, "cardinality")
+        
         if card == "dict":
             if key not in self.assignments[attrName]:
                 return False
@@ -1453,7 +1459,13 @@ class ValueSet(object):
         if attrName not in self.assignments:
             return
 
-        card = self.item.getAttributeAspect(attrName, "cardinality")
+        if attrName == 'inverseAttribute':
+            actualName = 'otherName'
+        else:
+            actualName = attrName
+
+        card = self.item.getAttributeAspect(actualName, "cardinality")
+        
         if card == "dict":
             del self.assignments[attrName][key]
         elif card == "list":
@@ -1466,7 +1478,13 @@ class ValueSet(object):
     def addAssignment(self, (attrName, value, key)):
         """ Add an assignment to the ValueSet.
         """
-        card = self.item.getAttributeAspect(attrName, "cardinality")
+
+        if attrName == 'inverseAttribute':
+            actualName = 'otherName'
+        else:
+            actualName = attrName
+
+        card = self.item.getAttributeAspect(actualName, "cardinality")
 
         # add attribute to assignments dictionary if not already there
         if attrName not in self.assignments:
