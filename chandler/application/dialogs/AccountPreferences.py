@@ -49,6 +49,7 @@ PANELS = {
             "IMAP_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "required" : True,
                 "default": "New IMAP account"
             },
             "IMAP_EMAIL_ADDRESS" : {
@@ -100,6 +101,7 @@ PANELS = {
             "SMTP_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "required" : True,
                 "default" : "New SMTP account"
             },
             "SMTP_SERVER" : {
@@ -136,6 +138,7 @@ PANELS = {
             "WEBDAV_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "required" : True,
                 "default" : "New WebDAV account"
             },
             "WEBDAV_SERVER" : {
@@ -480,9 +483,13 @@ class AccountPreferencesDialog(wx.Dialog):
     def __StoreFormData(self, panelType, panel, data):
         for field in PANELS[panelType]['fields'].keys():
             control = wx.xrc.XRCCTRL(panel, field)
-            valueType = PANELS[panelType]['fields'][field]['type']
+            fieldInfo = PANELS[panelType]['fields'][field]
+            valueType = fieldInfo['type']
+            valueRequired = fieldInfo.get('required', False)
             if valueType == "string":
                 val = control.GetValue().strip()
+                if valueRequired and not val:
+                    continue
             elif valueType == "boolean":
                 val = (control.GetValue() == True)
             elif valueType == "currentPointer":
