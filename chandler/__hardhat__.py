@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, errno, sys, time, libxml2, urllib
+import os, hardhatlib, hardhatutil, errno, sys, time, urllib
 
 
 info = {
@@ -523,7 +523,7 @@ def generateDocs(buildenv):
     indexFile.write('</tr>')
 
     for xmlFile in fileList:
-        doc=libxml2.parseFile(xmlFile)
+        """doc=libxml2.parseFile(xmlFile)
         ctxt = doc.xpathNewContext()
         ctxt.xpathRegisterNs('core', '//Schema/Core')
         content = {}
@@ -535,7 +535,11 @@ def generateDocs(buildenv):
         if not filter(None, content.values()):
             continue
             doc.freeDoc()
-            ctxt.xpathFreeContext()
+            ctxt.xpathFreeContext()"""
+        displayNameNode = []
+        content = {}
+        for x in objectList:
+            content[x]=1
         (head, tail) = os.path.split(xmlFile[2:])
         head=urllib.pathname2url(head)
         indexFile.write('<tr>')
@@ -553,8 +557,8 @@ def generateDocs(buildenv):
                 indexFile.write('<a href="%s/%s.html">%s</a>' % (head,p,p))
             indexFile.write('</td>')
         indexFile.write('</tr>')
-        doc.freeDoc()
-        ctxt.xpathFreeContext()
+        """doc.freeDoc()
+        ctxt.xpathFreeContext()"""
                 
     indexFile.write("</table>")
     indexFile.write("</body>")
