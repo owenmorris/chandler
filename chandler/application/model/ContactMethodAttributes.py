@@ -242,35 +242,13 @@ class ContactPostalAttributes(ContactMethodAttributes):
         self.setRdfAttribute(chandler.zipcode, zipcode, ContactPostalAttributes.rdfs)
 
     def GetAttribute(self, attributeKey):
-        if attributeKey == 'street':
-            return self.GetStreet()
-        
-        if attributeKey == 'city':
-            return self.GetCity()
-        
-        if attributeKey == 'state':
-            return self.GetState()
-        
-        if attributeKey == 'zipcode':
-            return self.GetZipcode()
-            
-        if self.__dict__.has_key(attributeKey):
-            return self.__dict__[attributeKey]
-        
-        return None
+        url = chandler.__getattr__(attributeKey)
+        return self.getRdfAttribute(url, ContactPostalAttributes.rdfs)
     
     def SetAttribute(self, attributeKey, attributeValue):
-        if attributeKey == 'street':
-            self.SetStreet(attributeValue)
-        elif attributeKey == 'city':
-            self.SetCity(attributeValue)
-        elif attributeKey == 'state':
-            self.SetState(attributeValue)
-        elif attributeKey == 'zipcode':
-            self.SetZipcode(attributeValue)            
-        else:
-            self.__dict__[attributeKey] = attributeValue
-
+        url = chandler.__getattr__(attributeKey)
+        self.setRdfAttribute(url, attributeValue, ContactPostalAttributes.rdfs)
+       
     street = property(GetStreet, SetStreet)
     city = property(GetCity, SetCity)
     state = property(GetState, SetState)

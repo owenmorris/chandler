@@ -123,36 +123,14 @@ class ContactAttributes(RdfObject):
     def SetInterests(self, reputation):
         self.setRdfAttribute(chandler.interests, interests, ContactAttributes.rdfs)
 
-    # FIXME:  need to handle all the attributes, but in a more generic way
     def GetAttribute(self, attributeName):
-        if attributeName == 'companyname':
-            return self.GetCompanyName()
-        
-        if attributeName == 'jobtitle':
-            return self.GetJobTitle()
-        
-        if attributeName == 'occupation':
-            return self.GetOccupation()
-        
-        if attributeName == 'relationship':
-            return self.GetRelationship()
-        
-        if self.__dict__.has_key(attributeName):
-            return self.__dict__[attributeName]
+        url = chandler.__getattr__(attributeName)
+        return self.getRdfAttribute(url, ContactAttributes.rdfs)
     
-    # FIXME:  need to handle all the attributes, but in a more generic way
     def SetAttribute(self, attributeName, attributeValue):
-        if attributeName == 'companyname':
-            self.SetCompanyName(attributeValue)
-        elif attributeName == 'jobtitle':
-            self.SetJobTitle(attributeValue)
-        elif attributeName == 'occupation':
-            self.SetOccupation(attributeValue)
-        elif attributeName == 'relationship':
-            self.SetRelationship(attributeValue)
-        else:
-            self.__dict__[attributeName] = attributeValue
-
+        url = chandler.__getattr__(attributeName)
+        self.setRdfAttribute(url, attributeValue, ContactAttributes.rdfs)
+    
     companyname = property(GetCompanyName, SetCompanyName)
     jobtitle = property(GetJobTitle, SetJobTitle)
     occupation = property(GetOccupation, SetOccupation)
