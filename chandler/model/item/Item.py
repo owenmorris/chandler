@@ -96,18 +96,31 @@ class Item(object):
         attribute, a situation best avoided.'''
 
         old = self._attributes.get(name)
-        otherName = self._otherName(name)
         isItem = isinstance(value, Item)
-            
+
         if isinstance(old, ItemRef):
             if isItem:
-                old._reattach(self, old.other(self), value, otherName)
+                old._reattach(self, old.other(self), value,
+                              self._otherName(name))
             else:
-                old._detach(self, old.other(self), otherName)
+                old._detach(self, old.other(self), self._otherName(name))
         else:
+            if isinstance(old, RefDict):
+                old.clear()
+
             if isItem:
+                otherName = self._otherName(name)
                 value = ItemRef(self, value, otherName)
-            
+                card = self.getAttrAspect(name, 'Cardinality', 'single')
+                if card == 'dict':
+                    refs = RefDict(self, otherName)
+                    refs[value._item.refName(name)] = value
+                    value = refs
+                elif card == 'list':
+                    refs = RefList(self, otherName)
+                    refs[value._item.refName(name)] = value
+                    value = refs
+                    
             self._attributes[name] = value
 
     def getAttribute(self, name):
@@ -136,6 +149,8 @@ class Item(object):
 
         if isinstance(value, ItemRef):
             value._detach(self, value.other(self), self._otherName(name))
+        elif isinstance(value, RefDict):
+            value.clear()
 
     def _removeRef(self, name):
 
@@ -316,8 +331,6 @@ class Item(object):
                 return 'uuid'
             elif isinstance(value, Path):
                 return 'path'
-            elif isinstance(value, RefDict):
-                return 'dict'
             else:
                 return type(value).__name__
             
