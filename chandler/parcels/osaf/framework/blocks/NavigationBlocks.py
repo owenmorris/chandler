@@ -7,6 +7,7 @@ import application.Globals as Globals
 from Block import *
 from ContainerBlocks import *
 from ControlBlocks import *
+from Node import *
 from repository.util.UUID import UUID
 from wxPython.wx import *
 
@@ -24,8 +25,20 @@ class NavigationBar(Toolbar):
         elif tool.getItemName() == 'ForwardButton':
             self.GoForward()
 
-    def tooEnterPressed(self, event):
-        tool = Block.wxIDToObject(event.GetId())
+    def toolEnterPressed(self, event):
+        tool = Globals.wxApplication.mainFrame.FindWindowById(event.GetId())
+        url = tool.GetValue()
+        try:
+            item = Node.GetItemFromPath(url, '//parcels/OSAF/views/main/URLRoot')
+        except BadURL:
+            dialog = wxMessageDialog(None, 'The url "' + str(url) + '" does not exist', 
+                                     'Chandler',
+                                     style=wxOK|wxCENTRE)
+            dialog.ShowModal()
+        else:
+            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                       {'item':item})
+
         
     def GoBack(self):
         if len(self.history) > 1:
@@ -64,10 +77,54 @@ class NavigationBar(Toolbar):
         wxURLBox = Globals.association[urlBox.getUUID()]
         wxURLBox.SetValue(path)
         
+
+        
+        
+class wxBookmark(wxStaticText):
+    def __init__(self, parent, text, onClickMethod, userData, id=-1):
+        wxStaticText.__init__(self, parent, id, text)
+        self.onClickMethod = onClickMethod
+        self.userData = userData
+        EVT_LEFT_DOWN(self, self.onClick)
+        
+    def onClick(self, event):
+        self.onClickMethod(self.userData)
+        
         
 class BookmarksBar(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):        
-        return None, None, None
+    def __init__(self, *arguments, **keywords):
+        super (BookmarksBar, self).__init__ (*arguments, **keywords)
+        self.bookmarksPath = None
 
-    def bookmarkPressed(self, event):
-        pass
+    def renderOneBlock(self, parent, parentWindow):
+        panel = wxPanel(parentWindow, -1)
+        sizer = wxBoxSizer(wxHORIZONTAL)
+        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
+        self.addBookmarks(panel, sizer)
+        panel.SetSizerAndFit(sizer)
+        self.getParentBlock(parentWindow).addToContainer(parent, panel,
+                                                         self.stretchFactor,
+                                                         self.Calculate_wxFlag(),
+                                                         self.Calculate_wxBorder())
+        return panel, None, None
+    
+    def addBookmarks(self, parent, sizer):
+        for child in self.bookmarksPath.children:
+            self.addBookmark(parent, sizer, child.getItemDisplayName(), child.GetPath())
+        
+    def addBookmark(self, parent, sizer, title, path):
+        sizer.Add(10, 0, 0, wxEXPAND)
+        bookmark = wxBookmark(parent, title, self.bookmarkPressed, path)
+        sizer.Add(bookmark, 0)
+        sizer.Add(10, 0, 0, wxEXPAND)
+        
+    def bookmarkPressed(self, text):
+        item = Node.GetItemFromPath(text, '//parcels/OSAF/views/main/URLRoot')
+        """
+          If a parcel takes the focus upon a SelectionChanged event, we must take the focus back
+        temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
+        """
+        Globals.wxApplication.mainFrame.SetFocus()
+        self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                   {'item':item})
+        

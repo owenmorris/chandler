@@ -920,6 +920,12 @@
   <Kind itemName="BookmarksBar">
     <classes key="python">OSAF.framework.blocks.NavigationBlocks.BookmarksBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
+
+    <Attribute itemName="bookmarksPath">
+      <type itemref="Item"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:BookmarksBar/bookmarksPath"/>
   </Kind>  
 
   <!--

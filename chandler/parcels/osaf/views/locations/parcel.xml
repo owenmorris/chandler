@@ -12,6 +12,7 @@
              xmlns:doc="//parcels/OSAF/views/locations"
              xmlns:repository="//parcels/OSAF/views/repositoryviewer"
              xmlns:demo="//parcels/OSAF/views/demo"
+             xmlns:content="//parcels/OSAF/views/content"
              xmlns:zaobao="//parcels/OSAF/views/zaobao">
 
   <core:version>0.3</core:version>
@@ -24,6 +25,10 @@
     <children itemref="doc:Repository"/>
     <children itemref="doc:Demo"/>
     <children itemref="doc:ZaoBao"/>
+    <children itemref="doc:MixedView"/>
+    <children itemref="doc:CalendarView"/>
+    <children itemref="doc:ContactsView"/>
+    <children itemref="doc:NotesView"/>
   </Node>
 
   <Node itemName="Repository">
@@ -39,6 +44,32 @@
   <Node itemName="ZaoBao">
     <displayName>ZaoBao</displayName>
     <item itemref="zaobao:ZaoBaoView"/>
+    <children itemref="doc:OSAFNews"/>
+  </Node>
+
+  <Node itemName="OSAFNews">
+    <displayName>OSAF News</displayName>
+    <item itemref="zaobao:ZaoBaoChannelView"/>
+  </Node>
+
+  <Node itemName="CalendarView">
+    <displayName>Calendar</displayName>
+    <item itemref="content:CalendarListView"/>
+  </Node>
+
+  <Node itemName="ContactsView">
+    <displayName>Contacts</displayName>
+    <item itemref="content:ContactListView"/>
+  </Node>
+
+  <Node itemName="NotesView">
+    <displayName>Notes</displayName>
+    <item itemref="content:NoteListView"/>
+  </Node>
+
+  <Node itemName="MixedView">
+    <displayName>Mixed</displayName>
+    <item itemref="content:MixedListView"/>
   </Node>
 
 </core:Parcel>

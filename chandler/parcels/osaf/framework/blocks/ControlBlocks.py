@@ -178,7 +178,7 @@ class List(RectangularChild):
                            style=self.Calculate_wxStyle())
         self.getParentBlock(parentWindow).addToContainer(parent, 
                                                          list,
-                                                         1,
+                                                         self.stretchFactor,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         return list, None, None
@@ -250,8 +250,8 @@ class ToolbarItem(RectangularChild):
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
         toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
+        id = Block.getwxID(self)
         if self.toolbarItemKind == 'Button':
-            id = Block.getwxID(self)
             bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
@@ -263,13 +263,13 @@ class ToolbarItem(RectangularChild):
         elif self.toolbarItemKind == 'Radio':
             pass
         elif self.toolbarItemKind == 'Text':
-            tool = wxTextCtrl (wxToolbar, -1, "", 
+            tool = wxTextCtrl (wxToolbar, id, "", 
                                wxDefaultPosition, 
                                wxSize(300,-1), 
                                wxTE_PROCESS_ENTER)
             tool.SetName(self.title)
             wxToolbar.AddControl (tool)
-            EVT_TEXT_ENTER(tool, tool.GetId(), toolbar.toolEnterPressed)
+            EVT_TEXT_ENTER(tool, id, toolbar.toolEnterPressed)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
 
@@ -506,7 +506,7 @@ class Tree(RectangularChild):
             tree = TreeFactory(type)(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
         self.getParentBlock(parentWindow).addToContainer(parent,
                                                          tree,
-                                                         1,
+                                                         self.stretchFactor,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         return tree, None, None

@@ -27,9 +27,10 @@ class BoxContainer(RectangularChild):
         if self.parentBlock: 
             panel = wxPanel(parentWindow, -1)
             panel.SetSizer(sizer)
-            self.getParentBlock(parentWindow).addToContainer(parent, panel, 1, 
-                                            self.Calculate_wxFlag(), 
-                                            self.Calculate_wxBorder())
+            self.getParentBlock(parentWindow).addToContainer(parent, panel, 
+                                                             self.stretchFactor, 
+                                                             self.Calculate_wxFlag(), 
+                                                             self.Calculate_wxBorder())
             return panel, sizer, panel
         else:
             parent.SetSizer(sizer)
@@ -49,7 +50,7 @@ class EmbeddedContainer(RectangularChild):
         sizer = wxBoxSizer(wxHORIZONTAL)
         panel = wxPanel(parentWindow, -1)
         panel.SetSizer(sizer)
-        self.getParentBlock(parentWindow).addToContainer(parent, panel, 1,
+        self.getParentBlock(parentWindow).addToContainer(parent, panel, self.stretchFactor,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         newChild = Globals.repository.find (self.contentSpec.data)

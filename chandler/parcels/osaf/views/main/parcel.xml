@@ -13,7 +13,7 @@
              xmlns:events="//parcels/OSAF/framework/blocks/Events"
              xmlns:repository="//parcels/OSAF/views/repositoryviewer"
              xmlns:demo="//parcels/OSAF/views/demo"
-	     xmlns:content="//parcels/OSAF/views/content"
+             xmlns:content="//parcels/OSAF/views/content"
              xmlns:zaobao="//parcels/OSAF/views/zaobao">
 
   <core:version>0.3</core:version>
@@ -375,6 +375,31 @@
   </Node>
 
   <!--
+    Bookmarks
+  -->
+  <Node itemName="BookmarksRoot">
+    <displayName></displayName>
+    <children itemref="doc:RepositoryBookmark"/>
+    <children itemref="doc:ZaoBaoBookmark"/>
+    <children itemref="doc:ContactsViewBookmark"/>
+  </Node>
+
+  <Node itemName="RepositoryBookmark">
+    <displayName>Repository</displayName>
+    <item itemref="repository:RepositoryBox"/>
+  </Node>
+
+  <Node itemName="ZaoBaoBookmark">
+    <displayName>ZaoBao</displayName>
+    <item itemref="zaobao:ZaoBaoView"/>
+  </Node>
+  
+  <Node itemName="ContactsViewBookmark">
+    <displayName>Contacts</displayName>
+    <item itemref="content:ContactListView"/>
+  </Node>
+
+  <!--
     Layout blocks
   -->
   <EmbeddedContainer itemName="ParcelViewer">
@@ -410,10 +435,12 @@
  
   <BookmarksBar itemName="BookmarksBar">
     <!-- Attributes -->
+    <bookmarksPath itemref="doc:BookmarksRoot"/>
+
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-    <size>200,30</size>
-    <minimumSize>200,30</minimumSize>
+    <size>200,20</size>
+    <minimumSize>200,20</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -430,8 +457,8 @@
     
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-    <size>900,600</size>
-    <minimumSize>900,600</minimumSize>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
