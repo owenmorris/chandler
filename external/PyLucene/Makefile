@@ -1,5 +1,5 @@
 
-VERSION=0.5
+VERSION=0.5.1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
@@ -11,7 +11,7 @@ PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-4.2.52
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
-         $(SNAP)/bin/libdb_java42$(SUFFIX).dll
+         $(SRC)/$(SNAP)/libdb_java42$(SUFFIX).dll
 else
 
 ifeq ($(OS),Darwin)
@@ -40,8 +40,10 @@ endif
 endif
 
 
-apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION); echo ok
+apply: 
+	if [ -f patches-$(VERSION) ]; then \
+	   patch -Nup0 < patches-$(VERSION); echo ok; \
+	fi
 
 build: apply
 	$(MAKE) -C $(SRC) \
