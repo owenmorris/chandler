@@ -305,7 +305,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         return 1
 
     def GetColLabelValue (self, column):
-        return self.GetView().blockItem.columnHeadings [column]
+        return self.GetView().GetColumnHeading (column)
 
     def IsEmptyCell (self, row, column): 
         return False 
@@ -337,13 +337,26 @@ class AttributeDelegate (ListDelegate):
                     compoundValue = value
                     value = ""
                     for part in compoundValue:
-                        value = value + ", " + part
+                        if value:
+                            value = value + ", "
+                        value = value + part.getItemDisplayName()
             return value
 
     def GetElementType (self, row, column):
         if column == 1:
             return "image"
         return "string"
+
+    def GetColumnHeading (self, column):
+        heading = ""
+        if len(self.blockItem.contents):
+            row = self.GetGridCursorCol()
+            item = self.blockItem.contents [row]
+            attributeName = self.blockItem.columnHeadings [column]
+            indirectAttributeName = item.getAttributeValue (attributeName)
+            attribute = item.itsKind.getAttribute (indirectAttributeName)
+            heading = attribute.getItemDisplayName()
+        return heading
 
 
 class wxTable(wx.grid.Grid):
@@ -416,7 +429,7 @@ class wxTable(wx.grid.Grid):
                 self.blockItem.selection = item
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
-            self.blockItem.selectedColumn = self.GetTable().GetColLabelValue (event.GetCol())
+            self.blockItem.selectedColumn = self.blockItem.columnHeadings [event.GetCol()]
         event.Skip()
 
     def Reset(self): 
@@ -470,9 +483,8 @@ class wxTable(wx.grid.Grid):
         except AttributeError:
             pass
         else:
-            table = self.GetTable()
-            for columnIndex in xrange (table.GetNumberCols()):
-                if table.GetColLabelValue(columnIndex) == selectedColumn:
+            for columnIndex in xrange (self.GetTable().GetNumberCols()):
+                if self.blockItem.columnHeadings [columnIndex] == selectedColumn:
                     cursorColumn = columnIndex
                     break
 
