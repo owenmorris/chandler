@@ -49,6 +49,9 @@ def main():
     parser.add_option("-u", "--uploadStaging", action="store_true", dest="uploadStaging",
       default=False, help="Upload tarballs to staging area \n"
       " [default] False")
+    parser.add_option("-S", "--skipTests", action="store_true", dest="skipTests",
+      default=False, help="Skip Unit Tests \n"
+      " [default] False")
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -103,7 +106,7 @@ def main():
          treeName, None)
 
         ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
-         buildVersion, 0, log, upload=options.uploadStaging)
+         buildVersion, 0, log, upload=options.uploadStaging, skipTests=options.skipTests)
 
     except TinderbuildError, e:
         print e
@@ -313,7 +316,7 @@ def RotateDirectories(dir):
             hardhatutil.rmdirRecursive(subdir)
 
 _descriptions = {
-    'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
+    'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, install and run."],
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href='http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading'>Parcel Loading</a> for details on loading your own parcels)."],
 }
 
@@ -326,18 +329,16 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
     newPrefix = outputDir + os.sep + newDirName + os.sep
 
-    head1 = '<html><head>\n<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
-            '<title>Download Chandler ' + buildName + ' ' + newDirName +\
-            '</title>\n' +\
+    head1 = '<html>\n<head>\n' +\
+            '<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
+            '<title>Download Chandler ' + buildName + ' ' + newDirName + '</title>\n' +\
             '<link rel="Stylesheet" ' +\
             'href="http://www.osafoundation.org/css/OSAF.css" ' +\
             'type="text/css" charset="iso-8859-1">\n'
     head2 = '</head>\n' +\
             '<body>\n' +\
-            '<img src="http://www.osafoundation.org/images/OSAFLogo.gif" ' +\
-            'alt="[OSAF Logo]">\n' +\
-            '<h2>Chandler Build: ' + nowString + ' PDT (machine: ' +\
-            buildName + ')</h2>\n'
+            '<img src="http://www.osafoundation.org/images/OSAFLogo.gif" ' + 'alt="[OSAF Logo]">\n' +\
+            '<h2>Chandler Build: ' + nowString + ' PDT (machine: ' + buildName + ')</h2>\n'
     cryptoblurb = '<p>This software is subject to the U.S. Export ' +\
                   'Administration Regulations and other U.S. law, and may ' +\
                   'not be exported or re-exported to certain countries ' +\
@@ -351,24 +352,19 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     index = head1 + head2 + cryptoblurb
 
     for distro in ('enduser', 'developer'):
-        actualDistroFile = _readFile(outputDir + os.sep + newDirName +
-                                     os.sep+distro)
+        lines = _readFile(os.path.join(outputDir, newDirName, distro))
+        
+        for line in lines:
+            actualDistroFile = line.strip()
+            actualDistro     = os.path.join(outputDir, newDirName, actualDistroFile)
 
-        index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
-                 _descriptions[distro][0] + '</a> (' +\
-                 hardhatutil.fileSize(outputDir + os.sep +\
-                                      newDirName +\
-                                      os.sep + actualDistroFile) +\
-                                      '): <br>\n' +\
-                 ' MD5 checksum: ' + hardhatutil.MD5sum(outputDir + os.sep +\
-                                                        newDirName +\
-                                            os.sep + actualDistroFile) +\
-                 '<br>\n' +\
-                 ' SHA checksum: ' + hardhatutil.SHAsum(outputDir + os.sep +\
-                                                        newDirName +\
-                                            os.sep + actualDistroFile) +\
-                 '<br>\n<p> ' + _descriptions[distro][1] + '</p>\n' +\
-                 '</body></html>\n'
+            index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
+                     _descriptions[distro][0] + '</a> (' +\
+                     hardhatutil.fileSize(actualDistro) + '): <br>\n' +\
+                     ' MD5 checksum: ' + hardhatutil.MD5sum(actualDistro) +\
+                     '<br>\n' +\
+                     ' SHA checksum: ' + hardhatutil.SHAsum(actualDistro) +\
+                     '<br>\n<p>' + _descriptions[distro][1] + '</p>\n'
 
     index += '</body></html>\n'
 
@@ -378,10 +374,10 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
     fileOut = file(outputDir + os.sep + "latest.html", "w")
     fileOut.write(head1 +\
-                  '<meta http-equiv="refresh" content="0;URL=' + newDirName +\
-                  '">' + head2 +\
-                  '<h2>Latest Continuous ' + buildName + ' Build</h2>' +\
-                  '<a href="' + newDirName + '">' + newDirName + '</a>' +\
+                  '<meta http-equiv="refresh" content="0;URL=' + newDirName + '">\n' +\
+                  head2 +\
+                  '<h2>Latest Continuous ' + buildName + ' Build</h2>\n' +\
+                  '<a href="' + newDirName + '">' + newDirName + '</a>\n' +\
                   '</body></html>\n')
     fileOut.close()
 
@@ -395,9 +391,9 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
 def _readFile(path):
     fileIn = open(path, "r")
-    line = fileIn.readline()
+    lines = fileIn.readlines()
     fileIn.close()
-    return line.strip()
+    return lines
 
 
 class TinderbuildError(Exception):
