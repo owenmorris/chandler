@@ -150,10 +150,10 @@ class ReminderDialog(wx.Dialog):
             return _("Now")
         
         absDeltaMinutes = abs(deltaMinutes)
-        if (absDeltaMinutes > 1440):
+        if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two
             format = _("%d day%s %s")
             scale = 1440
-        elif (absDeltaMinutes >= 60):
+        elif (absDeltaMinutes >= 120): # Use "hours" only if it's more than two
             format = _("%d hour%s %s")
             scale = 60
         else:
