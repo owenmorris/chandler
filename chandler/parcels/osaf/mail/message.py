@@ -234,14 +234,18 @@ def messageObjectToKind(messageObject, messageText=None):
 
         for mimePart in mimeParts:
             if isPlainTextContentType(mimePart.get_content_type()):
-                m.body = strToText(m, "body",  mimePart.get_payload())
+                # Note: while grabbing the body, strip all CR
+                m.body = strToText(m, "body",
+                 mimePart.get_payload().replace("\r", ""))
                 found = True
 
         if not found:
             m.body = strToText(m, "body", common.ATTACHMENT_BODY_WARNING)
 
     else:
-        m.body = strToText(m, "body", messageObject.get_payload())
+        # Note: while grabbing the body, strip all CR
+        m.body = strToText(m, "body",
+         messageObject.get_payload().replace("\r", ""))
 
     return m
 
