@@ -227,12 +227,12 @@ class XMLRepository(Repository):
                     self._xml = XmlContainer(env, name)
 
                 self._xml.open(None, DB_CREATE)
-                self._xml.addIndex(None, "", "item",
-                                   "edge-attribute-equality-string")
+                self._xml.addIndex(None, "", "uuid",
+                                   "node-attribute-equality-string")
                 self._xml.addIndex(None, "", "kind",
-                                   "edge-element-equality-string")
+                                   "node-element-equality-string")
                 self._xml.addIndex(None, "", "parent",
-                                   "edge-element-equality-string")
+                                   "node-element-equality-string")
             else:
                 self._xml.open(None, 0)
 
