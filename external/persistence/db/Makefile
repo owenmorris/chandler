@@ -3,12 +3,12 @@ VERSION=4.2.52
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
 
-include ../../Makefile.inc
-
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(OS),Cygwin)
 
 BUILD=build_win32
+BINDIR=$(SRC)/$(BUILD)/$(Snap)
 
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
 	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
@@ -20,14 +20,12 @@ compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
         devenv.com Berkeley_DB.sln /project build_all /build $(Snap)
 
 install:
-	mkdir -p $(PREFIX)/bin/db
-	mkdir -p $(PREFIX)/include/db
-	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/bin/db $(PREFIX)/include/db $(PREFIX)/lib
 	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include/db; tar xvf -)
 	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include/db; tar xvf -)
-	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
-	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.exe) | (cd $(PREFIX)/bin/db; tar xvf -)
-	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf -)
+	(cd $(BINDIR); tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
+	(cd $(BINDIR); tar cf - *.exe) | (cd $(PREFIX)/bin/db; tar xvf -)
+	(cd $(BINDIR); tar cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf -)
 
 clean:
 	cd $(SRC)/$(BUILD); \

@@ -2,10 +2,11 @@
 VERSION=2.3.3
 BZIP2VERSION=1.0.2
 ZLIBVERSION=1.2.1
+
+include $(BUILD_ROOT)/Makefile.inc
+
 PYTHON=$(BUILD_ROOT)/python
 SRC=$(PYTHON)/Python-$(VERSION)
-
-include ../Makefile.inc
 
 ifeq ($(DEBUG),1)
 
@@ -147,5 +148,3 @@ clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 endif
-
-all: build

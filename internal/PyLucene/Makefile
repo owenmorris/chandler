@@ -2,30 +2,19 @@
 VERSION=1.3-final
 PYLUCENE=$(BUILD_ROOT)/persistence/PyLucene
 LUCENE=$(PYLUCENE)/lucene-$(VERSION)
-OS=$(shell uname)
+
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(DEBUG),1)
-
 COMP_OPT=DEBUG=1
-SNAP=debug
-
 else
-
 COMP_OPT=
-SNAP=release
-
 endif
 
 ifeq ($(OS),Darwin)
-
-SITE=Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
 OS_MAKE=Makefile.osx
-
 else
-
-SITE=lib/python2.3/site-packages
 OS_MAKE=Makefile.linux
-
 endif
 
 BUILD=build_$(SNAP)
@@ -58,8 +47,6 @@ snap:
 
 endif
 
-default: all
-
 apply: patches
 	patch -Nup0 < patches; echo ok
 
@@ -73,5 +60,3 @@ expand: lucene-$(VERSION)-src.tar.gz
 
 clean:
 	rm -rf $(BUILD)
-
-all: build

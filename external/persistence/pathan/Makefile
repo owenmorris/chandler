@@ -4,24 +4,16 @@ PATHAN=$(BUILD_ROOT)/persistence/pathan
 XERCESC=$(BUILD_ROOT)/persistence/xerces-c/xerces-c-src2_4_0
 SRC=$(PATHAN)/libpathan-$(VERSION)
 
+include $(BUILD_ROOT)/Makefile.inc
+
 ifeq ($(DEBUG),1)
-
 CONF_DBG=--compiletype=debug
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
-
 else
-
 CONF_DBG=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
-
 endif
 
 BUILD=build_$(SNAP)
 
-
-default: all
 
 $(SRC)/$(BUILD)/Makefile.defs:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
@@ -46,5 +38,3 @@ snap:
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
-
-all: build

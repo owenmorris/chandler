@@ -39,8 +39,6 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
 
 .PHONY: sources expand binaries $(SYSTEMS)
 
-default: all
-
 sources:
 	tar -cvf sources-$(VERSION).tar $(SOURCES)
 

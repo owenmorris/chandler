@@ -2,40 +2,23 @@
 VERSION=1.1.2
 LIBXSLT=$(BUILD_ROOT)/persistence/libxslt
 SRC=$(LIBXSLT)/libxslt-$(VERSION)
-OS=$(shell uname)
+
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(DEBUG),1)
-
 CONF_DBG=--enable-debug
-DIST_DBG=--debug
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
-
 else
-
 CONF_DBG=
-DIST_DBG=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
-
 endif
 
 ifeq ($(OS),Darwin)
-
-PYTHON=$(PREFIX)/Library/Frameworks/Python.framework/Versions/Current
-SITE=Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
-
+WP=$(PREFIX)/$(FRAMEWORK)
 else
-
-PYTHON=$(PREFIX)
-SITE=lib/python2.3/site-packages
-
+WP=$(PREFIX)
 endif
 
 BUILD=build_$(SNAP)
 
-
-default: all
 
 $(SRC)/$(BUILD)/Makefile: patches
 	patch -Nup0 < patches; echo ok; \
@@ -45,7 +28,7 @@ $(SRC)/$(BUILD)/Makefile: patches
                      --with-libxml-prefix=$(PREFIX) \
                      --with-libxml-include-prefix=$(PREFIX) \
                      --with-libxml-lib-prefix=$(PREFIX) \
-                     --with-python=$(PYTHON) \
+                     --with-python=$(WP) \
                      $(CONF_DBG)
 
 build: $(SRC)/$(BUILD)/Makefile
@@ -62,5 +45,3 @@ snap:
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
-
-all: build

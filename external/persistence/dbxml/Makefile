@@ -2,42 +2,23 @@
 VERSION=1.2.1
 DBXML=$(BUILD_ROOT)/persistence/dbxml
 SRC=$(DBXML)/dbxml-$(VERSION)
-OS=$(shell uname)
+
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(DEBUG),1)
 
 CONF_DBG=--enable-debug
 DIST_DBG=--debug
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
-PYTHON=python_d
 
 else
 
 CONF_DBG=
 DIST_DBG=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
-PYTHON=python
-
-endif
-
-ifeq ($(OS),Darwin)
-
-PYTHON:=$(PREFIX)/Library/Frameworks/Python.framework/Versions/2.3/bin/$(PYTHON)
-SITE=Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
-
-else
-
-PYTHON:=$(PREFIX)/bin/$(PYTHON)
-SITE=lib/python2.3/site-packages
 
 endif
 
 BUILD=build_$(SNAP)
 
-
-default: all
 
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
@@ -71,5 +52,3 @@ snap:
 
 clean:
 	cd $(SRC); rm -rf $(BUILD); rm -rf src/python/$(BUILD)
-
-all: build

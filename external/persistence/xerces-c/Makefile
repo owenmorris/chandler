@@ -2,36 +2,23 @@
 VERSION=2_4_0
 XERCESC=$(BUILD_ROOT)/persistence/xerces-c
 SRC=$(XERCESC)/xerces-c-src$(VERSION)
-OS=$(shell uname)
+
+include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(DEBUG),1)
-
 CONF_DBG=-d
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
-
 else
-
 CONF_DBG=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
-
 endif
 
 ifeq ($(OS),Darwin)
-
 CONF_OS=-pmacosx
-
 else
-
 CONF_OS=-plinux
-
 endif
 
 BUILD=build_$(SNAP)
 
-
-default: all
 
 $(SRC)/$(BUILD)/src/xercesc/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
@@ -56,5 +43,3 @@ snap:
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
-
-all: build

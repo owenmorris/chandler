@@ -8,17 +8,36 @@ endif
 ifeq ($(DEBUG),1)
 SNAP=debug
 Snap=Debug
+DIST_OPT=--debug
+PYTHON=python_d
 else
 SNAP=release
 Snap=Release
 DEBUG=0
+DIST_OPT=
+PYTHON=python
 endif
 
 PREFIX=$(BUILD_ROOT)/$(SNAP)
 
-default: all
+ifeq ($(OS),Cygwin)
+PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
+SITE=bin/Lib/site-packages
+else
+ifeq ($(OS),Darwin)
+FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
+PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
+SITE=$(FRAMEWORK)/lib/python2.3/site-packages
+else
+PYTHON:=$(PREFIX)/bin/$(PYTHON)
+SITE=lib/python2.3/site-packages
+endif
+endif
+
 
 .PHONY: default all build compile install clean env
+
+default: all
 
 env:
 	@echo Operating system is $(OS)
@@ -32,3 +51,5 @@ ifeq ($(GCJ_HOME),)
 else
 	@echo GCJ_HOME is $(GCJ_HOME)
 endif
+
+all: build
