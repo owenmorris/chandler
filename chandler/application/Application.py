@@ -328,11 +328,12 @@ class wxApplication (wxApp):
     def LoadParcels(self):
         """
           Load the parcels and call the class method to install them. Packages
-        are defined by directories that contain __init__.py. __init__.py must
-        define assign the parcel's class name to parcelClass. For example
-        "parcelClass = CalendarView.CalendarView", where the first string 
-        before the dot is the file, (CalendarView.py) and the second string is
-        the class e.g. CalendarView. See calendar/__init__.py for an example.
+        are defined by directories that contain __init__.py (or __init__.pyc).
+        __init__.py must define assign the parcel's class name to parcelClass. 
+        For example "parcelClass = CalendarView.CalendarView", where the first 
+        string before the dot is the file, (CalendarView.py) and the second 
+        string is the class e.g. CalendarView. See calendar/__init__.py for an 
+        example.
         """
         self.parcels={}
         """
@@ -346,8 +347,9 @@ class wxApplication (wxApp):
 
         for directory in os.listdir(parcelDirectory):
             pathToPackage = parcelDirectory + os.sep + directory
-            if os.path.isdir (pathToPackage) and \
-                os.path.exists (pathToPackage + os.sep + "__init__.py"):
+            if os.path.isdir(pathToPackage) and \
+               (os.path.exists(pathToPackage + os.sep + "__init__.py") or \
+                os.path.exists(pathToPackage + os.sep + "__init__.pyc")):
                 directory = Application.PARCEL_IMPORT + '.' + directory
                 """
                   Import the parcel, which should define parcelClass
