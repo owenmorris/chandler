@@ -24,7 +24,7 @@ from repository.util.SAX import XMLGenerator
 from repository.util.Lob import Text, Binary
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
-timing = True
+timing = False
 if timing: import tools.timing
 
 class XMLRepositoryView(OnDemandRepositoryView):
