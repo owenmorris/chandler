@@ -22,7 +22,6 @@ msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
 python23_d.dll
-wxmsw24d.dll
 xerces-c_2_4_0D.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
