@@ -135,9 +135,14 @@ def main():
             print "There were no changes, and the tests were successful"
             log.write("There were no changes, and the tests were successful\n")
             status = "success"
-        elif ret == "success-changes":
-            print "There were changes, and the tests were successful"
-            log.write("There were changes, and the tests were successful\n")
+        elif ret == "success-changes" or ret == "success-first-run":
+            if ret == "success-first-run":
+                print "First run of tinderbox, and the tests were successful"
+                log.write("First run of tinderbox, and the tests were successful\n")
+            else:
+                print "There were changes, and the tests were successful"
+                log.write("There were changes, and the tests were successful\n")
+
             status = "success"
 
             newDir = os.path.join(outputDir, buildVersion)
