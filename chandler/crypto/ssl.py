@@ -29,23 +29,22 @@ class ClientContextFactory:
 
     isClient = 1
     useM2    = 1
-    method   = 'sslv3'
+    method   = 'sslv23' # slv23 actually means any version of SSL
 
-    def __init__(self, method='sslv3', verify=True):
-        self.method = 'sslv3'
+    def __init__(self, method='sslv23', verify=True):
+        self.method = method
         self.verify = verify
 
     def getContext(self):
         return getSSLContext(protocol=self.method, verify=self.verify)
 
 
-def getSSLContext(protocol='tlsv1', verify=True, verifyCallback=None):
+def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
     """
     Get an SSL context. You should use this method to get a context
     in Chandler rather than creating them directly.
 
-    @param protocol:       An SSL protocol version string, one of the
-                           following: 'tlsv1', 'sslv3'
+    @param protocol:       An SSL protocol version string.
     @type protocol:        str
     @param verify:         Verify SSL/TLS connection. True by default.
     @type verify:          boolean
@@ -69,29 +68,30 @@ def getSSLContext(protocol='tlsv1', verify=True, verifyCallback=None):
         # XXX We'd like to load the CA certs from repository, or better yet,
         # XXX provide BIO 'directory' from which to load certs on demand.
         caCertFile = os.path.join(Crypto.getProfileDir(), 'cacert.pem')
-        # XXX check return values
         if ctx.load_verify_locations(caCertFile) != 1:
             raise SSLContextError, "No CA certificate file"
 
+        # XXX TODO In some cases, for example when connecting directly
+        #          to P2P partner, we want to authenticate mutually using
+        #          certificates so we need to load the "me" certificate.
+        #          Do not do this for all contexts, however, because it can
+        #          leak our identity when connecting to random SSL servers
+        #          out there.
         #ctx.load_cert_chain('client.pem')
 
         if not verifyCallback:
             verifyCallback = _verifyCallback
 
         # XXX crash with callback
-        # XXX some certs specify pathlen, do we honor that?
-        # XXX check return values
         ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                       10)#, verifyCallback)
+                       9)#, verifyCallback)
 
     # Do not allow SSLv2 because it has security issues
-    # XXX check return values
     ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
 
     # Disable unsafe ciphers, and order the remaining so that strongest
     # comes first, which can help peers select the strongest common
     # cipher.
-    # XXX check return values
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         raise SSLContextError, 'Could not set cipher list'
 
@@ -128,7 +128,7 @@ def postConnectionCheck(connection, certSha1Fingerprint=None,
         der = cert.as_der()
         md = EVP.MessageDigest('sha1')
         md.update(der)
-        digest = md.final()
+        digest = md.final() # XXX See if we can compare as numbers
         hexstr = hex(util.octx_to_num(digest))
         fingerprint = hexstr[2:len(hexstr)-1]
         fpLen = len(fingerprint)
@@ -147,9 +147,7 @@ def postConnectionCheck(connection, certSha1Fingerprint=None,
         # XXX a security hole)?
         host = connection.addr[0]
 
-        # XXX The hostname in the certificate can contain
-        # XXX regexp, but not all software supports that (for example
-        # XXX IE6 does not). TODO for us as well...
+        # XXX See RFC 2818 (and maybe 3280) for matching rules
 
         # XXX subjectAltName might contain multiple fields
         # subjectAltName=DNS:somehost
