@@ -1,1 +1,1 @@
-build = "morgen"
+build = "custom build"
