@@ -46,7 +46,7 @@ application
 parcels
 
 glob=*
-model
+repository
 locale
 
 # Grab the launcher and linux README

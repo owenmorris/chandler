@@ -54,7 +54,7 @@ application
 parcels
 
 glob=*
-model
+repository
 locale
 
 
