@@ -12,6 +12,7 @@ import smtp as smtp
 import common as common
 import message as message
 import logging as logging
+import twisted.internet.defer as defer
 
 
 class IMAPDownloadAction(Action.Action):
@@ -75,4 +76,9 @@ class SMTPSendAction(Action.Action):
 
         Globals.repository.commit()
 
-        smtp.SMTPSender(account, m).sendMail()
+        d = defer.Deferred().addBoth(self.smtpResponse)
+
+        smtp.SMTPSender(account, m, d).sendMail()
+
+    def smtpResponse(selfi, result):
+        print "SMTP Response Got: ", result

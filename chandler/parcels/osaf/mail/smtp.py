@@ -48,7 +48,7 @@ class SMTPException(common.MailException):
 
 class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
-    def __init__(self, account, mailMessage):
+    def __init__(self, account, mailMessage, deferred=None):
         #XXX: Perhaps get the first account if None
         if account is None or not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SMTPMailException("You must pass in a SMTPAccount instance")
@@ -63,9 +63,11 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         self.accountUUID = account.itsUUID
         self.account = None
-        self.mailMessage = None 
+        self.mailMessage = None
         self.mailMessageUUID = mailMessage.itsUUID
-        self.sent = False
+        self.deferred = deferred
+        self.failure = None
+        self.success = None
 
     #in thread
     def sendMail(self):
@@ -160,7 +162,8 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(DateTime.now())
 
             self.mailMessage.deliveryExtension.sendSucceeded()
-            self.sent = True 
+
+            self.success = result
 
         finally:
            self.restorePreviousView()
@@ -179,7 +182,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             self.log.error("SMTP send failed: %s" % exc)
 
             self.mailMessage.deliveryExtension.sendFailed()
-            self.sent = False
+            self.failure = exc
 
         finally:
            self.restorePreviousView()
@@ -196,10 +199,6 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         @return: C{None}
         """
 
-        #XXX: Post a failure event back to the Gui
-        #XXX: Could just look at the message Delivery Extension state as well
-        if not self.sent:
-            pass
 
         self.account.setPinned(False)
         self.mailMessage.setPinned(False)
@@ -207,6 +206,16 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         self.mailMessage = None
 
         Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
+
+        #XXX: Post a failure event back to the Gui
+        #XXX: Could just look at the message Delivery Extension state as well
+        if self.failure is not None:
+            if self.deferred is not None:
+                self.deferred.errback(self.failure)
+
+        elif self.success is not None:
+            if self.deferred is not None:
+                self.deferred.callback(self.success)
 
     def __getKinds(self):
 
