@@ -299,9 +299,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
     newPrefix = outputDir + os.sep + newDirName + os.sep
 
-    head1 = '<!DOCTYPE html ' +\
-            'PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'+\
-            '<html><head>\n<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
+    head1 = '<html><head>\n<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
             '<title>Download Chandler ' + buildName + ' ' + newDirName +\
             '</title>\n' +\
             '<link rel="Stylesheet" ' +\
