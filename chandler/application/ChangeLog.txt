@@ -25,3 +25,8 @@
 2003-07-07 Jed Burgess <jed@osafoundation.org>
     * Added the ability for parcels to add their version of the ActionsBar
       to ChandlerWindow.
+      
+2003-07-15 Jed Burgess <jed@osafoundation.org>
+    * Improperly formatted remote url's no longer cause an exeption within
+      Chandler.  Parcels with xrc that doesn't have <label> as the first 
+      item in their menus will no longer cause an exception within Chandler.

@@ -417,7 +417,7 @@ class wxChandlerWindow(wxFrame):
         parcelname = fields[0]
         localurl = url
         
-        if parcelname.find('@') > -1:
+        if parcelname.find('@') > -1 and len(fields) > 1:
             remoteaddress = fields[0]
             parcelname = fields[1]
             localurl = string.join(fields[1:], '/')
