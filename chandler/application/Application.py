@@ -328,11 +328,11 @@ class wxApplication (wxApp):
             loader.load(agentsPath)
 
         # Load CoreSchema.xml
-        if not self.repository.find('//Core'):
-            coreSchemaPath = os.path.join(self.chandlerDirectory,
-                                          'model', 'schema',
-                                          'CoreSchema.xml')
-            loader.load(coreSchemaPath)
+#        if not self.repository.find('//Core'):
+#            coreSchemaPath = os.path.join(self.chandlerDirectory,
+#                                          'model', 'schema',
+#                                          'CoreSchema.xml')
+#            loader.load(coreSchemaPath)
 
         self.repository.commit()
                                 
