@@ -463,7 +463,7 @@ class MainView(View):
         # Triggered from "Test | Share collection..."
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            Sharing.manualPublishCollection(collection)
+            Sharing.manualPublishCollection(self.itsView, collection)
 
     def onShareCollectionEventUpdateUI (self, event):
         """
@@ -546,7 +546,9 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            Sharing.syncCollection(collection)
+            share = Sharing.getShare(collection)
+            if share is not None:
+                Sharing.syncShare(share)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """

@@ -1338,7 +1338,7 @@ class MixedFormat(ImportExportFormat):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Sharing helper methods
 
-def newOutboundShare(view, collection, account=None):
+def newOutboundShare(view, collection, shareName=None, account=None):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV
@@ -1360,7 +1360,7 @@ def newOutboundShare(view, collection, account=None):
         if account is None:
             return None
 
-    conduit = WebDAVConduit(view=view, account=account)
+    conduit = WebDAVConduit(view=view, account=account, shareName=shareName)
     format = CloudXMLFormat(view=view)
     share = Share(view=view, conduit=conduit, format=format,
                   contents=collection)
@@ -1724,3 +1724,29 @@ def manualSubscribeToCollection(view):
     view.commit()
     mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
     mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+
+def manualPublishCollection(view, collection):
+    share = getShare(collection)
+    if share is not None:
+        msg = "This collection is already shared at:\n%s" % share.conduit.getLocation()
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    "Already shared", msg)
+        return
+
+    shareName = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+                                              "Publish share",
+                                              "Enter a name",
+                                              collection.getItemDisplayName())
+
+    if shareName is None:
+        return
+
+    share = newOutboundShare(view, collection, shareName=shareName)
+    if share.exists():
+        msg = "There is already a share at:\n%s" % share.conduit.getLocation()
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    "Share exists", msg)
+        return
+
+    share.create()
+    share.put()
