@@ -243,7 +243,7 @@
     <core:displayName>Named Collection</core:displayName>
     <core:attributes itemref="rule"/>
     <core:attributes itemref="inclusions"/>
-    <core:attributes itemref="exclusions/"/>
+    <core:attributes itemref="exclusions"/>
     <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
@@ -251,7 +251,7 @@
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Ad-Hoc Collection</core:displayName>
     <core:attributes itemref="inclusions"/>
-    <core:attributes itemref="exclusions/"/>
+    <core:attributes itemref="exclusions"/>
     <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 

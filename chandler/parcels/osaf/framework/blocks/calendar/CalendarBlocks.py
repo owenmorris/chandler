@@ -7,6 +7,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
+import wx.calendar
 from mx import DateTime
 
 import application.SimpleCanvas as SimpleCanvas
@@ -335,8 +336,7 @@ class MonthBlock(Block.RectangularChild):
     dayWidth = property(getDayWidth)
     dayHeight = property(getDayHeight)
 
-    def onSelectedDateChanged(self, notification):
-        print "selected date changed"
+    def onSelectedDateChangedEvent(self, notification):
         self.updateRange(notification.data['start'])
         self.widget.Refresh()
 
@@ -363,4 +363,67 @@ class MonthBlock(Block.RectangularChild):
     
 
 
+class wxMiniCalendar(wx.calendar.CalendarCtrl):
+    def __init__(self, *arguments, **keywords):
+        super (wxMiniCalendar, self).__init__(*arguments, **keywords)
+        self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED,
+                  self.OnSelectionChanged)
+
+    def wxSynchronizeWidget(self):
+        self.SetWindowStyle(wx.calendar.CAL_SUNDAY_FIRST |
+                            wx.calendar.CAL_SHOW_SURROUNDING_WEEKS)
+
+    def OnSelectionChanged(self, event):
+        self.blockItem.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
+                            {'start': self.getSelectedDate(),
+                             'item': self.blockItem })
+
+    def getSelectedDate(self):
+        wxdate = self.GetDate()
+        mxdate = DateTime.DateTime(wxdate.GetYear(),
+                                   wxdate.GetMonth() + 1,
+                                   wxdate.GetDay())
+        return mxdate
+
+    def setSelectedDate(self, mxdate):
+        wxdate = wx.DateTimeFromDMY(mxdate.day,
+                                    mxdate.month - 1,
+                                    mxdate.year)
+        self.SetDate(wxdate)
+
+    
+    def setSelectedDateRange(self, mxstart, mxend):
+        self.resetMonth()
+        self.setSelectedDate(mxstart)
+        
+        if (mxstart.month != mxend.month):
+            endday = mxstart.days_in_month + 1
+        else:
+            endday = mxend.day + 1
+        
+        for day in range(mxstart.day, endday):
+            attr = wx.CalendarDateAttr(wx.WHITE, wx.BLUE, wx.WHITE,
+                                       wx.SWISS_FONT)
+            self.SetAttr(day, attr)
+            
+        today = DateTime.today()
+        if ((today.year == mxstart.year) and (today.month == mxstart.month)):
+            self.SetHoliday(today.day)
+            
+        self.Refresh()
+    
+    def resetMonth(self):
+        for day in range(1,32):
+            self.ResetAttr(day)
+
+class MiniCalendar(Block.RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (MiniCalendar, self).__init__(*arguments, **keywords)
+
+    def instantiateWidget(self):
+        return wxMiniCalendar(self.parentBlock.widget,
+                              Block.Block.getWidgetID(self))
+
+    def onSelectedDateChangedEvent(self, notification):
+        self.widget.setSelectedDate(notification.data['start'])
 

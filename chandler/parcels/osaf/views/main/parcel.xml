@@ -13,7 +13,8 @@
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:content="http://osafoundation.org/parcels/osaf/views/content">
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
+	     xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
 
   <core:version>0.3</core:version>
 
@@ -395,7 +396,19 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  
 
-  <Tree itsName="Sidebar">
+  <calendar:MiniCalendar itsName="MiniCalendar"/>
+
+  <BoxContainer itsName="Sidebar">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:SidebarTree"/>
+    <childrenBlocks itemref="doc:MiniCalendar"/>
+
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+  </BoxContainer>
+
+  <Tree itsName="SidebarTree">
     <!-- Attributes -->
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:InView"/>

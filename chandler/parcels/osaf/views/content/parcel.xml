@@ -117,6 +117,12 @@
     <columnWidths>170</columnWidths>
   </List>
 
+  <!-- Calendar Blocks -->
+  <CharacterStyle itsName="CalendarTitle">
+    <fontStyle>bold</fontStyle>
+    <fontSize>10.0</fontSize>
+  </CharacterStyle>
+
   <!-- Month -->
   <calendarBlocks:MonthBlock itsName="SummaryMonth">
     <contents itemref="view:calendarItemCollection"/>
@@ -125,7 +131,7 @@
     <weeksPerView>6</weeksPerView>
     <offset>60</offset>
 
-    <subscribeWhenVisibleEvents itemref="events:SelectedDateChanged"/>
+    <characterStyle itemref="view:CalendarTitle"/>
   </calendarBlocks:MonthBlock>
 
   <!-- Week -->
@@ -136,7 +142,7 @@
     <hoursPerView>24</hoursPerView>
     <offset>40</offset>
 
-    <subscribeWhenVisibleEvents itemref="events:SelectedDateChanged"/>
+    <characterStyle itemref="view:CalendarTitle"/>
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->

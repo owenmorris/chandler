@@ -41,6 +41,7 @@
     <attributes itemref="calBlocks:MonthBlock/offset"/>
     <attributes itemref="calBlocks:MonthBlock/rangeStart"/>
     <attributes itemref="calBlocks:MonthBlock/rangeIncrement"/>
+    <attributes itemref="blocks:characterStyle"/>
   </Kind>
 
   <Kind itsName="WeekBlock">
@@ -69,6 +70,12 @@
     <attributes itemref="calBlocks:WeekBlock/offset"/>
     <attributes itemref="calBlocks:WeekBlock/rangeStart"/>
     <attributes itemref="calBlocks:WeekBlock/rangeIncrement"/>
+    <attributes itemref="blocks:characterStyle"/>
+  </Kind>
+
+  <Kind itsName="MiniCalendar">
+    <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.MiniCalendar</classes>
+    <superKinds itemref="blocks:RectangularChild"/>
   </Kind>
 
 </Parcel>
