@@ -14,14 +14,14 @@ class TestPanel(wx.Panel):
 
         l1 = wx.StaticText(self, -1, "wx.ColumnHeader (1)", (20, 20), (150, 20))
 
-        ch1 = wx.colheader.wxColumnHeader(self, 711, (20, 40), (350, 20), 0)
-        ch1.AppendItem("Sun", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 1, 1)
-        ch1.AppendItem("Mon", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
-        ch1.AppendItem("Tue", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
-        ch1.AppendItem("Wed", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
-        ch1.AppendItem("Thu", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
-        ch1.AppendItem("Fri", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
-        ch1.AppendItem("Sat", wx.colheader.wxCOLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1 = wx.colheader.ColumnHeader(self, 711, (20, 40), (350, 20), 0)
+        ch1.AppendItem("Sun", wx.colheader.COLUMNHEADER_JUST_Center, 50, 1, 1)
+        ch1.AppendItem("Mon", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1.AppendItem("Tue", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1.AppendItem("Wed", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1.AppendItem("Thu", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1.AppendItem("Fri", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
+        ch1.AppendItem("Sat", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 1)
         ch1.SetToolTipString("Column header (1)")
         self.Bind(wx.EVT_BUTTON, self.OnClick, ch1)
 
@@ -30,10 +30,10 @@ class TestPanel(wx.Panel):
 
         l2 = wx.StaticText(self, -1, "wx.ColumnHeader (2)", (80, 70), (150, 20))
 
-        ch2 = wx.colheader.wxColumnHeader(self, 711, (80, 90), (270, 20), 0)
-        ch2.AppendItem("Juan", wx.colheader.wxCOLUMNHEADER_JUST_Left, 90, 1, 1)
-        ch2.AppendItem("Valdéz", wx.colheader.wxCOLUMNHEADER_JUST_Center, 90, 0, 1)
-        ch2.AppendItem("coffeehead", wx.colheader.wxCOLUMNHEADER_JUST_Right, 90, 0, 1)
+        ch2 = wx.colheader.ColumnHeader(self, 711, (80, 90), (270, 20), 0)
+        ch2.AppendItem("Juan", wx.colheader.COLUMNHEADER_JUST_Left, 90, 1, 1)
+        ch2.AppendItem("Valdéz", wx.colheader.COLUMNHEADER_JUST_Center, 90, 0, 1)
+        ch2.AppendItem("coffeehead", wx.colheader.COLUMNHEADER_JUST_Right, 90, 0, 1)
         ch2.SetToolTipString("Column header (2)")
         self.Bind(wx.EVT_BUTTON, self.OnClick, ch2)
 
