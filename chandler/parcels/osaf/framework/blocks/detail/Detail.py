@@ -265,7 +265,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
     Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
     """    
-    def _mapItemToCacheKey(self, item):
+    def _mapItemToCacheKeyItem(self, item):
         """ 
         Overrides to use the item's kind as our cache key
         """

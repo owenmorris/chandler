@@ -49,7 +49,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             detailItem = None
         else:
             if detailItem is not None:
-                newView = self.trunkDelegate.getTrunkForItem(detailItem)
+                keyItem = self.trunkDelegate._mapItemToCacheKeyItem(detailItem)
+                newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
             
         oldView = self.childrenBlocks.first()
         if not newView is oldView:
@@ -64,10 +65,10 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                   Seems like we should always mark new views with an event boundary
                 """
                 assert newView.eventBoundary
-                newView.postEventByName("SetContents", {'item':detailItem})
+                self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
                 newView.render()
         elif not newView is None:
-            newView.postEventByName("SetContents", {'item':detailItem})
+            self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
             newView.synchronizeWidget()
 
 
@@ -75,23 +76,22 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
 
 class TrunkDelegate(Item):
     """
-    A mechanism to map an item to a view: call its getTrunkForItem(item)
+    A mechanism to map an item to a view: call its getTrunkForKeyItem(item)
     to get the view for that item.
 
     The default implementation is suitable when the item the view to be used;
     it'll be returned as-is (except that a copy will be made if the original's
     in the read-only part of the repository).
     """
-    def getTrunkForItem(self, item):
+    def getTrunkForKeyItem(self, keyItem):
         """ 
         Given an item, return the view to be used to display it.
 
         Can be overridden if you don't want the default behavior, which is to 
-        cache the views, keyed by a value returned by _mapItemToCacheKey. Misses 
+        cache the views, keyed by a value returned by _mapItemToCacheKeyItem. Misses 
         are handled by _makeTrunkForItem.
         """
         trunk = None
-        keyItem = self._mapItemToCacheKey(item)
         if not keyItem is None:
             # @@@ For now, we actually use the UUID of the item as the key.
             # It's be much better to use the item itself, but the repository doesn't
@@ -106,7 +106,7 @@ class TrunkDelegate(Item):
                 trunk = self.findUUID(trunkUUID)
         return trunk
 
-    def _mapItemToCacheKey(self, item):
+    def _mapItemToCacheKeyItem(self, item):
         """ 
         Given an item, determine the item to be used as the cache key.
         Can be overridden; defaults to using the item itself.
@@ -142,4 +142,10 @@ class TrunkDelegate(Item):
             result = item.copy(parent = userData, cloudAlias="default")
             
         return result
+
+    def _setContentsOnTrunk(self, trunk, item, keyItem):
+        """ 
+        Given a trunk, item and keyItem, set the contents of the trunk.
+        """
+        trunk.postEventByName("SetContents", {'item':item})
 

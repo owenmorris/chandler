@@ -53,7 +53,7 @@ class Sidebar (ControlBlocks.Table):
 
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
-    def _mapItemToCacheKey(self, item):
+    def _mapItemToCacheKeyItem(self, item):
         key = item
         if isinstance (item, ItemCollection.ItemCollection):
             filterKind = Block.Block.findBlockByName ("Sidebar").filterKind
@@ -92,6 +92,9 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         
         assert isinstance (trunk, Block.Block)
         return self._copyItem(trunk, onlyIfReadOnly=True)
+
+    def _setContentsOnTrunk(self, trunk, item, keyItem):
+        trunk.postEventByName("SetContents", {'item':keyItem})
 
 
 class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):

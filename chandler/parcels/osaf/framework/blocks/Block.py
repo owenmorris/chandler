@@ -467,8 +467,11 @@ class Block(Item):
                 """
                   Comment in this code to see which events are dispatched -- DJA
                   ... to which blocks -- BJS
-    
-                print "Calling %s.%s" % (block.itsPath, methodName)
+                try:
+                    blockName = block.blockName
+                except AttributeError:
+                    blockName = "None"
+                print "Calling method: %s, blockName: %s; block: %s" % (methodName, blockName, block)
                 """
                 result = member (block, event)
                 if result is None:
