@@ -153,9 +153,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     mainModuleDir = os.path.join(modeDir, mainModule)
     extModuleDir = os.path.join(modeDir, "external")
     intModuleDir = os.path.join(modeDir, "internal")
-    version = hardhatutil.executeCommandReturnOutput(
-     [buildenv['grep'], "VERSION=", os.path.join(extModuleDir, "Makefile") ],
-     "Looking up version string")
+    version = getVersion(os.path.join(extModuleDir, "Makefile"))
 
     if not changesAtAll:
         return "no_changes"
@@ -371,3 +369,16 @@ def CopyLog(file, fd):
         line = input.readline()
     input.close()
 
+def getVersion(fileToRead):
+    input = open(fileToRead, "r")
+    line = input.readline()
+    while line:
+        m=re.match('VERSION=(.*)', line)
+        if not m == 'None':
+            version = m.group(1)
+            input.close()
+            return version
+            
+        line = input.readline()
+    input.close()
+    return 'No Version'
