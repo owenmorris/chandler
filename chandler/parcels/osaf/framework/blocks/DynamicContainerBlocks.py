@@ -704,6 +704,19 @@ wxToolBarToolClass = wx.ToolBarToolBase
 class wxToolbarItem (wxToolBarToolClass):
     """
     Toolbar Tool Widget.
+
+    ToolbarItems are a CPIA concept, that are roughly equivalent to the
+    wx object ToolbarTool.  In CPIA, ToolbarItems are children of Toolbars,
+    (both regular childrenBlocks and dynamicChildren).  But in wxWidgets,
+    a ToolbarTool is not a child of the Toolbar, instead it's added to
+    the Toolbar with a special method call (either DoAddTool or AddControl).
+    Because of this, destroying the Toolbar won't automatically destroy
+    the widgets associated with each ToolbarItem since they are not
+    children of the Toolbar from the wx perspective.  Luckily, about the
+    only time we destroy the Toolbar is when we call wxSynchronizeWidget
+    on it, so we can handle it specially.  At that time we explicitly 
+    call the onDestroy method on each ToolbarItem to unhook that
+    block from its widget. 
     """
     def wxSynchronizeWidget(self):
         """
