@@ -382,8 +382,8 @@
         <initialValue />
         <inverseAttribute itemref="mail:EmailAddress/inviteeOf" />
     </Attribute>
-    <!-- redirections -->
 
+    <!-- redirections -->
     <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
     </Attribute>

@@ -84,8 +84,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
-            if (sidebar.filterKind is
-                self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin")):
+            if (sidebar.filterKind is self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin") and
+                keyItem.displayName == u"All filtered by Calendar Event Mixin Kind"):
                 templatePath = self.calendarTemplatePath
             else:
                 templatePath = self.tableTemplatePath
