@@ -18,9 +18,7 @@ class XMLRefDict(RefDict):
         self._item = None
         self._uuid = UUID()
         self.view = view
-
         self._changedRefs = {}
-        self._deletedRefs = {}
         
         super(XMLRefDict, self).__init__(item, name, otherName, readOnly)
 
@@ -39,8 +37,11 @@ class XMLRefDict(RefDict):
         if view is not view.repository.view:
             raise RepositoryError, 'current thread is not owning thread'
 
-        if key in self._deletedRefs:
-            return None
+        try:
+            if self._changedRefs[key][0] == 1:
+                return None
+        except KeyError:
+            pass
 
         return self._getRefs().loadRef(self._key, self._item._version, key)
 
@@ -57,7 +58,6 @@ class XMLRefDict(RefDict):
 
         if not self.view.isLoading():
             self._changedRefs[key] = (1, link._alias)
-            self._deletedRefs[key] = key
         else:
             raise ValueError, 'detach during load'
 
@@ -141,7 +141,6 @@ class XMLRefDict(RefDict):
                 self.view._notifications.changed(self._item._uuid, self._name)
 
             self._changedRefs.clear()
-            self._deletedRefs.clear()
             
             if len(self) > 0:
                 generator.startElement('db', {})
@@ -150,7 +149,7 @@ class XMLRefDict(RefDict):
 
             if self._indexes:
                 for name, index in self._indexes.iteritems():
-                    attrs = { 'name': name }
+                    attrs = { 'name': name, 'type': index.getIndexType() }
                     index._xmlValues(generator, version, attrs, mode)
 
         elif mode == 'serialize':
@@ -164,7 +163,7 @@ class XMLRefDict(RefDict):
         if indexType == 'numeric':
             return XMLNumericIndex(self._getRepository(), **kwds)
 
-        raise NotImplementedError, "indexType: %s" %(indexType)
+        return super(XMLRefDict, self)._createIndex(indexType, **kwds)
 
 
 class XMLNumericIndex(NumericIndex):
@@ -173,7 +172,6 @@ class XMLNumericIndex(NumericIndex):
 
         self.view = view
         self._changedKeys = {}
-        self._deletedKeys = {}
         
         if 'uuid' in kwds:
             self._uuid = UUID(kwds['uuid'])
@@ -197,12 +195,7 @@ class XMLNumericIndex(NumericIndex):
     def removeKey(self, key):
 
         super(XMLNumericIndex, self).removeKey(key)
-
-        self._deletedKeys[key] = None
-        try:
-            del self._changedKeys[key]
-        except KeyError:
-            pass
+        self._changedKeys[key] = None
 
     def __getitem__(self, key):
 
@@ -253,7 +246,13 @@ class XMLNumericIndex(NumericIndex):
         node = None
         version = self._version
 
-        if version > 0 and key not in self._deletedKeys:
+        if version > 0:
+            try:
+                if self._changedKeys[key] is None:   # removed key
+                    return None
+            except KeyError:
+                pass
+
             node = self._getIndexes().loadKey(self, self._key, version, key)
             if node is not None:
                 self[key] = node
@@ -284,14 +283,8 @@ class XMLNumericIndex(NumericIndex):
             for key, node in self._changedKeys.iteritems():
                 indexes.saveKey(self._key, self._value,
                                 version, key, node)
-                        
-            for key in self._deletedKeys.iterkeys():
-                indexes.saveKey(self._key, self._value,
-                                version, key, None)
 
             self._changedKeys.clear()
-            self._deletedKeys.clear()
-
             self._version = version
             
         elif mode == 'serialize':

@@ -17,6 +17,10 @@
 
   <attribute name="displayAttribute">title</attribute>
 
+  <attribute name="classes">
+    <value name="python">repository.tests.classes.Movie.Movie</value>
+  </attribute>
+
   <ref name="superKinds">
     <ref type="path">/Core/Item</ref>
   </ref>

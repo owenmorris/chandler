@@ -60,7 +60,6 @@ class Index(dict):
 
     def _xmlValues(self, generator, version, attrs, mode):
 
-        attrs['type'] = self.getIndexType()
         generator.startElement('index', attrs)
         generator.endElement('index')
 
@@ -68,7 +67,8 @@ class Index(dict):
 class NumericIndex(Index, SkipList):
     """
     This implementation of a numeric index is not persisted, it is
-    reconstructed when the owning item is loaded.
+    reconstructed when the owning item is loaded. The persistence layer is
+    responsible for providing persisted implementations.
     """
 
     def __init__(self, **kwds):
@@ -124,3 +124,113 @@ class NumericIndex(Index, SkipList):
             next = self.getNextKey(key)
             self.removeKey(key)
             key = next
+
+
+class DelegatingIndex(object):
+
+    def __init__(self, index, **kwds):
+        self._index = index
+        super(DelegatingIndex, self).__init__()
+
+    def __repr__(self):
+        return '<%s: %d>' %(type(self).__name__, self._count)
+
+    def __getattr__(self, name):
+        return getattr(self._index, name)
+
+
+class SortedIndex(DelegatingIndex):
+
+    def compare(self, k0, k1):
+
+        raise NotImplementedError, '%s is abstract' % type(self)
+
+    def afterKey(self, key):
+
+        pos = lo = 0;
+        hi = len(self._index) - 1;
+        afterKey = None
+        
+        while lo <= hi:
+            pos = (lo + hi) >> 1
+            afterKey = self.getKey(pos)
+            diff = self.compare(key, afterKey);
+
+            if diff == 0:
+                return afterKey
+
+            if diff < 0:
+                hi = pos - 1
+            else:
+                pos += 1
+                lo = pos;
+
+        if pos == 0:
+            return None
+
+        return self.getKey(pos - 1)
+
+    def insertKey(self, key, afterKey):
+
+        self._index.insertKey(key, self.afterKey(key))
+            
+    def moveKey(self, key, afterKey):
+
+        self.removeKey(key)
+        self._index.insertKey(key, self.afterKey(key))
+
+
+class AttributeIndex(SortedIndex):
+
+    def __init__(self, valueMap, index, **kwds):
+
+        self._valueMap = valueMap
+        self._attribute = kwds['attribute']
+        del kwds['attribute']
+
+        super(AttributeIndex, self).__init__(index, **kwds)
+
+    def getIndexType(self):
+
+        return 'attribute'
+    
+    def compare(self, k0, k1):
+
+        v0 = self._valueMap[k0].getAttributeValue(self._attribute)
+        v1 = self._valueMap[k1].getAttributeValue(self._attribute)
+
+        if v0 < v1:
+            return -1
+        if v0 > v1:
+            return 1
+
+        return 0
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        attrs['attribute'] = self._attribute
+        self._index._xmlValues(generator, version, attrs, mode)
+
+
+class CompareIndex(SortedIndex):
+
+    def __init__(self, valueMap, index, **kwds):
+
+        self._valueMap = valueMap
+        self._compare = kwds['compare']
+        del kwds['compare']
+
+        super(CompareIndex, self).__init__(index, **kwds)
+
+    def getIndexType(self):
+
+        return 'compare'
+    
+    def compare(self, k0, k1):
+
+        return getattr(self._valueMap[k0], self._compare)(self._valueMap[k1])
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        attrs['compare'] = self._compare
+        self._index._xmlValues(generator, version, attrs, mode)

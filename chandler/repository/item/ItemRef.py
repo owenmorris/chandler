@@ -9,7 +9,7 @@ import repository.item as ItemPackage
 from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
-from repository.item.Indexes import NumericIndex
+from repository.item.Indexes import NumericIndex, AttributeIndex, CompareIndex
 
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
@@ -579,6 +579,42 @@ class RefDict(LinkedMap):
         return self.has_key(obj, load)
 
     def addIndex(self, name, indexType, **kwds):
+        """
+        Add an index to this ref collection.
+
+        A ref collection index provides positional access into the
+        collection and maintains a key order which is be determined by the
+        sequence of collection mutation operations or by constraints
+        on values.
+
+        A ref collection may have any number of indexes. Each index has a
+        name which is used with the L{placeItem}, L{getByIndex},
+        L{resolveIndex}, L{first}, L{last}, L{next}, L{previous} methods.
+
+        Because the implementation of an index depends on the persistence
+        layer, the type of index is chosen with the C{indexType} parameter
+        which can have one of the following values:
+
+            - C{numeric}: a simple index reflecting the sequence of mutation
+              operations.
+
+            - C{attribute}: an index sorted on the value of an attribute
+              of items in the collection. The name of the attribute is
+              provided via the C{attribute} keyword.
+
+            - C{compare}: an index sorted on the return value of a method
+              invoked on items in the collection. The method is a comparison
+              method whose name is provided with the C{compare} keyword, and
+              it is invoked on C{i0}, with the other item being compared,
+              C{i1}, and is expected to return a positive number if, in the
+              context of this index, C{i0 > i1}, a negative number if C{i0 <
+              i1}, or zero if C{i0 == i1}.
+
+        @param name: the name of the index
+        @type name: a string
+        @param indexType: the type of index
+        @type indexType: a string
+        """
 
         index = self._createIndex(indexType, **kwds)
 
@@ -591,10 +627,18 @@ class RefDict(LinkedMap):
             self.fillIndex(index)
             self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
 
-    def _createIndex(self, indexType, *args, **kwds):
+    def _createIndex(self, indexType, **kwds):
 
         if indexType == 'numeric':
-            return NumericIndex(*args, **kwds)
+            return NumericIndex(**kwds)
+
+        if indexType == 'attribute':
+            return AttributeIndex(self, self._createIndex('numeric', **kwds),
+                                  **kwds)
+
+        if indexType == 'compare':
+            return CompareIndex(self, self._createIndex('numeric', **kwds),
+                                **kwds)
 
         raise NotImplementedError, "indexType: %s" %(indexType)
 
@@ -983,7 +1027,7 @@ class RefDict(LinkedMap):
                                   alias=link._alias)
         if self._indexes:
             for name, index in self._indexes.iteritems():
-                attrs = { 'name': name }
+                attrs = { 'name': name, 'type': index.getIndexType() }
                 index._xmlValues(generator, version, attrs, mode)
 
     def copy(self):
