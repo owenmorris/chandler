@@ -3,6 +3,7 @@
 2003-07-14 capps@osafoundation.org
 
    * Fixes for Bug#789 (call Destroy or use wxMessageBox for dialogs)
+   * Re-entered fix for Bug#425
 
 2003-07-10 john@osafoundation.org
 
