@@ -1161,7 +1161,7 @@ def buildComplete(buildenv):
         raise HardHatError
 
 
-    # buildPrepareSource(buildenv, True)
+    buildPrepareSource(buildenv, True)
 
     if buildenv['skipBinaries']:
         if os.path.isdir(os.path.join(buildenv['workroot'],"release")) and \
