@@ -55,7 +55,13 @@ chandler-new -a \
     osaf/chandler/Chandler \
     osaf/chandler/egenix-mx \
     osaf/chandler/jabber-py \
-    osaf/chandler/persistence \
+    osaf/chandler/persistence/__hardhat__.py \
+    osaf/chandler/persistence/db \
+    osaf/chandler/persistence/dbxml \
+    osaf/chandler/persistence/libxml2 \
+    osaf/chandler/persistence/libxslt \
+    osaf/chandler/persistence/pathan \
+    osaf/chandler/persistence/xerces-c \
     osaf/chandler/pychecker \
     osaf/chandler/python \
     osaf/chandler/epydoc \
@@ -64,7 +70,8 @@ chandler-new -a \
     osaf/chandler/openssl \
     osaf/chandler/m2crypto \
     osaf/chandler/pyegads \
-    internal/ \
+    internal \
+    external \
     osaf/hardhat
 	
 0.3 osaf/chandler/Chandler/distrib/docs
