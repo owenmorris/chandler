@@ -169,11 +169,10 @@ def build(buildenv):
                                        info['name'],
                                        [buildenv['python'],
                                         'setup.py',
-                                        'build_ext', 
-                                        '--inplace',
-                                        'install',
                                         'FINAL=1',
-                                        'HYBRID=0'],
+                                        'BUILD_BASE=build_release',
+                                        'build', 
+                                        'install'],
                                        "Building wxPython")
 
             # _*.pyd also copies _*_d.pyd, which is unnecessary, however, the
@@ -190,12 +189,11 @@ def build(buildenv):
                                        info['name'],
                                        [buildenv['python_d'],
                                         'setup.py',
-                                        'build_ext', 
-                                        '--inplace',
-                                        '--debug',
-                                        'install',
                                         'FINAL=1',
-                                        'HYBRID=0'],
+                                        'BUILD_BASE=build_debug',
+                                        'build',
+                                        '--debug',
+                                        'install'],
                                        "Building wxPython")
 
             hardhatlib.copyFiles('wx', destination, ['_*_d.pyd'])
@@ -239,21 +237,21 @@ def clean(buildenv):
          0, "output.txt")
          
          
-        os.putenv('WXWIN', os.getcwd())
+        os.putenv('WXWIN', buildenv['root_dos'] + "\\..\\..\\internal\\wx\\wxPython-2.5")
 
         os.chdir("wxPython")
 
         if version == 'release':
 
             hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['python'], 'setup.py', 'clean', 
-             '--all'], "Cleaning wxPython")
+             [buildenv['python'], 'setup.py', 'BUILD_BASE=build_release',
+             'clean', '--all'], "Cleaning wxPython")
 
         elif version == 'debug':
 
             hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['python_d'], 'setup.py', 'clean', 
-             '--all'], "Cleaning wxPython")
+             [buildenv['python_d'], 'setup.py', 'BUILD_BASE=build_debug',
+             'clean', '--all'], "Cleaning wxPython")
 
 
 def run(buildenv):
