@@ -5,8 +5,14 @@
 
 from application.persist import Persist
 
-class RdfResource(object, Persist.Persistent):
-    def __init__(self):
-        pass
+import sys
 
+if sys.version[0:3] == '2.3':
+    class RdfResource(Persist.Persistent):
+	def __init__(self):
+	    pass
+else:
+    class RdfResource(object, Persist.Persistent):
+	def __init__(self):
+	    pass
     
