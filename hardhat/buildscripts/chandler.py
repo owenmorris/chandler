@@ -208,7 +208,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
 def dumpOutputList(outputList, fd = None):
     for line in outputList:
-        print "------"+ line,
+        print "   "+ line,
         if fd:
             fd.write(line)
     print
