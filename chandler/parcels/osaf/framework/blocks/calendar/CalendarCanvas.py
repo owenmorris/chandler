@@ -112,8 +112,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Convenience method for changing the selected date.
         """
-        event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged')
-        self.Post(event, {'start':self.rangeStart})
+        self.PostGlobalEvent ('SelectedDateChanged',{'start':self.rangeStart})
 
     # Managing the date range
 

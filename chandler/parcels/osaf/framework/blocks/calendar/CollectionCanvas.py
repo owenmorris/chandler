@@ -569,6 +569,5 @@ class CollectionBlock(Block.RectangularChild):
         """
         Convenience method for posting a selection changed event.
         """
-        event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged')
-        self.Post(event, {'item':self.selection})
+        self.PostGlobalEvent('SelectionChanged', {'item':self.selection})
 

@@ -1076,29 +1076,4 @@
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 
-  <!--
-    Node, used to store URL space in repository
-  -->
-  <Kind itsName="Node">
-    <classes key="python">osaf.framework.blocks.Node.Node</classes>
-    <superKinds itemref="Item"/>
-
-    <Attribute itsName="parent">
-      <type itemref="docSchema:Node"/>
-      <cardinality>single</cardinality>
-      <inverseAttribute itemref="docSchema:Node/children"/>
-    </Attribute>
-  
-    <Attribute itsName="children">
-      <type itemref="docSchema:Node"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Node/parent"/>
-    </Attribute>
-
-    <Attribute itsName="item">
-      <type itemref="docSchema:Block"/>
-      <cardinality>single</cardinality>
-    </Attribute>
-  </Kind>
-
 </Parcel>

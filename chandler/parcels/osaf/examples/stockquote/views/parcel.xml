@@ -113,11 +113,4 @@
     <methodName>OnGetQuoteEvent</methodName>
   </blocks:BlockEvent>
 
-  <!-- The node that is added to the side bar -->
-
-  <blocks:Node itsName="StockQuoteViewNode">
-    <displayName>Stock Quote</displayName>
-    <item itemref="views:StockQuoteView"/>
-  </blocks:Node>
-
 </Parcel>

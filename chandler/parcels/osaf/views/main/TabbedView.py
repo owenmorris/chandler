@@ -50,8 +50,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         newItem.render()
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':newItem})
+        self.PostGlobalEvent ('SelectionChanged', {'item':newItem})
 
     def onCloseEvent (self, notification):
         """
@@ -83,8 +82,8 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         self.parentBlock.widget.Freeze()        
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
+        self.PostGlobalEvent ('SelectionChanged',
+                              {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
 
     def onOpenEvent (self, notification):
         "Opens the chosen item in a new tab"
@@ -103,8 +102,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             item.widget.SetSize (self.widget.GetClientSize())
             self.synchronizeWidget()
             self.parentBlock.widget.Thaw()
-            self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                       {'item':item})
+            self.PostGlobalEvent ('SelectionChanged', {'item':item})
         
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (self.widget.GetPageCount() > 1)

@@ -104,22 +104,15 @@ class MainView(View):
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
-        # lookup our Request Select Events
-        rootPath = '//parcels/osaf/framework/blocks/Events/'
-        requestSelectSidebarItem = \
-          Globals.repository.findPath (rootPath + 'RequestSelectSidebarItem')
-        selectionChangedInsideActiveView = \
-          Globals.repository.findPath (rootPath + 'SelectionChangedInsideActiveView')
-
         # Tell the sidebar we want to go to the All or contacts box
         if newItem.isItemOf (Contacts.ContactsParcel.getContactKind ()):
             itemName = 'ContactsView'
         else:
             itemName = 'AllView'
-        self.Post(requestSelectSidebarItem, {'itemName':itemName})
+        self.PostGlobalEvent ('RequestSelectSidebarItem', {'itemName':itemName})
 
         # Tell the ActiveView to select our new item
-        self.Post (selectionChangedInsideActiveView, {'item':newItem})
+        self.PostGlobalEvent ('SelectionChangedInsideActiveView', {'item':newItem})
 
     def onNewEventUpdateUI (self, notification):
         notification.data ['Enable'] = True
@@ -366,16 +359,10 @@ class MainView(View):
             application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame, account=webdavAccount)
             return
 
-        # lookup the Request Select Event
-        selectionChangedInsideActiveView = \
-          Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChangedInsideActiveView')
-
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
 
-
-
-        self.Post (selectionChangedInsideActiveView, {'item':self.getSidebarSelectedCollection ()})
+        self.PostGlobalEvent ('SelectionChangedInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
     def onShareOrManageEventUpdateUI (self, notification):
         """
@@ -555,16 +542,10 @@ class MainView(View):
         @type showInDetailView: C{Item} or None.  False disables notifying the Detail View.
         """
 
-        rootPath = '//parcels/osaf/framework/blocks/Events/'
-        requestSelectSidebarItem = \
-          Globals.repository.findPath (rootPath + 'RequestSelectSidebarItem')
-        selectionChangedInsideActiveView = \
-          Globals.repository.findPath (rootPath + 'SelectionChangedInsideActiveView')
-
         # Tell the sidebar we want to select this view
-        self.Post(requestSelectSidebarItem, {'item':view})
+        self.PostGlobalEvent('RequestSelectSidebarItem', {'item':view})
 
         if showInDetailView is not False:
             # Tell the ActiveView to select the item (usually a collection)
             # It will pass the item on to the Detail View.
-            self.Post (selectionChangedInsideActiveView, {'item':showInDetailView})
+            self.PostGlobalEvent ('SelectionChangedInsideActiveView', {'item':showInDetailView})

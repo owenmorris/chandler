@@ -7,7 +7,6 @@ import application.Globals as Globals
 from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
-from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
 import wx
@@ -358,10 +357,10 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             selection = event.GetSelection()
             if self.selectedTab != selection:
-                self.selectedTab = event.GetSelection()
+                self.selectedTab = selection
                 page = self.GetPage(self.selectedTab)
                 Globals.mainView.onSetActiveView(page.blockItem)
-                self.blockItem.PostASelectionChangedEvent(page.blockItem)
+                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':page.blockItem})
         event.Skip()
         
     def OnRequestDrop(self, x, y):

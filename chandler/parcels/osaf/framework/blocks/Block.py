@@ -23,6 +23,11 @@ class Block(Item):
         args['sender'] = self
         event.Post (args)
 
+    def PostGlobalEvent (self, eventName, args):
+        self.Post (Globals.repository.findPath (
+                    '//parcels/osaf/framework/blocks/Events/' + eventName),
+                    args)
+
     subscribedBlocks = {}              # A dictionary mapping block UUIDS to event subscription clientIDs
 
     def render (self):
@@ -341,11 +346,6 @@ class wxRectangularChild (wx.Panel):
     
 
 class RectangularChild(ContainerChild):
-    def PostASelectionChangedEvent (self, item):
-        self.Post (Globals.repository.findPath (
-            '//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':item})
-
     def DisplayContextMenu(self, position, data):
         try:
             self.contextMenu

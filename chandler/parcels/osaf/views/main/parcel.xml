@@ -1359,15 +1359,15 @@
     <border>10.0, 10.0, 10.0, 10.0</border>
   </View>
 
-    <contentModel:Note itsName="WelcomeNote">
-        <displayName value="Welcome to Chandler 0.4"/>
-        <body value="Welcome to the Chandler 0.4 Release! &#x0a; &#x0a;This release is a milestone for us at OSAF. It marks a shift in focus from infrastructure and architecture to demonstrating key experimentally usable end-user features. In particular, we provide basic sharing, calendaring, and email functionality. &#x0a; &#x0a;To get started, be sure to set up your e-mail and WebDAV account settings under the File | Preferences | Accounts menu. For a self-guided demo of 0.4 with accompanying screenshots, point your browser to &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ZeroPointFourGuidedTour &#x0a; &#x0a;To find out more about this release, please visit &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ChandlerZeroPointFourReadme &#x0a; &#x0a;This release is not intended for day-to-day use. Please do not trust your data with this version. &#x0a; &#x0a;Thank you for downloading Chandler, &#x0a;The Chandler Team" />
-        <creator itemref="doc:OsafEmailAddress"/>
-    </contentModel:Note>
+  <contentModel:Note itsName="WelcomeNote">
+      <displayName value="Welcome to Chandler 0.4"/>
+      <body value="Welcome to the Chandler 0.4 Release! &#x0a; &#x0a;This release is a milestone for us at OSAF. It marks a shift in focus from infrastructure and architecture to demonstrating key experimentally usable end-user features. In particular, we provide basic sharing, calendaring, and email functionality. &#x0a; &#x0a;To get started, be sure to set up your e-mail and WebDAV account settings under the File | Preferences | Accounts menu. For a self-guided demo of 0.4 with accompanying screenshots, point your browser to &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ZeroPointFourGuidedTour &#x0a; &#x0a;To find out more about this release, please visit &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ChandlerZeroPointFourReadme &#x0a; &#x0a;This release is not intended for day-to-day use. Please do not trust your data with this version. &#x0a; &#x0a;Thank you for downloading Chandler, &#x0a;The Chandler Team" />
+      <creator itemref="doc:OsafEmailAddress"/>
+  </contentModel:Note>
 
-    <mail:EmailAddress itsName="OsafEmailAddress">
-        <fullName value="The OSAF Team"/>
-        <emailAddress value="dev@osafoundation.org"/>
-    </mail:EmailAddress>
+  <mail:EmailAddress itsName="OsafEmailAddress">
+      <fullName value="The OSAF Team"/>
+      <emailAddress value="dev@osafoundation.org"/>
+  </mail:EmailAddress>
 
 </core:Parcel>

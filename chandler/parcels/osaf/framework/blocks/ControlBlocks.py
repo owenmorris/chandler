@@ -110,8 +110,7 @@ class wxEditText(wx.TextCtrl):
             self.Show (self.blockItem.isShown)
 
     def OnEnterPressed(self, event):
-        self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
-                             {'text':self.GetValue()})
+        self.blockItem.PostGlobalEvent ('EnterPressed', {'text':self.GetValue()})
         event.Skip()
 
 class EditText(RectangularChild):
@@ -210,7 +209,7 @@ class HTML(RectangularChild):
 class ListDelegate (object):
     """
       Default delegate for Lists that use the block's contents. Override
-    to customize your behavior.
+    to customize your behavior. You must implement GetItemValue.
     """
     def GetColumnCount (self):
         return len (self.blockItem.columnHeadings)
@@ -337,7 +336,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.PostASelectionChangedEvent (item)
+            self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -545,7 +544,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.blockItem.PostASelectionChangedEvent (item)
+                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
         event.Skip()
 
     def OnSize(self, event):
@@ -649,7 +648,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.blockItem.selection = []
             self.blockItem.selectedItemToView = None
             self.ClearSelection()
-            self.blockItem.PostASelectionChangedEvent (item)
+        self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
 
     def DeleteSelection (self):
         self.blockItem.contents.beginUpdate()
@@ -674,7 +673,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.selectedItemToView = None
         Globals.repository.commit()
         self.blockItem.contents.endUpdate()
-        self.blockItem.PostASelectionChangedEvent (None)
+        self.blockItem.PostGlobalEvent("SelectionChanged", {'item':None})
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -801,7 +800,7 @@ class Table (RectangularChild):
 
     def onSelectionChangedEvent (self, notification):
         item = notification.data ['item']
-        if self.selectedItemToView != item:
+        if item != self.selectedItemToView:
             self.selectedItemToView = item
             row = -1
             if item is not None:
@@ -814,7 +813,7 @@ class Table (RectangularChild):
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
-            self.PostASelectionChangedEvent (item)
+            self.PostGlobalEvent("SelectionChanged", {'item':item})
 
     def onDeleteEvent (self, notification):
         self.widget.DeleteSelection()
@@ -1010,7 +1009,7 @@ class wxTreeAndList(DraggableWidget):
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.PostASelectionChangedEvent (selection)
+                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':selection})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -1141,7 +1140,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.PostASelectionChangedEvent (item)
+            self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection:
