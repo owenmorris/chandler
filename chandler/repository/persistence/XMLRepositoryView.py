@@ -34,7 +34,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         self._log = []
         self._notifications = RepositoryNotifications()
         self._indexWriter = None
-
+        
     def _logItem(self, item):
         
         if super(XMLRepositoryView, self)._logItem(item):
@@ -229,7 +229,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                 lock = store.releaseLock(lock)
                             else:
                                 break
-                    
+
                         count = len(self._log)
                         txnStarted = self._startTransaction()
 
@@ -257,12 +257,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
                 self._version = newVersion
                 
-                if len(self._notifications) > 0:
-                    histNotifications = RepositoryNotifications()
-                    for uuid, changes in self._notifications.iteritems():
-                        histNotifications[uuid] = changes[-1]
-                    histNotifications.dispatchHistory(self)
-
                 if self._log:
                     for item in self._log:
                         item._version = newVersion
@@ -275,9 +269,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         self.setDirty(0, None)
 
                 after = datetime.now()
+
                 if count > 0:
                     self.logger.info('%s committed %d items (%ld bytes) in %s',
                                      self, count, size, after - before)
+
+
+                if len(self._notifications) > 0:
+                    histNotifications = RepositoryNotifications()
+                    for uuid, changes in self._notifications.iteritems():
+                        histNotifications[uuid] = changes[-1]
+                    histNotifications.dispatchHistory(self)
 
             finally:
                 self._status &= ~RepositoryView.COMMITTING

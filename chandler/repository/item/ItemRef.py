@@ -104,7 +104,7 @@ class ItemRef(object):
     def detach(self, item, name, other, otherName):
 
         old = other.getAttributeValue(otherName, _attrDict=other._references)
-
+        
         if isinstance(old, RefDict):
             old._removeRef(item._uuid)
             old._item.setDirty(item.RDIRTY, otherName)
@@ -867,15 +867,15 @@ class RefDict(LinkedMap):
             for index in self._indexes.itervalues():
                 index.removeKey(key)
 
-        value = self._getRef(key)
-
         if _detach:
+            value = self._getRef(key)
             value.detach(self._item, self._name,
                          value.other(self._item), self._otherName)
 
+        link = super(RefDict, self).__delitem__(key)
         self._count -= 1
 
-        return super(RefDict, self).__delitem__(key)
+        return link
 
     def _load(self, key):
 
