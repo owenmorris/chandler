@@ -20,9 +20,9 @@ class TestPanel( wx.Panel ):
         # "no" to sort arrows for this list
         cntlID = 1001
         prompt = "ColumnHeader (%d)" %(cntlID)
-        l1 = wx.StaticText( self, -1, prompt, (20, 20), (200, 20) )
+        l1 = wx.StaticText( self, -1, prompt, (190, 20), (200, 20) )
 
-        ch1 = wx.colheader.ColumnHeader( self, cntlID, (20, 40), (350, colHeight), 0 )
+        ch1 = wx.colheader.ColumnHeader( self, cntlID, (190, 40), (350, colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
             ch1.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
@@ -34,10 +34,10 @@ class TestPanel( wx.Panel ):
         # "yes" to sort arrows for this list
         cntlID = 1002
         prompt = "ColumnHeader (%d)" %(cntlID)
-        l2 = wx.StaticText( self, -1, prompt, (80, 70), (200, 20) )
+        l2 = wx.StaticText( self, -1, prompt, (250, 70), (200, 20) )
 
         # FIXME: charset - conditionalize the high ASCII value
-        ch2 = wx.colheader.ColumnHeader( self, cntlID, (80, 90), (270, colHeight), 0 )
+        ch2 = wx.colheader.ColumnHeader( self, cntlID, (250, 90), (270, colHeight), 0 )
         coffeeNames = [ "Juan", "ValdŽz", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
             ch2.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Left + i, 90, 0, 1, 1 )
@@ -48,32 +48,51 @@ class TestPanel( wx.Panel ):
         #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # add demo UI controls
-        l0 = wx.StaticText( self, -1, "[result]", (10, 150), (150, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (10, 140), (150, 20) )
         self.l0 = l0
 
-        btn = wx.Button( self, -1, "Resize", (10, 200) )
+        btn = wx.Button( self, -1, "Delete Selected Item", (10, 35) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
+
+        btn = wx.Button( self, -1, "Add Bitmap Item", (10, 90) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
+
+        btn = wx.Button( self, -1, "Resize", (10, 210) )
         self.Bind( wx.EVT_BUTTON, self.OnTestResizeButton, btn )
         self.stepSize = 0
         self.stepDir = -1
 
-        cb1 = wx.CheckBox( self, -1, "Enable", (110, 200), (100, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableButton, cb1 )
+        cb1 = wx.CheckBox( self, -1, "Enable", (10, 250), (100, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
         cb1.SetValue( True )
 
-        cb2 = wx.CheckBox( self, -1, "Allow Selections", (210, 200), (150, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestAllowSelections, cb2 )
+        cb2 = wx.CheckBox( self, -1, "Visible Selection", (10, 275), (150, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
         cb2.SetValue( True )
-
-        btn = wx.Button( self, -1, "Add Bitmap Item", (10, 250) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
-
-        btn = wx.Button( self, -1, "Delete Selected Item", (175, 250) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
 
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "clicked (%d) - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
+
+    def OnTestDeleteItemButton( self, event ):
+        ch = self.ch1
+        itemIndex = ch.GetSelectedItem()
+        if (itemIndex >= 0):
+            ch.DeleteItem( itemIndex )
+            self.l0.SetLabel( "deleted item (%d) from (%d)" %(itemIndex, ch.GetId()) )
+        else:
+            self.l0.SetLabel( "header (%d): no item selected" %(ch.GetId()) )
+
+    def OnTestAddBitmapItemButton( self, event ):
+        ch = self.ch2
+        itemCount = ch.GetItemCount()
+        ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
+        testBmp = images.getTest2Bitmap()
+        ch.SetBitmapRef( itemCount, testBmp )
+        ch.SetSelectedItem( itemCount )
+        ch.ResizeToFit()
+        self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
 
     def OnTestResizeButton( self, event ):
         curWidth = self.ch1.GetTotalUIExtent()
@@ -86,38 +105,19 @@ class TestPanel( wx.Panel ):
         self.ch1.DoSetSize( 20, 40, curWidth + 40 * self.stepSize, 20, 0 )
         self.l0.SetLabel( "resized (%d)" %(self.ch1.GetId()) )
 
-    def OnTestEnableButton( self, event ):
+    def OnTestEnableCheckBox( self, event ):
         curEnabled = self.ch1.IsEnabled()
         curEnabled = not curEnabled
         self.ch1.Enable( curEnabled )
         self.ch2.Enable( curEnabled )
         self.l0.SetLabel( "enabled (%d)" %(curEnabled) )
 
-    def OnTestAllowSelections( self, event ):
+    def OnTestVisibleSelectionCheckBox( self, event ):
         curEnabled = self.ch1.GetFlagVisibleSelection()
         curEnabled = not curEnabled
         self.ch1.SetFlagVisibleSelection( curEnabled )
         self.ch2.SetFlagVisibleSelection( curEnabled )
         self.l0.SetLabel( "selection visible (%d)" %(curEnabled) )
-
-    def OnTestAddBitmapItemButton( self, event ):
-        ch = self.ch2
-        itemCount = ch.GetItemCount()
-        ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
-        testBmp = images.getTest2Bitmap()
-        ch.SetBitmapRef( itemCount, testBmp )
-        ch.SetSelectedItem( itemCount )
-        ch.ResizeToFit()
-        self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
-
-    def OnTestDeleteItemButton( self, event ):
-        ch = self.ch1
-        itemIndex = ch.GetSelectedItem()
-        if (itemIndex >= 0):
-            ch.DeleteItem( itemIndex )
-            self.l0.SetLabel( "deleted item (%d) from (%d)" %(itemIndex, ch.GetId()) )
-        else:
-            self.l0.SetLabel( "header (%d): no item selected" %(ch.GetId()) )
 
 #----------------------------------------------------------------------
 
