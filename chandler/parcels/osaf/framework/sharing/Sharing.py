@@ -478,7 +478,7 @@ class FileSystemConduit(ShareConduit):
             return None
         out = file(path, 'w')
         out.write(text)
-        out.close
+        out.close()
         stat = os.stat(path)
         return stat.st_mtime
 
