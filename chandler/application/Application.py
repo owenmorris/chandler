@@ -147,7 +147,7 @@ class wxApplication (wx.App):
         splash = wx.SplashScreen(splashBitmap, 
                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, 
                                 6000, None, -1, wx.DefaultPosition, wx.DefaultSize,
-                                wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR|wx.STAY_ON_TOP)
+                                wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
         splash.Show()
         """
           Setup internationalization
