@@ -41,22 +41,27 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         name = self._getUniqueName("Untitled")
         newItem = originalItem.copy(name, self)
         newItem.contents._ItemCollection__refresh() # @@@ Hack to work around Bug#1568
-
+        newItem.contents.displayName = name
+        
         self.widget.selectedTab = self.widget.GetPageCount()
         newItem.parentBlock = self
         newItem.render()
         self.synchronizeWidget()
+        self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                   {'item':newItem})
 
     def onCloseEvent (self, notification):
         "Close the current tab"
         selection = self.widget.GetSelection()
         page = self.widget.GetPage(selection)
-        if selection > (self.widget.GetPageCount() - 1):
+        if selection == (self.widget.GetPageCount() - 1):
             self.widget.selectedTab = selection - 1
         else:
             self.widget.selectedTab = selection
         page.blockItem.parentBlock = None
         self.synchronizeWidget()
+        self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                   {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
         
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (self.widget.GetPageCount() > 1)
@@ -65,10 +70,10 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         if not self.hasChild(name):
             return name
         number = 1
-        uniqueName = name + " " + str(number)
+        uniqueName = name + "-" + str(number)
         while self.hasChild(uniqueName):
             number += 1
-            uniqueName = name + " " + str(number)
+            uniqueName = name + "-" + str(number)
         return uniqueName
 
         

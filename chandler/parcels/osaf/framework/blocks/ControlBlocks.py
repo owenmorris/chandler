@@ -514,8 +514,8 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
     def GoToItem(self, item):
         try:
             row = self.blockItem.contents.index (item)
-        except LookupError:
-            pass
+        except ValueError:
+            self.ClearSelection()
         else:
             cursorColumn = 0
             try:
