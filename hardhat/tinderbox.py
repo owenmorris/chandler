@@ -17,36 +17,46 @@ buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
 stopFile = os.path.join(buildDir, "stop")
 fromAddr = "builds"
-defaultDomain = "osafoundation" + "." + "org"
+mailtoAddr = "buildreport"
+alertAddr = "buildman"
+adminAddr = "builds"
+defaultDomain = "@osafoundation.org"
+defaultRsyncServer = "192.168.101.46"      #  IP of current server
 
 def main():
-    global buildscriptFile
+    global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
-      default="buildreport", help="Where to mail script reports\n"
-      " [default] buildreport "
-      + "(at) osafoundation "
-      + "(dot) org")
+      default=mailtoAddr, help="Where to mail script reports\n"
+      " [default] " + mailtoAddr + defaultDomain)
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
-      default="chandler", help="Name of script to use (without .py extension)\n"
-      "[default] chandler")
+      default="newchandler", help="Name of script to use (without .py extension)\n"
+      "[default] newchandler")
     parser.add_option("-o", "--output", action="store", type="string", dest="outputDir",
       default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
-      default="buildman", help="E-mail to notify on build errors \n"
-      " [default] buildman "
-      + "(at) osafoundation "
-      + "(dot) org")
-      
+      default=alertAddr, help="E-mail to notify on build errors \n"
+      " [default] " + alertAddr + defaultDomain)
+    parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
+      default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
+      " [default] " + defaultRsyncServer)
+
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
         parser.error("You must at least provide a name for your build")
 
     buildName = args[0]
-    fromAddr += "@" + defaultDomain
+    fromAddr += defaultDomain
+    mailtoAddr = options.toAddr
+    alertAddr = options.alertAddr
+    if mailtoAddr.find('@') == -1:
+        mailtoAddr += defaultDomain
+    if alertAddr.find('@') == -1:
+        alertAddr += defaultDomain
+
     prevStartInt = 0
     curDir = os.path.abspath(os.getcwd())
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
@@ -194,23 +204,23 @@ def main():
         log.close()
         nowTime = str(int(time.time()))
 
-        SendMail(fromAddr, options.toAddr, startTime, buildName, status, treeName, 
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, 
          logContents)
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
     nowTime  = str(int(time.time()))
-    msg      = ("From: %s\r\nTo: %s\r\n\r\n" % (fromAddr, toAddr))
-    msg      = msg + "Subject: " + status + " from " + buildName + "\n"
-    msg      = msg + "tinderbox: tree: " + treeName + "\n"
-    msg      = msg + "tinderbox: buildname: " + buildName + "\n"
-    msg      = msg + "tinderbox: starttime: " + startTime + "\n"
-    msg      = msg + "tinderbox: timenow: " + nowTime + "\n"
-    msg      = msg + "tinderbox: errorparser: unix\n"
-    msg      = msg + "tinderbox: status: " + status + "\n"
-    msg      = msg + "tinderbox: administrator: builds" + "@" + defaultDomain + "\n"
-    msg      = msg + "tinderbox: END\n"
+    subject = "[tinderbox] " + status + " from " + buildName
+    msg  = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, toAddr, subject))
+    msg += "tinderbox: tree: " + treeName + "\n"
+    msg += "tinderbox: buildname: " + buildName + "\n"
+    msg += "tinderbox: starttime: " + startTime + "\n"
+    msg += "tinderbox: timenow: " + nowTime + "\n"
+    msg += "tinderbox: errorparser: unix\n"
+    msg += "tinderbox: status: " + status + "\n"
+    msg += "tinderbox: administrator: " + adminAddr + defaultDomain + "\n"
+    msg += "tinderbox: END\n"
     if logContents:
-        msg  = msg + logContents
+        msg += logContents
 
     try:
         server = smtplib.SMTP('mail.osafoundation.org')
@@ -235,20 +245,9 @@ def RotateDirectories(dir):
         if os.path.isdir(subdir):
             hardhatutil.rmdirRecursive(subdir)
 
-    # hack to delete archives still being created by __hardhat__.py
-    list2 = os.listdir(buildDir)
-    for fileName in list2:
-        fileName = os.path.join(buildDir, fileName)
-        if os.path.isdir(fileName):
-            continue
-        elif fileName.find('Chandler_') != -1:
-            os.remove(fileName)
-
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>Parcel Loading</a> for details on loading your own parcels)."],
-    'release' : ["Pre-built release directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'release' directory.  Download, unpack, and place the contained 'release' directory next to your 'Chandler' directory."],
-    'debug' : ["Pre-built debug directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'debug' directory.  Download, unpack, and place the contained 'debug' directory next to your 'Chandler' directory."],
 }
 
 def MD5sum(filename):
