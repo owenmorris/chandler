@@ -91,7 +91,8 @@ class PresencePanel(wxScrolledWindow):
         entryContainer = wxBoxSizer(wxHORIZONTAL)
         
         # add the disclosure triangle if necessary
-        if self.jabberClient.IsPresent(jabberID):
+        isPresent = self.jabberClient.IsPresent(jabberID)
+        if isPresent and self.jabberClient.IsChandlerClient(jabberID):
             if self.IsOpen(jabberID):
                 image = self.downTriangle
             else:
@@ -101,11 +102,13 @@ class PresencePanel(wxScrolledWindow):
             handler = OpenHandler(self, jabberID)
             EVT_LEFT_DOWN(triangleWidget, handler.ClickedTriangle)
             entryContainer.Add(triangleWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST, 2)
-            
+        else:
+            entryContainer.Add(12, -1)
+
+        if isPresent:
             image = self.presentBitmap
             textColor = wxBLACK
         else:
-            entryContainer.Add(12, -1)
             
             image = self.absentBitmap
             textColor = wxColor(31, 31, 31)
@@ -118,6 +121,10 @@ class PresencePanel(wxScrolledWindow):
         nameWidget = wxStaticText(self, -1, displayName)
         nameWidget.SetFont(self.nameFont)
         nameWidget.SetForegroundColour(textColor)
+        
+        url = 'Roster/' + displayName
+        handler = ClickedOnURLHandler(url)
+        EVT_LEFT_DOWN(nameWidget, handler.ClickedURL)
         
         entryContainer.Add(nameWidget, 0, wxEXPAND)
                 
@@ -153,9 +160,9 @@ class PresencePanel(wxScrolledWindow):
             EVT_LEFT_DOWN(textWidget, self.ShowPreferencesDialog)
             container.Add(textWidget, 0, wxEXPAND | wxALIGN_CENTRE | wxALL, 12)
         else:
-            buddyList = self.jabberClient.GetRosterIDs(true)
+            buddyList = self.jabberClient.GetRosterIDs(false)
         
-            for jabberID in buddyList:
+            for jabberID in buddyList: 
                 presenceEntry = self.RenderPresenceEntry(jabberID)                
                 container.Add(presenceEntry, 0, wxEXPAND)
                 if self.IsOpen(jabberID) and self.jabberClient.IsPresent(jabberID):
