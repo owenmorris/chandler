@@ -1,6 +1,6 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
-thisdoesntexist_onpurpose2()
+thisdoesntexist_onpurpose3()
 
 info = {
         'name':'Chandler',
