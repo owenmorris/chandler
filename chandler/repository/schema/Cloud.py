@@ -284,7 +284,7 @@ class Endpoint(Item):
 
         policy = self.includePolicy
         results = []
-        
+
         if policy == 'byValue':
             if not item._uuid in items:
                 items[item._uuid] = item
@@ -298,7 +298,7 @@ class Endpoint(Item):
             def getItems(cloud):
                 results.extend(cloud.getItems(item, items, references,
                                               cloudAlias))
-                               
+
             cloud = self.getAttributeValue('cloud', default=None,
                                            _attrDict=self._references)
             if cloud is not None:
@@ -317,7 +317,8 @@ class Endpoint(Item):
             method = self.getAttributeValue('method', default=None,
                                             _attrDict=self._values)
             if method is not None:
-                results.extend(getattr(type(item), method)(items, references,
+                results.extend(getattr(type(item), method)(item, items,
+                                                           references,
                                                            cloudAlias))
 
         else:

@@ -300,6 +300,18 @@ class RectangularChild(ContainerChild):
 
     
 class BlockEvent(Event):
-    pass
 
+    def includePolicyMethod(self, items, references, cloudAlias):
+        """ Method for handling an endpoint's byMethod includePolicy """
 
+        # Determine if we are a global event
+        globalEvents = Globals.repository.findPath("//parcels/osaf/framework/blocks/Events/GlobalEvents")
+        for event in globalEvents.subscribeAlwaysEvents:
+            if event is self:
+                # Yes, global: don't copy me
+                references[self.itsUUID] = self
+                return []
+
+        # No, not global: copy me
+        items[self.itsUUID] = self
+        return [self]

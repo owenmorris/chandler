@@ -344,16 +344,18 @@
             <cloudAlias value="default"/>
         </Endpoint>
         <endpoints ref="docSchema:Block/DefaultCloud/childrenBlocks"/>
-        <Endpoint itsName="subscribeWhenVisibleEvents">
-            <attribute value="subscribeWhenVisibleEvents"/>
-            <includePolicy value="byRef"/>
-        </Endpoint>
-        <endpoints ref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
         <Endpoint itsName="subscribeAlwaysEvents">
             <attribute value="subscribeAlwaysEvents"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byMethod"/>
+            <method value="includePolicyMethod"/>
         </Endpoint>
         <endpoints ref="docSchema:Block/DefaultCloud/subscribeAlwaysEvents"/>
+        <Endpoint itsName="subscribeWhenVisibleEvents">
+            <attribute value="subscribeWhenVisibleEvents"/>
+            <includePolicy value="byMethod"/>
+            <method value="includePolicyMethod"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
     </Cloud>
     <!-- Link this cloud with the Block kind -->
     <clouds alias="default" ref="docSchema:Block/DefaultCloud"/>
