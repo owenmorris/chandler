@@ -64,8 +64,9 @@
   </MenuItem>
 
   <!-- Calendar Tree -->
-  <Tree itemName="CalendarTree"
-            itemClass="OSAF.framework.blocks.Content.CalendarTree">
+  <Tree itemName="CalendarTree">
+    <elementDelegate>OSAF.views.content.Content.CalendarTreeDelegate</elementDelegate>
+
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -85,8 +86,9 @@
   </Tree>
 
   <!-- Contact Tree -->
-  <Tree itemName="ContactTree"
-            itemClass="OSAF.framework.blocks.Content.ContactTree">
+  <Tree itemName="ContactTree">
+    <elementDelegate>OSAF.views.content.Content.ContactTreeDelegate</elementDelegate>
+    
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -108,8 +110,9 @@
   </Tree>
 
   <!-- Note Tree -->
-  <Tree itemName="NoteTree"
-            itemClass="OSAF.framework.blocks.Content.NoteTree">
+  <Tree itemName="NoteTree">
+    <elementDelegate>OSAF.views.content.Content.NoteTreeDelegate</elementDelegate>
+            
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -127,8 +130,9 @@
   </Tree>
 
   <!-- Mixed Tree -->
-  <Tree itemName="MixedTree"
-            itemClass="OSAF.framework.blocks.Content.MixedTree">
+  <Tree itemName="MixedTree">
+    <elementDelegate>OSAF.views.content.Content.MixedTreeDelegate</elementDelegate>
+
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>

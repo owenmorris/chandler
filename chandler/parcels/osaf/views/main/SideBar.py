@@ -32,5 +32,5 @@ class SideBarDelegate:
             itemUUID = item.parent().getUUID()
         counterpart = Globals.repository.find (self.counterpartUUID)
         if counterpart.hasKey ('openedContainers', itemUUID):
-            self.scheduleUpdate = False
+            self.scheduleUpdate = True
 

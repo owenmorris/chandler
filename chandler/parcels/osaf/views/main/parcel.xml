@@ -72,6 +72,14 @@
     <helpString></helpString>
   </Menu>
 
+  <Menu itemName="TestMenu">
+    <title>Test</title>
+    <operation>InsertBefore</operation>
+    <menuLocation/>
+    <itemLocation/>
+    <helpString/>
+  </Menu>
+
   <!--
     Menu Items
   -->
@@ -419,6 +427,7 @@
     <childrenBlocks itemref="doc:ViewSidebarItem"/>
     <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
+    <childrenBlocks itemref="doc:TestMenu"/>
     
     <!-- Toolbar -->
     <childrenBlocks itemref="doc:NavigationBar"/>
