@@ -256,10 +256,23 @@ class ComboBox(RectangularChild):
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
-    
+
+class wxEditText(wxTextCtrl):
+    def __init__(self, *arguments, **keywords):
+        wxTextCtrl.__init__ (self, *arguments, **keywords)
+        EVT_TEXT_ENTER(self, self.GetId(), self.OnEnterPressed)
+
+    def OnEnterPressed(self, event):
+        arguments = {'text':self.GetValue(), 'type':'Normal'}
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/EnterPressed')
+        notification = Notification(event, None, None)
+        notification.SetData(arguments)
+        Globals.notificationManager.PostNotification (notification)
+
+            
 class EditText(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        style = 0
+        style = wxTE_PROCESS_ENTER
         if self.textAlignmentEnum == "Left":
             style |= wxTE_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -276,12 +289,12 @@ class EditText(RectangularChild):
         if self.readOnly:
             style |= wxTE_READONLY
 
-        editText = wxTextCtrl (parentWindow,
+        editText = wxEditText (parentWindow,
                                -1,
                                "",
                                wxDefaultPosition,
                                (self.minimumSize.width, self.minimumSize.height),
-                               style, name=self._name)
+                               style=style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
         self.getParentBlock(parentWindow).addToContainer(parent,
@@ -291,7 +304,7 @@ class EditText(RectangularChild):
                                                          self.Calculate_wxBorder())
         return editText, None, None
 
-
+    
 class HTML(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         htmlWindow = wxHtmlWindow(parentWindow,
@@ -433,7 +446,14 @@ class StaticText(RectangularChild):
                                                          self.Calculate_wxBorder())
         return staticText, None, None
 
-
+class StatusBar(RectangularChild):
+    def renderOneBlock (self, parent, parentWindow):
+        frame = Globals.wxApplication.mainFrame
+        assert (frame.GetStatusBar () == None)
+        frame.CreateStatusBar ()
+        
+        return None, None, None
+    
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         id = 0
@@ -742,5 +762,3 @@ class Sidebar(TreeList):
         notification = Notification(event, None, None)
         notification.SetData(arguments)
         Globals.notificationManager.PostNotification (notification)
-
-        

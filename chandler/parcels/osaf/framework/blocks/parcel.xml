@@ -265,15 +265,20 @@
     <methodName>OnPreferencesEvent</methodName>
   </docSchema:BlockEvent>
 
-  <docSchema:BlockEvent itemName="Right">
+  <BlockEvent itemName="ViewSidebar">
     <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnRightEvent</methodName>
-  </docSchema:BlockEvent>
+    <methodName>OnViewSidebarEvent</methodName>
+  </BlockEvent>
 
-  <docSchema:BlockEvent itemName="Left">
+  <BlockEvent itemName="ViewNavigationBar">
     <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnLeftEvent</methodName>
-  </docSchema:BlockEvent>
+    <methodName>OnViewNavigationBarEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="ViewStatusBar">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnViewStatusBarEvent</methodName>
+  </BlockEvent>
 
   <docSchema:BlockEvent itemName="SelectionChanged">
     <dispatchEnum>Broadcast</dispatchEnum>
@@ -722,6 +727,14 @@
     <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:StaticText/title"/>
     <attributes itemref="docSchema:characterStyle"/>
+  </Kind>
+
+  <!--
+    StatusBar
+  -->
+  <Kind itemName="StatusBar">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StatusBar</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>
 
   <!--

@@ -40,15 +40,6 @@
   <!--
     Events
   -->
-  <BlockEvent itemName="ShowRepositoryViewer">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:ParcelViewer"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="ShowDemo">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:ParcelViewer"/>
-  </BlockEvent>
 
   <!--
     Menus
@@ -69,6 +60,14 @@
     <helpString></helpString>
   </Menu>
     
+  <Menu itemName="ViewMenu">
+    <title>View</title>
+    <operation>InsertBefore</operation>
+    <menuLocation></menuLocation>
+    <itemLocation></itemLocation>
+    <helpString></helpString>
+  </Menu>
+
   <!--
     Menu Items
   -->
@@ -170,6 +169,39 @@
     <helpString></helpString>
   </MenuItem>
 
+  <MenuItem itemName="ViewSidebarItem">
+    <title>View Sidebar</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>ViewMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <event itemref="events:ViewSidebar"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="ViewNavigationBarItem">
+    <title>View Navigation Bar</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>ViewMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <event itemref="events:ViewNavigationBar"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="ViewStatusBarItem">
+    <title>View Status Bar</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>ViewMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <event itemref="events:ViewStatusBar"/>
+    <helpString></helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
@@ -224,6 +256,12 @@
     <toolbarItemKind>Text</toolbarItemKind>
     <statusMessage></statusMessage>
   </ToolbarItem>
+
+  <!--
+    Status Bar
+  -->
+  <StatusBar itemName="StatusBar">
+  </StatusBar>
 
   <!--
     Layout blocks
@@ -286,9 +324,10 @@
     <childrenBlocks itemref="doc:PasteItem"/>
     <childrenBlocks itemref="doc:EditSeparator2"/>
     <childrenBlocks itemref="doc:PreferencesItem"/>
-    
-    <blockEvents itemref="doc:ShowDemo"/>    
-    <blockEvents itemref="doc:ShowRepositoryViewer"/>
+    <childrenBlocks itemref="doc:ViewMenu"/>
+    <childrenBlocks itemref="doc:ViewSidebarItem"/>
+    <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
+    <childrenBlocks itemref="doc:ViewStatusBarItem"/>
     
     <!-- Toolbar -->
     <childrenBlocks itemref="doc:Toolbar"/>
@@ -297,6 +336,9 @@
     <childrenBlocks itemref="doc:ReloadButton"/>
     <childrenBlocks itemref="doc:Spacer"/>
     <childrenBlocks itemref="doc:URLBox"/>
+    
+    <!-- Status Bar -->
+    <childrenBlocks itemref="doc:StatusBar"/>
     
     <!-- Layout children -->
     <childrenBlocks itemref="doc:MainSplitter"/>

@@ -103,6 +103,17 @@
     <helpString></helpString>
   </MenuItem>
 
+  <MenuItem itemName="ControlsMenuItem">
+    <title>Controls Tab</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>DemoMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Radio</menuItemKind>
+    <accel></accel>
+    <event itemref="doc:ChooseControlsTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
   <MenuItem itemName="DataMenuItem">
     <title>Data Tab</title>
     <operation>InsertBefore</operation>
@@ -141,25 +152,7 @@
     <!-- Attributes -->
 
 
-
-
-
-
-  
-
-  <MenuItem itemName="LeftMenuItem">
-    <title>Left</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
-    <accel></accel>
-    <event itemref="events:Left"/>
-    <helpString></helpString>
-  </MenuItem>
-  
   <EditText itemName="LeftText">
-    <childrenBlocks itemref="doc:LeftMenuItem"/>
     <open>True</open>
 
     <size>100,20</size>
@@ -173,26 +166,7 @@
     <readOnly>False</readOnly>
     <characterStyle itemref="doc:TextStyle"/>
   </EditText>
-  
-  <Menu itemName="RightMenu">
-    <title>Right Menu</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>EditMenu</menuLocation>
-    <itemLocation>EditSeparator1</itemLocation>
-    <helpString></helpString>
-  </Menu>
-
-  <MenuItem itemName="RightMenuItem">
-    <title>Right</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>RightMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
-    <accel></accel>
-    <event itemref="events:Right"/>
-    <helpString></helpString>
-  </MenuItem>
-  
+    
   <CharacterStyle itemName="OneStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>12.0</fontSize>
@@ -279,9 +253,6 @@
   </BoxContainer>
   
   <EditText itemName="ButtonText">
-    <childrenBlocks itemref="doc:RightMenu"/>
-    <childrenBlocks itemref="doc:RightMenuItem"/>
-
     <open>True</open>
 
     <size>100,100</size>
@@ -538,7 +509,7 @@
   <TabbedContainer itemName="Tabs">
     <childrenBlocks itemref="doc:ButtonsTab"/>
     <childrenBlocks itemref="doc:ControlsTab"/>
-    <childrenBlocks itemref="doc:DataTab"/>
+    <!-- childrenBlocks itemref="doc:DataTab"/ -->
     <!-- childrenBlocks itemref="doc:EmbeddedTab"/ -->
 
     <tabPosEnum>Top</tabPosEnum>
@@ -559,15 +530,15 @@
     <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:DemoMenu"/>
     <childrenBlocks itemref="doc:ButtonsMenuItem"/>
-    <!-- childrenBlocks itemref="doc:ControlsMenuItem"/ -->
-    <childrenBlocks itemref="doc:DataMenuItem"/>
-    <childrenBlocks itemref="doc:EmbeddedMenuItem"/>
-    <childrenBlocks itemref="doc:DemoSeparatorItem"/>
+    <childrenBlocks itemref="doc:ControlsMenuItem"/>
+    <!-- childrenBlocks itemref="doc:DataMenuItem"/ -->
+    <!-- childrenBlocks itemref="doc:EmbeddedMenuItem"/ -->
+    <!-- childrenBlocks itemref="doc:DemoSeparatorItem"/ -->
     <!-- childrenBlocks itemref="doc:SwitchViewItem"/ -->
     
     <blockEvents itemref="doc:ChooseButtonsTab"/>
     <blockEvents itemref="doc:ChooseControlsTab"/>
-    <blockEvents itemref="doc:ChooseDataTab"/>
+    <!-- blockEvents itemref="doc:ChooseDataTab"/ -->
     <!-- blockEvents itemref="doc:SwitchEmbeddedChild"/ -->
     <!-- blockEvents itemref="doc:ChooseEmbeddedTab"/ -->
 

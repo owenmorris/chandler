@@ -23,9 +23,11 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:Copy"/>
     <blockEvents itemref="events:Paste"/>
     <blockEvents itemref="events:Preferences"/>
-    <blockEvents itemref="events:Right"/>
-    <blockEvents itemref="events:Left"/>
+    <blockEvents itemref="events:ViewSidebar"/>
+    <blockEvents itemref="events:ViewNavigationBar"/>
+    <blockEvents itemref="events:ViewStatusBar"/>    
     <blockEvents itemref="events:SelectionChanged"/>
+    <blockEvents itemref="events:EnterPressed"/>    
     <blockEvents itemref="events:GoToURI"/>
   </EventData>
 
@@ -64,19 +66,29 @@ of a limitation of the XML format, which will be eliminated</description>
     <methodName>OnPreferencesEvent</methodName>
   </BlockEvent>
 
-  <BlockEvent itemName="Right">
+  <BlockEvent itemName="ViewSidebar">
     <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnRightEvent</methodName>
+    <methodName>OnViewSidebarEvent</methodName>
   </BlockEvent>
 
-  <BlockEvent itemName="Left">
+  <BlockEvent itemName="ViewNavigationBar">
     <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnLeftEvent</methodName>
+    <methodName>OnViewNavigationBarEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="ViewStatusBar">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnViewStatusBarEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="SelectionChanged">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnSelectionChangedEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="EnterPressed">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnEnterPressedEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GoToURI">
