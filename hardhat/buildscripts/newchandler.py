@@ -114,7 +114,20 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
             if changes == "-changes":
                 doInstall(releaseMode, workingDir, log)
-                makeDistrib(hardhatScript, releaseMode, outputDir, buildVersionEscaped, log)
+                
+                #   Create end-user, developer distributions
+                print "Making distribution files for " + releaseMode
+                log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+                log.write("Making distribution files for " + releaseMode + "\n")
+                if releaseMode == "debug":
+                    distOption = "-dD"
+                else:
+                    distOption = "-D"
+                    
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [hardhatScript, "-o", outputDir, distOption, buildVersionEscaped])
+                hardhatutil.dumpOutputList(outputList, log)
+                
     
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
@@ -166,23 +179,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
 
     return "success"  # end of Do( )
 
-#   Create end-user, developer distributions
-def makeDistrib(hardhatScript, mode, outputDir, buildVersionEscaped, log):
-
-    print "Making distribution files for " + mode
-    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-    log.write("Making distribution files for " + mode + "\n")
-    if mode == "debug":
-        distOption = "-dD"
-    else:
-        distOption = "-D"
-        
-    outputList = hardhatutil.executeCommandReturnOutput(
-     [hardhatScript, "-o", outputDir, distOption, buildVersionEscaped])
-    hardhatutil.dumpOutputList(outputList, log)
-    
-    return
-
 def changesInCVS(moduleDir, workingDir, cvsVintage, log):
 
     changesAtAll = False
@@ -222,10 +218,8 @@ def doInstall(buildmode, workingDir, log):
 # we will update chandler from CVS, and grab new tarballs when they appear
     if buildmode == "debug":
         dbgStr = "DEBUG=1"
-        dashR = '-d'
     else:
         dbgStr = ""
-        dashR = '-r'
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
