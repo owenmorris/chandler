@@ -1,6 +1,20 @@
 --- PyLucene-0.8.2/Makefile	Tue Nov  2 11:08:16 2004
-+++ PyLucene-0.8.2-patched/Makefile	Thu Nov  4 09:28:19 2004
-@@ -109,47 +109,49 @@
++++ PyLucene-0.8.2-patched/Makefile	Sun Nov  7 11:43:36 2004
+@@ -97,59 +97,63 @@
+ BINDIR=debug
+ else
+ COMP_OPT=
+ SUFFIX=
+ _SUFFIX=
+ BINDIR=release
+ endif
+ 
++SWIG_OPT=-DSWIG_COBJECT_TYPES
++
+ JCCFLAGS=--encoding=UTF-8
+ #JCCFLAGS=--encoding=UTF-8 -findirect-dispatch
+ 
+ ifeq ($(OS),Darwin)
  PYTHON_SITE=$(PREFIX_PYTHON)/lib/python$(PYTHON_VER)/site-packages
  PYTHON_INC=$(PREFIX_PYTHON)/include/python$(PYTHON_VER)
  PYLUCENE_LIB=$(BINDIR)/_PyLucene.so
@@ -53,7 +67,7 @@
  endif
  endif
  endif
-@@ -219,17 +221,17 @@
+@@ -219,23 +223,23 @@
  
  ifeq ($(OS),Cygwin)
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
@@ -69,10 +83,35 @@
  STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
  OBJS:=$(BINDIR)/store.o $(BINDIR)/db_const.o $(BINDIR)/db.o $(OBJS)
  LIBS:=$(LIBDB_JAVA_LIB) $(LIBS)
- SWIG_OPT=-D_WITH_DB_DIRECTORY=1
+-SWIG_OPT=-D_WITH_DB_DIRECTORY=1
++SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
-@@ -532,16 +534,19 @@
+ 	$(JCC) $(JCCFLAGS) -C -d $(CLASSES) $(DB_CONST)
+ 	$(JCC) -fjni $(JCCFLAGS) $(CCFLAGS) -c -o $(BINDIR)/db_const.o $(DB_CONST)
+ 
+ $(BINDIR)/db.o: $(BINDIR)/db_const.o
+ 	$(JCC) $(JCCFLAGS) -C -d $(CLASSES) --classpath=$(CLASSES) $(DB_SRCS)
+ 	$(JCC) -fjni $(JCCFLAGS) $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
+@@ -263,17 +267,16 @@
+ 
+ $(BINDIR)/store.o: $(BINDIR)/db.o $(BINDIR)/lucene.o
+ 	$(JCC) -C -d $(CLASSES) --classpath=$(PYLUCENE_CP) $(STORE_SRCS)
+ 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/store.o --classpath=$(PYLUCENE_CP) $(STORE_SRCS)
+ 
+ else
+ 
+ DISTRIB=PyLucene-$(VERSION)
+-SWIG_OPT=
+ DB_INC=
+ 
+ endif
+ 
+ ifeq ($(OS),Cygwin)
+ _lucene=`cygpath -aw $(LUCENE)`
+ else
+ _lucene=$(LUCENE)
+@@ -532,16 +535,19 @@
  
  
  all: env sources $(BINDIR) $(LIBS)
@@ -92,7 +131,7 @@
  	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -549,22 +554,25 @@
+@@ -549,22 +555,25 @@
  	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
  else
  
