@@ -8,6 +8,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import repository.item.Query as Query
 import imap as imap
 import smtp as smtp
+import sharing as sharing
 import common as common
 import message as message
 import logging as logging
@@ -18,6 +19,9 @@ def downloadIMAPMail():
     for account in Query.KindQuery().run([accountKind]):
         imap.IMAPDownloader(account).getMail()
 
+
+def sendInvitation():
+    sharing.SMTPInvitationSender("http://test.com", ['brian@localhost', 'bkirsch@osafoundation.org']).sendInvitation()
 
 def sendSMTPMessage():
     accountKind = Mail.MailParcel.getSMTPAccountKind()

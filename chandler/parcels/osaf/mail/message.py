@@ -112,7 +112,7 @@ def createChandlerHeader(postfix):
     if not hasValue(postfix):
         return None
 
-    return common.CHANDLER_HEASER_PREFIX + postfix
+    return common.CHANDLER_HEADER_PREFIX + postfix
 
 def isChandlerHeader(header):
     if not hasValue(header):
@@ -251,6 +251,8 @@ def kindToMessageObject(mailMessage):
        __populateParam(messageObject, 'Message-ID', mailMessage.messageId)
     else:
         messageObject['Message-ID'] = createMessageID()
+
+    messageObject['User-Agent'] = common.CHANDLER_USERAGENT
 
     __populateParam(messageObject, 'Date', mailMessage.dateSentString)
     __populateParam(messageObject, 'Subject', mailMessage.subject)
