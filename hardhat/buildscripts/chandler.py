@@ -51,7 +51,7 @@ cvsModules = (
     'osaf/chandler/Chandler',
     'osaf/chandler/python',
     'osaf/chandler/egenix-mx',
-    'osaf/chandler/wxpython',
+    'internal/wx',
     'osaf/chandler/jabber-py',
     'osaf/chandler/pychecker',
     'osaf/chandler/persistence',
@@ -66,7 +66,7 @@ cvsModules = (
 scrubAllModules = {
     'osaf/chandler/python':1,
     'osaf/chandler/egenix-mx':1,
-    'osaf/chandler/wxpython':1,
+    'internal/wx':1,
     'osaf/chandler/jabber-py':1,
     'osaf/chandler/pychecker':1,
     'osaf/chandler/persistence':1,
