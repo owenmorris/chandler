@@ -24,6 +24,10 @@ def build(buildenv):
 	     info['name'], "Copying MSVCR70.DLL to release/bin")
 	    hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
 	     os.sep + "release" + os.sep + "bin")
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+	     info['name'], "Copying RunRelease.bat to release")
+	    hardhatlib.copyFile("RunRelease.bat", buildenv['root'] + \
+	     os.sep + "release")
 	if buildenv['version'] == 'debug':
 	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
 	     info['name'], "Copying MSVCR70.DLL to debug/bin")
@@ -33,6 +37,10 @@ def build(buildenv):
 	     info['name'], "Copying MSVCRTD.DLL to debug/bin")
 	    hardhatlib.copyFile("msvcrtd.dll", buildenv['root'] + \
 	     os.sep + "debug" + os.sep + "bin")
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+	     info['name'], "Copying RunDebug.bat to debug")
+	    hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
+	     os.sep + "debug")
 
 
 
