@@ -822,13 +822,12 @@ class MergeHandler(ItemHandler):
         self.dirties = dirties
 
     def itemEnd(self, itemHandler, attrs):
-
         pass
 
     def attributeEnd(self, itemHandler, attrs, **kwds):
 
         name = attrs['name']
-        if self.dirties is None or name in self.dirties:
+        if name in self.dirties:
             super(MergeHandler, self).attributeEnd(itemHandler, attrs, **kwds)
         else:
             Nil = self.origItem.Nil
@@ -864,7 +863,7 @@ class MergeHandler(ItemHandler):
                 raise TypeError, (self.data, typeName)
 
             name = attrs['name']
-            if self.dirties is None or name in self.dirties:
+            if name in self.dirties:
                 otherName = self.getOtherName(name, self.getAttribute(name),
                                               attrs)
                 origItem = self.origItem

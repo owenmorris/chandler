@@ -437,7 +437,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
                 if newDirty & oldDirty == 0:
                     if oldDirty & Item.VDIRTY:
-                        self._mergeVDIRTY(item, toVersion, None, mergeFn)
+                        self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
                         oldDirty &= ~Item.VDIRTY
                         item._status |= Item.VMERGED
                     if oldDirty & Item.RDIRTY:
@@ -493,25 +493,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
 
-        if dirties is not None:
-            dirties = HashTuple(dirties)
-            overlaps = []
-            values = item._values
-            references = item._references
-            overlaps.extend([name for name in values._getDirties()
-                             if name in dirties])
-            overlaps.extend([name for name in references._getDirties()
-                             if name in dirties and
-                             not references._isRefList(name)])
-            if overlaps:
-                self._e_2_overlap(item, overlaps[0])
+        dirties = HashTuple(dirties)
+        overlaps = []
+        values = item._values
+        references = item._references
+        overlaps.extend([name for name in values._getDirties()
+                         if name in dirties])
+        overlaps.extend([name for name in references._getDirties()
+                         if name in dirties and
+                         not references._isRefList(name)])
+        if overlaps:
+            self._e_2_overlap(item, overlaps[0])
 
         store = self.repository.store
         mergeHandler = MergeHandler(self, item, dirties)
         doc = store.loadItem(toVersion, item._uuid)
         store.parseDoc(doc, mergeHandler)
-        if mergeHandler.errorOccurred():
-            raise mergeHandler.saxError()
 
     def _i_merged(self, item):
 

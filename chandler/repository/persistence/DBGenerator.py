@@ -196,6 +196,11 @@ class ItemDoc(object):
         for uValue in self.values:
             value = self.store._values.loadValue(uValue)
             ctx.parseChunk(value, len(value), False)
+            if handler.errorOccurred():
+                raise handler.saxError()
 
         handler.endElement('item')
         ctx.parseChunk('</xml>', 6, True)
+
+        if handler.errorOccurred():
+            raise handler.saxError()
