@@ -67,7 +67,8 @@ class RefCollectionDictionary(object):
         @return: C{item} if found, or C{None} if not found.
         """
         try:
-            return self._index(key)[0]
+            i, coll = self._index(key)
+            return i
         except KeyError:
             return None
         
@@ -227,8 +228,11 @@ class DynamicContainer(RefCollectionDictionary):
                     bar = containers [locationName]
                     
                     if child.operation == 'InsertBefore':
-                        # Shouldn't have items with the same name
-                        assert not bar.has_key(child.itsName)
+                        # Shouldn't have items with the same name, unless they are the same
+                        if __debug__:
+                            if not child in bar:
+                                if bar.has_key(child.itsName):
+                                    logging.warning("%s already has a %s named %s" % (bar.itsName, child.itsKind, child.itsName))
                         i = bar.index(child.itemLocation)
                         bar.insert(i, child)
                     elif child.operation == 'Replace':
@@ -282,9 +286,11 @@ class wxMenuItem (wx.MenuItem):
         pass
     
     def CalculateWXStyle(cls, block):
+        parentWidget = block.dynamicParent.widget
         if block.menuItemKind == "Separator":
             id = wx.ID_SEPARATOR
             kind = wx.ITEM_SEPARATOR
+            style = (parentWidget, id, "", "", kind, None)
         else:
             """
               Menu items must have an event, otherwise they can't cause any action,
@@ -308,7 +314,6 @@ class wxMenuItem (wx.MenuItem):
               When inserting ourself into a MenuItem, we must actually
             insert ourself into the submenu of that MenuItem.
             """
-            parentWidget = block.dynamicParent.widget
             if isinstance (parentWidget, wxMenu):
                 style = (parentWidget, id, title, block.helpString, kind, None)
             else:
@@ -316,8 +321,7 @@ class wxMenuItem (wx.MenuItem):
                 submenu = block.GetSubMenu()
                 assert submenu
                 style = (None, id, title, block.helpString, kind, submenu)
-            return style
-        return (None, id, "", "", kind, None)
+        return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
     
     def setMenuItem (self, newItem, oldItem, index):
