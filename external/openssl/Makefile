@@ -64,9 +64,34 @@ openssl: ms/$(DOMASM)
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
-                   $(SNAP)/bin/ssleay32.dll \
-                   $(SNAP)/bin/libeay32.dll
+	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+			   $(SNAP)/bin/ssleay32.dll \
+			   $(SNAP)/bin/libeay32.dll
+
+endif
+
+ifeq($(OS),Darwin)
+
+openssl:   $(SRC)/$(BUILD)/Makefile
+	cd $(SRC)/$(BUILD); \
+	$(MAKE) -f Makefile.ssl; $(MAKE) -f Makefile.ssl install 
+
+$(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
+	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
+	cp -r crypto ssl apps certs tools util include $(BUILD)/;cd $(BUILD);\
+	perl ../Configure -shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
+
+snap: 
+	cd $(BUILD_ROOT); \
+	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+		   $(SNAP)/lib/libcrypto.0.9.7.dylib \
+		   $(SNAP)/lib/libcrypto.0.dylib \
+		   $(SNAP)/lib/libcrypto.a \
+		   $(SNAP)/lib/libcrypto.dylib \
+		   $(SNAP)/lib/libssl.0.9.7.dylib \
+		   $(SNAP)/lib/libssl.0.dylib \
+		   $(SNAP)/lib/libssl.a \
+		   $(SNAP)/lib/libssl.dylib
 
 else
 
@@ -82,16 +107,8 @@ $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 snap: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
-                   $(SNAP)/openssl.cnf \
-                   $(SNAP)/bin/c_rehash \
-                   $(SNAP)/bin/openssl \
-                   $(SNAP)/include/ \
-                   $(SNAP)/lib/libcrypto.a \
-                   $(SNAP)/lib/libssl.a  \
-                   $(SNAP)/lib/pkgconfig/openssl.pc \
-                   $(SNAP)/misc \
-                   $(SNAP)/private \
-                   $(SNAP)/certs
+		   $(SNAP)/lib/libcrypto.a \
+		   $(SNAP)/lib/libssl.a
 
 endif
 
