@@ -504,11 +504,16 @@ class Manager(Item):
 
         # parse the file and load the items
         parser.parse(parcelFile)
-
-        # get the item and make sure it has its namespace assigned
+        
+        # get the parcel item ...
         parcel = self.repo.findPath(repoPath)
-        parcel.namespace = namespace
-        parcel.file = parcelFile
+
+        # ... and, during the schema pass, make sure it
+        # has its namespace assigned
+        if self.schemaPhase:
+            parcel.namespace = namespace
+            parcel.file = parcelFile
+
         globalDepth = globalDepth - 1
         return parcel
 
@@ -567,18 +572,35 @@ class Manager(Item):
             self.log.info("Scanning parcels...")
             self.__scanParcels()
             self.log.info("...done")
+            
+            self.__parcelsWithData = []
 
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
 
             self.resetState()
             if namespaces:
-                self.log.info("Loading parcels...")
+                self.schemaPhase = True
+                self.log.info("Loading Schema items from parcels...")
                 for namespace in namespaces:
                     parcel = self.__loadParcel(namespace)
                     parcel.modifiedOn = DateTime.now()
                 self.log.info("...done")
+                
+            self.resetState()
+            namespaces = self.__parcelsWithData
+            # At this point (the non-schema item pass), we want to reload
+            # all parcels that contained data
+            self.__parcelsToReload[:] = namespaces
+            if (len(namespaces) > 0):
+                self.schemaPhase = False
+                self.log.info("Loading other items from parcels...")
+                for namespace in namespaces:
+                    parcel = self.__loadParcel(namespace)
+                self.log.info("...done")
 
+            self.__parcelsWithData = None
+            
             self.resetState()
             self.log.info("Starting parcels...")
             root = self.repo.findPath("//parcels")
@@ -593,6 +615,31 @@ class Manager(Item):
 
         #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.end("Load parcels")
+        
+    def handleKind(self, handler, kind):
+        """
+        Callback for ParcelItemManager to determine whether or not
+        to handle (i.e. add to repository, or update existing
+        repository instance) a given Kind while processing a
+        parcel.xml. Used to make sure only schema items get
+        added/updated during the first pass of parcel parsing,
+        and the rest handled during the second pass.
+        """
+        
+        isSchemaKind = (str(kind.itsPath[:2]) == "//Schema")
+        
+        result = (isSchemaKind == self.schemaPhase)
+
+        # If the handler has encountered a non-schema item,
+        # during the first pass, save off its namespace for
+        # the second pass in loadParcels().
+        if self.schemaPhase and \
+           not result and \
+           not handler.namespace in self.__parcelsWithData:
+            self.__parcelsWithData.append(handler.namespace)
+            
+        return result
+
 
     def resetState(self):
         self.currentXMLFile = None
@@ -748,7 +795,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # Save a list of items and attributes, wire them up later
         # to be able to handle forward references
-        self.delayedAssigments = []
+        self.delayedAssignments = []
 
         # For debugging, save a list of items we've generated for this file
         self.itemsCreated = []
@@ -764,7 +811,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # We've delayed loading the references until the end of the file.
         # Wire up attribute/reference pairs to the items.
-        for (item, attributes) in self.delayedAssigments:
+        for (item, attributes) in self.delayedAssignments:
             self.completeAssignments(item, attributes)
 
         # Here we can perform any additional item clean-up such as ensuring a
@@ -787,7 +834,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         self.saveState()
 
-        (uri, local, element, item, references, reloading) = self.tags[-1]
+        (uri, local, element,
+         item, handleItem, references, reloading) = self.tags[-1]
 
         if element == 'Attribute' or element == 'Dictionary':
             self.currentValue += content
@@ -812,7 +860,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         elif attrs.has_key((None, 'itsName')):
             nameString = attrs.getValue((None, 'itsName'))
         if nameString:
-            # If it has an item name, its an item
+            # If it has an item name, it's an item
             element = 'Item'
 
             if attrs.has_key((None, 'itemClass')):
@@ -835,18 +883,24 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 parent = self.parcelParent
 
-            self.currentAssigments = []
+            self.currentAssignments = []
 
+            self.handleCurrentItem = self.manager.handleKind(self, kind)
+            if parent is None:
+                self.currentItem = None
+            else:                
             # If the item already exists, we're reloading the item
-            self.currentItem = parent.getItemChild(nameString)
+                self.currentItem = parent.getItemChild(nameString)
 
-            if self.currentItem is not None:
-                self.reloadingCurrentItem = True
-            else:
-                self.reloadingCurrentItem = False
-                self.currentItem = self.createItem(kind, parent,
-                                                   nameString, classString)
-                self.itemsCreated.append(self.currentItem)
+                if self.currentItem is not None:
+                    self.reloadingCurrentItem = True
+                else:
+                    self.reloadingCurrentItem = False
+                    
+                    if self.handleCurrentItem:
+                        self.currentItem = self.createItem(kind, parent,
+                                                           nameString, classString)
+                        self.itemsCreated.append(self.currentItem)
 
         elif attrs.has_key((None, 'uuidOf')):
             # We need to get the UUID of the target item and assign it
@@ -933,7 +987,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # Add the tag to our context stack
         self.tags.append((uri, local, element,
-                          self.currentItem, self.currentAssigments,
+                          self.currentItem, self.handleCurrentItem,
+                          self.currentAssignments,
                           self.reloadingCurrentItem))
 
     def endElementNS(self, (uri, local), qname):
@@ -946,23 +1001,25 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         elementUri = uri
         elementLocal = local
 
-        (uri, local, element, currentItem, currentAssigments,
-         reloadingCurrentItem) = self.tags[-1]
+        (uri, local, element, currentItem, handleCurrentItem,
+         currentAssignments, reloadingCurrentItem) = self.tags[-1]
 
         # We have an item, add the collected attributes to the list
         if element == 'Item':
-            self.delayedAssigments.append((self.currentItem,
-                                           self.currentAssigments))
-
+            if self.currentItem is not None:
+                self.delayedAssignments.append((self.currentItem,
+                                               self.currentAssignments))
+    
             # Look at the tags stack for the parent item, and the
             # parent references
             if len(self.tags) >= 2:
                 self.currentItem = self.tags[-2][3]
-                self.currentAssigments = self.tags[-2][4]
-                self.reloadingCurrentItem = self.tags[-2][5]
+                self.handleCurrentItem = self.tags[-2][4]
+                self.currentAssignments = self.tags[-2][5]
+                self.reloadingCurrentItem = self.tags[-2][6]
 
-        else:
-            # This is an attribute assignment; Delay it's assignment
+        elif self.currentItem is not None:
+            # This is an attribute assignment; Delay its assignment
             # until we reach the end of the xml document
 
             # We are deprecating defaultValue:
@@ -981,7 +1038,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                "file"       : self.locator.getSystemId(),
                "line"       : self.locator.getLineNumber()
             }
-
+            
             if element == 'Reference':
                 (namespace, name) = self.getNamespaceName(self.currentValue)
                 assignment["assignType"] = self._DELAYED_REFERENCE
@@ -1008,7 +1065,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 assignment["key"] = self.currentKey
 
             # Store this assignment
-            self.currentAssigments.append(assignment)
+            self.currentAssignments.append(assignment)
 
         self.tags.pop()
 
@@ -1030,7 +1087,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         # for this file.
 
         uri = self.mapping[prefix]
-        if uri != self.namespace:
+        if uri != self.namespace and self.depCallback is not None:
             self.depCallback(uri)
 
         self.mapping[prefix] = None
@@ -1105,7 +1162,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # If the item doesn't yet exist, load the parcel it's supposed
         # to be in and try again
-        if item is None:
+        if item is None and self.depCallback is not None:
             self.depCallback(namespace)
             item = self.manager.lookup(namespace, name)
 
@@ -1683,6 +1740,9 @@ def __prepareRepo():
         bootstrapPack = os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'schema.pack')
         rep.loadPack(bootstrapPack)
+        chandlerPack = os.path.join(Globals.chandlerDirectory, 'repository',
+         'packs', 'chandler.pack')
+        rep.loadPack(chandlerPack)
     Globals.repository = rep
     return rep
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="kindanditem"
+             xmlns="http://osafoundation.org/parcels/core"
+             xmlns:kindanditem="http://testparcels.org/kindanditem" >
+
+  <namespace value="http://testparcels.org/kindanditem" />
+  <Kind itsName="KindOne">
+    <classes key="python">classes.super.Super.Super</classes>
+    <superKinds itemref="Item"/>
+    <displayName value="Kind One" />
+  </Kind>    
+
+  <kindanditem:KindOne itsName="FirstOfItsKind">
+    <displayName>First</displayName>
+  </kindanditem:KindOne>
+  
+</Parcel>
