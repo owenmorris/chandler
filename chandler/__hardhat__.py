@@ -7,7 +7,7 @@ info = {
        }
 
 dependencies = (
-                'python', 
+                'python',
                 'wxpython',
                 'distutils',
                 'egenix-mx',
@@ -16,14 +16,14 @@ dependencies = (
                )
 if sys.platform != 'darwin':
     dependencies = (
-		    'python', 
-		    'wxpython',
-		    'distutils',
-		    'egenix-mx',
-		    'zodb',
-		    'jabber-py',
-		    'net/rap',
-		   )
+                    'python',
+                    'wxpython',
+                    'distutils',
+                    'egenix-mx',
+                    'zodb',
+                    'jabber-py',
+                    'net/rap',
+                   )
 
 
 def build(buildenv):
@@ -31,45 +31,45 @@ def build(buildenv):
     os.chdir("distrib")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
-	if buildenv['os'] == 'posix':
-	    os.chdir("linux")
-	if buildenv['os'] == 'osx':
-	    os.chdir("osx")
-	if buildenv['version'] == 'release':
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying RunRelease to release")
-	    hardhatlib.copyFile("RunRelease", buildenv['root'] + \
-	     os.sep + "release")
-	if buildenv['version'] == 'debug':
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying RunDebug to debug")
-	    hardhatlib.copyFile("RunDebug", buildenv['root'] + \
-	     os.sep + "debug")
+        if buildenv['os'] == 'posix':
+            os.chdir("linux")
+        if buildenv['os'] == 'osx':
+            os.chdir("osx")
+        if buildenv['version'] == 'release':
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunRelease to release")
+            hardhatlib.copyFile("RunRelease", buildenv['root'] + \
+             os.sep + "release")
+        if buildenv['version'] == 'debug':
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunDebug to debug")
+            hardhatlib.copyFile("RunDebug", buildenv['root'] + \
+             os.sep + "debug")
 
     if buildenv['os'] == 'win':
-	os.chdir("win")
-	if buildenv['version'] == 'release':
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying MSVCR70.DLL to release/bin")
-	    hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
-	     os.sep + "release" + os.sep + "bin")
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying RunRelease.bat to release")
-	    hardhatlib.copyFile("RunRelease.bat", buildenv['root'] + \
-	     os.sep + "release")
-	if buildenv['version'] == 'debug':
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying MSVCR70D.DLL to debug/bin")
-	    hardhatlib.copyFile("msvcr70d.dll", buildenv['root'] + \
-	     os.sep + "debug" + os.sep + "bin")
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying MSVCRTD.DLL to debug/bin")
-	    hardhatlib.copyFile("msvcrtd.dll", buildenv['root'] + \
-	     os.sep + "debug" + os.sep + "bin")
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-	     info['name'], "Copying RunDebug.bat to debug")
-	    hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
-	     os.sep + "debug")
+        os.chdir("win")
+        if buildenv['version'] == 'release':
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying MSVCR70.DLL to release/bin")
+            hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
+             os.sep + "release" + os.sep + "bin")
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunRelease.bat to release")
+            hardhatlib.copyFile("RunRelease.bat", buildenv['root'] + \
+             os.sep + "release")
+        if buildenv['version'] == 'debug':
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying MSVCR70D.DLL to debug/bin")
+            hardhatlib.copyFile("msvcr70d.dll", buildenv['root'] + \
+             os.sep + "debug" + os.sep + "bin")
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying MSVCRTD.DLL to debug/bin")
+            hardhatlib.copyFile("msvcrtd.dll", buildenv['root'] + \
+             os.sep + "debug" + os.sep + "bin")
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunDebug.bat to debug")
+            hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
+             os.sep + "debug")
 
 
 
@@ -94,17 +94,17 @@ def removeRuntimeDir(buildenv):
     path = ""
 
     if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'debug' 
+        path = buildenv['root'] + os.sep + 'debug'
 
     if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'release' 
+        path = buildenv['root'] + os.sep + 'release'
 
 
     if path:
-	if os.access(path, os.F_OK):
-	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
-	     "Removing: " + path)
-	    hardhatlib.rmdir_recursive(path)
+        if os.access(path, os.F_OK):
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
+             "Removing: " + path)
+            hardhatlib.rmdir_recursive(path)
 
 def distribute(buildenv):
 
@@ -115,7 +115,7 @@ def distribute(buildenv):
         hardhatlib.rmdir_recursive(distDir)
 
     os.mkdir(distDir)
-    
+
     if buildenv['os'] == 'posix':
 
         if buildenv['version'] == 'release':
