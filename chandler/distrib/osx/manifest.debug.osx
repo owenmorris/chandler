@@ -43,7 +43,7 @@ src=debug/dbxml/lib
 libdbxml-1.2.dylib
 src=debug/lib
 libxerces-c.24.dylib
-libpathan.2.0.2.dylib
+libpathan.2.dylib
 
 # Grab gcj 3.4 runtime libs
 src=$(GCJ_HOME)/lib
