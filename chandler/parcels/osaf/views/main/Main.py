@@ -7,7 +7,7 @@ import application.Globals as Globals
 from osaf.framework.blocks.Views import View
 from datetime import timedelta
 from time import time
-import wx, os
+import wx, os, sys, traceback
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.mail.imap
@@ -321,9 +321,9 @@ class MainView(View):
                             ICalendar.ICalendarFormat, view=self.itsView)
             share.get()
             self.setStatusMessage ("Import completed")
-        except Exception, e:
-            self.itsView.getLogger().info("Failed importFile, "
-                                 "caught exception:\n " + print_error(e))
+        except:
+            trace = "".join(traceback.format_exception (*sys.exc_info()))
+            self.itsView.getLogger().info("Failed importFile:\n%s" % trace)
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
@@ -337,13 +337,12 @@ class MainView(View):
             events = KindQuery().run([eventKind])
             for event in events:
                 collection.add(event)
-                self.itsView.getLogger().info("event is %s" % str(event))
             share.contents = collection
             share.put()
             self.setStatusMessage("Export completed")
-        except Exception, e:
-            self.itsView.getLogger().info("Failed exportFile, "
-                                "caught exception:\n " + print_error(e))
+        except:
+            trace = "".join(traceback.format_exception (*sys.exc_info()))
+            self.itsView.getLogger().info("Failed exportFile:\n%s" % trace)
             self.setStatusMessage("Export failed")
 
     def onCommitRepositoryEvent(self, event):

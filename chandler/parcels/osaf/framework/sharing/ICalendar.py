@@ -10,6 +10,7 @@ import mx
 import dateutil.tz
 import datetime
 import itertools
+import repository.query.Query as Query
 
 logger = logging.getLogger('ICalendar')
 logger.setLevel(logging.INFO)
@@ -67,8 +68,12 @@ def itemsToVObject(view, items, cal=None):
             comp = cal.add('vtodo')
         else:
             taskorevent='EVENT'
-            comp = cal.add('vevent')            
-        comp.add('uid').value = unicode(item.itsUUID)
+            comp = cal.add('vevent')
+
+        if item.getAttributeValue('uid', default=None) is None:
+            item.uid = unicode(item.itsUUID)
+        comp.add('uid').value = item.uid
+
         try:
             comp.add('summary').value = item.displayName
         except AttributeError:
@@ -118,6 +123,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # 'contents':
 
         view = self.itsView
+        queryString='for i in "%s" where i.uid == $0' % self.__calendarEventPath
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
+        q = Query.Query(None, p, k, queryString)
+        
+        newItemParent = self.findPath("//userdata")
+        eventKind = self.itsView.findPath(self.__calendarEventPath)
+        taskKind  = self.itsView.findPath(self.__taskPath)
+        textKind  = self.itsView.findPath(self.__lobPath)
+        
         if item is None:
             item = ItemCollection.ItemCollection(view=view)
         elif isinstance(item, Sharing.Share):
@@ -128,15 +143,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         if not isinstance(item, ItemCollection.ItemCollection):
             print "Only a share or an item collection can be passed in"
             #@@@MOR Raise something
-
-        # @@@MOR Total hack
-        # this shouldn't be necessary anymore
-        #newtext = []
-        #for c in text:
-        #    if ord(c) > 127:
-        #        c = " "
-        #    newtext.append(c)
-        #text = "".join(newtext)
 
         input = StringIO.StringIO(text)
         calendar = vobject.readComponents(input, validate=True).next()
@@ -149,9 +155,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         countNew = 0
         countUpdated = 0
-        eventKind = self.itsView.findPath(self.__calendarEventPath)
-        taskKind  = self.itsView.findPath(self.__taskPath)
-        textKind  = self.itsView.findPath(self.__lobPath)
         
         eventlist = getattr(calendar, 'vevent', [])
         todolist  = getattr(calendar, 'vtodo', [])
@@ -167,12 +170,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 logger.debug("got VTODO")
                 pickKind = taskKind
             # See if we have a corresponding item already, or create one
-            uuid = UUID(event.uid[0].value[:36]) # @@@MOR, stripping "-RID"
-            # FIXME Why are we stripping to 36 characters?
-
-            # hack until recurrence set can be stored in Chandler with one UUID
-            # as it's modeled by iCalendar
-            uuidMatchItem = self.itsView.findUUID(uuid)
+            q.args["$0"] = ( event.uid[0].value, )
+            uidMatchItem = None #uidMatchItem -> the first item in q, or None
+            for uidMatchItem in q:
+                break
 
             # For now we'll expand recurrence sets, first find attributes that
             # will be constant across the recurrence set.
@@ -229,18 +230,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # needing to become multiple items with distinct UUIDs.  For the
                 # first item, use the right UUID (and the matching Item if it
                 # exists), for later items, create a new uuid.
-                if first and uuidMatchItem is not None:
+                if first and uidMatchItem is not None:
                     logger.debug("matched UUID")
-                    eventItem = uuidMatchItem
+                    eventItem = uidMatchItem
                     countUpdated += 1
                 else:
-                    if not first:
-                        uuid = UUID()
                     # @@@MOR This needs to use the new defaultParent framework
                     # to determine the parent
-                    parent = self.findPath("//userdata")
-                    eventItem = pickKind.instantiateItem(None, parent, uuid)
+                    eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
+                    eventItem.uid = event.uid[0].value 
                     
                 logger.debug("eventItem is %s" % str(eventItem))
                               
@@ -271,14 +270,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         return item
 
-    def exportProcess(self, item, depth=0):
-        # item is the whole collection or it may be a single event or task
-        if isinstance(item, ItemCollection.ItemCollection):
-            items = [item]
-        else:
-            items = item.contents
-        
-        cal = itemsToVObject(self.itsView, items)
+    def exportProcess(self, share, depth=0):
+        cal = itemsToVObject(self.itsView, share.contents)
+        try:
+            cal.add('x-wr-calname').value = share.contents.displayName
+        except:
+            pass
         return cal.serialize()
 
 
@@ -287,3 +284,10 @@ class CalDAVFormat(ICalendarFormat):
     
     def fileStyle(self):
         return self.STYLE_DIRECTORY
+
+    def exportProcess(self, item, depth=0):
+        """Item may be a Share or an individual Item, return None if Share."""
+        if isinstance(item, Sharing.Share):
+            return None
+        cal = itemsToVObject(self.itsView, [item])
+        return cal.serialize()

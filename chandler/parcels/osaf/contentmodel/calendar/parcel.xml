@@ -101,6 +101,12 @@
         <initialValue type="cal:CalendarEventMixin/transparency/TimeTransparencyEnum" value="confirmed" />
       </Attribute>
 
+    <Attribute itsName="uid">
+      <displayName>UID</displayName>
+      <issues>iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can set UID to a string representation of UUID, but we need to be able to import iCalendar events with arbitrary UIDs.</issues>
+      <type itemref="String"/>
+    </Attribute>
+
     <Attribute itsName="calendar">
       <displayName>Calendar</displayName>
       <issues>Is this used?</issues>
