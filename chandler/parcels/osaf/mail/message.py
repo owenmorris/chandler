@@ -13,7 +13,7 @@ import re as re
 import common as common
 import logging as logging
 
-__exp = re.compile("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z2-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}")
+__exp = "\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z2-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}"
 
 
 def isValidEmailAddress(emailAddress):
@@ -35,9 +35,8 @@ def isValidEmailAddress(emailAddress):
 
     #XXX: Test id the address is in the form John test <john@test.com and handle it>
     #emailAddress = Utils.parseaddr(emailAddress)[1]
-
     if len(emailAddress) > 3:
-        if __exp.match(emailAddress) is not None:
+        if re.match("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}", emailAddress) is not None:
             return True
 
     return False
