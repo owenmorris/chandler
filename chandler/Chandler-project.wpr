@@ -37,6 +37,7 @@ proj.file-list = [loc('Chandler.py'),
                   loc('application/tests/TestKindAndItem.py'),
                   loc('application/tests/TestLocalAttrs.py'),
                   loc('application/tests/TestParcelLoader.py'),
+                  loc('application/tests/TestParcelPerf.py'),
                   loc('application/tests/TestUuidOf.py'),
                   loc('application/tests/__init__.py'),
                   loc('application/tests/dependencyparcels/depA/parcel.xml'),
@@ -465,7 +466,6 @@ proj.file-list = [loc('Chandler.py'),
                   loc('tools/s.py'),
                   loc('tools/timing.py'),
                   loc('version.py'),
-                  loc('wingdbstub.py'),
-                  loc('application/tests/TestParcelPerf.py')]
+                  loc('wingdbstub.py')]
 proj.file-type = 'shared'
 proj.main-file = loc('Chandler.py')
