@@ -9,40 +9,45 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from InformationItem import InformationItem
 
 from RdfNamespace import dc
 from RdfNamespace import chandler
-from RdfNamespace import ical
-from RdfNamespace import foaf
+
+from mx.DateTime import *
+_DateTimeType = type(now())
 
 class TaskItem(InformationItem):
 
-    rdfs[chandler.calendarDate] = (mx.DateTime, 0)
-    rdfs[chandler.dueByDate] = (mx.DateTime, 1)
-    rdfs[chandler.isCompleted] = (str, 1)
-    rdfs[chandler.startTime] = (mx.DateTime, 1)
-    rdfs[chandler.endTime] = (mx.DateTime, 1)
-    rdfs[chandler.taskStatus] = (str, 1)
-    rdfs[chandler.reminder] = (Reminder, 0)
-    rdfs[chandler.recurrence] = (RecurrencePattern, 0)
-    rdfs[chandler.percentCompleted] = (int, 1)
-    rdfs[chandler.totalWork] = (int, 1)
-    rdfs[chandler.actualWork] = (int, 1)
+    rdfs = Persist.Dict()
 
-    calendarDates = property(getCalendarDates, setCalendarDates)
-    dueByDate = property(getDueByDates, setDueByDates)
-    isCompleted = property(getIsCompleted, setIsCompleted)
-    startTime = property(getStartTime, setStartTime)
-    endTime = property(getEndTime, setEndTime)
-    taskStatus = property(getTaskStatus, endTaskStatus)
-    reminders = property(getReminders, setReminders)
-    percentCompleted = property(getPercentCompleted, setPercentCompleted)
-    totalWork = property(getTotalWork, setTotalWork)
-    actualWork = property(getActualWork, setActualWork)
+    rdfs[chandler.calendarDate] = RdfRestriction(_DateTimeType, 0)
+    rdfs[chandler.dueByDate] = RdfRestriction(_DateTimeType, 1)
+    rdfs[chandler.isCompleted] = RdfRestriction(str, 1)
+    rdfs[chandler.startTime] = RdfRestriction(_DateTimeType, 1)
+    rdfs[chandler.endTime] = RdfRestriction(_DateTimeType, 1)
+    rdfs[chandler.taskStatus] = RdfRestriction(str, 1)
+    rdfs[chandler.reminder] = RdfRestriction(InformationItem, 0) #ReminderItem
+    rdfs[chandler.recurrence] = RdfRestriction(InformationItem, 0) #RecurrencePattern
+    rdfs[chandler.percentCompleted] = RdfRestriction(int, 1)
+    rdfs[chandler.totalWork] = RdfRestriction(int, 1)
+    rdfs[chandler.actualWork] = RdfRestriction(int, 1)
 
     def __init__(self):
         InformationItem.__init__(self)
+
+    # calendarDates = property(getCalendarDates, setCalendarDates)
+    # dueByDate = property(getDueByDates, setDueByDates)
+    # isCompleted = property(getIsCompleted, setIsCompleted)
+    # startTime = property(getStartTime, setStartTime)
+    # endTime = property(getEndTime, setEndTime)
+    # taskStatus = property(getTaskStatus, endTaskStatus)
+    # reminders = property(getReminders, setReminders)
+    # percentCompleted = property(getPercentCompleted, setPercentCompleted)
+    # totalWork = property(getTotalWork, setTotalWork)
+    # actualWork = property(getActualWork, setActualWork)
 
 
 

@@ -9,18 +9,19 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from InformationItem import InformationItem
 
 from RdfRestriction import RdfRestriction
 
 from RdfNamespace import dc
 from RdfNamespace import chandler
-#from RdfNamespace import foaf
 
 class EntityItem(InformationItem):
     """EntityItem"""
 
-    rdfs = {}
+    rdfs = Persist.Dict()
     
     rdfs[chandler.name] = RdfRestriction(InformationItem, 1) #Name
     rdfs[chandler.place] = RdfRestriction(InformationItem) #PlaceItem

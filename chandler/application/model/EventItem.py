@@ -9,6 +9,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from InformationItem import InformationItem
 from EntityItem import EntityItem
 
@@ -27,11 +29,10 @@ class EventItem(InformationItem):
     # Define the schema for EventItem
     # -----------------------------------
 
-    rdfs = {}
+    rdfs = Persist.Dict()
+    
     rdfs[chandler.startTime] = RdfRestriction(_DateTimeType, 1)
     rdfs[chandler.endTime] = RdfRestriction(_DateTimeType, 1)
-    #rdfs[chandler.duration] = RdfRestriction(_DateTimeDurationType, 1)
-    #rdfs[chandler.timezone] = RdfRestriction(str)
     rdfs[chandler.headline] = RdfRestriction(str, 1)
     rdfs[chandler.recurrence] = RdfRestriction(InformationItem) #RecurrencePattern
     rdfs[chandler.reminder] = RdfRestriction(InformationItem) #Reminder

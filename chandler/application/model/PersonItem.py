@@ -9,26 +9,18 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from EntityItem import EntityItem
 
 class PersonItem(EntityItem):
+
+    rdfs = Persist.Dict()
+
     def __init__(self):
         EntityItem.__init__(self)
 
-        # name fields are strings
-        self.firstName = None
-        self.lastName = None
-        self.abbreviation = None
 
-        # ???
-        self.address = None
-        self.phone = None
-    
-    def getFullName(self):
-        """Build a full name string based on other name fields"""
-        return "%s %s" % (self.firstName, self.lastName)
-    
-    fullName = property(getFullName)
 
 
     

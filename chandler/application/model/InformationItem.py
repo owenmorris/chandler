@@ -9,6 +9,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from Observable import Observable
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
@@ -30,7 +32,7 @@ class InformationItem(RdfObject, Observable):
 
     uri = chandler.InformationItem
 
-    rdfs = {}
+    rdfs = Persist.Dict()
     
     rdfs[dc.identifier] = RdfRestriction(str, 1)
     rdfs[dc.subject] = RdfRestriction(str, 1) # dcq.SubjectSchema

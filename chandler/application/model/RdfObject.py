@@ -9,6 +9,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+from application.persist import Persist
+
 from RdfResource import RdfResource
 
 class RdfObject(RdfResource):
@@ -48,7 +50,7 @@ class RdfObject(RdfResource):
     #   * Should the schema definition remain in the python code?
     #   * Where do we define properties?
 
-    rdfs = {}
+    rdfs = Persist.Dict()
 
     def __init__(self):
         RdfResource.__init__(self)
@@ -56,7 +58,7 @@ class RdfObject(RdfResource):
         # stores the rdf property/values for the object
         # each entry in the dictionary represents a triple
         # (self, key, value)
-        self.rdf = {}
+        self.rdf = Persist.Dict()
 
     def getRdfAttribute(self, uri, rdfs):
         restriction = rdfs[uri]
