@@ -166,7 +166,7 @@ $(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz:
 	cd $(BUILD_ROOT); \
 	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz
 	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz.md5
-	$(MD5CHECK) mingw-3.1.$(MINGW_VERSION).md5
+	$(MD5CHECK) mingw-3.1.$(MINGW_VERSION).tar.gz.md5
 
 endif
 
