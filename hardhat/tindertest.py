@@ -66,8 +66,9 @@ def main():
     curDir = os.path.abspath(os.getcwd())
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
 
-    if not os.path.exists(options.outputDir):
-        os.mkdir(options.outputDir)
+    outputDir = os.path.abspath(options.outputDir)
+    if not os.path.exists(outputDir):
+        os.mkdir(outputDir)
 
     if not os.path.exists(buildDir):
         os.mkdir(buildDir)
@@ -147,24 +148,24 @@ def main():
                 log.write("There were changes, and the tests were successful\n")
                 status = "success"
                 if options.doDistrib:
-                    newDir = os.path.join(options.outputDir, buildVersion)
+                    newDir = os.path.join(outputDir, buildVersion)
                     os.rename(os.path.join(buildDir, "output"), newDir)
                     log.write("Calling CreateIndex with " + newDir + "\n")
-                    if os.path.exists(options.outputDir+os.sep+"index.html"):
-                        os.remove(options.outputDir+os.sep+"index.html")
-                    if os.path.exists(options.outputDir+os.sep+"time.js"):
-                        os.remove(options.outputDir+os.sep+"time.js")
+                    if os.path.exists(outputDir+os.sep+"index.html"):
+                        os.remove(outputDir+os.sep+"index.html")
+                    if os.path.exists(outputDir+os.sep+"time.js"):
+                        os.remove(outputDir+os.sep+"time.js")
                     for x in ["enduser", "developer"]:
-                        if os.path.exists(options.outputDir+os.sep+x+".html"):
-                            os.remove(options.outputDir+os.sep+x+".html")
-                    RotateDirectories(options.outputDir)
-                    CreateIndex(options.outputDir, buildVersion, nowString, buildName)
+                        if os.path.exists(outputDir+os.sep+x+".html"):
+                            os.remove(outputDir+os.sep+x+".html")
+                    RotateDirectories(outputDir)
+                    CreateIndex(outputDir, buildVersion, nowString, buildName)
     
                     buildNameNoSpaces = buildName.replace(" ", "")
                     print "Rsyncing..."
                     outputList = hardhatutil.executeCommandReturnOutputRetry(
                      [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
-                     options.outputDir + os.sep, 
+                     outputDir + os.sep, 
                      "192.168.101.46:continuous-new/" + buildNameNoSpaces])
 
             elif ret == "build_failed":
