@@ -26,10 +26,10 @@ class StockQuoteView(BoxContainer):
         if not hasattr (self, "proxy"):
             self.proxy = WSDL.Proxy('http://services.xmethods.net/soap/urn:xmethods-delayed-quotes.wsdl')
         symbolText = Globals.repository.find('//parcels/OSAF/examples/stockquote/views/StockQuoteView/SymbolText')
-        wxSymbolText = Globals.association[symbolText.getUUID( )]
+        wxSymbolText = Globals.association[symbolText.itsUUID]
         symbol = wxSymbolText.GetValue()
         valueLabel = Globals.repository.find('//parcels/OSAF/examples/stockquote/views/StockQuoteView/ValueLabel')
-        wxValueLabel = Globals.association[valueLabel.getUUID( )]
+        wxValueLabel = Globals.association[valueLabel.itsUUID]
         wxValueLabel.Clear()#Allow user to notice change
         wxValueLabel.SetLabel('$' + str(self.proxy.getQuote( symbol )))
 

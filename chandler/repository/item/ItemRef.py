@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.item.Item
+import repository.item as ItemPackage
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
@@ -19,6 +19,10 @@ class ItemRef(object):
 
         super(ItemRef, self).__init__()
         self.attach(item, name, other, otherName, otherCard, otherPersist)
+
+    def _copy(self, item, name):
+
+        return ItemRef(item, name, self._other(item), item._otherName(name))
 
     def __repr__(self):
 
@@ -195,6 +199,9 @@ class _noneRef(ItemRef):
 
     def __repr__(self):
         return '<NoneRef>'
+
+    def _copy(self, item, name):
+        return self
 
     def attach(self, item, name, other, otherName,
                otherCard=None, otherPersist=None):
@@ -428,7 +435,16 @@ class Values(dict):
 
     def _copy(self, item):
 
-        return Values(item)
+        values = type(self)(item)
+        for name, value in self.iteritems():
+            if isinstance(value, ItemPackage.PersistentCollections.PersistentCollection):
+                value = value._copy(item, name, value._companion)
+            elif isinstance(value, ItemPackage.Item.ItemValue):
+                value = value._copy(item, name)
+
+            values[name] = value
+
+        return values
 
     def _getItem(self):
 
@@ -464,7 +480,13 @@ class References(Values):
 
     def _copy(self, item):
 
-        return References(item)
+        references = type(self)(item)
+        for name, value in self.iteritems():
+            copyPolicy = item.getAttributeAspect(name, 'copyPolicy')
+            if copyPolicy == 'copy':
+                references[name] = value._copy(item, name)
+                
+        return references
 
     def __setitem__(self, key, value, *args):
 
@@ -494,6 +516,17 @@ class RefDict(LinkedMap):
         self._aliases = None
         
         super(RefDict, self).__init__()
+
+    def _copy(self, item, name):
+
+        refDict = item._refDict(name)
+        for value in self:
+            refDict.append(value)
+
+        if self._aliases is not None:
+            refDict._aliases = self._aliases.copy()
+
+        return refDict
 
     def _makeLink(self, value):
 
@@ -527,7 +560,7 @@ class RefDict(LinkedMap):
 
     def __contains__(self, obj):
 
-        if isinstance(obj, repository.item.Item.Item):
+        if isinstance(obj, ItemPackage.Item.Item):
             return self.has_key(obj._refName(self._name))
 
         return self.has_key(obj)

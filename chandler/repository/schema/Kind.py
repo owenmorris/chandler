@@ -220,9 +220,9 @@ class Kind(Item):
 
         for name, value in self._initialValues.iteritems():
             if isinstance(value, PersistentCollection):
-                value = value._copy(item, name, value._companion, value)
+                value = value._copy(item, name, value._companion)
             elif isinstance(value, ItemValue):
-                raise NotImplementedError, 'ItemValue initialValue'
+                value = value._copy(item, name)
 
             values[name] = value
 

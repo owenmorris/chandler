@@ -2011,3 +2011,7 @@ class ItemValue(object):
             if self._item is not None:
                 self._item.setDirty(attribute=self._attribute,
                                     dirty=Item.VDIRTY)
+
+    def _copy(self, item, attribute):
+
+        raise NotImplementedError, 'ItemValue._copy is abstract'
