@@ -165,7 +165,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     mainModuleDir = os.path.join(modeDir, mainModule)
 
     if not changesAtAll:
-        return False
+        return "no_changes"
 
     if needToScrubAll:
         os.chdir(mainModuleDir)
@@ -204,13 +204,13 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     else:
         bigBLittleB = "b"
 
-    try:
+    try: # build
         if mode == "debug":
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building debug..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-d"+bigBLittleB+"gt", 
+             [hardhatScript, "-o", outputDir, "-d"+bigBLittleB+"g", 
              "-D", buildVersionEscaped])
 
         if mode == "release":
@@ -218,7 +218,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building release..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-r"+bigBLittleB+"gt", 
+             [hardhatScript, "-o", outputDir, "-r"+bigBLittleB+"g", 
              "-D", buildVersionEscaped])
 
     except Exception, e:
@@ -228,15 +228,45 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         log.write("Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        raise e
+        return "build_failed"
     else:
         log.write("Build successful" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Detailed Build :og:" + "\n")
+        log.write("Detailed Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
-    return True  # end of Do( )
+    try: # test
+        if mode == "debug":
+            print "Testing debug"
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Testing debug..." + "\n")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-dt"])
+
+        if mode == "release":
+            print "Testing release"
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Testing release..." + "\n")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-rt"])
+
+    except Exception, e:
+        print "a testing error"
+        log.write("***Error during tests***" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Tests log:" + "\n")
+        CopyLog(os.path.join(modeDir, logPath), log)
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        return "test_failed"
+    else:
+        log.write("Tests successful" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Detailed Tests log:" + "\n")
+        CopyLog(os.path.join(modeDir, logPath), log)
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+
+    return "success"  # end of Do( )
 
 
 

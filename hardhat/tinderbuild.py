@@ -111,7 +111,7 @@ def main():
             status = "build_failed"
 
         else:
-            if ret:
+            if ret == "succes":
                 print "There were changes, and the build was successful"
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
@@ -135,6 +135,17 @@ def main():
                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
                  outputDir + os.sep, 
                  "192.168.101.46:continuous/" + buildNameNoSpaces])
+
+            elif ret == "build_failed":
+                print "The build failed"
+                log.write("The build failed\n")
+                status = "build_failed"
+            
+            elif ret == "test_failed":
+                print "Unit tests failed"
+                log.write("Unit tests failed\n")
+                status = "test_failed"
+            
             else:
                 print "There were no changes"
                 log.write("There were no changes in CVS\n")
