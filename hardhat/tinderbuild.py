@@ -97,7 +97,7 @@ def main():
             status = "success"
             os.rename(os.path.join(buildDir, "output"), 
              os.path.join(outputDir, buildVersion))
-            RotateDirectories(outputdir)
+            RotateDirectories(outputDir)
         log.close()
 
         log = open(logFile, "r")
