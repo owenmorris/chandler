@@ -33,11 +33,9 @@ If you run into problems, please see <a href=http://wiki.osafoundation.org/twiki
 <h2>Compatibility Notes</h2>
 <ul>
 
-<li>Our Linux binaries are built on a RedHat 8 machine that
-has libc version 2.3.2.  To run these binaries, your machine
-will need libc 2.3.2.  To see what version of libc you have,
-run "ldd --version" on the command line.  If you are building
-Chandler yourself you will need gcc 3.3.x, as described in <a
+<li>Our Linux binaries are built on a Fedora Core 2 machine.  
+They are unlikely to run under any other configuration.
+To build Chandler yourself, see <a
 href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>Building
 Chandler</a>.
 <li>The OSX binaries have only been tested on Panther (10.3).
@@ -84,7 +82,7 @@ There are a few different types of Chandler distribution files that are availabl
 <a name=enduserlinux></a> &nbsp; <br>
 <h2>End-Users' Distribution: <i>Linux</i></h2>
 
-<p>Note: This binary is built for RedHat 8.0 or newer, with libc 2.3.2.  Other platforms may
+<p>Note: This binary is built for Fedora Core 2.  Other platforms may
 have to build from source.</p>
 
 Download <a href=Chandler_linux_XYZZY.tar.gz>Chandler_linux_XYZZY.tar.gz</a>
@@ -98,7 +96,7 @@ This will create a Chandler_linux_XYZZY subdirectory.  Cd into that directory:
 
 Run Chandler:
 
-<pre>   ./chandler</pre>
+<pre>   ./release/RunChandler</pre>
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
@@ -145,7 +143,7 @@ explorer, double-click on chandler.exe in the directory you extracted to.
 <a name=devbinlinux></a> &nbsp; <br>
 <h2>Developers' Distribution: <i>Linux</i></h2>
 
-<p>Note: This binary is built for RedHat 8.0 or newer, with libc 2.3.2.  Other platforms may
+<p>Note: This binary is built for Fedora Core 2.  Other platforms may
 have to build from source.</p>
 
 Download <a href=Chandler_linux_debug_XYZZY.tar.gz>Chandler_linux_debug_XYZZY.tar.gz</a> and save it to disk.  Change your shell's current directory to the location you saved the file and unpack the distribution via:
@@ -158,7 +156,7 @@ This will create a Chandler_linux_debug_XYZZY subdirectory.  Cd into that direct
 
 Run Chandler:
 
-<pre>   ./chandler</pre>
+<pre>   ./debug/RunChandler</pre>
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
