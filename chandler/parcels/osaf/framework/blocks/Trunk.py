@@ -67,6 +67,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 assert newView.eventBoundary
                 newView.postEventByName("SetContents", {'item':detailItem})
                 newView.render()
+        elif not newView is None:
+            newView.postEventByName("SetContents", {'item':detailItem})
+            newView.synchronizeWidget()
 
 
 # @@@BJS: "reload parcels" needs to blow away this cache!

@@ -1480,7 +1480,7 @@ class AEBlock(RectangularChild):
             item = self.contents
         except AttributeError:
             try:
-                item = self.parentBlock.detailRoot().selectedItem() # @@@DLD fix Detail-View specific code
+                item = self.detailRoot().selectedItem() # @@@DLD fix Detail-View specific code
             except AttributeError:
                 item = None
         return item
