@@ -17,11 +17,19 @@
   <version>0.2</version>
 
 <!-- Attributes used in Actions -->
+  <Enumeration itemName="ActionTypeEnum">
+    <values>none</values>
+    <values>script</values>
+    <values>expression</values>
+    <values>inline</values>
+    <values>classmethod</values>
+  </Enumeration>
 
   <Attribute itemName="actionType">
     <displayName>Action Type</displayName>
-    <type itemref="String"/>
+    <type itemref="agents:ActionTypeEnum"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>none</defaultValue> -->
   </Attribute>
   
   <Attribute itemName="actionScript">
@@ -46,18 +54,21 @@
     <displayName>Asynchronous Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>False</defaultValue> -->
   </Attribute>
 
   <Attribute itemName="wxThreadFlag">
     <displayName>Asynchronous Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>False</defaultValue> -->
   </Attribute>
     
   <Attribute itemName="confirmFlag">
     <displayName>Request Confirmation Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>False</defaultValue> -->
   </Attribute>
 
   <Attribute itemName="actionPermissionRequest">
@@ -103,20 +114,38 @@
     <classes key="python">application.agents.model.DialogAction.DialogAction</classes>
   </Kind>
 
-  <!-- Attributes used in Condition, which is a sub-class of action -->
+  <!-- Attributes used in Condition -->
+
+  <!-- what is this really used for? -->
+  <Enumeration itemName="ConditionTypeEnum">
+    <values>none</values>
+    <values>notification</values>
+    <values>timed</values>
+  </Enumeration>
+
   <Attribute itemName="conditionType">
     <displayName>Condition Type</displayName>
-    <type itemref="String"/>
+    <type itemref="agents:ConditionTypeEnum"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>none</defaultValue> -->
   </Attribute>
-   
-  <!-- the following should be an enum, but for now it's a string-->
+
+  <Enumeration itemName="ConditionFilterModeEnum">
+    <values>none</values>
+    <values>listequals</values>
+    <values>equals</values>
+    <values>notequals</values>
+    <values>contains</values>
+    <values>matches</values>
+  </Enumeration>
+
   <Attribute itemName="conditionFilterMode">
     <displayName>Filter comparison mode</displayName>
-    <type itemref="String"/>
+    <type itemref="agents:ConditionFilterModeEnum"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>none</defaultValue> -->
   </Attribute>
- 
+
   <Attribute itemName="conditionValue">
     <displayName>Value for filtering</displayName>
     <type itemref="String"/>
@@ -125,8 +154,7 @@
   
   <Attribute itemName="conditionAttribute">
     <displayName>Attribute of data to compare with</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
+    <type itemref="String"/>    <cardinality>single</cardinality>
   </Attribute>
   
   <Attribute itemName="conditionNotification">
@@ -136,7 +164,7 @@
   </Attribute>
   
   <Attribute itemName="conditionOwner">
-    <displayName>Instruction Backlink</displayName>
+    <displayName>Condition Owner</displayName>
     <type itemref="agents:Instruction"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:condition"/>
@@ -163,12 +191,55 @@
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
+
+  <!-- Attributes used in Schedule -->
+  <Attribute itemName="startTime">
+    <displayName>Start Time</displayName>
+    <type itemref="DateTime"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="repeatFlag">
+    <displayName>Repeat Flag</displayName>
+    <type itemref="Boolean"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="repeatDelay">
+    <displayName>Repeat Delay</displayName>
+    <type itemref="DateTimeDelta"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="scheduleOwner">
+    <displayName>Schedule Owner</displayName>
+    <type itemref="agents:Instruction"/>
+    <cardinality>single</cardinality>
+    <inverseAttribute itemref="agents:schedule"/>
+  </Attribute>
+
+  <Kind itemName="Schedule">
+    <displayName>Timed Condition</displayName>
+    <attributes itemref="agents:startTime"/>
+    <attributes itemref="agents:repeatFlag"/>
+    <attributes itemref="agents:repeatDelay"/>
+    <attributes itemref="agents:scheduleOwner"/>
+    <superKinds itemref="Item"/>
+  </Kind>
   
   <!-- Attributes used in Instruction -->
   <Attribute itemName="enabled">
     <displayName>Enabled Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
+    <!-- <defaultValue>True</defaultValue> -->
+  </Attribute>
+
+  <Attribute itemName="schedule">
+    <displayName>Instruction Schedule</displayName>
+    <type itemref="agents:Schedule"/>
+    <cardinality>single</cardinality>
+    <inverseAttribute itemref="agents:scheduleOwner"/>
   </Attribute>
   
   <Attribute itemName="condition">
@@ -179,7 +250,7 @@
   </Attribute>
   
   <Attribute itemName="actions">
-    <displayName>Instruction Conditions</displayName>
+    <displayName>Instruction Actions</displayName>
     <type itemref="agents:Action"/>
     <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:actionOwner"/>
@@ -191,14 +262,22 @@
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:instructions"/>
   </Attribute>
+
+  <Attribute itemName="timers">
+    <displayName>Timers</displayName>
+    <type itemref="UUID"/>
+    <cardinality>dict</cardinality>
+  </Attribute>  
   
   <!-- Instruction Item Definition -->
   <Kind itemName="Instruction">
     <displayName>Instruction</displayName>
     <attributes itemref="agents:enabled"/>
+    <attributes itemref="agents:schedule"/>
     <attributes itemref="agents:condition"/>
     <attributes itemref="agents:actions"/>
     <attributes itemref="agents:instructionOwner"/>
+    <attributes itemref="agents:timers"/>
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Instruction.Instruction</classes>
   </Kind>
