@@ -47,7 +47,7 @@
 				<xsl:attribute  name = "href" >
       <xsl:call-template name="createRelativePath">
          <xsl:with-param name="src" select="/core:Parcel/@describes" />
-         <xsl:with-param name="target" select="'//'"/>
+         <xsl:with-param name="target" select="'///'"/>
       </xsl:call-template>
 				</xsl:attribute>
 				Back to the main index
