@@ -16,6 +16,7 @@ TIMEOUT_ERROR = __offset + 8
 SSL_ERROR = __offset + 9
 CONNECTION_REFUSED_ERROR = __offset + 10
 UNKNOWN_ERROR = __offset + 11
+MISSING_VALUE_ERROR = __offset + 12
 
 ERROR_LOOKUP = \
 { 
@@ -28,6 +29,7 @@ ERROR_LOOKUP = \
     TIMEOUT_ERROR: "Connection Timeout Error",
     SSL_ERROR: "SSL Error",
     CONNECTION_REFUSED_ERROR: "Connection Refused Error",
-    UNKNOWN_ERROR: "Unknown Error"
+    UNKNOWN_ERROR: "Unknown Error",
+    MISSING_VALUE_ERROR: "Missing Value Error"
 }
 
