@@ -89,7 +89,7 @@ class wxChoiceContainer(wxBoxContainer):
                     if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
                         return index
                     index += 1
-        assert true, "There should always be something selected"
+        assert True, "There should always be something selected"
         return 0
             
 
