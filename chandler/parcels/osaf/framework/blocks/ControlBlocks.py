@@ -456,9 +456,14 @@ def TreeFactory(parent):
                           Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
                 counterpart = Globals.repository.find (self.counterpartUUID)
                 self.subscriptionUUID = UUID()
-                Globals.notificationManager.Subscribe (events,
-                                                       self.subscriptionUUID,
-                                                       counterpart.NeedsUpdate)
+                """
+                  Temporarily comment out event subscriptions. This cause gazillions of
+                crashes, which may be related to threads, race conditions, repository
+                interactions. We'll need some more time to track this down in detail.
+                """
+                #Globals.notificationManager.Subscribe (events,
+                                                       #self.subscriptionUUID,
+                                                       #self.NeedsUpdate)
             self.scheduleUpdate = False
             self.lastUpdateTime = time.time()
 

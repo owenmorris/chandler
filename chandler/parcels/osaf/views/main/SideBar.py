@@ -26,11 +26,11 @@ class SideBarDelegate:
         their parents are modified. However, when they are changed we need
         to get their parent.
         """
-        itemUUID = Globals.repository.find (notification.data['uuid'])
-        if notification.getItemName() == "item_changed":
+        itemUUID = notification.data['uuid']
+        if notification.event.getItemName() == "item_changed":
             item = Globals.repository.find (itemUUID)
-            itemUUID = item.parent().getUUID()
+            itemUUID = item.getItemParent().getUUID()
         counterpart = Globals.repository.find (self.counterpartUUID)
-        if counterpart.hasKey ('openedContainers', itemUUID):
+        if counterpart.openedContainers.has_key (itemUUID):
             self.scheduleUpdate = True
 

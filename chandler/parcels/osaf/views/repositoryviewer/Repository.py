@@ -60,7 +60,7 @@ class RepositoryDelegate:
             item = Globals.repository.find (notification.data['uuid'])
             parentUUID = item.getItemParent().getUUID()
         counterpart = Globals.repository.find (self.counterpartUUID)
-        if self.hasKey ('openedContainers', parentUUID):
+        if counterpart.openedContainers.has_key (parentUUID):
             self.scheduleUpdate = True
 
 class RepositoryItemDetail(ControlBlocks.ItemDetail):

@@ -3,6 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import logging
 import application.Globals as Globals
 from Block import *
 from ContainerBlocks import *
@@ -13,7 +14,7 @@ from wxPython.html import *
 import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 
 class View(BoxContainer):
-
+    inDispatchEvent = False
     def dispatchEvent (self, notification):
         
         def callMethod (block, methodName, notification):
@@ -24,9 +25,13 @@ class View(BoxContainer):
                 member = getattr (block, methodName)                
             except AttributeError:
                 return False
-            else:
+      
+            View.inDispatchEvent = True
+            try:
                 member (notification)
-                return True                
+            finally:
+                View.inDispatchEvent = False
+            return True
         
         def broadcast (block, methodName, notification):
             """
@@ -40,36 +45,46 @@ class View(BoxContainer):
 
         event = notification.event
         """
-          Find the block with the focus
+          There are a number of situations where either recursive, unnecessary,
+        or incorrect extra events are posted as a side effect of handling an
+        event. We're in the process of coming up with a new model that deals
+        with these properly. However, until that work is finished, we'll ignore
+        recursive postings of events which is a good temporary approximate solution.
         """
-        block = self.getFocusBlock()
-        """
-          Construct method name based upon the type of the event.
-        """
-        methodName = event.methodName
-
-        try:
-            updateUI = notification.data['UpdateUI']
-        except KeyError:
-            pass
+        if View.inDispatchEvent:
+            logging.warn('ignoring recursive event %s', event)
         else:
-            methodName += 'UpdateUI'
-
-        if event.dispatchEnum == 'SendToBlock':
-            callMethod (event.dispatchToBlock, methodName, notification)
-        elif event.dispatchEnum == 'Broadcast':
-            while (not block.eventBoundary and block.parentBlock):
-                block = block.parentBlock
-                
-            broadcast (block, methodName, notification)
-        elif event.dispatchEnum == 'BubbleUp':
-            while (block):
-                if callMethod (block, methodName, notification):
-                    break
-                block = block.parentBlock
-        elif __debug__:
-            assert (False)
-
+            """
+              Find the block with the focus
+            """
+            block = self.getFocusBlock()
+            """
+              Construct method name based upon the type of the event.
+            """
+            methodName = event.methodName
+    
+            try:
+                updateUI = notification.data['UpdateUI']
+            except KeyError:
+                pass
+            else:
+                methodName += 'UpdateUI'
+    
+            if event.dispatchEnum == 'SendToBlock':
+                callMethod (event.dispatchToBlock, methodName, notification)
+            elif event.dispatchEnum == 'Broadcast':
+                while (not block.eventBoundary and block.parentBlock):
+                    block = block.parentBlock
+                    
+                broadcast (block, methodName, notification)
+            elif event.dispatchEnum == 'BubbleUp':
+                while (block):
+                    if callMethod (block, methodName, notification):
+                        break
+                    block = block.parentBlock
+            elif __debug__:
+                assert (False)
+    
 
     def getFocusBlock (self):
         focusWindow = wxWindow_FindFocus()
