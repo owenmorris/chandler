@@ -50,13 +50,13 @@ class Type(Item):
     def __init__(self, name, parent, kind):
 
         super(Type, self).__init__(name, parent, kind)
-        self._status |= Item.SCHEMA
+        self._status |= Item.SCHEMA | Item.PINNED
         
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Type, self)._fillItem(name, parent, kind, **kwds)
 
-        self._status |= Item.SCHEMA
+        self._status |= Item.SCHEMA | Item.PINNED
         self._registerTypeHandler(self.getImplementationType())
 
     def _registerTypeHandler(self, implementationType):
@@ -771,7 +771,7 @@ class Dictionary(Collection):
         generator.startElement('values', {})
         for key, val in value._iteritems():
             ItemHandler.xmlValue(repository,
-                                 key, val, 'value', None, 'single', None,
+                                 key, val, 'value', None, 'single', None, 0,
                                  generator, withSchema)
         generator.endElement('values')
 
@@ -815,7 +815,7 @@ class List(Collection):
         generator.startElement('values', {})
         for val in value._itervalues():
             ItemHandler.xmlValue(repository,
-                                 None, val, 'value', None, 'single', None,
+                                 None, val, 'value', None, 'single', None, 0,
                                  generator, withSchema)
         generator.endElement('values')
 

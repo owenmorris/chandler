@@ -96,12 +96,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-    def createRefDict(self, item, name, otherName, persist):
+    def createRefDict(self, item, name, otherName, persist, readOnly):
 
         if persist:
-            return XMLRefDict(self, item, name, otherName)
+            return XMLRefDict(self, item, name, otherName, readOnly)
         else:
-            return TransientRefDict(item, name, otherName)
+            return TransientRefDict(item, name, otherName, readOnly)
 
     def getLobType(self, mode):
 
@@ -253,6 +253,11 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self.logger.debug('unloading version %d of %s',
                                   item._version, item)
                 item._unloadItem()
+            for item in unloads.itervalues():
+                if item._status & Item.PINNED:
+                    self.logger.debug('reloading version %d of %s',
+                                      newVersion, item)
+                    self._loadItem(item._uuid, instance=item)
                     
         self._notRoots.clear()
 
@@ -352,7 +357,7 @@ class XMLRefDict(RefDict):
                 super(XMLRefDict._log, self).append(value)
 
 
-    def __init__(self, view, item, name, otherName):
+    def __init__(self, view, item, name, otherName, readOnly):
         
         self._log = XMLRefDict._log()
         self._item = None
@@ -360,7 +365,7 @@ class XMLRefDict(RefDict):
         self.view = view
         self._deletedRefs = {}
         
-        super(XMLRefDict, self).__init__(item, name, otherName)
+        super(XMLRefDict, self).__init__(item, name, otherName, readOnly)
 
     def _getRepository(self):
 
@@ -384,21 +389,20 @@ class XMLRefDict(RefDict):
 
     def _changeRef(self, key, alias=None):
 
+        super(XMLRefDict, self)._changeRef(key, alias)
+
         if not self.view.isLoading():
             self._log.append((0, key, alias))
         
-        super(XMLRefDict, self)._changeRef(key, alias)
-
     def _removeRef(self, key, _detach=False):
 
+        link = super(XMLRefDict, self)._removeRef(key, _detach)
+
         if not self.view.isLoading():
-            link = self._get(key, load=False)
             self._log.append((1, key, link._alias))
             self._deletedRefs[key] = key
         else:
             raise ValueError, 'detach during load'
-
-        super(XMLRefDict, self)._removeRef(key, _detach)
 
     def _writeRef(self, key, version, uuid, previous, next, alias):
 
@@ -576,6 +580,13 @@ class XMLText(Text, ItemValue):
         super(XMLText, self)._setData(data)
         self._setDirty()
 
+    def getOutputStream(self, compression=None, append=False):
+
+        if self._isReadOnly():
+            raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
+
+        return Text.getOutputStream(self, compression, append)
+
     def _getInputStream(self):
 
         if self._data:
@@ -670,6 +681,13 @@ class XMLBinary(Binary, ItemValue):
 
         super(XMLBinary, self)._setData(data)
         self._setDirty()
+
+    def getOutputStream(self, compression=None, append=False):
+
+        if self._isReadOnly():
+            raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
+
+        return Binary.getOutputStream(self, compression, append)
 
     def _getInputStream(self):
 

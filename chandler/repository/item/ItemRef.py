@@ -161,8 +161,8 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema, version, mode,
-                  previous=None, next=None, alias=None):
+    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+                  mode, previous=None, next=None, alias=None):
 
         def addAttr(attrs, attr, value):
 
@@ -183,6 +183,9 @@ class ItemRef(object):
         addAttr(attrs, 'previous', previous)
         addAttr(attrs, 'next', next)
         addAttr(attrs, 'alias', alias)
+
+        if flags:
+            attrs['flags'] = str(flags)
 
         if withSchema:
             attrs['otherName'] = item._otherName(name)
@@ -231,10 +234,13 @@ class _noneRef(ItemRef):
     def _refCount(self):
         return 0
 
-    def _xmlValue(self, name, item, generator, withSchema, version, mode,
-                  previous=None, next=None, alias=None):
+    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+                  mode, previous=None, next=None, alias=None):
 
-        generator.startElement('ref', {'name': name, 'type': 'none'})
+        attrs = { 'name': name, 'type': 'none' }
+        if flags:
+            attrs['flags'] = str(flags)
+        generator.startElement('ref', attrs)
         generator.endElement('ref')
 
     def __new__(cls, *args, **kwds):
@@ -431,13 +437,14 @@ class RefDict(LinkedMap):
             super(RefDict.link, self).__init__(value)
             self._alias = None
 
-    def __init__(self, item, name, otherName):
+    def __init__(self, item, name, otherName, readOnly=False):
 
         self._name = name
         self._otherName = otherName
         self._setItem(item)
         self._count = 0
         self._aliases = None
+        self._readOnly = readOnly
         
         super(RefDict, self).__init__()
 
@@ -591,7 +598,17 @@ class RefDict(LinkedMap):
 
         self._removeRef(key, True)
 
+    def _changeRef(self, key, alias=None):
+
+        if self._readOnly:
+            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
+
+        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+
     def _removeRef(self, key, _detach=False):
+
+        if self._readOnly:
+            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
 
         value = self._getRef(key)
 
@@ -604,6 +621,8 @@ class RefDict(LinkedMap):
             del self._aliases[link._alias]
             
         self._count -= 1
+
+        return link
 
     def _load(self, key):
 
@@ -642,10 +661,6 @@ class RefDict(LinkedMap):
 
         if key is not None:
             self._changeRef(key)
-
-    def _changeRef(self, key, alias=None):
-
-        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
 
     def _getRef(self, key, load=True):
 
@@ -691,7 +706,8 @@ class RefDict(LinkedMap):
 
         return len(self)
 
-    def _xmlValue(self, name, item, generator, withSchema, version, mode):
+    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+                  mode):
 
         def addAttr(attrs, attr, value):
 
@@ -715,6 +731,9 @@ class RefDict(LinkedMap):
         addAttr(attrs, 'last', self._lastKey)
         attrs['count'] = str(self._count)
 
+        if flags:
+            attrs['flags'] = str(flags)
+
         generator.startElement('ref', attrs)
         self._xmlValues(generator, version, mode)
         generator.endElement('ref')
@@ -724,7 +743,7 @@ class RefDict(LinkedMap):
         for key in self.iterkeys():
             link = self._get(key)
             link._value._xmlValue(key, self._item,
-                                  generator, False, version, mode,
+                                  generator, False, version, 0, mode,
                                   previous=link._previousKey,
                                   next=link._nextKey,
                                   alias=link._alias)

@@ -62,7 +62,7 @@ class Repository(object):
 
     def delete(self):
         
-        raise NotImplementedError, "Repository.delete"
+        raise NotImplementedError, "%s.delete" %(type(self))
 
     def _init(self, **kwds):
 
@@ -244,13 +244,13 @@ class RepositoryView(object):
 
         return False
 
-    def createRefDict(self, item, name, otherName, persist):
+    def createRefDict(self, item, name, otherName, persist, readOnly):
 
-        raise NotImplementedError, "RepositoryView.createRefDict"
+        raise NotImplementedError, "%s.createRefDict" %(type(self))
     
     def getTextType(self):
 
-        raise NotImplementedError, "RepositoryView.getTextType"
+        raise NotImplementedError, "%s.getTextType" %(type(self))
 
     def closeView(self):
         self.close()
@@ -496,7 +496,8 @@ class RepositoryView(object):
 
         return handler.item
 
-    def _loadItemDoc(self, doc, parser, parent=None, afterLoadHooks=None):
+    def _loadItemDoc(self, doc, parser, parent=None, afterLoadHooks=None,
+                     instance=None):
 
         if self.isDebug():
             string = self.repository.store.getDocContent(doc)
@@ -506,7 +507,7 @@ class RepositoryView(object):
             else:
                 self.logger.debug('loading item %s', string)
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks, instance)
         parser.parseDoc(doc, handler)
 
         return handler.item
@@ -631,28 +632,28 @@ class RepositoryView(object):
             self._deletedRegistry[uuid] = uuid
 
     def commit(self):
-        raise NotImplementedError, "RepositoryView.commit"
+        raise NotImplementedError, "%s.commit" %(type(self))
 
     def cancel(self):
-        raise NotImplementedError, "RepositoryView.cancel"
+        raise NotImplementedError, "%s.cancel" %(type(self))
 
     def queryItems(self, query, load=True):
-        raise NotImplementedError, "RepositoryView.queryItems"
+        raise NotImplementedError, "%s.queryItems" %(type(self))
 
     def searchItems(self, query, load=True):
-        raise NotImplementedError, "RepositoryView.searchItems"
+        raise NotImplementedError, "%s.searchItems" %(type(self))
 
     def _loadItem(self, uuid):
-        raise NotImplementedError, "RepositoryView._loadItem"
+        raise NotImplementedError, "%s._loadItem" %(type(self))
 
     def _loadRoot(self, name):
-        raise NotImplementedError, "RepositoryView._loadRoot"
+        raise NotImplementedError, "%s._loadRoot" %(type(self))
 
     def _loadChild(self, parent, name):
-        raise NotImplementedError, "RepositoryView._loadChild"
+        raise NotImplementedError, "%s._loadChild" %(type(self))
 
     def _newItems(self):
-        raise NotImplementedError, "RepositoryView._newItems"
+        raise NotImplementedError, "%s._newItems" %(type(self))
 
     def _addStub(self, stub):
 
@@ -696,55 +697,55 @@ class Store(object):
         self.repository = repository
 
     def open(self, create=False):
-        raise NotImplementedError, "Store.open"
+        raise NotImplementedError, "%s.open" %(type(self))
 
     def close(self):
-        raise NotImplementedError, "Store.close"
+        raise NotImplementedError, "%s.close" %(type(self))
 
     def getVersion(self):
-        raise NotImplementedError, "Store.getVersion"
+        raise NotImplementedError, "%s.getVersion" %(type(self))
 
     def loadItem(self, version, uuid):
-        raise NotImplementedError, "Store.loadItem"
+        raise NotImplementedError, "%s.loadItem" %(type(self))
     
     def serveItem(self, version, uuid):
-        raise NotImplementedError, "Store.serveItem"
+        raise NotImplementedError, "%s.serveItem" %(type(self))
     
     def loadChild(self, version, uuid, name):
-        raise NotImplementedError, "Store.loadChild"
+        raise NotImplementedError, "%s.loadChild" %(type(self))
 
     def serveChild(self, version, uuid, name):
-        raise NotImplementedError, "Store.serveChild"
+        raise NotImplementedError, "%s.serveChild" %(type(self))
 
     def loadRoots(self, version):
-        raise NotImplementedError, "Store.loadRoots"
+        raise NotImplementedError, "%s.loadRoots" %(type(self))
 
     def loadRef(self, version, uItem, uuid, key):
-        raise NotImplementedError, "Store.loadRef"
+        raise NotImplementedError, "%s.loadRef" %(type(self))
 
     def loadRefs(self, version, uItem, uuid, firstKey):
-        raise NotImplementedError, "Store.loadRefs"
+        raise NotImplementedError, "%s.loadRefs" %(type(self))
 
     def loadACL(self, version, uuid, name):
-        raise NotImplementedError, "Store.loadACL"
+        raise NotImplementedError, "%s.loadACL" %(type(self))
 
     def queryItems(self, version, query):
-        raise NotImplementedError, "Store.queryItems"
+        raise NotImplementedError, "%s.queryItems" %(type(self))
     
     def searchItems(self, version, query):
-        raise NotImplementedError, "Store.searchItems"
+        raise NotImplementedError, "%s.searchItems" %(type(self))
     
     def parseDoc(self, doc, handler):
-        raise NotImplementedError, "Store.parseDoc"
+        raise NotImplementedError, "%s.parseDoc" %(type(self))
 
     def getDocUUID(self, doc):
-        raise NotImplementedError, "Store.getDocUUID"
+        raise NotImplementedError, "%s.getDocUUID" %(type(self))
 
     def getDocVersion(self, doc):
-        raise NotImplementedError, "Store.getDocVersion"
+        raise NotImplementedError, "%s.getDocVersion" %(type(self))
 
     def getDocContent(self, doc):
-        raise NotImplementedError, "Store.getDocContent"
+        raise NotImplementedError, "%s.getDocContent" %(type(self))
 
     def attachView(self, view):
         pass
@@ -770,7 +771,7 @@ class OnDemandRepositoryView(RepositoryView):
         self._hooks = None
         self._notRoots = {}
         
-    def _loadDoc(self, doc):
+    def _loadDoc(self, doc, instance=None):
 
         try:
             loading = self.isLoading()
@@ -781,7 +782,8 @@ class OnDemandRepositoryView(RepositoryView):
             exception = None
 
             item = self._loadItemDoc(doc, self.repository.store,
-                                     afterLoadHooks = self._hooks)
+                                     afterLoadHooks = self._hooks,
+                                     instance=instance)
 
             if item is None:
                 self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", self.repository.store.getDocContent(doc))
@@ -823,14 +825,14 @@ class OnDemandRepositoryView(RepositoryView):
 
         return item
 
-    def _loadItem(self, uuid):
+    def _loadItem(self, uuid, instance=None):
 
         if not uuid in self._deletedRegistry:
             doc = self.repository.store.loadItem(self.version, uuid)
 
             if doc is not None:
                 self.logger.debug("loading item %s", uuid)
-                return self._loadDoc(doc)
+                return self._loadDoc(doc, instance)
 
         return None
 
@@ -922,7 +924,7 @@ class OnDemandRepositoryView(RepositoryView):
         if len(registry) > size * 1.1:
             heap = [(item._lastAccess, item._uuid)
                     for item in registry.itervalues()
-                    if not item._status & item.SCHEMA]
+                    if not item._status & item.PINNED]
             heapq.heapify(heap)
             count = len(heap) - int(size * 0.9)
             self.logger.info('pruning %d items', count)

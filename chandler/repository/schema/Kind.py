@@ -28,10 +28,7 @@ class Kind(Item):
         refDict = self._refDict('inheritedAttributes',
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refDict
-        self._status |= Item.SCHEMA
-
-        # will allow schema items to live anywhere
-        self._status |= Item.SCHEMA
+        self._status |= Item.SCHEMA | Item.PINNED
 
         self._initialValues = None
         self._initialReferences = None
@@ -188,13 +185,6 @@ class Kind(Item):
             return [ self._kind.itsParent['Item'] ]
 
         return superKinds
-
-    def _xmlRefs(self, generator, withSchema, version, mode):
-
-        for attr in self._references.items():
-            if self.getAttributeAspect(attr[0], 'persist', default=True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema,
-                                  version, mode)
 
     def isAlias(self):
 

@@ -9,7 +9,6 @@ import cStringIO
 from repository.item.ItemRef import ItemRef, NoneRef, RefArgs, RefDict
 from repository.item.Values import Values, References, ItemValue
 from repository.item.Access import ACL
-from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
@@ -1079,6 +1078,31 @@ class Item(object):
 
         self._status |= Item.STALE
 
+    def isPinned(self):
+        """
+        Tell whether this item is pinned.
+
+        A pinned item is never freed from memory nor marked stale, unless it
+        is deleted with L{delete}.
+        
+        @return: C{True} or C{False}
+        """
+
+        return (self._status & Item.PINNED) != 0
+
+    def setPinned(self, pinned=True):
+        """
+        Pin or Un-pin this item.
+
+        A pinned item is never freed from memory nor marked stale unless it
+        is deleted with L{delete}.
+        """
+
+        if pinned:
+            self._status |= Item.PINNED
+        else:
+            self._status &= ~Item.PINNED
+
     def isDirty(self):
         """
         Tell whether this item was changed and needs to be committed.
@@ -1778,8 +1802,8 @@ class Item(object):
                         XMLOffFilter.startElement(_self, tag, attrs)
                     def endElement(_self, tag):
                         if tag == 'item':
-                            self._xmlAttrs(generator, withSchema,
-                                           version, 'save')
+                            self._values._xmlValues(generator, withSchema,
+                                                    version, 'save')
                         XMLOffFilter.endElement(_self, tag)
 
                 merger(generator, *attributes).parse(oldDoc)
@@ -1876,9 +1900,10 @@ class Item(object):
 
         if not isDeleted:
             if save & Item.VDIRTY:
-                self._xmlAttrs(generator, withSchema, version, mode)
+                self._values._xmlValues(generator, withSchema, version, mode)
             if save & Item.RDIRTY:
-                self._xmlRefs(generator, withSchema, version, mode)
+                self._references._xmlValues(generator, withSchema, version,
+                                            mode)
 
         generator.endElement('item')
 
@@ -1915,47 +1940,6 @@ class Item(object):
 
         self._children._unload(name)
 
-    def _xmlAttrs(self, generator, withSchema, version, mode):
-
-        repository = self.getRepository()
-
-        for key, value in self._values.iteritems():
-            if self._kind is not None:
-                attribute = self._kind.getAttribute(key)
-            else:
-                attribute = None
-                
-            if attribute is not None:
-                persist = attribute.getAspect('persist', default=True)
-            else:
-                persist = True
-
-            if persist:
-                if attribute is not None:
-                    attrType = attribute.getAspect('type')
-                    attrCard = attribute.getAspect('cardinality',
-                                                   default='single')
-                    attrId = attribute.itsUUID
-                else:
-                    attrType = None
-                    attrCard = 'single'
-                    attrId = None
-
-                try:
-                    ItemHandler.xmlValue(repository, key, value, 'attribute',
-                                         attrType, attrCard, attrId, generator,
-                                         withSchema)
-                except Exception, e:
-                    e.args = ("while saving attribute '%s' of item %s, %s" %(key, self.itsPath, e.args[0]),)
-                    raise
-
-    def _xmlRefs(self, generator, withSchema, version, mode):
-
-        for key, value in self._references.iteritems():
-            if self.getAttributeAspect(key, 'persist', default=True):
-                value._xmlValue(key, self, generator, withSchema, version,
-                                mode)
-
     def _refDict(self, name, otherName=None, persist=None):
 
         if otherName is None:
@@ -1963,8 +1947,8 @@ class Item(object):
         if persist is None:
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
-        return self.getRepository().createRefDict(self, name,
-                                                  otherName, persist)
+        return self.getRepository().createRefDict(self, name, otherName,
+                                                  persist, False)
 
     def _countAccess(cls):
 
@@ -2001,6 +1985,7 @@ class Item(object):
     MERGED     = 0x0800
     SAVED      = 0x1000
     ADIRTY     = 0x2000           # acl(s) changed
+    PINNED     = 0x4000           # auto-refresh, don't stale
 
     VRDIRTY    = VDIRTY | RDIRTY
     DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY | ADIRTY

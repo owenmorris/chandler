@@ -14,12 +14,12 @@ class Attribute(Item):
     def __init__(self, name, parent, kind):
 
         super(Attribute, self).__init__(name, parent, kind)
-        self._status |= Item.SCHEMA
+        self._status |= Item.SCHEMA | Item.PINNED
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Attribute, self)._fillItem(name, parent, kind, **kwds)
-        self._status |= Item.SCHEMA
+        self._status |= Item.SCHEMA | Item.PINNED
         
     def hasAspect(self, name):
 
@@ -40,10 +40,3 @@ class Attribute(Item):
                 return aspectAttr.getAttributeValue('defaultValue')
         
         return kwds.get('default', None)
-
-    def _xmlRefs(self, generator, withSchema, version, mode):
-
-        for attr in self._references.items():
-            if self.getAttributeAspect(attr[0], 'persist', default=True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema,
-                                  version, mode)

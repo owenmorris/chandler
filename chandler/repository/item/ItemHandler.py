@@ -24,7 +24,7 @@ class ItemHandler(ContentHandler):
     
     typeHandlers = {}
     
-    def __init__(self, repository, parent, afterLoadHooks):
+    def __init__(self, repository, parent, afterLoadHooks, instance=None):
 
         ContentHandler.__init__(self)
 
@@ -32,6 +32,7 @@ class ItemHandler(ContentHandler):
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
         self.item = None
+        self.instance = instance
 
         if repository not in ItemHandler.typeHandlers:
             ItemHandler.typeHandlers[repository] = {}
@@ -101,6 +102,14 @@ class ItemHandler(ContentHandler):
             attribute = self.getAttribute(name)
             self.attributes.append(attribute)
 
+            flags = attrs.get('flags', None)
+            if flags is not None:
+                flags = int(flags)
+                self.values._setFlags(name, flags)
+                readOnly = flags & Values.READONLY
+            else:
+                readOnly = False
+
             cardinality = self.getCardinality(attribute, attrs)
 
             if cardinality != 'single':
@@ -109,8 +118,8 @@ class ItemHandler(ContentHandler):
                                                    name, self.name)
 
                 otherName = self.getOtherName(name, attribute, attrs)
-                refDict = self.repository.createRefDict(None, name,
-                                                        otherName, True)
+                refDict = self.repository.createRefDict(None, name, otherName,
+                                                        True, readOnly)
                 
                 if attrs.has_key('first'):
                     firstKey = self.makeValue(attrs.get('firstType', 'str'),
@@ -152,12 +161,24 @@ class ItemHandler(ContentHandler):
             else:
                 cls = self.kind.getItemClass()
 
-        self.item = item = cls.__new__(cls)
+        if self.instance is not None:
+            if cls is not type(self.instance):
+                raise TypeError, 'Class for item has changed from %s to %s' %(type(instance), cls)
+            item = self.item = self.instance
+            pinned = item._status & item.PINNED
+            item._status = item.RAW
+            self.instance = None
+        else:
+            item = self.item = cls.__new__(cls)
+            pinned = 0
+            
         item._fillItem(self.name, self.parent, self.kind, uuid = self.uuid,
                        values = self.values, references = self.references,
                        previous = self.previous, next = self.next,
                        afterLoadHooks = self.afterLoadHooks,
                        version = self.version)
+        if pinned:
+            item._status |= item.PINNED
 
         if self.first or self.last:
             item._children = ItemPackage.Item.Children(item)
@@ -267,7 +288,7 @@ class ItemHandler(ContentHandler):
             cardinality = 'single'
             otherCard = self.tagAttrs[-1].get('otherCard', None)
 
-        if cardinality == 'single':
+        if cardinality == 'single':     # cardinality of tag
             typeName = attrs.get('type', 'path')
 
             if typeName == 'path':
@@ -356,9 +377,7 @@ class ItemHandler(ContentHandler):
             attribute = self.attributes.pop()
             cardinality = self.getCardinality(attribute, attrs)
 
-            if cardinality == 'dict':
-                value = self.collections.pop()
-            elif cardinality == 'list':
+            if cardinality == 'dict' or cardinality == 'list':
                 value = self.collections.pop()
             else:
                 typeName = self.getTypeName(attribute, attrs, 'str')
@@ -374,6 +393,16 @@ class ItemHandler(ContentHandler):
             raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name, attrs['name'], self.delegates)
 
         self.values[attrs['name']] = value
+
+        flags = attrs.get('flags', None)
+        if flags is not None:
+            flags = int(flags)
+            self.values._setFlags(attrs['name'], flags)
+            if flags & Values.READONLY:
+                if isinstance(value, PersistentCollection):
+                    value.setReadOnly()
+                elif isinstance(value, ItemValue):
+                    value._setReadOnly()
 
     def valueEnd(self, itemHandler, attrs, **kwds):
 
@@ -522,7 +551,8 @@ class ItemHandler(ContentHandler):
 
         return cls.typeHandler(repository, value).makeString(value)
     
-    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
+    def xmlValue(cls, repository, name, value, tag,
+                 attrType, attrCard, attrId, flags,
                  generator, withSchema):
 
         attrs = {}
@@ -552,6 +582,9 @@ class ItemHandler(ContentHandler):
         else:
             attrs['cardinality'] = attrCard
 
+        if flags:
+            attrs['flags'] = str(flags)
+
         generator.startElement(tag, attrs)
 
         if attrCard == 'single':
@@ -573,13 +606,13 @@ class ItemHandler(ContentHandler):
             for val in value._itervalues():
                 cls.xmlValue(repository,
                              None, val, 'value', attrType, 'single',
-                             None, generator, withSchema)
+                             None, 0, generator, withSchema)
 
         elif attrCard == 'dict':
             for key, val in value._iteritems():
                 cls.xmlValue(repository,
                              key, val, 'value', attrType, 'single',
-                             None, generator, withSchema)
+                             None, 0, generator, withSchema)
         else:
             raise ValueError, attrCard
 
