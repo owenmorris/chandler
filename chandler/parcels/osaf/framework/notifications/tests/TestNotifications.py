@@ -21,12 +21,10 @@ def MakeEvent():
 
 
 def repositoryCallback(uuid, notification, reason, **kwds):
-    if notification == 'ItemChanged':
+    if notification == 'History':
         eventPath = '//parcels/OSAF/framework/item_' + reason
-    elif notification == 'CollectionChanged':
-        return
     else:
-        assert(0)
+        return
 
     event = Globals.repository.find(eventPath)
 
