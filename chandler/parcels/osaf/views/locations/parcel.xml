@@ -23,12 +23,6 @@
   -->
   <Node itsName="URLRoot">
     <displayName></displayName>
-    <children itemref="doc:CalendarView"/>
-  </Node>
-
-  <Node itsName="CalendarView">
-    <displayName>Calendar</displayName>
-    <item itemref="content:CalendarListView"/>
   </Node>
 
 </core:Parcel>

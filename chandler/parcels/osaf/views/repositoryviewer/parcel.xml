@@ -45,7 +45,7 @@
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
-  <SplitterWindow itsName="RepositoryBox">
+  <SplitterWindow itsName="RepositoryView">
     <displayName>Repository Viewer</displayName>
 
     <!-- Layout children -->

@@ -86,10 +86,10 @@ class MainView(View):
         self.onAddKindViewsEvent(notification)
         
     def onAddDemoViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/demo/TabBox')
+        self._addNewView('//parcels/osaf/views/demo/BlockDemoView')
 
     def onAddRepositoryViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/repositoryviewer/RepositoryBox')
+        self._addNewView('//parcels/osaf/views/repositoryviewer/RepositoryView')
 
     def onAddMixedViewEvent(self, notification):
         self._addNewView('//parcels/osaf/views/content/MixedListView')

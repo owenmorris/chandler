@@ -25,14 +25,18 @@
   <contentModel:Query itsName="calendarQuery">
      <data itemref="calendarModel:CalendarEventAspect"/>
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="calendarItemCollection">
-    <rule itemref="view:calendarQuery"/>
+     <displayName>Calendar</displayName>
+   <rule itemref="view:calendarQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="notesQuery">
     <data itemref="contentModel:Note"/>
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="notesItemCollection">
+     <displayName>Notes</displayName>
     <rule itemref="view:notesQuery"/>
   </contentModel:NamedCollection>
 
@@ -53,7 +57,9 @@
   <contentModel:Query itsName="contactQuery">
     <data itemref="contactsModel:Contact"/>
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="contactItemCollection">
+    <displayName>Contacts</displayName>
     <rule itemref="view:contactQuery"/>
   </contentModel:NamedCollection>
 
@@ -62,31 +68,41 @@
     <data itemref="contentModel:Note"/>
     <data itemref="contactsModel:Contact"/>
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="mixedItemCollection">
+    <displayName>Mixed</displayName>
     <rule itemref="view:mixedQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="inItemCollection">
+    <displayName>In</displayName>
     <rule itemref="view:inQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="outQuery">
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="outItemCollection">
+    <displayName>Out</displayName>
     <rule itemref="view:outQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="junkQuery">
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="junkItemCollection">
+    <displayName>Junk</displayName>
     <rule itemref="view:junkQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="trashQuery">
   </contentModel:Query>
+
   <contentModel:NamedCollection itsName="trashItemCollection">
+    <displayName>Trash</displayName>
     <rule itemref="view:trashQuery"/>
   </contentModel:NamedCollection>
 
@@ -368,6 +384,7 @@
 
   <!-- Mixed View -->
   <SplitterWindow itsName="MixedListView">
+    <contents itemref="view:mixedItemCollection"/>
     <displayName>Mixed</displayName>
 
     <childrenBlocks itemref="view:MixedList"/>
@@ -379,7 +396,9 @@
 
   <!-- In View -->
   <SplitterWindow itsName="InListView">
+    <contents itemref="view:inItemCollection"/>
     <displayName>In</displayName>
+
     <childrenBlocks itemref="view:InList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
@@ -390,6 +409,7 @@
 
   <!-- Out View -->
   <SplitterWindow itsName="OutListView">
+    <contents itemref="view:outItemCollection"/>
     <displayName>Out</displayName>
 
     <childrenBlocks itemref="view:OutList"/>
@@ -402,6 +422,7 @@
 
   <!-- Calendar View -->
   <SplitterWindow itsName="CalendarListView">
+    <contents itemref="view:calendarItemCollection"/>
     <displayName>Calendar</displayName>
 
     <childrenBlocks itemref="view:CalendarList"/>
@@ -413,7 +434,8 @@
   </SplitterWindow>
 
   <!-- New Contact View -->
-  <SplitterWindow itsName="NewContactListView">
+  <SplitterWindow itsName="ContactListView">
+    <contents itemref="view:contactItemCollection"/>
     <displayName>Contacts</displayName>
 
     <childrenBlocks itemref="view:NewContactList"/>
@@ -425,6 +447,7 @@
 
   <!-- Junk View -->
   <SplitterWindow itsName="JunkListView">
+    <contents itemref="view:junkItemCollection"/>
     <displayName>Junk</displayName>
 
     <childrenBlocks itemref="view:JunkList"/>
@@ -436,6 +459,7 @@
 
   <!-- Trash View -->
   <SplitterWindow itsName="TrashListView">
+    <contents itemref="view:trashItemCollection"/>
     <displayName>Trash</displayName>
 
     <childrenBlocks itemref="view:TrashList"/>
@@ -447,6 +471,7 @@
 
   <!-- MonthView View -->
   <SplitterWindow itsName="MonthView">
+    <contents itemref="view:calendarItemCollection"/>
     <displayName>Month</displayName>
 
     <childrenBlocks itemref="view:SummaryMonth"/>
@@ -458,6 +483,7 @@
 
   <!-- Week View -->
   <SplitterWindow itsName="WeekView">
+    <contents itemref="view:calendarItemCollection"/>
     <displayName>Week</displayName>
 
     <childrenBlocks itemref="view:SummaryWeek"/>

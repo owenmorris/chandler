@@ -618,7 +618,7 @@
     <inclusions uuidOf="content:InListView"/>
     <inclusions uuidOf="content:OutListView"/>
     <inclusions uuidOf="content:CalendarListView"/>
-    <inclusions uuidOf="content:NewContactListView"/>
+    <inclusions uuidOf="content:ContactListView"/>
     <inclusions uuidOf="content:JunkListView"/>
     <inclusions uuidOf="content:TrashListView"/>
     <inclusions uuidOf="content:MonthView"/>
