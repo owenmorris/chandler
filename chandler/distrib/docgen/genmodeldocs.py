@@ -51,6 +51,11 @@ def main():
 
 def processItem(item, handler, conf):
 
+    if item.itsName is None:
+        # Skip all the unnamed items, otherwise they'll flood your disk over
+        # time unless you completely blow away the doc tree before each publish
+        return
+
     handler(item, conf)
 
     for child in item.iterChildren():
