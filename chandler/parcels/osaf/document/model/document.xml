@@ -39,7 +39,7 @@
   <Attribute itemName="doc:isOpen">
     <displayName>Is Open?</displayName>
     <cardinality>single</cardinality>
-    <type itemref="types:Bool"/>
+    <type itemref="types:Boolean"/>
   </Attribute>
 
   <Kind itemName="doc:Document">
