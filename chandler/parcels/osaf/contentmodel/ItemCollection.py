@@ -213,5 +213,10 @@ class ItemCollection(ContentModel.ContentItem):
         self.remove (self.results [index])
 
     def index (self, item):
-        return self.results.index (item)
+        index = 0
+        for testItem in self.results:
+            if testItem is item:
+                return index
+            index += 1
+        raise IndexError
 
