@@ -11,7 +11,9 @@ from threading import currentThread, Thread
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
-from repository.persistence.RepositoryError import RepositoryError, VersionConflictError, ViewError
+from repository.persistence.RepositoryError \
+     import RepositoryError, VersionConflictError, ViewError, \
+            RecursiveLoadItemError
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
 from repository.persistence.PackHandler import PackHandler
@@ -97,6 +99,7 @@ class RepositoryView(object):
         self._registry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}
+        self._loadingRegistry = set()
         self._status = RepositoryView.OPEN
 
         if self.repository.isRefCounted():
@@ -805,7 +808,6 @@ class OnDemandRepositoryView(RepositoryView):
 
         return super(OnDemandRepositoryView, self)._setLoading(loading,
                                                                runHooks)
-
     def _readItem(self, itemReader):
 
         try:
@@ -823,7 +825,6 @@ class OnDemandRepositoryView(RepositoryView):
                 self.logger.debug('loading item %s', itemReader.getUUID())
 
             item = itemReader.readItem(self, self._hooks)
-
             if debug:
                 self.logger.debug("loaded version %d of %s",
                                   item._version, item.itsPath)
@@ -846,12 +847,19 @@ class OnDemandRepositoryView(RepositoryView):
 
     def _loadItem(self, uuid):
 
+        if uuid in self._loadingRegistry:
+            raise RecursiveLoadItemError, uuid
+
         if not uuid in self._deletedRegistry:
             itemReader = self.repository.store.loadItem(self._version, uuid)
 
             if itemReader is not None:
-                self.logger.debug("loading item %s", uuid)
-                return self._readItem(itemReader)
+                try:
+                    self._loadingRegistry.add(uuid)
+                    self.logger.debug("loading item %s", uuid)
+                    return self._readItem(itemReader)
+                finally:
+                    self._loadingRegistry.remove(uuid)
 
         return None
 

@@ -10,17 +10,23 @@ from repository.item.Item import Item
 from repository.item.Values import ItemValue
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.ItemError import NoSuchAttributeError, SchemaError
+from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.util.SingleRef import SingleRef
+from repository.item.Monitors import Monitors, Monitor
 
 class Kind(Item):
 
     def __init__(self, name, parent, kind):
 
         super(Kind, self).__init__(name, parent, kind)
-        self.__init()
 
+        self.monitorValue('attributes', set=True, _attrDict=self._references)
+        self.monitorValue('superKinds', set=True, _attrDict=self._references)
+        self.monitorAttributes = False
+        self.__init()
+        
     def __init(self):
 
         # recursion avoidance
@@ -28,6 +34,10 @@ class Kind(Item):
         refList = self._refList('inheritedAttributes',
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refList
+
+        ofKind = self._refList('ofKind', 'kindOf', False)
+        self._references['ofKind'] = ofKind
+
         self._status |= Item.SCHEMA | Item.PINNED
 
         self.__dict__['_initialValues'] = None
@@ -43,21 +53,75 @@ class Kind(Item):
 
         # force-load attributes for schema bootstrapping
         if 'attributes' in self._references:
-            for attribute in self.attributes:
+            for attribute in self._references['attributes']:
                 pass
 
-        # set the class backpointer if defaultKind is True
-        if self._values.get('defaultKind', False):
-            cls = self.getItemClass()
+    def _setupClass(self, cls):
+
+        try:
+            uuid = self._uuid
+            classes = Kind._classes
+            kinds = Kind._kinds
+
             try:
-                uuid = cls._defaultKind
-                if uuid != self._uuid:
-                    if self.find(uuid) is not None:
-                        raise SchemaError, ("Cannot set class %s.%s _defaultKind attribute to %s's UUID, it is already set to %s", self.itsPath, cls.__module__, cls.__name__, uuid)
-                    else:
-                        cls._defaultKind = self._uuid
-            except AttributeError:
-                cls._defaultKind = self._uuid
+                kinds[uuid].add(cls)
+            except KeyError:
+                kinds[uuid] = set((cls,))
+
+            try:
+                if uuid in classes[cls]:
+                    return
+                classes[cls].add(uuid)
+            except KeyError:
+                classes[cls] = set((uuid,))
+
+            if self._values.get('defaultKind', False):
+                try:
+                    uuid = cls.__dict__['_defaultKind']
+                except KeyError:
+                    cls._defaultKind = self._uuid
+                else:
+                    if uuid != self._uuid:
+                        if self.find(uuid) is not None:
+                            raise SchemaError, ("Cannot set class %s.%s _defaultKind attribute to %s's UUID, it is already set to %s", self.itsPath, cls.__module__, cls.__name__, uuid)
+                        else:
+                            cls._defaultKind = self._uuid
+
+            self.monitorAttributes = True
+            self._setupDescriptors(cls)
+
+        except RecursiveLoadItemError:
+            kinds[uuid].remove(cls)
+            classes[cls].remove(uuid)
+
+    def _setupDescriptors(self, cls, sync=False):
+
+        try:
+            descriptors = Kind._descriptors[cls]
+        except KeyError:
+            descriptors = Kind._descriptors[cls] = {}
+
+        if sync:
+            attributes = self.getAttributeValue('attributes',
+                                                _attrDict=self._references,
+                                                default=[])
+            for name, descriptor in descriptors.items():
+                attr = descriptor.getAttribute(self)
+                if not (attr is None or attr[0] in attributes):
+                    if descriptor.unregisterAttribute(self):
+                        delattr(cls, name)
+
+        for name, attribute, k in self.iterAttributes():
+            descriptor = cls.__dict__.get(name, None)
+            if descriptor is None:
+                descriptor = Descriptor(name)
+                descriptors[name] = descriptor
+                setattr(cls, name, descriptor)
+                descriptor.registerAttribute(self, attribute)
+            elif type(descriptor) is Descriptor:
+                descriptor.registerAttribute(self, attribute)
+            else:
+                self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
 
     def newItem(self, name, parent):
         """
@@ -89,7 +153,8 @@ class Kind(Item):
         superClasses = []
         
         hash = _uuid.combine(0, self._uuid._hash)
-        for superKind in self.superKinds:
+        for superKind in self.getAttributeValue('superKinds',
+                                                _attrDict=self._references):
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
@@ -109,6 +174,7 @@ class Kind(Item):
 
         self._values['classes'] = { 'python': c }
         self._values._setTransient('classes')
+        self._setupClass(c)
 
         return c
 
@@ -122,19 +188,56 @@ class Kind(Item):
                 self.itsView.logger.warn('No superKinds for %s', self.itsPath)
                 result = False
 
-        def checkClass(cls):
+        itemClass = self.getItemClass()
+        result = self._checkClass(itemClass, True)
+
+        classes = Kind._kinds.get(self._uuid)
+        if classes is not None:
+            for cls in classes:
+                if cls is not itemClass:
+                    result = self._checkClass(cls, False) and result
+
+        return result
+
+    def _checkClass(self, cls, isItemClass):
+
+        result = True
+
+        def checkInheritance(cls):
             if cls is not Item:
                 if not (isinstance(cls, type) and issubclass(cls, Item)):
                     return cls
                 for base in cls.__bases__:
-                    if checkClass(base) is not None:
+                    if checkInheritance(base) is not None:
                         return base
             return None
 
-        cls = checkClass(self.getItemClass())
-        if cls is not None:
-            self.itsView.logger.warn('Kind %s has an item class or superclass that is not a subclass of Item: %s %s', self.itsPath, cls, type(cls))
+        problemCls = checkInheritance(cls)
+        if problemCls is not None:
+            self.itsView.logger.warn('Kind %s has an item class or superclass that is not a subclass of Item: %s %s', self.itsPath, problemCls, type(problemCls))
             result = False
+
+        descriptors = Kind._descriptors.get(cls)
+        if descriptors is None:
+            if not isItemClass:
+                self.itsView.logger.warn("No descriptors for class %s but Kind %s seems to think otherwise", cls, self.itsPath)
+                result = False
+        else:
+            for name, descriptor in descriptors.iteritems():
+                attr = descriptor.getAttribute(self)
+                if attr is not None:
+                    clsDescriptor = cls.__dict__.get(name, None)
+                    if clsDescriptor is not descriptor:
+                        self.itsView.logger.warn("Descriptor for attribute '%s', %s, on class %s doesn't match descriptor on Kind %s, %s", name, clsDescriptor, cls, self.itsPath, descriptor)
+                        result = False
+                    attribute = self.getAttribute(name, True)
+                    if attribute is None:
+                        self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
+                        result = False
+                    else:
+                        if attr[0] != attribute._uuid:
+                            self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self.itsPath)
+                            result = False
 
         return result
         
@@ -143,9 +246,10 @@ class Kind(Item):
         child = self.getItemChild(name)
         if child:
             return child._uuid
-        
-        if self.hasAttributeValue('attributes', _attrDict=self._references):
-            return self.attributes.resolveAlias(name)
+
+        references = self._references
+        if self.hasAttributeValue('attributes', _attrDict=references):
+            return self.getAttributeValue('attributes', _attrDict=references).resolveAlias(name)
 
         return None
 
@@ -250,17 +354,21 @@ class Kind(Item):
                         yield (attributes.getAlias(attribute), attribute, self)
 
         if inherited:
-            inheritedAttributes = self.inheritedAttributes
-            for superKind in self.superKinds:
+            references = self._references
+            inheritedAttributes = self.getAttributeValue('inheritedAttributes',
+                                                         _attrDict=references)
+            for superKind in self.getAttributeValue('superKinds',
+                                                    _attrDict=references):
                 for name, attribute, k in superKind.iterAttributes():
                     if (attribute._uuid not in inheritedAttributes and
                         inheritedAttributes.resolveAlias(name) is None):
                         inheritedAttributes.append(attribute, alias=name)
-            for uuid, link in inheritedAttributes._iteritems():
+            for uuid in inheritedAttributes.iterkeys():
+                link = inheritedAttributes._get(uuid)
                 name = link._alias
                 if not self.resolve(name):
                     attribute = link.getValue(self)
-                    for kind in attribute.kinds:
+                    for kind in attribute.getAttributeValue('kinds', _attrDict=attribute._references):
                         if self.isKindOf(kind):
                             break
                     yield (name, attribute, kind)
@@ -271,17 +379,18 @@ class Kind(Item):
             return None
 
         cache = True
-        for superKind in self.superKinds:
+        for superKind in self.getAttributeValue('superKinds',
+                                                _attrDict=self._references):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
-                    self.addValue('inheritedAttributes', attribute, alias=name)
+                    self._references['inheritedAttributes'].append(attribute, alias=name)
                     return attribute
             else:
                 cache = False
                     
         if cache:
-            self.addValue('notFoundAttributes', name)
+            self._values['notFoundAttributes'].append(name)
 
         return None
 
@@ -354,7 +463,8 @@ class Kind(Item):
         except KeyError:
             kindOf = self._refList('kindOf', 'ofKind', False)
             self._references['kindOf'] = kindOf
-            for superKind in self.superKinds:
+            for superKind in self.getAttributeValue('superKinds',
+                                                    _attrDict=self._references):
                 kindOf.append(superKind)
                 kindOf.update(superKind._kindOf())
 
@@ -375,6 +485,8 @@ class Kind(Item):
                     else:
                         self._initialReferences[name] = value
 
+        isNew = item.isNew()
+
         for name, value in self._initialValues.iteritems():
             if name not in values:
                 if isinstance(value, PersistentCollection):
@@ -384,6 +496,9 @@ class Kind(Item):
                     value = value._copy(item, name)
 
                 values[name] = value
+                if not isNew:   # __setKind case
+                    item.setDirty(Item.VDIRTY, name,
+                                  attrDict=values, noMonitors=True)
 
         for name, value in self._initialReferences.iteritems():
             if name not in references:
@@ -394,6 +509,9 @@ class Kind(Item):
                         refList.append(other)
                 else:
                     references._setValue(name, value, otherName)
+                if not isNew:   # __setKind case
+                    item.setDirty(Item.RDIRTY, name,
+                                  attrDict=references, noMonitors=True)
 
     def flushCaches(self):
         """
@@ -511,7 +629,8 @@ class Kind(Item):
                                         _attrDict=self._references)
 
         if clouds is None or clouds.resolveAlias(cloudAlias) is None:
-            for superKind in self.superKinds:
+            for superKind in self.getAttributeValue('superKinds',
+                                                    _attrDict=self._references):
                 results.extend(superKind.getClouds(cloudAlias))
 
         else:
@@ -521,3 +640,128 @@ class Kind(Item):
 
 
     NoneString = "__NONE__"
+    _classes = {}
+    _kinds = {}
+    _descriptors = {}
+    
+
+class Descriptor(object):
+
+    def __init__(self, name):
+
+        self.name = name
+        self.attrs = {}
+
+    def registerAttribute(self, kind, attribute):
+
+        if 'otherName' in attribute._values:
+            flags = Descriptor.REF
+        elif 'redirectTo' in attribute._values:
+            flags = Descriptor.REDIRECT
+        else:
+            flags = Descriptor.VALUE
+
+        self.attrs[kind._uuid] = (attribute._uuid, flags)
+
+    def unregisterAttribute(self, kind):
+
+        del self.attrs[kind._uuid]
+        return len(self.attrs) == 0
+
+    def getAttribute(self, kind):
+
+        return self.attrs.get(kind._uuid, None)
+
+    def getName(self):
+
+        return self.name
+
+    def getAttrDict(self, obj, flags):
+
+        if flags & Descriptor.VALUE:
+            return obj._values
+        elif flags & Descriptor.REF:
+            return obj._references
+        elif flags & Descriptor.REDIRECT:
+            return None
+
+        raise AssertionError, (self.name, flags)
+
+    def __get__(self, obj, owner):
+
+        if obj is None:
+            raise AttributeError, self.name
+
+        kind = obj._kind
+        if kind is not None:
+            try:
+                attrID, flags = self.attrs[kind._uuid]
+                attrDict = self.getAttrDict(obj, flags)
+            except KeyError:
+                pass
+            else:
+                return obj.getAttributeValue(self.name,
+                                             _attrDict=attrDict,
+                                             _attrID=attrID)
+
+        try:
+            return obj.__dict__[self.name]
+        except KeyError:
+            raise AttributeError, self.name
+            
+    def __set__(self, obj, value):
+
+        if obj is None:
+            raise AttributeError, self.name
+
+        kind = obj._kind
+        if kind is not None:
+            try:
+                attrID, flags = self.attrs[kind._uuid]
+                attrDict = self.getAttrDict(obj, flags)
+            except KeyError:
+                pass
+            else:
+                return obj.setAttributeValue(self.name, value,
+                                             _attrDict=attrDict,
+                                             _attrID=attrID)
+                
+        obj.__dict__[self.name] = value
+
+    def __delete__(self, obj):
+
+        if obj is None:
+            raise AttributeError, self.name
+
+        kind = obj._kind
+        if kind is not None:
+            try:
+                attrID, flags = self.attrs[kind._uuid]
+                attrDict = self.getAttrDict(obj, flags)
+            except KeyError:
+                pass
+            else:
+                return obj.removeAttributeValue(self.name,
+                                                _attrDict=attrDict,
+                                                _attrID=attrID)
+
+        try:
+            del obj.__dict__[self.name]
+        except KeyError:
+            raise AttributeError, self.name
+
+    VALUE    = 0x0001
+    REF      = 0x0002
+    REDIRECT = 0x0004
+
+
+class SchemaMonitor(Monitor):
+
+    def schemaChange(self, op, kind, attrName):
+
+        if isinstance(kind, Kind) and kind.monitorAttributes:
+            kind.flushCaches()
+            logger = kind.itsView.logger
+            for cls in Kind._kinds.get(kind._uuid, []):
+                logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', attrName, cls.__module__, cls.__name__, kind.itsPath)
+                kind._setupDescriptors(cls, True)

@@ -75,7 +75,8 @@ class Type(Item):
         self._registerTypeHandler(self.getImplementationType())
 
     def getImplementationType(self):
-        return self.implementationTypes['python']
+        return self.getAttributeValue('implementationTypes',
+                                      _attrDict=self._values)['python']
 
     def handlerName(self):
         return None
@@ -180,6 +181,9 @@ class Symbol(Type):
         return 'str'
 
     def makeValue(self, data):
+
+        if type(data) is unicode:
+            return data.encode('utf-8')
 
         return str(data)
 
@@ -503,7 +507,7 @@ class Path(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        offset, string = itemReader.readString(offset, data)
+        offset, string = itemReader.readString(offset+1, data)
         return offset, repository.util.Path.Path(string)
 
 
@@ -623,7 +627,7 @@ class Enumeration(Type):
     def recognizes(self, value):
 
         try:
-            return self.values.index(value) >= 0
+            return self.getAttributeValue('values', _attrDict=self._values).index(value) >= 0
         except ValueError:
             return False
 
@@ -632,7 +636,7 @@ class Enumeration(Type):
         if withSchema:
             itemWriter.writeString(buffer, value)
         else:
-            itemWriter.writeInteger(buffer, self.values.index(value))
+            itemWriter.writeInteger(buffer, self.getAttributeValue('values', _attrDict=self._values).index(value))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         
@@ -640,7 +644,7 @@ class Enumeration(Type):
             return itemReader.readString(offset, data)
         else:
             offset, integer = itemReader.readInteger(offset, data)
-            return offset, self.values[integer]
+            return offset, self.getAttributeValue('values', _attrDict=self._values)[integer]
 
 
 class Struct(Type):
@@ -706,10 +710,13 @@ class Struct(Type):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)
         else:
             value = itemHandler.data
-            field = self.fields[name]
+            field = self.getAttributeValue('fields', _attrDict=self._values)[name]
             typeHandler = field.get('type', None)
             if typeHandler is not None:
-                value = typeHandler.makeValue(value)
+                try:
+                    value = typeHandler.makeValue(value)
+                except AttributeError:
+                    raise AttributeError, (typeHandler, value, type(value))
 
         itemHandler.fields[name] = value
 

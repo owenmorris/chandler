@@ -212,7 +212,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                     value = self.collections.pop()
                 else:
                     value = self.makeValue(typeName, self.data)
-                    if attrs.has_key('eval'):
+                    if attrs.get('eval', 'False') == 'True':
                         typeHandler = self.typeHandler(self.repository, value)
                         value = typeHandler.eval(value)
             
@@ -248,7 +248,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                 value = self.collections.pop()
             else:
                 value = self.makeValue(typeName, self.data)
-                if attrs.has_key('eval'):
+                if attrs.get('eval', 'False') == 'True':
                     typeHandler = self.typeHandler(self.repository, value)
                     value = typeHandler.eval(value)
 
@@ -578,6 +578,12 @@ class ItemHandler(ValueHandler):
 
         if hasattr(cls, 'onItemLoad'):
             self.afterLoadHooks.append(item.onItemLoad)
+        self.afterLoadHooks.append(self.setupClass)
+
+    def setupClass(self, view):
+
+        if self.kind is not None:
+            self.kind._setupClass(type(self.item))
 
     def kindEnd(self, itemHandler, attrs):
 

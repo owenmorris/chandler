@@ -311,7 +311,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
             self.subtreeList = subtrees
         return subtrees
         
-class DetailSynchronizer(object):
+class DetailSynchronizer(Item):
     """
       Mixin class that handles synchronizeWidget and
     the SelectItem event by calling synchronizeItemDetail.

@@ -68,10 +68,13 @@ class ICalendarTestCase(unittest.TestCase):
 
     def Import(self):
 
+        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
+                            'parcels', 'osaf', 'framework', 'sharing', 'tests')
+
         sandbox = self.repo.findPath("//sandbox")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=".", shareName="Chandler.ics")
+         sharePath=path, shareName="Chandler.ics")
         format = ICalendar.ICalendarFormat(name="format", parent=sandbox)
         self.share = Sharing.Share(name="share", parent=sandbox,
          conduit=conduit, format=format)

@@ -23,6 +23,7 @@
       <item file="Endpoint.kind" />
       <item file="Principal.kind" />
       <item file="Monitors.kind" />
+      <item file="Monitor.kind" />
     </item>
 
     <item path="//Schema/Core" cwd="model" afterLoadHooks="True">
@@ -35,6 +36,7 @@
       <item file="Mixins.namespace" />
 
       <item file="Items.namespace" cwd="items">
+        <item file="SchemaMonitor.item" />
         <item file="Monitors.item" />
       </item>
     </item>

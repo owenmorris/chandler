@@ -1578,6 +1578,7 @@ def NewItem(view, name, parent, kind, uuid):
     refs._setItem(item)
     item._status |= Item.NEW
     kind.getInitialValues(item, item._values, item._references)
+    kind._setupClass(cls)
     if hasattr(cls, 'onItemLoad'):
         item.onItemLoad(view)
     return item

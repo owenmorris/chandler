@@ -14,8 +14,8 @@ from repository.item.ItemIO import ItemWriter, ItemReader
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList, PersistentDict
 from repository.schema.TypeHandler import TypeHandler
-from repository.persistence.RepositoryError import LoadError, LoadValueError
-from repository.persistence.RepositoryError import MergeError
+from repository.persistence.RepositoryError \
+     import LoadError, LoadValueError, MergeError
 
 
 class DBItemWriter(ItemWriter):
@@ -54,8 +54,10 @@ class DBItemWriter(ItemWriter):
 
         if isinstance(value, unicode):
             value = value.encode('utf-8')
-
-        buffer.write(pack('>I', len(value)))
+            buffer.write(pack('>i', len(value)))
+        else:
+            buffer.write(pack('>i', -len(value)))
+            
         buffer.write(value)
 
     def writeSymbol(self, buffer, value):
@@ -362,7 +364,6 @@ class DBItemReader(ItemReader):
         if isContainer:
             item._children = view._createChildren(item, False)
             
-        view._registerItem(item)
         values._setItem(item)
         references._setItem(item)
 
@@ -381,11 +382,17 @@ class DBItemReader(ItemReader):
         if hasattr(cls, 'onItemLoad'):
             afterLoadHooks.append(item.onItemLoad)
 
+        if kind is not None:
+            afterLoadHooks.append(lambda view: kind._setupClass(cls))
+
         return item
 
     def readString(self, offset, data):
-        offset, len = offset+4, unpack('>I', data[offset:offset+4])[0]
-        return offset+len, unicode(data[offset:offset+len], 'utf-8')
+        offset, len = offset+4, unpack('>i', data[offset:offset+4])[0]
+        if len >= 0:
+            return offset+len, unicode(data[offset:offset+len], 'utf-8')
+        else:
+            return offset-len, data[offset:offset-len]
 
     def readSymbol(self, offset, data):
         offset, len, = offset+2, unpack('>H', data[offset:offset+2])[0]

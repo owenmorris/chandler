@@ -3,4 +3,29 @@
 <item>
   <name>Monitors</name>
   <kind type="path">//Schema/Core/Monitors</kind>
+
+  <ref name="items">
+    <ref type="path">//Schema/Core/Items/SchemaMonitor</ref>
+  </ref>
+
+  <attribute name="monitoring">
+    <value name="set">
+      <value name="attributes" type="list">
+        <value type="list">
+          <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
+          <value type="str">schemaChange</value>
+          <value type="list" />
+          <value type="dict" />
+        </value>
+      </value>
+      <value name="superKinds" type="list">
+        <value type="list">
+          <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
+          <value type="str">schemaChange</value>
+          <value type="list" />
+          <value type="dict" />
+        </value>
+      </value>
+    </value>
+  </attribute>
 </item>

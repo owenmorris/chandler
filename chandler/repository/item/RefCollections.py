@@ -315,11 +315,8 @@ class RefList(LinkedMap):
         loading = self._getRepository().isLoading()
         
         old = super(RefList, self).get(key, None, load)
-        if not loading:
-            if old is not None:
-                self.linkChanged(self._get(key), key)
-            else:
-                self._setDirty(noMonitors=kwds.get('noMonitors', False))
+        if not (loading or old is None):
+            self.linkChanged(self._get(key), key)
 
         link = super(RefList, self).__setitem__(key, other,
                                                 kwds.get('previous'),
@@ -330,6 +327,8 @@ class RefList(LinkedMap):
             if self._indexes:
                 for index in self._indexes.itervalues():
                     index.insertKey(key, link._previousKey)
+            if old is None:
+                self._setDirty(noMonitors=kwds.get('noMonitors', False))
 
         if not load:
             other._references._getRef(self._otherName, self._item)

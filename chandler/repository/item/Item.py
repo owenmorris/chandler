@@ -50,11 +50,12 @@ class Item(object):
         if parent is None:
             raise ValueError, 'parent cannot be None'
 
+        cls = type(self)
+        
         if kind is None:
-            cls = type(self)
             try:
-                uuid = cls._defaultKind
-            except AttributeError:
+                uuid = cls.__dict__['_defaultKind']
+            except KeyError:
                 uuid = None
 
             if uuid is not None:
@@ -70,6 +71,9 @@ class Item(object):
                                '_references': References(self),
                                '_name': name or None,
                                '_kind': kind })
+
+        if kind is not None:
+            kind._setupClass(cls)
 
         if parent._isRepository():
             if kind is not None:
@@ -147,63 +151,6 @@ class Item(object):
         return "<%s%s:%s %s>" %(type(self).__name__, status, name,
                                 self._uuid.str16())
 
-    def __getattr__(self, name):
-        """
-        This method is called by python when looking up a Chandler attribute.
-        @param name: the name of the attribute being accessed.
-        @type name: a string
-        @return: an attribute value
-        """
-
-        return self.getAttributeValue(name)
-
-    def __setattr__(self, name, value):
-        """
-        This method is called whenever an attribute's value is set.
-
-        It resolves whether the attribute is a Chandler attribute or a regular
-        python attribute and dispatches to the relevant methods.
-        @param name: the name of the attribute being set.
-        @type name: a string
-        @param value: the value being set
-        @type value: anything
-        @return: the value actually set.
-        """
-
-        if name in self.__dict__:
-            return super(Item, self).__setattr__(name, value)
-            
-        if name in self._values:
-            return self.setAttributeValue(name, value,
-                                          _attrDict=self._values)
-
-        if name in self._references:
-            return self.setAttributeValue(name, value,
-                                          _attrDict=self._references)
-
-        if self._kind is not None and self._kind.hasAttribute(name):
-            return self.setAttributeValue(name, value)
-
-        return super(Item, self).__setattr__(name, value)
-
-    def __delattr__(self, name):
-        """
-        This method is called whenever an attribute's value is removed.
-
-        It resolves whether the attribute is a Chandler attribute or a regular
-        python attribute and dispatches to the relevant methods.
-        @param name: the name of the attribute being cleared.
-        @type name: a string
-        @return: C{None}
-        """
-
-        if name in self._values:
-            self.removeAttributeValue(name, _attrDict=self._values)
-        elif name in self._references:
-            self.removeAttributeValue(name, _attrDict=self._references)
-        else:
-            super(Item, self).__delattr__(name)
-
     def hasAttributeAspect(self, name, aspect):
         """
         Tell whether an attribute has a value set for the aspect.
@@ -224,7 +171,7 @@ class Item(object):
 
         return False
 
-    def getAttributeAspect(self, name, aspect, **kwds):
+    def getAttributeAspect(self, name, aspect, _attrID=None, **kwds):
         """
         Return the value for an attribute aspect.
 
@@ -320,8 +267,13 @@ class Item(object):
         """
 
         if self._kind is not None:
-            noError = kwds.get('noError', False)
-            attribute = self._kind.getAttribute(name, noError=noError)
+
+            if _attrID is not None:
+                attribute = self.find(_attrID)
+            else:
+                noError = kwds.get('noError', False)
+                attribute = self._kind.getAttribute(name, noError=noError)
+
             if attribute is not None:
                 if aspect != 'redirectTo':
                     redirect = attribute.getAspect('redirectTo', default=None)
@@ -338,7 +290,7 @@ class Item(object):
         return kwds.get('default', None)
         
     def setAttributeValue(self, name, value=None, setAliases=False,
-                          _attrDict=None, setDirty=True):
+                          _attrDict=None, setDirty=True, _attrID=None):
         """
         Set a value on a Chandler attribute.
 
@@ -357,7 +309,7 @@ class Item(object):
         """
 
         otherName = None
-
+        
         if _attrDict is None:
             if self._values.has_key(name):
                 _attrDict = self._values
@@ -370,7 +322,8 @@ class Item(object):
                      _attrDict = self._references
                 else:
                     redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                       default=None)
+                                                       default=None,
+                                                       _attrID=_attrID)
                     if redirect is not None:
                         item = self
                         names = redirect.split('.')
@@ -500,7 +453,7 @@ class Item(object):
         else:
             _attrDict._clearMonitored(name)
 
-    def getAttributeValue(self, name, _attrDict=None, **kwds):
+    def getAttributeValue(self, name, _attrDict=None, _attrID=None, **kwds):
         """
         Return a Chandler attribute value.
 
@@ -554,7 +507,10 @@ class Item(object):
             pass
 
         if not (self._kind is None or self._values._isNoinherit(name)):
-            attribute = self._kind.getAttribute(name)
+            if _attrID is not None:
+                attribute = self.find(_attrID)
+            else:
+                attribute = self._kind.getAttribute(name)
 
             inherit = attribute.getAspect('inheritFrom', default=None)
             if inherit is not None:
@@ -590,7 +546,7 @@ class Item(object):
 
         raise NoValueForAttributeError, (self, name)
 
-    def removeAttributeValue(self, name, _attrDict=None):
+    def removeAttributeValue(self, name, _attrDict=None, _attrID=None):
         """
         Remove a value for a Chandler attribute.
 
@@ -731,8 +687,10 @@ class Item(object):
         """
 
         if not referencesOnly:
-            for attr in self._values.iteritems():
-                yield attr
+            for name, value in self._values.iteritems():
+                if isinstance(value, SingleRef):
+                    value = self.getRepositoryView().find(value.itsUUID)
+                yield name, value
 
         if not valuesOnly:
             for name, ref in self._references.iteritems():
@@ -747,7 +705,7 @@ class Item(object):
         Currently, this method verifies that:
             - each literal attribute value is of a type compatible with its
               C{type} aspect (see L{getAttributeAspect}).
-            - each attribute value is a of a cardinality compatible with its
+            - each attribute value is of a cardinality compatible with its
               C{cardinality} aspect.
             - each reference attribute value's endpoints are compatible with
               each other, that is their C{otherName} aspects match the
@@ -1687,6 +1645,7 @@ class Item(object):
                 self.__class__ = Item
             else:
                 self.__class__ = kind.getItemClass()
+                kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
 
     def mixinKinds(self, *kinds):
@@ -1920,7 +1879,7 @@ class Item(object):
     def _addItem(self, item, previous=None, next=None):
 
         name = item._name
-        
+
         if self._children is not None:
             if name is not None:
                 loading = self.getRepositoryView().isLoading()
@@ -2432,14 +2391,12 @@ class Children(LinkedMap):
             buffer = cStringIO.StringIO()
             buffer.write('{(currenly loaded) ')
             first = True
-            for key, value in self._iteritems():
+            for link in self._itervalues():
                 if not first:
                     buffer.write(', ')
                 else:
                     first = False
-                buffer.write(key.__repr__())
-                buffer.write(': ')
-                buffer.write(value.__repr__())
+                buffer.write(link.getValue(self)._repr_())
             buffer.write('}')
 
             return buffer.getvalue()

@@ -18,8 +18,13 @@ class Attribute(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Attribute, self)._fillItem(name, parent, kind, **kwds)
-        self._status |= Item.SCHEMA | Item.PINNED
         
+        refList = self._refList('inheritingKinds',
+                                'inheritedAttributes', False)
+        self._references['inheritingKinds'] = refList
+
+        self._status |= Item.SCHEMA | Item.PINNED
+
     def hasAspect(self, name):
 
         return self.hasAttributeValue(name)

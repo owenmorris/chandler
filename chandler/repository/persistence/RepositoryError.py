@@ -95,6 +95,14 @@ class LoadError(RepositoryError):
     def __str__(self):
         return self.__doc__ %(self.args[0], self.args[1])
 
+
+class RecursiveLoadItemError(LoadError):
+    "Item %s is already being loaded"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0])
+
+
 class LoadValueError(LoadError):
     "While loading %s.%s, %s"
 

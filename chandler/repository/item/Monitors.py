@@ -63,3 +63,7 @@ class Monitors(Item):
     getInstance = classmethod(getInstance)
 
     instances = {}
+
+
+class Monitor(Item):
+    pass

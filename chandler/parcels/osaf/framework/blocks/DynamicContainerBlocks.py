@@ -24,8 +24,8 @@ class RefCollectionDictionary(Item):
     def __init__(self, *args, **kwds):
         super(RefCollectionDictionary, self).__init__(*args, **kwds)
         # ensure that the collectionSpecifier exists
-        if not self.hasAttributeValue(self.collectionSpecifier()):
-            self.setAttributeValue(self.collectionSpecifier(), [])
+        if not self.hasAttributeValue(self.getCollectionSpecifier()):
+            self.setAttributeValue(self.getCollectionSpecifier(), [])
         
     def itemNameAccessor(self, item):
         """
@@ -40,7 +40,7 @@ class RefCollectionDictionary(Item):
         """
         return item.itsName or item.itsUUID.str64()
     
-    def collectionSpecifier(self):
+    def getCollectionSpecifier(self):
         """
         determines which attribute to use for the
         collectionSpecifier.
@@ -59,7 +59,7 @@ class RefCollectionDictionary(Item):
         @type key: C{immutable}, typically C{String} or C{int}
         @return: a C{Tuple} containing C{(item, collection)} or raises an exception if not found.
         """
-        coll = self.getAttributeValue(self.collectionSpecifier())
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
         if isinstance (key, int):
             if key >= 0:
                 i = coll.first ()
@@ -91,7 +91,7 @@ class RefCollectionDictionary(Item):
         """
         Returns an iterator to the collection attribute.
         """
-        return iter(self.getAttributeValue(self.collectionSpecifier()))
+        return iter(self.getAttributeValue(self.getCollectionSpecifier()))
  
     def __len__(self):
         """
@@ -99,7 +99,7 @@ class RefCollectionDictionary(Item):
         """
         # In case our collection doesn't exist return zero
         try:
-            return len(self.getAttributeValue(self.collectionSpecifier()))
+            return len(self.getAttributeValue(self.getCollectionSpecifier()))
         except AttributeError:
             return 0
     
@@ -117,7 +117,7 @@ class RefCollectionDictionary(Item):
         @type key: C{item}
         @return: C{True} if found, or {False} if not found.
         """
-        coll = self.getAttributeValue(self.collectionSpecifier())
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
         return coll.get(item.itsUUID) != None
     
     def __getitem__(self, key):
@@ -153,7 +153,7 @@ class RefCollectionDictionary(Item):
         @type item: C{item}
         """
         # 
-        coll = self.getAttributeValue(self.collectionSpecifier())
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
         coll.append(item, alias=self.itemNameAccessor(item))
         if index is not None:
             prevItem = coll.previous(index)
@@ -171,7 +171,7 @@ class RefCollectionDictionary(Item):
 
     def __str__ (self):
         barList = []
-        coll = self.getAttributeValue(self.collectionSpecifier())
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
         for entry in coll:
             barList.append (entry.itsName or entry.itsUUID.str64())
         return str (barList)
@@ -366,7 +366,8 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     Active View changes.
     This list of children is in "dynamicChildren" and the
     back pointer is in "dynamicParent".
-    """                
+    """
+
     def itemNameAccessor(self, item):
         """
           Use blockName for the accessor
@@ -391,7 +392,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
         """
         try:
             children = len (self.dynamicChildren)
-        except attributeError:
+        except AttributeError:
             children = 0
         if not children:
             self.populateFromStaticChildren ()

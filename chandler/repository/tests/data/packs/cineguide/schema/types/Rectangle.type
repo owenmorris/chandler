@@ -8,12 +8,12 @@
   <attribute name="fields">
     <value name="x">
       <values>
-        <value name="type" type="path" eval="true">/Core/Integer</value>
+        <value name="type" type="path" eval="True">/Core/Integer</value>
       </values>
     </value>
     <value name="y">
       <values>
-        <value name="type" type="path" eval="true">/Core/Integer</value>
+        <value name="type" type="path" eval="True">/Core/Integer</value>
       </values>
     </value>
   </attribute>

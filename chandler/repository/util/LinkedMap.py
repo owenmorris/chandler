@@ -374,6 +374,10 @@ class LinkedMap(dict):
         for key in self.iterkeys():
             yield self[key]
 
+    # The _ versions of the iterators below iterate over the currently loaded
+    # elements of the linked map and the ones yielding values yield the links
+    # themselves.
+
     def iterkeys(self):
 
         nextKey = self._firstKey
