@@ -95,7 +95,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             
             ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
-            CopyLog(os.path.join(workingDir, logPath), log)
             if ret != 'success':
                 break
 
