@@ -13,6 +13,20 @@ import logging
 log = logging.getLogger('sharing')
 log.setLevel(logging.DEBUG)
 
+indent = 0
+
+def INC_OFFSET():
+    global indent
+    indent += 1
+    return indent
+def DEC_OFFSET():
+    global indent
+    indent -= 1
+    return indent
+def OFFSET():
+    global indent
+    return ' ' * indent
+
 
 class HistoryChecker(object):
     """
@@ -30,16 +44,16 @@ class HistoryChecker(object):
                 sharedVersion = 1
             self.item.itsView.mapHistory(self._histfunc,
                                          sharedVersion,
-                                         self.item._version)
+                                         0)
         return self.dirty
 
     def _histfunc(self, item, version, status, values, references):
         if self.dirty:
             return
         if self.item == item:
-            log.debug('Checking dirty...')
-            log.debug('  values: %s' % (values))
-            log.debug('  refs:   %s' % (references))
+            log.info('%s|- Checking dirty...' % (OFFSET()))
+            log.info('%s|  |- values: %s' % (OFFSET(), values))
+            log.info('%s|  `- refs:   %s' % (OFFSET(), references))
             for value in values:
                 if value not in [u'etag', u'sharedURL', u'sharedVersion']:
                     self.dirty = True
@@ -56,6 +70,9 @@ def syncItem(dav, item):
     needsPut = False
     localChanges = False
     serverChanges = False
+
+    offset = OFFSET()
+    log.info('%sSyncing %s (%s)' % (offset, unicode(dav.url), item.getItemDisplayName()))
 
     # see if the local version has changed by comparing the last shared version
     # with the item's current version
@@ -85,14 +102,13 @@ def syncItem(dav, item):
         localChanges = True
         serverChanges = False
 
-    log.info('Syncing %s (%s)' % (unicode(dav.url), item.getItemDisplayName()))
-    log.info('|- needsPut      %s' % (needsPut))
-    log.info('|- localChanges  %s' % (localChanges))
-    log.info('|  `- versions   %s : %s' % (item.sharedVersion, item._version))
-    log.info('`- serverChanges %s' % (serverChanges))
+    log.info('%s|- needsPut      %s' % (offset, needsPut))
+    log.info('%s|- localChanges  %s' % (offset, localChanges))
+    log.info('%s|  `- versions   %s : %s' % (offset, item.sharedVersion, item._version))
+    log.info('%s`- serverChanges %s' % (offset, serverChanges))
     if serverChanges:
-        log.info('   |-- our etag  %s' % (etag))
-        log.info('   `-- svr etag  %s' % (davETag))
+        log.info('%s   |-- our etag  %s' % (offset, etag))
+        log.info('%s   `-- svr etag  %s' % (offset, davETag))
 
     if needsPut:
         dav.putResource(item.itsKind.itsName, 'text/plain')
@@ -129,7 +145,6 @@ def syncItem(dav, item):
 
 def merge(dav, item, davItem, hasLocalChanges):
     # for now, just pull changes from the server and overwrite local changes...
-    log.debug('Doing merge')
     item.etag = davItem.etag
     syncFromServer(item, davItem)
 
@@ -140,28 +155,31 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
     serverList = []
     for node in nodes:
         if nodesAreItemRefs:
+            INC_OFFSET()
             try:
                 value = Dav.DAV(node.content).get()
             except Dav.NotFound:
                 value = None
+            DEC_OFFSET()
         else:
             value = node.content
 
         if value:
             serverList.append(value)
 
+    log.info('%sMerging List: %s in %s' % (OFFSET(), attrName, str(item)))
     try:
-        log.info('Merging List: %s in %s' % (attrName, str(item)))
         # for now, just sync with whatever the server gave us
         for i in serverList:
             if i not in list:
                 item.addValue(attrName, i)
-                log.info('adding %s to list %s' % (i, item))
+                log.info('%sAdding %s to list %s' % (OFFSET(), i, item))
         # XXX this should work but has some issues.. fixme!
-        # for i in list:
-        # if i not in serverList:
-        #     item.removeValue(attrName, i)
-        #     log.info('removing %s from list %s' % (i, item))
+        for i in list:
+            if i not in serverList:
+                item.removeValue(attrName, i)
+                log.info('%sremoving %s from list %s' % (OFFSET(), i, item))
+
     except Exception, e:
         log.exception(e)
             
@@ -192,7 +210,7 @@ def syncToServer(dav, item):
     for (name, value) in item.iterAttributeValues():
         # don't export these local attributes
         if name in [u'etag', u'lastModified', u'sharedVersion',
-                    u'sharedURL', u'sharedUUID', u'collectionOwner']:
+                    u'sharedURL', u'sharedUUID', u'collectionOwner' u'itemCollectionResults']:
             continue
 
         # XXX this is probably not the best thing to do here
@@ -289,8 +307,13 @@ def nodesFromXml(data):
 
 
 def syncFromServer(item, davItem):
-    item.itsKind = davItem.itsKind
     kind = davItem.itsKind
+
+    # we need to make sure that the kind of the item is the same as the one on
+    # the server
+    if item.itsKind != kind:
+        log.info('%sKind changed from %s to %s' % (OFFSET(), str(item.itsKind), kind))
+        item.itsKind = kind
 
     for (name, attr) in kind.iterAttributes(True):
 
@@ -298,7 +321,7 @@ def syncFromServer(item, davItem):
         if not value:
             continue
 
-        log.info('Getting: %s (%s)' % (name, attr.type.itsName))
+        log.info('%sGetting: %s (%s)' % (OFFSET(), name, attr.type.itsName))
 
         # see if its an ItemRef or not
         if isinstance(attr.type, Kind):
@@ -315,11 +338,13 @@ def syncFromServer(item, davItem):
                 continue
             elif attr.cardinality == 'single':
                 node = nodes[0]
+                INC_OFFSET()
                 try:
                     otherItem = Dav.DAV(node.content).get()
                     item.setAttributeValue(name, otherItem)
                 except Dav.NotFound:
                     log.warning('Cant access %s' % (node.content))
+                DEC_OFFSET()
             elif attr.cardinality == 'dict':
                 # XXX implement me
                 log.info('NOTIMPLEMENTED Trying to share cardinality dict attribute' % (node.content))
@@ -335,7 +360,7 @@ def syncFromServer(item, davItem):
                 #    log.info('Got.....: ', value)
                 mergeList(item, name, nodes, False)
             elif attr.cardinality == 'single':
-                log.info('Got.....: %s' % (value))
+                log.info('%sGot.....: %s' % (OFFSET(), value))
                 item.setAttributeValue(name, attr.type.makeValue(value))
 
 
@@ -349,7 +374,9 @@ def syncFromServer(item, davItem):
 
         serverCollectionResults = []
         for node in nodes:
+            INC_OFFSET()
             otherItem = Dav.DAV(node.content).get()
+            DEC_OFFSET()
             serverCollectionResults.append(otherItem)
 
         log.debug('Merging itemCollection')
@@ -388,10 +415,10 @@ def getItem(dav):
     origUUID = davItem.itsUUID
     try:
         newItem = repository.findUUID(sharing.itemMap[origUUID])
-        log.info('Updating existing item %s' % (newItem))
+        log.info('%sUpdating existing item %s' % (OFFSET(), newItem))
     except: # XXX figure out if this is a KeyError or an AttributeError
         newItem = None
-        log.info('Existing item not found for %s' % (unicode(dav.url)))
+        log.info('%sExisting item not found for %s' % (OFFSET(), unicode(dav.url)))
 
     if not newItem:
         # create a new item for the davItem
