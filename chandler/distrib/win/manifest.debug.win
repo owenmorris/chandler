@@ -58,8 +58,3 @@ chandler.exe
 # Grab the overall README
 src=chandler/distrib
 README.txt
-
-# Grab the MS runtime DLL
-src=chandler/distrib/win
-dest=bin
-msvcr71d.dll
