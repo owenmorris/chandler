@@ -44,7 +44,6 @@ chandler-system -a \
     osaf/chandler/pyxml \
     osaf/chandler/SOAPpy \
     osaf/chandler/wxpython \
-    osaf/chandler/zodb \
     osaf/chandler/openssl \
     osaf/chandler/m2crypto \
     osaf/hardhat
