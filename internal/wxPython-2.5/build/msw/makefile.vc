@@ -662,6 +662,7 @@ ADVDLL_CXXFLAGS = /M$(__RUNTIME_LIBS)$(__DEBUGRUNTIME_176) /DWIN32 \
 ADVDLL_OBJECTS =  \
 	$(OBJS)\advdll_dummy.obj \
 	$(OBJS)\advdll_calctrl.obj \
+	$(OBJS)\advdll_minical.obj \
 	$(OBJS)\advdll_grid.obj \
 	$(OBJS)\advdll_gridctrl.obj \
 	$(OBJS)\advdll_gridsel.obj \
@@ -687,6 +688,7 @@ ADVLIB_CXXFLAGS = /M$(__RUNTIME_LIBS)$(__DEBUGRUNTIME_188) /DWIN32 \
 ADVLIB_OBJECTS =  \
 	$(OBJS)\advlib_dummy.obj \
 	$(OBJS)\advlib_calctrl.obj \
+	$(OBJS)\advlib_minical.obj \
 	$(OBJS)\advlib_grid.obj \
 	$(OBJS)\advlib_gridctrl.obj \
 	$(OBJS)\advlib_gridsel.obj \
@@ -1148,6 +1150,7 @@ __DEBUGRUNTIME_76 = $(__DEBUGINFO_28)
 ____MONOLIB_GUI_SRC_FILENAMES_OBJECTS =  \
 	$(____CORE_SRC_FILENAMES_OBJECTS) \
 	$(OBJS)\monodll_calctrl.obj \
+	$(OBJS)\monodll_minical.obj \
 	$(OBJS)\monodll_grid.obj \
 	$(OBJS)\monodll_gridctrl.obj \
 	$(OBJS)\monodll_gridsel.obj \
@@ -1643,6 +1646,7 @@ __DEBUGRUNTIME_88 = $(__DEBUGINFO_28)
 ____MONOLIB_GUI_SRC_FILENAMES_1_OBJECTS =  \
 	$(____CORE_SRC_FILENAMES_1_OBJECTS) \
 	$(OBJS)\monolib_calctrl.obj \
+	$(OBJS)\monolib_minical.obj \
 	$(OBJS)\monolib_grid.obj \
 	$(OBJS)\monolib_gridctrl.obj \
 	$(OBJS)\monolib_gridsel.obj \
@@ -2425,6 +2429,7 @@ ____CORE_SRC_FILENAMES_2_OBJECTS =  \
 	$(OBJS)\coredll_caret.obj \
 	$(OBJS)\coredll_clipbrd.obj \
 	$(OBJS)\coredll_colour.obj \
+
 	$(OBJS)\coredll_cursor.obj \
 	$(OBJS)\coredll_data.obj \
 	$(OBJS)\coredll_dc.obj \
@@ -3534,7 +3539,6 @@ clean:
 	-if exist $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_VERSION_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl_vc$(VENDORTAG).pdb del $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_VERSION_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl_vc$(VENDORTAG).pdb
 	-if exist $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl.lib del $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl.lib
 	-if exist $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl.lib del $(LIBDIRNAME)\wx$(PORTNAME)$(WXUNIVNAME)$(WX_RELEASE_NODOT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_gl.lib
-	cd $(MAKEDIR)
 
 setup_h: $(SETUPHDIR)\wx ..\..\include\wx\$(__SETUP_H_SUBDIR_FILENAMES)\setup.h $(SETUPHDIR)\wx\setup.h
 
@@ -4527,6 +4531,9 @@ $(OBJS)\monodll_win32.obj: ..\..\src\univ\themes\win32.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(MONODLL_CXXFLAGS) $**
 
 $(OBJS)\monodll_calctrl.obj: ..\..\src\generic\calctrl.cpp
+	$(CXX) /c /nologo /TP /Fo$@ $(MONODLL_CXXFLAGS) $**
+
+$(OBJS)\monodll_minical.obj: ..\..\src\generic\minical.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(MONODLL_CXXFLAGS) $**
 
 $(OBJS)\monodll_grid.obj: ..\..\src\generic\grid.cpp
@@ -6129,6 +6136,9 @@ $(OBJS)\monolib_win32.obj: ..\..\src\univ\themes\win32.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(MONOLIB_CXXFLAGS) $**
 
 $(OBJS)\monolib_calctrl.obj: ..\..\src\generic\calctrl.cpp
+	$(CXX) /c /nologo /TP /Fo$@ $(MONOLIB_CXXFLAGS) $**
+
+$(OBJS)\monolib_minical.obj: ..\..\src\generic\minical.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(MONOLIB_CXXFLAGS) $**
 
 $(OBJS)\monolib_grid.obj: ..\..\src\generic\grid.cpp
@@ -9101,6 +9111,7 @@ $(OBJS)\corelib_tabg.obj: ..\..\src\generic\tabg.cpp
 $(OBJS)\corelib_colschem.obj: ..\..\src\univ\colschem.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(CORELIB_CXXFLAGS) $**
 
+
 $(OBJS)\corelib_ctrlrend.obj: ..\..\src\univ\ctrlrend.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(CORELIB_CXXFLAGS) $**
 
@@ -10127,6 +10138,9 @@ $(OBJS)\advdll_dummy.obj: ..\..\src\msw\dummy.cpp
 $(OBJS)\advdll_calctrl.obj: ..\..\src\generic\calctrl.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(ADVDLL_CXXFLAGS) $**
 
+$(OBJS)\advdll_minical.obj: ..\..\src\generic\minical.cpp
+	$(CXX) /c /nologo /TP /Fo$@ $(ADVDLL_CXXFLAGS) $**
+
 $(OBJS)\advdll_grid.obj: ..\..\src\generic\grid.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(ADVDLL_CXXFLAGS) $**
 
@@ -10170,6 +10184,9 @@ $(OBJS)\advlib_dummy.obj: ..\..\src\msw\dummy.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(ADVLIB_CXXFLAGS) /Ycwx/wxprec.h $**
 
 $(OBJS)\advlib_calctrl.obj: ..\..\src\generic\calctrl.cpp
+	$(CXX) /c /nologo /TP /Fo$@ $(ADVLIB_CXXFLAGS) $**
+
+$(OBJS)\advlib_minical.obj: ..\..\src\generic\minical.cpp
 	$(CXX) /c /nologo /TP /Fo$@ $(ADVLIB_CXXFLAGS) $**
 
 $(OBJS)\advlib_grid.obj: ..\..\src\generic\grid.cpp

@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.3.1-4
+RELVER=2.5.3.1-5
 SRC=$(INTERNAL)/wxPython-2.5
 
 ifeq ($(DEBUG),1)
@@ -9,11 +9,13 @@ CONF_OPT=--enable-debug
 DIST_OPT=--debug
 FINAL=0
 SUFFIX=d
+MANIFEST_SUFFIX=_d
 else
 CONF_OPT=--enable-optimized
 DIST_OPT=
 FINAL=1
 SUFFIX=
+MANIFEST_SUFFIX=
 endif
 
 
@@ -36,16 +38,18 @@ wxPython:
 	cd $(SRC)/wxPython; \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/chandler.exe.manifest; \
+	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest; \
+	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
                            USE_SWIG=0 \
                            SWIG=`cygpath -aw $(SWIG)` \
                            INSTALL_MULTIVERSION=0 \
-			   MONOLITHIC=0 \
+                           MONOLITHIC=0 \
                            build $(DIST_OPT) \
                            install \
                            FINAL=$(FINAL) HYBRID=0
 
-MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest
+MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)

@@ -341,28 +341,28 @@ static swig_type_info *swig_types[88];
 #endif /* __cplusplus */
 
 
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_signed_SS_char PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_char PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_short PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_short PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_int PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_long PyInt_FromLong
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_float PyFloat_FromDouble
 /*@@*/
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_double PyFloat_FromDouble
 /*@@*/
 
@@ -907,11 +907,11 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyTreeCtrl, wxTreeCtrl);
 
 
 #if UINT_MAX < LONG_MAX
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_int SWIG_From_long
 /*@@*/
 #else
-/*@/opt/swig/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/Users/davidsurovell/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_int SWIG_From_unsigned_SS_long
 /*@@*/
 #endif
