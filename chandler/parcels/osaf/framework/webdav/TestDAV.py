@@ -19,46 +19,57 @@ class TestDAV(TestContentModel.ContentModelTestCase):
 
     def testGeneratedEvents(self):
 
+        if not self.isOnline():
+            return
+
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/webdav")
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
 
-        return
+        test404 = 0
+        testPutGetItem = 0
+        testExportCollection = 0
+        testSyncCollection = 0
 
-        # this should return None
-        #DAV('http://code-bear.com/dav/this_item_doesnt_exist').get()
+        if test404:
+            noneItem = DAV('http://code-bear.com/dav/this_item_doesnt_exist').get()
+            self.assert_(noneItem == None)
 
-        """ item exporting """
-        testItem = GenerateItems.GenerateCalendarEvent(100)
-        url = 'http://code-bear.com/dav/' + 'my_test_item' #testItem.itsUUID.str16()
-        a = DAV(url)
-        print 'put 1'
-        a.put(testItem)
-        print 'put 2'
-        a.put(testItem)
+        if testPutGetItem:
+            # item exporting
+            testItem = GenerateItems.GenerateCalendarEvent(100)
+            a = DAV('http://code-bear.com/dav/my_test_item')
 
-        """ item fetching """
-        # fetch the item we put above
-        testItem = DAV(url).get()
-        testItem2 = DAV(url).get()
-        testItem3 = DAV(url).get()
+            a.deleteResource()
+            a.put(testItem)
 
+            """ item fetching """
+            testItem = a.get()
+
+            print testItem
 
 
-        print testItem, testItem2, testItem3
+        if testExportCollection:
+            # export item collections
+            ic = ItemCollection.NamedCollection()
+            for index in range(3):
+                ic.add(GenerateItems.GenerateCalendarEvent(100))
 
-        
-        """ export item collections """
-        """
-        ic = ItemCollection.NamedCollection()
-        for index in range(5):
+            a = DAV('http://code-bear.com/dav/test_item_collection2')
+            a.deleteResource()
+            a.put(ic)
+
+        if testSyncCollection:
+            # try fetching the item collection.  it shouldn't have any changes
+            a = DAV('http://code-bear.com/dav/test_item_collection2')
+            ic = a.get()
+            print '----------' + str(len(ic)) + '----------'
+
+            # add new event to collection, commit, sync
             ic.add(GenerateItems.GenerateCalendarEvent(100))
+            self.rep.commit()
 
-        a = DAV('http://code-bear.com/dav/' + str(ic.itsUUID)).putCollection(ic)
-
-        newCollection = DAV(a).getCollection(ic)
-        """
-        self.rep.commit()
+            a.sync(ic)
 
 if __name__ == "__main__":
     unittest.main()
