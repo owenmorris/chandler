@@ -446,6 +446,13 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <columnWidths>80</columnWidths>
     <columnWidths>80</columnWidths>
     <columnWidths>80</columnWidths>
+
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>False</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
   </Table>
 
 

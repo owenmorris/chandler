@@ -118,6 +118,11 @@
     <required>True</required>
   </Attribute>
 
+  <Attribute itsName="columnReadOnly">
+    <type itemref="Boolean"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
   <Attribute itsName="elementDelegate">
     <type itemref="String"/>
     <initialValue type="String"></initialValue>
@@ -898,6 +903,7 @@
     <attributes itemref="docSchema:columnHeadingTypes"/>
     <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
+    <attributes itemref="docSchema:columnReadOnly"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:Table/selection"/>

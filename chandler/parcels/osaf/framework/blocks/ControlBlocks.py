@@ -459,6 +459,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             """
             grid = self.GetView()
             if (grid.GetElementCount() != 0 and
+                not grid.blockItem.columnReadOnly[column] and
                 not grid.ReadOnly (row, column)[0] and
                 not delegate.ReadOnly (grid.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute

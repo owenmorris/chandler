@@ -1263,6 +1263,7 @@
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
+    <columnReadOnly>False</columnReadOnly>
     <hideColumnHeadings>True</hideColumnHeadings>
     <contextMenu itemref="doc:sidebarContextMenu"/>
     <selection>
@@ -1312,6 +1313,12 @@
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
+
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>False</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+
     <selection>
       <core:Integer value="0"/>
       <core:Integer value="0"/>
@@ -1504,6 +1511,11 @@
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
+
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
+    <columnReadOnly>False</columnReadOnly>
+    <columnReadOnly>True</columnReadOnly>
   </Table>
 
   <calendar:CanvasMonth itsName="CPIATestMonth">
