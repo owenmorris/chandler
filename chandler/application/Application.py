@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys, threading, tools.timing
+import gettext, os, sys, threading
 from new import classobj
 import wx
 import Globals
@@ -11,6 +11,9 @@ from repository.util.UUID import UUID
 import application.Parcel
 from repository.persistence.XMLRepository import XMLRepository
 from crypto import Crypto
+
+#@@@Temporary testing tool written by Morgen -- DJA
+import tools.timing
 
 
 """
@@ -123,8 +126,13 @@ class wxApplication (wx.App):
         """
           Main application initialization.
         """
-        tools.timing.begin("wxApplication OnInit")
-
+        tools.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+        """
+          Disable automatic calling of UpdateUIEvents. We will call them
+        manually when blocks get rendered, change visibility, etc.
+        """
+        wx.UpdateUIEvent.SetUpdateInterval (-1)
+        self.needsUpdateUI = True
         """
           Install a custom displayhook to keep Python from setting the global
         _ (underscore) to the value of the last evaluated expression.  If 
@@ -135,7 +143,6 @@ class wxApplication (wx.App):
             sys.stdout.write(str(obj))
 
         sys.displayhook = _displayHook
-
         """
           Find the directory that Chandler lives in by looking up the file that
         the application module lives in.
@@ -327,7 +334,7 @@ class wxApplication (wx.App):
 
             self.mainFrame.Show()
 
-            tools.timing.end("wxApplication OnInit")
+            tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
@@ -348,11 +355,7 @@ class wxApplication (wx.App):
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
             block = Block.widgetIDToBlock (wxID)
-
-            args = {}
-            if event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]:
-                args['UpdateUI'] = True
-
+            updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
             try:
                 blockEvent = block.event
             except AttributeError:
@@ -361,11 +364,15 @@ class wxApplication (wx.App):
                 then we'd better have a block event for it, otherwise
                 we can't post the event.
                 """
-                assert event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
-                pass
+                assert updateUIEvent
             else:
+                args = {}
+                if updateUIEvent:
+                    args['UpdateUI'] = True
+ 
                 block.Post (blockEvent, args)
-                if event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]:
+ 
+                if updateUIEvent:
                     try:
                         event.Check (args ['Check'])
                     except KeyError:
@@ -395,7 +402,7 @@ class wxApplication (wx.App):
         """
           Giant hack. Calling event.GetEventObject while the object is being created cause the
         object to get the wrong type because of a "feature" of SWIG. So we need to avoid
-        OnShows in this case.
+        OnShows in this case by using ignoreSynchronizeWidget as a flag.
         """
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             widget = event.GetEventObject()
@@ -424,6 +431,7 @@ class wxApplication (wx.App):
                         else:
                             Globals.notificationManager.Unsubscribe (widget.subscribeWhenVisibleEventsUUID)
                             delattr (widget, 'subscribeWhenVisibleEventsUUID')
+                        self.needsUpdateUI = True
     
                 
         event.Skip()
@@ -432,11 +440,19 @@ class wxApplication (wx.App):
         """
           Adding a handler for catching a set focus event doesn't catch
         every change to the focus. It's difficult to preprocess every event
-        so we check for focus changes in OnIdle
+        so we check for focus changes in OnIdle. Also call UpdateUI when
+        focus changes
         """
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
+            self.needsUpdateUI = True
+
+        if self.needsUpdateUI:
+            try:
+                self.mainFrame.UpdateWindowUI (wx.UPDATE_UI_FROMIDLE | wx.UPDATE_UI_RECURSE)
+            finally:
+                self.needsUpdateUI = False
         event.Skip()
 
     def OnExit(self):

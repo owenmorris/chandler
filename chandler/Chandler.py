@@ -50,6 +50,7 @@ def main():
         #Reraising the exception, so wing catches it.
         raise
 
+    #@@@Temporary testing tool written by Morgen -- DJA
     # import tools.timing
     # print "\nTiming results:\n"
     # tools.timing.results()

@@ -21,6 +21,7 @@ NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
 CPIA = "%s/osaf/framework/blocks" % NS_ROOT
 
+#@@@Temporary testing tool written by Morgen -- DJA
 timing = False
 if timing: import tools.timing
 
@@ -296,7 +297,7 @@ class Manager(Item):
         parent.
         Also check files for XML correctness (mismatched tags, etc).
         """
-
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.begin("Scan XML for namespaces")
 
         class MappingHandler(xml.sax.ContentHandler):
@@ -436,6 +437,7 @@ class Manager(Item):
             self.saveExplanation(e.getMessage())
             raise
 
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.end("Scan XML for namespaces")
 
     def __walkParcels(self, rootParcel):
@@ -598,7 +600,7 @@ class Manager(Item):
         global globalDepth
         globalDepth = 0
 
-
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.begin("Load parcels")
 
         try:
@@ -630,6 +632,7 @@ class Manager(Item):
             self.__displayError()
             raise
 
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.end("Load parcels")
 
     def resetState(self):
@@ -1191,6 +1194,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             The new item's kind is derived from (uri, local).
         """
 
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.begin("Creating items")
 
         try:
@@ -1205,6 +1209,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.saveExplanation(str(e))
             raise
 
+        #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.end("Creating items")
 
         if item is None:
@@ -1232,6 +1237,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             self.saveState(line=line, file=file)
 
+            #@@@Temporary testing tool written by Morgen -- DJA
             if timing: tools.timing.begin("Attribute assignments")
 
             if assignment["assignType"] == self._DELAYED_REFERENCE:
@@ -1400,6 +1406,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
 
+            #@@@Temporary testing tool written by Morgen -- DJA
             if timing: tools.timing.end("Attribute assignments")
 
         # Remove any assignments still remaining in the old value set, since
@@ -1770,6 +1777,7 @@ def __test():
     rep.commit()
     rep.close()
 
+    #@@@Temporary testing tool written by Morgen -- DJA
     if timing:
         print "\nTiming results:"
         tools.timing.results()

@@ -16,7 +16,7 @@ class View(BoxContainer):
               Call method named methodName on block
             """
             try:
-                member = getattr (block, methodName)
+                member = getattr (type(block), methodName)
             except AttributeError:
                 return False
 
@@ -26,7 +26,7 @@ class View(BoxContainer):
             print "Calling %s" % methodName
             """
 
-            member (notification)
+            member (block, notification)
             return True
         
         def bubleUpCallMethod (block, methodName, notification):
@@ -38,17 +38,17 @@ class View(BoxContainer):
                     break
                 block = block.parentBlock
         
-        def broadcast (block, methodName, notification, stopAtEventBoundary = True):
+        def broadcast (block, methodName, notification, childTest):
             """
               Call method named methodName on every block and it's children
-            who implements it, except for the block that posted the event,
+            who pass the childTest except for the block that posted the event,
             to avoid recursive calls.
             """
             if block != notification.data['sender']:
                 callMethod (block, methodName, notification)
             for child in block.childrenBlocks:
-                if child and not (stopAtEventBoundary and child.eventBoundary):
-                    broadcast (child, methodName, notification, stopAtEventBoundary)
+                if childTest (child):
+                    broadcast (child, methodName, notification, childTest)
 
         event = notification.event
         """
@@ -74,10 +74,18 @@ class View(BoxContainer):
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 
-            broadcast (block, methodName, notification)
+            broadcast (block,
+                       methodName,
+                       notification,
+                       lambda child: (child is not None and child.isShown))
 
         elif event.dispatchEnum == 'BroadcastEverywhere':
-            broadcast (Globals.mainView, methodName, notification, stopAtEventBoundary = False)
+            broadcast (Globals.mainView,
+                       methodName,
+                       notification,
+                       lambda child: (child is not None and
+                                      child.isShown and 
+                                      not child.eventBoundary))
 
         elif event.dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()

@@ -27,14 +27,14 @@ class Block(Item):
 
     def render (self):
         try:
-            instantiateWidgetMethod = getattr (self, "instantiateWidget")
+            instantiateWidgetMethod = getattr (type (self), "instantiateWidget")
         except AttributeError:
-            return
+            pass
         else:
             oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
             Globals.wxApplication.ignoreSynchronizeWidget = True
             try:
-                widget = instantiateWidgetMethod()
+                widget = instantiateWidgetMethod (self)
             finally:
                 Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
@@ -44,6 +44,7 @@ class Block(Item):
             """
 
             if widget:
+                Globals.wxApplication.needsUpdateUI = True
                 self.setPinned()
                 self.widget = widget
                 widget.blockItem = self
@@ -51,11 +52,11 @@ class Block(Item):
                   After the blocks are wired up, call OnInit if it exists.
                 """
                 try:
-                    OnInitMethod = getattr (widget, "OnInit")
+                    OnInitMethod = getattr (type (widget), "OnInit")
                 except AttributeError:
                     pass
                 else:
-                    OnInitMethod()
+                    OnInitMethod (widget)
                 """
                   For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
@@ -157,6 +158,7 @@ class Block(Item):
 
         delattr (self, 'widget')
         self.setPinned (False)
+        Globals.wxApplication.needsUpdateUI = True
 
     def widgetIDToBlock (theClass, wxID):
         """
@@ -235,8 +237,8 @@ class Block(Item):
                     operation = 'add'
                 else:
                     operation = 'remove'
-            method = getattr (self.contents, operation)
-            method (item)
+            method = getattr (type(self.contents), operation)
+            method (self.contents, item)
 
     def synchronizeWidget (self):
         """
@@ -253,7 +255,7 @@ class Block(Item):
         during shutdown to ignore events caused by the framework tearing down wxWidgets.
         """
         try:
-            method = getattr (self.widget, 'wxSynchronizeWidget')
+            method = getattr (type (self.widget), 'wxSynchronizeWidget')
         except AttributeError:
             pass
         else:
@@ -261,7 +263,7 @@ class Block(Item):
                 oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
                 Globals.wxApplication.ignoreSynchronizeWidget = True
                 try:
-                    method()
+                    method (self.widget)
                 finally:
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 

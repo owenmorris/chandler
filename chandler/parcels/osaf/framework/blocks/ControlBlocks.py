@@ -401,25 +401,15 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.SetCellHighlightPenWidth (0)
         self.SetCellHighlightROPenWidth (0)
 
-        self.SetDefaultRenderer (GridCellAttributeRenderer("_default"))
-        self.RegisterDataType ("String",
-                               GridCellAttributeRenderer("String"),
-                               GridCellAttributeEditor("String"))
-        self.RegisterDataType ("DateTime",
-                               GridCellAttributeRenderer("DateTime"),
-                               GridCellAttributeEditor("DateTime"))
-        self.RegisterDataType ("EmailAddress",
-                               GridCellAttributeRenderer("String"),
-                               GridCellAttributeEditor("String"))
-        self.RegisterDataType ("ContentItem",
-                               GridCellAttributeRenderer("String"),
-                               GridCellAttributeEditor("String"))
-        self.RegisterDataType ("Contact",
-                               GridCellAttributeRenderer("String"),
-                               GridCellAttributeEditor("String"))
-        self.RegisterDataType ("ContactName",
-                               GridCellAttributeRenderer("ContactName"),
-                               GridCellAttributeEditor("ContactName"))
+        defaultName = "_default"
+        self.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
+        map = Globals.repository.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+        for key in map.editorString.keys():
+            if key != defaultName:
+                self.RegisterDataType (key,
+                                       GridCellAttributeRenderer (key),
+                                       GridCellAttributeEditor (key))
+
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
