@@ -532,12 +532,11 @@
     
     <Attribute itemName="location">
       <type itemref="String"/>
-      <initialValue type="String">inParentBlock</initialValue>
     </Attribute>
     
     <Attribute itsName="itemLocation">
       <type itemref="String"/>
-      <initialValue type="String"></initialValue>
+      <initialValue type="String"/>
     </Attribute>
     
     <Attribute itsName="helpString">

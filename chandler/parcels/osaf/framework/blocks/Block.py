@@ -127,7 +127,7 @@ class Block(Item):
             #  we need to handle them specially.
             if isinstance(child, DynamicContainerBlocks.MenuBar):
                 # flag rebuild of dynamic containers including menus
-                Globals.mainView.lastDynamicParent = False
+                Globals.mainView.lastDynamicBlock = True
             else:
                 # destroy a widget
                 child.widget.Destroy ()

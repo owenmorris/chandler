@@ -156,46 +156,134 @@ class RefCollectionDictionary(object):
         itemIndex, coll = self._index(key)
         coll.removeItem(itemIndex)
 
+    def __str__ (self):
+        barList = []
+        coll = self.getAttributeValue(self.collectionSpecifier())
+        for entry in coll:
+            barList.append (entry.itsName)
+        return str (barList)
 
 class DynamicBlock (object):
-    # Abstract mixin class used to detect Dynamic blocks
-    pass
-
-class DynamicChild (DynamicBlock):
-    # Abstract mixin class used to detect DynamicChild blocks
-    pass
-
-class DynamicContainer(RefCollectionDictionary):
     """
-      A block whose children are built dynamically, when the
-    Active View changes.
-    This list of children is in "dynamicChildren" and the
-    back pointer is in "dynamicParent".
-    """                
-    def itemNameAccessor(self, item):
+      Mixin class for any Dynamic Block, both DynamicContainers
+    and DynamicChild blocks.
+    You should mix this class into a Block
+    """
+    def isDynamicChild (self):
+        return False
+
+    def isDynamicContainer (self):
+        return False
+
+    def appendDynamicBlocks (self, blockList):
         """
-          Use blockName for the accessor
-        """
-        return item.blockName
-    
-    def ensureDynamicChildren(self):
-        """
-          Make sure we have a DynamicChildren hierarchy, since all my
-        subclasses use that hierarchy when they synchronize.
-        If there is no DynamicChildren built, then initialize it from
-        the childrenBlocks hierarchy.
+          Uniquely insert all dynamic blocks recursively to blockList
+        preserving the order of the items.
+        Note that items need to be inserted at the beginning, because
+        we are scanning the tree from the bottom up, and tend to find
+        the dynamic additions first, and the static definitions last.
+        We want the static definitions to come first because the dynamic
+        additions override them.
         """
         try:
-            children = len(self.dynamicChildren)
-        except attributeError:
-            children = 0
-        if not children:
-            # copy our static children as a useful starting point
-            self.dynamicChildren.clear()
-            for block in self.childrenBlocks:
-                self[block.blockName] = block
+            isContainer = self.isDynamicContainer ()
+        except AttributeError:
+            pass
+        else:
+            try:
+                i = blockList.index (self)
+            except ValueError:
+                blockList.insert (0, self)
+            else:
+                blockList[i:i+1] = (self,)
+            if isContainer:
+                for child in self.childrenBlocks:
+                    child.appendDynamicBlocks (blockList)
+    
+    def buildDynamicList (self):
+        """
+          Build a list of dynamic blocks found starting at self,
+        moving up through the static hierarchy, and tunnelling down inside
+        all dynamic branches found.
+        We need all Dynamic Containers, and all Dynamic Children
+        that have an itemLocation specified.
+        @Return: the list of all Dynamic Blocks.
+        """
+        blockList = []
+        block = self
+        while block is not None:
+            for child in block.childrenBlocks:
+                try:
+                    child.appendDynamicBlocks (blockList)
+                except AttributeError:
+                    pass
+            block = block.parentBlock
+        return blockList
 
-    def synchronizeDynamicBlocks(cls, startingAtBlock):
+    def rebuildContainers(self, containers):
+        """
+          Scan for dynamic containers, registering them in the containers list.
+        Returns the block list of all dynamic blocks found.
+        @param containers: the containers dictionary.
+        @type containers: C{dict} to put all DynamicContainer blocks into.
+        @Return: the list of all Dynamic Blocks.
+        """
+        blockList = self.buildDynamicList ()
+        for block in blockList:
+            if block.isDynamicContainer ():
+                # initialize dynamic children starting with the static hierarchy
+                block.populateFromStaticChildren ()
+                containers [block.blockName] = block
+        return blockList
+                                       
+    def rebuildChildren(self, containers, blockList):
+        """
+          Scan for dynamic children, find their parent, and attach them
+        appropriately to the parent.dynamicChildren attribute.
+        @param containers: the containers dictionary.
+        @type containers: C{dict} to put all DynamicContainer blocks into.
+        @param blockList: the list of all Dynamic blocks to consider.
+        @type blockList: C{list} of DynamicBlock objects.
+        """
+        for child in blockList:
+            # pick up children
+            if child.isDynamicChild ():
+                """
+                  Use location to look up the container that
+                contains the entry or container
+                
+                  If you get an exception here, it's probably because
+                the name of the location isn't the name of an existing
+                bar.
+                  Use 'MenuBar' for the Menu Bar.
+                    """
+                try:
+                    locationName = child.location
+                except AttributeError:
+                    locationName = child.parentBlock.blockName
+                bar = containers [locationName]
+                
+                if child.operation == 'InsertBefore':
+                    # Shouldn't have items with the same name, unless they are the same
+                    if __debug__:
+                        if not child in bar:
+                            if bar.has_key (child.blockName):
+                                logging.warning ("%s already has a %s named %s" % (bar.blockName, child.blockName, child.blockName))
+                    # find its position (or None) and insert there (or at the end)
+                    i = bar.index (child.itemLocation)
+                    bar.insert (i, child)
+                elif child.operation == 'Replace':
+                    bar[child.itemLocation] = child
+                elif child.operation == 'Delete':
+                    """
+                      If you get an exception here, it's probably because
+                    you're trying to remove a bar item that doesn't exist.
+                    """
+                    del bar[child.itemLocation]
+                else:
+                   assert (False)
+
+    def synchronizeDynamicBlocks (self):
         """
            synchronizeDynamicBlocks rebuilds the dynamic
         container hierarchy based on the blocks it finds in
@@ -208,9 +296,11 @@ class DynamicContainer(RefCollectionDictionary):
         to their dynamicParent.
 
           The rebuild is done starting at the specified block,
-        first scanning all of its childrenBlocks, and then
         moving up to the parentBlock, repeating this process
-        until reaching the root of the hierarchy.
+        until reaching the root of the hierarchy.  If we find
+        any dynamic block at any point in the traversal we 
+        scan down through all of its children recursively
+        as long as dynamic blocks are found.
         
           DynamicContainers and their dynamicChildren are 
         identified by their itemName rather than their UUIDs,
@@ -219,89 +309,26 @@ class DynamicContainer(RefCollectionDictionary):
         and all names of dynamicChildren to be unique within
         their container.  
 
-        @param startingAtBlock: the starting block for the scan.
-        @type startingAtBlock: C{Block}
+        @param self: the starting block for the scan.
+        @type self: C{DynamicBlock}
         """
-        
-        def rebuildContainers(block, containers):
-            """
-              scan one level of the static hierarchy looking for dynamic containers.
-            """
-            parent = block.parentBlock
-            if parent is not None:
-                rebuildContainers (parent, containers)
-            for child in block.childrenBlocks:
-                # pick up container definitions
-                if isinstance (child, DynamicContainer):
-                    # initialize dynamic children starting with the static hierarchy
-                    child.dynamicChildren.clear()
-                    for block in child.childrenBlocks:
-                        child[block.blockName] = block
-                    containers [child.blockName] = child
-                                           
-        def rebuildChildren(block, containers):
-            """
-              scan one level of the static hierarchy looking for dynamic children.
-            """
-            parent = block.parentBlock
-            if parent is not None:
-                rebuildChildren (parent, containers)
-            for child in block.childrenBlocks:
-                # pick up children
-                if isinstance (child, DynamicChild):
-                    """
-                      Use location to look up the container that
-                    contains the entry or container
-                    
-                      If you get an exception here, it's probably because
-                    the name of the location isn't the name of an existing
-                    bar (bar needs to be listed before items).
-                        """
-                    locationName = child.location
-                    if locationName == '':
-                        locationName = 'MenuBar'
-                    if locationName == 'inParentBlock':
-                        locationName = child.parentBlock.blockName
-                    bar = containers [locationName]
-                    
-                    if child.operation == 'InsertBefore':
-                        # Shouldn't have items with the same name, unless they are the same
-                        if __debug__:
-                            if not child in bar:
-                                if bar.has_key(child.blockName):
-                                    logging.warning("%s already has a %s named %s" % (bar.blockName, child.blockName, child.blockName))
-                        i = bar.index(child.itemLocation)
-                        bar.insert(i, child)
-                    elif child.operation == 'Replace':
-                        bar[child.itemLocation] = child
-                    elif child.operation == 'Delete':
-                        """
-                          If you get an exception here, it's probably because
-                        you're trying to remove a bar item that doesn't exist.
-                        """
-                        del bar[child.itemLocation]
-                    else:
-                       assert (False)
+
+        containers = {}
         """
           Rebuild the dynamic container hierarchy.
         First establish all containers, then insert their children
         so the block declarations can be order-independent.
         """
-        containers = {}
-        rebuildContainers(startingAtBlock, containers)
-        rebuildChildren(startingAtBlock, containers)
+        allDynamic = self.rebuildContainers (containers)
+        self.rebuildChildren (containers, allDynamic)
+
         """
           Now that the we have the new dynamic structure, 
         update the blocks that have changed and call synchronizeWidget on them
         so they know to redraw.
         """
-        # Help users who forget to put a location attribute on a menuItem or toolbarItem
-        for menu in containers['MenuBar']:
-            assert isinstance(menu, Menu), "Non-Menu block named %s found in \
-                 Menu Bar (specify a location attribute)" % menu.blockName 
         for bar in containers.values():
             """
-            DLDTBD - call synchronizeWidget instead.
             Can't call synchronizeWidget because IgnoreSynchronizeWidget
             is true because we're in Tab's synchronizeWidget.
             """
@@ -311,7 +338,47 @@ class DynamicContainer(RefCollectionDictionary):
                 pass
             else:
                 bar.widget.wxSynchronizeWidget()
-    synchronizeDynamicBlocks=classmethod(synchronizeDynamicBlocks)
+
+class DynamicChild (DynamicBlock):
+    # Abstract mixin class used to detect DynamicChild blocks
+    def isDynamicChild (self):
+        return True
+
+class DynamicContainer(RefCollectionDictionary, DynamicBlock):
+    """
+      A block whose children are built dynamically, when the
+    Active View changes.
+    This list of children is in "dynamicChildren" and the
+    back pointer is in "dynamicParent".
+    """                
+    def itemNameAccessor(self, item):
+        """
+          Use blockName for the accessor
+        """
+        return item.blockName
+    
+    def isDynamicContainer (self):
+        return True
+
+    def populateFromStaticChildren (self):
+        # copy our static children as a useful starting point
+        self.dynamicChildren.clear ()
+        for block in self.childrenBlocks:
+            self[block.blockName] = block
+
+    def ensureDynamicChildren (self):
+        """
+          Make sure we have a DynamicChildren hierarchy, since all my
+        subclasses use that hierarchy when they synchronize.
+        If there is no DynamicChildren built, then initialize it from
+        the childrenBlocks hierarchy.
+        """
+        try:
+            children = len (self.dynamicChildren)
+        except attributeError:
+            children = 0
+        if not children:
+            self.populateFromStaticChildren ()
 
 class wxMenuItem (wx.MenuItem):
     def __init__(self, style, *arguments, **keywords):
@@ -406,7 +473,7 @@ class wxMenu(wx.Menu):
         else:
             self.InsertMenu (index, 0, newItem.title, newItem.widget, newItem.helpString)
         
-class wxMenuBar(wx.MenuBar):
+class wxMenuBar (wx.MenuBar):
     def __init__(self, *arguments, **keywords):
         super (wxMenuBar, self).__init__ (*arguments, **keywords)
         # install the menu bar in the main frame
@@ -455,7 +522,7 @@ class MenuItem (Block.Block, DynamicChild):
         except AttributeError:
             return None
         
-class MenuBar(Block.Block, DynamicContainer):
+class MenuBar (Block.Block, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         return wxMenuBar()
@@ -490,7 +557,7 @@ class MenuBar(Block.Block, DynamicContainer):
             self.widget.removeItem (index, oldItem)
             index += 1
 
-class Menu(MenuBar, DynamicChild):
+class Menu (MenuBar, DynamicChild):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         return wxMenu()
@@ -499,7 +566,7 @@ class Menu(MenuBar, DynamicChild):
 Toolbar classes
 """
 
-class wxToolbar(wx.ToolBar):
+class wxToolbar (wx.ToolBar):
     def __init__(self, *arguments, **keywords):
         super (wxToolbar, self).__init__ (*arguments, **keywords)
         self.toolItemList = []
@@ -538,7 +605,7 @@ class wxToolbar(wx.ToolBar):
                 self.toolItemList.append(item)
             self.Realize()
             
-class Toolbar(Block.RectangularChild, DynamicContainer):
+class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         return wxToolbar(self.parentBlock.widget, 
@@ -563,7 +630,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
             self.colorStyle.synchronizeColor(self)
 
             
-class ToolbarItem(Block.Block, DynamicChild):
+class ToolbarItem (Block.Block, DynamicChild):
     """
       Under construction
     """

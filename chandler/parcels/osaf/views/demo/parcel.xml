@@ -73,8 +73,8 @@
   <Menu itsName="DemoMenu">
     <blockName>DemoMenu</blockName>
     <title>Block Demo</title>
-    <!-- location: empty string means MenuBar -->
-    <location></location>
+    <!-- location: MenuBar -->
+    <location>MenuBar</location>
     <itemLocation>HelpMenu</itemLocation>
     <helpString></helpString>
 
@@ -90,7 +90,6 @@
   <MenuItem itsName="IntroMenuItem">
     <blockName>IntroMenuItem</blockName>
     <title>Intro Tab</title>
-    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseIntroTab"/>
     <helpString></helpString>
@@ -99,7 +98,6 @@
   <MenuItem itsName="ButtonsMenuItem">
     <blockName>ButtonsMenuItem</blockName>
     <title>Buttons Tab</title>
-    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseButtonsTab"/>
     <helpString></helpString>
@@ -108,7 +106,6 @@
   <MenuItem itsName="ControlsMenuItem">
     <blockName>ControlsMenuItem</blockName>
     <title>Controls Tab</title>
-    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseControlsTab"/>
     <helpString></helpString>
@@ -117,10 +114,56 @@
   <MenuItem itsName="HTMLMenuItem">
     <blockName>HTMLMenuItem</blockName>
     <title>HTML Tab</title>
-    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseHTMLTab"/>
     <helpString></helpString>
+  </MenuItem>
+
+  <!-- Menu items to test Dynamic Containers -->
+  <MenuItem itsName="ReplaceUndoItem">
+    <blockName>ReplaceUndoItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="UndoItem"/>
+    <operation value="Replace"/>
+    <title>Can't Undo BlockDemo</title>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+
+  <MenuItem itsName="DeleteRedoItem">
+    <blockName>DeleteRedoItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="RedoItem"/>
+    <operation value="Delete"/>
+  </MenuItem>
+
+  <Menu itsName="InsertPasteSpecialMenu">
+    <blockName>InsertPasteSpecialMenu</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="PasteItem"/>
+    <title>Paste Special</title>
+
+    <childrenBlocks itemref="doc:PasteSpecialItem2"/>    
+    <childrenBlocks itemref="doc:PasteSpecialItem3"/>
+  </Menu>
+
+  <MenuItem itsName="PasteSpecialItem2">
+    <blockName>PasteSpecialItem2</blockName>
+    <title>Special flavor 2 for BlockDemo</title>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+
+  <MenuItem itsName="PasteSpecialItem3">
+    <blockName>PasteSpecialItem3</blockName>
+    <title>Special flavor 3 for BlockDemo</title>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+
+  <MenuItem itsName="InsertClearItem">
+    <blockName>InsertClearItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="DeleteItem"/>
+    <title>Clear</title>
+    <event itemref="events:NULL"/>
   </MenuItem>
 
   <!--
@@ -414,6 +457,12 @@
 
     <!-- Menus -->
     <childrenBlocks itemref="doc:DemoMenu"/>
+
+    <!-- Menu items to test Dynamic Containers -->
+    <childrenBlocks itemref="doc:ReplaceUndoItem"/>
+    <childrenBlocks itemref="doc:DeleteRedoItem"/>
+    <childrenBlocks itemref="doc:InsertPasteSpecialMenu"/>
+    <childrenBlocks itemref="doc:InsertClearItem"/>
 
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Tabs"/>
