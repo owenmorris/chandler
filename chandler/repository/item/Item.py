@@ -537,7 +537,7 @@ class Item(object):
         except KeyError:
             pass
 
-        if self._kind is not None:
+        if not (self._kind is None or self._values._isNoinherit(name)):
             attribute = self._kind.getAttribute(name)
 
             inherit = attribute.getAspect('inheritFrom', default=None)
@@ -564,6 +564,8 @@ class Item(object):
                 if isinstance(value, PersistentCollection):
                     value.setReadOnly(True)
                 return value
+
+            self._values._setNoinherit(name)
 
             raise NoValueForAttributeError, (self, name)
 

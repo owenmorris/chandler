@@ -25,6 +25,7 @@ class Values(dict):
             self._setDirty(name)
 
         super(Values, self).clear()
+        self._clearNoinherits()
 
     def _getItem(self):
 
@@ -134,6 +135,10 @@ class Values(dict):
 
         return self._getFlags(key) & Values.DIRTY != 0
 
+    def _isNoinherit(self, key):
+
+        return self._getFlags(key) & Values.NOINHERIT != 0
+
     def _setTransient(self, key):
 
         self._setFlag(key, Values.TRANSIENT)
@@ -145,6 +150,10 @@ class Values(dict):
     def _setDirty(self, key):
 
         self._setFlag(key, Values.DIRTY)
+
+    def _setNoinherit(self, key):
+
+        self._setFlag(key, Values.NOINHERIT)
 
     def _clearTransient(self, key):
 
@@ -174,6 +183,15 @@ class Values(dict):
             for key, flags in self._flags.iteritems():
                 if flags & Values.DIRTY:
                     self._flags[key] &= ~Values.DIRTY
+        except AttributeError:
+            pass
+
+    def _clearNoinherits(self):
+
+        try:
+            for key, flags in self._flags.iteritems():
+                if flags & Values.NOINHERIT:
+                    self._flags[key] &= ~Values.NOINHERIT
         except AttributeError:
             pass
 
@@ -310,6 +328,7 @@ class Values(dict):
     MONITORED = 0x0002         # value is monitored
     DIRTY     = 0x0100         # value is dirty
     TRANSIENT = 0x0200         # value is transient
+    NOINHERIT = 0x0400         # no schema for inheriting a value
     SAVEMASK  = 0x00ff         # save these flags
 
 
