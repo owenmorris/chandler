@@ -25,7 +25,14 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         widgetA = self.manager.lookup("http://testparcels.org/clouds/data",
          "widgetA")
 
-        items = widgetA.itsKind.getCloud("default").getItems(widgetA)
+        # This is how you determine which items would get copied if you
+        # were doing a cloud copy:
+        items = {}
+        clouds = widgetA.itsKind.getClouds("default")
+        for cloud in clouds:
+            for item in cloud.getItems(widgetA, cloudAlias="default"):
+                items[item.itsUUID] = item
+
         expectedItems = [
             "//parcels/clouds/data/widgetA",
             "//parcels/clouds/data/widgetB",
@@ -35,12 +42,16 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             "//parcels/clouds/data/sprocketC",
         ]
 
-        for item in items:
+        for item in items.itervalues():
             self.assert_(str(item.itsPath) in expectedItems)
             expectedItems.remove(str(item.itsPath))
         self.assertEquals(len(expectedItems), 0)
 
-        copies = widgetA.itsKind.getCloud("default").copyItems(widgetA)
+
+        # When you actually do a copy, here is how you can retrieve the set
+        # of copies:
+        copies = {}
+        copy = widgetA.copy(cloudAlias="default", copies=copies)
         expectedItems = [
             "wA",
             "wB",
@@ -49,12 +60,10 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             "sB",
             "sC",
         ]
-        for copy in copies:
+        for copy in copies.itervalues():
             self.assert_(copy.xyzzy in expectedItems)
             expectedItems.remove(copy.xyzzy)
         self.assertEquals(len(expectedItems), 0)
 
 if __name__ == "__main__":
-    # unittest.main()
-    # The repo API has changed, so disabling this for a bit.
-    pass
+    unittest.main()
