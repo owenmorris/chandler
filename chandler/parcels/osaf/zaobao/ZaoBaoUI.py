@@ -177,7 +177,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         if (remoteAddress):
             self.remoteLoadInProgress = app.jabberClient.RequestRemoteObjects(remoteAddress, url)
             if (not self.remoteLoadInProgress):
-                wxMessageBox('Sorry, but %s is not present!' % remoteAddress)
+                wxMessageBox(_("Sorry, but %s is not present!") % remoteAddress)
         else:
             self.rssDict = RSSData.loadLocalObjects()
             self.populateFeeds()
@@ -348,12 +348,12 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         data = self.getCurrentRSSData()
         if data:
             menu = wxMenu()
-            menuName = "Mark as "
-            if data.hasNewItems(): menuName += "Read"
-            else: menuName += "Unread"
+            menuName = _("Mark as ")
+            if data.hasNewItems(): menuName += _("Read")
+            else: menuName += _("Unread")
             menu.Append(self.popupIDs[0], menuName)
-            menu.Append(self.popupIDs[1], "Delete")
-            menu.Append(self.popupIDs[2], "Refresh")
+            menu.Append(self.popupIDs[1], _("Delete"))
+            menu.Append(self.popupIDs[2], _("Refresh"))
             self.PopupMenu(menu, wxPoint(self.x,self.y))
             menu.Destroy()
             if self.inRightDown:
@@ -372,7 +372,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         currentItem = self.getCurrentItem()
         if currentItem != -1:
             self.inRightDown = false
-            answer = wxMessageBox('Do you really want to delete this item?',style=wxYES_NO)
+            answer = wxMessageBox(_("Do you really want to delete this item?"),style=wxYES_NO)
             if (answer == wxYES):
                 self.deleteIndex(currentItem)
             
@@ -413,8 +413,8 @@ class wxZaoBaoItemView(wxHtmlWindow):
                 templateFile.close()
         except IOError, e:
             if not silent:
-                messageDialog(message="Unable to read file '" + filename + "'\n" + e.strerror,
-                              title='ZaoBao error',aStyle = wx.wxOK)
+                messageDialog(message=_("Unable to read file '") + filename + "'\n" + e.strerror,
+                              title=_("ZaoBao error"),aStyle = wx.wxOK)
         return templateText
     
     def saveTemplate(self, filename, templateText,silent=0):
@@ -427,14 +427,14 @@ class wxZaoBaoItemView(wxHtmlWindow):
                 templateFile.close()
         except IOError, e:
             if not silent:
-                messageDialog(message="Unable to write to file '" + filename + "'\n" + e.strerror,
-                                title='ZaoBao error',aStyle = wx.wxOK)
+                messageDialog(message=_("Unable to write to file '") + filename + "'\n" + e.strerror,
+                                title=_("ZaoBao error"),aStyle = wx.wxOK)
         
     def editTemplate(self, filename,defaultText):
         """Show dialog box to edit template text"""
         templateText = self.loadTemplate(filename)
         if (not templateText): templateText = defaultText
-        result = scrolledEditDialog(message=templateText,title='Edit Template: ' + filename)
+        result = scrolledEditDialog(message=templateText,title=_("Edit Template: ") + filename)
         if result: self.saveTemplate(filename, result)
         return result
     

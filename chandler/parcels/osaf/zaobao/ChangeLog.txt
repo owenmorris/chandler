@@ -30,3 +30,5 @@
 This allows sharing of views, whereby each view has its own list of RSS feeds
    * Support Andy's Viewer Parcel sharing framework
    
+2003-07-16 Ducky Sherwood <ducky@osafoundation.org>
+   * Internationalized strings with gettext()

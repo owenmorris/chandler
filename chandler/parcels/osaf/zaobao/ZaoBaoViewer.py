@@ -88,9 +88,9 @@ class wxZaoBaoViewer(wxViewerParcel):
         self.titleText = wxStaticText(self, -1, self.model.displayName)
         self.titleText.SetFont(wxZaoBaoViewer._titleFont)
         self.urlTextArea = wxTextCtrl(self, -1, "",style=wxTE_PROCESS_ENTER)
-        self.addURLButton = wxButton(self, -1, "Add")
+        self.addURLButton = wxButton(self, -1, _("Add"))
         self.addURLButton.SetSize((45, -1))
-        self.addURLButton.SetToolTipString("Add me")
+        self.addURLButton.SetToolTipString(_("Add me"))
         self.addURLButton.SetDefault()
         self.RSSIndexView = wxZaoBaoIndexView(self.twoPane, -1, 
                                               style=wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL)
@@ -109,7 +109,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         while not isinstance(aFrame,wxFrame):
             aFrame = aFrame.GetParent()
         self.frame = aFrame
-        self.RSSItemView.SetRelatedFrame(aFrame,'ZaoBao - your daily fix')
+        self.RSSItemView.SetRelatedFrame(aFrame,_("ZaoBao - your daily fix"))
         self.RSSItemView.SetRelatedStatusBar(0)
 
         self.RSSIndexView.register(self)
@@ -122,7 +122,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         rssURL = self.urlTextArea.GetLineText(0)
         defaultPrefix = 'http://'
         if self.RSSIndexView.alreadySubscribed(rssURL) or self.RSSIndexView.alreadySubscribed(defaultPrefix + rssURL):
-            wxMessageBox(rssURL +' is already subscribed.')
+            wxMessageBox(rssURL +_(" is already subscribed."))
         else:
             success = 1
             try:
@@ -143,8 +143,9 @@ class wxZaoBaoViewer(wxViewerParcel):
         pass
 
     def onAboutZaoBaoItem(self, event):
-        pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
-        infoPage = SplashScreen(self, _("About ZaoBao"), pageLocation, false)
+        pageLocation = pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
+        # KDS: not sure if "About ZaoBao" should be internationalized or not.
+        infoPage = SplashScreen(self, "About ZaoBao", pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()
     
@@ -203,11 +204,11 @@ class wxZaoBaoViewer(wxViewerParcel):
        self.RSSIndexView.loadObjects(remoteAddress,url)
        if (remoteAddress):
            self.titleText.SetLabel(self.self.model.displayName+ ' (' + remoteAddress + ')')
-           self.sharingText = wxStaticText(self,-1,"Loading...")
+           self.sharingText = wxStaticText(self,-1,_("Loading..."))
            self.urlSizer.Add(self.sharingText, 0, wxALL, 8)
        else:
-           self.sharingText = wxStaticText(self,-1,"Sharing Policy:")
-           sharingChoices = ['private','public']
+           self.sharingText = wxStaticText(self,-1,_("Sharing Policy:"))
+           sharingChoices = [_("private"),_("public")]
            self.sharingCombo = wxComboBox(self,-1,self.model.getSharingPolicy(),
                                           choices=sharingChoices,style=wxCB_READONLY)
            self.urlSizer.Add(self.sharingText, 0, wxALL, 8)
@@ -221,7 +222,7 @@ class wxZaoBaoViewer(wxViewerParcel):
             assert(isinstance(rssData,RSSData.RSSData))
             indexView.addRSS(rssData)
         if lastFlag:
-            self.sharingText.SetLabel('All Loaded')
+            self.sharingText.SetLabel(_("All Loaded"))
             doAutoWidth = indexView.GetItemCount() > 0
             for (col,colInfo) in indexView._columnInfo.items():
                 indexView.SetColumnWidth(col, doAutoWidth and wxLIST_AUTOSIZE or colInfo['defaultWidth'])
