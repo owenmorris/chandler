@@ -21,10 +21,10 @@
     <description>@@@</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactName"/>
-    <inverseAttribute itemref="contact:ownerOfName"/>
+    <inverseAttribute itemref="contact:contactNameOwner"/>
   </Attribute>
 
-  <Attribute itemName="ownerOfName">
+  <Attribute itemName="contactNameOwner">
     <displayName>owner of name</displayName>
     <description>A reference back to the contact.</description>
     <cardinality>single</cardinality>
@@ -37,10 +37,10 @@
     <description>A list of collections (sections) of contact attributes</description>
     <cardinality>list</cardinality>
     <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:ownerOfSection"/>
+    <inverseAttribute itemref="contact:sectionOwner"/>
   </Attribute>
 
-  <Attribute itemName="ownerOfSection">
+  <Attribute itemName="sectionOwner">
     <displayName>owner of section</displayName>
     <description>A reference back to the contact</description>
     <cardinality>single</cardinality>
@@ -81,9 +81,11 @@
     <type itemref="contact:GenderEnum"/>
   </Attribute>
 
-  <Attribute itemName="">
-    <displayName></displayName>
-    <description></description>
+  <Attribute itemName="isCompany">
+    <displayName>is company</displayName>
+    <description>Is this a company?</description>
+    <cardinality>single</cardinality>
+    <type itemref="Boolean"/>
   </Attribute>
 
   <Kind itemName="Contact">
@@ -95,13 +97,44 @@
     <attributes itemref="contact:sections"/>
   </Kind>
 
+  <!-- Contact Section -->
+
+  <Attribute itemName="phoneNumbers">
+    <displayName>phone numbers</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="contact:PhoneNumber"/>
+    <inverseAttribute itemref="contact:phoneNumberOwner"/>
+  </Attribute>
+
+<!--
+  <Attribute itemName="emailAddresses">
+    <displayName>phone numbers</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="mail:EmailAddress"/>
+    <inverseAttribute itemref="mail:emailAddressOwner"/>
+  </Attribute>
+-->
+
+  <Attribute itemName="streetAddresses">
+    <displayName>phone numbers</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="contact:PhoneNumber"/>
+    <inverseAttribute itemref="contact:streetAddressOwner"/>
+  </Attribute>
+
+  <Attribute itemName="jabberAddresses">
+    <displayName>jabber addresses</displayName>
+    <cardinality></cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
   <Kind itemName="ContactSection">
     <displayName>Contact Section</displayName>
     <description>Section of a contact.</description>
-    <!--<attributes itemref="contact:phoneNumbers"/>-->
+    <attributes itemref="contact:phoneNumbers"/>
     <!--<attributes itemref="contact:emailAddresses"/>-->
-    <!--<attributes itemref="contact:streetAddresses"/>-->
-    <!--<attributes itemref="contact:jabberAddresses"/>-->
+    <attributes itemref="contact:streetAddresses"/>
+    <attributes itemref="contact:jabberAddresses"/>
   </Kind>
 
   <!-- Attributes used in ContactName -->
@@ -153,7 +186,127 @@
     <attributes itemref="contact:middleName"/>
     <attributes itemref="contact:lastName"/>
     <attributes itemref="contact:nickname"/>
-    <attributes itemref="contact:ownerOfName"/>
+    <attributes itemref="contact:contactNameOwner"/>
+    <!-- attributes itemref="contact:prefixes"/-->
+    <!-- attributes itemref="contact:suffixes"/-->
+    <!-- attributes itemref="contact:initials"/-->
+  </Kind>
+
+  <!-- Street Address -->
+  <Attribute itemName="fullAddress">
+    <displayName>full address</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="postOfficeBox">
+    <displayName>PO Box</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="extendedAddress">
+    <displayName>extended address</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="streetAddress">
+    <displayName>street address</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="locality">
+    <displayName>locality</displayName>
+    <description>city</description>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="region">
+    <displayName>region</displayName>
+    <description>state or province</description>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="postalCode">
+    <displayName>postal code</displayName>
+    <description>zipcode</description>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="countryName">
+    <displayName>country name</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="streetAddressOwner">
+    <displayName>owner of address</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:streetAddresses"/>
+  </Attribute>
+
+  <Kind itemName="StreetAddress">
+    <displayName>Street Address</displayName>
+    <attributes itemref="contact:fullAddress"/>
+    <attributes itemref="contact:postOfficeBox"/>
+    <attributes itemref="contact:extendedAddress"/>
+    <attributes itemref="contact:streetAddress"/>
+    <attributes itemref="contact:locality"/>
+    <attributes itemref="contact:region"/>
+    <attributes itemref="contact:postalCode"/>
+    <attributes itemref="contact:countryName"/>
+    <attributes itemref="contact:streetAddressOwner"/>
+  </Kind>
+
+  <!-- Phone Number -->
+
+  <Enumeration itemName="PhoneTypeEnum">
+    <values>msg</values>
+    <values>pref</values>
+    <values>voice</values>
+    <values>fax</values>
+    <values>cell</values>
+    <values>video</values>
+    <values>pager</values>
+    <values>bbs</values>
+    <values>modem</values>
+    <values>car</values>
+    <values>isdn</values>
+    <values>pcs</values>
+    <values>voice</values>
+  </Enumeration>
+
+  <Attribute itemName="phoneNumber">
+    <displayName>phone number</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="phoneType">
+    <displayName>phone type</displayName>
+    <description>vCard Types</description>
+    <cardinality>single</cardinality>
+    <type itemref="contact:PhoneTypeEnum"/>
+  </Attribute>
+
+  <Attribute itemName="phoneNumberOwner">
+    <displayName></displayName>
+    <cardinality>single</cardinality>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:phoneNumbers"/>
+  </Attribute>
+
+  <Kind itemName="PhoneNumber">
+    <displayName>Phone Number</displayName>
+    <attributes itemref="contact:phoneNumber"/>
+    <attributes itemref="contact:phoneType"/>
+    <attributes itemref="contact:phoneNumberOwner"/>
   </Kind>
 
 </Parcel>
