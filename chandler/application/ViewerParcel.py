@@ -92,15 +92,15 @@ class ViewerParcel (Parcel):
         """
         container = wxMainFrame.FindWindowByName("ViewerParcel_container")
         children = container.GetChildren ()
-        assert (len (children) <= 1)
         if len (children) == 0 or children[0] != panel:
             for window in children:
-                del app.association[id(window.model)]
+                if window.__dict__.has_key("model"):
+                    del app.association[id(window.model)]
             container.DestroyChildren ()
             """
               Attach the new parcel to the view.
             """
-            app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
+            app.applicationResources.AttachUnknownControl("ViewerParcel", panel)
 
 class wxViewerParcel(wxPanel):
     def __init__(self):
