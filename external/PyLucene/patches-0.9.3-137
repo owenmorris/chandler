@@ -1,5 +1,5 @@
---- PyLucene-0.9.3-137/Makefile	Sat Dec 11 18:59:22 2004
-+++ PyLucene-0.9.3-137-patched/Makefile	Mon Dec 13 12:02:45 2004
+--- PyLucene-0.9.3-137/Makefile	2004-12-11 18:59:22.000000000 -0800
++++ PyLucene-0.9.3-137-patched/Makefile	2004-12-15 08:56:57.791895216 -0800
 @@ -245,17 +245,17 @@
  PYLUCENE_CP:=$(PYLUCENE_CP):$(DB)/java/src
  
@@ -38,7 +38,7 @@
  SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" -DDB_VER=$(subst .,,$(DB_LIB_VER))
  
  $(BINDIR)/db_const.o:
-@@ -671,23 +671,27 @@
+@@ -671,23 +671,29 @@
  else
  
  ifeq ($(OS),Linux)
@@ -50,6 +50,8 @@
 +	install $(GCJ_HOME)/lib/libgcj.so.5 $(PREFIX)/lib
 +	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
 +	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
++	strip $(PREFIX)/lib/libgcj.so.5
++	strip $(PREFIX)/lib/libstdc++.so.6
  else
  
  ifeq ($(OS),Cygwin)
