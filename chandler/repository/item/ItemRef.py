@@ -171,25 +171,17 @@ class Attributes(dict):
 
         return self._item
 
-    def _setDirty(self):
-
-        item = self._item
-        
-        if item and not item.isDirty():
-            item.getRepository().addTransaction(item)
-            item._status |= model.item.Item.Item.DIRTY
-
     def __setitem__(self, key, value, loading=False):
 
-        if not loading:
-            self._setDirty()
+        if not loading and self._item is not None:
+            self._item.setDirty()
 
         super(Attributes, self).__setitem__(key, value)
 
     def __delitem__(self, key, loading=False):
 
-        if not loading:
-            self._setDirty()
+        if not loading and self._item is not None:
+            self._item.setDirty()
 
         super(Attributes, self).__delitem__(key)
 

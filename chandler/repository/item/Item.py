@@ -439,6 +439,12 @@ class Item(object):
 
         return (self._status & Item.DIRTY) != 0
 
+    def setDirty(self):
+
+        if self._status & Item.DIRTY == 0:
+            self.getRepository().addTransaction(self)
+            self._status |= Item.DIRTY
+
     def delete(self):
         """Delete this item and disconnect all its item references.
 
@@ -550,8 +556,7 @@ class Item(object):
                 newRepository._registerItem(self)
 
                 if not loading:
-                    newRepository.addTransaction(self)
-                    self._status |= Item.DIRTY
+                    self.setDirty()
 
         for child in self:
             child._setRoot(root, loading)
