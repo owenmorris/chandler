@@ -303,13 +303,6 @@ class wxApplication (wxApp):
         #     parcel loading framework.
         loader = DomainSchemaLoader(self.repository)
 
-        # Load the calendar parcel
-        if not self.repository.find('//Calendar'):
-            calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                        'OSAF', 'calendar', 'model',
-                                        'calendar.xml')
-            loader.load(calendarPath)
-
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
             contactsPath = os.path.join(self.chandlerDirectory, 'parcels',
@@ -317,7 +310,13 @@ class wxApplication (wxApp):
                                     'contacts.xml')
             loader.load(contactsPath)
 
-            
+        # Load the calendar parcel
+        if not self.repository.find('//Calendar'):
+            calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
+                                        'OSAF', 'calendar', 'model',
+                                        'calendar.xml')
+            loader.load(calendarPath)
+
         # Load the document parcel
         if not self.repository.find('//Document'):
             documentPath = os.path.join(self.chandlerDirectory, 'parcels',
