@@ -72,7 +72,7 @@ def main():
         cvsVintage = "-D " + cvsDateArg
         buildVersion = cvsDateArg
     if cvsTagArg:
-        cvsVintage = "-R " + cvsTagArg
+        cvsVintage = "-r " + cvsTagArg
         buildVersion = cvsTagArg
     if buildVersionArg:
         buildVersion = buildVersionArg
