@@ -13,8 +13,6 @@ from xml.sax import SAXParseException
 
 class WakeupCall(WakeupCaller.WakeupCall):
     def receiveWakeupCall(self, wakeupCallItem):
-        view = Globals.repository.view
-
         Globals.repository.view.refresh()
 
         chanKind = ZaoBaoParcel.getRSSChannelKind()
