@@ -54,11 +54,16 @@ glob=*
 repository
 locale
 
-# Grab the launcher and windows README
+# Grab the launchers and windows README
 src=chandler/distrib/win
 README.win.txt
+
 src=chandler/debug
-dest=debug
+dest=
+chandlerDebug.exe
+
+src=chandler/debug/bin
+dest=debug/bin
 chandler.exe
 
 # Grab the overall README
