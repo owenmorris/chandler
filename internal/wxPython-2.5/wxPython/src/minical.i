@@ -55,10 +55,10 @@ class wxMiniCalendarDateAttr
 public:
     wxMiniCalendarDateAttr(double busyPercentage = 0);
 
-    
+
     // setters
     void SetBusy(const double busyPercentage);
-    
+
     // accessors
     const double GetBusy() const;
 };
