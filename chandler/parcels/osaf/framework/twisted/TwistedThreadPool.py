@@ -1,6 +1,7 @@
 import twisted.python.threadable as threadable
 import twisted.python.threadpool as threadpool
 import repository.persistence.Repository as Repository
+import application.Globals as Globals
 import Queue
 
 threadable.init()
@@ -13,7 +14,7 @@ class RepositoryThreadPool(threadpool.ThreadPool):
 
     def startAWorker(self):
         self.workers = self.workers + 1
-        name = "RepositoryPoolThread-%s-%s" % (id(self), self.workers)
+        name = "PoolThread-%s-%s" % (id(self), self.workers)
         try:
             firstJob = self.q.get(0)
         except Queue.Empty:
