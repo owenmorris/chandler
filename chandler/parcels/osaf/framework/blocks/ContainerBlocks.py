@@ -58,9 +58,15 @@ class ContainerChild(Block):
             window.counterpartUUID = UUID
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
-        return window
+            self.handleChildren(window)
+                
+    def addToContainer(self, parent, child, id, flag, border):
+        pass
+    
+    def handleChildren(self, window):
+        pass
 
-
+    
 class RectangularChild(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
@@ -86,7 +92,6 @@ class RectangularChild(ContainerChild):
         elif self.alignmentEnum == 'alignBottomRight':
             flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
         return flag
-
 
     def Calculate_wxBorder (self):
         border = 0
@@ -118,20 +123,22 @@ class BoxContainer(RectangularChild):
 
         sizer = wxBoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
-        panel = wxPanel(parentWindow, -1)
-        panel.SetSizer(sizer)
 
-#        if isinstance (parent, wxWindowPtr):
-#            parent.SetSizer (sizer)
-#        else:
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(panel, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return panel, sizer, panel
+        if self.parentBlock: 
+            panel = wxPanel(parentWindow, -1)
+            panel.SetSizer(sizer)
+            self.parentBlock.addToContainer(parent, panel, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+            return panel, sizer, panel
+        else:
+            parent.SetSizer(sizer)
+            return parent, sizer, parent
+                
+    def addToContainer(self, parent, child, weight, flag, border):
+        parent.Add(child, weight, flag, border)
 
  
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
         if self.hasAttributeValue ("clicked"):  # Repository bug/feature -- DJA
             id = self.clicked.getwxID()
@@ -153,35 +160,30 @@ class Button(RectangularChild):
         elif __debug__:
             assert (False)
 
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(button, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, button, int(self.stretchFactor),
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
 
 
 class Choice(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
         choice = wxChoice(parentWindow, -1, 
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(choice, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, choice, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return choice, None, None
 
 
 class ComboBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
         comboBox = wxComboBox(parentWindow, -1, self.selection, 
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(comboBox, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, comboBox, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
     
@@ -190,8 +192,6 @@ class EditText(RectangularChild):
         super (EditText, self).__init__ (*arguments, **keywords)
 
     def renderOneBlock(self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
-        
         style = 0
         if self.textAlignmentEnum == "Left":
             style |= wxTE_LEFT
@@ -217,9 +217,8 @@ class EditText(RectangularChild):
                                style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(editText, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, editText, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return editText, None, None
 
 
@@ -234,9 +233,8 @@ class HTML(RectangularChild):
         if self.url:
             htmlWindow.LoadPage(self.url)
         
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(htmlWindow, int(self.stretchFactor),
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, htmlWindow, int(self.stretchFactor),
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return htmlWindow, None, None
 
 
@@ -247,7 +245,6 @@ class List(RectangularChild):
 
 class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
         if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
             id = self.selectionChanged.getwxID()
@@ -263,9 +260,8 @@ class RadioBox(RectangularChild):
                               wxDefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)        
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(radioBox, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, radioBox, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
 
 
@@ -303,29 +299,28 @@ class wxSplitWindow(wxSplitterWindow):
 
 
 class SplitWindow(RectangularChild):
-    # @@@ Right now this is unnecessary boiler plate that should be removed.  We
-    #  need a better way to allow items to hook themselves into their parent
-    #  if that parent is not a sizer.  One possible solution is to have a method
-    #  on that parent (AddChild) which the child can call when it is created and
-    #  which does the correct hooking up.
+    def renderOneBlock (self, parent, parentWindow):
+        splitWindow = wxSplitWindow(parentWindow,
+                                    Block.getwxID(self), 
+                                    wxDefaultPosition,
+                                    (self.minimumSize.width, self.minimumSize.height),
+                                    style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
+        self.parentBlock.addToContainer(parent, splitWindow, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        """
+          Wire up onSize after __init__ has been called, otherwise it will
+        call onSize
+        """
+        EVT_SIZE(splitWindow, splitWindow.OnSize)
+        return splitWindow, splitWindow, splitWindow
+                
+    def addToContainer(self, parent, child, weight, flag, border):
+        if not hasattr(self, 'childrenToAdd'):
+            self.childrenToAdd = []
+        self.childrenToAdd.append(child)
 
-    def render (self, parent, parentWindow):
-        (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
-        """
-          Store the wxWindows version of the object in the association, so
-        given the block we can find the associated wxWindows object.
-        """
-        if window:
-            UUID = self.getUUID()
-            assert not Globals.association.has_key(UUID)
-            Globals.association[UUID] = window
-            window.counterpartUUID = UUID
-            for child in self.childrenBlocks:
-                child.render (parent, parentWindow)
+    def handleChildren(self, window):
 
-        """
-          Jed, what happens if window is None?
-        """
         children = window.GetChildren()
         width, height = window.GetSizeTuple()
         assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
@@ -335,26 +330,17 @@ class SplitWindow(RectangularChild):
             window.SplitVertically(children[0], children[1], width * self.splitPercentage)
         return window
 
-    def renderOneBlock (self, parent, parentWindow):
-        splitWindow = wxSplitWindow(parentWindow,
-                                    Block.getwxID(self), 
-                                    wxDefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height),
-                                    style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(splitWindow, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        """
-          Wire up onSize after __init__ has been called, otherwise it will
-        call onSize
-        """
-        EVT_SIZE(splitWindow, splitWindow.OnSize)
-        return splitWindow, splitWindow, splitWindow
 
+
+        assert (len (self.childrenToAdd) == 2)
+        if self.orientationEnum == "Horizontal":
+            window.SplitVertically(self.childrenToAdd[0], self.childrenToAdd[1])
+        else:
+            window.SplitHorizontally(self.childrenToAdd[0], self.childrenToAdd[1])
+    
 
 class StaticText(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr) #must be in a container
         if self.textAlignmentEnum == "Left":
             style = wxALIGN_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -370,41 +356,13 @@ class StaticText(RectangularChild):
                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(staticText, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, staticText, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return staticText, None, None
 
 
 class TabbedContainer(RectangularChild):
-    # @@@ Right now this is unnecessary boiler plate that should be removed.  We
-    #  need a better way to allow items to hook themselves into their parent
-    #  if that parent is not a sizer.  One possible solution is to have a method
-    #  on that parent (AddChild) which the child can call when it is created and
-    #  which does the correct hooking up.
-    def render (self, parent, parentWindow):
-        (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
-        """
-          Store the wxWindows version of the object in the association, so
-        given the block we can find the associated wxWindows object.
-        """
-        childList = []
-        if window:
-            UUID = self.getUUID()
-            assert not Globals.association.has_key(UUID)
-            Globals.association[UUID] = window
-            window.counterpartUUID = UUID
-            for child in self.childrenBlocks:
-                childList.append(child.render (parent, parentWindow))
-
-        i = 0
-        for child in childList:
-            window.AddPage(child, self.tabNames[i])
-            i = i + 1
-        return window
-
     def renderOneBlock (self, parent, parentWindow):
-#        assert isinstance (parent, wxSizerPtr)
         id = 0
         if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
             id = self.selectionChanged.getwxID()
@@ -424,10 +382,21 @@ class TabbedContainer(RectangularChild):
                                     wxDefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height),
                                      style = style)
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(tabbedContainer, int(self.stretchFactor), 
-                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, tabbedContainer, int(self.stretchFactor), 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
+                
+    def addToContainer(self, parent, child, weight, flag, border):
+        if not hasattr(self, 'childrenToAdd'):
+            self.childrenToAdd = []
+        self.childrenToAdd.append(child)
+
+    def handleChildren(self, window):
+        if len (self.childrenToAdd) > 0:
+            childNameIndex = 0
+            for child in self.childrenToAdd:
+                window.AddPage(child, self.tabNames[childNameIndex])
+                childNameIndex = childNameIndex + 1
 
     def on_chandler_TabChoice (self, notification):
         tabbedContainer = Globals.association[self.getUUID()]
@@ -514,8 +483,7 @@ class TreeList(RectangularChild):
         notification.SetData(arguments)
         Globals.topView.dispatchEvent(notification)
 
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None
 
 
