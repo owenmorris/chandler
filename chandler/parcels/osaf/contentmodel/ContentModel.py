@@ -110,11 +110,14 @@ class ContentItem(Item.Item):
         * Move the attributes from the Aspects.
         """
         futureKind = self.NewStampedKind(operation, aspectKind)
-        addedAspects, removedAspects = self.StampPreProcess(futureKind)
-        self.itsKind = futureKind
+        dataCarryOver = self.StampPreProcess(futureKind)
+        if futureKind is not None:
+            self.itsKind = futureKind
+        else:
+            self.mixinKinds((operation, aspectKind))
         # make sure the respository knows about the item's new Kind
         Globals.repository.commit()
-        self.StampPostProcess(futureKind, addedAspects, removedAspects)
+        self.StampPostProcess(futureKind, dataCarryOver)
 
     def NewStampedKind(self, operation, aspectKind):
         """
@@ -161,14 +164,12 @@ class ContentItem(Item.Item):
         # finished search with no exact matches.  Better have only one candidate.
         if len(qualified) == 1:
             return qualified[0]
-        # couldn't find a match
-        if len(qualified) > 1:
-            raise StampError, "Multiple Stamp candidates found for object %s of Kind %s with Aspect %s" % \
-                              (self.itsName, self.itsKind.itsName, aspectKind.itsName)        
-        raise StampError, "Can't Stamp object %s of Kind %s with Aspect %s" % \
-                          (self.itsName, self.itsKind.itsName, aspectKind.itsName)        
+        # couldn't find a match, just ReKind with the Aspect
+        return None
+        
 
     def AddedRemovedKinds(self, futureKind):
+        # Under Construction!
         futureKinds = futureKind.getAttributeValue('superKinds', default = [])
         myKind = self.itsKind
         myKinds = myKind.getAttributeValue('superKinds', default = [])
@@ -189,15 +190,69 @@ class ContentItem(Item.Item):
         return (addedKinds, removedKinds)
         
     def StampPreProcess(self, futureKind):
-        addedKinds, removedKinds = self.AddedRemovedKinds(futureKind)
-        addedAspects = []
-        removedAspects = []
-        # DLDTBD - flesh out
-        return (addedAspects, removedAspects)
-        
-    def StampPostProcess(self, futureKind, addedAspects, removedAspects):
-        # DLDTBD - flesh out
-        pass
+        """
+        UNDER CONSTRUCTION
+          Pre-process an Item for Stamping, and return data needed
+        after the stamping takes place.
+        In the future this will save and restore bags of attributes
+        during the stamping/unstamping operation.
+        """
+        # Return a set of data to be carried over to the newly stamped Item
+        simpleDataCarryOver = True
+        if simpleDataCarryOver:
+            # under the simple scheme, we just copy the redirected attributes
+            carryOver = {}
+            try:
+                carryOver['who'] = self.who
+            except AttributeError:
+                carryOver['who'] = None
+            try:
+                carryOver['about'] = self.about
+            except AttributeError:
+                carryOver['about'] = None
+            try:
+                carryOver['date'] = self.date
+            except AttributeError:
+                carryOver['date'] = None
+            try:
+                carryOver['whoFrom'] = self.whoFrom
+            except AttributeError:
+                carryOver['whoFrom'] = None
+            return carryOver
+        else:
+            addedKinds, removedKinds = self.AddedRemovedKinds(futureKind)
+            addedAspects = []
+            removedAspects = []
+            # DLDTBD - flesh out
+            return (addedAspects, removedAspects)
+    
+    def StampPostProcess(self, futureKind, carryOver):
+        """
+        UNDER CONSTRUCTION
+          Post-process an Item for Stamping, and process data 
+        prepared during StampPreProcess.
+        """
+
+        """
+        simple implementation - copy the redirected attributes,
+        so the new notion of 'who' has the same value as the old one.
+        """
+        if self.hasAttributeAspect('who', 'redirectTo'):
+            value = carryOver['who']
+            if value is not None:
+                self.who = carryOver['who']
+        if self.hasAttributeAspect('about', 'redirectTo'):
+            value = carryOver['about']
+            if value is not None:
+                self.about = carryOver['about']
+        if self.hasAttributeAspect('date', 'redirectTo'):
+            value = carryOver['date']
+            if value is not None:
+                self.date = carryOver['date']
+        if self.hasAttributeAspect('whoFrom', 'redirectTo'):
+            value = carryOver['whoFrom']
+            if value is not None:
+                self.whoFrom = carryOver['whoFrom']
 
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
