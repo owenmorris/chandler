@@ -44,6 +44,10 @@
 	#include "wx/bitmap.h"
 #endif
 
+#if defined(__WXMAC__)
+#include "wx/mac/uma.h"
+#endif
+
 #include "wx/renderer.h"
 #include "wx/colheader.h"
 
@@ -1893,21 +1897,29 @@ OSStatus				errStatus;
 	// render the label text as/if specified
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
-	CFStringRef			cfLabelText;
-
-		cfLabelText =
-			(bUseUnicode
-			? CFStringCreateWithBytes( NULL, (const UInt8*)(m_LabelTextRef.mb_str()), m_LabelTextRef.length() * sizeof(UniChar), kCFStringEncodingUnicode, false )
-			: CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.c_str()), kCFStringEncodingMacRoman ));
-
-		if (cfLabelText != NULL)
+		if (bUseUnicode)
 		{
+		wxMacCFStringHolder	localCFSHolder( m_LabelTextRef, wxFONTENCODING_UNICODE );
+
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
-					cfLabelText, m_FontID, drawInfo.state, true,
+					(CFStringRef)localCFSHolder, m_FontID, drawInfo.state, true,
 					&qdBoundsR, nativeTextJust, NULL );
+		}
+		else
+		{
+		CFStringRef			cfLabelText;
 
-			CFRelease( cfLabelText );
+			cfLabelText = CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.c_str()), kCFStringEncodingMacRoman );
+			if (cfLabelText != NULL)
+			{
+				errStatus =
+					(OSStatus)DrawThemeTextBox(
+						cfLabelText, m_FontID, drawInfo.state, true,
+						&qdBoundsR, nativeTextJust, NULL );
+
+				CFRelease( cfLabelText );
+			}
 		}
 	}
 
