@@ -489,11 +489,12 @@ class EmailAddress(Item.Item):
           User readable string version of this address
         """
         if self.emailAddress == self._getTheMeAddress():
-            return 'me'
-        try:
-            fullName = self.fullName
-        except AttributeError:
-            fullName = ''
+            fullName = 'me'
+        else:
+            try:
+                fullName = self.fullName
+            except AttributeError:
+                fullName = ''
         if fullName is not None and len (fullName) > 0:
             return fullName + ' <' + self.emailAddress + '>'
         else:
