@@ -96,17 +96,16 @@ This section has the known major bugs in release 0.2. A more current
 list is at:
   http://wiki.osafoundation.org/bin/view/Main/KnownMajorBugs
 
-
 APPLICATION
 
 The first time you start Chandler, the list of parcels appears all
 squished together vertically, then immediately redraws. (Bug#923)
 
-If you have no network connection, Chandler throws an error before the
-splash screen appears. (Bug#913)
-
 You cannot set the locale properly on the Mac or Linux (Bug#251).
-A warning error appears on startup on the Mac; Linux fails silently.
+(A warning error appears on startup on the Mac; Linux fails silently.)
+This means, for example, that you can't localize how dates appear in
+the Calendar e.g. under Table View. In Linux, Calendar's Table View
+shows DD/MM/YY; on the Mac, the Table View shows dates as MM/DD/YY.
 
 The first time a Repository commit() is done, it takes several seconds
 to initialize everything.
@@ -122,15 +121,8 @@ documentation.
 
 CALENDAR
 
-Frequently, the first users see the Repository commmit() slowness is
-when users try to create a Calendar Event for the first time. Getting
-no feedback that Chandler noticed their attemmpt, it is easy to think
-that Calendar didn't see the mouse clicks. (Bug#903)
-
 The Del key doesn't work when editing a Calendar Event description
 (Bug#928).
-
-Table/List view events should be sorted by startTime (Bug#930).
 
 Month and Table/List views are read-only. (No bug yet, just not
 implemented).
@@ -170,16 +162,24 @@ Bug#935)
 If you add an Interests attribute to a Contact on Linux, you will get
 error messages on standard out. (Bug#275)
 
+JABBER
+
+Adding a well-formed but incorrect Jabber ID throws an exception
+(Bug#883)
+
 SHARING
 
-Sharing does not work at all.
+Sharing does not work at all. (Bug#918)
 
 ZAOBAO
 
 To refresh the sites for new feeds, click on the Reload button.
 
-Clicking on the "Add" button hangs Chandler (Bug#919)
-  _________________________________________________________________
+ZaoBao crashes on some RSS feeds. (Bug#943)
+
+
+
+_________________________________________________________________
 WHERE TO GO FOR FURTHER INFORMATION
 
 END-USER DOCUMENTATION
