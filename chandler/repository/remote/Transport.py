@@ -71,9 +71,9 @@ class Transport(object):
 
         raise TypeError, '%s: unsupported signature char' %(c)
 
-    def getVersion(self):
+    def getVersionInfo(self):
 
-        return self.call('getVersion', 'i')
+        return self.call('getVersionInfo', 'tui')
 
     def serveItem(self, version, uuid):
 

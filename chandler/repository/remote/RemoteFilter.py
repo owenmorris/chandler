@@ -13,12 +13,12 @@ from repository.util.Streams import StringReader
 
 class RemoteFilter(XMLFilter):
 
-    def __init__(self, store, version):
+    def __init__(self, store, versionId):
 
         XMLFilter.__init__(self, None)
 
         self.store = store
-        self.version = version
+        self.versionId = versionId
         
         self._attrs = []
         self._isOn = False
@@ -88,12 +88,12 @@ class RemoteFilter(XMLFilter):
 
     def itemsStart(self, attrs):
 
+        versionId = UUID(attrs['versionId'])
+        if versionId != self.versionId:
+            raise ValueError, "remote version ids don't match"
+
         self._txnStarted = self.store.startTransaction()
         self._lock = self.store.acquireLock()
-
-        if self.version == 0:
-            self.version = long(attrs['version'])
-            self.store._versions.setVersion(self.version)
 
     def itemsEnd(self, attrs):
 

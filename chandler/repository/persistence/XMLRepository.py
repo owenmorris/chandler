@@ -451,6 +451,10 @@ class XMLStore(Store):
 
         return self._versions.getVersion()
 
+    def getVersionInfo(self):
+
+        return (self._versions.getVersionId(), self._versions.getVersion())
+
     def startTransaction(self):
 
         if self.txn is None:
@@ -588,8 +592,9 @@ class XMLStore(Store):
         generator = XMLGenerator(out)
 
         try:
-            generator.startElement('items',
-                                   { 'version': str(version) })
+            attrs = { 'version': str(version),
+                      'versionId': self._versions.getVersionId().str64() }
+            generator.startElement('items', attrs)
             filter = CloudFilter(None, self, uuid, version, generator)
             filter.parse(xml, {})
             generator.endElement('items')

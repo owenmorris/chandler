@@ -248,15 +248,33 @@ class VerContainer(DBContainer):
 
         super(VerContainer, self).__init__(store, name, txn, create)
         if create:
-            self._db.put(Repository.itsUUID._uuid, pack('>l', ~0), txn)
+            self._db.put(Repository.itsUUID._uuid, pack('>l', 0), txn)
+            self._db.put(self.itsUUID._uuid, UUID()._uuid, txn)
 
-    def getVersion(self):
+    def getVersion(self, versionId=None):
 
-        return ~unpack('>l', self.get(Repository.itsUUID._uuid))[0]
+        if versionId is None:
+            versionId = Repository.itsUUID
+            
+        return unpack('>l', self.get(versionId._uuid))[0]
 
-    def setVersion(self, version):
+    def setVersion(self, version, versionId=None):
         
-        self.put(Repository.itsUUID._uuid, pack('>l', ~version))
+        if versionId is None:
+            versionId = Repository.itsUUID
+            
+        self.put(versionId._uuid, pack('>l', version))
+
+    def getVersionId(self, uuid=None):
+
+        if uuid is None:
+            uuid = self.itsUUID
+
+        return UUID(self.get(uuid._uuid))
+
+    def setVersionId(self, versionId, uuid):
+
+        self.put(uuid._uuid, versionId._uuid)
 
     def setDocVersion(self, uuid, version, docId):
 
@@ -357,6 +375,8 @@ class VerContainer(DBContainer):
     def deleteVersion(self, uuid):
 
         self.delete(uuid._uuid)
+
+    itsUUID = UUID('00e956cc-a609-11d8-fae2-000393db837c')
 
 
 class HistContainer(DBContainer):

@@ -1372,10 +1372,18 @@ class Item(object):
         if name != self._name:
             origName = self._name
             parent = self.itsParent
-            link = parent._children._get(self._name)
-            parent._removeItem(self)
-            self._name = name or self._uuid.str64()
-            parent._addItem(self, link._previousKey, link._nextKey)
+
+            if parent._isItem():
+                link = parent._children._get(self._name)
+                parent._removeItem(self)
+                self._name = name or self._uuid.str64()
+                parent._addItem(self, link._previousKey, link._nextKey)
+            else:
+                parent._removeItem(self)
+                self._name = name or self._uuid.str64()
+                parent._addItem(self)
+                self.setDirty(dirty=Item.SDIRTY)
+                
             if not '_origName' in self.__dict__:
                 self.__dict__['_origName'] = (parent.itsUUID, origName)
 

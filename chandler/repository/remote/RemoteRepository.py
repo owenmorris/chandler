@@ -9,6 +9,7 @@ from repository.persistence.XMLRepository import XMLRepository, XMLStore
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.remote.Transport import SOAPTransport, JabberTransport
 from repository.remote.RemoteFilter import RemoteFilter
+from repository.util.UUID import UUID
 
 
 class RemoteRepository(XMLRepository):
@@ -28,10 +29,6 @@ class RemoteRepository(XMLRepository):
     def _createStore(self):
 
         return RemoteStore(self, self.transport)
-        
-    def _createView(self):
-
-        return RemoteRepositoryView(self)
     
 
 class RemoteStore(XMLStore):
@@ -39,9 +36,7 @@ class RemoteStore(XMLStore):
     def __init__(self, repository, transport):
 
         super(RemoteStore, self).__init__(repository)
-
         self.transport = transport
-        self.remoteVersion = 0
 
     def open(self, create=False):
 
@@ -57,12 +52,13 @@ class RemoteStore(XMLStore):
 
         doc = super(RemoteStore, self).loadItem(version, uuid)
         if doc is None:
-            doc = self.transport.serveItem(self.remoteVersion, uuid)
-            if doc is not None:
-                filter = RemoteFilter(self, version)
-                self.transport.parseDoc(doc, filter)
+            versionId = self._versions.getVersionId(self.itsUUID)
+            remoteVersion = self._versions.getVersion(versionId)
+            xml = self.transport.serveItem(remoteVersion, uuid)
+            if xml is not None:
+                filter = RemoteFilter(self, versionId)
+                self.transport.parseDoc(xml, filter)
                 doc = filter.getDocument()
-                self.remoteVersion = filter.version
 
         return doc
 
@@ -70,30 +66,39 @@ class RemoteStore(XMLStore):
 
         doc = super(RemoteStore, self).loadChild(version, uuid, name)
         if doc is None:
-            xml = self.transport.serveChild(self.remoteVersion, uuid, name)
+            versionId = self._versions.getVersionId(self.itsUUID)
+            remoteVersion = self._versions.getVersion(versionId)
+            xml = self.transport.serveChild(remoteVersion, uuid, name)
             if xml is not None:
-                filter = RemoteFilter(self, version)
+                filter = RemoteFilter(self, versionId)
                 self.transport.parseDoc(xml, filter)
                 doc = filter.getDocument()
-                self.remoteVersion = filter.version
 
         return doc
 
+    def getVersion(self):
 
-class RemoteRepositoryView(XMLRepositoryView):
-
-    def _loadItem(self, uuid):
-
-        item = super(RemoteRepositoryView, self)._loadItem(uuid)
-        if item is not None and self.version == 0:
-            self.version = self.repository.store.getVersion()
-            
-        return item
+        version = super(RemoteStore, self).getVersion()
+        versions = self._versions
         
-    def _loadChild(self, parent, name):
+        if version == 0:
+            versionId, version = self.transport.getVersionInfo()
 
-        item = super(RemoteRepositoryView, self)._loadChild(parent, name)
-        if item is not None and self.version == 0:
-            self.version = self.repository.store.getVersion()
+            txnStarted = False
+            try:
+                txnStarted = self.startTransaction()
+                versions.setVersion(version)
+                versions.setVersion(version, versionId)
+                versions.setVersionId(versionId, self.itsUUID)
+            except:
+                if txnStarted:
+                    txnStarted = self.abortTransaction()
+                raise
+            else:
+                if txnStarted:
+                    txnStarted = self.commitTransaction()
+                
+        return version
 
-        return item
+    itsUUID = UUID('200a5564-a60f-11d8-fb65-000393db837c')
+
