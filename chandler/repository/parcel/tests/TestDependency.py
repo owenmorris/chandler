@@ -19,7 +19,6 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
 
         parcelDir = os.path.join(self.testdir, 'dependencyparcels')
-        sys.path.insert(1, parcelDir)
         LoadParcels(parcelDir, self.rep)
         self.rep.commit()
 

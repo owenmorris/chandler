@@ -49,6 +49,9 @@ def WalkParcels(parcel):
                 yield subparcel
 
 def LoadParcels(searchPath, repository):
+    """
+    Load all parcels found along the searchPath (and below)
+    """
 
     Parcel.setupParcels(repository)
     loader = ParcelLoader(repository, LoadDependency, searchPath)
@@ -58,26 +61,49 @@ def LoadParcels(searchPath, repository):
             if 'parcel.xml' in files:
                 uri = "//parcels/%s" % root[len(directory)+1:]
                 uri = uri.replace(os.path.sep, "/")
-                parcel = repository.find(uri)
-                path = os.path.join(root, 'parcel.xml')
-                if ((not parcel) or
-                    (parcel.modifiedOn.ticks() < os.stat(path).st_mtime)):
-                    try:
-                        loader.load(path, uri)
-                        if parcel:
-                            logging.warning("Reloaded the parcel %s" % path)
-                            parcel.modifiedOn = DateTime.now()
-                    except Exception, e:
-                        logging.exception("Failed to load parcel %s" % path)
-                        try:
-                            repository.cancel()
-                        except:
-                            logging.exception("repository.cancel() failed")
-                            raise RepositoryError, "See log for exceptions"
-                    else:
-                        logging.debug("Loaded the parcel %s" % path)
-                        repository.commit()
+                parcelFile = os.path.join(root, 'parcel.xml')
+                _loadParcel(parcelFile, uri, searchPath, repository, loader)
 
     root = repository.find("//parcels")
     for parcel in WalkParcels(root):
         parcel.startupParcel()
+
+def LoadParcel(dir, uri, searchPath, repository):
+    """
+    Load a specific parcel into the supplied uri, and use searchPath to
+    find any parcels this one depends on.
+    """
+
+    parcelFile = os.path.join(dir, "parcel.xml")
+    Parcel.setupParcels(repository)
+    loader = ParcelLoader(repository, LoadDependency, searchPath)
+    _loadParcel(parcelFile, uri, searchPath, repository, loader)
+
+    root = repository.find("//parcels")
+    for parcel in WalkParcels(root):
+        parcel.startupParcel()
+
+
+def _loadParcel(parcelFile, uri, searchPath, repository, loader):
+    """
+    Internal method used by LoadParcels and LoadParcel
+    """
+
+    parcel = repository.find(uri)
+    if ((not parcel) or
+        (parcel.modifiedOn.ticks() < os.stat(parcelFile).st_mtime)):
+        try:
+            loader.load(parcelFile, uri)
+            if parcel:
+                logging.warning("Reloaded the parcel %s" % parcelFile)
+                parcel.modifiedOn = DateTime.now()
+        except Exception, e:
+            logging.exception("Failed to load parcel %s" % parcelFile)
+            try:
+                repository.cancel()
+            except:
+                logging.exception("repository.cancel() failed")
+                raise RepositoryError, "See log for exceptions"
+        else:
+            logging.debug("Loaded the parcel %s" % parcelFile)
+            repository.commit()

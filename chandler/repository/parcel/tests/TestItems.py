@@ -19,7 +19,6 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
 
         parcelDir = os.path.join(self.testdir, 'itemparcels')
-        sys.path.insert(1, parcelDir)
         LoadParcels(parcelDir, self.rep)
         self.rep.commit()
 
