@@ -7,7 +7,7 @@ import repository.item.Item as Item
 import application.Globals as Globals
 
 class ItemCollection(Item.Item):
-    def __init__(self, name=None, parent=None, kind):
+    def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = Globals.repository.findPath('//userdata/contentitems')
         super(ItemCollection, self).__init__(name, parent, kind)
