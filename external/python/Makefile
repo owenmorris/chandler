@@ -1,5 +1,6 @@
 
 VERSION=2.3.3
+BZIP2VERSION=1.0.2
 PYTHON=$(BUILD_ROOT)/python
 SRC=$(PYTHON)/Python-$(VERSION)
 OS=$(shell uname)
@@ -44,13 +45,22 @@ snap:
                   $(SNAP)/Library/Frameworks/Python.framework \
             -X $(PYTHON)/xcludes
 
+expand: Python-$(VERSION).tgz
+	tar xvzf Python-$(VERSION).tgz
+
 else
 
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_DBG)
 
-build: apply
+bz2: bzip2-$(BZIP2VERSION)/libbz2.a
+	cd bzip2-$(BZIP2VERSION); \
+        make libbz2.a; \
+        install libbz2.a $(PREFIX)/lib; \
+        install bzlib.h $(PREFIX)/include
+
+build: bz2 apply
 	cd $(SRC)/$(BUILD); \
 	$(MAKE) DB=$(PREFIX)/db $(COMP_OPT) install
 
@@ -60,15 +70,15 @@ snap:
                   $(SNAP)/bin/idle $(SNAP)/bin/python* $(SNAP)/lib/python* \
             -X $(PYTHON)/xcludes
 
+expand: Python-$(VERSION).tgz
+	tar xvzf Python-$(VERSION).tgz; \
+        tar xvzf bzip2-$(BZIP2VERSION).tar.gz
+
 endif
 
 
 apply: $(SRC)/$(BUILD)/Makefile patches
 	patch -Nup0 < patches; echo ok
-
-expand: Python-$(VERSION).tgz
-	tar xvzf Python-$(VERSION).tgz
-
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)

@@ -1,2 +1,3 @@
 *.gz *.tgz
 Python-*
+bzip2-*
