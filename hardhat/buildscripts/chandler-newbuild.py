@@ -23,8 +23,8 @@ logPath = 'hardhat.log'
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # find path to buildscripts
-    hardhatDir = os.dirname((hardhatScript)
-    # print "Directory of build script is " + hardhatDir + "\n"
+    hardhatDir = hardhatutil.findInPath(path,hardhatScript)
+    print "Directory of build script is " + hardhatDir + "\n"
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
