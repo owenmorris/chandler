@@ -580,7 +580,7 @@ class ToolbarItem(RectangularChild):
         toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
         if self.toolbarItemKind == 'Button':
             id = Block.getwxID(self)
-            bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_BMP).ConvertToBitmap()
+            bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
             EVT_TOOL(parentWindow, id, toolbar.toolPressed)
@@ -940,3 +940,17 @@ class NavigationBar(Toolbar):
         urlBox = Globals.repository.find ('//parcels/OSAF/views/main/URLBox')
         wxURLBox = Globals.association[urlBox.getUUID()]
         wxURLBox.SetValue(path)
+        
+class BookmarksBar(RectangularChild):
+    def renderOneBlock(self, parent, parentWindow):        
+        return None, None, None
+
+    def bookmarkPressed(self, event):
+        pass
+    
+    def SendSelectionChanged(self, item):
+        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+        notification = Notification(chandlerEvent, None, None)
+        notification.SetData ({'item':item, 'type':'Normal'})
+        Globals.notificationManager.PostNotification (notification)
+        

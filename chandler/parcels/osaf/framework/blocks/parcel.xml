@@ -915,6 +915,14 @@
     <superKinds itemref="docSchema:Toolbar"/>
   </Kind>  
 
+  <!--
+    BookmarksBar
+  -->
+  <Kind itemName="BookmarksBar">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.BookmarksBar</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+  </Kind>  
+
   <Kind itemName="RepositoryTreeList">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.RepositoryTreeList</classes>
     <superKinds itemref="docSchema:TreeList"/>

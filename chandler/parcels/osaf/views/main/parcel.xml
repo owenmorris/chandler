@@ -221,7 +221,7 @@
     <!-- Attributes -->
     <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Back</title>
-    <bitmap>application/images/back.bmp</bitmap>
+    <bitmap>application/images/back.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <statusMessage>Go to the previous view</statusMessage>
@@ -231,20 +231,20 @@
     <!-- Attributes -->
     <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Forward</title>
-    <bitmap>application/images/forward.bmp</bitmap>
+    <bitmap>application/images/forward.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <statusMessage>Go to the next view</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="ReloadButton">
+  <ToolbarItem itemName="RefreshButton">
     <!-- Attributes -->
     <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Forward</title>
-    <bitmap>application/images/reload.bmp</bitmap>
+    <bitmap>application/images/refresh.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Reload the current view</statusMessage>
+    <statusMessage>Refresh the current view</statusMessage>
   </ToolbarItem>
 
   <ToolbarItem itemName="Spacer">
@@ -354,6 +354,17 @@
     <stretchFactor>1.0</stretchFactor>
   </Sidebar>
  
+  <BookmarksBar itemName="BookmarksBar">
+    <!-- Attributes -->
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
+    <size>200,30</size>
+    <minimumSize>200,30</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </BookmarksBar>
+
   <SplitWindow itemName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
@@ -371,6 +382,23 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </SplitWindow>
+  
+  <BoxContainer itemName="BookmarksContainer">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:BookmarksBar"/>
+    <childrenBlocks itemref="doc:MainSplitter"/>
+
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </BoxContainer>
   
   <View itemName="MainView">
     <!-- Menus -->
@@ -394,7 +422,7 @@
     <childrenBlocks itemref="doc:NavigationBar"/>
     <childrenBlocks itemref="doc:BackButton"/>
     <childrenBlocks itemref="doc:ForwardButton"/>
-    <childrenBlocks itemref="doc:ReloadButton"/>
+    <childrenBlocks itemref="doc:RefreshButton"/>
     <childrenBlocks itemref="doc:Spacer"/>
     <childrenBlocks itemref="doc:URLBox"/>
     
@@ -402,7 +430,7 @@
     <childrenBlocks itemref="doc:StatusBar"/>
     
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:MainSplitter"/>
+    <childrenBlocks itemref="doc:BookmarksContainer"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
