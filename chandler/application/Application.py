@@ -49,7 +49,7 @@ class Application(Persistent):
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
         self.URLTree = PersistentDict.PersistentDict ()
-        self.version = 0
+        self.version = Application.VERSION
     
     def SynchronizeView(self):
         """
