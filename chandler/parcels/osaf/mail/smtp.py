@@ -19,6 +19,20 @@ import osaf.contentmodel.mail.Mail as Mail
 import repository.util.UUID as UUID
 import repository.item.Query as Query
 import mx.DateTime as DateTime
+import twisted.protocols.policies as policies
+
+
+"""
+ Notes:
+ ------
+ 8. Upgrade history logic
+ 9. Reuse delivery errors and Delivery Method so not recreated on each send
+    so they do not get orphaned or delete previous errors a better idea perhaps
+ 17. Look in to what happens when you resend a message multiple times that succeeds each time
+ 18. Factory should live with an account and use build protocol correct(?)
+ 19. May want to implement own timer
+ 20. fix conectionLost to self.deferred.errback(err.value)
+"""
 
 try:
     from cStringIO import StringIO
@@ -28,20 +42,23 @@ except ImportError:
 class SMTPConstants(object):
     SUCCESS = 250
 
-class ChandlerESMTPSender(smtp.ESMTPSender):
+class ChandlerESMTPSender(smtp.ESMTPSender, policies.TimeoutMixin):
+    timeout = 60 #seconds
+
+    def timeoutConnection(self):
+        if not self.factory.done:
+             self.sendError(smtp.SMTPConnectError(-1, "Connection with SMTP server timed out. Please try again later.",
+                                                  self.log))
+    def connectionMade(self):
+        self.setTimeout(self.timeout)
+        smtp.ESMTPSender.connectionMade(self)
 
     def sendLine(self, line):
-        """This method utilized for debugging SSL IMAP4 Communications"""
-        if __debug__ and self.factory.useSSL:
-            self.factory.log.info(">>> %s" % line)
-
+        self.resetTimeout()
         smtp.ESMTPSender.sendLine(self, line)
 
     def lineReceived(self, line):
-        """This method utilized for debugging SSL IMAP4 Communications"""
-        if __debug__ and self.factory.useSSL:
-            self.factory.log.info("<<< %s" % line)
-
+        self.resetTimeout()
         smtp.ESMTPSender.lineReceived(self, line)
 
     def tryTLS(self, code, resp, items):
@@ -54,17 +71,17 @@ class ChandlerESMTPSenderFactory(smtp.ESMTPSenderFactory):
 
     protocol = ChandlerESMTPSender
 
-    def __init__(self, username, password, fromEmail, toEmail, file, deferred, log,
-                 retries=5, contextFactory=None, heloFallback=False, 
-                 requireAuthentication=True, requireTransportSecurity=True, 
+    def __init__(self, username, password, fromEmail, toEmail, file, deferred,
+                 retries, contextFactory=None, heloFallback=False,
+                 requireAuthentication=True, requireTransportSecurity=True,
                  useSSL=False):
 
         self.useSSL = useSSL
-        self.log = log
+        self.done = False
 
         smtp.ESMTPSenderFactory.__init__(self, username, password, fromEmail, toEmail,
-                                         file, deferred, retries, contextFactory, 
-                                         heloFallback, requireAuthentication, 
+                                         file, deferred, retries, contextFactory,
+                                         heloFallback, requireAuthentication,
                                          requireTransportSecurity)
 
 
@@ -74,14 +91,15 @@ class SMTPException(common.MailException):
 
 class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
-    def __init__(self, account, mailMessage, deferred=None):
+    def __init__(self, account, mailMessage):
         if account is None or not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SMTPMailException("You must pass an SMTPAccount instance")
 
         if mailMessage is None or not isinstance(mailMessage, Mail.MailMessageMixin):
             raise SMTPMailException("You must pass a MailMessage instance")
 
-        viewName = "SMTPSender_%s" % str(UUID.UUID())
+        """Create a unique view string to prevent multiple sends using same view"""
+        viewName = "SMTPSender_%s_%s" % (str(UUID.UUID()), DateTime.now())
 
         super(SMTPSender, self).__init__(Globals.repository, viewName)
 
@@ -89,9 +107,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         self.account = None
         self.mailMessage = None
         self.mailMessageUUID = mailMessage.itsUUID
-        self.deferred = deferred
-        self.failure = None
-        self.success = None
+        self.factory = None
 
     def sendMail(self):
         if __debug__:
@@ -111,7 +127,8 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             """ Refresh our view before adding items to our mail Message
                 and commiting. Will not cause merge conflicts since
                 no data changed in view in yet """
-            self.view.commit()
+
+            self.view.refresh()
 
             username     = self.account.username
             password     = self.account.password
@@ -133,6 +150,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             if useSSL:
                 sslContext = ssl.ClientContextFactory(useM2=1)
 
+            #XXX update this
             self.mailMessage.outgoingMessage(account=self.account)
 
             messageText = message.kindToMessageText(self.mailMessage)
@@ -155,16 +173,16 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg, 
-                                             d, self.log, retries, sslContext, 
-                                             heloFallback, authRequired, useSSL, useSSL)
+        self.factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
+                                                  d, retries, sslContext, heloFallback, 
+                                                  authRequired, useSSL, useSSL)
 
-        reactor.connectTCP(host, port, factory)
+        reactor.connectTCP(host, port, self.factory)
 
     def __mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if
-           one or more recipients are accepted by the mail server. However 
-           if at least one recipent is denied by the smtp server we need to 
+           one or more recipients are accepted by the mail server. However
+           if at least one recipent is denied by the smtp server we need to
            treat the message as failed for .4B and possibly beyond"""
 
         self.setViewCurrent()
@@ -172,6 +190,13 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         try:
             if __debug__:
                 self.printCurrentView("__mailSuccessCheck")
+
+            self.factory.done = True
+
+            """ Refresh our view before adding items to our mail Message
+                and commiting. Will not cause merge conflicts since
+                no data changed in view in yet """
+            self.view.refresh()
 
             if result[0] == len(result[1]):
                 self.__mailSuccess(result)
@@ -190,8 +215,9 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         if __debug__:
             self.printCurrentView("__mailSuccess")
 
-        self.mailMessage.dateSent = DateTime.now()
-        self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(DateTime.now())
+        now = DateTime.now()
+        self.mailMessage.dateSent = now
+        self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(now)
 
         self.mailMessage.deliveryExtension.sendSucceeded()
 
@@ -202,8 +228,6 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         info = "SMTP Message sent to [%s]" % (", ".join(addrs))
         self.log.info(info)
-
-        self.success = result
 
     def __mailSomeFailed(self, result):
         """
@@ -230,9 +254,6 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         self.mailMessage.deliveryExtension.sendFailed()
 
-        #XXX: Need to revisit this logic
-        self.failure = result[1]
-
         s = []
         s.append("SMTP Send failed for the following recipients:")
 
@@ -241,7 +262,6 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         self.log.error("\n".join(s))
 
-
     def __mailFailure(self, exc):
         self.setViewCurrent()
 
@@ -249,11 +269,15 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             if __debug__:
                 self.printCurrentView("__mailFailure")
 
+            self.factory.done = True
+
+            """ Refresh our view before adding items to our mail Message
+                and commiting. Will not cause merge conflicts since
+                no data changed in view in yet """
+            self.view.refresh()
+
             self.__recordError(exc.value)
             self.mailMessage.deliveryExtension.sendFailed()
-
-            #XXX Not sure we need this anymore
-            self.failure = exc.value
 
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
                 s = "SMTP send failed: %s" % deliveryError
@@ -279,6 +303,15 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
                correct error code from the smtp server.
             """
 
+            if __debug__ and self.account.useSSL and err.log is not None:
+                self.log.error("\n%s" % err.log)
+
+            #if isinstance(err, smtp.AUTHDeclinedError):
+                #print "AUTHENTICATION ERROR Display a password dialog"
+
+            #if isinstance(err, smtp.TLSError):
+                #print "TLS failed to start display a dialog saying would you like to try non-TLS mode"
+
             if isinstance(err, smtp.SMTPDeliveryError):
                 if err.code == -1:
                     deliveryError.errorCode = errorCode.DELIVERY_ERROR
@@ -300,8 +333,8 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         elif isinstance(err, error.ConnectError):
             """ Record the error code of a  ConnectionError.
                 If a ConnectionError occurs then there was
-                a problem communicating with a SMTP server
-                and no error code will be returned by theA
+                a problem communicating with an SMTP server
+                and no error code will be returned by the
                 server."""
 
             if isinstance(err, error.ConnectBindError):
@@ -341,7 +374,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         else:
             deliveryError.errorCode = errorCode.UNKNOWN_ERROR
-            deliveryError.errorString = err.__str__() + " UNKNOWN TYPE NOT A EXCEPTION"
+            deliveryError.errorString = err.__str__() + " UNKNOWN TYPE NOT AN EXCEPTION"
             deliveryError.errorDate = DateTime.now()
             s = "Unknown Non-Exception encountered docString: %s module: %s" % (err.__doc__, err.__module__)
             self.log.error(s)
@@ -363,16 +396,6 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         self.mailMessage = None
 
         Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
-
-        #XXX: Post a failure event back to the Gui
-        #XXX: Could just look at the message Delivery Extension state as well
-        if self.failure is not None:
-            if self.deferred is not None:
-                self.deferred.errback(self.failure)
-
-        elif self.success is not None:
-            if self.deferred is not None:
-                self.deferred.callback(self.success)
 
     def __getKinds(self):
 
