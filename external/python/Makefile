@@ -118,14 +118,12 @@ $(SRC)/$(BUILD)/Makefile:
 	../configure --prefix=$(PREFIX) $(CONF_DBG)
 
 bzip2-$(BZIP2VERSION)/libbz2.a:
-	cd bzip2-$(BZIP2VERSION); \
-        make libbz2.a; \
-        install -D libbz2.a $(PREFIX)/lib/libbz2.a; \
-        install -D bzlib.h $(PREFIX)/include/bzlib.h
+	make -C bzip2-$(BZIP2VERSION) libbz2.a
 
 build: bzip2-$(BZIP2VERSION)/libbz2.a apply
-	cd $(SRC)/$(BUILD); \
-	$(MAKE) DB=$(PREFIX)/db $(COMP_OPT) install
+	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
+	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
+	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) install
 
 snap: 
 	cd $(BUILD_ROOT); \
