@@ -30,7 +30,7 @@ JCCH = $(GCJ)\bin\gcjh
 
 LUCENE = $(SRCDIR)\lucene-$(VERSION)
 
-PYTHON_INC = $(RELDIR)\bin\include $(RELDIR)\..\python\Python-2.3.3\Include
+PYTHON_INC = $(RELDIR)\bin\include -I$(RELDIR)\..\python\Python-2.3.3\Include
 PYTHON_SITE = $(RELDIR)\bin\Lib\site-packages
 
 OBJS = $(BINDIR)\db_const.o $(BINDIR)\db.o $(BINDIR)\store.o $(BINDIR)\lucene.o  $(BINDIR)\reader.java.o $(BINDIR)\reader.cpp.o

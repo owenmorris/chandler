@@ -20,18 +20,37 @@ endif
 
 ifeq ($(OS),Darwin)
 
-else
-ARCHIVE: $(LAUNCHERS)/linux/$(BUILD)/chandler \
-         $(LAUNCHERS)/linux/$(BUILD)/chandler_bin \
-         $(LAUNCHERS)/win/
+build:
+        cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
+        cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
+
+endif
+
+ifeq ($(OS),Cygwin)
+
+ARCHIVE: $(LAUNCHERS)/win/
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-#	cd $(LAUNCHERS)/linux; \
-#	make; \
-#	cd $(LAUNCHERS)/win;
-#	make
+	cd $(LAUNCHERS)/win; \
+	. $(BUILD_ROOT)/cygenv.sh; \
+	make
+endif
+
+ifeq ($(OS),Linux)
+
+ARCHIVE: $(LAUNCHERS)/linux/
+
+build:
+        cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
+        cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
+        cd $(LAUNCHERS)/linux; \
+        make
+
+endif
+
+#  common to all platforms
 
 snap: 
 	cd $(BUILD_ROOT); \
@@ -43,5 +62,3 @@ clean:
 
 upload: LAUNCHERS-$(SNAP)-$(RELVER).tar.gz
 	scp LAUNCHERS-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
-
-endif

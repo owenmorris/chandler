@@ -28,6 +28,7 @@ ifeq ($(OS),Cygwin)
 wxWidgets:
 	cd $(SRC); \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
+	. $(BUILD_ROOT)/cygenv.sh; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*251$(SUFFIX)_*_vc.dll $(PREFIX)/$(SITE)/wx
