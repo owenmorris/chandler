@@ -31,4 +31,5 @@
     <superKinds itemref="simple:TestKind"/>
     <displayName>Subclass Test Kind</displayName>
   </Kind>
+
 </Parcel>

@@ -26,6 +26,8 @@ class ParcelLoader(object):
 
     def __init__(self, repository, callback, callbackArg):
         self.repository = repository
+        self.callback = callback
+        self.callbackArg = callbackArg
         self.parser = xml.sax.make_parser()
         self.parser.setFeature(xml.sax.handler.feature_namespaces, True)
         self.parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
@@ -33,6 +35,12 @@ class ParcelLoader(object):
                                                   callback, callbackArg))
 
     def load(self, file, uri):
+        # Before loading a parcel, load its parent
+        parentUri = uri[:uri.rfind('/')]
+        parcelParent = self.repository.find(parentUri)
+        if not parcelParent:
+            self.callback(self.repository, parentUri, self.callbackArg)
+
         contentHandler = self.parser.getContentHandler()
         contentHandler.uri = uri
 
