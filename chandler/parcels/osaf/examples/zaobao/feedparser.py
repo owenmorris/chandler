@@ -132,16 +132,6 @@ class FeedParserDict(UserDict):
         if key == 'items': key = 'entries'
         return UserDict.__getitem__(self, key)
 
-    def __getattr__(self, key):
-        try:
-            return self.__dict__[key]
-        except KeyError:
-            pass
-        try:
-            return self.__getitem__(key)
-        except:
-            raise AttributeError, "object has no attribute '%s'" % key
-
 class _FeedParserMixin:
     namespaces = {"": "",
                   "http://backend.userland.com/rss": "",
