@@ -1,3 +1,8 @@
+__version__ 	= "$Revision$"
+__date__ 	= "$Date$"
+__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
+__license__	= "GPL -- see LICENSE.txt"
+
 """distutils.msvccompiler
 
 Contains MSVCCompiler, an implementation of the abstract CCompiler class
