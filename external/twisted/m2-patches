@@ -155,7 +155,7 @@ Index: twisted/internet/ssl.py
  SSL connections require a ContextFactory so they can create SSL contexts.
  End users should only use the ContextFactory classes directly - for SSL
  connections use the reactor.connectSSL/listenSSL and so on, as documented
-@@ -44,7 +52,26 @@
+@@ -44,7 +52,27 @@
  supported = False
  
  # System imports
@@ -164,6 +164,7 @@ Index: twisted/internet/ssl.py
 +# Tricks that enable us to import both PyOpenSSL and M2Crypto.
 +try:
 +    from OpenSSL import SSL
++    import OpenSSL
 +except:
 +    SSL = None
 +
@@ -183,7 +184,7 @@ Index: twisted/internet/ssl.py
  import socket
  from zope.interface import implements, implementsOnly, implementedBy
  
-@@ -60,6 +87,7 @@
+@@ -60,6 +88,7 @@
      """A factory for SSL context objects, for server SSL connections."""
  
      isClient = 0
@@ -191,7 +192,7 @@ Index: twisted/internet/ssl.py
  
      def getContext(self):
          """Return a SSL.Context object. override in subclasses."""
-@@ -69,16 +97,21 @@
+@@ -69,16 +98,23 @@
  class DefaultOpenSSLContextFactory(ContextFactory):
  
      def __init__(self, privateKeyFileName, certificateFileName,
@@ -211,13 +212,15 @@ Index: twisted/internet/ssl.py
 +            ctx = m2ssl.Context(self.sslmethod)
 +            ctx.load_cert(self.certificateFileName, self.privateKeyFileName)
 +        else:
++            if OpenSSL.SSL != SSL:
++                raise Exception, 'Using wrong SSL implementation'
 +            ctx = SSL.Context(self.sslmethod)
 +            ctx.use_certificate_file(self.certificateFileName)
 +            ctx.use_privatekey_file(self.privateKeyFileName)
          self._context = ctx
  
      def __getstate__(self):
-@@ -100,9 +133,15 @@
+@@ -100,9 +136,17 @@
      """A context factory for SSL clients."""
  
      isClient = 1
@@ -231,10 +234,12 @@ Index: twisted/internet/ssl.py
      def getContext(self):
 +        if self.useM2:
 +            return m2ssl.Context(self.method)
++        if OpenSSL.SSL != SSL:
++            raise Exception, 'Using wrong SSL implementation'
          return SSL.Context(self.method)
  
  
-@@ -161,16 +200,21 @@
+@@ -161,16 +205,23 @@
          tcp.Port.__init__(self, port, factory, backlog, interface, reactor)
          self.ctxFactory = ctxFactory
  
@@ -247,6 +252,8 @@ Index: twisted/internet/ssl.py
          sock = tcp.Port.createInternetSocket(self)
 +        if self._useM2():
 +            return m2ssl.Connection(self.ctxFactory.getContext(), sock)
++        if OpenSSL.SSL != SSL:
++            raise Exception, 'Using wrong SSL implementation'
          return SSL.Connection(self.ctxFactory.getContext(), sock)
  
      def _preMakeConnection(self, transport):
@@ -300,13 +307,14 @@ Index: twisted/internet/tcp.py
  # This library is free software; you can redistribute it and/or
  # modify it under the terms of version 2.1 of the GNU Lesser General Public
  # License as published by the Free Software Foundation.
-@@ -40,11 +43,30 @@
+@@ -40,11 +43,31 @@
      fcntl = None
  from zope.interface import implements, classImplements
  
 +# Tricks that enable us to import both PyOpenSSL and M2Crypto.
  try:
      from OpenSSL import SSL
++    import OpenSSL
 +    # Dummies, not used for anything with PyOpenSSL
 +    class DummyPyOpenSSLError(Exception): pass
 +    SSL.SSLError = DummyPyOpenSSLError
@@ -331,7 +339,7 @@ Index: twisted/internet/tcp.py
  if os.name == 'nt':
      # we hardcode these since windows actually wants e.g.
      # WSAEALREADY rather than EALREADY. Possibly we should
-@@ -115,6 +137,9 @@
+@@ -115,6 +138,9 @@
          except SSL.Error:
              log.err()
              return main.CONNECTION_LOST
@@ -341,7 +349,7 @@ Index: twisted/internet/tcp.py
  
      def loseConnection(self):
          Connection.loseConnection(self)
-@@ -151,6 +176,9 @@
+@@ -151,6 +177,9 @@
          except SSL.Error:
              log.err()
              return main.CONNECTION_LOST
@@ -351,7 +359,7 @@ Index: twisted/internet/tcp.py
  
      def _closeSocket(self):
          try:
-@@ -204,20 +232,26 @@
+@@ -204,20 +233,28 @@
          self.socket.setblocking(0)
          self.fileno = skt.fileno
          self.protocol = protocol
@@ -371,6 +379,8 @@ Index: twisted/internet/tcp.py
 +            if useM2:
 +                self.socket = m2ssl.Connection(ctx.getContext(), self.socket)
 +            else:
++                if OpenSSL.SSL != SSL:
++                    raise Exception, 'Using wrong SSL implementation'
 +                self.socket = SSL.Connection(ctx.getContext(), self.socket)
              self.fileno = self.socket.fileno
              self.startReading()
@@ -382,7 +392,7 @@ Index: twisted/internet/tcp.py
              klass = self.__class__
              class TLSConnection(_TLSMixin, klass):
                  implements(interfaces.ISSLTransport)
-@@ -251,6 +285,14 @@
+@@ -251,6 +288,14 @@
              if retval == -1 and desc == 'Unexpected EOF':
                  return main.CONNECTION_DONE
              raise
@@ -411,7 +421,14 @@ Index: twisted/mail/protocols.py
  # This library is free software; you can redistribute it and/or
  # modify it under the terms of version 2.1 of the GNU Lesser General Public
  # License as published by the Free Software Foundation.
-@@ -226,8 +229,14 @@
+@@ -221,13 +224,20 @@
+     
+     This loads a certificate and private key from a specified file.
+     """
+-    def __init__(self, filename):
++    def __init__(self, filename, useM2=0):
+         self.filename = filename
++        self.useM2 = useM2
  
      def getContext(self):
          """Create an SSL context."""
@@ -419,14 +436,14 @@ Index: twisted/mail/protocols.py
 -        ctx = SSL.Context(SSL.SSLv23_METHOD)
 -        ctx.use_certificate_file(self.filename)
 -        ctx.use_privatekey_file(self.filename)
-+        try:
++        if self.useM2:
++            from twisted.internet import m2ssl
++            ctx = m2ssl.Context('sslv23')
++            ctx.load_cert(self.filename)            
++        else:
 +            from OpenSSL import SSL
 +            ctx = SSL.Context(SSL.SSLv23_METHOD)
 +            ctx.use_certificate_file(self.filename)
 +            ctx.use_privatekey_file(self.filename)
-+        except:
-+            from M2Crypto import SSL
-+            ctx = SSL.Context('sslv23')
-+            ctx.load_cert(self.filename)            
 +            
          return ctx
