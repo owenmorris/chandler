@@ -91,6 +91,8 @@ class Item(object):
             elif self._references.has_key(name):
                 return self.setAttributeValue(name, value,
                                               _attrDict=self._references)
+            elif self._kind is not None and self._kind.hasAttribute(name):
+                return self.setAttributeValue(name, value)
 
         return super(Item, self).__setattr__(name, value)
 
@@ -231,7 +233,7 @@ class Item(object):
         raise AttributeError, name
 
     def removeAttributeValue(self, name, _attrDict=None):
-        'Remove a Chandler attribute.'
+        "Remove a Chandler attribute's value."
 
         self.setDirty()
 
@@ -402,11 +404,14 @@ class Item(object):
 
         return False
 
-    def hasValue(self, attribute, value):
+    def hasValue(self, attribute, value, _attrDict=None):
         'Tell whether a multi-valued attribute has a given value.'
 
-        attrValue = (self._values.get(attribute, None) or
-                     self._references.get(attribute, None))
+        if _attrDict is not None:
+            attrValue = _attrDict.get(attribute, None)
+        else:
+            attrValue = (self._values.get(attribute, None) or
+                         self._references.get(attribute, None))
 
         if isinstance(attrValue, RefDict) or isinstance(attrValue, list):
             return value in attrValue
@@ -426,9 +431,8 @@ class Item(object):
 
         When the cardinality of the attribute is 'list' and its type is a
         literal, key must be an integer.
-        When the cardinality of the attribute is 'list' and its values are
-        references, key must be an integer or the refName of the item value
-        to remove."""
+        When the cardinality of the attribute is 'list' or 'dict' and its
+        values are references, the detach() method should be called instead."""
 
         self.setDirty()
 
@@ -803,7 +807,7 @@ class Item(object):
             
         if name is not None:
             if isinstance(name, UUID):
-                attrs['nameType'] = "uuid"
+                attrs['nameType'] = 'uuid'
                 attrs['name'] = name.str64()
             elif not isinstance(name, str) and not isinstance(name, unicode):
                 attrs['nameType'] = ItemHandler.typeName(name)
@@ -830,11 +834,10 @@ class Item(object):
             for val in value:
                 self._xmlValue(None, val, 'value', attrType, 'single',
                                generator, withSchema)
+        elif withSchema or attrType is None:
+            generator.characters(ItemHandler.makeString(value))
         else:
-            if withSchema or attrType is None:
-                generator.characters(ItemHandler.makeString(value))
-            else:
-                attrType.typeXML(value, generator)
+            attrType.typeXML(value, generator)
 
         generator.endElement(tag)
 
