@@ -17,3 +17,9 @@
     
 2003-06-19 Jed Burgess <jed@osafoundation.org>
     * Added the current version number to the status bar.  
+
+2003-06-19 Jed Burgess <jed@osafoundation.org>
+    * Hooked up the View menu items to show/hide the SideBar, NavigationBar,
+      ActionsBar, and StatusBar.
+    
+    

@@ -39,6 +39,10 @@ class ChandlerWindow(Persistent):
         self.size['width'] = -1
         self.size['height'] = -1
         self.sashSize = -1
+        self.showNavigationBar = true
+        self.showActionsBar = false
+        self.showSideBar = true
+        self.showStatusBar = true
         
     def SynchronizeView(self):
         """
@@ -115,9 +119,16 @@ class wxChandlerWindow(wxFrame):
         assert (self.sideBar != None)
         self.navigationBar = self.FindWindowByName("NavigationBar")
         assert (self.navigationBar != None)
+        self.actionsBar = self.FindWindowByName("ActionsBar")
+        assert (self.actionsBar != None)
         self.splitterWindow = self.FindWindowByName("SplitterWindow")
         assert (self.splitterWindow != None)
         
+        self.ShowOrHideNavigationBar()
+        self.ShowOrHideActionsBar()
+        self.ShowOrHideSideBar()
+        self.ShowOrHideStatusBar()
+      
         if __debug__:
             """
               In the debugging version, we add a command key combination that
@@ -141,6 +152,12 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+        EVT_UPDATE_UI(self, XRCID("ShowNavigationBar"), 
+                      self.UpdateViewMenuDisplay)
+        EVT_MENU(self, XRCID("ShowNavigationBar"), self.OnShowNavigationBar)
+        EVT_MENU(self, XRCID("ShowActionsBar"), self.OnShowActionsBar)
+        EVT_MENU(self, XRCID("ShowSideBar"), self.OnShowSideBar)
+        EVT_MENU(self, XRCID("ShowStatusBar"), self.OnShowStatusBar)        
         EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), 
                                       self.OnSplitterSashChanged)
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
@@ -208,6 +225,112 @@ class wxChandlerWindow(wxFrame):
         del application.Application.app.association[id(self.model)]
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         self.Destroy()
+
+    def UpdateViewMenuDisplay(self, event):
+        """
+          This method is called when the view menu is displayed.  It sets up
+        whether some of the menu items should be checked or not according to
+        whether or not their corresponding ui elements are being displayed.
+        """
+        self.menuBar.Check(XRCID("ShowNavigationBar"), 
+                           self.model.showNavigationBar)
+        self.menuBar.Check(XRCID("ShowActionsBar"), self.model.showActionsBar)
+        self.menuBar.Check(XRCID("ShowSideBar"), self.model.showSideBar)
+        self.menuBar.Check(XRCID("ShowStatusBar"), self.model.showStatusBar)
+        event.Skip()
+            
+    def OnShowNavigationBar(self, event):
+        """
+          Called when the 'Show Navigation Bar' menu item is selected.  It
+        toggles the display state of the NavigationBar.
+        """
+        self.model.showNavigationBar = not self.model.showNavigationBar
+        self.ShowOrHideNavigationBar()
+        
+    def ShowOrHideNavigationBar(self):
+        """
+          Shows or hides the NavigationBar according to the variable set within
+        ChandlerWindow.
+        """
+        if self.navigationBar.IsShown() != self.model.showNavigationBar:
+            self.navigationBar.Show(self.model.showNavigationBar)
+            if not hasattr(self, "verticalSizer"):
+                self.verticalSizer = self.navigationBar.GetContainingSizer()
+            
+            if self.model.showNavigationBar:
+                self.verticalSizer.Prepend(self.navigationBar, 0, wxEXPAND)
+            else:
+                self.verticalSizer.Remove(self.navigationBar)
+            self.verticalSizer.Layout()
+            
+    def OnShowActionsBar(self, event):
+        """
+          Called when the 'Show Actions Bar' menu item is selected.  It
+        toggles the display state of the ActionsBar.
+        """
+        self.model.showActionsBar = not self.model.showActionsBar
+        self.ShowOrHideActionsBar()
+    
+    def ShowOrHideActionsBar(self):
+        """
+          Shows or hides the ActionsBar according to the variable set within
+        ChandlerWindow.
+        """
+        if self.actionsBar.IsShown() != self.model.showActionsBar:
+            self.actionsBar.Show(self.model.showActionsBar)
+            if not hasattr(self, "verticalSizer"):
+                self.verticalSizer = self.actionsBar.GetContainingSizer()
+                
+            if self.model.showActionsBar:
+                if self.model.showNavigationBar:
+                    self.verticalSizer.Remove(self.navigationBar)
+                    self.verticalSizer.Prepend(self.actionsBar, 0, wxEXPAND)
+                    self.verticalSizer.Prepend(self.navigationBar, 0, wxEXPAND)
+                else:
+                    self.verticalSizer.Prepend(self.actionsBar, 0, wxEXPAND)
+            else:
+                self.verticalSizer.Remove(self.actionsBar)
+            self.verticalSizer.Layout()
+            
+    def OnShowSideBar(self, event):
+        """
+          Called when the 'Show Side Bar' menu item is selected.  It
+        toggles the display state of the SideBar.
+        """
+        self.model.showSideBar = not self.model.showSideBar
+        self.ShowOrHideSideBar()
+        
+    def ShowOrHideSideBar(self):
+        """
+          Shows or hides the SideBar according to the variable set within
+        ChandlerWindow.
+        """
+        if self.sideBar.IsShown() != self.model.showSideBar:
+            self.sideBar.Show(self.model.showSideBar)
+            if self.model.showSideBar:
+                self.splitterWindow.SplitVertically(self.sideBar, 
+                                           self.splitterWindow.GetWindow1())
+                self.splitterWindow.SetSashPosition (self.model.sashSize)
+            else:
+                self.splitterWindow.Unsplit(self.sideBar)
+
+    def OnShowStatusBar(self, event):
+        """
+          Called when the 'Show Status Bar' menu item is selected.  It
+        toggles the display state of the StatusBar.
+        """
+        self.model.showStatusBar = not self.model.showStatusBar
+        self.ShowOrHideStatusBar()
+
+    def ShowOrHideStatusBar(self):
+        """
+          Shows or hides the StatusBar according to the variable set within
+        ChandlerWindow.
+        """
+        statusBar = self.GetStatusBar()
+        if statusBar.IsShown() != self.model.showStatusBar:
+            statusBar.Show(self.model.showStatusBar)
+            self.Layout()
         
     def OnSplitterSashChanged(self, event):
         self.model.sashSize = event.GetSashPosition ()

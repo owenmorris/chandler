@@ -6,6 +6,7 @@
 ##################################################################
 file_list = ['../release/bin/Lib/site-packages/wxPython/xrc.py',
              'Chandler.py',
+             'application/ActionsBar.py',
              'application/Application.py',
              'application/ChandlerJabber.py',
              'application/ChandlerWindow.py',
