@@ -38,7 +38,7 @@
 
   <Node itemName="ZaoBao">
     <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:ZaoBaoTab"/>
+    <item itemref="zaobao:ZaoBaoView"/>
   </Node>
 
 </core:Parcel>

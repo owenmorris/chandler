@@ -19,6 +19,9 @@
   <zb:RSSChannel itemName="osaf">
     <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
   </zb:RSSChannel>
+  <zb:RSSChannel itemName="ted">
+    <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
+  </zb:RSSChannel>
 
   <!-- Queries -->
   <Query itemName="myQuery">
@@ -35,42 +38,17 @@
   </CharacterStyle>  
 
   <!-- Events -->
-  <ChoiceEvent itemName="MyDumbEvent">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:ItemList"/>
-    <methodName>OnDumbEvent</methodName>
-    <choice>Buttons</choice>
-  </ChoiceEvent>
 
   <!-- Menus -->
-  <Menu itemName="ZBMenu">
-    <title>ZaoBao</title>
-    <operation>InsertBefore</operation>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
-    <helpString></helpString>
-  </Menu>
 
   <!-- Menu Items -->
-  <MenuItem itemName="BlankItem">
-    <title>Do Something...</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>ZBMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
-    <accel></accel>
-    <event itemref="doc:MyDumbEvent"/>
-    <helpString></helpString>
-  </MenuItem>
 
 
-  <!-- The view itself -->
+  <!-- The main ZaoBao view -->
 
-  <zb:ZaoBaoTreeList itemName="ItemList">
-    <contentSpec itemref="doc:myQuery"/>
-
+  <zb:ZaoBaoTreeList itemName="ZaoBaoTreeList">
     <hideRoot>True</hideRoot>
-    <noLines>False</noLines>
+    <noLines>True</noLines>
     <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
@@ -109,7 +87,7 @@
     <characterStyle itemref="doc:HeaderCharacterStyle"/>
   </EditText>
 
-  <BoxContainer itemName="ZaoBaoTab">
+  <BoxContainer itemName="ZaoBaoView">
     <eventBoundary>True</eventBoundary>
     <open>True</open>
     <size>200,100</size>
@@ -119,13 +97,64 @@
     <stretchFactor>1.0</stretchFactor>
     <orientationEnum>Vertical</orientationEnum>
 
-    <childrenBlocks itemref="doc:ZBMenu"/>
-    <childrenBlocks itemref="doc:BlankItem"/>
-
-    <childrenBlocks itemref="doc:ItemList"/>
+    <childrenBlocks itemref="doc:ZaoBaoTreeList"/>
     <childrenBlocks itemref="doc:ItemView"/>
     <childrenBlocks itemref="doc:NewChannel"/>
 
   </BoxContainer>
+
+
+
+
+
+
+
+
+  <!-- Example single channel view -->
+
+  <zb:ZaoBaoList itemName="ChannelList">
+    <contentSpec itemref="doc:myQuery"/>
+
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoList>
+
+  <zb:ZaoBaoItemView itemName="ChannelItemView">
+    <url></url>
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemView>
+
+  <BoxContainer itemName="ZaoBaoChannelView">
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+    <orientationEnum>Vertical</orientationEnum>
+
+    <childrenBlocks itemref="doc:ChannelList"/>
+    <childrenBlocks itemref="doc:ChannelItemView"/>
+
+  </BoxContainer>
+
 
 </core:Parcel>

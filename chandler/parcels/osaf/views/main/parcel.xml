@@ -293,7 +293,13 @@
 
   <Node itemName="ZaoBao">
     <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:ZaoBaoTab"/>
+    <item itemref="zaobao:ZaoBaoView"/>
+    <children itemref="doc:OSAFNews"/>
+  </Node>
+
+  <Node itemName="OSAFNews">
+    <displayName>OSAF News</displayName>
+    <item itemref="zaobao:ZaoBaoChannelView"/>
   </Node>
 
   <Node itemName="CalendarView">

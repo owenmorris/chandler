@@ -5,6 +5,57 @@ from OSAF.framework.blocks.Views import wxItemView, ItemView
 from OSAF.framework.notifications.Notification import Notification
 from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
 
+class ZaoBaoList(TreeList):
+    def _addChildNode(self, node, child, hasKids):
+        displayName = child.getAttributeValue('displayName',
+                                              default='<Untitled>')
+        date = child.getAttributeValue('date', default='')
+
+        names = [displayName, str(date)]
+        node.AddChildNode(child, names, hasKids)
+
+    def GetTreeData(self, node):
+        item = node.GetData()
+
+        # handle the root node case
+        if item == None:
+            node.AddRootNode(Globals.repository, ['//'], True)
+            return
+
+        # add all the children to the list
+        repository = self.getRepository()
+        try:
+            cs = self.contentSpec.data.split('.')
+            channel = repository.find(str(cs[0]))
+            items = channel.getAttributeValue(str(cs[1]), default=[])
+        except:
+            print 'error getting items'
+            return
+
+        for item in items:
+            self._addChildNode(node, item, False)
+
+
+    def OnGoToURI(self, notification):
+        wxTreeListWindow = Globals.association[self.getUUID()]
+        wxTreeListWindow.GoToURI(notification.data['URI'])
+
+    def OnEnterPressedEvent(self, notification):
+        from OSAF.examples.zaobao.RSSData import RSSChannel
+        Globals.repository.commit()
+
+        url = notification.GetData()['text']
+        if len(url) == 0:
+            return
+
+        chan = RSSChannel()        
+        chan.url = url
+
+        import ZaoBaoAgent
+        ZaoBaoAgent.UpdateChannel(chan)
+        Globals.repository.commit()
+
+
 class ZaoBaoTreeList(TreeList):
     def _addChildNode(self, node, child, hasKids):
         displayName = child.getAttributeValue('displayName',
@@ -15,14 +66,6 @@ class ZaoBaoTreeList(TreeList):
         node.AddChildNode(child, names, hasKids)
 
     def GetTreeData(self, node):
-        repository = self.getRepository()
-        try:
-            cs = self.contentSpec.data.split('.')
-            c = repository.find(str(cs[0]))
-            c.getAttributeValue(str(cs[1]), default=None)
-        except:
-            pass
-
         item = node.GetData()
         if item:
             chanKind = ZaoBaoParcel.getRSSChannelKind()
@@ -88,7 +131,7 @@ class wxZaoBaoItemView(wxItemView):
                 HTMLText = HTMLText + '</a>\n'
 
             desc = item.getAttributeValue('description', default=displayName)
-            desc = desc.replace("<", "&lt;").replace(">", "&gt;")
+            #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
             HTMLText = HTMLText + '<p>' + desc + '</p>\n\n'
 
             HTMLText = HTMLText + '</body></html>\n'

@@ -168,6 +168,10 @@
   <!-- view related stuff -->
 
 
+  <Kind itemName="ZaoBaoList">
+    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoList</classes>
+    <superKinds itemref="docSchema:TreeList"/>
+  </Kind>  
 
   <Kind itemName="ZaoBaoTreeList">
     <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoTreeList</classes>
