@@ -32,7 +32,11 @@ class MainFrame(wxFrame):
     def __init__(self):
         wxFrame.__init__(self, None, -1, "TestPane", size=(640,480))
         self.SetBackgroundColour (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_3DFACE))
+        EVT_CLOSE(self, self.OnClose)
 
+    def OnClose(self, event):
+        Globals.wxApplication.mainFrame = None
+        self.Destroy()
 
 class wxApplicationNew (wxApp):
     """
@@ -239,8 +243,9 @@ class wxApplicationNew (wxApp):
         may come in after the window is closed that try to access the window
         which causes Python to crash.
         """
-        self.mainFrame.Close (TRUE)
+        mainFrame = self.mainFrame
         self.mainFrame = None
+        mainFrame.Close (TRUE)
 
 
     def OnTerminate(self):

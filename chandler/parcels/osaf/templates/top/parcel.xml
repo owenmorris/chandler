@@ -27,6 +27,7 @@
     <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
+    <helpString></helpString>
   </Menu>
 
   <Menu itemName="EditMenu">
@@ -34,6 +35,7 @@
     <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
+    <helpString></helpString>
   </Menu>
   
   <!--
@@ -215,10 +217,18 @@
     <characterStyle itemref="doc:TextStyle"/>readOnly
   </EditText>
   
+  <Menu itemName="RightMenu">
+    <title>Right Menu</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation>EditSeparator1</itemLocation>
+    <helpString></helpString>
+  </Menu>
+
   <MenuItem itemName="RightMenuItem">
     <title>Right</title>
     <operation>InsertBefore</operation>
-    <menuLocation>EditMenu</menuLocation>
+    <menuLocation>RightMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel></accel>
@@ -227,6 +237,7 @@
   </MenuItem>
   
   <EditText itemName="RightText">
+    <childrenBlocks itemref="doc:RightMenu"/>
     <childrenBlocks itemref="doc:RightMenuItem"/>
     <open>True</open>
 
