@@ -13,11 +13,11 @@ Don't add to the globals without reviewing the addition.
 association = {}              # A dictionary mapping persistent object ids
                               #    to non-persistent wxPython counterparts
 agentManager = None           # AgentManager
+taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable
 notificationManager = None    # NotificationManager
 repository = None             # The repository
 mainView = None               # The main View
 wxApplication = None          # The wxWindows application object
 activeView = None             # The last view that was displayed
-
 
