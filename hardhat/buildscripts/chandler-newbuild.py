@@ -114,7 +114,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             CopyLog(os.path.join(releaseModeDir, logPath), log)
             ret = "init_failed"
 
-        finally:
+        else:
             if releaseMode == "debug":
                 # OK to do release dir
                 continue
