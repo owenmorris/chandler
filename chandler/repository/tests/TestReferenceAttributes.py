@@ -88,6 +88,7 @@ class ReferenceAttributesTest(unittest.TestCase):
         employeeKind.addValue('attributes',
                               managerAttribute,alias='manager')
 
+        # add employees to manager
         manager = managerKind.newItem('boss', self.rep)
 
         emp1 = employeeKind.newItem('employee1', self.rep)
@@ -96,12 +97,6 @@ class ReferenceAttributesTest(unittest.TestCase):
         emp4 = employeeKind.newItem('employee4', self.rep)
 
         manager.setValue('employees', emp1)
-        print 'manager', manager
-        print 'managerKind', managerKind.getAttribute('employees')
-        print 'card', manager.getAttributeAspect('employees','cardinality')
-        print 'employees', manager.employees
-        print 'first', manager.employees.first()
-        self.assert_(manager.hasValue('employees',emp1))
         self.assertEquals(emp1.manager, manager)
         self.assert_(manager.hasValue('employees',emp1))
         manager.addValue('employees', emp2)
@@ -114,11 +109,85 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assertEquals(emp4.manager, manager)
         self.assert_(manager.hasValue('employees',emp4))
 
-        print manager.employees
-        print emp1.manager
-        print emp2.manager
-        print emp3.manager
-        print emp4.manager
+        # now do it from the other end add manager to employees
+        manager = managerKind.newItem('boss', self.rep)
+
+        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp1.manager = manager
+        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp2.manager = manager
+        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp3.manager = manager
+        emp4 = employeeKind.newItem('employee4', self.rep)
+        emp4.manager = manager
+
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+    def testDictReferenceAttributes(self):
+        kind = self.rep.find('//Schema/Core/Kind')
+        itemKind = self.rep.find('//Schema/Core/Item')
+        attrKind = itemKind.getAttribute('kind').kind
+
+        managerKind = kind.newItem('manager', self.rep)
+        employeesAttribute = Attribute('employees',managerKind, attrKind)
+        employeesAttribute.setAttributeValue('cardinality','dict')
+        employeesAttribute.setAttributeValue('otherName', 'manager')
+        managerKind.addValue('attributes',
+                             employeesAttribute,alias='employees')
+        employeeKind = kind.newItem('employee', self.rep)
+        managerAttribute = Attribute('manager',employeeKind, attrKind)
+        managerAttribute.setAttributeValue('otherName', 'employees')
+        employeeKind.addValue('attributes',
+                              managerAttribute,alias='manager')
+
+        # add employees to manager
+        manager = managerKind.newItem('boss', self.rep)
+
+        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp4 = employeeKind.newItem('employee4', self.rep)
+
+        manager.setValue('employees', emp1)
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        manager.addValue('employees', emp2)
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        manager.addValue('employees', emp3)
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        manager.addValue('employees', emp4)
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+        # now do it from the other end add manager to employees
+        manager = managerKind.newItem('boss', self.rep)
+
+        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp1.manager = manager
+        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp2.manager = manager
+        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp3.manager = manager
+        emp4 = employeeKind.newItem('employee4', self.rep)
+        emp4.manager = manager
+
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
 
     def testSubAttributes(self):
         itemKind = self.rep.find('//Schema/Core/Item')
