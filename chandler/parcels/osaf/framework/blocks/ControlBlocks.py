@@ -209,10 +209,11 @@ class ListDelegate (object):
 
 
 class AttributeDelegate (ListDelegate):
-    def GetColumnCount (self):
-        return len (self.blockItem.columnAttributeNames)
-
     def GetElementType (self, row, column):
+        """
+          An apparent bug in wxWidgets occurs when there are no items in a table,
+        the Table asks for the type of cell 0,0
+        """
         try:
             item = self.blockItem.contents [row]
         except IndexError:
@@ -257,7 +258,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
-            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.ListDelegate'
         mixinAClass (self, elementDelegate)
         
     def OnSize(self, event):
@@ -329,24 +330,28 @@ class List(RectangularChild):
 class wxTableData(wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
-        self.defaultAttribute = wx.grid.GridCellAttr()
-        self.defaultAttribute.SetReadOnly (True)
+        self.defaultRWAttribute = wx.grid.GridCellAttr()
+        self.defaultROAttribute = wx.grid.GridCellAttr()
+        self.defaultROAttribute.SetReadOnly (True)
 
     def __del__ (self):
-        self.defaultAttribute.DecRef()
+        self.defaultRWAttribute.DecRef()
+        self.defaultROAttribute.DecRef()
         
     def GetNumberRows (self):
         """
           We've got the usual chicken & egg problems: wxWidgets calls GetNumberRows &
         GetNumberCols before wiring up the view instance variable
         """
-        if self.GetView():
-            return self.GetView().GetElementCount()
+        view = self.GetView()
+        if view:
+            return view.GetElementCount()
         return 1
 
     def GetNumberCols (self):
-        if self.GetView():
-            return self.GetView().GetColumnCount()
+        view = self.GetView()
+        if view:
+            return view.GetColumnCount()
         return 1
 
     def GetColLabelValue (self, column):
@@ -371,8 +376,18 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetAttr (self, row, column, kind):
         attribute = self.base_GetAttr (row, column, kind)
-        if not attribute and self.GetTypeName (row, column) == "_default":
-            attribute = self.defaultAttribute
+        if not attribute:
+            type = self.GetTypeName (row, column)
+            delegate = AttributeEditor.GetAttributeEditor (type)
+            attribute = self.defaultROAttribute
+            """
+              An apparent bug in table asks for an attribute even when
+            there are no entries in the table
+            """
+            view = self.GetView()
+            if (view.GetElementCount() != 0 and
+                delegate.ReadOnly (view.GetElementValue (row, column))):
+                attribute = self.defaultRWAttribute
             attribute.IncRef()
         return attribute
         

@@ -233,7 +233,7 @@ class ItemCollection(ContentModel.ContentItem):
     def index (self, item):
         try:
             return self.results.getIndexPosition (self.indexName, item)
-        except NoSuchIndexError, e:
+        except NoSuchIndexError:
             self.createIndex()
             return self._results.getIndexPosition (self.indexName, item)
 

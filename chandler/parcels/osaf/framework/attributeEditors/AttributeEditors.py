@@ -43,6 +43,9 @@ class AttributeEditor (object):
     GetAttributeEditor = classmethod (GetAttributeEditor)
 
 class StringAttributeEditor (AttributeEditor):
+    def ReadOnly (self, (item, attribute)):
+        return str (item.itsParent.itsPath) ==  '//userdata'
+
     def Draw (self, dc, rect, item, attributeName, isSelected):
         """
           Currently only handles left justified multiline text.
