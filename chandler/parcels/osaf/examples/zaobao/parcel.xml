@@ -2,17 +2,19 @@
 
 <Parcel itsName="zaobao"
         xmlns="http://osafoundation.org/parcels/core"
-        xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
-        xmlns:fw="http://osafoundation.org/parcels/osaf/framework"
-        xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:docSchema="http://osafoundation.org/parcels/osaf/framework/blocks">
+        xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
 
+  <!-- Meta information for the parcel -->
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.4 release</description>
   <version>0.1</version>
 
-  <!-- Shared between RSSChannel and RSSItem -->
+  <!-- 
+    Shared between RSSChannel and RSSItem 
+    Note that this doesn't create the attributes, merely declares them.
+    They will be referred to later
+    -->
   <Attribute itsName="link">
     <displayName>Web URL</displayName>
     <cardinality>single</cardinality>
@@ -41,14 +43,14 @@
   <!-- Kind: RSSChannel -->
 
   <Kind itsName="RSSChannel">
-    <!-- <superKinds itemref="content:ContentItem"/> -->
     <!-- make this into an item collection so we can appear natively in the sidebar -->
     <superKinds itemref="content:ItemCollection"/>
-    <!-- <superKinds itemref="content:Note"/> -->
+    
     <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
     
     <displayName>RSS Channel</displayName>
 
+    <!-- Redirect attributes - this redirects "standard" attributes to RSSChannel-specific attributes -->
     <Attribute itsName="who">
         <redirectTo value="author"/>
     </Attribute>
@@ -56,7 +58,11 @@
     <Attribute itsName="about">
         <redirectTo value="displayName"/>
     </Attribute>
-    <!-- Feed specific attributes -->
+    
+    <!-- 
+        attribute declarations - note that these are 
+        actually used by <attributes> tag below 
+    -->
     <Attribute itsName="url">
       <displayName>URL</displayName>
       <cardinality>single</cardinality>
@@ -97,45 +103,49 @@
     <Attribute itsName="items">
       <displayName>Items</displayName>
       <cardinality>list</cardinality>
-      <type itemref="zaobao:RSSItem"/>
-      <inverseAttribute itemref="zaobao:RSSItem/channel"/>
+      <type itemref="doc:RSSItem"/>
+      <inverseAttribute itemref="doc:RSSItem/channel"/>
     </Attribute>
 
-    <!-- unique to RSSChannel -->
-    <attributes itemref="zaobao:RSSChannel/url"/>
-    <attributes itemref="zaobao:RSSChannel/etag"/>
-    <attributes itemref="zaobao:RSSChannel/lastModified"/>
-    <attributes itemref="zaobao:RSSChannel/copyright"/>
-    <attributes itemref="zaobao:RSSChannel/language"/>
+    <!-- Actual attribute uses -->
+    
+    <!-- RSSChannel attributes -->
+    <attributes itemref="doc:RSSChannel/url"/>
+    <attributes itemref="doc:RSSChannel/etag"/>
+    <attributes itemref="doc:RSSChannel/lastModified"/>
+    <attributes itemref="doc:RSSChannel/copyright"/>
+    <attributes itemref="doc:RSSChannel/language"/>
 
-    <attributes itemref="zaobao:RSSChannel/isUnread"/>
-    <attributes itemref="zaobao:RSSChannel/items"/>
+    <attributes itemref="doc:RSSChannel/isUnread"/>
+    <attributes itemref="doc:RSSChannel/items"/>
 
-    <!-- shared between RSSChannel and RSSItem -->
-    <attributes itemref="zaobao:link"/>
-    <attributes itemref="zaobao:category"/>
-    <attributes itemref="zaobao:author"/>
-    <attributes itemref="zaobao:date"/>
+    <!-- These attributes are shared between RSSChannel and RSSItem -->
+    <attributes itemref="doc:link"/>
+    <attributes itemref="doc:category"/>
+    <attributes itemref="doc:author"/>
+    <attributes itemref="doc:date"/>
 
+
+    <!-- Clouds defined on this item, to aid in sharing and copying -->
     <Cloud itsName="SharingCloud">
         <Endpoint itsName="author">
             <attribute value="author"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSChannel/SharingCloud/author"/>
+        <endpoints itemref="doc:RSSChannel/SharingCloud/author"/>
         <Endpoint itsName="copyright">
             <attribute value="copyright"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSChannel/SharingCloud/copyright"/>
+        <endpoints itemref="doc:RSSChannel/SharingCloud/copyright"/>
         <Endpoint itsName="link">
             <attribute value="link"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSChannel/SharingCloud/link"/>
+        <endpoints itemref="doc:RSSChannel/SharingCloud/link"/>
         <Endpoint itsName="url">
             <attribute value="url"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSChannel/SharingCloud/url"/>
+        <endpoints itemref="doc:RSSChannel/SharingCloud/url"/>
     </Cloud>
-    <clouds alias="sharing" itemref="zaobao:RSSChannel/SharingCloud"/>
+    <clouds alias="sharing" itemref="doc:RSSChannel/SharingCloud"/>
 
   </Kind>  
 
@@ -143,11 +153,15 @@
   <!-- Kind: RSSItem -->
 
   <Kind itsName="RSSItem">
-    <superKinds itemref="content:ContentItem"/>
+    <!-- for now, we are not a Note - mostly because this makes unnecessary UI appear in the detail view -->
     <!-- <superKinds itemref="content:Note"/> -->
+    <superKinds itemref="content:ContentItem"/>
+    
     <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
 
     <displayName>RSS Item</displayName>
+
+    <!-- Redirect attributes - this redirects "standard" attributes to RSSChannel-specific attributes -->
     <Attribute itsName="about">
         <redirectTo value="displayName"/>
     </Attribute>
@@ -158,12 +172,15 @@
         <redirectTo value="content"/>
     </Attribute>
     
-    <!-- Unique to RSSItem -->
+    <!-- 
+        attribute declarations - note that these are 
+        actually used by <attributes> tag below 
+    -->
     <Attribute itsName="channel">
       <displayName>Channel</displayName>
       <cardinality>single</cardinality>
-      <type itemref="zaobao:RSSChannel"/>
-      <inverseAttribute itemref="zaobao:RSSChannel/items"/>
+      <type itemref="doc:RSSChannel"/>
+      <inverseAttribute itemref="doc:RSSChannel/items"/>
     </Attribute>
 
     <Attribute itsName="content">
@@ -171,44 +188,37 @@
       <type itemref="Lob"/>
     </Attribute>
 
-    <attributes itemref="zaobao:RSSItem/content"/>
-    <attributes itemref="zaobao:RSSItem/channel"/>
+    <!-- Actual attribute uses -->
+    <attributes itemref="doc:RSSItem/content"/>
+    <attributes itemref="doc:RSSItem/channel"/>
 
-    <attributes itemref="zaobao:link"/>
-    <attributes itemref="zaobao:category"/>
-    <attributes itemref="zaobao:author"/>
-    <attributes itemref="zaobao:date"/>
+    <attributes itemref="doc:link"/>
+    <attributes itemref="doc:category"/>
+    <attributes itemref="doc:author"/>
+    <attributes itemref="doc:date"/>
 
+    <!-- Clouds defined on this item, to aid in sharing and copying -->
     <Cloud itsName="SharingCloud">
         <Endpoint itsName="link">
             <attribute value="link"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSItem/SharingCloud/link"/>
+        <endpoints itemref="doc:RSSItem/SharingCloud/link"/>
         <Endpoint itsName="category">
             <attribute value="category"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSItem/SharingCloud/category"/>
+        <endpoints itemref="doc:RSSItem/SharingCloud/category"/>
         <Endpoint itsName="author">
             <attribute value="author"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSItem/SharingCloud/author"/>
+        <endpoints itemref="doc:RSSItem/SharingCloud/author"/>
         <Endpoint itsName="date">
             <attribute value="date"/>
         </Endpoint>
-        <endpoints itemref="zaobao:RSSItem/SharingCloud/date"/>
+        <endpoints itemref="doc:RSSItem/SharingCloud/date"/>
     </Cloud>
-    <clouds alias="sharing" itemref="zaobao:RSSItem/SharingCloud"/>
+    <clouds alias="sharing" itemref="doc:RSSItem/SharingCloud"/>
 
   </Kind>
-
-  <!-- Just declaring an item of this type will allow it to be woken up -->
-  <wakeupCall:WakeupCall itsName="ZaoBao">
-  <wakeupCallClass>osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall</wakeupCallClass>
-        <callOnStartup>True</callOnStartup>
-        <enabled>True</enabled>
-        <repeat>True</repeat>
-        <delay>00:04:00:00</delay>
-  </wakeupCall:WakeupCall>
 
   
 </Parcel>

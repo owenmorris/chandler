@@ -9,11 +9,9 @@
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/zaobao"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-             xmlns:zb="http://osafoundation.org/parcels/osaf/examples/zaobao"
+             xmlns:zbSchema="http://osafoundation.org/parcels/osaf/examples/zaobao"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
-             >
+             xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup">
 
   <core:version>0.3</core:version>
 
@@ -23,14 +21,14 @@
     <fontStyle>bold</fontStyle>
   </CharacterStyle>  
 
+  <!-- ## detail view for RSSItems ## -->
+    
   <ItemDetail itsName="ItemBodyArea" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
     <blockName value="articletext"/>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>    
   </ItemDetail>
   
-  <!-- ## detail view for RSSItems ## -->
-    
   <!-- URL -->
   <ContentItemDetail itsName="LinkArea"
     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
@@ -146,10 +144,10 @@
   </StaticText>
   
     
-  <!-- The actual detail area -->
+  <!-- The actual detail area block -->
   <detail:DetailTrunkSubtree itsName="ChannelSubtree">
     <!-- This ensures that this detail view gets attached to RSSItems -->
-    <key itemref="zb:RSSItem"/>
+    <key itemref="zbSchema:RSSItem"/>
     
     <!-- UI Elements for detail view -->
     <rootBlocks itemref="detail:MarkupBar"/>
@@ -160,5 +158,15 @@
     <!--<rootBlocks itemref="doc:DateArea"/> -->
     <rootBlocks itemref="doc:CategoryArea"/>
   </detail:DetailTrunkSubtree>
+
+  <!-- Just declaring an item of this type will allow it to be woken up -->
+  <wakeupCall:WakeupCall itsName="ZaoBao">
+        <wakeupCallClass>osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall</wakeupCallClass>
+        <callOnStartup>True</callOnStartup>
+        <enabled>True</enabled>
+        <repeat>True</repeat>
+        <delay>00:00:30:00</delay>
+  </wakeupCall:WakeupCall>
+
   
 </core:Parcel>
