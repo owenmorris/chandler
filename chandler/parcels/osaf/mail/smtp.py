@@ -30,6 +30,20 @@ class SMTPConstants(object):
 
 class ChandlerESMTPSender(smtp.ESMTPSender):
 
+    def sendLine(self, line):
+        """This method utilized for debugging SSL IMAP4 Communications"""
+        if __debug__ and self.factory.useSSL:
+            self.factory.log.info(">>> %s" % line)
+
+        smtp.ESMTPSender.sendLine(self, line)
+
+    def lineReceived(self, line):
+        """This method utilized for debugging SSL IMAP4 Communications"""
+        if __debug__ and self.factory.useSSL:
+            self.factory.log.info("<<< %s" % line)
+
+        smtp.ESMTPSender.lineReceived(self, line)
+
     def tryTLS(self, code, resp, items):
         if not self.factory.useSSL:
             items = common.disableTwistedTLS(items)
@@ -40,13 +54,18 @@ class ChandlerESMTPSenderFactory(smtp.ESMTPSenderFactory):
 
     protocol = ChandlerESMTPSender
 
-    def __init__(self, username, password, fromEmail, toEmail, file, deferred, retries=5, contextFactory=None,
-                 heloFallback=False, requireAuthentication=True, requireTransportSecurity=True, useSSL=False):
+    def __init__(self, username, password, fromEmail, toEmail, file, deferred, log,
+                 retries=5, contextFactory=None, heloFallback=False, 
+                 requireAuthentication=True, requireTransportSecurity=True, 
+                 useSSL=False):
 
         self.useSSL = useSSL
+        self.log = log
 
-        smtp.ESMTPSenderFactory.__init__(self, username, password, fromEmail, toEmail, file, deferred, retries,
-                                         contextFactory, heloFallback, requireAuthentication, requireTransportSecurity)
+        smtp.ESMTPSenderFactory.__init__(self, username, password, fromEmail, toEmail,
+                                         file, deferred, retries, contextFactory, 
+                                         heloFallback, requireAuthentication, 
+                                         requireTransportSecurity)
 
 
 class SMTPException(common.MailException):
@@ -136,8 +155,9 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
-                                             retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
+        factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg, 
+                                             d, self.log, retries, sslContext, 
+                                             heloFallback, authRequired, useSSL, useSSL)
 
         reactor.connectTCP(host, port, factory)
 

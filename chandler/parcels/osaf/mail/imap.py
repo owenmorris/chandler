@@ -30,20 +30,19 @@ import repository.item.Query as Query
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
-    def __init__(self, contextFactory=None, useSSL=False):
+    def __init__(self, contextFactory=None):
         imap4.IMAP4Client.__init__(self, contextFactory)
-        self.useSSL = useSSL
 
     def sendLine(self, line):
         """This method utilized for debugging SSL IMAP4 Communications"""
-        if __debug__ and self.useSSL:
+        if __debug__ and self.factory.useSSL:
             self.factory.log.info(">>> %s" % line)
 
         imap4.IMAP4Client.sendLine(self, line)
 
     def lineReceived(self, line):
         """This method utilized for debugging SSL IMAP4 Communications"""
-        if __debug__ and self.useSSL:
+        if __debug__ and self.factory.useSSL:
             self.factory.log.info("<<< %s" % line)
 
         imap4.IMAP4Client.lineReceived(self, line)
@@ -60,7 +59,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @return C{None}
         """
 
-        if not self.useSSL:
+        if not self.factory.useSSL:
             self.serverCapabilities =  common.disableTwistedTLS(caps)
 
         self.factory.deferred.callback(self)
@@ -80,28 +79,23 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
                           and errback if no connection or command failed
         @type deferred: C{defer.Deferred}
 
-        @param: log: A log instance
-        @type log: C{}
-
         @param: useSSL: A boolean to indicate whether to run in SSL mode
         @type useSSL: C{boolean}
 
         @return: C{None}
         """
-        print "Log ", type(log)
-
         if not isinstance(deferred, defer.Deferred):
             raise IMAPException("deferred must be a defer.Deferred instance")
 
         self.deferred = deferred
-        self.log = log
         self.useSSL = useSSL
+        self.log = log
 
     def buildProtocol(self, addr):
         if not self.useSSL:
             p = self.protocol()
         else:
-            p = self.protocol(ssl.ClientContextFactory(useM2=1), True)
+            p = self.protocol(ssl.ClientContextFactory(useM2=1))
 
         p.factory = self
         return p

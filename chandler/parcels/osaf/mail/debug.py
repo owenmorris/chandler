@@ -11,7 +11,6 @@ import smtp as smtp
 import sharing as sharing
 import common as common
 import message as message
-import logging as logging
 
 def downloadIMAPMail():
     accountKind = Mail.MailParcel.getIMAPAccountKind()

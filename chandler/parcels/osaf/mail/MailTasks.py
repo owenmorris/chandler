@@ -5,7 +5,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.framework.tasks.Action as Action
 import debug as debug
-import logging as logging
 
 
 class IMAPDownloadAction(Action.Action):
