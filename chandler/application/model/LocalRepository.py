@@ -62,6 +62,14 @@ class LocalRepository:
         self.objectList.append(obj)
         transaction.get_transaction().commit()
 
+    def deleteObject(self, obj):
+        try:
+            index = self.objectList.index(obj)
+            del self.objectList[index]
+        except:
+            # FIXME: need to indicate failure somehow...
+            pass
+        
     def commit(self):
         transaction.get_transaction().commit()
 

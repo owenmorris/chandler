@@ -135,17 +135,7 @@ class ContactEntityItem(InformationItem):
            del self.format.bodyAttributes[index]
        except:
            pass
- 
-   # utility routine to return the contacts dictionary, which is fetched from the contacts parcel
-   # FIXME: there is probably a better way to do this
-    def GetContactsDictionary(self):
-        parcelName = _("Contacts")
-        for urlEntry in app.model.URLTree:
-            if urlEntry[1] == parcelName:
-                contactView = urlEntry[0]
-                return contactView.contacts    
-        return None
-    
+     
    # group management routines
     def AddGroup(self, newGroup):
         try:
@@ -159,17 +149,7 @@ class ContactEntityItem(InformationItem):
             del self.groups[index]
         except:
             pass
-        
-    # dictionary routines
-    def RemoveFromDictionary(self):
-        contactsDictionary = self.GetContactsDictionary()
-        contactName = self.GetFullName()		
-        del contactsDictionary.contacts[contactName]
-    
-    def AddToDictionary(self):
-        contactsDictionary = self.GetContactsDictionary()
-        contactsDictionary.AddContact(self)
-        
+                
     # addresses manipulation
     # FIXME: GetAddresses is deprecated, use GetContactMethods instead
     def GetAddresses(self):
@@ -195,10 +175,8 @@ class ContactEntityItem(InformationItem):
     def SetAttribute(self, attributeKey, attributeValue):
         # hack to allow name parts to be set via SetAttribute
         if attributeKey.startswith('name/'):
-            self.RemoveFromDictionary()
             parts = attributeKey.split('/')
             self.SetNamePart(parts[1], attributeValue)
-            self.AddToDictionary()
         else:
             self.attributes.SetAttribute(attributeKey, attributeValue)
                         
