@@ -6,14 +6,14 @@
              xmlns:mail="http://osafoundation.org/parcels/osaf/mail"
              xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks">
 
-  <content:IMAPAccount itsName="IMAPAccount One">
-    <content:displayName>IMAP Server Account One</content:displayName>
-    <content:host>code-bear.com</content:host>
-    <content:username>osafuser</content:username>
+  <content:EmailAccount itsName="IMAPAccount One">
+    <content:displayName>IMAP Server</content:displayName>
+    <content:serverName>code-bear.com</content:serverName>
+    <content:accountType>IMAP4</content:accountType>
+    <content:accountName>osafuser</content:accountName>
     <content:password>chandler</content:password>
-    <content:port>143</content:port>
-    <content:useSSL>False</content:useSSL>
-  </content:IMAPAccount>
+    <content:serverPort>143</content:serverPort>
+  </content:EmailAccount>
 
   <task:Task itsName="IMAPMailClient">
     <task:Schedule itsName="MailSchedule">
