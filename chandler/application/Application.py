@@ -414,7 +414,7 @@ class wxApplication (wx.App):
                           The state of the new GetShow flag should be the opposite of whether or
                         not we have a subscribeWhenVisibleEventsUUID attribute
                         """
-                        assert event.GetShow() ^ widget.hasAttributeValue ('subscribeWhenVisibleEventsUUID')
+                        assert event.GetShow() ^ hasattr (widget, 'subscribeWhenVisibleEventsUUID')
         
                         if event.GetShow():
                             widget.subscribeWhenVisibleEventsUUID = UUID()

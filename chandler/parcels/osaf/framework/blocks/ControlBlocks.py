@@ -728,7 +728,6 @@ class wxStatusBar (wx.StatusBar):
 class StatusBar(Block):
     def instantiateWidget (self):
         frame = Globals.wxApplication.mainFrame
-        assert frame.GetStatusBar() == None
         widget = wxStatusBar (frame, Block.getWidgetID(self))
         frame.SetStatusBar (widget)
         return widget

@@ -116,6 +116,24 @@ class Block(Item):
                 if doFreeze:
                     widget.Thaw()
 
+    def rerender (self):
+        """ 
+        Tear down and rebuild the widgets for all blocks starting at self.
+        Used by ReloadParcels
+        """
+        import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
+        for child in self.childrenBlocks:
+            # Menus are not contined in the widget hierarchy, so
+            #  we need to handle them specially.
+            if isinstance(child, DynamicContainerBlocks.MenuBar):
+                # flag rebuild of dynamic containers including menus
+                Globals.mainView.lastDynamicParent = False
+            else:
+                # destroy a widget
+                child.widget.Destroy ()
+                child.render ()
+        self.synchronizeWidget ()
+
     def onCollectionChanged (self, notification):
         """
           When our item collection has changed, we need to synchronize
