@@ -474,7 +474,9 @@ class Item(object):
 
     def hasChild(self, name, load=True):
 
-        return (self.__dict__.has_key('_children') and
+        return ('_children' in self.__dict__ and
+                not ('_notChildren' in self.__dict__ and
+                     name in self._notChildren) and
                 self._children.has_key(name, load))
 
     def hasChildren(self):
@@ -1099,6 +1101,7 @@ class Item(object):
             if parent._isRepository():
                 parent = parent.view
             self._parent = parent
+            self._root = None
             self._setRoot(parent._addItem(self, previous, next))
         else:
             self._parent = None
@@ -1127,7 +1130,13 @@ class Item(object):
 
     def _removeItem(self, item):
 
-        del self._children[item.getItemName()]
+        name = item.getItemName()
+        del self._children[name]
+
+        if '_notChildren' in self.__dict__:
+            self._notChildren[name] = name
+        else:
+            self._notChildren = { name: name }
 
     def getItemChild(self, name, load=True):
         'Return the child as named or None if not found.'
@@ -1136,12 +1145,12 @@ class Item(object):
             raise ValueError, "item is stale: %s" %(self)
 
         child = None
-        if self.__dict__.has_key('_children'):
+        if '_children' in self.__dict__:
             child = self._children.get(name, None, False)
 
         if load and child is None:
-            hasNot = self.__dict__.has_key('_notChildren')
-            if not hasNot or not self._notChildren.has_key(name):
+            hasNot = '_notChildren' in self.__dict__
+            if not (hasNot and name in self._notChildren):
                 child = self.getRepository()._loadChild(self, name)
                 if child is None:
                     if not hasNot:

@@ -503,13 +503,10 @@ class RepositoryView(object):
 
     def _addItem(self, item, previous=None, next=None):
 
-        try:
-            name = item.getItemName()
-            current = self._roots[name]
-        except KeyError:
-            pass
-        else:
-            current.delete()
+        name = item.getItemName()
+
+        if name in self._roots:
+            raise ValueError, "A root named '%s' exists already" %(name)
 
         self._roots[name] = item
 
@@ -658,7 +655,8 @@ class OnDemandRepositoryView(RepositoryView):
 
         self._hooks = None
         self.version = repository.store.getVersion()
-
+        self._notRoots = {}
+        
     def _loadDoc(self, doc):
 
         try:
@@ -720,6 +718,14 @@ class OnDemandRepositoryView(RepositoryView):
 
         return self._loadChild(None, name)
 
+    def getRoots(self, load=True):
+        'Return a list of the roots in the repository.'
+
+        if load:
+            self.repository.store.loadRoots(self.version)
+            
+        return super(OnDemandRepositoryView, self).getRoots(load)
+
     def _loadChild(self, parent, name):
 
         if parent is not None and parent is not self:
@@ -764,6 +770,31 @@ class OnDemandRepositoryView(RepositoryView):
         finally:
             self._hooks = hooks
             self.setLoading(loading)
+
+    def _addItem(self, item, previous=None, next=None):
+
+        super(OnDemandRepositoryView, self)._addItem(item, previous, next)
+
+        name = item.getItemName()
+        if name in self._notRoots:
+            del self._notRoots[name]
+
+        return item
+
+    def _removeItem(self, item):
+
+        super(OnDemandRepositoryView, self)._removeItem(item)
+
+        name = item.getItemName()
+        self._notRoots[name] = name
+
+    def getRoot(self, name, load=True):
+
+        if not name in self._notRoots:
+            return super(OnDemandRepositoryView, self).getRoot(name, load)
+
+        return None
+
 
 
 class RepositoryNotifications(dict):
@@ -821,8 +852,6 @@ class RepositoryThread(threading.Thread):
     def run(self):
 
         try:
-            result = attachCurrentThread(super(RepositoryThread, self))
+            return attachCurrentThread(super(RepositoryThread, self))
         finally:
             self.repository.closeView()
-
-        return result

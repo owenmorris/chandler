@@ -149,9 +149,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
-        child3 = child2['child3']
+        child3 = self.rep['child3']
 
-        child3.move(self.rep)
         self.assert_(child3 in self.rep.getRoots())
         self.assertItemPathEqual(child3, '//child3')
         self.assertIsRoot(child3.getRoot())

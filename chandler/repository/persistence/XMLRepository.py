@@ -219,6 +219,10 @@ class XMLContainer(object):
                     if (doc.getMetaData('', 'deleted', value) and
                         value.asString() == 'True'):
                         doc = None
+                    else:
+                        uuid = self.getDocUUID(doc)
+                        if store._versions.getDocVersion(uuid, version) != ver:
+                            doc = None
 
                 return doc
 
@@ -267,6 +271,9 @@ class XMLContainer(object):
         for name, (ver, doc) in roots.iteritems():
             if (doc.getMetaData('', 'deleted', value) and
                 value.asString() == 'True'):
+                continue
+            uuid = self.getDocUUID(doc)
+            if store._versions.getDocVersion(uuid, version) != ver:
                 continue
             if not name in view._roots:
                 view._loadDoc(doc)

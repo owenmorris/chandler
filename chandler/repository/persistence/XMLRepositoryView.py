@@ -34,14 +34,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
         self._log = []
         self._notifications = RepositoryNotifications(repository)
         
-    def getRoots(self, load=True):
-        'Return a list of the roots in the repository.'
-
-        if load:
-            self.repository.store.loadRoots(self.version)
-            
-        return super(XMLRepositoryView, self).getRoots()
-
     def logItem(self, item):
         
         if super(XMLRepositoryView, self).logItem(item):
@@ -66,6 +58,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 item._unloadItem()
 
         del self._log[:]
+        self._notRoots.clear()
 
     def queryItems(self, query, load=True):
 
@@ -262,12 +255,14 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if lock:
                     env.lock_put(lock)
 
+                self._notRoots.clear()
                 self._notifications.dispatchChanges()
 
                 if count > 0:
                     self.logger.info('%s committed %d items (%ld bytes) in %s',
                                      self, count, size,
                                      datetime.now() - before)
+                
                 return
 
     def _saveItem(self, item, newVersion, data, versions, history):
