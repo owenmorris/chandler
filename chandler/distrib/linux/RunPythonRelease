@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ "$CHANDLER_HOME" = "" ]; then
+    CHANDLER_HOME=`pwd`
+fi
+
+PYTHONPATH=$CHANDLER_HOME/Chandler PYTHONHOME=$CHANDLER_HOME/release LD_LIBRARY_PATH=$CHANDLER_HOME/release/lib:$CHANDLER_HOME/release/dbxml/lib:$CHANDLER_HOME/release/db/lib $CHANDLER_HOME/release/bin/python -O $*
