@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
 from wxPython.wx import *
+from wxPython.xrc import *
 import application.Application
 """Ideally we'd prefer to do a "from application.Application import app", however,
 because Application imports ChandlerWindow (the mutually recursive import problem),
@@ -119,6 +120,9 @@ class wxChandlerWindow(wxFrame):
                 applicationResources = application.Application.app.applicationResources
                 debugMenu = applicationResources.LoadMenu ('DebugMenu')
                 menuBar.Append (debugMenu, _('Debug'))
+                menuBar.Check (XRCID ('CreateNewRepository'),
+                               hasattr (application.Application.app.model,
+                                        'CreateNewRepository'))
             else:
                 oldMenu = menuBar.Remove (index)
                 del oldMenu

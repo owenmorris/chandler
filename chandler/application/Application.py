@@ -71,7 +71,10 @@ class Application(Persistent):
         to call the base class, since it initializes the objects data
         """
         Persistent.__setstate__(self, dict)
-        if self.version != Application.VERSION:
+        createNewRepository = self.version != Application.VERSION
+        if __debug__:
+            createNewRepository = createNewRepository or hasattr (self, 'CreateNewRepository')
+        if createNewRepository:
             self.__dict__.clear  ()
             self.__init__ ()
 
@@ -167,6 +170,7 @@ class wxApplication (wxApp):
             EVT_MENU(self, XRCID ('Test1'), self.OnTest1)
             EVT_MENU(self, XRCID ('Test2'), self.OnTest2)
             EVT_MENU(self, XRCID ('Test3'), self.OnTest3)
+            EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
 
         return true  #indicates we succeeded with initialization
 
@@ -200,6 +204,15 @@ class wxApplication (wxApp):
                 if parcel.displayName == 'Test':
                     parcel.SynchronizeView ()
                     return
+
+        def OnCreateNewRepository (self, event):
+            if (hasattr (self.model, 'CreateNewRepository')):
+                del self.model.CreateNewRepository
+            else:
+                self.model.CreateNewRepository = true
+            menuBar = self.wxMainFrame.GetMenuBar ()
+            menuBar.Check (XRCID ('CreateNewRepository'),
+                           hasattr (self.model, 'CreateNewRepository'))
         
     def OnQuit(self, event):
         """

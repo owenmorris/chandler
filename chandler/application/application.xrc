@@ -158,6 +158,10 @@
         <object class="wxMenuItem" name="Test3">
             <label>Test</label>
         </object>
+        <object class="wxMenuItem" name="CreateNewRepository">
+            <label>Always Recreate Repository</label>
+            <checkable>1</checkable>
+        </object>
     </object>
 
 </resource>
