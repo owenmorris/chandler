@@ -248,10 +248,11 @@ class wxApplication (wxApp):
 
 		# allocate the Jabber client, logging in if possible
 		self.jabberClient = ChandlerJabber.JabberClient(self)
-		self.jabberClient.Login()
 		
 		self.InCommand = false          #used by OnCommand
 		self.OpenStartingUri()
+		
+		self.jabberClient.Login()
 
 		return true                     #indicates we succeeded with initialization
 
