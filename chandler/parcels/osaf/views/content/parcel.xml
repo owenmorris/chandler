@@ -309,7 +309,7 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <splitPercentage>0.2</splitPercentage>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- Task View -->
@@ -321,7 +321,7 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <splitPercentage>0.2</splitPercentage>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- Mail View -->
@@ -333,7 +333,7 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <splitPercentage>0.2</splitPercentage>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- Mixed View -->
@@ -345,6 +345,7 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- All View -->
@@ -404,6 +405,7 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- Untitled View -->

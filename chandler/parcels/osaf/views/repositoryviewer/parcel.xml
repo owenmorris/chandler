@@ -54,6 +54,7 @@
 
     <!-- Attributes -->
     <eventBoundary>True</eventBoundary>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
   
 </core:Parcel>
