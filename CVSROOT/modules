@@ -51,10 +51,11 @@ chandler-system -a \
     internal/wx \
     osaf/hardhat
 
-external external \
+extern -a \
+    external \
     osaf/chandler/openssl \
     osaf/chandler/m2crypto
-
+    
 chandler-new -a \
     osaf/chandler/Chandler \
     osaf/chandler/egenix-mx \
