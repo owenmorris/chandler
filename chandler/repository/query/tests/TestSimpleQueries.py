@@ -145,6 +145,66 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         q.execute()
         self._checkQuery(lambda i: not pattern in i.itsName, q)
 
+    def testDateQuery(self):
+        """ Test a date range in the query predicate """
+        tools.timing.reset()
+        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+
+        tools.timing.begin("Load Calendar Parcel")
+        self.loadParcels(
+         ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+        )
+        tools.timing.end("Load Calendar Parcel")
+
+        tools.timing.begin("Generate Calendar Events")
+        GenerateItems.generateCalendarEventItems(100,30)
+        tools.timing.end("Generate Calendar Events")
+
+        tools.timing.begin("Commit Calendar Events")
+        self.rep.commit()
+        tools.timing.end("Commit Calendar Events")
+#        tools.timing.results()
+
+        # since GenerateCalenderEventItems generates events offset from now(),
+        # need to dynamically compute the date range for the query
+        import mx.DateTime
+        now = mx.DateTime.now()
+        year = now.year
+        month = now.month
+        startDateString = "%d-%d-%d" % (year,month,1)
+        startDate = mx.DateTime.ISO.ParseDate(startDateString)
+        startDateString = startDate.date
+        endDateString = "%d-%d-%d" % (year,month+1,1)
+        endDate = mx.DateTime.ISO.ParseDate(endDateString) -1
+        endDateString = endDate.date
+        
+        queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date,endDate.date)
+        results = self._executeQuery(queryString)
+        self._checkQuery(lambda i: not (i.startTime > startDate and i.startTime < endDate), results)
+
+    def testTextQuery(self):
+        """ Test a free text query """
+
+        def checkLob(lob, value):
+            reader = lob.getReader()
+            text = reader.read()
+            reader.close()
+            return value in text
+
+        #@@@ use cineguide pack until we can do this from parcel.xml
+        cineguidePack = os.path.join(self.rootdir,'repository', 'tests', 'data', 'packs', 'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        results = self._executeQuery(u"for i in ftcontains('femme AND homme') where True")
+        self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
+
+        results = self._executeQuery(u"for i in ftcontains('femme AND homme','synopsis') where True")
+        self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
+
+        results = self._executeQuery(u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
+        self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme") and len(i.title) < 10), results)
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
