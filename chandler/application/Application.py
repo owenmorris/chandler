@@ -303,8 +303,15 @@ class wxApplication (wxApp):
                                     'agents.xml')
             loader.load(agentsPath)
 
-        # Parcel loading
-        LoadParcels.LoadParcels(parcelDir, self.repository)
+        # New parcel loading -- not tested on all platforms
+        if __debug__ and debugParcelDir:
+            parcelSearchPath = "%s%s%s" % (parcelDir,
+                                           os.pathsep,
+                                           debugParcelDir)
+        else:
+            parcelSearchPath = parcelDir
+            
+        LoadParcels.LoadParcels(parcelSearchPath, self.repository)
         self.repository.commit()
                                 
         #""" Load the old parcels, will go away """
