@@ -53,3 +53,4 @@
 *.xbm   -k 'b' -m 'COPY'
 *.xls   -k 'b' -m 'COPY'
 *.zip   -k 'b' -m 'COPY'
+patches -k 'b'
