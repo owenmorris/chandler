@@ -1278,11 +1278,14 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         existingCopy = item.findPath(copyName)
                         if existingCopy is not None:
                             existingCopy.delete(recursive=True)
-                        # Copy the item
-                        # print "Copying:", reference.itsKind.itsPath, reference.itsPath
-                        # copies = reference.itsKind.getCloud("default").copyItems(reference, name=copyName, parent=item)
-                        # copy = reference.copy(name=copyName, parent=item, cloudAlias="default")
-                        copy = reference.copy(name=copyName, parent=item)
+
+                        # (either) Copy the item using cloud-copy:
+                        copy = reference.copy(name=copyName, parent=item, 
+                         cloudAlias="default")
+
+                        # (or) Copy the item using attribute-copy:
+                        # copy = reference.copy(name=copyName, parent=item)
+
                         item.addValue(attributeName, copy)
                     elif attributeName == 'inverseAttribute':
                         item.addValue('otherName', reference.itsName)
