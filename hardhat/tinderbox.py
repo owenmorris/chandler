@@ -412,21 +412,22 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
         index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
                     (hardhatutil.MD5sum(actualDistro), hardhatutil.SHAsum(devInstall[1]))
 
-    index += '<h3>Compressed Install Images</h3>\n' +\
-             '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
-             'Use these if you cannot or do not want to use the installers.</p>\n'
+    if userTarball or devTarball:
+        index += '<h3>Compressed Install Images</h3>\n' +\
+                 '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
+                 'Use these if you cannot or do not want to use the installers.</p>\n'
 
-    if userTarball:
-        index += '<p>End-Users: <a href="%s">%s</a> (%s): %s<br/>\n' % \
-                    (userTarball[0], userTarball[0], hardhatutil.fileSize(userTarball[1]), userTarball[2])
-        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
-                    (hardhatutil.MD5sum(userTarball[1]), hardhatutil.SHAsum(userTarball[1]))
+        if userTarball:
+            index += '<p>End-Users: <a href="%s">%s</a> (%s): %s<br/>\n' % \
+                        (userTarball[0], userTarball[0], hardhatutil.fileSize(userTarball[1]), userTarball[2])
+            index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                        (hardhatutil.MD5sum(userTarball[1]), hardhatutil.SHAsum(userTarball[1]))
 
-    if devTarball:
-        index += '<p>Developers: <a href="%s">%s</a> (%s): %s<br/>\n' % \
-                    (devTarball[0], devTarball[0], hardhatutil.fileSize(devTarball[1]), devTarball[2])
-        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
-                    (hardhatutil.MD5sum(devTarball[1]), hardhatutil.SHAsum(devTarball[1]))
+        if devTarball:
+            index += '<p>Developers: <a href="%s">%s</a> (%s): %s<br/>\n' % \
+                        (devTarball[0], devTarball[0], hardhatutil.fileSize(devTarball[1]), devTarball[2])
+            index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                        (hardhatutil.MD5sum(devTarball[1]), hardhatutil.SHAsum(devTarball[1]))
 
     index += '</body></html>\n'
 
