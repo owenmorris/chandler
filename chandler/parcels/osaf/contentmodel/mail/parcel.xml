@@ -7,6 +7,7 @@
 
 <Parcel describes="//parcels/OSAF/contentmodel/mail"
         itemName="mail"
+        itemClass="OSAF.contentmodel.mail.Mail.MailParcel"
         xmlns="//Schema/Core"
 	xmlns:content="//parcels/OSAF/contentmodel"
 	xmlns:mail="//parcels/OSAF/contentmodel/mail">
