@@ -88,15 +88,19 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-q -z3", "checkout", cvsVintage, ' '.join(cvsModules)])
         hardhatutil.dumpOutputList(outputList, log)
-    
-        os.chdir(chanDir)
-    
+
+        cvsChanges = {}
+        for mod in cvsModules:
+            cvsChanges[mod] = True
+
         # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
         for releaseMode in ('release', 'debug'):
-            doBuild(releaseMode, workingDir, log, clean='')
+            doBuild(releaseMode, workingDir, log, cvsChanges, clean='')
 
+        for releaseMode in ('release', 'debug'):
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-            
+
+        for releaseMode in ('release', 'debug'):
             ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             if ret != 'success':
@@ -104,18 +108,20 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
         changes = "-first-run"
     else:
-        os.chdir(chanDir)
     
         print "Checking CVS for updates"
         log.write("Checking CVS for updates\n")
-        
-        if changesInCVS(workingDir, cvsVintage, log):
+
+        cvsChanges = changesInCVS(workingDir, cvsVintage, log)
+        if cvsChanges['external'] or cvsChanges['internal']:
             log.write("Changes in CVS require build\n")
             changes = "-changes"
             for releaseMode in ('debug', 'release'):        
-                doBuild(releaseMode, workingDir, log)
-                
+                doBuild(releaseMode, workingDir, log, cvsChanges)
+
+        if cvsChanges['external'] or cvsChanges['internal'] or cvsChanges['chandler']:
             log.write("Changes in CVS require making distributions\n")
+            changes = "-changes"            
             for releaseMode in ('debug', 'release'):        
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
@@ -201,13 +207,14 @@ def doCopyLog(msg, workingDir, logPath, log):
 
 
 def changesInCVS(workingDir, cvsVintage, log):
-    changesAtAll = False
+    changesDict = {}
 #     print "Examining CVS"
 #     log.write("Examining CVS\n")
 
     os.chdir(workingDir)
     
     for module in cvsModules:
+        changesDict[module] = False
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
         print "seeing if we need to update", module
@@ -216,14 +223,14 @@ def changesInCVS(workingDir, cvsVintage, log):
          [cvsProgram, "-qn -z3", "update", "-d", cvsVintage, module])
         # hardhatutil.dumpOutputList(outputList, log)
         if NeedsUpdate(outputList):
-            changesAtAll = True
+            changesDict[module] = True
             print "" + module + " needs updating"
             # update it
             print "Getting changed sources"
             log.write("Getting changed sources\n")
             
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [cvsProgram, "-q -z3", "update", "-dAP"])
+            [cvsProgram, "-q -z3", "update", "-dP", cvsVintage, module])
             hardhatutil.dumpOutputList(outputList, log)
         
         else:
@@ -232,10 +239,13 @@ def changesInCVS(workingDir, cvsVintage, log):
 
     log.write(separator)
     log.write("Done with CVS\n")
-    return changesAtAll
+    return changesDict
 
 
-def doBuild(buildmode, workingDir, log, clean='clean'):
+def doBuild(buildmode, workingDir, log, cvsChanges, clean='clean'):
+    # We only build external if there were changes in it
+    # We build internal if external or internal were changed
+    # We never build in chandler, because there is nothing to build
     if buildmode == "debug":
         dbgStr = "DEBUG=1"
     else:
@@ -251,6 +261,16 @@ def doBuild(buildmode, workingDir, log, clean='clean'):
             print module, "..."
             log.write("- - - - " + module + " - - - - - - -\n")
 
+            if module == 'external' and not cvsChanges['external']:
+                print 'Nothing to be done for module', module
+                log.write('Nothing to be done for module ' + module + '\n')
+                log.write(separator)
+                continue
+            if module == 'internal' and not cvsChanges['external'] and not cvsChanges['internal']:
+                print 'Nothing to be done for module', module
+                log.write('Nothing to be done for module ' + module + '\n')
+                log.write(separator)
+                continue
             if module == 'chandler':
                 print 'Nothing to be done for module', module
                 log.write('Nothing to be done for module ' + module + '\n')
@@ -323,10 +343,6 @@ def doRealclean(log, workingDir):
 
 
 def NeedsUpdate(outputList):
-    # XXX Make this smarter:
-    # XXX   if external changed, need to build all
-    # XXX   if internal changed, need to build changed internal dirs
-    # XXX   if chandler changed, no need to build
     for line in outputList:
         if line.lower().find("ide scripts") != -1:
             # this hack is for skipping some Mac-specific files that
