@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:		generic/colheader.cpp
-// Purpose:	generic implementation of a native-appearance column header
+// Purpose:	3-platform (Mac,MSW,GTK) implementation of a native-appearance column header
 // Author:	David Surovell
 // Modified by:
 // Created:	01.01.2005
@@ -273,6 +273,9 @@ bool wxColumnHeader::Enable(
 {
 bool		bResultV;
 
+	if (bEnable == IsEnabled())
+		return bEnable;
+
 	bResultV = wxControl::Enable( bEnable );
 
 	for (long i=0; i<m_ItemCount; i++)
@@ -491,8 +494,11 @@ long		itemIndex;
 	default:
 		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 		{
-			OnClick_SelectOrToggleSort( itemIndex, true );
-			GenerateEvent( wxEVT_COLUMNHEADER_SELCHANGED );
+			if (IsEnabled())
+			{
+				OnClick_SelectOrToggleSort( itemIndex, true );
+				GenerateEvent( wxEVT_COLUMNHEADER_SELCHANGED );
+			}
 			break;
 		}
 		else
@@ -530,10 +536,7 @@ long			curSelectionIndex;
 				bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
 				item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
 
-#if defined(__WXMSW__)
-				Win32ItemRefresh( itemIndex );
-#endif
-
+				RefreshItem( itemIndex );
 				SetViewDirty();
 			}
 
@@ -543,8 +546,7 @@ long			curSelectionIndex;
 }
 
 // static
-wxVisualAttributes
-wxColumnHeader::GetClassDefaultAttributes(
+wxVisualAttributes wxColumnHeader::GetClassDefaultAttributes(
 	wxWindowVariant		variant )
 {
 	// FIXME: is this dependency necessary?
@@ -1453,6 +1455,7 @@ wxRect			targetBoundsR;
 	}
 	else
 	{
+		// this case is OK - can be used to clear an existing bitmap
 		// wxLogDebug( _T("wxColumnHeaderItem::SetBitmapRef failed") );
 	}
 }
@@ -1636,7 +1639,7 @@ OSStatus				errStatus;
 
 	// NB: DrawThemeButton height is fixed, regardless of the boundsRect argument!
 	if (! m_BSortEnabled)
-		MacDrawThemeBackgroundNoArrows( &qdBoundsR, m_BSelected );
+		MacDrawThemeBackgroundNoArrows( &qdBoundsR, m_BSelected && m_BEnabled );
 	else
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
@@ -1650,6 +1653,7 @@ OSStatus				errStatus;
 
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
+	// render the label text as/if specified
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
 	CFStringRef			cfLabelText;
