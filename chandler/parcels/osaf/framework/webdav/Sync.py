@@ -9,7 +9,7 @@ import Dav
 import DAVItem as DAVItem
 
 import logging
-log = logging.getLogger("Sharing")
+log = logging.getLogger("sharing")
 log.setLevel(logging.INFO)
 
 def syncItem(dav, item):
@@ -179,6 +179,7 @@ def syncToServer(dav, item):
     r = dav.newConnection().setprops2(url, props)
     #print url, r.status, r.reason
     #print r.read()
+    
 
 
 

@@ -9,12 +9,18 @@ import Sync
 #@@@ Temporary way for retrieving webdav 'account' information
 import osaf.framework.sharing.Sharing
 
+import logging
+log = logging.getLogger("sharing")
+log.setLevel(logging.INFO)
+
 """
- * If I make ItemCollections use a refcollection under the hood as a real attribute
-   then I can get rid of most of the code in put/getCollection as it will just do
-   the right thing automatically.  Wouldn't that be nice.
+ * If I make ItemCollections use a refcollection under the hood as a real
+   attribute then I can get rid of most of the code in put/getCollection
+   as it will just do the right thing automatically.  Wouldn't that be nice.
 """
 
+class NotShared(Exception):
+    pass
 class DAVException(Exception):
     pass
 class NotFound(DAVException):
@@ -30,8 +36,14 @@ class DAV(object):
             raise TypeError
 
         self.url = resourceURL
+        self.connection = None
 
     def newConnection(self):
+        """
+        if not self.connection:
+            self.connection = DAVConnection(self.url)
+        return self.connection
+        """
         return DAVConnection(self.url)
 
     def putResource(self, body, mimetype='text/plain/'):
@@ -43,6 +55,20 @@ class DAV(object):
 
     def getHeaders(self):
         r = self.newConnection().head(unicode(self.url))
+        if r.status == 404:
+            raise NotFound
+        return r
+
+    def getProps(self, what, depth=0):
+        r = self.newConnection().propfind(unicode(self.url), what, depth)
+        if r.status == 404:
+            raise NotFound
+        return r
+
+    def setProps(self, props):
+        r = self.newConnection().setprops2(unicode(self.url), props)
+        log.debug('PROPPATCH returned:')
+        log.debug(r.read())
         if r.status == 404:
             raise NotFound
         return r
@@ -65,14 +91,12 @@ class DAV(object):
         sharing.itemMap[item.itsUUID] = item.itsUUID
 
         if item.hasAttributeValue('sharedURL'):
-            # we only support you sharing to a single URL at the moment
-            # it is an error to try and share to another place..
+            # warn if we're trying to share to another place
             if unicode(item.sharedURL) != unicode(self.url):
-                print 'Warning: trying to share %s to %s' % (unicode(item.sharedURL), unicode(self.url))
-            # for now, force our current url to be the shared url
-            self.url = item.sharedURL
-        else:
-            item.sharedURL = self.url
+                log.warning('Trying to share %s to %s' % (unicode(item.sharedURL), unicode(self.url)))
+
+        # let you share it to the new URL anyways
+        item.sharedURL = self.url
 
 
         contentItemKind = Globals.repository.findPath('//parcels/osaf/contentmodel/ContentItem')
@@ -82,7 +106,7 @@ class DAV(object):
             for i in cloud.getItems(item):
                 # we only support publishing content items
                 if not i.isItemOf(contentItemKind):
-                    print 'Skipping %s -- Not a ContentItem' % (str(i))
+                    log.warning('Skipping %s -- Not a ContentItem' % (str(i)))
                     continue
                 defaultURL = self.url.join(i.itsUUID.str16())
                 durl = i.getAttributeValue('sharedURL', default=defaultURL)
@@ -93,6 +117,8 @@ class DAV(object):
         #self.sync(item)
 
     def sync(self, item):
+        if not item.hasAttributeValue('sharedURL'):
+            raise NotShared
         Sync.syncItem(self, item)
 
     etag = property(_getETag)
