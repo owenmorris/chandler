@@ -11,6 +11,39 @@ else
 CONF_DBG=
 endif
 
+ifeq ($(OS),Cygwin)
+
+compile:
+	cd $(SRC); \
+        export XERCESCROOT=$(SRC); \
+	devenv.com Projects/Win32/VC7/xerces-all/xerces-all.sln \
+                   /project XercesLib /build $(Snap)
+
+install:
+	mkdir -p $(PREFIX)/include
+	(cd $(SRC)/src; \
+         tar -cf - `find . \( -name '*.hpp' -o -name '*.c' \) -print`) | \
+        (cd $(PREFIX)/include; tar xvf - )
+	(cd $(SRC)/Build/Win32/VC7/$(Snap); tar -cf - *.dll) | \
+        (cd $(PREFIX)/bin; tar xvf - )
+	(cd $(SRC)/Build/Win32/VC7/$(Snap); tar -cf - *.lib *.exp) | \
+        (cd $(PREFIX)/lib; tar xvf - )
+        
+
+build: compile install
+
+clean:
+	cd $(SRC); \
+        export XERCESCROOT=$(SRC); \
+	devenv.com Projects/Win32/VC7/xerces-all/xerces-all.sln \
+                   /project XercesLib /clean $(Snap)
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(XERCESC)/$(SNAP).tar.gz $(SNAP)/bin/xerces*.dll
+
+else
+
 ifeq ($(OS),Darwin)
 CONF_OS=-pmacosx
 else
@@ -34,12 +67,14 @@ build: $(SRC)/$(BUILD)/src/xercesc/Makefile
 	rm -f $(PREFIX)/lib/libxerces*; \
 	XERCESCROOT=$(SRC)/$(BUILD) $(MAKE) install
 
-expand: xerces-c-src$(VERSION).tar.gz
-	tar xvzf xerces-c-src$(VERSION).tar.gz
-
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(XERCESC)/$(SNAP).tar.gz $(SNAP)/lib/libxerces*
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
+
+endif
+
+expand: xerces-c-src$(VERSION).tar.gz
+	tar xvzf xerces-c-src$(VERSION).tar.gz
