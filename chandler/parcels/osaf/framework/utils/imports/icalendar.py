@@ -105,7 +105,7 @@ def importICalendar(cal, rep, parent=None):
     in parsing rrules that are unicode.
     
     """
-    textkind = rep.findPath("//Schema/Core/Text")
+    textkind = rep.findPath("//Schema/Core/Lob")
     for event in cal.vevent:
         #vevent's should really have a calculated duration in vobject
         #Note that the only functional difference between dtend and duration
