@@ -158,53 +158,35 @@ class wxViewerParcel(wxPanel):
         """
         return (self.model.displayName)
 
-    def RemoveViewParcelMenu(self):
-        """
-          Override to customize your parcel menu.
-        """
-        menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
-        index = menuBar.FindMenu (self.GetMenuName())
-        if index != wxNOT_FOUND:
-            oldMenu = menuBar.Remove (index)
-            del oldMenu
-                        
     def ReplaceViewParcelMenu(self):
         """
           Override to customize your parcel menu.
         """
-        ignoreErrors = wxLogNull ()
-        viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
-        del ignoreErrors
-        if (viewerParcelMenu != None):
-            mainFrameId = id(app.model.mainFrame)
-            if app.association.has_key(mainFrameId):
-                mainFrame = app.association[mainFrameId]
-                menuBar = mainFrame.GetMenuBar ()
-                index = menuBar.FindMenu (_('View'))
-                assert (index != wxNOT_FOUND)
-                if menuBar.FindMenu(_('Help')) == (index + 1):
-                    menuBar.Insert (index + 1,
+        mainFrameId = id(app.model.mainFrame)
+        if app.association.has_key(mainFrameId):
+            mainFrame = app.association[mainFrameId]
+            menuBar = mainFrame.GetMenuBar ()
+            menuIndex = menuBar.FindMenu (_('View')) + 1
+            assert (menuIndex != wxNOT_FOUND)
+            noParcelMenu = menuBar.FindMenu(_('Help')) == menuIndex
+
+            ignoreErrors = wxLogNull ()
+            viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
+            del ignoreErrors
+
+            if (viewerParcelMenu != None):
+                if noParcelMenu:
+                    menuBar.Insert (menuIndex,
                                     viewerParcelMenu, 
                                     self.GetMenuName())
                 else:
-                    oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, 
+                    oldMenu = menuBar.Replace (menuIndex,
+                                               viewerParcelMenu, 
                                                self.GetMenuName())
                     del oldMenu
+            else:
+                if not noParcelMenu:
+                    oldMenu = menuBar.Remove (menuIndex)
+                    del oldMenu
+                    
         
-    def AddViewParcelMenu(self):
-        """
-          Override to customize your parcel menu.
-        """
-        ignoreErrors = wxLogNull ()
-        viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
-        del ignoreErrors
-        if (viewerParcelMenu != None):
-            mainFrameId = id(app.model.mainFrame)
-            if not app.association.has_key(mainFrameId):
-                mainFrame = app.association[mainFrameId]
-                menuBar = mainFrame.GetMenuBar ()
-                index = menuBar.FindMenu (_('View'))
-                assert (index != wxNOT_FOUND)
-                menuBar.Insert (index + 1, viewerParcelMenu, 
-                                self.GetMenuName())
-            
