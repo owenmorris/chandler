@@ -139,7 +139,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # is true because the conflicts are added in 
         # the same order as the they appear in the calendar
         parentDepths = [parent._conflictDepth for parent in self._parentConflicts]
-        self._conflictDepth = self.FindGapInSequence(parentDepths)
+        self._conflictDepth = self.FindFirstGapInSequence(parentDepths)
         return self._conflictDepth
         
     def GetIndentLevel(self):
