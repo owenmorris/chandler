@@ -1,0 +1,94 @@
+.row0 {background-color: rgb(238, 238, 238)}
+.row1 {background-color: rgb(255, 255, 255)}
+
+.tableHeaderCell {
+	vertical-align: top;
+	font-weight: bold;
+	text-align: left;
+	background-color: rgb(204, 204, 255);
+	}
+
+.indentTitle {
+	font-weight: bold;
+	}
+
+.indentTitle {
+    padding-left:10px;
+	padding-top: 5px;
+}
+
+.examples, .issues, .sentenceAttributes {
+   display:list-item;
+   list-style-type:none;
+   margin-left:30px;
+}
+
+.inheritanceTreeItem {
+   display:list-item;
+   list-style-type:none;
+   margin-left:5px;
+   margin-top:0px;
+   margin-bottom:0px;
+}
+
+.inheritanceBox {
+   float: left;
+}
+
+.inheritanceBranch {
+   float: left;
+   padding-right:15px;
+}
+
+.rightSpacer {
+   float: right;
+   text-align:right;
+}
+
+
+.detailLabel {
+	padding-top:5px;
+	padding-right: 4px;
+	font-weight: bold;
+}
+
+.sentenceHeader {
+	padding-top:5px;
+	padding-left: 6px;
+	padding-right: 4px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+.topDetailBox, .detailBox, .sectionBox, .inheritanceBox {
+margin-bottom: 10px;
+border-width: 1px;
+padding: 5px;
+border-style:solid;
+}
+
+.topDetailBox {
+background-color:#C5CAEB;
+}
+
+.tableBox {
+    margin-left=10px;
+	margin-right=10px;
+	width=100%;
+}
+
+.detailBox {
+margin-top: 5px;
+background-color:#FFFFCC;
+margin-left:10px;
+margin-right:10px;
+}
+
+.detailBox ul {
+padding:0px;
+margin:0px;
+}
+
+.sectionBox {
+	background-color:#F0F0F0;
+}
+
