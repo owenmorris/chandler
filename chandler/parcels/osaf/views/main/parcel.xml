@@ -1722,6 +1722,11 @@
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
     <columnWidths>130</columnWidths>
+    <selection>
+      <core:Integer value="0"/>
+      <core:Integer value="0"/>
+      <core:Boolean value="True"/>
+    </selection>
   </Table>
 
   <TrunkParentBlock itsName="TableSummaryDetailTPB">

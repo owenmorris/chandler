@@ -169,15 +169,23 @@ class wxApplication (wx.App):
             logger.info("Using PARCELDIR (%s)" % debugParcelDir)
             sys.path.insert (2, debugParcelDir)
         """
-          Splash Screen
+          Splash Screen.
+
+          We don't show the splash screen when nocatchis set, which is typically
+        on when running in the debugger. Also, when in the debugger the splash
+        screen gets stuck on top of all other windows on some platforms, e.g. Linux,
+        so we'll use the nocatch flag to also turn off the splash screen. It didn't
+        seem worth adding yet another command line flag for just turning off the
+        splash screen.
         """
-        splashBitmap = self.GetImage ("splash")
-        splash = wx.SplashScreen(splashBitmap,
-                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
-                                 6000, None, -1, wx.DefaultPosition,
-                                 wx.DefaultSize,
-                                 wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
-        splash.Show()
+        if not (__debug__ and application.Globals.options.nocatch):
+            splashBitmap = self.GetImage ("splash")
+            splash = wx.SplashScreen(splashBitmap,
+                                     wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
+                                     6000, None, -1, wx.DefaultPosition,
+                                     wx.DefaultSize,
+                                     wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
+            splash.Show()
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
@@ -448,8 +456,19 @@ class wxApplication (wx.App):
                     except KeyError:
                         pass
                     else:
-                        eventObject = event.GetEventObject()
                         event.SetText (text)
+                        widget = block.widget
+                        """
+                          Some widgets, e.g. wxToolbarItems don't properly handle
+                        setting the text of buttons, so we'll handle it here by
+                        looking for the method OnSetTextEvent to handle it
+                        """
+                        try:
+                            method = widget.OnSetTextEvent
+                        except AttributeError:
+                            pass
+                        else:
+                            method (event)
         else:
             event.Skip()
 

@@ -38,7 +38,19 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     
     def onSelectItemEvent (self, event):
         self.detailItem = event.arguments['item']
-        self.widget.wxSynchronizeWidget()
+        """
+          Occasionally a block that contains a TrunkParentBlock will send
+        a selectItem event to set detailItem when it can't be set in parcel
+        XML (for example when it isn't yet created). This can happen before
+        the widget is actually created so we'll ignore this first call to 
+        wxSynchronizeWidget since it will get called later.
+        """
+        try:
+            widget = self.widget
+        except AttributeError:
+            pass
+        else:
+            widget.wxSynchronizeWidget()
 
     def installTreeOfBlocks(self):
         """ Maybe replace our children with a trunk of blocks appropriate for our content """

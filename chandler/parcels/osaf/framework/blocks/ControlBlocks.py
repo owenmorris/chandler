@@ -648,18 +648,27 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.SetColSize(newColumns - 1, remaining)
         
         self.ClearSelection()
+        firstSelectedRow = None
         for range in self.blockItem.selection:
             if range [2]:
+                if firstSelectedRow is None:
+                    firstSelectedRow = range[0]
                 self.SelectBlock (range[0], 0, range[1], newColumns, True)
             else:
                 for row in xrange (range[0], range[1] + 1):
-                    self.DeselectRow (row)
+                    self.DeselectRow (row)            
         self.EndBatch() 
 
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message) 
         self.ForceRefresh () 
+
+        if self.blockItem.selectedItemToView is None and firstSelectedRow is not None:
+            selectedItemToView = self.blockItem.contents [firstSelectedRow]
+            self.blockItem.selectedItemToView = selectedItemToView
+            self.blockItem.postEventByName("SelectItemBroadcast", {'item':selectedItemToView})
+
         try:
             row = self.blockItem.contents.index (self.blockItem.selectedItemToView)
         except ValueError:

@@ -752,6 +752,15 @@ class wxToolbarItem (wxToolBarToolClass):
         #  so we'll provide a stub for CPIA.
         return True
     
+    def OnSetTextEvent (self, event):
+        """
+          wxToolbarItems don't properly handle setting the text of buttons, on
+        updateUIEvents, so we'll handle it here with the method OnSetTextEvent.
+        """
+        self.SetLabel (event.GetText())
+        self.GetToolBar().Realize()
+
+        
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
