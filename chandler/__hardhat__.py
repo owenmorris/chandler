@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, errno, sys, time
+import os, hardhatlib, hardhatutil, errno, sys, time, libxml2, urllib
 
 
 info = {
@@ -474,11 +474,20 @@ def _findFiles(path, filename):
 
 def generateDocs(buildenv):
 
-    xslFiles =  ["Kinds", "Attributes", "Aliases", "Enumerations", "index", 
-     "Types", "sentences"]
-    fileList = _findFiles(".", "parcel.xml")
-    indexList = [('index.html', 'Main Schema Documentation'),
-                 ('sentences.html', 'Sentences Describing Schema')]
+    def pluralize(string):
+        if string == 'Alias':
+            return 'Aliases'
+        else:
+            return string + 's'
+    objectList = ["Kind", "Attribute", "Enumeration", "Alias", "Type"]
+    pluralList = map(pluralize, objectList)
+    xslFiles   =  pluralList + ["index", "sentences"]
+
+    fileList   = _findFiles(".", "parcel.xml")
+
+    cssFile = os.path.join("distrib","transforms","includes","schema.css")
+    targetDir = os.path.join("..",buildenv['version'],"docs")
+    hardhatlib.copyFile(cssFile, targetDir)
 
     for xsl in xslFiles:
         _transformFilesXslt(buildenv, 
@@ -489,19 +498,65 @@ def generateDocs(buildenv):
          fileList
         )
 
-    for index, title in indexList:
-        indexFile = file(os.path.join("..",buildenv['version'],"docs",index),
-         'w+')
-        indexFile.write("<html><head><title>Chandler Schema Documents</title></head>")
-        indexFile.write("<body><h1>%s</h1>" % title)
-        indexFile.write("<h3>Generated %s</h3>" % time.strftime("%m/%d %I:%M%p"))        
-        indexFile.write("<ul>")
-        for xmlFile in fileList:
-            (head, tail) = os.path.split(xmlFile[2:])
-            indexFile.write("<li>")
-            indexFile.write("<a href=%s/%s>%s</a> " % (head, index, head))
-            indexFile.write("\n")
-        indexFile.write("</ul>")
-        indexFile.write("</body>")
-        indexFile.write("</html>")
-        indexFile.close()
+    indexFile = file(os.path.join("..",buildenv['version'],"docs","index.html"),
+     'w+')
+    indexFile.write("<html><head><title>Chandler Schema Documents</title>")
+    indexFile.write("<link rel=\"stylesheet\" type=\"text/css\" \
+                     href=\"schema.css\"/></head>")
+
+    indexFile.write("<body><h1>Chandler Schema Documentation</h1>")
+    indexFile.write('<div class="topDetailBox"><span class="detailLabel">')
+    indexFile.write('Generated </span>')
+    indexFile.write(time.strftime("%m/%d %I:%M%p") + ' </div>')        
+    indexFile.write('<div class="sectionBox">')
+    indexFile.write('<h2>Parcels</h2>')
+    indexFile.write('<div class="tableBox">')
+    indexFile.write('<table cellpadding="2" cellspacing="2" border="0"')
+    indexFile.write(' style="width: 100%; text-align: left;">')
+    #output a header row
+    indexFile.write('<tr>')
+    indexFile.write('<td class="tableHeaderCell">Parcel Name</td>')
+    indexFile.write('<td class="tableHeaderCell">Path</td>')
+    indexFile.write('<td class="tableHeaderCell">Summary</td>')
+    for type in pluralList:
+        indexFile.write('<td class="tableHeaderCell">%s</td>' % type)
+    indexFile.write('</tr>')
+
+    for xmlFile in fileList:
+        doc=libxml2.parseFile(xmlFile)
+        ctxt = doc.xpathNewContext()
+        ctxt.xpathRegisterNs('core', '//Schema/Core')
+        content = {}
+        #determine which objects are present in the file
+        for type in objectList:
+            content[type]=len(ctxt.xpathEval("//core:%s" % type))
+        displayNameNode=ctxt.xpathEval("/core:Parcel/core:displayName")
+        #ignore the file if no objects are present
+        if not filter(None, content.values()):
+            continue
+            doc.freeDoc()
+            ctxt.xpathFreeContext()
+        (head, tail) = os.path.split(xmlFile[2:])
+        head=urllib.pathname2url(head)
+        indexFile.write('<tr>')
+        indexFile.write('<td>')
+        if displayNameNode:
+            indexFile.write(displayNameNode[0].content)
+        indexFile.write('</td>')
+        indexFile.write('<td>%s</td>' % head)
+        indexFile.write('<td><a href="%s/sentences.html">Summary</a>' % head)
+        indexFile.write('</td>')
+        for name in objectList:
+            indexFile.write('<td>')
+            if content[name]:
+                p=pluralize(name)
+                indexFile.write('<a href="%s/%s.html">%s</a>' % (head,p,p))
+            indexFile.write('</td>')
+        indexFile.write('</tr>')
+        doc.freeDoc()
+        ctxt.xpathFreeContext()
+                
+    indexFile.write("</table>")
+    indexFile.write("</body>")
+    indexFile.write("</html>")
+    indexFile.close()
