@@ -1,5 +1,5 @@
 
-VERSION=2.6.3
+VERSION=2.6.9
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
