@@ -49,6 +49,8 @@ class Parcel(Item):
     def _fillItem(self, name, parent, kind, **kwds):
         super(Parcel, self)._fillItem(name, parent, kind, **kwds)
         self._status |= Item.SCHEMA
+
+    def onItemLoad(self):
         self._setLogger()
 
     def _setLogger(self):
