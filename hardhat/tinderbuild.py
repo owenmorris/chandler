@@ -185,6 +185,9 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+newDirName+"/"+actual+">"+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
     fileOut.close()
+    fileOut = file(outputDir+os.sep+"time.js", "w")
+    fileOut.write("document.write('" + nowString + "');\n")
+    fileOut.close()
 
 def _readFile(path):
     fileIn = open(path, "r")
