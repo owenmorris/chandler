@@ -120,13 +120,11 @@ class wxApplication (wx.App):
         self.focus = None
 
         wx.InitAllImageHandlers()
-
         """
           Disable automatic calling of UpdateUIEvents. We will call them
         manually when blocks get rendered, change visibility, etc.
         """
         wx.UpdateUIEvent.SetUpdateInterval (-1)
-
         """
           Install a custom displayhook to keep Python from setting the global
         _ (underscore) to the value of the last evaluated expression.  If 
@@ -140,7 +138,6 @@ class wxApplication (wx.App):
 
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
         It's necessary to add the "parcels" directory to sys.path in order
@@ -150,7 +147,6 @@ class wxApplication (wx.App):
         parcelDir = os.path.join(Globals.chandlerDirectory,
                                  self.PARCEL_IMPORT.replace ('.', os.sep))
         sys.path.insert (1, parcelDir)
-        
         """
         If PARCELDIR env var is set, put that
         directory into sys.path before any modules are imported.
@@ -159,7 +155,6 @@ class wxApplication (wx.App):
         if debugParcelDir and os.path.exists(debugParcelDir):
             logger.info("Using PARCELDIR (%s)" % debugParcelDir)
             sys.path.insert (2, debugParcelDir)
-
         """
           Splash Screen
         """
@@ -170,14 +165,12 @@ class wxApplication (wx.App):
                                  wx.DefaultSize,
                                  wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
         splash.Show()
- 
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
         """
         os.environ['LANGUAGE'] = 'en'
 #        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-
         """
           @@@ Sets the python locale, used by wx.CalendarCtrl and mxDateTime
         for month and weekday names. When running on Linux, 'en' is not
@@ -187,13 +180,11 @@ class wxApplication (wx.App):
 #        wx.Locale_AddCatalogLookupPathPrefix('locale')
 #        self.locale.AddCatalog('Chandler.mo')
         gettext.install('chandler', 'locale')
-
         """
           Crypto initialization
         """
         Globals.crypto = Crypto.Crypto()
         Globals.crypto.init(Globals.options.profileDir)
-
         """
           Open the repository.
         Load the Repository after the path has been altered, but before
@@ -229,7 +220,6 @@ class wxApplication (wx.App):
             """
             self.UIRepositoryView.loadPack("repository/packs/schema.pack")
             self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
-
         """
           Load Parcels
         """
@@ -248,7 +238,6 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
-
         """
           The Twisted Reactor should be started before other Managers
           and stopped last.
@@ -257,32 +246,12 @@ class wxApplication (wx.App):
         self.__twistedReactorManager = TwistedReactorManager.TwistedReactorManager()
         self.__twistedReactorManager.startReactor()
 
-        """
-          The main view's root is the only item in the soup (e.g. //userdata) with a name
-          that isn't it's UUID. We need the name to look it up. If the main view's root
-          isn't found then make a copy into the soup with the right name.
-        """
-        mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
-        
-        """
-          But first, blow away the soup if --refresh-ui is specified
-        """
-        if Globals.options.refreshui and mainViewRoot:
-            mainViewRoot.delete(True)
-            mainViewRoot = None
-
-        if not mainViewRoot:
-            template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
-            assert (template)
-            mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
-                                          name = "MainViewRoot",
-                                          cloudAlias="default")
+        mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
         self.mainFrame = MainFrame(None,
                                    -1,
                                    "Chandler",
                                    size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                    style=wx.DEFAULT_FRAME_STYLE)
-        Globals.mainViewRoot = mainViewRoot
         mainViewRoot.frame = self.mainFrame
         """
           Register to some global events for name lookup.
@@ -316,6 +285,62 @@ class wxApplication (wx.App):
         tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True                     #indicates we succeeded with initialization
+
+    def LoadMainViewRoot (self, delete=False):
+        """
+          The main view's root is the only item in the soup (e.g. //userdata) with a name
+          that isn't it's UUID. We need the name to look it up. If the main view's root
+          isn't found then make a copy into the soup with the right name.
+        """
+        def deleteBlockItem (block):
+            """
+              Deletes blocks. Temporary hack until cloud delete is available. May
+            leave minor garbage around that is never cleaned up.
+            """
+            if not block is None:
+                for child in block.childrenBlocks:
+                    deleteBlockItem (child)
+                try:
+                    eventsForNamedDispatch = block.eventsForNamedDispatch
+                except AttributeError:
+                    pass
+                else:
+                    for events in eventsForNamedDispatch:
+                        events.delete()
+                try:
+                    contents = block.contents
+                except AttributeError:
+                    pass
+                else:
+                    contents.delete()
+                try:
+                    blockName = block.blockName
+                except AttributeError:
+                    blockName = "None"
+                block.delete()
+
+        mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
+        if mainViewRoot and delete:
+            try:
+                frame = mainViewRoot.frame
+            except AttributeError:
+                pass
+            self.UIRepositoryView.refresh()
+            deleteBlockItem (mainViewRoot)
+            self.UIRepositoryView.commit()
+            mainViewRoot = None
+        if mainViewRoot is None:
+            template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
+            assert (template)
+            mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
+                                          name = "MainViewRoot",
+                                          cloudAlias="default")
+            try:
+                mainViewRoot.frame = frame
+            except UnboundLocalError:
+                pass
+        Globals.mainViewRoot = mainViewRoot
+        return mainViewRoot
 
     def RenderMainView (self):
         mainViewRoot = Globals.mainViewRoot
