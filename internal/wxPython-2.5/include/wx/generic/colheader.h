@@ -70,31 +70,28 @@ public:
 		long			originX,
 		long			extentX );
 
-	void GetFlags(
-		bool			&bActive,
-		bool			&bEnabled,
-		bool			&bSortAscending );
-	void SetFlags(
-		bool			bActive,
-		bool			bEnabled,
-		bool			bSortAscending );
+	bool GetFlagAttribute(
+		wxColumnHeaderFlagAttr		flagEnum );
+	bool SetFlagAttribute(
+		wxColumnHeaderFlagAttr		flagEnum,
+		bool						bFlagValue );
 
 public:
 	static long ConvertJust(
-		long		sourceEnum,
-		bool		bToNative );
+		long			sourceEnum,
+		bool			bToNative );
 
 public:
-	wxRect					mNativeBoundsR;
-	wxString				mLabelTextRef;
-	unsigned long			mFontID;
-	long					mTextJust;
-	long					mImageID;
-	long					mOriginX;
-	long					mExtentX;
-	bool					mBIsActive;
-	bool					mBIsEnabled;
-	bool					mBSortAscending;
+	wxRect				m_NativeBoundsR;
+	wxString				m_LabelTextRef;
+	unsigned long			m_FontID;
+	long					m_TextJust;
+	long					m_ImageID;
+	long					m_OriginX;
+	long					m_ExtentX;
+	bool					m_BEnabled;
+	bool					m_BSelected;
+	bool					m_BSortAscending;
 };
 
 class WXDLLIMPEXP_ADV wxColumnHeader : public wxControl
@@ -142,41 +139,33 @@ public:
 		long				extentX,
 		bool				bActive,
 		bool				bSortAscending );
-	bool GetLabelText(
-		long				itemIndex,
-		wxString			&textBuffer,
-		long				&textJust );
-	bool SetLabelText(
+	wxString GetLabelText(
+		long				itemIndex );
+	void SetLabelText(
 		long				itemIndex,
 		const wxString		&textBuffer,
 		long				textJust );
-	bool GetUIExtent(
-		long			itemIndex,
-		long			&originX,
-		long			&extentX );
-	bool SetUIExtent(
-		long			itemIndex,
-		long			originX,
-		long			extentX );
-	bool GetFlags(
-		long			itemIndex,
-		bool			&bActive,
-		bool			&bEnabled,
-		bool			&bSortAscending );
-	bool SetFlags(
-		long			itemIndex,
-		bool			bActive,
-		bool			bEnabled,
-		bool			bSortAscending );
+	wxPoint GetUIExtent(
+		long				itemIndex );
+	void SetUIExtent(
+		long				itemIndex,
+		wxPoint			&extentPt );
+	bool GetFlagAttribute(
+		long						itemIndex,
+		wxColumnHeaderFlagAttr		flagEnum );
+	bool SetFlagAttribute(
+		long						itemIndex,
+		wxColumnHeaderFlagAttr		flagEnum,
+		bool						bFlagValue );
 
 	// implementation only from now on
 	// -------------------------------
 
 	// forward these functions to all subcontrols
 	virtual bool Enable(
-		bool	bEnable = true );
+		bool			bEnable = true );
 	virtual bool Show(
-		bool	bShow = true );
+		bool			bShow = true );
 
 	virtual wxVisualAttributes GetDefaultAttributes( void ) const
 		{ return GetClassDefaultAttributes( GetWindowVariant() ); }
@@ -235,7 +224,7 @@ protected:
 	// event handlers
 	void OnPaint( wxPaintEvent &event );
 	void OnClick( wxMouseEvent &event );
-	void OnDClick( wxMouseEvent &event );
+	void OnDoubleClick( wxMouseEvent &event );
 
 	// override some base class virtuals
 	virtual wxSize DoGetBestSize( void ) const;
@@ -259,11 +248,11 @@ protected:
 	}
 
 protected:
-	wxRect					mNativeBoundsR;
-	wxColumnHeaderItem		**mItemList;
-	long					mItemCount;
-	long					mItemSelected;
-	bool					mBUseUnicode;
+	wxRect					m_NativeBoundsR;
+	wxColumnHeaderItem		**m_ItemList;
+	long					m_ItemCount;
+	long					m_ItemSelected;
+	bool					m_BUseUnicode;
 
 	// fonts
 	wxFont		m_normalFont;

@@ -45,7 +45,7 @@
 BEGIN_EVENT_TABLE(wxColumnHeader, wxControl)
 	EVT_PAINT(wxColumnHeader::OnPaint)
 	EVT_LEFT_DOWN(wxColumnHeader::OnClick)
-	EVT_LEFT_DCLICK(wxColumnHeader::OnDClick)
+	EVT_LEFT_DCLICK(wxColumnHeader::OnDoubleClick)
 END_EVENT_TABLE()
 
 #if wxUSE_EXTENDED_RTTI
@@ -135,27 +135,26 @@ wxColumnHeader::~wxColumnHeader()
 
 void wxColumnHeader::Init( void )
 {
-	mNativeBoundsR.x =
-	mNativeBoundsR.y =
-	mNativeBoundsR.width =
-	mNativeBoundsR.height = 0;
+	m_NativeBoundsR.x =
+	m_NativeBoundsR.y =
+	m_NativeBoundsR.width =
+	m_NativeBoundsR.height = 0;
 
-	mItemList = NULL;
-	mItemCount = 0;
-	mItemSelected = kItemIndexInvalid;
-	mBUseUnicode = false;
+	m_ItemList = NULL;
+	m_ItemCount = 0;
+	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 
-#if 0
-#if defined(__WXMSW__)
-	mBUseUnicode = sizeof(TCHAR*) > 1;
-#endif
+#if wxUSE_UNICODE
+	m_BUseUnicode = true;
+#else
+	m_BUseUnicode = false;
 #endif
 }
 
 void wxColumnHeader::SetUnicodeFlag(
 	bool			bSetFlag )
 {
-	mBUseUnicode = bSetFlag;
+	m_BUseUnicode = bSetFlag;
 }
 
 bool wxColumnHeader::Create(
@@ -185,7 +184,7 @@ bool	bResultV;
 		// NB: is any of this necessary??
 
 #if 0
-		// needed to get the arrow keys normally used for the dialog navigation
+		// needed to get the arrow keys normally used for dialog navigation
 		SetWindowStyle( style );
 
 		// we need to set the position as well because the main control position is not
@@ -193,11 +192,22 @@ bool	bResultV;
 		SetBestSize( size );
 		SetPosition( pos );
 #endif
-
-		// FIXME: sloppy hack
-		wxControl::DoGetPosition( &(mNativeBoundsR.x), &(mNativeBoundsR.y) );
-		wxControl::DoGetSize( &(mNativeBoundsR.width), &(mNativeBoundsR.height) );
 	}
+
+	// FIXME: sloppy hack
+	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
+	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
+
+#if 0
+	if (m_NativeBoundsR.x < 0)
+		m_NativeBoundsR.x = 0;
+	if (m_NativeBoundsR.y < 0)
+		m_NativeBoundsR.y = 0;
+	if (m_NativeBoundsR.width)
+		m_NativeBoundsR.width = 200;
+	if (m_NativeBoundsR.height)
+		m_NativeBoundsR.height = 17;
+#endif
 
 	return bResultV;
 }
@@ -209,7 +219,7 @@ bool	bResultV;
 
 bool wxColumnHeader::Destroy( void )
 {
-bool	bResultV;
+bool		bResultV;
 
 	bResultV = wxControl::Destroy();
 
@@ -229,9 +239,24 @@ bool	bResultV;
 bool wxColumnHeader::Enable(
 	bool		bEnable )
 {
-bool	bResultV;
+bool		bResultV;
 
 	bResultV = wxControl::Enable( bEnable );
+
+	for (long i=0; i<m_ItemCount; i++)
+	{
+		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
+
+#if defined(__WXMSW__)
+	bool		bSortAscending;
+
+		bSortAscending = false;
+		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+			bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
+		(void)Win32ItemSelect( i, bEnable, bSortAscending );
+#endif
+	}
 
 	return bResultV;
 }
@@ -244,8 +269,8 @@ bool	bResultV;
 //
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
-	wxCoord		width = 0;
-	wxCoord		height = 20;
+wxCoord		width = 200;
+wxCoord		height = 20;
 
 #if 0
 	if (! HasFlag( wxBORDER_NONE ))
@@ -256,7 +281,8 @@ wxSize wxColumnHeader::DoGetBestSize( void ) const
 	}
 #endif
 
-	wxSize best( width, height );
+wxSize	best( width, height );
+
 	CacheBestSize( best );
 
 	return best;
@@ -272,8 +298,8 @@ void wxColumnHeader::DoSetSize(
 	wxControl::DoSetSize( x, y, width, height, sizeFlags );
 
 	// FIXME: sloppy hack
-	wxControl::DoGetPosition( &(mNativeBoundsR.x), &(mNativeBoundsR.y) );
-	wxControl::DoGetSize( &(mNativeBoundsR.width), &(mNativeBoundsR.height) );
+	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
+	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
 	RecalculateItemExtents();
 }
@@ -284,14 +310,14 @@ void wxColumnHeader::DoMoveWindow(
 	int		width,
 	int		height )
 {
-	int		yDiff;
+int		yDiff;
 
 	yDiff = 0;
 
 	wxControl::DoMoveWindow( x, y + yDiff, width, height - yDiff );
 
 	// FIXME: sloppy hack
-	wxControl::DoGetPosition( &(mNativeBoundsR.x), &(mNativeBoundsR.y) );
+	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 }
 
 void wxColumnHeader::DoGetPosition(
@@ -322,10 +348,10 @@ void wxColumnHeader::OnPaint(
 // mouse handling
 // ----------------------------------------------------------------------------
 
-void wxColumnHeader::OnDClick(
+void wxColumnHeader::OnDoubleClick(
 	wxMouseEvent		&event )
 {
-	if (HitTest( event.GetPosition() ) < wxCOLUMNHEADER_HITTEST_ITEM_ZERO)
+	if (HitTest( event.GetPosition() ) < wxCOLUMNHEADER_HITTEST_ItemZero)
 	{
 		event.Skip();
 	}
@@ -345,16 +371,16 @@ long		itemIndex;
 	switch (itemIndex)
 	{
 	default:
-		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ITEM_ZERO)
+		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 		{
 			OnClick_DemoSortToggle( itemIndex );
 			break;
 		}
 
 		// unknown message - unhandled - fall through
-		wxFAIL_MSG( _T("unknown hittest code") );
+		wxLogDebug( _T("unknown hittest code") );
 
-	case wxCOLUMNHEADER_HITTEST_NOWHERE:
+	case wxCOLUMNHEADER_HITTEST_NoPart:
 		event.Skip();
 		break;
 	}
@@ -376,79 +402,83 @@ wxColumnHeader::GetClassDefaultAttributes(
 
 void wxColumnHeader::DisposeItemList( void )
 {
-	if (mItemList != NULL)
+	if (m_ItemList != NULL)
 	{
-		for (long i=0; i<mItemCount; i++)
-			delete mItemList[i];
+		for (long i=0; i<m_ItemCount; i++)
+			delete m_ItemList[i];
 
-		free( mItemList );
-		mItemList = NULL;
+		free( m_ItemList );
+		m_ItemList = NULL;
 	}
 
-	mItemCount = 0;
-	mItemSelected = kItemIndexInvalid;
+	m_ItemCount = 0;
+	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 }
 
 long wxColumnHeader::GetSelectedItemIndex( void )
 {
-	return mItemSelected;
+	return m_ItemSelected;
 }
 
 void wxColumnHeader::SetSelectedItemIndex(
 	long			itemIndex )
 {
-bool		bActive, bEnabled, bSortAscending;
+bool		bSelected;
 
-	if ((itemIndex >= 0) && (itemIndex < mItemCount))
-		if (mItemSelected != itemIndex)
+	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
+		if (m_ItemSelected != itemIndex)
 		{
-			if (mItemList != NULL)
-				for (long i=0; i<mItemCount; i++)
-				{
-					if (mItemList[i] != NULL)
-					{
-						mItemList[i]->GetFlags( bActive, bEnabled, bSortAscending );
-						bActive = (i == itemIndex);
-						mItemList[i]->SetFlags( bActive, bEnabled, bSortAscending );
-					}
+			for (long i=0; i<m_ItemCount; i++)
+			{
+				bSelected = (i == itemIndex);
+				if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+					m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
-					(void)Win32ItemSelect( i, bActive, bSortAscending );
-#endif
-				}
+			bool		bSortAscending;
 
-			mItemSelected = itemIndex;
+				bSortAscending = false;
+				if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+					bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
+
+				(void)Win32ItemSelect( i, bSelected, bSortAscending );
+#endif
+			}
+
+			m_ItemSelected = itemIndex;
+
+			SetViewDirty();
 		}
 }
 
 long wxColumnHeader::GetItemCount( void )
 {
-	return (long)mItemCount;
+	return (long)m_ItemCount;
 }
 
 void wxColumnHeader::DeleteItem(
 	long			itemIndex )
 {
-	if ((itemIndex >= 0) && (itemIndex < mItemCount))
+	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 	{
 #if defined(__WXMSW__)
 		(void)Win32ItemDelete( itemIndex );
 #endif
 
-		if (mItemList != NULL)
+		if (m_ItemList != NULL)
 		{
-			if (mItemCount > 1)
+			if (m_ItemCount > 1)
 			{
 				// delete the target item
-				delete mItemList[itemIndex];
+				delete m_ItemList[itemIndex];
 
 				// close the list hole
-				for (long i=itemIndex; i<mItemCount-1; i++)
-					mItemList[i] = mItemList[i + 1];
+				for (long i=itemIndex; i<m_ItemCount-1; i++)
+					m_ItemList[i] = m_ItemList[i + 1];
 
 				// leave a NULL spot at the end
-				mItemList[mItemCount - 1] = NULL;
-				mItemCount--;
+				m_ItemList[m_ItemCount - 1] = NULL;
+				m_ItemCount--;
 
 				// recalculate item origins
 				RecalculateItemExtents();
@@ -463,23 +493,33 @@ void wxColumnHeader::AppendItem(
 	const wxString	&textBuffer,
 	long			textJust,
 	long			extentX,
-	bool			bActive,
+	bool			bSelected,
 	bool			bSortAscending )
 {
 wxColumnHeaderItem		itemInfo;
-long					originX, lastExtentX;
+wxPoint					targetExtent;
+long					originX;
 
-	itemInfo.mLabelTextRef = textBuffer;
-	itemInfo.mTextJust = textJust;
-	itemInfo.mExtentX = extentX;
-	itemInfo.mBIsActive = bActive;
-	itemInfo.mBSortAscending = bSortAscending;
+	// set invariant values
+	itemInfo.m_NativeBoundsR = m_NativeBoundsR;
+	itemInfo.m_BEnabled = true;
 
-	originX = 0;
-	if (GetUIExtent( mItemCount - 1, originX, lastExtentX ))
-		originX += lastExtentX;
+#if defined(__WXMAC__)
+	itemInfo.m_FontID = kThemeSmallSystemFont;		// or kThemeSystemFontTag, kThemeViewsFontTag
+#else
+	itemInfo.m_FontID = 0;
+#endif
 
-	itemInfo.mOriginX = originX;
+	itemInfo.m_LabelTextRef = textBuffer;
+	itemInfo.m_TextJust = textJust;
+	itemInfo.m_ExtentX = extentX;
+	itemInfo.m_BSelected = ((m_ItemSelected < 0) ? bSelected : false);
+	itemInfo.m_BSortAscending = bSortAscending;
+
+	targetExtent = GetUIExtent( m_ItemCount - 1 );
+	originX = ((targetExtent.x > 0) ? targetExtent.x : 0);
+
+	itemInfo.m_OriginX = originX + targetExtent.y;
 	AppendItemList( &itemInfo, 1 );
 }
 
@@ -494,39 +534,39 @@ bool				bIsSelected;
 	if ((itemList == NULL) || (itemCount <= 0))
 		return;
 
-	// allocate new item list copy the original list items into it
-	newItemList = (wxColumnHeaderItem**)calloc( mItemCount + itemCount, sizeof(wxColumnHeaderItem*) );
-	if (mItemList != NULL)
+	// allocate new item list and copy the original list items into it
+	newItemList = (wxColumnHeaderItem**)calloc( m_ItemCount + itemCount, sizeof(wxColumnHeaderItem*) );
+	if (m_ItemList != NULL)
 	{
-		for (i=0; i<mItemCount; i++)
-			newItemList[i] = mItemList[i];
+		for (i=0; i<m_ItemCount; i++)
+			newItemList[i] = m_ItemList[i];
 
-		free( mItemList );
+		free( m_ItemList );
 	}
-	mItemList = newItemList;
+	m_ItemList = newItemList;
 
 	// append the new items
 	for (i=0; i<itemCount; i++)
 	{
-		targetIndex = mItemCount + i;
-		mItemList[targetIndex] = new wxColumnHeaderItem( &itemList[i] );
+		targetIndex = m_ItemCount + i;
+		m_ItemList[targetIndex] = new wxColumnHeaderItem( &itemList[i] );
 
-		bIsSelected = (mItemList[targetIndex]->mBIsActive && mItemList[targetIndex]->mBIsEnabled);
+		bIsSelected = (m_ItemList[targetIndex]->m_BSelected && m_ItemList[targetIndex]->m_BEnabled);
 
 #if defined(__WXMSW__)
 		Win32ItemInsert(
-			targetIndex, mItemList[targetIndex]->mExtentX,
-			mItemList[targetIndex]->mLabelTextRef, mItemList[targetIndex]->mTextJust,
-			false, // for Unicode - TBD
-			bIsSelected, mItemList[targetIndex]->mBSortAscending );
+			targetIndex, m_ItemList[targetIndex]->m_ExtentX,
+			m_ItemList[targetIndex]->m_LabelTextRef, m_ItemList[targetIndex]->m_TextJust,
+			m_BUseUnicode,
+			bIsSelected, m_ItemList[targetIndex]->m_BSortAscending );
 #endif
 
-		if (bIsSelected && (mItemSelected < 0))
-			mItemSelected = targetIndex;
+		if (bIsSelected && (m_ItemSelected < 0))
+			m_ItemSelected = targetIndex;
 	}
 
 	// update the counter
-	mItemCount += itemCount;
+	m_ItemCount += itemCount;
 }
 
 bool wxColumnHeader::GetItemData(
@@ -562,20 +602,18 @@ bool					bResultV;
 wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 	long			itemIndex )
 {
-	if ((itemIndex >= 0) && (itemIndex < mItemCount))
-		return mItemList[itemIndex];
+	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
+		return m_ItemList[itemIndex];
 	else
 		return NULL;
 }
 
-// NB: call is responsible for disposing text buffer (via free())
-//
-bool wxColumnHeader::GetLabelText(
-	long			itemIndex,
-	wxString		&textBuffer,
-	long			&textJust )
+wxString wxColumnHeader::GetLabelText(
+	long			itemIndex )
 {
 wxColumnHeaderItem		*itemRef;
+wxString				textBuffer;
+long					textJust;
 bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
@@ -587,37 +625,32 @@ bool					bResultV;
 	else
 	{
 		textBuffer = _T("");
-		textJust = wxCOLUMNHEADER_JustLeft;
 	}
 
-	return bResultV;
+	return textBuffer;
 }
 
-bool wxColumnHeader::SetLabelText(
+void wxColumnHeader::SetLabelText(
 	long				itemIndex,
 	const wxString		&textBuffer,
 	long				textJust )
 {
 wxColumnHeaderItem		*itemRef;
-bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
-	bResultV = (itemRef != NULL);
-	if (bResultV)
+	if (itemRef != NULL)
 	{
 		itemRef->SetLabelText( textBuffer, textJust );
 		RefreshItem( itemIndex );
 	}
-
-	return bResultV;
 }
 
-bool wxColumnHeader::GetUIExtent(
-	long			itemIndex,
-	long			&originX,
-	long			&extentX )
+wxPoint wxColumnHeader::GetUIExtent(
+	long			itemIndex )
 {
 wxColumnHeaderItem		*itemRef;
+wxPoint				extentPt;
+long					originX, extentX;
 bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
@@ -632,33 +665,45 @@ bool					bResultV;
 		extentX = 0;
 	}
 
-	return bResultV;
+	extentPt.x = originX;
+	extentPt.y = extentX;
+
+	return extentPt;
 }
 
-bool wxColumnHeader::SetUIExtent(
+void wxColumnHeader::SetUIExtent(
 	long			itemIndex,
-	long			originX,
-	long			extentX )
+	wxPoint		&extentPt )
 {
 wxColumnHeaderItem		*itemRef;
-bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
-	bResultV = (itemRef != NULL);
-	if (bResultV)
+	if (itemRef != NULL)
 	{
-		itemRef->SetUIExtent( originX, extentX );
+		itemRef->SetUIExtent( extentPt.x, extentPt.y );
 		RefreshItem( itemIndex );
 	}
+}
+
+bool wxColumnHeader::GetFlagAttribute(
+	long						itemIndex,
+	wxColumnHeaderFlagAttr		flagEnum )
+{
+wxColumnHeaderItem		*itemRef;
+bool					bResultV;
+
+	itemRef = GetItemRef( itemIndex );
+	bResultV = (itemRef != NULL);
+	if (bResultV)
+		bResultV = itemRef->GetFlagAttribute( flagEnum );
 
 	return bResultV;
 }
 
-bool wxColumnHeader::GetFlags(
-	long			itemIndex,
-	bool			&bActive,
-	bool			&bEnabled,
-	bool			&bSortAscending )
+bool wxColumnHeader::SetFlagAttribute(
+	long						itemIndex,
+	wxColumnHeaderFlagAttr		flagEnum,
+	bool						bFlagValue )
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -667,33 +712,8 @@ bool					bResultV;
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		itemRef->GetFlags( bActive, bEnabled, bSortAscending );
-	}
-	else
-	{
-		bActive =
-		bEnabled =
-		bSortAscending = FALSE;
-	}
-
-	return bResultV;
-}
-
-bool wxColumnHeader::SetFlags(
-	long			itemIndex,
-	bool			bActive,
-	bool			bEnabled,
-	bool			bSortAscending )
-{
-wxColumnHeaderItem		*itemRef;
-bool					bResultV;
-
-	itemRef = GetItemRef( itemIndex );
-	bResultV = (itemRef != NULL);
-	if (bResultV)
-	{
-		itemRef->SetFlags( bActive, bEnabled, bSortAscending );
-		RefreshItem( itemIndex );
+		if (itemRef->SetFlagAttribute( flagEnum, bFlagValue ))
+			RefreshItem( itemIndex );
 	}
 
 	return bResultV;
@@ -704,7 +724,7 @@ wxColumnHeaderHitTestResult wxColumnHeader::HitTest(
 {
 wxColumnHeaderHitTestResult		resultV;
 
-	resultV = wxCOLUMNHEADER_HITTEST_NOWHERE;
+	resultV = wxCOLUMNHEADER_HITTEST_NoPart;
 
 #if defined(__WXMSW__)
 RECT		boundsR;
@@ -713,7 +733,7 @@ long		itemCount, i;
 	HWND	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
+		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return resultV;
 	}
 
@@ -729,15 +749,9 @@ long		itemCount, i;
 		}
 	}
 #else
-// Point	qdPt;
-//
-//	qdPt.h = locationPt.x;
-//	qdPt.v = locationPt.y;
-//	if (PtInRect( qdPt, &mNativeBoundsR ))
-//	if (mNativeBoundsR.Contains( locationPt ))
-	for (long i=0; i<mItemCount; i++)
-		if (mItemList[i] != NULL)
-			if (mItemList[i]->HitTest( locationPt ) != 0)
+	for (long i=0; i<m_ItemCount; i++)
+		if (m_ItemList[i] != NULL)
+			if (m_ItemList[i]->HitTest( locationPt ) != 0)
 			{
 				resultV = (wxColumnHeaderHitTestResult)i;
 				break;
@@ -747,7 +761,7 @@ long		itemCount, i;
 	return resultV;
 }
 
-// NB: this routine is unused
+// NB: this routine is unused for Win32
 //
 long wxColumnHeader::Draw( void )
 {
@@ -756,8 +770,8 @@ long		errStatus;
 	errStatus = 0;
 
 #if !defined(__WXMSW__)
-	for (long i=0; i<mItemCount; i++)
-		errStatus |= mItemList[i]->DrawSelf();
+	for (long i=0; i<m_ItemCount; i++)
+		errStatus |= m_ItemList[i]->DrawSelf();
 #endif
 
 	return (long)errStatus;
@@ -765,19 +779,7 @@ long		errStatus;
 
 void wxColumnHeader::SetViewDirty( void )
 {
-#if 0
-#elif defined(__WXMSW__)
-	HWND	targetViewRef = GetHwnd();
-	if (targetViewRef == NULL)
-	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
-		return;
-	}
-
-	InvalidateRect( targetViewRef, NULL, FALSE );
-#elif defined(__WXMAC__)
-	// FIXME:
-#endif
+	Refresh( true, NULL );
 }
 
 void wxColumnHeader::RefreshItem(
@@ -793,14 +795,14 @@ void wxColumnHeader::RecalculateItemExtents( void )
 {
 long		originX, i;
 
-	if (mItemList != NULL)
+	if (m_ItemList != NULL)
 	{
 		originX = 0;
-		for (i=0; i<mItemCount; i++)
-			if (mItemList[i] != NULL)
+		for (i=0; i<m_ItemCount; i++)
+			if (m_ItemList[i] != NULL)
 			{
-				mItemList[i]->mOriginX = originX;
-				originX += mItemList[i]->mExtentX;
+				m_ItemList[i]->m_OriginX = originX;
+				originX += m_ItemList[i]->m_ExtentX;
 			}
 	}
 }
@@ -827,7 +829,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
+		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -835,13 +837,14 @@ long		resultV;
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = (LPSTR)titleText;
 	itemData.cxy = (int)nWidth;
-	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
+	itemData.cchTextMax = 256;
+//	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 	itemData.fmt = wxColumnHeaderItem::ConvertJust( textJust, TRUE ) | HDF_STRING;
 	if (bSelected)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_InsertItem( targetViewRef, (int)iInsertAfter, &itemData );
-//	resultV = SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
+//	resultV = (long)SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -850,12 +853,12 @@ long wxColumnHeader::Win32ItemDelete(
 	long			itemIndex )
 {
 HWND		targetViewRef;
-long			resultV;
+long		resultV;
 
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
+		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -879,7 +882,7 @@ long					resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
+		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -888,17 +891,18 @@ long					resultV;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
-	itemData.pszText = (LPSTR)(itemRef->mLabelTextRef.c_str());
-	itemData.cxy = (int)(itemRef->mExtentX);
-	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
-	itemData.fmt = wxColumnHeaderItem::ConvertJust( itemRef->mTextJust, TRUE ) | HDF_STRING;
+	itemData.pszText = (LPSTR)(itemRef->m_LabelTextRef.c_str());
+	itemData.cxy = (int)(itemRef->m_ExtentX);
+	itemData.cchTextMax = 256;
+//	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
+	itemData.fmt = wxColumnHeaderItem::ConvertJust( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
-	if (itemRef->mBIsActive && itemRef->mBIsEnabled)
-		itemData.fmt |= (itemRef->mBSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+	if (itemRef->m_BSelected && itemRef->m_BEnabled)
+		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//	resultV = SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+//	resultV = (long)SendMessage( mViewRef, itemRef->m_BTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -915,7 +919,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
+		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -928,7 +932,7 @@ long		resultV;
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//	resultV = SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+//	resultV = (long)SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -970,20 +974,20 @@ void wxColumnHeader::OnClick_DemoSortToggle(
 long			curSelectionIndex;
 
 	curSelectionIndex = GetSelectedItemIndex();
-	if (itemIndex != mItemSelected)
+	if (itemIndex != m_ItemSelected)
 	{
 		SetSelectedItemIndex( itemIndex );
 	}
 	else
 	{
 	wxColumnHeaderItem	*item;
-	bool				bBoolFlag1, bBoolFlag2, bSortFlag;
+	bool				bSortFlag;
 
-		item = ((mItemList != NULL) ? mItemList[itemIndex] : NULL);
+		item = ((m_ItemList != NULL) ? m_ItemList[itemIndex] : NULL);
 		if (item != NULL)
 		{
-			item->GetFlags( bBoolFlag1, bBoolFlag2, bSortFlag );
-			item->SetFlags( bBoolFlag1, bBoolFlag2, ! bSortFlag );
+			bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
+			item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
 
 #if defined(__WXMSW__)
 			Win32ItemRefresh( itemIndex );
@@ -1026,28 +1030,28 @@ wxColumnHeaderEvent::wxColumnHeaderEvent(
 
 wxColumnHeaderItem::wxColumnHeaderItem()
 	:
-	mFontID( 0 )
-	, mTextJust( 0 )
-	, mImageID( -1 )
-	, mOriginX( 0 )
-	, mExtentX( 0 )
-	, mBIsActive( FALSE )
-	, mBIsEnabled( FALSE )
-	, mBSortAscending( FALSE )
+	m_FontID( 0 )
+	, m_TextJust( 0 )
+	, m_ImageID( -1 )
+	, m_OriginX( 0 )
+	, m_ExtentX( 0 )
+	, m_BEnabled( FALSE )
+	, m_BSelected( FALSE )
+	, m_BSortAscending( FALSE )
 {
 }
 
 wxColumnHeaderItem::wxColumnHeaderItem(
 	const wxColumnHeaderItem		*info )
 	:
-	mFontID( 0 )
-	, mTextJust( 0 )
-	, mImageID( -1 )
-	, mOriginX( 0 )
-	, mExtentX( 0 )
-	, mBIsActive( FALSE )
-	, mBIsEnabled( FALSE )
-	, mBSortAscending( FALSE )
+	m_FontID( 0 )
+	, m_TextJust( 0 )
+	, m_ImageID( -1 )
+	, m_OriginX( 0 )
+	, m_ExtentX( 0 )
+	, m_BEnabled( FALSE )
+	, m_BSelected( FALSE )
+	, m_BSortAscending( FALSE )
 {
 	SetItemData( info );
 }
@@ -1064,16 +1068,16 @@ void wxColumnHeaderItem::GetItemData(
 	if (info == NULL)
 		return;
 
-	info->mNativeBoundsR = mNativeBoundsR;
-	info->mFontID = mFontID;
-	info->mImageID = mImageID;
-	info->mOriginX = mOriginX;
-	info->mExtentX = mExtentX;
-	info->mBIsActive = mBIsActive;
-	info->mBIsEnabled = mBIsEnabled;
-	info->mBSortAscending = mBSortAscending;
+	info->m_NativeBoundsR = m_NativeBoundsR;
+	info->m_FontID = m_FontID;
+	info->m_ImageID = m_ImageID;
+	info->m_OriginX = m_OriginX;
+	info->m_ExtentX = m_ExtentX;
+	info->m_BEnabled = m_BEnabled;
+	info->m_BSelected = m_BSelected;
+	info->m_BSortAscending = m_BSortAscending;
 
-	GetLabelText( info->mLabelTextRef, info->mTextJust );
+	GetLabelText( info->m_LabelTextRef, info->m_TextJust );
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -1082,17 +1086,17 @@ void wxColumnHeaderItem::SetItemData(
 	if (info == NULL)
 		return;
 
-	mNativeBoundsR = info->mNativeBoundsR;
-	mFontID = info->mFontID;
-	mImageID = info->mImageID;
-	mImageID = info->mImageID;
-	mOriginX = info->mOriginX;
-	mExtentX = info->mExtentX;
-	mBIsActive = info->mBIsActive;
-	mBIsEnabled = info->mBIsEnabled;
-	mBSortAscending = info->mBSortAscending;
+	m_NativeBoundsR = info->m_NativeBoundsR;
+	m_FontID = info->m_FontID;
+	m_ImageID = info->m_ImageID;
+	m_ImageID = info->m_ImageID;
+	m_OriginX = info->m_OriginX;
+	m_ExtentX = info->m_ExtentX;
+	m_BEnabled = info->m_BEnabled;
+	m_BSelected = info->m_BSelected;
+	m_BSortAscending = info->m_BSortAscending;
 
-	SetLabelText( info->mLabelTextRef, info->mTextJust );
+	SetLabelText( info->m_LabelTextRef, info->m_TextJust );
 }
 
 long wxColumnHeaderItem::GetLabelText(
@@ -1103,8 +1107,8 @@ long		returnedSize;
 
 	returnedSize = 0;
 
-	textBuffer = mLabelTextRef;
-	textJust = mTextJust;
+	textBuffer = m_LabelTextRef;
+	textJust = m_TextJust;
 
 	return returnedSize;
 }
@@ -1113,16 +1117,16 @@ void wxColumnHeaderItem::SetLabelText(
 	const wxString		&textBuffer,
 	long				textJust )
 {
-	mLabelTextRef = textBuffer;
-	mTextJust = textJust;
+	m_LabelTextRef = textBuffer;
+	m_TextJust = textJust;
 }
 
 void wxColumnHeaderItem::GetUIExtent(
 	long			&originX,
 	long			&extentX )
 {
-	originX = mOriginX;
-	extentX = mExtentX;
+	originX = m_OriginX;
+	extentX = m_ExtentX;
 }
 
 void wxColumnHeaderItem::SetUIExtent(
@@ -1131,29 +1135,67 @@ void wxColumnHeaderItem::SetUIExtent(
 {
 	// FIXME: range-check these properly!
 	if (originX >= 0)
-		mOriginX = originX;
+		m_OriginX = originX;
 	if (extentX >= 0)
-		mExtentX = extentX;
+		m_ExtentX = extentX;
 }
 
-void wxColumnHeaderItem::GetFlags(
-	bool			&bActive,
-	bool			&bEnabled,
-	bool			&bSortAscending )
+bool wxColumnHeaderItem::GetFlagAttribute(
+	wxColumnHeaderFlagAttr		flagEnum )
 {
-	bActive = mBIsActive;
-	bEnabled = mBIsEnabled;
-	bSortAscending = mBSortAscending;
+bool			bResult;
+
+	bResult = false;
+
+	switch (flagEnum)
+	{
+	case wxCOLUMNHEADER_FLAGATTR_Enabled:
+		bResult = m_BEnabled;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_Selected:
+		bResult = m_BSelected;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
+		bResult = m_BSortAscending;
+		break;
+
+	default:
+		break;
+	}
+
+	return bResult;
 }
 
-void wxColumnHeaderItem::SetFlags(
-	bool			bActive,
-	bool			bEnabled,
-	bool			bSortAscending )
+bool wxColumnHeaderItem::SetFlagAttribute(
+	wxColumnHeaderFlagAttr		flagEnum,
+	bool						bFlagValue )
 {
-	mBIsActive = bActive;
-	mBIsEnabled = bEnabled;
-	mBSortAscending = bSortAscending;
+bool			bResult;
+
+	bResult = true;
+
+	switch (flagEnum)
+	{
+	case wxCOLUMNHEADER_FLAGATTR_Enabled:
+		m_BEnabled = bFlagValue;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_Selected:
+		m_BSelected = bFlagValue;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
+		m_BSortAscending = bFlagValue;
+		break;
+
+	default:
+		bResult = false;
+		break;
+	}
+
+	return bResult;
 }
 
 long wxColumnHeaderItem::HitTest(
@@ -1161,8 +1203,9 @@ long wxColumnHeaderItem::HitTest(
 {
 long		targetX, resultV;
 
-	targetX = locationPt.x - mNativeBoundsR.x;
-	resultV = ((targetX >= mOriginX) && (targetX < mOriginX + mExtentX));
+//	targetX = locationPt.x - m_NativeBoundsR.x;
+	targetX = locationPt.x;
+	resultV = ((targetX >= m_OriginX) && (targetX < m_OriginX + m_ExtentX));
 
 	return resultV;
 }
@@ -1180,27 +1223,35 @@ long					nativeTextJust;
 OSStatus				errStatus;
 
 	// is this item beyond the right edge?
-	if (mOriginX >= mNativeBoundsR.width)
+	if (m_OriginX >= m_NativeBoundsR.width)
+	{
+		wxLogDebug( _T("wxColumnHeaderItem::DrawSelf - bailout!") );
 		return (-1L);
+	}
 
-	qdBoundsR.left = mNativeBoundsR.x + mOriginX;
-	qdBoundsR.top = mNativeBoundsR.y;
-	qdBoundsR.right = qdBoundsR.left + mExtentX + 1;
+//	qdBoundsR.left = m_NativeBoundsR.x + m_OriginX;
+//	qdBoundsR.top = m_NativeBoundsR.y;
+	qdBoundsR.left = m_OriginX;
+	qdBoundsR.top = 0;
+	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
+	if (qdBoundsR.right > m_NativeBoundsR.width - 1)
+		qdBoundsR.right = m_NativeBoundsR.width - 1;
+	qdBoundsR.bottom = qdBoundsR.top + m_NativeBoundsR.height;
 
 	// a broken attempt to tinge the background
 // Collection	origCol, newCol;
 // RGBColor	tintRGB = { 0xFFFF, 0x0000, 0xFFFF };
 //	errStatus = SetAppearanceTintColor( &tintRGB, origCol, newCol );
 
-	if (mBIsEnabled)
-		drawInfo.state = (mBIsActive ? kThemeStateActive: kThemeStateInactive);
+	if (m_BEnabled)
+		drawInfo.state = (m_BSelected ? kThemeStateActive: kThemeStateInactive);
 	else
-		drawInfo.state = (mBIsActive ? kThemeStateUnavailable : kThemeStateUnavailableInactive);
+		drawInfo.state = (m_BSelected ? kThemeStateUnavailable : kThemeStateUnavailableInactive);
 //	drawInfo.state = kThemeStatePressed;
 
-	drawInfo.value = (SInt32)mBIsActive;	// zero draws w/o theme background shading
+	drawInfo.value = (SInt32)m_BSelected;	// zero draws w/o theme background shading
 
-	drawInfo.adornment = (mBSortAscending ? kThemeAdornmentNone : kThemeAdornmentArrowDoubleArrow);
+	drawInfo.adornment = (m_BSortAscending ? kThemeAdornmentNone : kThemeAdornmentArrowDoubleArrow);
 //	drawInfo.adornment = kThemeAdornmentNone;					// doesn't work - draws down arrow !!
 //	drawInfo.adornment = kThemeAdornmentDefault;				// doesn't work - draws down arrow !!
 //	drawInfo.adornment = kThemeAdornmentHeaderButtonShadowOnly;	// doesn't work - draws down arrow !!
@@ -1220,9 +1271,9 @@ OSStatus				errStatus;
 	qdBoundsR.right -= 16;
 	qdBoundsR.top += 1;
 
-	nativeTextJust = ConvertJust( mTextJust, TRUE );
+	nativeTextJust = ConvertJust( m_TextJust, TRUE );
 
-	if (! mLabelTextRef.IsEmpty())
+	if (! m_LabelTextRef.IsEmpty())
 	{
 	CFStringRef			cfLabelText;
 	TextEncoding		targetEncoding;
@@ -1230,13 +1281,13 @@ OSStatus				errStatus;
 
 		bUseUnicode = FALSE;
 		targetEncoding = (bUseUnicode ? kCFStringEncodingUnicode : kCFStringEncodingMacRoman);
-		cfLabelText = CFStringCreateWithCString( NULL, (const char*)mLabelTextRef, targetEncoding );
+		cfLabelText = CFStringCreateWithCString( NULL, (const char*)m_LabelTextRef, targetEncoding );
 		if (cfLabelText != NULL)
 		{
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
-					cfLabelText, mFontID, drawInfo.state, true,
-					&qdBoundsR, mTextJust, NULL );
+					cfLabelText, m_FontID, drawInfo.state, true,
+					&qdBoundsR, m_TextJust, NULL );
 
 			CFRelease( cfLabelText );
 		}
@@ -1245,7 +1296,7 @@ OSStatus				errStatus;
 #if 0
 	// FIX-ME: need implementation
 	// TO-DO: can label text and an bitmap (icon) be shown simultaneously?
-	if (mImageID != (-1))
+	if (m_ImageID != (-1))
 	{
 //	IconSuiteRef	iconRef;
 //		errStatus = GetIconSuite( &iconRef, (SInt16)mIconRef, kSelectorSmall32Bit );
@@ -1281,18 +1332,18 @@ typedef struct { long valA; long valB; } AnonLongPair;
 static AnonLongPair	sMap[] =
 {
 #if defined(__WXMSW__)
-	{ wxCOLUMNHEADER_JustLeft, HDF_LEFT }
-	, { wxCOLUMNHEADER_JustCenter, HDF_CENTER }
-	, { wxCOLUMNHEADER_JustRight, HDF_RIGHT }
+	{ wxCOLUMNHEADER_JUST_Left, HDF_LEFT }
+	, { wxCOLUMNHEADER_JUST_Center, HDF_CENTER }
+	, { wxCOLUMNHEADER_JUST_Right, HDF_RIGHT }
 #elif defined(__WXMAC__)
-	{ wxCOLUMNHEADER_JustLeft, teJustLeft }
-	, { wxCOLUMNHEADER_JustCenter, teJustCenter }
-	, { wxCOLUMNHEADER_JustRight, teJustRight }
+	{ wxCOLUMNHEADER_JUST_Left, teJustLeft }
+	, { wxCOLUMNHEADER_JUST_Center, teJustCenter }
+	, { wxCOLUMNHEADER_JUST_Right, teJustRight }
 #else
 	// FIX-ME: GTK - wild guess
-	{ wxCOLUMNHEADER_JustLeft, 0 }
-	, { wxCOLUMNHEADER_JustCenter, 1 }
-	, { wxCOLUMNHEADER_JustRight, 2 }
+	{ wxCOLUMNHEADER_JUST_Left, 0 }
+	, { wxCOLUMNHEADER_JUST_Center, 1 }
+	, { wxCOLUMNHEADER_JUST_Right, 2 }
 #endif
 };
 

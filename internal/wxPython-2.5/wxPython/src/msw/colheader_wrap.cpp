@@ -215,11 +215,10 @@ SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_con
 #define  SWIGTYPE_p_wxEvtHandler swig_types[4] 
 #define  SWIGTYPE_p_char swig_types[5] 
 #define  SWIGTYPE_p_wxColumnHeader swig_types[6] 
-#define  SWIGTYPE_p_bool swig_types[7] 
-#define  SWIGTYPE_p_long swig_types[8] 
-#define  SWIGTYPE_p_wxColumnHeaderEvent swig_types[9] 
-#define  SWIGTYPE_p_wxCommandEvent swig_types[10] 
-static swig_type_info *swig_types[12];
+#define  SWIGTYPE_p_wxColumnHeaderEvent swig_types[7] 
+#define  SWIGTYPE_p_wxCommandEvent swig_types[8] 
+#define  SWIGTYPE_p_wxPoint swig_types[9] 
+static swig_type_info *swig_types[11];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -900,55 +899,34 @@ static PyObject *_wrap_wxColumnHeader_GetLabelText(PyObject *, PyObject *args, P
     PyObject *resultobj;
     wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
     long arg2 ;
-    wxString *arg3 = 0 ;
-    long *arg4 = 0 ;
-    bool result;
-    bool temp3 = false ;
+    wxString result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "textBuffer",(char *) "textJust", NULL 
+        (char *) "self",(char *) "itemIndex", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:wxColumnHeader_GetLabelText",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxColumnHeader_GetLabelText",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
     {
-        arg3 = wxString_in_helper(obj2);
-        if (arg3 == NULL) SWIG_fail;
-        temp3 = true;
-    }
-    if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_long,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg4 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
-    {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->GetLabelText(arg2,*arg3,*arg4);
+        result = (arg1)->GetLabelText(arg2);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
-    }
-    {
-        if (temp3)
-        delete arg3;
+#if wxUSE_UNICODE
+        resultobj = PyUnicode_FromWideChar((&result)->c_str(), (&result)->Len());
+#else
+        resultobj = PyString_FromStringAndSize((&result)->c_str(), (&result)->Len());
+#endif
     }
     return resultobj;
     fail:
-    {
-        if (temp3)
-        delete arg3;
-    }
     return NULL;
 }
 
@@ -959,7 +937,6 @@ static PyObject *_wrap_wxColumnHeader_SetLabelText(PyObject *, PyObject *args, P
     long arg2 ;
     wxString *arg3 = 0 ;
     long arg4 ;
-    bool result;
     bool temp3 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -983,14 +960,12 @@ static PyObject *_wrap_wxColumnHeader_SetLabelText(PyObject *, PyObject *args, P
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->SetLabelText(arg2,(wxString const &)*arg3,arg4);
+        (arg1)->SetLabelText(arg2,(wxString const &)*arg3,arg4);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    {
-        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
-    }
+    Py_INCREF(Py_None); resultobj = Py_None;
     {
         if (temp3)
         delete arg3;
@@ -1009,45 +984,29 @@ static PyObject *_wrap_wxColumnHeader_GetUIExtent(PyObject *, PyObject *args, Py
     PyObject *resultobj;
     wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
     long arg2 ;
-    long *arg3 = 0 ;
-    long *arg4 = 0 ;
-    bool result;
+    wxPoint result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "originX",(char *) "extentX", NULL 
+        (char *) "self",(char *) "itemIndex", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:wxColumnHeader_GetUIExtent",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxColumnHeader_GetUIExtent",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_long,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg3 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
-    if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_long,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg4 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->GetUIExtent(arg2,*arg3,*arg4);
+        result = (arg1)->GetUIExtent(arg2);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
     {
-        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+        wxPoint * resultptr;
+        resultptr = new wxPoint((wxPoint &) result);
+        resultobj = SWIG_NewPointerObj((void *)(resultptr), SWIGTYPE_p_wxPoint, 1);
     }
     return resultobj;
     fail:
@@ -1059,29 +1018,61 @@ static PyObject *_wrap_wxColumnHeader_SetUIExtent(PyObject *, PyObject *args, Py
     PyObject *resultobj;
     wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
     long arg2 ;
-    long arg3 ;
-    long arg4 ;
-    bool result;
+    wxPoint *arg3 = 0 ;
+    wxPoint temp3 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "originX",(char *) "extentX", NULL 
+        (char *) "self",(char *) "itemIndex",(char *) "extentPt", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:wxColumnHeader_SetUIExtent",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:wxColumnHeader_SetUIExtent",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (long)SWIG_As_long(obj2); 
+    {
+        arg3 = &temp3;
+        if ( ! wxPoint_helper(obj2, &arg3)) SWIG_fail;
+    }
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->SetUIExtent(arg2,*arg3);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_wxColumnHeader_GetFlagAttribute(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    long arg2 ;
+    int arg3 ;
+    bool result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "itemIndex",(char *) "flagEnum", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:wxColumnHeader_GetFlagAttribute",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg4 = (long)SWIG_As_long(obj3); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->SetUIExtent(arg2,arg3,arg4);
+        result = (bool)(arg1)->GetFlagAttribute(arg2,(wxColumnHeaderFlagAttr )arg3);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -1095,96 +1086,33 @@ static PyObject *_wrap_wxColumnHeader_SetUIExtent(PyObject *, PyObject *args, Py
 }
 
 
-static PyObject *_wrap_wxColumnHeader_GetFlags(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_wxColumnHeader_SetFlagAttribute(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
     long arg2 ;
-    bool *arg3 = 0 ;
-    bool *arg4 = 0 ;
-    bool *arg5 = 0 ;
-    bool result;
-    PyObject * obj0 = 0 ;
-    PyObject * obj1 = 0 ;
-    PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
-    PyObject * obj4 = 0 ;
-    char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "bActive",(char *) "bEnabled",(char *) "bSortAscending", NULL 
-    };
-    
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:wxColumnHeader_GetFlags",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
-    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
-    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
-    arg2 = (long)SWIG_As_long(obj1); 
-    if (PyErr_Occurred()) SWIG_fail;
-    if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_bool,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg3 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
-    if ((SWIG_ConvertPtr(obj3,(void **)(&arg4),SWIGTYPE_p_bool,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg4 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
-    if ((SWIG_ConvertPtr(obj4,(void **)(&arg5),SWIGTYPE_p_bool,
-    SWIG_POINTER_EXCEPTION | 0)) == -1)
-    SWIG_fail;
-    if (arg5 == NULL) {
-        PyErr_SetString(PyExc_TypeError,"null reference");
-        SWIG_fail;
-    }
-    {
-        PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->GetFlags(arg2,*arg3,*arg4,*arg5);
-        
-        wxPyEndAllowThreads(__tstate);
-        if (PyErr_Occurred()) SWIG_fail;
-    }
-    {
-        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
-    }
-    return resultobj;
-    fail:
-    return NULL;
-}
-
-
-static PyObject *_wrap_wxColumnHeader_SetFlags(PyObject *, PyObject *args, PyObject *kwargs) {
-    PyObject *resultobj;
-    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
-    long arg2 ;
-    bool arg3 ;
+    int arg3 ;
     bool arg4 ;
-    bool arg5 ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
     PyObject * obj3 = 0 ;
-    PyObject * obj4 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "bActive",(char *) "bEnabled",(char *) "bSortAscending", NULL 
+        (char *) "self",(char *) "itemIndex",(char *) "flagEnum",(char *) "bFlagValue", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:wxColumnHeader_SetFlags",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:wxColumnHeader_SetFlagAttribute",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (long)SWIG_As_long(obj1); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg3 = (bool)SWIG_As_bool(obj2); 
+    arg3 = (int)SWIG_As_int(obj2); 
     if (PyErr_Occurred()) SWIG_fail;
     arg4 = (bool)SWIG_As_bool(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (bool)SWIG_As_bool(obj4); 
-    if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (bool)(arg1)->SetFlags(arg2,arg3,arg4,arg5);
+        result = (bool)(arg1)->SetFlagAttribute(arg2,(wxColumnHeaderFlagAttr )arg3,arg4);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -1220,8 +1148,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"wxColumnHeader_SetLabelText", (PyCFunction) _wrap_wxColumnHeader_SetLabelText, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"wxColumnHeader_GetUIExtent", (PyCFunction) _wrap_wxColumnHeader_GetUIExtent, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"wxColumnHeader_SetUIExtent", (PyCFunction) _wrap_wxColumnHeader_SetUIExtent, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxColumnHeader_GetFlags", (PyCFunction) _wrap_wxColumnHeader_GetFlags, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxColumnHeader_SetFlags", (PyCFunction) _wrap_wxColumnHeader_SetFlags, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"wxColumnHeader_GetFlagAttribute", (PyCFunction) _wrap_wxColumnHeader_GetFlagAttribute, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"wxColumnHeader_SetFlagAttribute", (PyCFunction) _wrap_wxColumnHeader_SetFlagAttribute, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"wxColumnHeader_swigregister", wxColumnHeader_swigregister, METH_VARARGS, NULL },
 	 { NULL, NULL, 0, NULL }
 };
@@ -1686,10 +1614,9 @@ static swig_type_info _swigt__p_wxObject[] = {{"_p_wxObject", 0, "wxObject *", 0
 static swig_type_info _swigt__p_wxEvtHandler[] = {{"_p_wxEvtHandler", 0, "wxEvtHandler *", 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", 0, 0, 0, 0, 0, 0},{"_p_wxColumnHeader", _p_wxColumnHeaderTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyTimer", _p_wxPyTimerTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyProcess", _p_wxPyProcessTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_char[] = {{"_p_char", 0, "char *", 0, 0, 0, 0},{"_p_char", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxColumnHeader[] = {{"_p_wxColumnHeader", 0, "wxColumnHeader *", 0, 0, 0, 0},{"_p_wxColumnHeader", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_bool[] = {{"_p_bool", 0, "bool *", 0, 0, 0, 0},{"_p_bool", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_long[] = {{"_p_long", 0, "long *", 0, 0, 0, 0},{"_p_long", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxColumnHeaderEvent[] = {{"_p_wxColumnHeaderEvent", 0, "wxColumnHeaderEvent *", 0, 0, 0, 0},{"_p_wxColumnHeaderEvent", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxCommandEvent[] = {{"_p_wxCommandEvent", 0, "wxCommandEvent *", 0, 0, 0, 0},{"_p_wxChildFocusEvent", _p_wxChildFocusEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxScrollEvent", _p_wxScrollEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxWindowCreateEvent", _p_wxWindowCreateEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxUpdateUIEvent", _p_wxUpdateUIEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxWindowDestroyEvent", _p_wxWindowDestroyEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxContextMenuEvent", _p_wxContextMenuEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxColumnHeaderEvent", _p_wxColumnHeaderEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxCommandEvent", 0, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", _p_wxNotifyEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{"_p_wxPyCommandEvent", _p_wxPyCommandEventTo_p_wxCommandEvent, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_wxPoint[] = {{"_p_wxPoint", 0, "wxPoint *", 0, 0, 0, 0},{"_p_wxPoint", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 
 static swig_type_info *swig_types_initial[] = {
 _swigt__p_wxControl, 
@@ -1699,10 +1626,9 @@ _swigt__p_wxObject,
 _swigt__p_wxEvtHandler, 
 _swigt__p_char, 
 _swigt__p_wxColumnHeader, 
-_swigt__p_bool, 
-_swigt__p_long, 
 _swigt__p_wxColumnHeaderEvent, 
 _swigt__p_wxCommandEvent, 
+_swigt__p_wxPoint, 
 0
 };
 
@@ -1736,11 +1662,14 @@ SWIGEXPORT(void) SWIG_init(void) {
     }
     SWIG_InstallConstants(d,swig_const_table);
     
-    PyDict_SetItemString(d,"wxCOLUMNHEADER_JustLeft", SWIG_From_int((int)wxCOLUMNHEADER_JustLeft));
-    PyDict_SetItemString(d,"wxCOLUMNHEADER_JustCenter", SWIG_From_int((int)wxCOLUMNHEADER_JustCenter));
-    PyDict_SetItemString(d,"wxCOLUMNHEADER_JustRight", SWIG_From_int((int)wxCOLUMNHEADER_JustRight));
-    PyDict_SetItemString(d,"wxCOLUMNHEADER_HITTEST_NOWHERE", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_NOWHERE));
-    PyDict_SetItemString(d,"wxCOLUMNHEADER_HITTEST_ITEM_ZERO", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_ITEM_ZERO));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_JUST_Left", SWIG_From_int((int)wxCOLUMNHEADER_JUST_Left));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_JUST_Center", SWIG_From_int((int)wxCOLUMNHEADER_JUST_Center));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_JUST_Right", SWIG_From_int((int)wxCOLUMNHEADER_JUST_Right));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_FLAGATTR_Enabled", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_Enabled));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_FLAGATTR_Selected", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_Selected));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_FLAGATTR_SortDirection", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_SortDirection));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_HITTEST_NoPart", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_NoPart));
+    PyDict_SetItemString(d,"wxCOLUMNHEADER_HITTEST_ItemZero", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_ItemZero));
     PyDict_SetItemString(d, "wxEVT_COLUMNHEADER_DOUBLECLICKED", PyInt_FromLong(wxEVT_COLUMNHEADER_DOUBLECLICKED));
     PyDict_SetItemString(d, "wxEVT_COLUMNHEADER_SELCHANGED", PyInt_FromLong(wxEVT_COLUMNHEADER_SELCHANGED));
     

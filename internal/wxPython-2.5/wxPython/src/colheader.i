@@ -30,15 +30,22 @@
 
 enum wxColumnHeaderJustification
 {
-    wxCOLUMNHEADER_JustLeft,
-    wxCOLUMNHEADER_JustCenter,
-    wxCOLUMNHEADER_JustRight
+    wxCOLUMNHEADER_JUST_Left,
+    wxCOLUMNHEADER_JUST_Center,
+    wxCOLUMNHEADER_JUST_Right
+};
+
+enum wxColumnHeaderFlagAttr
+{
+    wxCOLUMNHEADER_FLAGATTR_Enabled,
+    wxCOLUMNHEADER_FLAGATTR_Selected,
+    wxCOLUMNHEADER_FLAGATTR_SortDirection
 };
 
 enum wxColumnHeaderHitTestResult
 {
-    wxCOLUMNHEADER_HITTEST_NOWHERE            = -1,    // outside of everything
-    wxCOLUMNHEADER_HITTEST_ITEM_ZERO        = 0        // any other (non-negative) value is a sub-item
+    wxCOLUMNHEADER_HITTEST_NoPart            = -1,    // outside of everything
+    wxCOLUMNHEADER_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
 };
 
 //---------------------------------------------------------------------------
@@ -57,8 +64,8 @@ public:
 
 
 %pythoncode {
-EVT_COLUMNHEADER_DOUBLECLICKED =  wx.PyEventBinder( wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
-EVT_COLUMNHEADER_SELCHANGED =     wx.PyEventBinder( wxEVT_COLUMNHEADER_SELCHANGED, 1)
+EVT_COLUMNHEADER_DOUBLECLICKED =  wx.PyEventBinder(wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
+EVT_COLUMNHEADER_SELCHANGED =     wx.PyEventBinder(wxEVT_COLUMNHEADER_SELCHANGED, 1)
 }
 
 
@@ -92,32 +99,24 @@ public:
         bool                bSortAscending );
     void DeleteItem(
         long                itemIndex );
-    bool GetLabelText(
-        long                itemIndex,
-        wxString            &textBuffer,
-        long                &textJust );
-    bool SetLabelText(
+    wxString GetLabelText(
+        long                itemIndex );
+    void SetLabelText(
         long                itemIndex,
         const wxString        &textBuffer,
         long                textJust );
-    bool GetUIExtent(
-        long            itemIndex,
-        long            &originX,
-        long            &extentX );
-    bool SetUIExtent(
-        long            itemIndex,
-        long            originX,
-        long            extentX );
-    bool GetFlags(
-        long            itemIndex,
-        bool            &bActive,
-        bool            &bEnabled,
-        bool            &bSortAscending );
-    bool SetFlags(
-        long            itemIndex,
-        bool            bActive,
-        bool            bEnabled,
-        bool            bSortAscending );
+    wxPoint GetUIExtent(
+        long                itemIndex );
+    void SetUIExtent(
+        long                itemIndex,
+        wxPoint            &extentPt );
+    bool GetFlagAttribute(
+        long                            itemIndex,
+        wxColumnHeaderFlagAttr    flagEnum );
+    bool SetFlagAttribute(
+        long                            itemIndex,
+        wxColumnHeaderFlagAttr        flagEnum,
+        bool                        bFlagValue );
 };
 
 //---------------------------------------------------------------------------

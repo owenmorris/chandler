@@ -3,11 +3,14 @@
 
 #ifndef BUILDING_RENAMERS
 
-%rename(COLUMNHEADER_JustLeft)              wxCOLUMNHEADER_JustLeft;
-%rename(COLUMNHEADER_JustCenter)            wxCOLUMNHEADER_JustCenter;
-%rename(COLUMNHEADER_JustRight)             wxCOLUMNHEADER_JustRight;
-%rename(COLUMNHEADER_HITTEST_NOWHERE)       wxCOLUMNHEADER_HITTEST_NOWHERE;
-%rename(COLUMNHEADER_HITTEST_ITEM_ZERO)     wxCOLUMNHEADER_HITTEST_ITEM_ZERO;
+%rename(COLUMNHEADER_JUST_Left)             wxCOLUMNHEADER_JUST_Left;
+%rename(COLUMNHEADER_JUST_Center)           wxCOLUMNHEADER_JUST_Center;
+%rename(COLUMNHEADER_JUST_Right)            wxCOLUMNHEADER_JUST_Right;
+%rename(COLUMNHEADER_FLAGATTR_Enabled)      wxCOLUMNHEADER_FLAGATTR_Enabled;
+%rename(COLUMNHEADER_FLAGATTR_Selected)     wxCOLUMNHEADER_FLAGATTR_Selected;
+%rename(COLUMNHEADER_FLAGATTR_SortDirection)  wxCOLUMNHEADER_FLAGATTR_SortDirection;
+%rename(COLUMNHEADER_HITTEST_NoPart)        wxCOLUMNHEADER_HITTEST_NoPart;
+%rename(COLUMNHEADER_HITTEST_ItemZero)      wxCOLUMNHEADER_HITTEST_ItemZero;
 %rename(ColumnHeaderEvent)                  wxColumnHeaderEvent;
 %rename(ColumnHeader)                       wxColumnHeader;
 

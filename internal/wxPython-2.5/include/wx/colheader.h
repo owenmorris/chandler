@@ -20,21 +20,26 @@
 #endif
 
 
-#define kItemIndexInvalid			(-1)
-#define kControlPartInvalid			(-1)
-
 typedef enum
 {
-	wxCOLUMNHEADER_JustLeft,
-	wxCOLUMNHEADER_JustCenter,
-	wxCOLUMNHEADER_JustRight
+	wxCOLUMNHEADER_JUST_Left,
+	wxCOLUMNHEADER_JUST_Center,
+	wxCOLUMNHEADER_JUST_Right
 }
 wxColumnHeaderJustification;
 
 typedef enum
 {
-	wxCOLUMNHEADER_HITTEST_NOWHERE			= -1,	// outside of everything
-	wxCOLUMNHEADER_HITTEST_ITEM_ZERO		= 0		// any other (non-negative) value is a sub-item
+	wxCOLUMNHEADER_FLAGATTR_Enabled,
+	wxCOLUMNHEADER_FLAGATTR_Selected,
+	wxCOLUMNHEADER_FLAGATTR_SortDirection
+}
+wxColumnHeaderFlagAttr;
+
+typedef enum
+{
+	wxCOLUMNHEADER_HITTEST_NoPart			= -1,	// outside of everything
+	wxCOLUMNHEADER_HITTEST_ItemZero		= 0		// any other (non-negative) value is a sub-item
 }
 wxColumnHeaderHitTestResult;
 

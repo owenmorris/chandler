@@ -92,6 +92,7 @@ _treeList = [
         'CheckListBox',
         'Choice',
         'Choicebook',
+        'ColumnHeader',
         'ComboBox',
         'Gauge',
         'Grid',
