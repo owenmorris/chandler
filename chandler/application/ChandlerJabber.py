@@ -54,6 +54,7 @@ class JabberClient:
         self.loggedIn = false
         self.timer = None
  
+        self.openPeers = {}
         self.ResetState()
  
         self.rosterParcel = self.FindParcel('Roster')
@@ -71,8 +72,7 @@ class JabberClient:
         self.presenceStateMap = {}
         self.nameMap = {}
         self.accessibleViews = {}
-        self.openPeers = {}
-
+ 
     # set up the reference to the roster parcel by iterating through the
     # parcel list
     def FindParcel(self, parcelName):
