@@ -1,13 +1,16 @@
 --- PyLucene-0.6.2/Makefile	Wed Oct 13 15:07:12 2004
-+++ PyLucene-0.6.2-patched/Makefile	Wed Oct 13 15:25:58 2004
-@@ -136,19 +136,21 @@
++++ PyLucene-0.6.2-patched/Makefile	Sat Oct 16 23:07:52 2004
+@@ -134,21 +134,23 @@
+ 
+ ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
  PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
- CCFLAGS=-g 
+-CCFLAGS=-g 
++CCFLAGS=-O -g 
  LDFLAGS=-g
 +PYDBG=-DPy_TRACE_REFS
  else
