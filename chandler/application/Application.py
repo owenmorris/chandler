@@ -295,10 +295,11 @@ class wxApplication (wx.App):
             """
             sizer = wx.BoxSizer (wx.HORIZONTAL)
             self.mainFrame.SetSizer (sizer)
+            from osaf.framework.blocks.Block import wxRectangularChild
             sizer.Add (mainView.widget,
                        mainView.stretchFactor, 
-                       mainView.Calculate_wxFlag(), 
-                       mainView.Calculate_wxBorder())
+                       wxRectangularChild.CalculateWXFlag(mainView), 
+                       wxRectangularChild.CalculateWXBorder(mainView))
 
             self.mainFrame.Show()
 

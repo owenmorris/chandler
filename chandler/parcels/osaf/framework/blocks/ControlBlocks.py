@@ -213,7 +213,7 @@ class ListDelegate:
 class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnWXSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OnItemDrag)
 
@@ -229,7 +229,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
                 self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
         event.Skip()
 
-    def On_wxSelectionChanged(self, event):
+    def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
@@ -334,7 +334,7 @@ class wxSummary(wx.grid.Grid):
         self.SetRowLabelSize(0)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.On_wxSelectionChanged)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -355,7 +355,7 @@ class wxSummary(wx.grid.Grid):
             columnIndex = event.GetRowOrCol()
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
-    def On_wxSelectionChanged(self, event):
+    def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             item = self.blockItem.contents [event.GetRow()]
             if self.blockItem.selection != item:
@@ -571,7 +571,7 @@ class wxTreeAndList(DraggableWidget):
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
         self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapsing, id=self.GetId())
         self.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnDrag, id=self.GetId())
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.On_wxSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnWXSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnItemDrag)
 
@@ -634,7 +634,7 @@ class wxTreeAndList(DraggableWidget):
             except AttributeError:
                 pass
 
-    def On_wxSelectionChanged(self, event):
+    def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
@@ -728,6 +728,19 @@ class wxTreeAndList(DraggableWidget):
         self.SelectItem (id)
         self.ScrollTo (id)
 
+    def CalculateWXStyle(self, block):
+        style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
+        if block.hideRoot:
+            style |= wx.TR_HIDE_ROOT
+        if block.noLines:
+            style |= wx.TR_NO_LINES
+        if block.useButtons:
+            style |= wx.TR_HAS_BUTTONS
+        else:
+            style |= wx.TR_NO_BUTTONS
+        return style
+    CalculateWXStyle = classmethod(CalculateWXStyle)
+        
  
 class wxTree(wxTreeAndList, wx.TreeCtrl):
     def __init__(self, *arguments, **keywords):
@@ -750,26 +763,16 @@ class Tree(RectangularChild):
         try:
             self.columnHeadings
         except AttributeError:
-            tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), 
+                           style=wxTreeAndList.CalculateWXStyle(self))
         else:
-            tree = wxTreeList (self.parentBlock.widget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTreeList (self.parentBlock.widget, Block.getWidgetID(self), 
+                               style=wxTreeAndList.CalculateWXStyle(self))
         return tree
 
     def onSelectionChangedEvent (self, notification):
         self.widget.GoToItem (notification.GetData()['item'])
                             
-    def Calculate_wxStyle (self):
-        style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
-        if self.hideRoot:
-            style |= wx.TR_HIDE_ROOT
-        if self.noLines:
-            style |= wx.TR_NO_LINES
-        if self.useButtons:
-            style |= wx.TR_HAS_BUTTONS
-        else:
-            style |= wx.TR_NO_BUTTONS
-        return style
-
 
 class wxItemDetail(wx.html.HtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):

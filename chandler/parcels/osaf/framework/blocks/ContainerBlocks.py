@@ -24,8 +24,8 @@ class wxBoxContainer (wxRectangularChild):
                 if childBlock.isShown and isinstance (childBlock, RectangularChild):
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
-                               childBlock.Calculate_wxFlag(), 
-                               childBlock.Calculate_wxBorder())
+                               wxRectangularChild.CalculateWXFlag(childBlock), 
+                               wxRectangularChild.CalculateWXBorder(childBlock))
         self.Layout()
 
 
@@ -217,18 +217,9 @@ class wxSplitterWindow(wx.SplitterWindow):
             parent.Layout()
         self.Thaw()
 
- 
-class SplitterWindow(RectangularChild):
-    def instantiateWidget (self):
-        return wxSplitterWindow (self.parentBlock.widget,
-                                 Block.getWidgetID(self), 
-                                 wx.DefaultPosition,
-                                 (self.size.width, self.size.height),
-                                 style=self.Calculate_wxStyle())
-                
-    def Calculate_wxStyle (self):
+    def CalculateWXStyle(self, block):
         style = wx.SP_LIVE_UPDATE
-        parent = self.parentBlock
+        parent = block.parentBlock
         while isinstance (parent, EmbeddedContainer):
             parent = parent.parentBlock
         if isinstance (parent, SplitterWindow):
@@ -236,23 +227,45 @@ class SplitterWindow(RectangularChild):
         else:
             style |= wx.SP_3D
         return style
-
+    CalculateWXStyle = classmethod(CalculateWXStyle)
+ 
+class SplitterWindow(RectangularChild):
+    def instantiateWidget (self):
+        return wxSplitterWindow (self.parentBlock.widget,
+                                 Block.getWidgetID(self), 
+                                 wx.DefaultPosition,
+                                 (self.size.width, self.size.height),
+                                 style=wxSplitterWindow.CalculateWXStyle(self))
+                
     
 class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
         self.selectedTab = 0
         
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging,
-                  id=self.GetId())
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnSelectionChanged,
                   id=self.GetId())
 
-    def OnSelectionChanging (self, event):
-        self.HandleSelectionChange(event, False)
+    def CalculateWXStyle(self, block):
+        if block.tabPosEnum == "Top":
+            style = 0
+        elif block.tabPosEnum == "Bottom":
+            style = wx.NB_BOTTOM
+        elif block.tabPosEnum == "Left":
+            style = wx.NB_LEFT
+        elif block.tabPosEnum == "Right":
+            style = wx.NB_RIGHT
+        elif __debug__:
+            assert (False)
+        return style
+    CalculateWXStyle = classmethod(CalculateWXStyle)
 
     def OnSelectionChanged (self, event):
-        self.HandleSelectionChange(event, True)
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            self.selectedTab = event.GetSelection()
+            page = self.GetPage(self.selectedTab)
+            Globals.mainView.onSetActiveView(page.blockItem)
+        event.Skip()
         
     def OnRequestDrop(self, x, y):
         tab = self.HitTest((x, y))[0]
@@ -266,19 +279,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         newItem = node.item
         if isinstance(newItem, Block):
             self.blockItem.ChangeCurrentTab(node)
-        
-    def HandleSelectionChange(self, event, registerEvents):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            pageNum = event.GetSelection()
-            self.selectedTab = pageNum
-            page = self.GetPage(pageNum)
-            if registerEvents:
-                self.blockItem.RegisterEvents(page.blockItem)
-                Globals.mainView.onSetActiveView(page.blockItem)
-            else:
-                self.blockItem.UnregisterEvents(page.blockItem)
-        event.Skip()
-          
+                  
     def wxSynchronizeWidget(self):
         from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
@@ -293,13 +294,6 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         index = 0
         for child in self.blockItem.childrenBlocks:
             self.AddPage (child.widget, self.blockItem.tabNames[index])
-            if index == self.selectedTab:
-                self.blockItem.RegisterEvents(child)
-            else:
-                try:
-                    self.blockItem.UnregisterEvents(child)
-                except NotSubscribed:
-                    pass
             index += 1
         self.SetSelection(self.selectedTab)
         self.Thaw()
@@ -311,40 +305,8 @@ class TabbedContainer(RectangularChild):
                                   Block.getWidgetID(self),
                                   wx.DefaultPosition,
                                   (self.size.width, self.size.height),
-                                  style=self.Calculate_wxStyle())
+                                  style=wxTabbedContainer.CalculateWXStyle(self))
 
-    def Calculate_wxStyle(self):
-        if self.tabPosEnum == "Top":
-            style = 0
-        elif self.tabPosEnum == "Bottom":
-            style = wx.NB_BOTTOM
-        elif self.tabPosEnum == "Left":
-            style = wx.NB_LEFT
-        elif self.tabPosEnum == "Right":
-            style = wx.NB_RIGHT
-        elif __debug__:
-            assert (False)
-        return style
-
-    def RegisterEvents(self, block):
-        try:
-            events = block.blockEvents
-        except AttributeError:
-            return
-        #self.currentId = UUID()
-        #Globals.notificationManager.Subscribe(events, self.currentId, 
-                                              #Globals.mainView.dispatchEvent)
- 
-    def UnregisterEvents(self, oldBlock):
-        try:
-            events = oldBlock.blockEvents
-        except AttributeError:
-            return
-        #try:
-            #id = self.currentId
-        #except AttributeError:
-            #return # If we haven't registered yet
-        #Globals.notificationManager.Unsubscribe(id)    
     
     def onChoiceEvent (self, notification):
         choice = notification.event.choice
@@ -361,6 +323,14 @@ class wxToolbar(wx.ToolBar):
     def wxSynchronizeWidget(self):
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.blockItem.synchronizeColor()
+        
+    def CalculateWXStyle(self, block):
+        style = wx.TB_HORIZONTAL
+        if self.CalculateWXBorder() != 0:
+            style |= wx.SIMPLE_BORDER
+        return style
+    CalculateWXStyle = classmethod(CalculateWXStyle)
+        
  
 class Toolbar(RectangularChild):
     def instantiateWidget (self):
@@ -368,7 +338,7 @@ class Toolbar(RectangularChild):
                              Block.getWidgetID(self),
                              wx.DefaultPosition,
                              (self.size.width, self.size.height),
-                             style=self.calculate_wxStyle())
+                             style=wxToolbar.CalculateWXStyle(self))
 
     def toolPressed(self, event):
         pass
@@ -376,12 +346,6 @@ class Toolbar(RectangularChild):
     def toolEnterPressed(self, event):
         pass
                 
-    def calculate_wxStyle (self):
-        style = wx.TB_HORIZONTAL
-        if self.Calculate_wxBorder() != 0:
-            style |= wx.SIMPLE_BORDER
-        return style
-    
     def synchronizeColor (self):
         # if there's a color style defined, syncronize the color
         if self.hasAttributeValue("colorStyle"):

@@ -186,37 +186,10 @@ class wxRectangularChild (wx.Panel):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
 
-        
-class RectangularChild(ContainerChild):
-    def Calculate_wxFlag (self):
-        if self.alignmentEnum == 'grow':
-            flag = wx.GROW
-        elif self.alignmentEnum == 'growConstrainAspectRatio':
-            flag = wx.SHAPED
-        elif self.alignmentEnum == 'alignCenter':
-            flag = wx.ALIGN_CENTER
-        elif self.alignmentEnum == 'alignTopCenter':
-            flag = wx.ALIGN_TOP
-        elif self.alignmentEnum == 'alignMiddleLeft':
-            flag = wx.ALIGN_LEFT
-        elif self.alignmentEnum == 'alignBottomCenter':
-            flag = wx.ALIGN_BOTTOM
-        elif self.alignmentEnum == 'alignMiddleRight':
-            flag = wx.ALIGN_RIGHT
-        elif self.alignmentEnum == 'alignTopLeft':
-            flag = wx.ALIGN_TOP | wx.ALIGN_LEFT
-        elif self.alignmentEnum == 'alignTopRight':
-            flag = wx.ALIGN_TOP | wx.ALIGN_RIGHT
-        elif self.alignmentEnum == 'alignBottomLeft':
-            flag = wx.ALIGN_BOTTOM | wx.ALIGN_LEFT
-        elif self.alignmentEnum == 'alignBottomRight':
-            flag = wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT
-        return flag
-
-    def Calculate_wxBorder (self):
+    def CalculateWXBorder(self, block):
         border = 0
         spacerRequired = False
-        for edge in (self.border.top, self.border.left, self.border.bottom, self.border.right):
+        for edge in (block.border.top, block.border.left, block.border.bottom, block.border.right):
             if edge != 0:
                 if border == 0:
                     border = edge
@@ -232,8 +205,38 @@ class RectangularChild(ContainerChild):
         assert not spacerRequired
         
         return int (border)
+    CalculateWXBorder = classmethod(CalculateWXBorder)
 
+    def CalculateWXFlag(self, block):
+        if block.alignmentEnum == 'grow':
+            flag = wx.GROW
+        elif block.alignmentEnum == 'growConstrainAspectRatio':
+            flag = wx.SHAPED
+        elif block.alignmentEnum == 'alignCenter':
+            flag = wx.ALIGN_CENTER
+        elif block.alignmentEnum == 'alignTopCenter':
+            flag = wx.ALIGN_TOP
+        elif block.alignmentEnum == 'alignMiddleLeft':
+            flag = wx.ALIGN_LEFT
+        elif block.alignmentEnum == 'alignBottomCenter':
+            flag = wx.ALIGN_BOTTOM
+        elif block.alignmentEnum == 'alignMiddleRight':
+            flag = wx.ALIGN_RIGHT
+        elif block.alignmentEnum == 'alignTopLeft':
+            flag = wx.ALIGN_TOP | wx.ALIGN_LEFT
+        elif block.alignmentEnum == 'alignTopRight':
+            flag = wx.ALIGN_TOP | wx.ALIGN_RIGHT
+        elif block.alignmentEnum == 'alignBottomLeft':
+            flag = wx.ALIGN_BOTTOM | wx.ALIGN_LEFT
+        elif block.alignmentEnum == 'alignBottomRight':
+            flag = wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT
+        return flag
+    CalculateWXFlag = classmethod(CalculateWXFlag)
+    
+class RectangularChild(ContainerChild):
+    pass
 
+    
 class BlockEvent(Event):
     pass
 
