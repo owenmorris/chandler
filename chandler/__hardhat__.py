@@ -69,21 +69,10 @@ def build(buildenv):
 
     if buildenv['os'] == 'win':
         os.chdir("win")
-
-        if buildenv['compilerVersion'] == 7:
-            dllPrefix = "msvcr70"
-        elif buildenv['compilerVersion'] == 7.1:
-            dllPrefix = "msvcr71"
-        else:
-            print 'Unknown version "' + \
-                  buildend['compilerVersion'] + \
-                  '" of Visual Studio. Exiting.'
-            sys.exit(1)
-
         if buildenv['version'] == 'release':
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCRXX.DLL to release/bin")
-            hardhatlib.copyFile(dllPrefix + ".dll", buildenv['root'] + \
+             info['name'], "Copying MSVCR70.DLL to release/bin")
+            hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
              os.sep + "release" + os.sep + "bin")
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying RunRelease.bat to release")
@@ -91,8 +80,8 @@ def build(buildenv):
              os.sep + "release")
         if buildenv['version'] == 'debug':
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCRXXD.DLL to debug/bin")
-            hardhatlib.copyFile(dllPrefix + "d.dll", buildenv['root'] + \
+             info['name'], "Copying MSVCR70D.DLL to debug/bin")
+            hardhatlib.copyFile("msvcr70d.dll", buildenv['root'] + \
              os.sep + "debug" + os.sep + "bin")
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying MSVCRTD.DLL to debug/bin")
