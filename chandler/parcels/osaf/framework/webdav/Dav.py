@@ -164,8 +164,8 @@ class DAVConnection(davlib.DAV):
 
 class SSLDAV(httpslib.HTTPSConnection, davlib.DAV, object):
     """
-    SSL-enabled DAV. See M2Crypto.httpslib.HTTPSConnection for SSL-specific
-    information.
+    SSL-enabled "davlib.DAV". See M2Crypto.httpslib.HTTPSConnection for
+    SSL-specific information.
     """
     def __init__(self, *args, **kwds):
         super(SSLDAV, self).__init__(*args, **kwds)
@@ -175,6 +175,5 @@ class SSLDAVConnection(SSLDAV):
         host = url.host
         port = url.port or 443
 
-        davlib.SSLDAV.__init__(self, host, port,
-                               ssl_context=SSL.Context('tlsv1'))
+        super(SSLDAVConnection, self).__init__(host, port, ssl_context=SSL.Context('tlsv1'))
         self.setauth(acct.username, acct.password)
