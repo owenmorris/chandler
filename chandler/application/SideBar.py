@@ -70,6 +70,7 @@ class wxSideBar(wxTreeCtrl):
            There isn't a EVT_DESTROY function, so we'll implement it do
         what the function would have done.
         """
+        EVT_WINDOW_DESTROY (self, self.OnDestroy)
         self.Connect(-1, -1, wxEVT_DESTROY, self.OnDestroy)
 
     def OnDestroy(self, event):

@@ -28,7 +28,14 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 0
+    VERSION = 1
+    """
+       PARCEL_IMPORT defines the import directory containing parcels
+    relative to chandlerDirectory where os separators are replaced
+    with "." just as in the syntax of the import statement.
+    """
+    PARCEL_IMPORT = 'parcels'
+
     def __init__(self):
         """
           Create instances of other objects that belong to the application.
@@ -65,7 +72,7 @@ class Application(Persistent):
         """
         Persistent.__setstate__(self, dict)
         if self.version != Application.VERSION:
-            self.clear  ()
+            self.__dict__.clear  ()
             self.__init__ ()
 
             
@@ -84,8 +91,8 @@ class wxApplication (wxApp):
     self.applicationResources      the main application-wide XRC resources
     self.association               a dictionary mapping persistent object ids to non-persistent
                                    wxPython counterparts
-    self.parcelDirectory           global directory containing parcels
-    self.parcels                   global list of parcels
+    self.chandlerDirectory         directory containing chandler executable
+    self.parcels                   global list of parcel classes
     self.model                     the persistent counterpart
     self.storage                   ZODB low level database
     self.db                        ZODB high level database (object cache)
@@ -100,13 +107,12 @@ class wxApplication (wxApp):
          store, lookup of the application's persitent model counterpart, or
          create it if it doesn't exist.
         """
-        self.applicationResources=None  #the main application-wide XRC resources
-        self.association={}             #a dictionary mapping persistent object ids to non-persistent
-                                        #wxPython counterparts
-        self.parcelDirectory=None       #global directory containing parcels
-        self.parcels=[]                 #global list of parcels
-        self.storage=None               #global storage object (the local database)
-        self.model=None                 #the persistent counterpart
+        self.applicationResources=None
+        self.association={}
+        self.chandlerDirectory=None
+        self.parcels=[]
+        self.storage=None
+        self.model=None
 
         global app
         assert app==None                #More than one application object doesn't make any sense
@@ -114,8 +120,8 @@ class wxApplication (wxApp):
 
         wxInitAllImageHandlers()
         
-        chandlerDirectory = os.path.abspath (sys.argv[0])
-        resourceFile = os.path.dirname (chandlerDirectory) +\
+        self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        resourceFile = self.chandlerDirectory +\
                        os.sep + "application" +\
                        os.sep + "resources" +\
                        os.sep + "application.xrc"
@@ -141,13 +147,6 @@ class wxApplication (wxApp):
         wxPython object associated with each persistent object.
         """
         self.association={id(self.model) : self}
-        """
-           Append the path contain parcels to the list of paths used to import
-         modules and packages. chandlerDirectory is the path to the executable, no
-         matter what the current working directory is when we started.
-         """
-        self.parcelDirectory = os.path.dirname (chandlerDirectory) + os.sep + "parcels"
-        sys.path.append (self.parcelDirectory)
         
         self.LoadParcels()
         self.model.SynchronizeView()
@@ -159,19 +158,48 @@ class wxApplication (wxApp):
           Exit the application
         """
         self.ExitMainLoop ()
-        
+
     def LoadParcels(self):       
         """
            Load the parcels and call the class method to install them. Packages
         are defined by directories that contain __init__.py. __init__.py must
-        define assign the parcel's class name to parcelClassName.
+        define assign the parcel's class name to parcelClass. For example
+        "parcelClass = CalendarView.CalendarView", where the first string before the
+        dot is the file, (CalendarView.py) and the second string is the class
+        e.g. CalendarView. See calendar/__init__.py for an example
         """
         self.parcels=[]
-        for directory in os.listdir(self.parcelDirectory):
-            pathToPackage = self.parcelDirectory + os.sep + directory
+        """
+           We've got to have a parcel directory..
+         """
+        importDirectory = Application.PARCEL_IMPORT
+        importDirectory.replace ('.', os.sep)
+        
+        parcelDirectory = self.chandlerDirectory + os.sep + importDirectory
+        assert (os.path.exists (parcelDirectory))
+
+        for directory in os.listdir(parcelDirectory):
+            pathToPackage = parcelDirectory + os.sep + directory
             if os.path.isdir (pathToPackage) and \
                os.path.exists (pathToPackage + os.sep + "__init__.py"):
+                directory = Application.PARCEL_IMPORT + '.' + directory
+                """
+                  Import the parcel, which should define parcelClass
+                """
                 module = __import__(directory, globals, locals, ['*'])
-                self.parcels.append (module.parcelClass)
-                module.parcelClass.Install ()
+                assert (module.__dict__.has_key ('parcelClass'))
+                """
+                  Import the parcel's class and append it to our global list
+                of parcels and install it.
+                """
+                parcelClassStrings = module.parcelClass.split ('.')
+                directory += '.' + parcelClassStrings[0]
+                module = __import__(directory, globals, locals, ['*'])
+                """
+                  Check to mark sure the class in parcelClass exists.
+                """
+                assert (module.__dict__.has_key (parcelClassStrings[1]))
+                theClass = module.__dict__[parcelClassStrings[1]]
+                self.parcels.append (theClass)
+                theClass.Install ()
 
