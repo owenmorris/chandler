@@ -207,7 +207,11 @@ class ItemCollection(ContentModel.ContentItem):
         return item in self.results
 
     def __getitem__ (self, index):
-        return self.results [index]
+        iterator = iter(self.results)
+        item = iterator.next()
+        for count in xrange (index):
+            item = iterator.next()
+        return item
 
     def __delitem__(self, index):
         self.remove (self.results [index])
