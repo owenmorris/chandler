@@ -524,7 +524,7 @@ class MergeList(LinkedMap):
 
     def applyChange(self, children, changes, child, oldAlias):
 
-        link = children._get(child, False)
+        link = children._get(child)
         prev = prevKey = link._previousKey
         exists = child in self
 
