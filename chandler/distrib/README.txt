@@ -14,9 +14,6 @@ information in Chandler yet.
 
 REPEAT: You should not store important information in Chandler yet.
 
-Please read the license agreement before installing Chandler.  See the
-file "LICENSE" in this directory.
-
 For information on how to run Chandler, please see the README appropriate for 
 your operating system:
 	Windows     README.win.txt
