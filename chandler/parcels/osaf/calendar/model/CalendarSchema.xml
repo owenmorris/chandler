@@ -58,7 +58,7 @@
     <ref name="name" type="path">//Schema/CalendarSchema/name</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">//Schema/Model/Item</ref>
   </ref>
 
@@ -79,7 +79,7 @@
     <ref name="location" type="path">//Schema/CalendarSchema/location</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">//Schema/Model/Item</ref>
   </ref>
 

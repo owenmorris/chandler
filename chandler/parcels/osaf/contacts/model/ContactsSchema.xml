@@ -68,7 +68,7 @@
     <ref name="nameEntity" type="path">//Schema/ContactsSchema/nameEntity</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 
@@ -128,7 +128,7 @@
     <ref name="methodEntity" type="path">//Schema/ContactsSchema/methodEntity</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 
@@ -154,7 +154,7 @@
     <ref name="phonenumber" type="path">//Schema/ContactsSchema/phonenumber</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">//Schema/ContactsSchema/ContactMethod</ref>
   </ref>
 
@@ -180,7 +180,7 @@
     <ref name="emailaddress" type="path">//Schema/ContactsSchema/emailaddress</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">//Schema/ContactsSchema/ContactMethod</ref>
   </ref>
 
@@ -223,7 +223,7 @@
     <ref name="formatEntity" type="path">//Schema/ContactsSchema/formatEntity</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 
@@ -352,7 +352,7 @@
     
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 
