@@ -56,6 +56,8 @@ class Item(object):
         self._kind = kind
         self._root = None
 
+        if parent is None:
+            raise ValueError, 'parent cannot be None'
         self._setParent(parent)
 
         # at this point, we may go reentrant
@@ -521,11 +523,12 @@ class Item(object):
                     value.setReadOnly(True)
                 return value
 
+            raise AttributeError, "%s (Kind: %s) has no value for '%s'" %(self.itsPath, self._kind.itsPath, name)
+
         elif 'default' in kwds:
             return kwds['default']
 
-        raise AttributeError, "%s (Kind: %s) has no value for '%s'" % \
-         (self.itsPath, self.itsKind.itsPath, name)
+        raise AttributeError, "%s has no value for '%s'" %(self.itsPath, name)
 
     def removeAttributeValue(self, name, _attrDict=None):
         """

@@ -9,5 +9,6 @@
     <value>byCloud</value>
     <value>byRef</value>
     <value>none</value>
+    <value>byMethod</value>
   </attribute>
 </item>
