@@ -1,0 +1,6 @@
+# ChangeLog for application 
+
+2003-04-10 Morgen Sagen <morgen@osafoundation.org>
+
+    * You can now set WXREDIRECT=0 if you don't want WX to redirect stdout
+      to a popup windows
