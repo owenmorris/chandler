@@ -80,7 +80,7 @@ class MainView(View):
                 line = "<p>Build identifier: '%s'</p>" % version.build
             html += line
         splash = SplashScreen(None, _("About Chandler"), 
-                              None, html, False, False)
+                              None, html, True, False)
         splash.Show(True)
 
     def onCopyEventUpdateUI (self, event):
