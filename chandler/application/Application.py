@@ -107,7 +107,7 @@ class MainFrame(wx.Frame):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             Globals.mainView.size.width = self.GetSize().x
             Globals.mainView.size.height = self.GetSize().y
-            Globals.mainView.setDirty()   # Temporary repository hack -- DJA
+            Globals.mainView.setDirty(Globals.mainView.VDIRTY, 'size')   # Temporary repository hack -- DJA
         event.Skip()
 
 

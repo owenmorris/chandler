@@ -317,9 +317,8 @@ class Endpoint(Item):
             method = self.getAttributeValue('method', default=None,
                                             _attrDict=self._values)
             if method is not None:
-                results.extend(getattr(type(item), method)(item, items,
-                                                           references,
-                                                           cloudAlias))
+                results.extend(getattr(item, method)(items, references,
+                                                     cloudAlias))
 
         else:
             raise NotImplementedError, policy

@@ -168,14 +168,14 @@ class SortedIndex(DelegatingIndex):
 
     def afterKey(self, key):
 
-        pos = lo = 0;
-        hi = len(self._index) - 1;
+        pos = lo = 0
+        hi = len(self._index) - 1
         afterKey = None
         
         while lo <= hi:
             pos = (lo + hi) >> 1
             afterKey = self.getKey(pos)
-            diff = self.compare(key, afterKey);
+            diff = self.compare(key, afterKey)
 
             if diff == 0:
                 return afterKey
@@ -184,7 +184,7 @@ class SortedIndex(DelegatingIndex):
                 hi = pos - 1
             else:
                 pos += 1
-                lo = pos;
+                lo = pos
 
         if pos == 0:
             return None
@@ -194,10 +194,14 @@ class SortedIndex(DelegatingIndex):
     def insertKey(self, key, afterKey):
 
         self._index.insertKey(key, self.afterKey(key))
+
+    def removeKey(self, key):
+
+        self._index.removeKey(key)
             
     def moveKey(self, key, afterKey):
 
-        self.removeKey(key)
+        self._index.removeKey(key)
         self._index.insertKey(key, self.afterKey(key))
 
 
@@ -227,6 +231,16 @@ class AttributeIndex(SortedIndex):
 
         return 0
 
+    def insertKey(self, key, afterKey):
+
+        self._valueMap[key].addMonitor(self._attribute)
+        super(AttributeIndex, self).insertKey(key, afterKey)
+
+    def removeKey(self, key):
+
+        self._valueMap[key].removeMonitor(self._attribute)
+        super(AttributeIndex, self).removeKey(key)
+            
     def _xmlValues(self, generator, version, attrs, mode):
 
         attrs['attribute'] = self._attribute

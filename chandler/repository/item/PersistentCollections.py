@@ -60,20 +60,25 @@ class PersistentCollection(object):
         if self._readOnly:
             raise ReadOnlyError, 'collection is read-only'
 
-        if self._item:
-            self._item.setDirty()
+        item = self._item
+        if item is not None:
+            item.setDirty(item.VDIRTY, self._attribute, item._values)
 
-    def _prepareValue(self, value):
+    def _prepareValue(self, value, setDirty=True):
 
         if isinstance(value, PersistentCollection):
             value = value._copy(self._item, self._attribute, self._companion,
                                 'copy', lambda x, other, z: other)
         elif isinstance(value, list):
-            value = PersistentList(self._item, self._attribute,
-                                   self._companion, value)
+            persistentValue = PersistentList(self._item, self._attribute,
+                                             self._companion)
+            persistentValue.extend(value, setDirty)
+            value = persistentValue
         elif isinstance(value, dict):
-            value = PersistentDict(self._item, self._attribute,
-                                   self._companion, value)
+            persistentValue = PersistentDict(self._item, self._attribute,
+                                             self._companion)
+            persistentValue.update(value, setDirty)
+            value = persistentValue
         elif isinstance(value, repository.item.Item.Item):
             value = SingleRef(value._uuid)
         elif isinstance(value, repository.item.Values.ItemValue):
@@ -123,13 +128,10 @@ class PersistentCollection(object):
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion, initialValues=None):
+    def __init__(self, item, attribute, companion):
 
         list.__init__(self)
         PersistentCollection.__init__(self, item, attribute, companion)
-
-        if initialValues is not None:
-            self.extend(initialValues)
 
     def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
@@ -141,12 +143,12 @@ class PersistentList(list, PersistentCollection):
             if isinstance(value, repository.item.Item.Item):
                 value = copyFn(item, value, policy)
                 if value is not None:
-                    copy.append(value)
+                    copy.append(value, False)
             elif isinstance(value, PersistentCollection):
                 copy.append(value._copy(item, attribute, companion,
-                                        copyPolicy, copyFn))
+                                        copyPolicy, copyFn), False)
             else:
-                copy.append(value)
+                copy.append(value, False)
 
         return copy
 
@@ -154,86 +156,87 @@ class PersistentList(list, PersistentCollection):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        self._setDirty()
         super(PersistentList, self).__setitem__(index, value)
+        self._setDirty()
 
     def __delitem__(self, index):
 
-        self._setDirty()
         super(PersistentList, self).__delitem__(index)        
+        self._setDirty()
 
     def __setslice__(self, start, end, value):
 
         for v in value:
             self._storeValue(v)
         value = [self._prepareValue(v) for v in value]
-        self._setDirty()
         super(PersistentList, self).__setslice__(start, end, value)
+        self._setDirty()
 
     def __delslice__(self, start, end):
 
-        self._setDirty()
         super(PersistentList, self).__delslice__(start, end)
+        self._setDirty()
 
     def __iadd__(self, value):
 
         for v in value:
             self._storeValue(v)
         value = [self._prepareValue(v) for v in value]
-        self._setDirty()
         super(PersistentList, self).__iadd__(value)
+        self._setDirty()
 
     def __imul__(self, value):
 
-        self._setDirty()
         super(PersistentList, self).__imul__(value)
+        self._setDirty()
 
-    def append(self, value):
+    def append(self, value, setDirty=True):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        self._setDirty()
         super(PersistentList, self).append(value)
+
+        if setDirty:
+            self._setDirty()
 
     def insert(self, index, value):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        self._setDirty()
         super(PersistentList, self).insert(index, value)
-
-    def pop(self, index = -1):
-
         self._setDirty()
+
+    def pop(self, index=-1):
+
         value = super(PersistentList, self).pop(index)
         value = self._restoreValue(value)
+        self._setDirty()
 
         return value
 
     def remove(self, value):
 
         value = self._prepareValue(value)
-        self._setDirty()
         super(PersistentList, self).remove(value)
+        self._setDirty()
 
     def reverse(self):
 
-        self._setDirty()
         super(PersistentList, self).reverse()
+        self._setDirty()
 
     def sort(self, *args):
 
-        self._setDirty()
         super(PersistentList, self).sort(*args)
+        self._setDirty()
 
-    def extend(self, value):
+    def extend(self, value, setDirty=True):
 
-        values = []
         for v in value:
             self._storeValue(v)
-            values.append(self._prepareValue(v))
-        self._setDirty()
-        super(PersistentList, self).extend(values)
+            self.append(self._prepareValue(v, False), False)
+        if setDirty:
+            self._setDirty()
 
     def __getitem__(self, key):
 
@@ -266,13 +269,10 @@ class PersistentList(list, PersistentCollection):
 class PersistentDict(dict, PersistentCollection):
     'A persistence aware dict, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion, initialValues=None):
+    def __init__(self, item, attribute, companion):
 
         dict.__init__(self)
         PersistentCollection.__init__(self, item, attribute, companion)
-
-        if initialValues is not None:
-            self.update(initialValues)
 
     def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
@@ -284,40 +284,41 @@ class PersistentDict(dict, PersistentCollection):
             if isinstance(value, repository.item.Item.Item):
                 value = copyFn(item, value, policy)
                 if value is not None:
-                    copy[key] = value
+                    copy.__setitem__(key, value, False)
             elif isinstance(value, PersistentCollection):
-                copy[key] = value._copy(item, attribute, companion,
-                                        copyPolicy, copyFn)
+                copy.__setitem__(key, value._copy(item, attribute, companion,
+                                                  copyPolicy, copyFn), False)
             else:
-                copy[key] = value
+                copy.__setitem__(key, value, False)
 
         return copy
 
     def __delitem__(self, key):
 
-        self._setDirty()
         super(PersistentDict, self).__delitem__(key)
+        self._setDirty()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, setDirty=True):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        self._setDirty()
         super(PersistentDict, self).__setitem__(key, value)
+
+        if setDirty:
+            self._setDirty()
 
     def clear(self):
 
-        self._setDirty()
         super(PersistentDict, self).clear()
+        self._setDirty()
 
-    def update(self, value):
+    def update(self, value, setDirty=True):
 
-        values = {}
         for k, v in value.iteritems():
             self._storeValue(v)
-            values[k] = self._prepareValue(v)
-        self._setDirty()
-        super(PersistentDict, self).update(values)
+            self.__setitem__(k, self._prepareValue(v, False), False)
+        if setDirty:
+            self._setDirty()
 
     def setdefault(self, key, value=None):
 
@@ -331,11 +332,10 @@ class PersistentDict(dict, PersistentCollection):
 
     def popitem(self):
 
-        self._setDirty()
-
         value = super(PersistentDict, self).popitem()
         value = (value[0], self._restoreValue(value[1]))
-        
+        self._setDirty()
+
         return value
 
     def __getitem__(self, key):

@@ -25,4 +25,19 @@
     </attribute>
   </item>
 
+  <item withSchema="True">
+    <name>monitors</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">items</attribute>
+  </item>
+
 </items>

@@ -776,15 +776,17 @@ class Dictionary(Collection):
         generator.startElement('values', {})
         for key, val in value._iteritems():
             ItemHandler.xmlValue(repository,
-                                 key, val, 'value', None, 'single', None, 0,
+                                 key, val, 'value', None, 'single', None, {},
                                  generator, withSchema)
         generator.endElement('values')
 
     def makeValue(self, data):
-        """Make a dict of string key/value pairs from comma separated pairs.
+        """
+        Make a dict of string key/value pairs from comma separated pairs.
 
         The implementation is very cheap, using split, so spaces are part of
-        the dict's elements and the strings cannot contain spaces or colons."""
+        the dict's elements and the strings cannot contain spaces or colons.
+        """
 
         result = {}
         if data:
@@ -820,15 +822,17 @@ class List(Collection):
         generator.startElement('values', {})
         for val in value._itervalues():
             ItemHandler.xmlValue(repository,
-                                 None, val, 'value', None, 'single', None, 0,
+                                 None, val, 'value', None, 'single', None, {},
                                  generator, withSchema)
         generator.endElement('values')
 
     def makeValue(self, data):
-        """Make a list of strings from comma separated strings.
+        """
+        Make a list of strings from comma separated strings.
 
         The implementation is very cheap, using split, so spaces are part of
-        the list's elements and the strings cannot contain spaces."""
+        the list's elements and the strings cannot contain spaces.
+        """
 
         if data:
             return data.split(',')

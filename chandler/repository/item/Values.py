@@ -53,18 +53,12 @@ class Values(dict):
         if self._getFlags(key) & Values.READONLY:
             raise AttributeError, 'Value for %s on %s is read-only' %(key, self._item.itsPath)
 
-        if self._item is not None:
-            self._item.setDirty(attribute=key)
-
         return super(Values, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
         if self._getFlags(key) & Values.READONLY:
             raise AttributeError, 'Value for %s on %s is read-only' %(key, self._item.itsPath)
-
-        if self._item is not None:
-            self._item.setDirty(attribute=key)
 
         return super(Values, self).__delitem__(key)
 
@@ -111,6 +105,36 @@ class Values(dict):
 
         self._flags[key] &= ~Values.TRANSIENT
 
+    def _addMonitor(self, key, count=1):
+
+        if '_monitors' in self.__dict__:
+            self._monitors[key] += count
+        else:
+            self._monitors = { key: count }
+
+    def _hasMonitors(self, key):
+
+        return '_monitors' in self.__dict__ and key in self._monitors
+        #return True
+
+    def _removeMonitor(self, key):
+
+        monitors = self._getMonitors(key)
+
+        if monitors:
+            self._monitors[key] = monitors - 1
+        else:
+            raise AttributeError, 'no monitors on attribute %s' %(key)
+
+    def _getMonitors(self, key):
+
+        try:
+            return self._monitors[key]
+        except AttributeError:
+            return 0
+        except KeyError:
+            return 0
+
     def _xmlValues(self, generator, withSchema, version, mode):
 
         from repository.item.ItemHandler import ItemHandler
@@ -131,7 +155,8 @@ class Values(dict):
                 persist = True
 
             if persist:
-                persist = self._getFlags(key) & self.TRANSIENT == 0
+                flags = self._getFlags(key)
+                persist = flags & self.TRANSIENT == 0
 
             if persist:
                 if attribute is not None:
@@ -144,15 +169,21 @@ class Values(dict):
                     attrCard = 'single'
                     attrId = None
 
+                monitors = self._getMonitors(key)
+                attrs = {}
+                if flags:
+                    attrs['flags'] = str(flags)
+                if monitors:
+                    attrs['monitors'] = str(monitors)
+
                 try:
                     ItemHandler.xmlValue(repository, key, value, 'attribute',
-                                         attrType, attrCard, attrId,
-                                         self._getFlags(key), generator,
-                                         withSchema)
+                                         attrType, attrCard, attrId, attrs,
+                                         generator, withSchema)
                 except Exception, e:
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise
-            
+
 
     READONLY = 0x0001          # value is read-only
     TRANSIENT = 0x0002         # value is transient
@@ -180,10 +211,6 @@ class References(Values):
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
             value._copy(self, orig._item, item, name, policy, copyFn)
 
-    def __setitem__(self, key, value, *args):
-
-        super(References, self).__setitem__(key, value)
-
     def _unload(self):
 
         for value in self.itervalues():
@@ -195,8 +222,19 @@ class References(Values):
 
         for key, value in self.iteritems():
             if item.getAttributeAspect(key, 'persist', default=True):
+                flags = self._getFlags(key)
+                monitors = self._getMonitors(key)
+                attrs = {}
+                if flags:
+                    attrs['flags'] = str(flags)
+                if monitors:
+                    attrs['monitors'] = str(monitors)
                 value._xmlValue(key, item, generator, withSchema, version,
-                                self._getFlags(key), mode)
+                                attrs, mode)
+
+    def _isRefDict(self):
+
+        return False
 
 
 class ItemValue(object):
@@ -215,9 +253,6 @@ class ItemValue(object):
             raise ValueError, 'item attribute value %s is already owned by another item %s' %(self, self._item)
         
         self._item = item
-        if self._dirty:
-            item.setDirty()
-
         self._attribute = attribute
 
     def _setReadOnly(self, readOnly=True):
@@ -241,11 +276,10 @@ class ItemValue(object):
         if self._isReadOnly():
             raise AttributeError, 'Value for %s on %s is read-only' %(self._attribute, self._item.itsPath)
 
-        if not self._dirty:
-            self._dirty = True
-            item = self._item
-            if item is not None:
-                item.setDirty(attribute=self._attribute, dirty=item.VDIRTY)
+        self._dirty = True
+        item = self._item
+        if item is not None:
+            item.setDirty(item.VDIRTY, self._attribute, item._values)
 
     def _copy(self, item, attribute):
 

@@ -43,7 +43,6 @@ class TestBZ2(RepositoryTestCase):
             data = input.read(54857)
             if len(data) > 0:
                 writer.write(data)
-                movie.setDirty()
                 writer.close()
                 self.rep.commit()
                 writer = movie.synopsis.getWriter(compression=compression,

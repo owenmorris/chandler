@@ -46,7 +46,6 @@ class TestText(RepositoryTestCase):
 
         input.close()
         writer.close()
-        movie.setDirty()
         
         self.rep.logger.info("%s compressed %d bytes to %d",
                              compression, count, len(movie.synopsis._data))
@@ -93,7 +92,6 @@ class TestText(RepositoryTestCase):
             data = input.read(548576)
             if len(data) > 0:
                 writer.write(data)
-                movie.setDirty()
                 writer.close()
                 self.rep.commit()
                 writer = movie.synopsis.getWriter(compression=compression,

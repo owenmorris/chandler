@@ -310,7 +310,7 @@ class Item(object):
         return kwds.get('default', None)
         
     def setAttributeValue(self, name, value=None, setAliases=False,
-                          _attrDict=None):
+                          _attrDict=None, setDirty=True):
         """
         Set a value on a Chandler attribute.
 
@@ -366,7 +366,8 @@ class Item(object):
                         if old is not NoneRef:
                             # reattaching on original endpoint
                             old.reattach(self, name, old.other(self), value,
-                                         self._kind.getOtherName(name))
+                                         self._kind.getOtherName(name),
+                                         setDirty=setDirty)
                             return value
                     elif isRef:
                         # reattaching on other endpoint,
@@ -382,8 +383,6 @@ class Item(object):
                 else:
                     raise TypeError, type(old)
 
-        self.setDirty(attribute=name)
-        
         if isItem:
             otherName = self._kind.getOtherName(name, default=None)
             card = self.getAttributeAspect(name, 'cardinality',
@@ -394,13 +393,16 @@ class Item(object):
 
             if otherName is None:
                 self._values[name] = value = SingleRef(value.itsUUID)
-
+                
             else:
                 value = ItemRef(self, name, value, otherName)
                 self._references[name] = value
 
+            dirty = Item.VDIRTY
+            
         elif isRef:
             self._references[name] = value
+            dirty = Item.VDIRTY
 
         elif isinstance(value, list):
             if _attrDict is self._references:
@@ -409,13 +411,17 @@ class Item(object):
                 else:
                     assert isinstance(old, RefDict)
                     refDict = old
+
                 refDict.extend(value)
                 value = refDict
+                setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentList(self, name, companion, value)
-                self._values[name] = value
+                attrValue = PersistentList(self, name, companion)
+                self._values[name] = attrValue
+                attrValue.extend(value)
+                setDirty = False
 
         elif isinstance(value, dict):
             if _attrDict is self._references:
@@ -424,22 +430,95 @@ class Item(object):
                 else:
                     assert isinstance(old, RefDict)
                     refDict = old
+
                 refDict.update(value, setAliases)
                 value = refDict
+                setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentDict(self, name, companion, value)
-                self._values[name] = value
+                attrValue = PersistentDict(self, name, companion)
+                self._values[name] = attrValue
+                attrValue.update(value)
+                setDirty = False
             
         elif isinstance(value, ItemValue):
             value._setItem(self, name)
             self._values[name] = value
+            dirty = Item.VDIRTY
             
         else:
             self._values[name] = value
+            dirty = Item.VDIRTY
 
+        if setDirty:
+            self.setDirty(dirty, name, _attrDict)
+        
         return value
+
+    def _invokeMonitors(self, name, attrDict):
+
+        if attrDict._hasMonitors(name):
+            from repository.item.Monitors import Monitors
+            Monitors.invoke('set', self, name)
+
+    def _reIndex(self, op, item, attrName, collectionName, indexName):
+
+        if op == 'set':
+            refDict = self.getAttributeValue(collectionName, default=None,
+                                             _attrDict=self._references)
+            if refDict is not None and item._uuid in refDict:
+                refDict.placeItem(item, None, indexName)
+
+    def addMonitor(self, name, _attrDict=None):
+
+        if _attrDict is None:
+            if self._values.has_key(name):
+                _attrDict = self._values
+            elif self._references.has_key(name):
+                _attrDict = self._references
+            elif self._kind.getOtherName(name, default=None) is not None:
+                _attrDict = self._references
+            else:
+                redirect = self.getAttributeAspect(name, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    names = redirect.split('.')
+                    for i in xrange(len(names) - 1):
+                        item = item.getAttributeValue(names[i])
+
+                    return item.addMonitor(name)
+
+                else:
+                    _attrDict = self._values
+
+        _attrDict._addMonitor(name)
+
+    def removeMonitor(self, name, _attrDict=None):
+
+        if _attrDict is None:
+            if self._values.has_key(name):
+                _attrDict = self._values
+            elif self._references.has_key(name):
+                _attrDict = self._references
+            elif self._kind.getOtherName(name, default=None) is not None:
+                _attrDict = self._references
+            else:
+                redirect = self.getAttributeAspect(name, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    names = redirect.split('.')
+                    for i in xrange(len(names) - 1):
+                        item = item.getAttributeValue(names[i])
+
+                    return item.removeMonitor(name)
+
+                else:
+                    _attrDict = self._values
+
+        _attrDict._removeMonitor(name)
 
     def getAttributeValue(self, name, _attrDict=None, **kwds):
         """
@@ -545,8 +624,6 @@ class Item(object):
         @return: C{None}
         """
 
-        self.setDirty(attribute=name)
-
         if _attrDict is None:
             if self._values.has_key(name):
                 _attrDict = self._values
@@ -555,6 +632,7 @@ class Item(object):
 
         if _attrDict is self._values:
             del _attrDict[name]
+            dirty = Item.VDIRTY
         elif _attrDict is self._references:
             value = _attrDict[name]
 
@@ -562,11 +640,16 @@ class Item(object):
                 value.detach(self, name,
                              value.other(self), self._kind.getOtherName(name))
                 del _attrDict[name]
+                dirty = Item.VDIRTY
             elif isinstance(value, RefDict):
                 value.clear()
                 del _attrDict[name]
+                dirty = None
             else:
                 raise TypeError, (type(value), value)
+
+        if dirty is not None:
+            self.setDirty(dirty, name)
 
     def hasChild(self, name, load=True):
         """
@@ -878,8 +961,6 @@ class Item(object):
         isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
             
-        self.setDirty(attribute=attribute)
-
         if attrValue is Item.Nil:
             card = self.getAttributeAspect(attribute, 'cardinality',
                                            default='single')
@@ -894,8 +975,9 @@ class Item(object):
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
                     attrValue = PersistentDict(self, attribute, companion)
-                    attrValue[key] = value
                     _attrDict[attribute] = attrValue
+                    attrValue[key] = value
+                    
                     return attrValue
 
             elif card == 'list':
@@ -908,8 +990,9 @@ class Item(object):
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
                     attrValue = PersistentList(self, attribute, companion)
-                    attrValue.append(value)
                     _attrDict[attribute] = attrValue
+                    attrValue.append(value)
+
                     return attrValue
 
             else:
@@ -978,22 +1061,19 @@ class Item(object):
         if attrValue is Item.Nil:
             return self.setValue(attribute, value, key, alias, _attrDict)
 
-        else:
-            self.setDirty(attribute=attribute)
-
-            if isinstance(attrValue, RefDict):
-                if isinstance(value, Item):
-                    attrValue.append(value, alias)
-                else:
-                    raise TypeError, type(value)
-            elif isinstance(attrValue, dict):
-                attrValue[key] = value
-            elif isinstance(attrValue, list):
-                attrValue.append(value)
+        elif isinstance(attrValue, RefDict):
+            if isinstance(value, Item):
+                attrValue.append(value, alias)
             else:
-                return self.setAttributeValue(attribute, value, _attrDict)
+                raise TypeError, type(value)
+        elif isinstance(attrValue, dict):
+            attrValue[key] = value
+        elif isinstance(attrValue, list):
+            attrValue.append(value)
+        else:
+            return self.setAttributeValue(attribute, value, _attrDict)
 
-            return attrValue
+        return attrValue
 
     def hasKey(self, attribute, key=None, alias=None, _attrDict=None):
         """
@@ -1117,8 +1197,6 @@ class Item(object):
             del value[key]
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
-
-        self.setDirty(attribute=attribute)
 
     def _removeRef(self, name):
 
@@ -1245,16 +1323,16 @@ class Item(object):
 
         return self._status & Item.DIRTY
 
-    def setDirty(self, dirty=None, attribute=None):
+    def setDirty(self, dirty, attribute, attrDict=None):
         """
         Mark this item to get committed with the current transaction.
 
         Returns C{True} if the dirty bit was changed from unset to set.
         Returns C{False} otherwise.
 
-        If C{attribute} is used and denotes a transient attribute (whose
-        C{persist} aspect is C{False}), then this method has no effect and
-        returns C{False}.
+        If C{attribute} denotes a transient attribute (whose C{persist}
+        aspect is C{False}), then this method has no effect and returns
+        C{False}.
 
         @param dirty: one of L{Item.VDIRTY <VDIRTY>},
         L{Item.RDIRTY <RDIRTY>}, L{Item.CDIRTY <CDIRTY>},
@@ -1268,8 +1346,13 @@ class Item(object):
         @return: C{True} or C{False}
         """
 
-        if dirty is None:
-            dirty = Item.VDIRTY
+        if self._status & Item.NODIRTY:
+            return False
+
+        if attrDict is not None:
+            assert attribute is not None
+            assert attrDict is not None
+            self._invokeMonitors(attribute, attrDict)
 
         if dirty:
             self._lastAccess = Item._countAccess()
@@ -1367,9 +1450,13 @@ class Item(object):
 
         if copyFn is None:
             copyFn = copyOther
+
+        item._status |= Item.NODIRTY
         item._values._copy(self._values, copyPolicy, copyFn)
         item._references._copy(self._references, copyPolicy, copyFn)
-
+        item._status &= ~Item.NODIRTY
+        item.setDirty(Item.DIRTY, None)
+        
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(self)
 
@@ -1399,7 +1486,7 @@ class Item(object):
             if not recursive and self.hasChildren():
                 raise ValueError, 'item %s has children, delete must be recursive' %(self)
 
-            self.setDirty()
+            self.setDirty(Item.DIRTY, None)
             self._status |= Item.DELETING
             others = []
 
@@ -1525,7 +1612,7 @@ class Item(object):
                 if newRepository is not None:
                     newRepository._registerItem(self)
 
-                    self.setDirty()
+                    self.setDirty(Item.CDIRTY, None)
 
             for child in self.iterChildren(load=False):
                 child._setRoot(root)
@@ -1549,7 +1636,7 @@ class Item(object):
     def __setKind(self, kind):
 
         if kind is not self._kind:
-            self.setDirty()
+            self.setDirty(Item.DIRTY, None)
 
             if self._kind is not None:
                 if kind is None:
@@ -1749,7 +1836,7 @@ class Item(object):
                 parent._removeItem(self)
                 self._name = name or self._uuid.str64()
                 parent._addItem(self)
-                self.setDirty(dirty=Item.SDIRTY)
+                self.setDirty(Item.SDIRTY, None)
                 
             if not '_origName' in self.__dict__:
                 self.__dict__['_origName'] = (parent.itsUUID, origName)
@@ -2304,9 +2391,10 @@ class Item(object):
     SAVED      = 0x1000
     ADIRTY     = 0x2000           # acl(s) changed
     PINNED     = 0x4000           # auto-refresh, don't stale
-
+    NODIRTY    = 0x8000           # turn off dirtying
+    
     VRDIRTY    = VDIRTY | RDIRTY
-    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY | ADIRTY
+    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY
 
     __access__ = 0L
 
@@ -2408,9 +2496,9 @@ class Children(LinkedMap):
     def linkChanged(self, link, key):
 
         if key is None:
-            self._item.setDirty(dirty=Item.CDIRTY)
+            self._item.setDirty(Item.CDIRTY, None)
         else:
-            link._value.setDirty(dirty=Item.SDIRTY)
+            link._value.setDirty(Item.SDIRTY, None)
     
     def __repr__(self):
 

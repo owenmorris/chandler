@@ -155,7 +155,7 @@ class FileRepositoryView(RepositoryView):
             if item.isDirty():
                 view._saveItem(item, **args)
                 count += 1
-                item.setDirty(0)
+                item.setDirty(0, None)
 
             contents.write(item.itsUUID.str16())
             contents.write('\n')

@@ -1559,14 +1559,14 @@ class ValueSet(object):
             elif card == "list":
                 # First, see if this is a ref collection, since we handle those
                 # differently; to remove an item from a ref collection, we use
-                # removeItem( ) which takes an item parameter -- therefore we
+                # remove() which takes an item parameter -- therefore we
                 # first need to findUUID() the item.
                 if self.item.getAttributeAspect(attrName, "otherName"):
                     attr = self.item.getAttributeValue(attrName)
                     # value is a UUID -- let's load the associated item and then
                     # remove it from this collection
                     otherItem = self.item.findUUID(value)
-                    attr.removeItem(otherItem)
+                    attr.remove(otherItem)
                     print "Reload: item %s, unassigning %s = '%s'" % \
                      (self.item.itsPath, attrName, otherItem.itsPath)
                     continue

@@ -23,6 +23,7 @@
       <item file="Cloud.kind" />
       <item file="Endpoint.kind" />
       <item file="Principal.kind" />
+      <item file="Monitors.kind" />
 
       <item file="Clouds.namespace" cwd="clouds">
         <item file="Kind.cloud" />
@@ -31,6 +32,10 @@
       </item>
 
       <item file="Mixins.namespace" />
+
+      <item file="Items.namespace" cwd="items">
+        <item file="Monitors.item" />
+      </item>
     </item>
   </item>
 

@@ -60,7 +60,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 del self._deletedRegistry[item.itsUUID]
                 item._status &= ~Item.DELETED
             else:
-                item.setDirty(0)
+                item.setDirty(0, None)
                 item._unloadItem()
 
         for item in self._log:

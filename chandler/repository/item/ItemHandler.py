@@ -105,10 +105,14 @@ class ItemHandler(ContentHandler):
             flags = attrs.get('flags', None)
             if flags is not None:
                 flags = int(flags)
-                self.values._setFlags(name, flags)
+                self.references._setFlags(name, flags)
                 readOnly = flags & Values.READONLY
             else:
                 readOnly = False
+
+            monitors = attrs.get('monitors', None)
+            if monitors is not None:
+                self.references._addMonitor(name, int(monitors))
 
             cardinality = self.getCardinality(attribute, attrs)
 
@@ -420,6 +424,10 @@ class ItemHandler(ContentHandler):
                 elif isinstance(value, ItemValue):
                     value._setReadOnly()
 
+        monitors = attrs.get('monitors', None)
+        if monitors is not None:
+            self.values._addMonitor(attrs['name'], int(monitors))
+
     def valueEnd(self, itemHandler, attrs, **kwds):
 
         if kwds.has_key('value'):
@@ -444,10 +452,10 @@ class ItemHandler(ContentHandler):
         name = attrs.get('name')
 
         if name is None:
-            self.collections[-1].append(value)
+            self.collections[-1].append(value, False)
         else:
             name = self.makeValue(attrs.get('nameType', 'str'), name)
-            self.collections[-1][name] = value
+            self.collections[-1].__setitem__(name, value, False)
 
     def getCardinality(self, attribute, attrs):
 
@@ -567,12 +575,9 @@ class ItemHandler(ContentHandler):
 
         return cls.typeHandler(repository, value).makeString(value)
     
-    def xmlValue(cls, repository, name, value, tag,
-                 attrType, attrCard, attrId, flags,
-                 generator, withSchema):
+    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
+                 attrs, generator, withSchema):
 
-        attrs = {}
-            
         if name is not None:
             if not isinstance(name, str) and not isinstance(name, unicode):
                 attrs['nameType'] = cls.typeName(repository, name)
@@ -598,9 +603,6 @@ class ItemHandler(ContentHandler):
         else:
             attrs['cardinality'] = attrCard
 
-        if flags:
-            attrs['flags'] = str(flags)
-
         generator.startElement(tag, attrs)
 
         if attrCard == 'single':
@@ -622,13 +624,13 @@ class ItemHandler(ContentHandler):
             for val in value._itervalues():
                 cls.xmlValue(repository,
                              None, val, 'value', attrType, 'single',
-                             None, 0, generator, withSchema)
+                             None, {}, generator, withSchema)
 
         elif attrCard == 'dict':
             for key, val in value._iteritems():
                 cls.xmlValue(repository,
                              key, val, 'value', attrType, 'single',
-                             None, 0, generator, withSchema)
+                             None, {}, generator, withSchema)
         else:
             raise ValueError, attrCard
 

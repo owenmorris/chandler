@@ -81,7 +81,6 @@ class XMLText(Text, ItemValue):
 
         if self._uuid is None:
             self._uuid = UUID()
-            self._setDirty()
 
         return self._uuid
 
@@ -210,7 +209,6 @@ class XMLBinary(Binary, ItemValue):
 
         if self._uuid is None:
             self._uuid = UUID()
-            self._setDirty()
 
         return self._uuid
 

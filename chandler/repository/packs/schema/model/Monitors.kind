@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item withSchema="True">
+    <name>Monitors</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
+
+      <!-- 
+         - plus local attributes below:
+         -     monitoring, items
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+    <attribute name="classes" cardinality="dict" type="class">
+      <value name="python">repository.item.Monitors.Monitors</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>monitoring</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitors</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="companion">items</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>items</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitors</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">monitors</attribute>
+  </item>
+
+</items>

@@ -45,9 +45,9 @@ class XMLRefDict(RefDict):
 
         return self._getRefs().loadRef(self._key, self._item._version, key)
 
-    def _changeRef(self, key, alias=None):
+    def _changeRef(self, key, alias=None, noMonitors=False):
 
-        super(XMLRefDict, self)._changeRef(key, alias)
+        super(XMLRefDict, self)._changeRef(key, alias, noMonitors)
 
         if not self.view.isLoading():
             self._changedRefs[key] = (0, alias)

@@ -15,11 +15,12 @@ class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
     def __init__(self, item, name, other, otherName,
-                 otherCard=None, otherPersist=None, otherAlias=None):
+                 otherCard=None, otherPersist=None, otherAlias=None,
+                 setDirty=True):
 
         super(ItemRef, self).__init__()
         self.attach(item, name, other, otherName,
-                    otherCard, otherPersist, otherAlias)
+                    otherCard, otherPersist, otherAlias, setDirty)
 
     def _copy(self, references, item, copyItem, name, policy, copyFn):
 
@@ -59,7 +60,8 @@ class ItemRef(object):
         raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
     def attach(self, item, name, other, otherName,
-               otherCard=None, otherPersist=None, otherAlias=None):
+               otherCard=None, otherPersist=None, otherAlias=None,
+               setDirty=True):
 
         assert item is not None, 'item is None'
         assert other is not None, 'other is None'
@@ -71,7 +73,11 @@ class ItemRef(object):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
-                    old.__setitem__(item._uuid, self, alias=otherAlias)
+                    try:
+                        sd = old._setFlag(old.SETDIRTY, setDirty)
+                        old.__setitem__(item._uuid, self, alias=otherAlias)
+                    finally:
+                        old._setFlag(old.SETDIRTY, sd)
                     return
             else:
                 if otherCard is None:
@@ -81,11 +87,16 @@ class ItemRef(object):
                 if otherCard != 'single':
                     old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
-                    old.__setitem__(item._uuid, self, alias=otherAlias)
+                    try:
+                        sd = old._setFlag(old.SETDIRTY, setDirty)
+                        old.__setitem__(item._uuid, self, alias=otherAlias)
+                    finally:
+                        old._setFlag(old.SETDIRTY, sd)
                     return
             
             other.setAttributeValue(otherName, self,
-                                    _attrDict=other._references)
+                                    _attrDict=other._references,
+                                    setDirty=setDirty)
 
     def detach(self, item, name, other, otherName):
 
@@ -95,15 +106,15 @@ class ItemRef(object):
             old._removeRef(item._uuid)
         else:
             other._removeRef(otherName)
+            other.setDirty(item.VDIRTY, otherName)
 
-        other.setDirty(attribute=otherName, dirty=item.RDIRTY)
-
-    def reattach(self, item, name, old, new, otherName):
+    def reattach(self, item, name, old, new, otherName, setDirty=True):
 
         if old is not new:
             self.detach(item, name, old, otherName)
             self.attach(item, name, new, otherName)
-            item.setDirty(attribute=name)
+            if setDirty:
+                item.setDirty(item.VDIRTY, name, item._values)
 
     def _unload(self, item):
 
@@ -167,7 +178,7 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+    def _xmlValue(self, name, item, generator, withSchema, version, attrs,
                   mode, previous=None, next=None, alias=None):
 
         def addAttr(attrs, attr, value):
@@ -183,15 +194,12 @@ class ItemRef(object):
                                                                 type(value))
 
         other = self.other(item)
-        attrs = { 'type': 'uuid' }
+        attrs['type'] = 'uuid'
 
         addAttr(attrs, 'name', name)
         addAttr(attrs, 'previous', previous)
         addAttr(attrs, 'next', next)
         addAttr(attrs, 'alias', alias)
-
-        if flags:
-            attrs['flags'] = str(flags)
 
         if withSchema:
             attrs['otherName'] = item._kind.getOtherName(name)
@@ -213,7 +221,8 @@ class _noneRef(ItemRef):
         return self
 
     def attach(self, item, name, other, otherName,
-               otherCard=None, otherPersist=None, otherAlias=None):
+               otherCard=None, otherPersist=None, otherAlias=None,
+               setDirty=True):
         pass
 
     def detach(self, item, name, other, otherName):
@@ -240,12 +249,12 @@ class _noneRef(ItemRef):
     def _refCount(self):
         return 0
 
-    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+    def _xmlValue(self, name, item, generator, withSchema, version, attrs,
                   mode, previous=None, next=None, alias=None):
 
-        attrs = { 'name': name, 'type': 'none' }
-        if flags:
-            attrs['flags'] = str(flags)
+        attrs['name'] = name
+        attrs['type'] = 'none'
+
         generator.startElement('ref', attrs)
         generator.endElement('ref')
 
@@ -364,45 +373,64 @@ class RefArgs(object):
             self.ref = ItemRef(item, self.attrName,
                                ItemStub(item, self), self.otherName,
                                otherCard = self.otherCard,
-                               otherAlias = self.otherAlias)
+                               otherAlias = self.otherAlias,
+                               setDirty=False)
             repository._addStub(self.ref)
-            self.valueDict.__setitem__(self.refName, self.ref, 
-                                       self.previous, self.next, self.alias,
-                                       False)
+
+            vd = self.valueDict
+            if vd._isRefDict():
+                try:
+                    setDirty = vd._setFlag(RefDict.SETDIRTY, False)
+                    vd.__setitem__(self.refName, self.ref, 
+                                   self.previous, self.next,
+                                   self.alias, False)
+                finally:
+                    vd._setFlag(RefDict.SETDIRTY, setDirty)
+            else:
+                vd[self.refName] = self.ref
 
         return None
 
     def _attach(self, item, other):
         
         value = other._references.get(self.otherName)
+
+        def setDict(vd):
+            if vd._isRefDict():
+                try:
+                    sd = vd._setFlag(RefDict.SETDIRTY, False)
+                    vd.__setitem__(self.refName, value,
+                                   self.previous, self.next,
+                                   self.alias, False)
+                finally:
+                    vd._setFlag(RefDict.SETDIRTY, sd)
+            else:
+                vd[self.refName] = value
         
         if value is None or value is NoneRef:
             if self.ref is not None:
                 self.ref.attach(item, self.attrName,
                                 other, self.otherName,
                                 otherCard=self.otherCard,
-                                otherAlias=self.otherAlias)
+                                otherAlias=self.otherAlias,
+                                setDirty=False)
             else:
                 value = ItemRef(item, self.attrName,
                                 other, self.otherName,
                                 otherCard=self.otherCard,
-                                otherAlias=self.otherAlias)
-                self.valueDict.__setitem__(self.refName, value,
-                                           self.previous, self.next,
-                                           self.alias, False)
+                                otherAlias=self.otherAlias,
+                                setDirty=False)
+                setDict(self.valueDict)
 
         elif isinstance(value, ItemRef):
             if isinstance(value._other, Stub):
                 value._other = item
-                self.valueDict.__setitem__(self.refName, value,
-                                           self.previous, self.next,
-                                           self.alias, False)
+                setDict(self.valueDict)
 
             elif isinstance(value._item, Stub):
                 value._item = item
-                self.valueDict.__setitem__(self.refName, value,
-                                           self.previous, self.next,
-                                           self.alias, False)
+                setDict(self.valueDict)
+
             else:
                 return value
 
@@ -412,15 +440,12 @@ class RefArgs(object):
                 value = value._getRef(otherRefName)
                 if isinstance(value._other, Stub):
                     value._other = item
-                    self.valueDict.__setitem__(self.refName, value,
-                                               self.previous, self.next,
-                                               self.alias, False)
+                    setDict(self.valueDict)
 
                 elif isinstance(value._item, Stub):
                     value._item = item
-                    self.valueDict.__setitem__(self.refName, value,
-                                               self.previous, self.next,
-                                               self.alias, False)
+                    setDict(self.valueDict)
+
                 else:
                     return value
 
@@ -429,15 +454,15 @@ class RefArgs(object):
                     self.ref.attach(item, self.attrName,
                                     other, self.otherName,
                                     otherCard=self.otherCard,
-                                    otherAlias=self.otherAlias)
+                                    otherAlias=self.otherAlias,
+                                    setDirty=False)
                 else:
                     value = ItemRef(item, self.attrName,
                                     other, self.otherName,
                                     otherCard=self.otherCard,
-                                    otherAlias=self.otherAlias)
-                    self.valueDict.__setitem__(self.refName, value,
-                                               self.previous, self.next,
-                                               self.alias, False)
+                                    otherAlias=self.otherAlias,
+                                    setDirty=False)
+                    setDict(self.valueDict)
 
         else:
             raise ValueError, value
@@ -477,8 +502,36 @@ class RefDict(LinkedMap):
         self._aliases = None
         self._readOnly = readOnly
         self._indexes = None
+        self._flags = RefDict.SETDIRTY
         
         super(RefDict, self).__init__()
+
+    def _isRefDict(self):
+
+        return True
+    
+    def _setFlag(self, flag, on):
+
+        old = self._flags & flag != 0
+        if on:
+            self._flags |= flag
+        else:
+            self._flags &= ~flag
+
+        return old
+
+    def _getFlag(self, flag):
+
+        return self._flags & flag != 0
+
+    def _setDirty(self, noMonitors=False):
+
+        if self._getFlag(RefDict.SETDIRTY):
+            item = self._item
+            if noMonitors:
+                item.setDirty(item.RDIRTY, self._name)
+            else:
+                item.setDirty(item.RDIRTY, self._name, item._references)
 
     def _copy(self, references, item, copyItem, name, policy, copyFn):
 
@@ -588,7 +641,12 @@ class RefDict(LinkedMap):
 
         if not self._getRepository().isLoading():
             self.fillIndex(index)
-            self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+            self._setDirty(noMonitors=True)
+
+            if indexType == 'attribute':
+                from repository.item.Monitors import Monitors
+                Monitors.attach(self._item, '_reIndex',
+                                'set', kwds['attribute'], self._name, name)
 
     def _createIndex(self, indexType, **kwds):
 
@@ -608,7 +666,7 @@ class RefDict(LinkedMap):
     def removeIndex(self, name):
 
         del self._indexes[name]
-        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+        self._setDirty(noMonitors=True)
 
     def fillIndex(self, index):
 
@@ -630,8 +688,14 @@ class RefDict(LinkedMap):
         list to this ref collection.
         """
         
-        for value in valueList:
-            self.append(value)
+        try:
+            sd = self._setFlag(RefDict.SETDIRTY, False)
+            for value in valueList:
+                self.append(value, None)
+        finally:
+            self._setFlag(RefDict.SETDIRTY, sd)
+
+        self._setDirty()
 
     def update(self, dictionary, setAliases=False):
         """
@@ -644,12 +708,18 @@ class RefDict(LinkedMap):
         @type setAliases: boolean
         """
 
-        if setAliases:
-            for alias, value in dictionary.iteritems():
-                self.append(value, alias)
-        else:
-            for value in dictionary.itervalues():
-                self.append(value)
+        try:
+            sd = self._setFlag(RefDict.SETDIRTY, False)
+            if setAliases:
+                for alias, value in dictionary.iteritems():
+                    self.append(value, alias)
+            else:
+                for value in dictionary.itervalues():
+                    self.append(value, None)
+        finally:
+            self._setFlag(RefDict.SETDIRTY, sd)
+
+        self._setDirty()
 
     def append(self, item, alias=None):
         """
@@ -667,13 +737,19 @@ class RefDict(LinkedMap):
         """
         Remove all references from this ref collection.
         """
-        
-        key = self.firstKey()
-        while key is not None:
-            nextKey = self.nextKey(key)
-            del self[key]
-            key = nextKey
 
+        try:
+            sd = self._setFlag(RefDict.SETDIRTY, False)
+            key = self.firstKey()
+            while key is not None:
+                nextKey = self.nextKey(key)
+                del self[key]
+                key = nextKey
+        finally:
+            self._setFlag(RefDict.SETDIRTY, sd)
+
+        self._setDirty()
+            
     def dir(self):
         """
         Debugging: print all items referenced in this ref collection.
@@ -691,14 +767,15 @@ class RefDict(LinkedMap):
                     load=True):
 
         loading = self._getRepository().isLoading()
-        if loading and previousKey is None and nextKey is None:
-            ref = self._loadRef(key)
-            if ref is not None:
-                previousKey, nextKey, alias = ref
+        if loading:
+            if previousKey is None and nextKey is None:
+                ref = self._loadRef(key)
+                if ref is not None:
+                    previousKey, nextKey, alias = ref
         
         old = super(RefDict, self).get(key, None, load)
         if not loading:
-            self._changeRef(key)
+            self._changeRef(key, None)
 
         if old is not None:
             item = self._getItem()
@@ -764,9 +841,9 @@ class RefDict(LinkedMap):
             super(RefDict, self).place(key, afterKey)
         else:
             self._indexes[indexName].moveKey(key, afterKey)
-            self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+            self._setDirty()
 
-    def removeItem(self, item):
+    def remove(self, item):
         """
         Remove a referenced item from this reference collection.
 
@@ -780,17 +857,21 @@ class RefDict(LinkedMap):
 
         self._removeRef(key, True)
 
-    def _changeRef(self, key, alias=None):
+    def _changeRef(self, key, alias=None, noMonitors=False):
 
         if self._readOnly:
             raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
 
-        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+        self._setDirty(noMonitors)
 
     def _removeRef(self, key, _detach=False):
 
         if self._readOnly:
             raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
+
+        if self._indexes:
+            for index in self._indexes.itervalues():
+                index.removeKey(key)
 
         value = self._getRef(key)
 
@@ -803,9 +884,6 @@ class RefDict(LinkedMap):
             del self._aliases[link._alias]
             
         self._count -= 1
-        if self._indexes:
-            for index in self._indexes.itervalues():
-                index.removeKey(key)
 
         return link
 
@@ -845,7 +923,7 @@ class RefDict(LinkedMap):
     def linkChanged(self, link, key):
 
         if key is not None:
-            self._changeRef(key)
+            self._changeRef(key, noMonitors=True)
 
     def _getRef(self, key, load=True):
 
@@ -986,13 +1064,13 @@ class RefDict(LinkedMap):
         """
 
         self._indexes[indexName].setEntryValue(item._uuid, value)
-        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+        self._setDirty()
 
     def _refCount(self):
 
         return len(self)
 
-    def _xmlValue(self, name, item, generator, withSchema, version, flags,
+    def _xmlValue(self, name, item, generator, withSchema, version, attrs,
                   mode):
 
         def addAttr(attrs, attr, value):
@@ -1007,7 +1085,7 @@ class RefDict(LinkedMap):
                     raise NotImplementedError, "%s, type: %s" %(value,
                                                                 type(value))
 
-        attrs = { 'name': name }
+        attrs['name'] = name
         
         if withSchema:
             attrs['cardinality'] = 'list'
@@ -1016,9 +1094,6 @@ class RefDict(LinkedMap):
         addAttr(attrs, 'first', self._firstKey)
         addAttr(attrs, 'last', self._lastKey)
         attrs['count'] = str(self._count)
-
-        if flags:
-            attrs['flags'] = str(flags)
 
         generator.startElement('ref', attrs)
         self._xmlValues(generator, version, mode)
@@ -1029,7 +1104,7 @@ class RefDict(LinkedMap):
         for key in self.iterkeys():
             link = self._get(key)
             link._value._xmlValue(key, self._item,
-                                  generator, False, version, 0, mode,
+                                  generator, False, version, {}, mode,
                                   previous=link._previousKey,
                                   next=link._nextKey,
                                   alias=link._alias)
@@ -1189,6 +1264,8 @@ class RefDict(LinkedMap):
 
         return True
 
+    SETDIRTY = 0x0001
+
 
 class TransientRefDict(RefDict):
     """
@@ -1198,7 +1275,7 @@ class TransientRefDict(RefDict):
     def linkChanged(self, link, key):
         pass
     
-    def _changeRef(self, key, alias=None):
+    def _changeRef(self, key, alias=None, noMonitors=False):
         pass
 
     def check(self, item, name):

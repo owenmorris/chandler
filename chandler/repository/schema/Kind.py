@@ -343,7 +343,7 @@ class Kind(Item):
             if name not in values:
                 if isinstance(value, PersistentCollection):
                     value = value._copy(item, name, value._companion,
-                                        {}, 'copy')
+                                        'copy', lambda x, other, z: other)
                 elif isinstance(value, ItemValue):
                     value = value._copy(item, name)
 
