@@ -50,7 +50,22 @@
 					<xsl:apply-templates select="." mode="getDisplayName"/>
 				</h1>
 				</div>
-				<div style="float: right;">Back to the 
+				<div style="float: right; border-style: solid; border-width: 1px; padding: 5px;">
+				<a>
+				<xsl:attribute  name = "href" >
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+                   <xsl:value-of select = "$constants.helpFile" />
+				</xsl:attribute>
+                Help</a>
+                with this page
+				--
+				
+				Back to the 
 				<a>
 				<xsl:attribute  name = "href" >
                    <xsl:call-template name="createRelativePath">

@@ -6,5 +6,6 @@
    <xsl:variable name = "constants.coreURI" select = "'//Schema/Core'" />
    <xsl:variable name = "constants.corePath" select = "'//repository/schema'" />
    <xsl:variable name = "constants.cssFile" select = "'schema.css'" />
+   <xsl:variable name = "constants.helpFile" select = "'automatic-docs-help.html'" />
    
 </xsl:stylesheet>

@@ -61,7 +61,16 @@ def generateDocs(docDir, xslDir, chandlerDir):
     indexFile.write("<link rel=\"stylesheet\" type=\"text/css\" \
                      href=\"schema.css\"/></head>")
 
-    indexFile.write("<body><h1>Chandler Schema Documentation</h1>")
+    indexFile.write('<body><div style="float: left;">')
+    indexFile.write('<h1>Chandler Schema Documentation</h1></div>')
+    
+    indexFile.write('<div style="float: right; border-style: solid;')
+    indexFile.write('border-width: 1px; padding: 5px;">')
+    indexFile.write('<a href="automatic-docs-help.html">Help</a> ')
+    indexFile.write('with this page -- ')
+    indexFile.write('Back to the <a href="">Parcel Index</a></div>')
+    indexFile.write('<br clear="all"/>')
+    
     indexFile.write('<div class="topDetailBox"><span class="detailLabel">')
     indexFile.write('Generated </span>')
     indexFile.write(time.strftime("%m/%d %I:%M%p") + ' </div>')        
