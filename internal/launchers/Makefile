@@ -6,11 +6,6 @@ LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
 
-# ifeq ($(DEBUG),1)
-#     DEBUG=$DEBUG
-# else
-#     undef DEBUG
-# endif
 
 ifeq ($(PLATFORM),windows)
     SCRIPT_EXTENTION=".bat"
@@ -31,7 +26,12 @@ endif
 
 ifeq ($(OS),Cygwin)
 
-LAUNCHER_FILES=$(SNAP)/chandler.exe
+ifeq ($(DEBUG),1)
+LAUNCHER_FILES=$(SNAP)/chandlerDebug.exe $(SNAP)/bin/chandler.exe
+else
+LAUNCHER_FILES=$(SNAP)/chandler.exe $(SNAP)/bin/chandler.exe
+endif
+
 LIB_FILES=$(SNAP)/bin/ms*dll
 
 ARCHIVE: $(LAUNCHERS)/win/
