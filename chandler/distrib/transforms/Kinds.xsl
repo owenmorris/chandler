@@ -1,20 +1,49 @@
 <xsl:stylesheet version="1.0"
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
      xmlns:core="//Schema/Core">
+    
 	<xsl:output method="html" encoding="ISO-8859-1"/>
-	<xsl:key name="attr" match="core:Attribute" use="@itemName"/>
+	
+    <xsl:include href="includes/helperFunctions.xsl"/>
+    <xsl:include href="includes/constants.xsl"/>
+
+    <xsl:variable name="pagetype" select="'Kind'"/>
+    <xsl:variable name="filename" select="concat($pagetype, 's.html')"/>
+    <xsl:variable name="title" select="concat($pagetype, 's')"/>
+    
+    <xsl:variable name = "coreRelpath">
+       <xsl:call-template name="createRelativePath">
+          <xsl:with-param name="src">
+             <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+          </xsl:with-param>
+          <xsl:with-param name="target" select="$constants.corePath"/>
+       </xsl:call-template>       
+    </xsl:variable>
+    <xsl:variable name = "coreDoc" select = "document(concat($coreRelpath, $constants.parcelFileName), /)" />
+	
 	<xsl:template match="core:Parcel">
 		<html>
 			<head>
 				<title>
 					<xsl:value-of select="core:displayName"/>
-					<xsl:text> - Detail</xsl:text>
+					<xsl:text> - </xsl:text>
+					<xsl:value-of select="$title"/>
 				</title>
-				<link rel="stylesheet" type="text/css" href="http://aloha.osafoundation.org/~skinner/2003/XSL/detail.css"/>
+				<link rel="stylesheet" type="text/css">
+				   <xsl:attribute  name = "href" >
+				      <xsl:value-of select="$constants.cssPath" />
+				   </xsl:attribute>
+				</link>
 			</head>
 			<body>
 				<h1>
-					<xsl:value-of select="core:displayName"/>
+					<a href="index.html">
+					   <xsl:value-of select="core:displayName"/>
+					</a>
+					<xsl:text> - </xsl:text>
+					<xsl:apply-templates select="$coreDoc/core:Parcel/*[@itemName=$pagetype]" mode="getHrefAnchor">
+					   <xsl:with-param name="text" select="$title"/>
+					</xsl:apply-templates>
 				</h1>
 				<ul>
 					<li>
@@ -34,12 +63,18 @@
 			</body>
 		</html>
 	</xsl:template>
+	
 	<xsl:template match="core:Kind">
 		<hr/>
 		<h2>
-			<xsl:value-of select="core:displayName"/>
-			<!-- What's wanted here?  Why <= Item? -->
-			<xsl:text> &lt;= Item</xsl:text>
+            <xsl:apply-templates select="." mode="getHrefAnchor">
+               <xsl:with-param name="text" select="'#'"/>
+            </xsl:apply-templates>
+            <xsl:apply-templates select = "." mode="getNameAnchor"/>
+            <xsl:if test = "core:superKinds">
+               <xsl:text> &lt;= </xsl:text>
+               <xsl:apply-templates select="core:superKinds" mode="derefHref"/>
+            </xsl:if>
 			<br/>
 		</h2>
 		<ul>
@@ -49,51 +84,70 @@
 			</li>
 			<li>
 				<span class="attributeTitle">examples: </span>
-				<xsl:value-of select="core:examples"/>
-			</li>
+                <ul>
+				<xsl:for-each select="core:examples">
+					<li><xsl:value-of select="." /></li>
+				</xsl:for-each>
+                </ul>
+            </li>
 			<li>
 				<span class="attributeTitle">issues: </span>
-				<xsl:value-of select="core:issues"/>
+				<ul>
+				<xsl:for-each select="core:issues">
+					<li><xsl:value-of select="." /></li>
+				</xsl:for-each>
+				</ul>
 			</li>
 			<li>
 				<span class="attributeTitle">displayAttribute: </span>
-				<a>
-					<xsl:attribute name="href">
-						<xsl:text>#</xsl:text>
-						<xsl:value-of select="@itemName"/>
-						<xsl:text>_</xsl:text>
-						<xsl:value-of select="substring-after(core:displayAttribute/@itemref, ':')"/>
-					</xsl:attribute>
-					<xsl:value-of select="key('attr', substring-after(core:displayAttribute/@itemref, ':'))/core:displayName"/>
-				</a>
+                <xsl:apply-templates select = "core:displayAttribute" mode="derefHref"/>
 			</li>
 		</ul>
 		<table cellpadding="5" cellspacing="0" border="0"
  style="width: 100%; text-align: left;">
 			<tbody>
-				<xsl:call-template name="tableHeader"/>
+		<tr>
+			<td class="tableHeaderCell">displayName</td>
+			<td class="tableHeaderCell">itemName</td>
+			<td class="tableHeaderCell">cardinality</td>
+			<td class="tableHeaderCell">type</td>
+			<td class="tableHeaderCell">inverseAttribute</td>
+			<td class="tableHeaderCell">required</td>
+			<td class="tableHeaderCell">defaultValue</td>
+			<td class="tableHeaderCell">hidden</td>
+		</tr>
 				<xsl:for-each select="core:attributes">
 					<tr class="row{position() mod 2}">
 						<td class="attributeTitle">
-							<a>
-								<xsl:attribute name="name">
-									<xsl:value-of select="../@itemName"/>
-									<xsl:text>_</xsl:text>
-									<xsl:value-of select="substring-after(@itemref, ':')"/>
-								</xsl:attribute>
-							</a>
-							<xsl:value-of select="key('attr', substring-after(@itemref, ':'))/core:displayName"/>
+						    <!-- displayName -->
+                            <xsl:apply-templates select = "@itemref" mode="derefDisplayName"/>
 						</td>
 						<td>
-							<xsl:value-of select="substring-after(@itemref, ':')"/>
+						    <!-- itemName -->
+						    <xsl:apply-templates select = "." mode="derefHref"/>
+							
 						</td>
 						<td>
-							<xsl:value-of select="key('attr', substring-after(@itemref, ':'))/core:cardinality"/>
+						    <!-- cardinality -->
+						          <xsl:apply-templates select = "@itemref" mode="derefChild">
+						             <xsl:with-param name="child" select="'cardinality'" />
+						          </xsl:apply-templates>
 						</td>
-						<!-- The itemref should be dereferenced, haven't dealt with this yet-->
 						<td>
-							<xsl:value-of select="key('attr', substring-after(@itemref, ':'))/core:type/@itemref"/>
+						    <!-- type -->
+                            <xsl:apply-templates select = "@itemref" mode="doubleDerefHref">
+                               <xsl:with-param name="child" select="'type'" />
+                            </xsl:apply-templates>
+						    <xsl:text> (</xsl:text>
+						    <xsl:apply-templates select = "@itemref" mode="getTypeSchema"/>
+						    <xsl:text>)</xsl:text>
 						</td>
+						<td>
+							<!-- inverseAttribute -->
+                            <xsl:apply-templates select = "@itemref" mode="doubleDerefHref">
+                               <xsl:with-param name="child" select="'inverseAttribute'" />
+                            </xsl:apply-templates>
+                        </td>
 						<td>
 							<!-- required -->
 						</td>
@@ -101,51 +155,46 @@
 							<!-- defaultValue -->
 						</td>
 						<td>
-							<!-- inheritFrom -->
-						</td>
-						<td>
-							<!-- superAttribute -->
-						</td>
-						<td>
 							<!-- hidden -->
-						</td>
-						<td>
-							<!-- derivationNotes -->
-						</td>
-						<td>
-							<!-- inverseAttribute -->
-							<xsl:value-of select="key('attr', substring-after(@itemref, ':'))/core:inverseAttribute/@itemref"/>
-						</td>
-						<td>
-							<!-- description -->
-						</td>
-						<td>
-							<!-- examples -->
-						</td>
-						<td>
-							<!-- issues -->
 						</td>
 					</tr>
 				</xsl:for-each>
 			</tbody>
 		</table>
 	</xsl:template>
-	<xsl:template name="tableHeader">
-		<tr>
-			<td class="tableHeaderCell">displayName</td>
-			<td class="tableHeaderCell">itemName</td>
-			<td class="tableHeaderCell">cardinality</td>
-			<td class="tableHeaderCell">type</td>
-			<td class="tableHeaderCell">required</td>
-			<td class="tableHeaderCell">defaultValue</td>
-			<td class="tableHeaderCell">inheritFrom</td>
-			<td class="tableHeaderCell">superAttribute</td>
-			<td class="tableHeaderCell">hidden</td>
-			<td class="tableHeaderCell">derivationNotes</td>
-			<td class="tableHeaderCell">inverseAttribute</td>
-			<td class="tableHeaderCell">description</td>
-			<td class="tableHeaderCell">examples</td>
-			<td class="tableHeaderCell">issues</td>
-		</tr>
-	</xsl:template>
+	
+   <xsl:template match="@itemref" mode="getTypeSchema">
+      <xsl:variable name="ref">
+         <xsl:apply-templates select="." mode="quickRef" />
+      </xsl:variable>
+      <xsl:variable name="relpath">
+         <xsl:apply-templates select="." mode="quickRelpath" />
+      </xsl:variable>
+      <xsl:choose>
+         <xsl:when test="$relpath=''">
+            <xsl:apply-templates select="/core:Parcel/*[@itemName=$ref]/core:type/@itemref" mode="getSchema"/>
+         </xsl:when>
+         <xsl:otherwise>
+            <xsl:variable name="otherdoc" select="document(concat($relpath, $constants.parcelFileName), /)" />
+            <xsl:apply-templates select="$otherdoc/core:Parcel/*[@itemName=$ref]/core:type/@itemref" mode="getSchema"/>
+         </xsl:otherwise>
+      </xsl:choose>
+   </xsl:template>
+   
+   <xsl:template match="@itemref" mode="getSchema">
+      <xsl:variable name="relpath">
+         <xsl:apply-templates select="." mode="quickRelpath" />
+      </xsl:variable>
+      <xsl:choose>
+         <xsl:when test="$relpath=''">
+            <xsl:value-of select="/core:Parcel/core:displayName"/>
+         </xsl:when>
+         <xsl:otherwise>
+            <xsl:variable name="otherdoc" select="document(concat($relpath, $constants.parcelFileName), /)" />
+            <xsl:value-of select="$otherdoc/core:Parcel/core:displayName" />
+         </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of select="./core:Parcel/core:displayName"/>
+   </xsl:template>   
+   
 </xsl:stylesheet>

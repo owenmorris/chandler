@@ -7,7 +7,7 @@
     <xsl:include href="includes/helperFunctions.xsl"/>
     <xsl:include href="includes/constants.xsl"/>
 
-    <xsl:variable name="pagetype" select="'Attribute'"/>
+    <xsl:variable name="pagetype" select="'Type'"/>
     <xsl:variable name="filename" select="concat($pagetype, 's.html')"/>
     <xsl:variable name="title" select="concat($pagetype, 's')"/>
     
@@ -59,20 +59,20 @@
 						<xsl:value-of select="core:author"/>
 					</li>
 				</ul>
-				<xsl:apply-templates select="core:Attribute"/>
+				<xsl:apply-templates select="core:Type"/>
 			</body>
 		</html>
 	</xsl:template>
-	<xsl:template match="core:Attribute">
+	<xsl:template match="core:Type">
 		<hr/>
 		<h2>
             <xsl:apply-templates select="." mode="getHrefAnchor">
                <xsl:with-param name="text" select="'#'"/>
             </xsl:apply-templates>
             <xsl:apply-templates select = "." mode="getNameAnchor"/>
-            <xsl:if test = "core:superAttribute">
+            <xsl:if test = "core:superKinds">
                <xsl:text> &lt;= </xsl:text>
-               <xsl:apply-templates select="core:superAttribute" mode="derefHref"/>
+               <xsl:apply-templates select="core:superKinds" mode="derefHref"/>
             </xsl:if>
 			<br/>
 		</h2>

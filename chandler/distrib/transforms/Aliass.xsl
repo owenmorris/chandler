@@ -1,3 +1,4 @@
+
 <xsl:stylesheet version="1.0"
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
      xmlns:core="//Schema/Core">
@@ -7,9 +8,10 @@
     <xsl:include href="includes/helperFunctions.xsl"/>
     <xsl:include href="includes/constants.xsl"/>
 
-    <xsl:variable name="pagetype" select="'Attribute'"/>
+    <xsl:variable name="pagetype" select="'Alias'"/>
     <xsl:variable name="filename" select="concat($pagetype, 's.html')"/>
-    <xsl:variable name="title" select="concat($pagetype, 's')"/>
+    <!-- Just to make the title look nice, title is different for Alias-->
+    <xsl:variable name="title" select="concat($pagetype, 'es')"/>
     
     <xsl:variable name = "coreRelpath">
        <xsl:call-template name="createRelativePath">
@@ -59,20 +61,20 @@
 						<xsl:value-of select="core:author"/>
 					</li>
 				</ul>
-				<xsl:apply-templates select="core:Attribute"/>
+				<xsl:apply-templates select="core:Alias"/>
 			</body>
 		</html>
 	</xsl:template>
-	<xsl:template match="core:Attribute">
+	<xsl:template match="core:Alias">
 		<hr/>
 		<h2>
             <xsl:apply-templates select="." mode="getHrefAnchor">
                <xsl:with-param name="text" select="'#'"/>
             </xsl:apply-templates>
             <xsl:apply-templates select = "." mode="getNameAnchor"/>
-            <xsl:if test = "core:superAttribute">
+            <xsl:if test = "core:superKinds">
                <xsl:text> &lt;= </xsl:text>
-               <xsl:apply-templates select="core:superAttribute" mode="derefHref"/>
+               <xsl:apply-templates select="core:superKinds" mode="derefHref"/>
             </xsl:if>
 			<br/>
 		</h2>
