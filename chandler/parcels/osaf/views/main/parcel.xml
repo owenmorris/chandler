@@ -63,7 +63,6 @@
     <items itemref="content:untitledItemCollection"/>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <copyItems>True</copyItems>
   </ModifyContentsEvent>
 
   <KindParameterizedEvent itsName="NewMailMessage">

@@ -277,8 +277,17 @@
 
     <Attribute itsName="copyItems">
       <type itemref="Boolean"/>
-      <initialValue type="Boolean">False</initialValue>
+      <initialValue type="Boolean">True</initialValue>
     </Attribute>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="items">
+            <attribute value="items"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:ModifyContentsEvent/DefaultCloud/items"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:ModifyContentsEvent/DefaultCloud"/>
   </Kind>
 
   <Attribute itsName="eventsForNamedDispatch">
