@@ -48,8 +48,8 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         """
           Shuts down the WakeupCaller and unregisters all WakeupCall Items
         """
-        self.threadPool.stop()
         reactor.callFromThread(self.execInView, self.__shutdown)
+        self.threadPool.stop()
 
     def refresh(self):
         """
