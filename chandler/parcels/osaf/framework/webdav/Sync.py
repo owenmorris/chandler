@@ -1,16 +1,17 @@
 import davlib
 import libxml2
 
-import application.Globals as Globals
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 
+import application.Globals
+
 import Dav
-import DAVItem as DAVItem
+import DAVItem
 
 import logging
 log = logging.getLogger('sharing')
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 def syncItem(dav, item):
     # changes flags
@@ -105,17 +106,21 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
         if value:
             serverList.append(value)
 
-    log.debug('Merging List: %s in %s' % (attrName, str(item)))
-    # for now, just sync with whatever the server gave us
-    for i in serverList:
-        if i not in list:
-            item.addValue(attrName, i)
-            log.debug('adding %s to list %s' % (i, item))
-    for i in list:
-        if i not in serverList:
-            item.removeValue(attrName, i)
-            log.debug('removing %s from list %s' % (i, item))
 
+    try:
+        log.info('Merging List: %s in %s' % (attrName, str(item)))
+        # for now, just sync with whatever the server gave us
+        for i in serverList:
+            if i not in list:
+                item.addValue(attrName, i)
+                log.info('adding %s to list %s' % (i, item))
+        for i in list:
+            if i not in serverList:
+                item.removeValue(attrName, i)
+                log.info('removing %s from list %s' % (i, item))
+    except Exception, e:
+        log.exception(e)
+            
 
 
 def makePropString(name, namespace, value):
@@ -325,7 +330,7 @@ def syncFromServer(item, davItem):
 
 
 def getItem(dav):
-    repository = Globals.repository
+    repository = application.Globals.repository
 
     # Fetch the headers (uuid, kind, etag, lastmodified) from the WebDAV server.
     davItem = DAVItem.DAVItem(dav, True)
