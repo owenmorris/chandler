@@ -109,8 +109,8 @@ class ItemValuesDialog(wx.Dialog):
              self.chandlerTextControls[i].GetValue())
             i += 1
 
-# A simple "prompt-the-user-for-a-string" dialog
 
+# A simple "prompt-the-user-for-a-string" dialog
 
 def promptUser(frame, title, message, value):
     """ Prompt the user to enter in a string.  Return None if cancel is hit.
@@ -173,8 +173,8 @@ class promptUserDialog(wx.Dialog):
 
         sizer.AddSizer(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
-        line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+        # line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        # sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -185,7 +185,7 @@ class promptUserDialog(wx.Dialog):
         btn = wx.Button(self, wx.ID_CANCEL, " Cancel ")
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
@@ -197,3 +197,67 @@ class promptUserDialog(wx.Dialog):
 
     def GetValue(self):
         return self.textControl.GetValue()
+
+
+# A simple "yes/no" dialog
+
+def promptYesNo(frame, title, message):
+    """ Prompt the user with a Yes/No dialog.  Return True if Yes, False if No.
+        @param frame: A wx parent frame
+        @type frame: wx frame
+        @param title: The title string for the dialog
+        @type title: String
+        @param message:  A message prompting the user for input
+        @type item:  String
+
+    """
+    win = yesNoDialog(frame, -1, title, message)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+
+    if val == wx.ID_OK:
+        value = True
+    else:
+        value = False
+
+    win.Destroy()
+    return value
+
+class yesNoDialog(wx.Dialog):
+    def __init__(self, parent, ID, title, message,
+     size=wx.DefaultSize, pos=wx.DefaultPosition,
+     style=wx.DEFAULT_DIALOG_STYLE):
+
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        pre.Create(parent, ID, title, pos, size, style)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        label = wx.StaticText(self, -1, message, wx.DefaultPosition, [300,-1],
+         wx.ALIGN_CENTRE)
+        sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        btn = wx.Button(self, wx.ID_OK, " Yes ")
+        btn.SetDefault()
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_CANCEL, " No ")
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)

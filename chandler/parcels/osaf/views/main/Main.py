@@ -18,9 +18,9 @@ import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
-import osaf.framework.webdav.Dav
+import osaf.framework.sharing.Sharing
 
-EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+
 
 class MainView(View):
     """
@@ -57,15 +57,8 @@ class MainView(View):
         notification.data ['Enable'] = False
 
     def onSharingSubscribeToCollectionEvent(self, notification):
-        url =  application.dialogs.Util.promptUser( \
-         Globals.wxApplication.mainFrame, "Subscribe to Collection...",
-         "Collection URL:", "http://code-bear.com/dav/test_item_collection")
-        if url is not None:
-            collection = osaf.framework.webdav.Dav.DAV(url).get( )
-            event = Globals.parcelManager.lookup(EVENTS,
-             "NewItemCollectionItem")
-            event.Post({'collection':collection})
-            Globals.repository.commit()
+        # Triggered from "Tests | Subscribe to collection..."
+        osaf.framework.sharing.Sharing.manualSubscribeToCollection()
 
     def onEditAccountPreferencesEvent (self, notification):
         # Triggered from "File | Prefs | Accounts..."
