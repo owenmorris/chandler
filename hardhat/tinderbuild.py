@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # tinderbox build client script for continuously building a project and
 # reporting to a tinderbox server
 

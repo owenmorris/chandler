@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # build client script for building a project
 
 # must be run from the hardhat directory, which will be updated to the
