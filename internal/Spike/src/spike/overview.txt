@@ -474,16 +474,16 @@ In principle, you could also use::
 
 to iterate over the entire database, but in practice you'd use filters like::
 
-    for contact in ws[content.Contact]:
+    for contact in ws.where(content.Contact):
         print contact.fullName
 
 to iterate over a class extent.  This brings me to the question of the query
 interface.  There are several basic operations that need to be supported:
 
 Filtering
-    I'm thinking that this can be represented via subscripting, e.g.
-    ``someSet[criterion]``.  The criterion could be a type, a callable, a
-    filter object, or a string from which a filter definition can be parsed.
+    Filters can be invoked with the ``where()`` method on a set, or using
+    intersection (``&`` operator).  The criterion could be a type, a callable,
+    a filter object, or a string from which a filter definition can be parsed.
     For now, though, I'm punting on the question of what filter objects look
     like or what the string syntax is.  We'll just assume that filter objects
     will also be callable, so the only special cases are types and strings.
@@ -497,7 +497,7 @@ Indexing/Grouping
     a mapping-like object taking the same number of keys.  So if you did
     something like::
 
-        byName = ws[Contact].groupedBy(
+        byName = ws.where(Contact).groupedBy(
             Contact.lastName.of, Contact.firstName.of
         )
 
@@ -551,6 +551,13 @@ Joins
     in sets of tuples of entities, rather than sets of entities.  Anyway, this
     should probably be punted on for now, as there are no specific requirements
     yet.
+
+Misc.
+    There ought to be a way for filters to subscribe to items they're applied
+    to, so that they can inform the intersection when the corresponding object
+    changes.  This needs to work even in the case of a filter that's a union
+    or a negation.  And, it needs some thought in order to avoid over-creating
+    event subscriptions (at least for the in-memory implementation).
 
 
 Schema

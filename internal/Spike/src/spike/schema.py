@@ -3,12 +3,13 @@
 __all__ = [
    'Entity', 'Role', 'Relationship', 'One', 'Many', 'NullSet', 'LoadEvent',
    'Enumeration', 'Activator', 'RelationshipClass', 'EnumerationClass',
-   'ActiveDescriptor',
+   'ActiveDescriptor', 'EntityClass',
 ]
 
 from models import Set
 from events import Event
 from types import ClassType
+from query import AbstractFilter
 ClassTypes = type, ClassType
 
 NullSet = Set(type=())
@@ -403,10 +404,17 @@ class Activator(type):
                 ob.activateInClass(cls,name)
 
 
+class EntityClass(Activator,AbstractFilter):
+    """Filter support, so that entity classes can be used as query filters"""
+
+    def __contains__(cls,ob):
+        return isinstance(ob,cls)
+
+
 class Entity(object):
     """Required base class for all entity types"""
 
-    __metaclass__ = Activator
+    __metaclass__ = EntityClass
 
     def __init__(self,**kw):
         for k,v in kw.items():

@@ -1,11 +1,12 @@
 """Observable data structures -- see ``models.txt`` for docs"""
 
 from events import Event
+from query import AbstractFilter
 
 __all__ = ['Set', 'SetChanged', 'Validation']
 
 
-class Set(object):
+class Set(AbstractFilter):
     """Observable collection of unordered unique objects"""
 
     __slots__ = 'data','type','__weakref__'
@@ -109,6 +110,9 @@ class Set(object):
 
     def __iter__(self):
         return iter(self.data)
+
+    def __contains__(self,ob):
+        return ob in self.data
 
 
 class SetChanged(Event):
