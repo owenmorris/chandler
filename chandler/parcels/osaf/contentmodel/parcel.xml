@@ -393,26 +393,31 @@
       <Endpoint itsName="_inclusions">
         <attribute value="_inclusions"/>
         <includePolicy value="byCloud"/>
+        <cloudAlias value="default"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/_inclusions"/>
       <Endpoint itsName="_exclusions">
         <attribute value="_exclusions"/>
         <includePolicy value="byCloud"/>
+        <cloudAlias value="default"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/_exclusions"/>
       <Endpoint itsName="_filterKinds">
         <attribute value="_filterKinds"/>
         <includePolicy value="byCloud"/>
+        <cloudAlias value="default"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/_filterKinds"/>
       <Endpoint itsName="_results">
         <attribute value="_results"/>
         <includePolicy value="byCloud"/>
+        <cloudAlias value="default"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/_results"/>
       <Endpoint itsName="contentsOwner">
         <attribute value="contentsOwner"/>
         <includePolicy value="byCloud"/>
+        <cloudAlias value="default"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/contentsOwner"/>
       <Endpoint itsName="invitees">

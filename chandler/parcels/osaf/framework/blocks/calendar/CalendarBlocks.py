@@ -579,6 +579,7 @@ class wxMiniCalendar(wx.minical.wxMiniCalendar):
                             wx.minical.wxCAL_SHOW_SURROUNDING_WEEKS)
 
     def Destroy(self):
+        #super (wxMiniCalendar, self).Destroy()
         pass
         
     def OnWXSelectItem(self, event):

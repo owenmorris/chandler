@@ -1299,6 +1299,10 @@
   -->
   <Toolbar itsName="NavigationBar">
     <blockName>NavigationBar</blockName>
+    <childrenBlocks itemref="doc:ApplicationBarAllItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarMessageItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarEventItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarTaskItem"/>
     <childrenBlocks itemref="doc:SyncButton"/>
     <childrenBlocks itemref="doc:NewButton"/>
     <childrenBlocks itemref="doc:SendButton"/>
@@ -1337,9 +1341,7 @@
     <event itemref="events:SendShareItem"/>
   </ToolbarItem>
 
-  <!--
-    ApplicationBar
-  -->
+  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
   <Toolbar itsName="ApplicationBar">
     <blockName>ApplicationBar</blockName>
     <childrenBlocks itemref="doc:ApplicationBarAllItem"/>
@@ -1350,6 +1352,7 @@
     <separatorWidth>20</separatorWidth>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
+  -->
 
   <ToolbarItem itsName="ApplicationBarAllItem">
     <blockName>ApplicationBarAllItem</blockName>
@@ -1542,16 +1545,19 @@
   </View>
 
   <BoxContainer itsName="ToolbarContainer">
-    <childrenBlocks itemref="doc:ApplicationBarContainer"/>
+    <childrenBlocks itemref="doc:NavigationBar"/>
     <childrenBlocks itemref="doc:SidebarContainerContainer"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
+
+  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
 
   <BoxContainer itsName="ApplicationBarContainer">
     <childrenBlocks itemref="doc:ApplicationBar"/>
     <childrenBlocks itemref="doc:NavigationBar"/>
     <stretchFactor>0</stretchFactor>
   </BoxContainer>
+  -->
 
   <BoxContainer itsName="SidebarContainerContainer">
     <childrenBlocks itemref="doc:SidebarContainer"/>
@@ -1569,6 +1575,7 @@
   <Sidebar itsName="Sidebar">
     <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
+    <selectedItemToView itemref="doc:allItemCollection"/>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>

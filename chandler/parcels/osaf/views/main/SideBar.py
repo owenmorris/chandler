@@ -53,6 +53,31 @@ class Sidebar (ControlBlocks.Table):
 
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
+    def _mapItemToCacheKey(self, item):
+        key = item
+        if isinstance (item, ItemCollection.ItemCollection):
+            filterKind = Block.Block.findBlockByName ("Sidebar").filterKind
+            if not filterKind is None:
+                tupleKey = (item.itsUUID, filterKind.itsUUID)
+                try:
+                    key = self.itemTupleKeyToCacheKey [tupleKey]
+                except KeyError:
+                    """
+                      We need to make a new filtered item collection that depends
+                      upon the unfiltered collection. Unfortunately, making a new
+                      ItemCollection with a rule whose results include all items
+                      in the original ItemCollection has a problem: when the results
+                      in the unfiltered ItemCollection change we don't get notified.
+
+                      Alternatively we make a copy of the ItemCollection (and it's
+                      rule) which has another problem: When the rule in the original
+                      ItemCollection change we don't update our copied rule.                      
+                    """
+                    key = item.copy (parent = self.findPath('//userdata'), cloudAlias="default")
+                    key.addFilterKind (filterKind)
+                    self.itemTupleKeyToCacheKey [tupleKey] = key
+        return key
+
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")

@@ -122,7 +122,7 @@
   </Attribute>
     
   <Attribute itsName="selection">
-    <type itemref="SingleRef"/>
+    <type itemref="Item"/>
     <initialValue itemref="None"/>
   </Attribute>
 
@@ -260,7 +260,7 @@
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itsName="items">
-      <type itemref="SingleRef"/>
+      <type itemref="Item"/>
       <cardinality>list</cardinality>
       <initialValue />
     </Attribute>
@@ -865,7 +865,7 @@
     </Attribute>
     
     <Attribute itsName="selectedItemToView">
-      <type itemref="SingleRef"/>
+      <type itemref="Item"/>
       <initialValue itemref="None"/>
     </Attribute>
     
@@ -883,6 +883,16 @@
     <attributes itemref="docSchema:Table/selection"/>
     <attributes itemref="docSchema:Table/selectedItemToView"/>
     <attributes itemref="docSchema:Table/hideColumnHeadings"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="selectedItemToView">
+            <attribute value="selectedItemToView"/>
+            <includePolicy value="byCloud"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Table/DefaultCloud/selectedItemToView"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:Table/DefaultCloud"/>
+
   </Kind>  
 
   <!--
@@ -1205,26 +1215,6 @@
     <clouds alias="default" itemref="docSchema:ToolbarItem/DefaultCloud"/>
   </Kind>
 
-  <Kind itsName="SidebarTrunkDelegate">
-    <classes key="python">osaf.views.main.SideBar.SidebarTrunkDelegate</classes>
-    <superKinds itemref="docSchema:TrunkDelegate"/>
-
-    <Attribute itsName="tableTemplatePath">
-      <type itemref="String"/>
-    </Attribute>
-    <Attribute itsName="calendarTemplatePath">
-      <type itemref="String"/>
-    </Attribute>
-  </Kind>
-
-  <Kind itsName="CPIATestSidebarTrunkDelegate">
-    <classes key="python">osaf.views.main.SideBar.CPIATestSidebarTrunkDelegate</classes>
-    <superKinds itemref="docSchema:TrunkDelegate"/>
-
-    <Attribute itsName="templatePath">
-      <type itemref="String"/>
-    </Attribute>  </Kind>
-
   <Kind itsName="Sidebar">
     <classes key="python">osaf.views.main.SideBar.Sidebar</classes>
     <superKinds itemref="docSchema:Table"/>
@@ -1242,6 +1232,44 @@
         <endpoints itemref="docSchema:Sidebar/DefaultCloud/filterKind"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:Sidebar/DefaultCloud"/>
+  </Kind>
+
+  <Kind itsName="SidebarTrunkDelegate">
+    <classes key="python">osaf.views.main.SideBar.SidebarTrunkDelegate</classes>
+    <superKinds itemref="docSchema:TrunkDelegate"/>
+
+    <Attribute itsName="tableTemplatePath">
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itsName="calendarTemplatePath">
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itsName="itemTupleKeyToCacheKey">
+      <type itemref="Item"/>
+      <cardinality>dict</cardinality>
+      <initialValue/>
+    </Attribute>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="itemTupleKeyToCacheKey">
+            <attribute value="itemTupleKeyToCacheKey"/>
+            <includePolicy value="byRef"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:SidebarTrunkDelegate/DefaultCloud/itemTupleKeyToCacheKey"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:SidebarTrunkDelegate/DefaultCloud"/>
+  </Kind>
+
+  <Kind itsName="CPIATestSidebarTrunkDelegate">
+    <classes key="python">osaf.views.main.SideBar.CPIATestSidebarTrunkDelegate</classes>
+    <superKinds itemref="docSchema:TrunkDelegate"/>
+
+    <Attribute itsName="templatePath">
+      <type itemref="String"/>
+    </Attribute>
   </Kind>
 
   <!-- Item Detail Block  -->

@@ -432,22 +432,25 @@ class Block(Item):
             try:
                 member = getattr (type(block), methodName)
             except AttributeError:
-                return False
-            """
-              Comment in this code to see which events are dispatched -- DJA
-              ... to which blocks -- BJS
-
-            print "Calling %s.%s" % (block.itsPath, methodName)
-            """
-            member (block, event)
-            return True
+                result = False
+            else:
+                """
+                  Comment in this code to see which events are dispatched -- DJA
+                  ... to which blocks -- BJS
+    
+                print "Calling %s.%s" % (block.itsPath, methodName)
+                """
+                result = member (block, event)
+                if result is None:
+                    result = True
+            return result
         
         def bubbleUpCallMethod (block, methodName, event):
             """
               Call a method on a block or if it doesn't handle it try it's parents
             """
             while (block):
-                if  callMethod (block, methodName, event):
+                if callMethod (block, methodName, event):
                     break
                 block = block.parentBlock
         

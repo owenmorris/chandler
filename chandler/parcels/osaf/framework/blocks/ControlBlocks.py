@@ -860,7 +860,6 @@ class Table (RectangularChild):
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
-            self.postEventByName("SelectItemBroadcast", {'item':item})
 
     def onDeleteEvent (self, event):
         self.widget.DeleteSelection()
