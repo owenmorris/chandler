@@ -51,6 +51,71 @@ class BoxContainer (RectangularChild):
         return widget
 
 
+class wxChoiceContainer(wxBoxContainer):
+    def __init__(self, *arguments, **keywords):
+        super (wxChoiceContainer, self).__init__ (*arguments, **keywords)
+            
+    def wxSynchronizeWidget(self, *arguments, **keywords):
+        from DynamicContainerBlocks import Toolbar as Toolbar
+        selectedChoice = self._getSelectedChoice()
+        if selectedChoice != self.blockItem.selection:
+            for childBlock in self.blockItem.childrenBlocks:
+                if not isinstance(childBlock, Toolbar):
+                    childBlock.parentBlock = None
+                    if hasattr(childBlock, 'widget'):
+                        childBlock.widget.Destroy()
+            super(wxChoiceContainer, self).wxSynchronizeWidget(*arguments, **keywords)
+
+            try: # @@@ Until all the views have the necessary choices
+                choice = self.blockItem.choices[selectedChoice]
+            except IndexError:
+                choice = self.blockItem.choices[0]
+            self.blockItem.selection = selectedChoice
+            sizer = self.GetSizer()
+            choice.parentBlock = self.blockItem
+            choice.render()
+            sizer.Add(choice.widget,
+                      choice.stretchFactor,
+                      wxRectangularChild.CalculateWXFlag(choice),
+                      wxRectangularChild.CalculateWXBorder(choice))
+            self.Layout()    
+
+    def _getSelectedChoice(self):
+        from DynamicContainerBlocks import Toolbar as Toolbar
+        index = 0
+        for childBlock in self.blockItem.childrenBlocks:
+            if isinstance(childBlock, Toolbar):
+                for toolbarItem in childBlock.widget.toolItemList:
+                    if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
+                        return index
+                    index += 1
+        assert true, "There should always be something selected"
+        return 0
+            
+
+class ChoiceContainer(BoxContainer):
+    def instantiateWidget (self):
+        self.selection = -1
+        if self.orientationEnum == 'Horizontal':
+            orientation = wx.HORIZONTAL
+        else:
+            orientation = wx.VERTICAL
+
+        sizer = wx.BoxSizer(orientation)
+        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
+        parentWidget = self.parentBlock.widget 
+        widget = wxChoiceContainer(parentWidget, Block.getWidgetID(self))
+        widget.SetSizer (sizer)
+
+        return widget
+
+    def onButtonPressed(self, notification):
+        try:
+            self.widget.wxSynchronizeWidget()    
+        except AttributeError:
+            pass
+
+
 class EmbeddedContainer(RectangularChild):
     def instantiateWidget (self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -86,27 +151,6 @@ class EmbeddedContainer(RectangularChild):
                     
                     embeddedSizer.Layout()
 
-    def RegisterEvents(self, block):
-        try:
-            events = block.blockEvents
-        except AttributeError:
-            return
-        #self.currentId = UUID()
-        #Globals.notificationManager.Subscribe(events, 
-                                              #self.currentId, 
-                                              #Globals.mainView.dispatchEvent)
- 
-    def UnregisterEvents(self, oldBlock):
-        try:
-            events = oldBlock.blockEvents
-        except AttributeError:
-            return
-        #try:
-            #id = self.currentId
-        #except AttributeError:
-            #return # If we haven't registered yet
-        #Globals.notificationManager.Unsubscribe(id)
- 
         
 class wxSplitterWindow(wx.SplitterWindow):
 

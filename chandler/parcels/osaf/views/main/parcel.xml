@@ -621,9 +621,6 @@
     <inclusions uuidOf="content:ContactListView"/>
     <inclusions uuidOf="content:JunkListView"/>
     <inclusions uuidOf="content:TrashListView"/>
-    <inclusions uuidOf="content:MonthView"/>
-    <inclusions uuidOf="content:WeekView"/>
-    <inclusions uuidOf="content:DayView"/>    
   </contentModel:NamedCollection>
 
   <Table itsName="SidebarTree">

@@ -560,6 +560,21 @@
   </Kind>
 
   <!--
+    ChoiceContainer
+  -->
+  <Kind itsName="ChoiceContainer">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.ChoiceContainer</classes>
+    <superKinds itemref="docSchema:BoxContainer"/>
+    
+    <Attribute itsName="choices">
+      <type itemref="docSchema:Block"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <attributes itemref="docSchema:ChoiceContainer/choices"/>
+  </Kind>
+
+  <!--
     ComboBox
   -->
   <Kind itsName="ComboBox">
