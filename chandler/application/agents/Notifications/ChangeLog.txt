@@ -25,3 +25,10 @@
 
     * initial checkin of the Notification Manager, written by Andrew Francis
     <andrewfr_ice@yahoo.com>
+
+2003-07-29 Andy Hertzfeld <andy@differnet.com>
+
+    * fixed the end-of-line characters in NotificationManager.py, as reported
+      by John Anderson
+      
+  
