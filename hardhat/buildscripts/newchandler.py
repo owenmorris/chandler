@@ -272,7 +272,7 @@ def doInstall(buildmode, workingDir, log):
 
 
 def forceBuildNextCycle(log, workingDir):
-    doRealclean(log)
+    doRealclean(log, workingDir)
     # We trigger build for next cycle by removing /chandler/Makefile,
     # which will be noticed as an 'update' in the beginning of next
     # cycle which will cause doInstall etc. to be called.
