@@ -9,7 +9,9 @@ import model.item.Item
 
 from model.util.UUID import UUID
 from model.util.Path import Path
+from model.util.PersistentCollection import PersistentCollection
 from model.util.PersistentList import PersistentList
+from model.util.PersistentDict import PersistentDict
 
 from ItemRef import Values, References, RefArgs
 
@@ -90,7 +92,7 @@ class ItemHandler(xml.sax.ContentHandler):
         typeName = self.getTypeName(attribute, attrs)
         
         if cardinality == 'dict' or typeName == 'dict':
-            self.collections.append({})
+            self.collections.append(PersistentDict(None))
         elif cardinality == 'list' or typeName == 'list':
             self.collections.append(PersistentList(None))
         else:
@@ -166,7 +168,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.repository._registerItem(item)
 
         for value in self.values.itervalues():
-            if isinstance(value, PersistentList):
+            if isinstance(value, PersistentCollection):
                 value._setItem(item)
 
         for refArgs in self.refs:
@@ -319,9 +321,9 @@ class ItemHandler(xml.sax.ContentHandler):
 
         typeName = attrs.get('type')
         if typeName == 'dict':
-            self.collections.append({})
+            self.collections.append(PersistentDict(None))
         elif typeName == 'list':
-            self.collections.append([])
+            self.collections.append(PersistentList(None))
         else:
             self.setupTypeDelegate(attrs)
 
@@ -496,6 +498,10 @@ class ItemHandler(xml.sax.ContentHandler):
             return 'uuid'
         elif isinstance(value, Path):
             return 'path'
+        elif isinstance(value, PersistentList):
+            return 'list'
+        elif isinstance(value, PersistentDict):
+            return 'dict'
         else:
             return type(value).__name__
 
@@ -545,8 +551,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if withSchema or attrType is None or attrCard != 'single':
             if isinstance(value, dict):
-                for val in value.iteritems():
-                    cls.xmlValue(val[0], val[1], 'value', attrType, 'single',
+                for key, val in value.iteritems():
+                    cls.xmlValue(key, val, 'value', attrType, 'single',
                                  generator, withSchema)
             elif isinstance(value, list):
                 for val in value:

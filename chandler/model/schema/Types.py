@@ -10,6 +10,7 @@ from model.item.Item import Item
 from model.item.ItemHandler import ItemHandler
 from model.item.ItemRef import RefDict
 from model.util.PersistentList import PersistentList
+from model.util.PersistentDict import PersistentDict
 from Kind import Kind
 
 
@@ -400,25 +401,27 @@ class Collection(Type):
 class Dictionary(Collection):
 
     def recognizes(self, value):
-        return type(value) is dict
+
+        return isinstance(value, dict)
 
     def typeXML(self, value, generator):
 
         generator.startElement('values', {})
-        for val in value.iteritems():
-            ItemHandler.xmlValue(val[0], val[1], 'value', None, 'single',
+        for key, val in value.iteritems():
+            ItemHandler.xmlValue(key, val, 'value', None, 'single',
                                  generator, False)
         generator.endElement('values')
 
     def _empty(self):
 
-        return {}
+        return PersistentDict(None)
 
 
 class List(Collection):
 
     def recognizes(self, value):
-        return isinstance(value, PersistentList)
+
+        return isinstance(value, list)
 
     def typeXML(self, value, generator):
 

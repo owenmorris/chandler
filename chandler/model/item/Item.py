@@ -15,6 +15,7 @@ from model.util.UUID import UUID
 from model.util.Path import Path
 from model.util.LinkedMap import LinkedMap
 from model.util.PersistentList import PersistentList
+from model.util.PersistentDict import PersistentDict
 
 
 class Item(object):
@@ -393,7 +394,7 @@ class Item(object):
                 if isItem:
                     attrValue = self._refDict(attribute)
                 else:
-                    _attrDict[attribute] = { key: value }
+                    _attrDict[attribute] = PersistentDict(self, key=value)
                     return
 
             elif card == 'list':

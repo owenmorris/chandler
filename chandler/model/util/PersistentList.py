@@ -5,15 +5,16 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-class PersistentList(list):
+from model.util.PersistentCollection import PersistentCollection
+
+
+class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
 
     def __init__(self, item, *args):
 
-        super(PersistentList, self).__init__()
-
-        self._dirty = False
-        self._item = item
+        list.__init__(self)
+        PersistentCollection.__init__(self, item)
 
         if args:
             self.extend(args)
@@ -100,3 +101,8 @@ class PersistentList(list):
 
         super(PersistentList, self).extend(value)
         self._setDirty()
+
+    def itervalues(self):
+
+        return self.__iter__()
+
