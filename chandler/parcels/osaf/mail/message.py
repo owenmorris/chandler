@@ -8,7 +8,43 @@ import mx.DateTime as DateTime
 import email as email
 import email.Message as Message
 import email.Utils as Utils
+import re as re
 
+def isValidEmailAddress(emailAddress):
+    """
+    This method tests an email address for valid syntax as defined RFC 822
+    ***Warning*** This method  will return False if Name and Address is past 
+    i.e. John Jones <john@jones.com>. The method only validates against the actual
+    email address i.e. john@jones.com
+
+    @param emailAddress: A string containing a email address to validate. Please see ***Warning*** for more 
+                         details
+    @type addr: C{String}
+    @return: C{Boolean}
+    """
+
+    if hasValue(emailAddress) and len(emailAddress.strip()) > 3:
+        if re.match("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}", emailAddress) is not None:
+            return True
+    return False
+
+
+def hasValue(value):
+    """
+    This method determines if a String has one or more non-whitespace characters.
+    This is useful in checking that a Subject or To address field was filled in with
+    a useable value
+
+    @param value: The String value to check against. The value can be None
+    @type value: C{String}
+    @return: C{Boolean}
+    """
+    if value is not None:
+        test = value.strip()
+        if len(test) > 0:
+            return True
+
+    return False
 
 # XXX: Relook at this logic
 def format_addr(addr):
