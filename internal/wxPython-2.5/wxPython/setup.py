@@ -66,6 +66,20 @@ CLEANUP.append('wx/__version__.py')
 
 
 #----------------------------------------------------------------------
+# patch distutils if it can't cope with the "classifiers" or
+# "download_url" keywords 
+#----------------------------------------------------------------------
+
+if sys.version < '2.2.3': 
+    from distutils.dist import DistributionMetadata 
+    DistributionMetadata.classifiers = None 
+    DistributionMetadata.download_url = None
+    depends = {}
+else:
+    depends = {'depends' : depends}
+    
+
+#----------------------------------------------------------------------
 # Define the CORE extension module
 #----------------------------------------------------------------------
 
@@ -83,6 +97,7 @@ swig_sources = run_swig(['core.i'], 'src', GENDIR, PKGDIR,
                           'src/_defs.i',
                           'src/_event.i',
                           'src/_event_ex.py',
+                          'src/_evtloop.i',
                           'src/_evthandler.i',
                           'src/_filesys.i',
                           'src/_gdicmn.i',
@@ -134,7 +149,7 @@ ext = Extension('_core_', ['src/helpers.cpp',
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
 
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -171,7 +186,7 @@ ext = Extension('_gdi_', ['src/drawlist.cpp'] + swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -207,7 +222,7 @@ ext = Extension('_windows_', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -249,7 +264,7 @@ ext = Extension('_controls_', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -287,7 +302,7 @@ ext = Extension('_misc_', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -306,7 +321,7 @@ ext = Extension('_calendar', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -320,7 +335,7 @@ ext = Extension('_grid', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -335,7 +350,22 @@ ext = Extension('_html', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
+                )
+wxpExtensions.append(ext)
+
+
+
+swig_sources = run_swig(['webkit.i'], 'src', GENDIR, PKGDIR,
+                        USE_SWIG, swig_force, swig_args, swig_deps)
+ext = Extension('_webkit', swig_sources,
+                include_dirs =  includes,
+                define_macros = defines,
+                library_dirs = libdirs,
+                libraries = libs,
+                extra_compile_args = cflags,
+                extra_link_args = lflags,
+                **depends
                 )
 wxpExtensions.append(ext)
 
@@ -350,7 +380,32 @@ ext = Extension('_wizard', swig_sources,
                 libraries = libs,
                 extra_compile_args = cflags,
                 extra_link_args = lflags,
-                depends = depends
+                **depends
+                )
+wxpExtensions.append(ext)
+
+
+
+swig_sources = run_swig(['xrc.i'], 'src', GENDIR, PKGDIR,
+                        USE_SWIG, swig_force, swig_args, swig_deps +
+                        [ 'src/_xrc_rename.i',
+                          'src/_xrc_ex.py',
+                          'src/_xmlres.i',
+                          'src/_xmlsub.i',
+                          'src/_xml.i',
+                          'src/_xmlhandler.i',
+                          ])
+ext = Extension('_xrc',
+                swig_sources,
+
+                include_dirs =  includes + CONTRIBS_INC,
+                define_macros = defines,
+
+                library_dirs = libdirs,
+                libraries = libs,
+
+                extra_compile_args = cflags,
+                extra_link_args = lflags,
                 )
 wxpExtensions.append(ext)
 
@@ -432,10 +487,10 @@ if BUILD_OGL:
 if BUILD_STC:
     msg('Preparing STC...')
     location = 'contrib/stc'
-    if os.name == 'nt':
-        STC_H = opj(WXDIR, 'contrib', 'include/wx/stc')
-    else:
-        STC_H = opj(WXPREFIX, 'include/wx-%d.%d/wx/stc' % (VER_MAJOR, VER_MINOR))
+    #if os.name == 'nt':
+    STC_H = opj(WXDIR, 'contrib', 'include/wx/stc')
+    #else:
+    #    STC_H = opj(WXPREFIX, 'include/wx-%d.%d/wx/stc' % (VER_MAJOR, VER_MINOR))
 
 ## NOTE: need to add something like this to the stc.bkl...
 
@@ -540,41 +595,6 @@ if BUILD_ACTIVEX:
 
 
 #----------------------------------------------------------------------
-# Define the XRC extension module
-#----------------------------------------------------------------------
-
-if BUILD_XRC:
-    msg('Preparing XRC...')
-    location = 'contrib/xrc'
-
-    swig_sources = run_swig(['xrc.i'], location, GENDIR, PKGDIR,
-                            USE_SWIG, swig_force, swig_args, swig_deps +
-                            [ '%s/_xrc_rename.i' % location,
-                              '%s/_xrc_ex.py' % location,
-                              '%s/_xmlres.i' % location,
-                              '%s/_xmlsub.i' % location,
-                              '%s/_xml.i' % location,
-                              '%s/_xmlhandler.i' % location,
-                              ])
-
-    ext = Extension('_xrc',
-                    swig_sources,
-
-                    include_dirs =  includes + CONTRIBS_INC,
-                    define_macros = defines,
-
-                    library_dirs = libdirs,
-                    libraries = libs + makeLibName('xrc'),
-
-                    extra_compile_args = cflags,
-                    extra_link_args = lflags,
-                    )
-
-    wxpExtensions.append(ext)
-
-
-
-#----------------------------------------------------------------------
 # Define the GIZMOS  extension module
 #----------------------------------------------------------------------
 
@@ -636,7 +656,7 @@ if BUILD_DLLWIDGET:
 
 
 
-
+    
 #----------------------------------------------------------------------
 # Tools, scripts data files, etc.
 #----------------------------------------------------------------------
@@ -646,16 +666,18 @@ if NO_SCRIPTS:
 else:
     SCRIPTS = [opj('scripts/helpviewer'),
                opj('scripts/img2png'),
-               opj('scripts/img2xpm'),
                opj('scripts/img2py'),
-               opj('scripts/xrced'),
-               opj('scripts/pyshell'),
-               opj('scripts/pycrust'),
-               opj('scripts/pywrap'),
-               opj('scripts/pywrap'),
+               opj('scripts/img2xpm'),
                opj('scripts/pyalacarte'),
                opj('scripts/pyalamode'),
+               opj('scripts/pycrust'),
+               opj('scripts/pyshell'),
+               opj('scripts/pywrap'),
+               opj('scripts/pywrap'),
+               opj('scripts/pywxrc'),
+               opj('scripts/xrced'),
                ]
+
 
 
 DATA_FILES += find_data_files('wx/tools/XRCed', '*.txt', '*.xrc')
@@ -675,12 +697,23 @@ else:
               zip(i_files, ["/wxPython/i_files"]*len(i_files))
 
 
+
+if INSTALL_MULTIVERSION:
+    EXTRA_PATH = getExtraPath(addOpts=EP_ADD_OPTS)
+    open("src/wx.pth", "w").write(EXTRA_PATH)
+    CLEANUP.append("src/wx.pth")
+else:
+    EXTRA_PATH = None
+       
+
+
 #----------------------------------------------------------------------
 # Do the Setup/Build/Install/Whatever
 #----------------------------------------------------------------------
 
 if __name__ == "__main__":
     if not PREP_ONLY:
+        
         setup(name             = 'wxPython',
               version          = VERSION,
               description      = DESCRIPTION,
@@ -715,6 +748,8 @@ if __name__ == "__main__":
                           'wx.tools.XRCed',
                           ],
 
+              extra_path = EXTRA_PATH,
+
               ext_package = PKGDIR,
               ext_modules = wxpExtensions,
 
@@ -725,12 +760,40 @@ if __name__ == "__main__":
               data_files = DATA_FILES,
               headers =    HEADERS,
 
-              cmdclass = { 'install_data':    wx_smart_install_data,
+              # Override some of the default distutils command classes with my own
+              cmdclass = { 'install' :        wx_install,
+                           'install_data':    wx_smart_install_data,
                            'install_headers': wx_install_headers,
                            'clean':           wx_extra_clean,
                            },
               )
 
 
+        if INSTALL_MULTIVERSION:
+            setup(name             = 'wxPython-common',
+                  version          = VERSION,
+                  description      = DESCRIPTION,
+                  long_description = LONG_DESCRIPTION,
+                  author           = AUTHOR,
+                  author_email     = AUTHOR_EMAIL,
+                  url              = URL,
+                  download_url     = DOWNLOAD_URL,
+                  license          = LICENSE,
+                  platforms        = PLATFORMS,
+                  classifiers      = filter(None, CLASSIFIERS.split("\n")),
+                  keywords         = KEYWORDS,
+
+                  package_dir = { '': 'wxversion' },
+                  py_modules = ['wxversion'],
+
+                  data_files = [('', ['src/wx.pth'])],
+                  
+                  options = { 'build'            : { 'build_base' : BUILD_BASE },
+                              },
+                  
+                  cmdclass = { 'install_data':    wx_smart_install_data,
+                               },
+                  )
+            
 #----------------------------------------------------------------------
 #----------------------------------------------------------------------

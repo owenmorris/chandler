@@ -15,6 +15,7 @@
 #include "wx/wxprec.h"
 
 #include "wx/mdi.h"
+#include "wx/notebook.h"
 
 #if wxUSE_MDI
 
@@ -82,8 +83,11 @@ gtk_mdi_page_change_callback( GtkNotebook *WXUNUSED(widget),
     while (node)
     {
         wxMDIChildFrame *child_frame = wxDynamicCast( node->GetData(), wxMDIChildFrame );
-
-        wxASSERT_MSG( child_frame, _T("child is not a wxMDIChildFrame") );
+        // CE: we come here in the destructor with a null child_frame - I think because
+        // gtk_signal_connect( GTK_OBJECT(m_widget), "switch_page", (see below)
+        // isn't deleted early enough
+        if (!child_frame)
+          return ;
 
         if (child_frame->m_page == page)
         {
@@ -164,16 +168,21 @@ void wxMDIParentFrame::OnInternalIdle()
         GtkNotebook *notebook = GTK_NOTEBOOK(m_clientWindow->m_widget);
         gtk_notebook_set_page( notebook, g_list_length( notebook->children ) - 1 );
 
-    /* need to set the menubar of the child */
+        /* need to set the menubar of the child */
         wxMDIChildFrame *active_child_frame = GetActiveChild();
-        wxMenuBar *menu_bar = active_child_frame->m_menuBar;
-        menu_bar->m_width = m_width;
-        menu_bar->m_height = wxMENU_HEIGHT;
-        gtk_pizza_set_size( GTK_PIZZA(m_mainWidget),
-                            menu_bar->m_widget,
-                            0, 0, m_width, wxMENU_HEIGHT );
-        menu_bar->SetInvokingWindow(active_child_frame);
-
+        if (active_child_frame != NULL)
+        {
+            wxMenuBar *menu_bar = active_child_frame->m_menuBar;
+            if (menu_bar)
+            {
+                menu_bar->m_width = m_width;
+                menu_bar->m_height = wxMENU_HEIGHT;
+                gtk_pizza_set_size( GTK_PIZZA(m_mainWidget),
+                                    menu_bar->m_widget,
+                                    0, 0, m_width, wxMENU_HEIGHT );
+                menu_bar->SetInvokingWindow(active_child_frame);
+            }
+        }
         m_justInserted = false;
         return;
     }
@@ -329,7 +338,7 @@ wxMDIChildFrame::~wxMDIChildFrame()
 {
     if (m_menuBar)
         delete m_menuBar;
-}
+} 
 
 bool wxMDIChildFrame::Create( wxMDIParentFrame *parent,
       wxWindowID id, const wxString& title,
@@ -484,6 +493,7 @@ wxMDIClientWindow::wxMDIClientWindow( wxMDIParentFrame *parent, long style )
 
 wxMDIClientWindow::~wxMDIClientWindow()
 {
+
 }
 
 bool wxMDIClientWindow::CreateClient( wxMDIParentFrame *parent, long style )

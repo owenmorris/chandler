@@ -155,45 +155,45 @@ enum wxFontEncoding
     wxFONTENCODING_UTF32LE,         // UTF-32 Little Endian Unicode encoding
 
     wxFONTENCODING_MACROMAN,        // the standard mac encodings
-    wxFONTENCODING_MACJAPANESE,      
-    wxFONTENCODING_MACCHINESETRAD,   
-    wxFONTENCODING_MACKOREAN,       
-    wxFONTENCODING_MACARABIC,       
-    wxFONTENCODING_MACHEBREW,        
-    wxFONTENCODING_MACGREEK,       
-    wxFONTENCODING_MACCYRILLIC,      
-    wxFONTENCODING_MACDEVANAGARI,      
-    wxFONTENCODING_MACGURMUKHI,      
-    wxFONTENCODING_MACGUJARATI,     
-    wxFONTENCODING_MACORIYA,       
-    wxFONTENCODING_MACBENGALI,       
-    wxFONTENCODING_MACTAMIL,       
-    wxFONTENCODING_MACTELUGU,        
-    wxFONTENCODING_MACKANNADA,        
-    wxFONTENCODING_MACMALAJALAM,        
-    wxFONTENCODING_MACSINHALESE,        
-    wxFONTENCODING_MACBURMESE,       
-    wxFONTENCODING_MACKHMER,        
-    wxFONTENCODING_MACTHAI,        
-    wxFONTENCODING_MACLAOTIAN,        
-    wxFONTENCODING_MACGEORGIAN,        
-    wxFONTENCODING_MACARMENIAN,        
-    wxFONTENCODING_MACCHINESESIMP,        
-    wxFONTENCODING_MACTIBETAN,        
-    wxFONTENCODING_MACMONGOLIAN,        
-    wxFONTENCODING_MACETHIOPIC,        
-    wxFONTENCODING_MACCENTRALEUR,        
-    wxFONTENCODING_MACVIATNAMESE,        
-    wxFONTENCODING_MACARABICEXT,        
-    wxFONTENCODING_MACSYMBOL,        
-    wxFONTENCODING_MACDINGBATS,        
-    wxFONTENCODING_MACTURKISH,        
-    wxFONTENCODING_MACCROATIAN,        
-    wxFONTENCODING_MACICELANDIC,        
-    wxFONTENCODING_MACROMANIAN,        
-    wxFONTENCODING_MACCELTIC,        
-    wxFONTENCODING_MACGAELIC,        
-    wxFONTENCODING_MACKEYBOARD,       
+    wxFONTENCODING_MACJAPANESE,
+    wxFONTENCODING_MACCHINESETRAD,
+    wxFONTENCODING_MACKOREAN,
+    wxFONTENCODING_MACARABIC,
+    wxFONTENCODING_MACHEBREW,
+    wxFONTENCODING_MACGREEK,
+    wxFONTENCODING_MACCYRILLIC,
+    wxFONTENCODING_MACDEVANAGARI,
+    wxFONTENCODING_MACGURMUKHI,
+    wxFONTENCODING_MACGUJARATI,
+    wxFONTENCODING_MACORIYA,
+    wxFONTENCODING_MACBENGALI,
+    wxFONTENCODING_MACTAMIL,
+    wxFONTENCODING_MACTELUGU,
+    wxFONTENCODING_MACKANNADA,
+    wxFONTENCODING_MACMALAJALAM,
+    wxFONTENCODING_MACSINHALESE,
+    wxFONTENCODING_MACBURMESE,
+    wxFONTENCODING_MACKHMER,
+    wxFONTENCODING_MACTHAI,
+    wxFONTENCODING_MACLAOTIAN,
+    wxFONTENCODING_MACGEORGIAN,
+    wxFONTENCODING_MACARMENIAN,
+    wxFONTENCODING_MACCHINESESIMP,
+    wxFONTENCODING_MACTIBETAN,
+    wxFONTENCODING_MACMONGOLIAN,
+    wxFONTENCODING_MACETHIOPIC,
+    wxFONTENCODING_MACCENTRALEUR,
+    wxFONTENCODING_MACVIATNAMESE,
+    wxFONTENCODING_MACARABICEXT,
+    wxFONTENCODING_MACSYMBOL,
+    wxFONTENCODING_MACDINGBATS,
+    wxFONTENCODING_MACTURKISH,
+    wxFONTENCODING_MACCROATIAN,
+    wxFONTENCODING_MACICELANDIC,
+    wxFONTENCODING_MACROMANIAN,
+    wxFONTENCODING_MACCELTIC,
+    wxFONTENCODING_MACGAELIC,
+    wxFONTENCODING_MACKEYBOARD,
 
     wxFONTENCODING_MACMIN = wxFONTENCODING_MACROMAN ,
     wxFONTENCODING_MACMAX = wxFONTENCODING_MACKEYBOARD ,
@@ -240,6 +240,9 @@ public:
 
     // accessors and modifiers for the font elements
     int GetPointSize() const;
+#ifdef __WXMSW__
+    wxSize GetPixelSize() const;
+#endif
     wxFontStyle GetStyle() const;
     wxFontWeight GetWeight() const;
     bool GetUnderlined() const;
@@ -248,6 +251,9 @@ public:
     wxFontEncoding GetEncoding() const;
 
     void SetPointSize(int pointsize);
+#ifdef __WXMSW__
+    void SetPixelSize(const wxSize& pixelSize);
+#endif
     void SetStyle(wxFontStyle style);
     void SetWeight(wxFontWeight weight);
     void SetUnderlined(bool underlined);
@@ -283,7 +289,7 @@ struct wxNativeEncodingInfo
 
     wxNativeEncodingInfo();
     ~wxNativeEncodingInfo();
-    
+
     // this struct is saved in config by wxFontMapper, so it should know to
     // serialise itself (implemented in platform-specific code)
     bool FromString(const wxString& s);
@@ -314,9 +320,9 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info);
 %inline %{
     wxNativeEncodingInfo* wxGetNativeFontEncoding(wxFontEncoding encoding)
         { wxPyRaiseNotImplemented(); return NULL; }
-    
+
     bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
-        { wxPyRaiseNotImplemented(); return False; }
+        { wxPyRaiseNotImplemented(); return false; }
 %}
 #endif
 
@@ -356,7 +362,7 @@ public:
     // interactive parameter is ignored in the base class, we behave as if it
     // were always False
     virtual wxFontEncoding CharsetToEncoding(const wxString& charset,
-                                             bool interactive = True);
+                                             bool interactive = true);
 
 
     // get the number of font encodings we know about
@@ -398,7 +404,7 @@ public:
     %extend {
         PyObject* GetAltForEncoding(wxFontEncoding encoding,
                                     const wxString& facename = wxPyEmptyString,
-                                    bool interactive = True) {
+                                    bool interactive = true) {
             wxFontEncoding alt_enc;
             if (self->GetAltForEncoding(encoding, &alt_enc, facename, interactive))
                 return PyInt_FromLong(alt_enc);
@@ -439,7 +445,7 @@ public:
     %pythonPrepend wxFont   "if kwargs.has_key('faceName'): kwargs['face'] = kwargs['faceName'];del kwargs['faceName']"
 
     wxFont( int pointSize, int family, int style, int weight,
-            bool underline=False, const wxString& face = wxPyEmptyString,
+            bool underline=false, const wxString& face = wxPyEmptyString,
             wxFontEncoding encoding=wxFONTENCODING_DEFAULT);
     ~wxFont();
 
@@ -460,6 +466,23 @@ public:
         }
     }
 
+    // There is a real ctor for this on wxMSW, but not the others, so just use
+    // the factory funciton in all cases.
+    %extend {
+        %name(FontFromPixelSize) wxFont(const wxSize& pixelSize,
+                                        int family,
+                                        int style,
+                                        int weight,
+                                        bool underlined = false,
+                                        const wxString& face = wxEmptyString,
+                                        wxFontEncoding encoding = wxFONTENCODING_DEFAULT) {
+            return wxFontBase::New(pixelSize, family,
+                                   style, weight, underlined,
+                                   face, encoding);
+        }
+    }
+
+    
 
     // was the font successfully created?
     bool Ok() const;
@@ -467,12 +490,14 @@ public:
 
     // comparison
     %extend {
-        bool __eq__(const wxFont* other) { return other ? (*self == *other) : False; }
-        bool __ne__(const wxFont* other) { return other ? (*self != *other) : True;  }
+        bool __eq__(const wxFont* other) { return other ? (*self == *other) : false; }
+        bool __ne__(const wxFont* other) { return other ? (*self != *other) : true;  }
     }
 
     // accessors: get the font characteristics
     virtual int GetPointSize() const;
+    virtual wxSize GetPixelSize() const;
+    virtual bool IsUsingSizeInPixels() const;
     virtual int GetFamily() const;
     virtual int GetStyle() const;
     virtual int GetWeight() const;
@@ -488,6 +513,7 @@ public:
 
     // change the font characteristics
     virtual void SetPointSize( int pointSize );
+    virtual void SetPixelSize( const wxSize& pixelSize );
     virtual void SetFamily( int family );
     virtual void SetStyle( int style );
     virtual void SetWeight( int weight );
@@ -505,14 +531,14 @@ public:
     wxString GetWeightString() const;
 
     // Unofficial API, don't use
-    virtual void SetNoAntiAliasing( bool no = True );
+    virtual void SetNoAntiAliasing( bool no = true );
     virtual bool GetNoAntiAliasing() const;
 
     // the default encoding is used for creating all fonts with default
     // encoding parameter
     static wxFontEncoding GetDefaultEncoding() { return ms_encodingDefault; }
     static void SetDefaultEncoding(wxFontEncoding encoding);
-};    
+};
 
 
 
@@ -549,7 +575,7 @@ public:
 
     bool EnumerateFacenames(
         wxFontEncoding encoding = wxFONTENCODING_SYSTEM, // all
-        bool fixedWidthOnly = False);
+        bool fixedWidthOnly = false);
 
     bool EnumerateEncodings(const wxString& facename = wxPyEmptyString);
 

@@ -218,7 +218,7 @@ void wxFileData::ReadData()
         }
     }
 
-    m_size = buff.st_size;
+    m_size = (long)buff.st_size;
 
     m_dateTime = buff.st_mtime;
 
@@ -476,7 +476,7 @@ void wxFileCtrl::UpdateItem(const wxListItem &item)
     fd->ReadData();
 
     SetItemText(item, fd->GetFileName());
-    SetItemImage(item, fd->GetImageId(), fd->GetImageId());
+    SetItemImage(item, fd->GetImageId());
 
     if (GetWindowStyleFlag() & wxLC_REPORT)
     {

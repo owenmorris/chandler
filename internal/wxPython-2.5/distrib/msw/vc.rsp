@@ -88,9 +88,6 @@ samples/event/event.dsw
 samples/except/except.dsp
 samples/except/except.dsw
 
-samples/except/except.dsp
-samples/except/except.dsw
-
 samples/exec/exec.dsp
 samples/exec/exec.dsw
 
@@ -131,10 +128,10 @@ samples/image/image.dsw
 samples/internat/internat.dsp
 samples/internat/internat.dsw
 
-samples/ipc/client.dsp
-samples/ipc/client.dsw
-samples/ipc/server.dsp
-samples/ipc/server.dsw
+samples/ipc/ipc_client.dsp
+samples/ipc/ipc_client.dsw
+samples/ipc/ipc_server.dsp
+samples/ipc/ipc_server.dsw
 
 samples/keyboard/keyboard.dsp
 samples/keyboard/keyboard.dsw
@@ -219,10 +216,10 @@ samples/scrollsub/scrollsub.dsw
 samples/shaped/shaped.dsp
 samples/shaped/shaped.dsw
 
-samples/sockets/client.dsp
-samples/sockets/server.dsp
-samples/sockets/client.dsw
-samples/sockets/server.dsw
+samples/sockets/sockets_client.dsp
+samples/sockets/sockets_server.dsp
+samples/sockets/sockets_client.dsw
+samples/sockets/sockets_server.dsw
 
 samples/sound/sound.dsp
 samples/sound/sound.dsw
@@ -239,6 +236,9 @@ samples/statbar/statbar.dsw
 samples/taskbar/taskbar.dsp
 samples/taskbar/taskbar.dsw
 
+samples/tab/tab.dsp
+samples/tab/tab.dsw
+
 samples/text/text.dsp
 samples/text/text.dsw
 
@@ -248,8 +248,8 @@ samples/thread/thread.dsw
 samples/toolbar/toolbar.dsp
 samples/toolbar/toolbar.dsw
 
-samples/treectrl/treetest.dsp
-samples/treectrl/treetest.dsw
+samples/treectrl/treectrl.dsp
+samples/treectrl/treectrl.dsw
 
 samples/typetest/typetest.dsp
 samples/typetest/typetest.dsw
@@ -291,6 +291,9 @@ demos/life/life.dsw
 demos/poem/poem.dsp
 demos/poem/poem.dsw
 
+utils/wxrc/wxrc.dsp
+utils/wxrc/wxrc.dsw
+
 utils/tex2rtf/src/tex2rtf_tex2rtf.dsp
 utils/tex2rtf/src/tex2rtf_tex2rtf_gui.dsp
 
@@ -310,11 +313,8 @@ contrib/samples/ogl/ogledit/ogledit.dsw
 contrib/samples/ogl/studio/studio.dsp
 contrib/samples/ogl/studio/studio.dsw
 
-contrib/build/xrc/xrc.dsp
-contrib/build/xrc/xrc.dsw
-
-contrib/samples/xrc/xrcdemo.dsp
-contrib/samples/xrc/xrcdemo.dsw
+samples/xrc/xrcdemo.dsp
+samples/xrc/xrcdemo.dsw
 
 contrib/build/mmedia/mmedia.dsp
 contrib/build/mmedia/mmedia.dsw
@@ -327,9 +327,6 @@ contrib/build/stc/stc.dsw
 
 contrib/samples/stc/stctest.dsp
 contrib/samples/stc/stctest.dsw
-
-contrib/utils/wxrc/wxrc.dsp
-contrib/utils/wxrc/wxrc.dsw
 
 contrib/utils/convertrc/convertrc.dsp
 contrib/utils/convertrc/convertrc.dsw
@@ -382,4 +379,16 @@ contrib/samples/deprecated/resource/resource.dsw
 contrib/samples/deprecated/treelay/treelay.dsp
 contrib/samples/deprecated/treelay/treelay.dsw
 
+contrib/build/foldbar/foldbar.dsp
+contrib/build/foldbar/foldbar.dsw
+contrib/samples/foldbar/extended/extended.dsp
+contrib/samples/foldbar/extended/extended.dsw
+contrib/samples/foldbar/foldpanelbar/foldtest.dsp
+contrib/samples/foldbar/foldpanelbar/foldtest.dsw
+
+utils/configtool/src/configtool.dsp
+utils/configtool/src/configtool.dsw
+
+utils/hhp2cached/hhp2cached.dsp
+utils/hhp2cached/hhp2cached.dsw
 

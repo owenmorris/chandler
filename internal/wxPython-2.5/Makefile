@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.2.9-3
+RELVER=2.5.3.1
 SRC=$(INTERNAL)/wxPython-2.5
 
 ifeq ($(DEBUG),1)
@@ -30,12 +30,15 @@ wxWidgets:
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*252$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*253$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
+                           USE_SWIG=0 \
+                           SWIG=`cygpath -aw $(SWIG)` \
+                           INSTALL_MULTIVERSION=0 \
                            build $(DIST_OPT) \
                            install \
                            FINAL=$(FINAL) HYBRID=0
@@ -63,13 +66,16 @@ $(SRC)/$(BUILD)/Makefile:
                      --enable-sound \
                      --with-sdl \
                      --enable-display \
-                     --with-libpng=builtin \
+                     --with-libpng \
                      --with-mac \
                      --with-opengl
 
 wxPython:
 	cd $(SRC)/wxPython; \
         $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
+                           USE_SWIG=0 \
+                           SWIG=$(SWIG) \
+                           INSTALL_MULTIVERSION=0 \
                            BUILD_BASE=$(BUILD) \
                            WX_CONFIG=$(PREFIX)/bin/wx-config \
                            build $(DIST_OPT) install FINAL=$(FINAL)
@@ -96,7 +102,7 @@ $(SRC)/$(BUILD)/Makefile:
                      --enable-sound \
                      --with-sdl \
                      --enable-display \
-                     --with-libpng=builtin \
+                     --with-libpng \
                      --with-gtk \
                      --enable-gtk2 \
                      --enable-unicode
@@ -104,6 +110,9 @@ $(SRC)/$(BUILD)/Makefile:
 wxPython:
 	cd $(SRC)/wxPython; \
         $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
+                           USE_SWIG=0 \
+                           SWIG=$(SWIG) \
+                           INSTALL_MULTIVERSION=0 \
                            BUILD_BASE=$(BUILD) \
                            WX_CONFIG=$(PREFIX)/bin/wx-config \
                            WXPORT=gtk2 UNICODE=1 \
@@ -129,12 +138,10 @@ wxWidgets: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/ogl \
                 CXXFLAGS="-DwxUSE_DEPRECATED=0"
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc
-	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/xrc
 	$(MAKE) -C $(SRC)/$(BUILD) install
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/gizmos install
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/ogl install
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc install
-	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/xrc install
 
 clean:
 	cd $(SRC); rm -rf $(BUILD); \

@@ -48,6 +48,13 @@ const wxCoord MARGIN = 5;
 // various wxWidgets macros
 // ----------------------------------------------------------------------------
 
+// check that the page index is valid
+#define IS_VALID_PAGE(nPage) ((nPage) < GetPageCount())
+
+// ----------------------------------------------------------------------------
+// event table
+// ----------------------------------------------------------------------------
+
 IMPLEMENT_DYNAMIC_CLASS(wxListbook, wxControl)
 IMPLEMENT_DYNAMIC_CLASS(wxListbookEvent, wxNotifyEvent)
 
@@ -262,23 +269,13 @@ void wxListbook::OnSize(wxSizeEvent& event)
     }
 #endif // wxUSE_LINE_IN_LISTBOOK
 
-    // we should always have some selection if possible
-    if ( m_selection == wxNOT_FOUND && GetPageCount() )
-    {
-        SetSelection(0);
-    }
-
-    if ( m_selection != wxNOT_FOUND )
+    // resize the currently shown page
+    if (m_selection != wxNOT_FOUND )
     {
         wxWindow *page = m_pages[m_selection];
         wxCHECK_RET( page, _T("NULL page in wxListbook?") );
-
         page->SetSize(GetPageRect());
-        if ( !page->IsShown() )
-        {
-            page->Show();
         }
-    }
 }
 
 wxSize wxListbook::CalcSizeFromPage(const wxSize& sizePage) const
@@ -325,7 +322,7 @@ int wxListbook::GetPageImage(size_t WXUNUSED(n)) const
 
 bool wxListbook::SetPageImage(size_t n, int imageId)
 {
-    return m_list->SetItemImage(n, imageId, imageId);
+    return m_list->SetItemImage(n, imageId);
 }
 
 // ----------------------------------------------------------------------------
@@ -350,24 +347,39 @@ int wxListbook::GetSelection() const
 
 int wxListbook::SetSelection(size_t n)
 {
-    wxCHECK_MSG( n < GetPageCount(), wxNOT_FOUND,
-                 _T("invalid page index in wxListbook::SetSelection()") );
+    wxCHECK_MSG( IS_VALID_PAGE(n), wxNOT_FOUND,
+                 wxT("invalid page index in wxListbook::SetSelection()") );
 
-    int selOld = m_selection;
+    const int oldSel = m_selection;
 
-    if ( (int)n != m_selection )
+    if ( int(n) != m_selection )
     {
-        m_list->Select(n);
-        m_list->Focus(n);
+        wxListbookEvent event(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING, m_windowId);
+        event.SetSelection(n);
+        event.SetOldSelection(m_selection);
+        event.SetEventObject(this);
+        if ( !GetEventHandler()->ProcessEvent(event) || event.IsAllowed() )
+        {
+            if ( m_selection != wxNOT_FOUND )
+                m_pages[m_selection]->Hide();
 
-        // change m_selection only now, otherwise OnListSelected() would ignore
-        // the selection change event
-        m_selection = n;
+            wxWindow *page = m_pages[n];
+            page->SetSize(GetPageRect());
+            page->Show();
+
+            // change m_selection now to ignore the selection change event
+            m_selection = n;
+            m_list->Select(n);
+            m_list->Focus(n);
+
+            // program allows the page change
+            event.SetEventType(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED);
+            (void)GetEventHandler()->ProcessEvent(event);
+        }
     }
 
-    return selOld;
+    return oldSel;
 }
-
 
 // ----------------------------------------------------------------------------
 // adding/removing the pages
@@ -385,16 +397,29 @@ wxListbook::InsertPage(size_t n,
 
     m_list->InsertItem(n, text, imageId);
 
+    // if the inserted page is before the selected one, we must update the
+    // index of the selected page
+    if ( int(n) <= m_selection )
+    {
+        // one extra page added 
+        m_selection++;
+        m_list->Select(m_selection);
+        m_list->Focus(m_selection);
+    }
+
+    // some page should be selected: either this one or the first one if there
+    // is still no selection
+    int selNew = -1;
     if ( bSelect )
-    {
-        m_list->Select(n);
-        m_list->Focus(n);
-    }
-    else // don't select this page
-    {
-        // it will be shown only when selected
+        selNew = n;
+    else if ( m_selection == -1 )
+        selNew = 0;
+
+    if ( selNew != m_selection )
         page->Hide();
-    }
+
+    if ( selNew != -1 )
+        SetSelection(selNew);
 
     InvalidateBestSize();
     return true;
@@ -402,10 +427,28 @@ wxListbook::InsertPage(size_t n,
 
 wxWindow *wxListbook::DoRemovePage(size_t page)
 {
+    const int page_count = GetPageCount();
     wxWindow *win = wxBookCtrl::DoRemovePage(page);
+
     if ( win )
     {
         m_list->DeleteItem(page);
+
+        if (m_selection >= (int)page)
+        {
+            // force new sel valid if possible
+            int sel = m_selection - 1;
+            if (page_count == 1)
+                sel = wxNOT_FOUND;
+            else if ((page_count == 2) || (sel == -1))
+                sel = 0;
+
+            // force sel invalid if deleting current page - don't try to hide it
+            m_selection = (m_selection == (int)page) ? wxNOT_FOUND : m_selection - 1;
+
+            if ((sel != wxNOT_FOUND) && (sel != m_selection))
+                SetSelection(sel);
+        }
     }
 
     return win;
@@ -434,32 +477,14 @@ void wxListbook::OnListSelected(wxListEvent& eventList)
         return;
     }
 
-    // first send "change in progress" event which may be vetoed by user
-    wxListbookEvent eventIng(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING, GetId());
+    SetSelection(selNew);
 
-    eventIng.SetEventObject(this);
-    eventIng.SetSelection(selNew);
-    eventIng.SetOldSelection(m_selection);
-    if ( GetEventHandler()->ProcessEvent(eventIng) && !eventIng.IsAllowed() )
+    // change wasn't allowed, return to previous state
+    if (m_selection != selNew)
     {
         m_list->Select(m_selection);
-        return;
+        m_list->Focus(m_selection);
     }
-
-    // change allowed: do change the page and notify the user about it
-    if ( m_selection != wxNOT_FOUND )
-        m_pages[m_selection]->Hide();
-    wxWindow *page = m_pages[m_selection = selNew];
-    page->SetSize(GetPageRect());
-    page->Show();
-
-    wxListbookEvent eventEd(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED, GetId());
-
-    eventEd.SetEventObject(this);
-    eventEd.SetSelection(selNew);
-    eventEd.SetOldSelection(m_selection);
-
-    (void)GetEventHandler()->ProcessEvent(eventEd);
 }
 
 #endif // wxUSE_LISTBOOK

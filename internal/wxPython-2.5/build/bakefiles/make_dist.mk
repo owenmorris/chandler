@@ -77,7 +77,7 @@ ALL_DIST: distrib_clean
 	cp $(WXDIR)/install-sh $(DISTDIR)
 	cp $(WXDIR)/mkinstalldirs $(DISTDIR)
 	cp $(WXDIR)/wx-config.in $(DISTDIR)
-	cp $(WXDIR)/wx-config-wrapper.in $(DISTDIR)
+	cp $(WXDIR)/wx-config-inplace.in $(DISTDIR)
 	cp $(WXDIR)/version-script.in $(DISTDIR)
 	cp $(WXDIR)/setup.h.in $(DISTDIR)
 	cp $(WXDIR)/setup.h_vms $(DISTDIR)
@@ -139,6 +139,7 @@ ALL_GUI_DIST: ALL_DIST
 	mkdir $(DISTDIR)/include/wx/protocol
 	mkdir $(DISTDIR)/include/wx/unix
 	mkdir $(DISTDIR)/include/wx/xml
+	mkdir $(DISTDIR)/include/wx/xrc
 	cp $(INCDIR)/wx/*.h $(DISTDIR)/include/wx
 	cp $(INCDIR)/wx/*.inl $(DISTDIR)/include/wx
 	cp $(INCDIR)/wx/*.cpp $(DISTDIR)/include/wx
@@ -146,6 +147,7 @@ ALL_GUI_DIST: ALL_DIST
 	cp $(INCDIR)/wx/html/*.h $(DISTDIR)/include/wx/html
 	cp $(INCDIR)/wx/unix/*.h $(DISTDIR)/include/wx/unix
 	cp $(INCDIR)/wx/xml/*.h $(DISTDIR)/include/wx/xml
+	cp $(INCDIR)/wx/xrc/*.h $(DISTDIR)/include/wx/xrc
 	cp $(INCDIR)/wx/protocol/*.h $(DISTDIR)/include/wx/protocol
 	mkdir $(DISTDIR)/art
 	mkdir $(DISTDIR)/art/gtk
@@ -160,12 +162,13 @@ ALL_GUI_DIST: ALL_DIST
 	mkdir $(DISTDIR)/src/jpeg
 	mkdir $(DISTDIR)/src/tiff
 	mkdir $(DISTDIR)/src/unix
+	mkdir $(DISTDIR)/src/xrc
+	cp $(SRCDIR)/xrc/*.cpp $(DISTDIR)/src/xrc
 	cp $(COMMDIR)/*.cpp $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.c $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.inc $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.h $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.mms $(DISTDIR)/src/common
-	cp $(UNIXDIR)/*.c $(DISTDIR)/src/unix
 	cp $(UNIXDIR)/*.cpp $(DISTDIR)/src/unix
 	cp $(UNIXDIR)/*.mms $(DISTDIR)/src/unix
 	cp $(GENDIR)/*.cpp $(DISTDIR)/src/generic
@@ -219,6 +222,7 @@ BASE_DIST: ALL_DIST
 GTK_DIST: ALL_GUI_DIST
 	cp $(WXDIR)/wxGTK.spec $(DISTDIR)
 	cp $(INCDIR)/wx/gtk/*.h $(DISTDIR)/include/wx/gtk
+	cp $(GTKDIR)/*.h $(DISTDIR)/src/gtk
 	cp $(GTKDIR)/*.cpp $(DISTDIR)/src/gtk
 	cp $(GTKDIR)/*.c $(DISTDIR)/src/gtk
 	cp $(GTKDIR)/*.xbm $(DISTDIR)/src/gtk
@@ -239,7 +243,6 @@ MOTIF_DIST: ALL_GUI_DIST
 	cp $(WXDIR)/wxMotif.spec $(DISTDIR)
 	cp $(INCDIR)/wx/motif/*.h $(DISTDIR)/include/wx/motif
 	cp $(MOTIFDIR)/*.cpp $(DISTDIR)/src/motif
-	cp $(MOTIFDIR)/*.c $(DISTDIR)/src/motif
 	cp $(MOTIFDIR)/*.xbm $(DISTDIR)/src/motif
 	mkdir $(DISTDIR)/src/motif/xmcombo
 	cp $(MOTIFDIR)/xmcombo/*.c $(DISTDIR)/src/motif/xmcombo
@@ -531,7 +534,6 @@ SAMPLES_DIST: ALL_GUI_DIST
 
 	mkdir $(DISTDIR)/samples/except
 	cp $(SAMPDIR)/except/Makefile.in $(DISTDIR)/samples/except
-	cp $(SAMPDIR)/except/makefile.unx $(DISTDIR)/samples/except
 	cp $(SAMPDIR)/except/*.cpp $(DISTDIR)/samples/except
 
 	mkdir $(DISTDIR)/samples/exec
@@ -836,9 +838,7 @@ SAMPLES_DIST: ALL_GUI_DIST
 
 	mkdir $(DISTDIR)/samples/splash
 	cp $(SAMPDIR)/splash/Makefile.in $(DISTDIR)/samples/splash
-	cp $(SAMPDIR)/splash/makefile.unx $(DISTDIR)/samples/splash
 	cp $(SAMPDIR)/splash/*.cpp $(DISTDIR)/samples/splash
-	cp $(SAMPDIR)/splash/*.h $(DISTDIR)/samples/splash
 	cp $(SAMPDIR)/splash/*.png $(DISTDIR)/samples/splash
 
 	mkdir $(DISTDIR)/samples/splitter
@@ -937,12 +937,16 @@ UTILS_DIST: ALL_GUI_DIST
 	cp $(UTILSDIR)/emulator/docs/*.jpg $(DISTDIR)/utils/emulator/docs
 
 	mkdir $(DISTDIR)/utils/hhp2cached
-	cp $(UTILSDIR)/hhp2cached/*.* $(DISTDIR)/utils/hhp2cached
+	cp $(UTILSDIR)/hhp2cached/Makefile.in $(DISTDIR)/utils/hhp2cached
+	cp $(UTILSDIR)/hhp2cached/*.cpp $(DISTDIR)/utils/hhp2cached
+	cp $(UTILSDIR)/hhp2cached/*.rc $(DISTDIR)/utils/hhp2cached
 
 	mkdir $(DISTDIR)/utils/HelpGen
 	mkdir $(DISTDIR)/utils/HelpGen/src
 	cp $(UTILSDIR)/HelpGen/Makefile.in $(DISTDIR)/utils/HelpGen
-	cp $(UTILSDIR)/HelpGen/src/*.* $(DISTDIR)/utils/HelpGen/src
+	cp $(UTILSDIR)/HelpGen/src/Makefile.in $(DISTDIR)/utils/HelpGen/src
+	cp $(UTILSDIR)/HelpGen/src/*.h $(DISTDIR)/utils/HelpGen/src
+	cp $(UTILSDIR)/HelpGen/src/*.cpp $(DISTDIR)/utils/HelpGen/src
 
 	mkdir $(DISTDIR)/utils/helpview
 	mkdir $(DISTDIR)/utils/helpview/src
@@ -953,6 +957,11 @@ UTILS_DIST: ALL_GUI_DIST
 	cp $(UTILSDIR)/helpview/src/Makefile.in $(DISTDIR)/utils/helpview/src
 	cp $(UTILSDIR)/helpview/src/test.zip $(DISTDIR)/utils/helpview/src
 	cp $(UTILSDIR)/helpview/src/bitmaps/*.xpm $(DISTDIR)/utils/helpview/src/bitmaps
+
+	mkdir $(DISTDIR)/utils/wxrc
+	cp $(UTILSDIR)/wxrc/Makefile.in $(DISTDIR)/utils/wxrc
+	cp $(UTILSDIR)/wxrc/*.cpp $(DISTDIR)/utils/wxrc
+	cp $(UTILSDIR)/wxrc/*.rc $(DISTDIR)/utils/wxrc
 
 MISC_DIST: ALL_GUI_DIST
 	mkdir $(DISTDIR)/misc
@@ -1079,6 +1088,7 @@ win-dist: MSW_ZIP_TEXT_DIST
 	@cd _dist_dir && zip -r ../$(WXARCHIVE_ZIP) wxMSW/include/wx/msw/*.ico
 	@cd _dist_dir && zip -r ../$(WXARCHIVE_ZIP) wxMSW/include/wx/msw/*.bmp
 
+debian-dist: DEBIAN_SOURCE_DIR = $(WXDIR)/../wxwidgets@WX_RELEASE@@WX_FLAVOUR@-@WX_SUBVERSION@
 debian-dist: debian-native-dist debian-msw-dirs MSW_DIST
 	mkdir $(DISTDIR)/debian
 	-cp $(WXDIR)/debian/* $(DISTDIR)/debian
@@ -1107,16 +1117,8 @@ debian-dist: debian-native-dist debian-msw-dirs MSW_DIST
 	rm -rf $(DISTDIR)/wxPython/contrib/iewin
 	find $(DISTDIR)/wxPython \( -name "mac" -o -name "msw" \) -print0 | xargs -0 rm -rf
 
-
-	@# We can't get at the individual components of the version here
-	@# anymore, so strip the major and minor version out of the blob.
-
-	(								\
-	wx_version=$(WX_VERSION);					\
-	wx_release=$${wx_version%.*};					\
-	rm -rf $(WXDIR)/../wxwidgets$${wx_release}-$${wx_version};	\
-	mv $(DISTDIR) $(WXDIR)/../wxwidgets$${wx_release}-$${wx_version};\
-	)
+	rm -rf $(DEBIAN_SOURCE_DIR)
+	mv $(DISTDIR) $(DEBIAN_SOURCE_DIR)
 
 
 debian-native-dist: @GUIDIST@ UNIV_DIST MANUAL_DIST PYTHON_DIST

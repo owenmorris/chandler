@@ -291,6 +291,14 @@
 #   endif
 #endif /* !defined(wxUSE_CHOICE) */
 
+#ifndef wxUSE_CHOICEBOOK
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_CHOICEBOOK must be defined."
+#   else
+#       define wxUSE_CHOICEBOOK 0
+#   endif
+#endif /* !defined(wxUSE_CHOICEBOOK) */
+
 #ifndef wxUSE_CHOICEDLG
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_CHOICEDLG must be defined."
@@ -402,6 +410,14 @@
 #       define wxUSE_HTML 0
 #   endif
 #endif /* !defined(wxUSE_HTML) */
+
+#ifndef wxUSE_XRC
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_XRC must be defined."
+#   else
+#       define wxUSE_XRC 0
+#   endif
+#endif /* !defined(wxUSE_XRC) */
 
 #ifndef wxUSE_LIBMSPACK
 #   ifndef __UNIX__
@@ -957,7 +973,7 @@
 #    endif
 #endif /* wxUSE_BMPBUTTON */
 
-#if wxUSE_NOTEBOOK || wxUSE_LISTBOOK
+#if wxUSE_NOTEBOOK || wxUSE_LISTBOOK || wxUSE_CHOICEBOOK
 #   if defined(wxUSE_BOOKCTRL) && !wxUSE_BOOKCTRL
 #       ifdef wxABORT_ON_CONFIG_ERROR
 #           error "wxUSE_BOOKCTRL must be set."
@@ -981,6 +997,17 @@
 #       endif
 #   endif
 #endif /* wxUSE_LISTBOOK */
+
+#if wxUSE_CHOICEBOOK
+#   if !wxUSE_CHOICE
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxChoicebook requires wxChoice"
+#       else
+#           undef wxUSE_CHOICE
+#           define wxUSE_CHOICE 1
+#       endif
+#   endif
+#endif /* wxUSE_CHOICEBOOK */
 
 /* wxUniv-specific dependencies */
 #if defined(__WXUNIVERSAL__)
@@ -1143,12 +1170,12 @@
 #endif /* wxMGL */
 
 /* Hopefully we can emulate these dialogs in due course */
-#ifdef __SMARTPHONE__
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
 #   ifdef wxUSE_COLOURDLG
 #       undef wxUSE_COLOURDLG
 #       define wxUSE_COLOURDLG 0
 #   endif
-#endif /* __SMARTPHONE__ */
+#endif /* __SMARTPHONE__ && __WXWINCE__ */
 
 
 /* generic controls dependencies */
@@ -1554,6 +1581,15 @@
 #       define wxUSE_PROLOGIO 1
 #   endif
 #endif /* wxUSE_WX_RESOURCES */
+
+#if wxUSE_XRC && !wxUSE_XML
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_XRC requires wxUSE_XML"
+#   else
+#       undef wxUSE_XRC
+#       define wxUSE_XRC 0
+#   endif
+#endif /* wxUSE_XRC */
 
 #endif /* wxUSE_GUI */
 

@@ -2,11 +2,11 @@
 
 set -e
 
-WXPYTHONDIR="/usr/lib/=PY/site-packages/wxPython"
+WXPYTHONDIR="/usr/lib/=PY/site-packages/wx-=SOV"
 
 if [ "$1" = "configure" ]; then
-	python /usr/lib/=PY/compileall.py -q ${WXPYTHONDIR}
-	python -O /usr/lib/=PY/compileall.py -q ${WXPYTHONDIR}
+	=PY /usr/lib/=PY/compileall.py -q ${WXPYTHONDIR}
+	=PY -O /usr/lib/=PY/compileall.py -q ${WXPYTHONDIR}
 fi
 
 #DEBHELPER#

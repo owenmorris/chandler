@@ -331,6 +331,9 @@ EVT_LIST_COL_BEGIN_DRAG    = wx.PyEventBinder(wxEVT_COMMAND_LIST_COL_BEGIN_DRAG 
 EVT_LIST_COL_DRAGGING      = wx.PyEventBinder(wxEVT_COMMAND_LIST_COL_DRAGGING     , 1)
 EVT_LIST_COL_END_DRAG      = wx.PyEventBinder(wxEVT_COMMAND_LIST_COL_END_DRAG     , 1)
 EVT_LIST_ITEM_FOCUSED      = wx.PyEventBinder(wxEVT_COMMAND_LIST_ITEM_FOCUSED     , 1)
+
+EVT_LIST_GET_INFO = wx._deprecated(EVT_LIST_GET_INFO)
+EVT_LIST_SET_INFO = wx._deprecated(EVT_LIST_SET_INFO)
 }
 
 //---------------------------------------------------------------------------
@@ -381,8 +384,10 @@ public:
     }
 
     DEC_PYCALLBACK_STRING_LONGLONG(OnGetItemText);
-    DEC_PYCALLBACK_INT_LONG(OnGetItemImage);
     DEC_PYCALLBACK_LISTATTR_LONG(OnGetItemAttr);
+
+    // use the virtual version to avoid a confusing assert in the base class
+    DEC_PYCALLBACK_INT_LONG_virtual(OnGetItemImage);
 
     PYPRIVATE;
 };
@@ -390,8 +395,9 @@ public:
 IMPLEMENT_ABSTRACT_CLASS(wxPyListCtrl, wxListCtrl);
 
 IMP_PYCALLBACK_STRING_LONGLONG(wxPyListCtrl, wxListCtrl, OnGetItemText);
-IMP_PYCALLBACK_INT_LONG(wxPyListCtrl, wxListCtrl, OnGetItemImage);
 IMP_PYCALLBACK_LISTATTR_LONG(wxPyListCtrl, wxListCtrl, OnGetItemAttr);
+IMP_PYCALLBACK_INT_LONG_virtual(wxPyListCtrl, wxListCtrl, OnGetItemImage);
+ 
 %}
 
 
@@ -405,7 +411,7 @@ public:
 
     %pythonAppend wxPyListCtrl         "self._setOORInfo(self);self._setCallbackInfo(self, ListCtrl)"
     %pythonAppend wxPyListCtrl()       ""
-   
+
     wxPyListCtrl(wxWindow* parent, wxWindowID id = -1,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
@@ -423,7 +429,7 @@ public:
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
-    
+
     // Set the control colours
     bool SetForegroundColour(const wxColour& col);
     bool SetBackgroundColour(const wxColour& col);
@@ -465,7 +471,7 @@ public:
 
     // return the total area occupied by all the items (icon/small icon only)
     wxRect GetViewRect() const;
-    
+
 #ifdef __WXMSW__
     // Gets the edit control for editing labels.
     wxTextCtrl* GetEditControl() const;
@@ -497,7 +503,7 @@ public:
     bool SetItemState(long item, long state, long stateMask) ;
 
     // Sets the item image
-    bool SetItemImage(long item, int image, int selImage) ;
+    bool SetItemImage(long item, int image, int selImage=-1) ;
 
     // Gets the item text
     wxString GetItemText(long item) const ;
@@ -544,7 +550,7 @@ public:
     wxSize GetItemSpacing() const;
 
 #ifndef __WXMSW__
-    void SetItemSpacing( int spacing, bool isSmall = False );
+    void SetItemSpacing( int spacing, bool isSmall = false );
 #endif
 
     // Gets the number of selected items in the list control
@@ -561,7 +567,7 @@ public:
     long GetTopItem() const ;
 
     // Add or remove a single window style
-    void SetSingleStyle(long style, bool add = True) ;
+    void SetSingleStyle(long style, bool add = true) ;
 
     // Set the whole window style
     void SetWindowStyleFlag(long style) ;
@@ -583,10 +589,10 @@ public:
     %apply SWIGTYPE *DISOWN { wxImageList *imageList };
     void AssignImageList(wxImageList *imageList, int which);
     %clear wxImageList *imageList;
-    
+
     // are we in report mode?
     bool InReportView() const;
-        
+
     // returns True if it is a virtual list control
     bool IsVirtual() const;
 
@@ -627,7 +633,7 @@ public:
 
     // Find an item whose label matches this string, starting from the item after 'start'
     // or the beginning if 'start' is -1.
-    long FindItem(long start, const wxString& str, bool partial = False);
+    long FindItem(long start, const wxString& str, bool partial = false);
 
     // Find an item whose data matches this data, starting from the item after 'start'
     // or the beginning if 'start' is -1.
@@ -754,7 +760,7 @@ details in the second return value (see wxLIST_HITTEST_... flags.)", "");
         // or zero if the two items are equivalent.
         bool SortItems(PyObject* func) {
             if (!PyCallable_Check(func))
-                return False;
+                return false;
             return self->SortItems((wxListCtrlCompare)wxPyListCtrl_SortItems, (long)func);
         }
     }
@@ -807,7 +813,7 @@ public:
                 const wxString& name = wxPyListCtrlNameStr);
 
     // [de]select an item
-    void Select(long n, bool on = True);
+    void Select(long n, bool on = true);
 
     // focus and show the given item
     void Focus(long index);

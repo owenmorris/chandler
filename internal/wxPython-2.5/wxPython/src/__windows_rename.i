@@ -26,6 +26,7 @@
 %rename(FRAME_NO_WINDOW_MENU)               wxFRAME_NO_WINDOW_MENU;
 %rename(FRAME_NO_TASKBAR)                   wxFRAME_NO_TASKBAR;
 %rename(FRAME_SHAPED)                       wxFRAME_SHAPED;
+%rename(FRAME_DRAWER)                       wxFRAME_DRAWER;
 %rename(DIALOG_MODAL)                       wxDIALOG_MODAL;
 %rename(DIALOG_MODELESS)                    wxDIALOG_MODELESS;
 %rename(USER_COLOURS)                       wxUSER_COLOURS;
@@ -104,7 +105,6 @@
 %rename(LayoutAlgorithm)                    wxLayoutAlgorithm;
 %rename(PopupWindow)                        wxPopupWindow;
 %rename(TipWindow)                          wxTipWindow;
-%rename(TaskBarIcon)                        wxTaskBarIcon;
 %rename(TaskBarIconEvent)                   wxTaskBarIconEvent;
 %rename(ColourData)                         wxColourData;
 %rename(ColourDialog)                       wxColourDialog;
@@ -141,6 +141,21 @@
 %rename(PRINT_MODE_FILE)                    wxPRINT_MODE_FILE;
 %rename(PRINT_MODE_PRINTER)                 wxPRINT_MODE_PRINTER;
 %rename(PRINT_MODE_STREAM)                  wxPRINT_MODE_STREAM;
+%rename(PRINTBIN_DEFAULT)                   wxPRINTBIN_DEFAULT;
+%rename(PRINTBIN_ONLYONE)                   wxPRINTBIN_ONLYONE;
+%rename(PRINTBIN_LOWER)                     wxPRINTBIN_LOWER;
+%rename(PRINTBIN_MIDDLE)                    wxPRINTBIN_MIDDLE;
+%rename(PRINTBIN_MANUAL)                    wxPRINTBIN_MANUAL;
+%rename(PRINTBIN_ENVELOPE)                  wxPRINTBIN_ENVELOPE;
+%rename(PRINTBIN_ENVMANUAL)                 wxPRINTBIN_ENVMANUAL;
+%rename(PRINTBIN_AUTO)                      wxPRINTBIN_AUTO;
+%rename(PRINTBIN_TRACTOR)                   wxPRINTBIN_TRACTOR;
+%rename(PRINTBIN_SMALLFMT)                  wxPRINTBIN_SMALLFMT;
+%rename(PRINTBIN_LARGEFMT)                  wxPRINTBIN_LARGEFMT;
+%rename(PRINTBIN_LARGECAPACITY)             wxPRINTBIN_LARGECAPACITY;
+%rename(PRINTBIN_CASSETTE)                  wxPRINTBIN_CASSETTE;
+%rename(PRINTBIN_FORMSOURCE)                wxPRINTBIN_FORMSOURCE;
+%rename(PRINTBIN_USER)                      wxPRINTBIN_USER;
 %rename(PrintData)                          wxPrintData;
 %rename(PageSetupDialogData)                wxPageSetupDialogData;
 %rename(PageSetupDialog)                    wxPageSetupDialog;

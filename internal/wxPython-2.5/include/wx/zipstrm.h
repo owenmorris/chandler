@@ -15,7 +15,7 @@
 
 #include "wx/defs.h"
 
-#if wxUSE_STREAMS && wxUSE_ZIPSTREAM && wxUSE_ZLIB 
+#if wxUSE_STREAMS && wxUSE_ZIPSTREAM && wxUSE_ZLIB
 
 #include "wx/stream.h"
 
@@ -39,12 +39,12 @@ public:
 
 protected:
     virtual size_t OnSysRead(void *buffer, size_t bufsize);
-    virtual off_t OnSysSeek(off_t seek, wxSeekMode mode);
-    virtual off_t OnSysTell() const {return m_Pos;}
+    virtual wxFileOffset OnSysSeek(wxFileOffset seek, wxSeekMode mode);
+    virtual wxFileOffset OnSysTell() const {return m_Pos;}
 
 private:
     size_t m_Size;
-    off_t m_Pos;
+    wxFileOffset m_Pos;
 
     // this void* is handle of archive . I'm sorry it is void and not proper
     // type but I don't want to make unzip.h header public.
@@ -54,8 +54,8 @@ private:
 };
 
 
-#endif 
-   // wxUSE_STREAMS && wxUSE_ZIPSTREAM && wxUSE_ZLIB 
+#endif
+   // wxUSE_STREAMS && wxUSE_ZIPSTREAM && wxUSE_ZLIB
 
-#endif 
+#endif
    // __ZIPSTREAM_H__

@@ -16,20 +16,16 @@
 #include "wx/utils.h"
 #include "wx/wxchar.h"
 
-#if !wxUSE_UNICODE_MSLU
-inline bool wxUsingUnicowsDll() { return false; }
-#else
-
 // Returns true if we are running under Unicode emulation in Win9x environment.
 // Workaround hacks take effect only if this condition is met
-inline bool wxUsingUnicowsDll()
-{
-    return (wxGetOsVersion() == wxWIN95);
-}
+// (NB: this function is needed even if !wxUSE_UNICODE_MSLU)
+WXDLLIMPEXP_BASE bool wxUsingUnicowsDll();
 
 //------------------------------------------------------------------------
 // Wrongly implemented functions from unicows.dll
 //------------------------------------------------------------------------
+
+#if wxUSE_UNICODE_MSLU
 
 #if wxUSE_GUI
 
@@ -65,6 +61,7 @@ WXDLLIMPEXP_BASE int wxMSLU__waccess(const wxChar *name, int mode);
 WXDLLIMPEXP_BASE int wxMSLU__wmkdir(const wxChar *name);
 WXDLLIMPEXP_BASE int wxMSLU__wrmdir(const wxChar *name);
 WXDLLIMPEXP_BASE int wxMSLU__wstat(const wxChar *name, struct _stat *buffer);
+WXDLLIMPEXP_BASE int wxMSLU__wstati64(const wxChar *name, struct _stati64 *buffer);
 #endif
 
 #endif // wxUSE_UNICODE_MSLU

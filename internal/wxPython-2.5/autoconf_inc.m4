@@ -20,7 +20,6 @@ dnl Conditions:
 
 dnl ### begin block 10_AC_BAKEFILE_PRECOMP_HEADERS ###
 AC_BAKEFILE_PRECOMP_HEADERS
-
 dnl ### begin block 1_COND_BUILD_DEBUG ###
     COND_BUILD_DEBUG="#"
     if test "x$BUILD" = "xdebug" ; then
@@ -147,6 +146,12 @@ dnl ### begin block 1_COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 ###
         COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1=""
     fi
     AC_SUBST(COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1)
+dnl ### begin block 1_COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 ###
+    COND_MONOLITHIC_0_SHARED_0_USE_XRC_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x0" -a "x$USE_XRC" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_0_USE_XRC_1=""
+    fi
+    AC_SUBST(COND_MONOLITHIC_0_SHARED_0_USE_XRC_1)
 dnl ### begin block 1_COND_MONOLITHIC_0_SHARED_1 ###
     COND_MONOLITHIC_0_SHARED_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" ; then
@@ -177,6 +182,12 @@ dnl ### begin block 1_COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 ###
         COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1=""
     fi
     AC_SUBST(COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1)
+dnl ### begin block 1_COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 ###
+    COND_MONOLITHIC_0_SHARED_1_USE_XRC_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" -a "x$USE_XRC" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_1_USE_XRC_1=""
+    fi
+    AC_SUBST(COND_MONOLITHIC_0_SHARED_1_USE_XRC_1)
 dnl ### begin block 1_COND_MONOLITHIC_0_USE_ODBC_1 ###
     COND_MONOLITHIC_0_USE_ODBC_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$USE_ODBC" = "x1" ; then
@@ -321,6 +332,24 @@ dnl ### begin block 1_COND_SHARED_0 ###
         COND_SHARED_0=""
     fi
     AC_SUBST(COND_SHARED_0)
+dnl ### begin block 1_COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0 ###
+    COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0="#"
+    if test "x$SHARED" = "x0" -a "x$TOOLKIT" = "xMAC" -a "x$WXUNIV" = "x0" ; then
+        COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_SHARED_0_TOOLKIT_MAC_WXUNIV_0)
+dnl ### begin block 1_COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0 ###
+    COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0="#"
+    if test "x$SHARED" = "x0" -a "x$TOOLKIT" = "xMSW" -a "x$WXUNIV" = "x0" ; then
+        COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_SHARED_0_TOOLKIT_MSW_WXUNIV_0)
+dnl ### begin block 1_COND_SHARED_0_TOOLKIT_PM_WXUNIV_0 ###
+    COND_SHARED_0_TOOLKIT_PM_WXUNIV_0="#"
+    if test "x$SHARED" = "x0" -a "x$TOOLKIT" = "xPM" -a "x$WXUNIV" = "x0" ; then
+        COND_SHARED_0_TOOLKIT_PM_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_SHARED_0_TOOLKIT_PM_WXUNIV_0)
 dnl ### begin block 1_COND_SHARED_0_USE_GUI_1_USE_OPENGL_1 ###
     COND_SHARED_0_USE_GUI_1_USE_OPENGL_1="#"
     if test "x$SHARED" = "x0" -a "x$USE_GUI" = "x1" -a "x$USE_OPENGL" = "x1" ; then
@@ -429,12 +458,6 @@ dnl ### begin block 1_COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0)
-dnl ### begin block 1_COND_TOOLKIT_MAC_WXUNIV_0 ###
-    COND_TOOLKIT_MAC_WXUNIV_0="#"
-    if test "x$TOOLKIT" = "xMAC" -a "x$WXUNIV" = "x0" ; then
-        COND_TOOLKIT_MAC_WXUNIV_0=""
-    fi
-    AC_SUBST(COND_TOOLKIT_MAC_WXUNIV_0)
 dnl ### begin block 1_COND_TOOLKIT_MGL ###
     COND_TOOLKIT_MGL="#"
     if test "x$TOOLKIT" = "xMGL" ; then
@@ -483,12 +506,6 @@ dnl ### begin block 1_COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0)
-dnl ### begin block 1_COND_TOOLKIT_MSW_WXUNIV_0 ###
-    COND_TOOLKIT_MSW_WXUNIV_0="#"
-    if test "x$TOOLKIT" = "xMSW" -a "x$WXUNIV" = "x0" ; then
-        COND_TOOLKIT_MSW_WXUNIV_0=""
-    fi
-    AC_SUBST(COND_TOOLKIT_MSW_WXUNIV_0)
 dnl ### begin block 1_COND_TOOLKIT_PM ###
     COND_TOOLKIT_PM="#"
     if test "x$TOOLKIT" = "xPM" ; then
@@ -507,12 +524,6 @@ dnl ### begin block 1_COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0)
-dnl ### begin block 1_COND_TOOLKIT_PM_WXUNIV_0 ###
-    COND_TOOLKIT_PM_WXUNIV_0="#"
-    if test "x$TOOLKIT" = "xPM" -a "x$WXUNIV" = "x0" ; then
-        COND_TOOLKIT_PM_WXUNIV_0=""
-    fi
-    AC_SUBST(COND_TOOLKIT_PM_WXUNIV_0)
 dnl ### begin block 1_COND_TOOLKIT_WINCE ###
     COND_TOOLKIT_WINCE="#"
     if test "x$TOOLKIT" = "xWINCE" ; then
@@ -639,18 +650,18 @@ dnl ### begin block 1_COND_USE_SOVERSOLARIS_1 ###
         COND_USE_SOVERSOLARIS_1=""
     fi
     AC_SUBST(COND_USE_SOVERSOLARIS_1)
+dnl ### begin block 1_COND_USE_XRC_1 ###
+    COND_USE_XRC_1="#"
+    if test "x$USE_XRC" = "x1" ; then
+        COND_USE_XRC_1=""
+    fi
+    AC_SUBST(COND_USE_XRC_1)
 dnl ### begin block 1_COND_WITH_PLUGIN_SDL_1 ###
     COND_WITH_PLUGIN_SDL_1="#"
     if test "x$WITH_PLUGIN_SDL" = "x1" ; then
         COND_WITH_PLUGIN_SDL_1=""
     fi
     AC_SUBST(COND_WITH_PLUGIN_SDL_1)
-dnl ### begin block 1_COND_WITH_SDL_1 ###
-    COND_WITH_SDL_1="#"
-    if test "x$WITH_SDL" = "x1" ; then
-        COND_WITH_SDL_1=""
-    fi
-    AC_SUBST(COND_WITH_SDL_1)
 dnl ### begin block 1_COND_WXUNIV_1 ###
     COND_WXUNIV_1="#"
     if test "x$WXUNIV" = "x1" ; then
@@ -825,6 +836,12 @@ dnl ### begin block 20_COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1 ###
         COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1=""
     fi
     AC_SUBST(COND_MONOLITHIC_0_SHARED_0_USE_ODBC_1)
+dnl ### begin block 20_COND_MONOLITHIC_0_SHARED_0_USE_XRC_1 ###
+    COND_MONOLITHIC_0_SHARED_0_USE_XRC_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x0" -a "x$USE_XRC" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_0_USE_XRC_1=""
+    fi
+    AC_SUBST(COND_MONOLITHIC_0_SHARED_0_USE_XRC_1)
 dnl ### begin block 20_COND_MONOLITHIC_0_SHARED_1 ###
     COND_MONOLITHIC_0_SHARED_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" ; then
@@ -855,6 +872,12 @@ dnl ### begin block 20_COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1 ###
         COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1=""
     fi
     AC_SUBST(COND_MONOLITHIC_0_SHARED_1_USE_ODBC_1)
+dnl ### begin block 20_COND_MONOLITHIC_0_SHARED_1_USE_XRC_1 ###
+    COND_MONOLITHIC_0_SHARED_1_USE_XRC_1="#"
+    if test "x$MONOLITHIC" = "x0" -a "x$SHARED" = "x1" -a "x$USE_XRC" = "x1" ; then
+        COND_MONOLITHIC_0_SHARED_1_USE_XRC_1=""
+    fi
+    AC_SUBST(COND_MONOLITHIC_0_SHARED_1_USE_XRC_1)
 dnl ### begin block 20_COND_MONOLITHIC_0_USE_ODBC_1 ###
     COND_MONOLITHIC_0_USE_ODBC_1="#"
     if test "x$MONOLITHIC" = "x0" -a "x$USE_ODBC" = "x1" ; then
@@ -921,6 +944,18 @@ dnl ### begin block 20_COND_PLATFORM_MACOSX_1_TOOLKIT_MAC ###
         COND_PLATFORM_MACOSX_1_TOOLKIT_MAC=""
     fi
     AC_SUBST(COND_PLATFORM_MACOSX_1_TOOLKIT_MAC)
+dnl ### begin block 20_COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF ###
+    COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF="#"
+    if test "x$PLATFORM_MACOSX" = "x1" -a "x$TOOLKIT" = "xMOTIF" ; then
+        COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF=""
+    fi
+    AC_SUBST(COND_PLATFORM_MACOSX_1_TOOLKIT_MOTIF)
+dnl ### begin block 20_COND_PLATFORM_MACOSX_1_TOOLKIT_X11 ###
+    COND_PLATFORM_MACOSX_1_TOOLKIT_X11="#"
+    if test "x$PLATFORM_MACOSX" = "x1" -a "x$TOOLKIT" = "xX11" ; then
+        COND_PLATFORM_MACOSX_1_TOOLKIT_X11=""
+    fi
+    AC_SUBST(COND_PLATFORM_MACOSX_1_TOOLKIT_X11)
 dnl ### begin block 20_COND_PLATFORM_MACOSX_1_USE_GUI_1 ###
     COND_PLATFORM_MACOSX_1_USE_GUI_1="#"
     if test "x$PLATFORM_MACOSX" = "x1" -a "x$USE_GUI" = "x1" ; then
@@ -1095,6 +1130,12 @@ dnl ### begin block 20_COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_MAC_USE_GUI_1_WXUNIV_0)
+dnl ### begin block 20_COND_TOOLKIT_MAC_WXUNIV_0 ###
+    COND_TOOLKIT_MAC_WXUNIV_0="#"
+    if test "x$TOOLKIT" = "xMAC" -a "x$WXUNIV" = "x0" ; then
+        COND_TOOLKIT_MAC_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_TOOLKIT_MAC_WXUNIV_0)
 dnl ### begin block 20_COND_TOOLKIT_MGL ###
     COND_TOOLKIT_MGL="#"
     if test "x$TOOLKIT" = "xMGL" ; then
@@ -1143,6 +1184,12 @@ dnl ### begin block 20_COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_MSW_USE_GUI_1_WXUNIV_0)
+dnl ### begin block 20_COND_TOOLKIT_MSW_WXUNIV_0 ###
+    COND_TOOLKIT_MSW_WXUNIV_0="#"
+    if test "x$TOOLKIT" = "xMSW" -a "x$WXUNIV" = "x0" ; then
+        COND_TOOLKIT_MSW_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_TOOLKIT_MSW_WXUNIV_0)
 dnl ### begin block 20_COND_TOOLKIT_PM ###
     COND_TOOLKIT_PM="#"
     if test "x$TOOLKIT" = "xPM" ; then
@@ -1161,6 +1208,12 @@ dnl ### begin block 20_COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0 ###
         COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0=""
     fi
     AC_SUBST(COND_TOOLKIT_PM_USE_GUI_1_WXUNIV_0)
+dnl ### begin block 20_COND_TOOLKIT_PM_WXUNIV_0 ###
+    COND_TOOLKIT_PM_WXUNIV_0="#"
+    if test "x$TOOLKIT" = "xPM" -a "x$WXUNIV" = "x0" ; then
+        COND_TOOLKIT_PM_WXUNIV_0=""
+    fi
+    AC_SUBST(COND_TOOLKIT_PM_WXUNIV_0)
 dnl ### begin block 20_COND_TOOLKIT_WINCE ###
     COND_TOOLKIT_WINCE="#"
     if test "x$TOOLKIT" = "xWINCE" ; then

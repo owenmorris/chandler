@@ -59,7 +59,7 @@ WX_DEFINE_LIST(wxToolBarToolsList);
 // wxToolBarToolBase
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBarToolBase, wxObject)   
+IMPLEMENT_DYNAMIC_CLASS(wxToolBarToolBase, wxObject)
 
 bool wxToolBarToolBase::Enable(bool enable)
 {
@@ -141,6 +141,7 @@ wxToolBarToolBase *wxToolBarBase::DoAddTool(int id,
                                             wxCoord WXUNUSED(xPos),
                                             wxCoord WXUNUSED(yPos))
 {
+    InvalidateBestSize();
     return InsertTool(GetToolsCount(), id, label, bitmap, bmpDisabled,
                       kind, shortHelp, longHelp, clientData);
 }
@@ -597,7 +598,7 @@ void wxToolBarBase::OnRightClick(int id,
 }
 
 // Called when the mouse cursor enters a tool bitmap (no button pressed).
-// Argument is -1 if mouse is exiting the toolbar.
+// Argument is wxID_ANY if mouse is exiting the toolbar.
 // Note that for this event, the id of the window is used,
 // and the integer parameter of wxCommandEvent is used to retrieve
 // the tool id.
@@ -610,9 +611,9 @@ void wxToolBarBase::OnMouseEnter(int id)
     wxFrame *frame = wxDynamicCast(GetParent(), wxFrame);
     if( frame )
     {
-        wxToolBarToolBase* tool = id == -1 ? (wxToolBarToolBase*)0 : FindById(id);
+        wxToolBarToolBase* tool = id == wxID_ANY ? (wxToolBarToolBase*)0 : FindById(id);
         wxString help = tool ? tool->GetLongHelp() : wxString();
-        frame->DoGiveHelp( help, id != -1 );
+        frame->DoGiveHelp( help, id != wxID_ANY );
     }
 
     (void)GetEventHandler()->ProcessEvent(event);

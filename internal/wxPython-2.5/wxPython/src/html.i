@@ -137,7 +137,7 @@ public:
 
     wxString GetName();
     bool HasParam(const wxString& par);
-    wxString GetParam(const wxString& par, int with_commas = False);
+    wxString GetParam(const wxString& par, int with_commas = false);
 
     // Can't do this one as-is, but GetParam should be enough...
     //int ScanParam(const wxString& par, const char *format, void* param);
@@ -199,8 +199,12 @@ public:
         }
     }
 
-    // Sets font sizes to be relative to the given size or the system default size
-    void NormalizeFontSizes(int size=-1);
+    // Sets font sizes to be relative to the given size or the system
+    // default size; use either specified or default font
+    void SetStandardFonts(int size = -1,
+                          const wxString& normal_face = wxPyEmptyString,
+                          const wxString& fixed_face = wxPyEmptyString);
+     
     
     wxHtmlContainerCell* GetContainer();
     wxHtmlContainerCell* OpenContainer();
@@ -635,7 +639,7 @@ public:
 
     // returns True if this filter is able to open&read given file
     virtual bool CanRead(const wxFSFile& file) const {
-        bool rval = False;
+        bool rval = false;
         bool found;
         bool blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "CanRead"))) {
@@ -868,8 +872,11 @@ public:
         }
     }
 
-    // Sets font sizes to be relative to the given size or the system default size
-    void NormalizeFontSizes(int size=-1);
+    // Sets font sizes to be relative to the given size or the system
+    // default size; use either specified or default font
+    void SetStandardFonts(int size = -1,
+                          const wxString& normal_face = wxPyEmptyString,
+                          const wxString& fixed_face = wxPyEmptyString);
     
     DocDeclStr(
         void, SetTitle(const wxString& title),
@@ -947,7 +954,7 @@ public:
     void SetSize(int width, int height);
     void SetHtmlText(const wxString& html,
                      const wxString& basepath = wxPyEmptyString,
-                     bool isdir = True);
+                     bool isdir = true);
     // Sets fonts to be used when displaying HTML page. (if size null then default sizes used).
     %extend {
         void SetFonts(wxString normal_face, wxString fixed_face, PyObject* sizes=NULL) {
@@ -959,10 +966,13 @@ public:
         }
     }
 
-    // Sets font sizes to be relative to the given size or the system default size
-    void NormalizeFontSizes(int size=-1);
+    // Sets font sizes to be relative to the given size or the system
+    // default size; use either specified or default font
+    void SetStandardFonts(int size = -1,
+                          const wxString& normal_face = wxPyEmptyString,
+                          const wxString& fixed_face = wxPyEmptyString);
     
-    int Render(int x, int y, int from = 0, int dont_render = False, int to = INT_MAX,
+    int Render(int x, int y, int from = 0, int dont_render = false, int to = INT_MAX,
                //int *known_pagebreaks = NULL, int number_of_pages = 0
                int* choices=NULL, int LCOUNT = 0
                );
@@ -988,7 +998,7 @@ public:
 
     void SetHtmlText(const wxString& html,
                      const wxString &basepath = wxPyEmptyString,
-                     bool isdir = True);
+                     bool isdir = true);
     void SetHtmlFile(const wxString &htmlfile);
     void SetHeader(const wxString& header, int pg = wxPAGE_ALL);
     void SetFooter(const wxString& footer, int pg = wxPAGE_ALL);
@@ -1004,8 +1014,11 @@ public:
         }
     }
 
-    // Sets font sizes to be relative to the given size or the system default size
-    void NormalizeFontSizes(int size=-1);
+    // Sets font sizes to be relative to the given size or the system
+    // default size; use either specified or default font
+    void SetStandardFonts(int size = -1,
+                          const wxString& normal_face = wxPyEmptyString,
+                          const wxString& fixed_face = wxPyEmptyString);
     
     void SetMargins(float top = 25.2, float bottom = 25.2,
                     float left = 25.2, float right = 25.2,
@@ -1047,8 +1060,11 @@ public:
         }
     }
 
-    // Sets font sizes to be relative to the given size or the system default size
-    void NormalizeFontSizes(int size=-1);
+    // Sets font sizes to be relative to the given size or the system
+    // default size; use either specified or default font
+    void SetStandardFonts(int size = -1,
+                          const wxString& normal_face = wxPyEmptyString,
+                          const wxString& fixed_face = wxPyEmptyString);
     
     wxPrintData *GetPrintData() {return m_PrintData;}
     wxPageSetupDialogData *GetPageSetupData() {return m_PageSetupData;}
@@ -1188,7 +1204,7 @@ public:
 
     void SetTitleFormat(const wxString& format);
     void SetTempDir(const wxString& path);
-    bool AddBook(const wxString& book, int show_wait_msg = False);
+    bool AddBook(const wxString& book, int show_wait_msg = false);
     void Display(const wxString& x);
     %name(DisplayID) void Display(int id);
     void DisplayContents();

@@ -92,7 +92,7 @@ private:
     inline bool HasElements() const;
 
 public:
-    // init the elements from an XLFD, return TRUE if ok
+    // init the elements from an XLFD, return true if ok
     bool FromXFontName(const wxString& xFontName);
 
     // return false if we were never initialized with a valid XLFD
@@ -162,7 +162,14 @@ public:
         SetStyle((wxFontStyle)font.GetStyle());
         SetWeight((wxFontWeight)font.GetWeight());
         SetUnderlined(font.GetUnderlined());
+#if defined(__WXMSW__)
+        if ( font.IsUsingSizeInPixels() )
+            SetPixelSize(font.GetPixelSize());
+        else
         SetPointSize(font.GetPointSize());
+#else
+        SetPointSize(font.GetPointSize());
+#endif
 
         // set the family/facename
         SetFamily((wxFontFamily)font.GetFamily());
@@ -179,6 +186,7 @@ public:
 
     // accessors and modifiers for the font elements
     int GetPointSize() const;
+    wxSize GetPixelSize() const;
     wxFontStyle GetStyle() const;
     wxFontWeight GetWeight() const;
     bool GetUnderlined() const;
@@ -187,6 +195,7 @@ public:
     wxFontEncoding GetEncoding() const;
 
     void SetPointSize(int pointsize);
+    void SetPixelSize(const wxSize& pixelSize);
     void SetStyle(wxFontStyle style);
     void SetWeight(wxFontWeight weight);
     void SetUnderlined(bool underlined);
@@ -211,13 +220,13 @@ public:
 // ----------------------------------------------------------------------------
 
 // translate a wxFontEncoding into native encoding parameter (defined above),
-// returning TRUE if an (exact) macth could be found, FALSE otherwise (without
+// returning true if an (exact) macth could be found, false otherwise (without
 // attempting any substitutions)
 extern bool wxGetNativeFontEncoding(wxFontEncoding encoding,
                                     wxNativeEncodingInfo *info);
 
 // test for the existence of the font described by this facename/encoding,
-// return TRUE if such font(s) exist, FALSE otherwise
+// return true if such font(s) exist, false otherwise
 extern bool wxTestFontEncoding(const wxNativeEncodingInfo& info);
 
 // ----------------------------------------------------------------------------

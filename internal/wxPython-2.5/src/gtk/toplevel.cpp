@@ -61,10 +61,89 @@ extern bool g_isIdle;
 // data
 // ----------------------------------------------------------------------------
 
-extern wxList         wxPendingDelete;
+extern wxList           wxPendingDelete;
 
-extern int            g_openDialogs;
-extern wxWindowGTK   *g_delayedFocus;
+extern int              g_openDialogs;
+extern wxWindowGTK     *g_delayedFocus;
+
+// the frame that is currently active (i.e. its child has focus). It is
+// used to generate wxActivateEvents
+static wxTopLevelWindowGTK *g_activeFrame = (wxTopLevelWindowGTK*) NULL;
+static wxTopLevelWindowGTK *g_lastActiveFrame = (wxTopLevelWindowGTK*) NULL;
+
+// if we detect that the app has got/lost the focus, we set this variable to
+// either TRUE or FALSE and an activate event will be sent during the next
+// OnIdle() call and it is reset to -1: this value means that we shouldn't
+// send any activate events at all
+static int              g_sendActivateEvent = -1;
+
+//-----------------------------------------------------------------------------
+// "focus_in_event"
+//-----------------------------------------------------------------------------
+
+static gint gtk_frame_focus_in_callback( GtkWidget *widget,
+                                         GdkEvent *WXUNUSED(event),
+                                         wxTopLevelWindowGTK *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+        
+    switch ( g_sendActivateEvent )
+    {
+        case -1:
+            // we've got focus from outside, synthetize wxActivateEvent
+            g_sendActivateEvent = 1;
+            break;
+
+        case 0:
+            // another our window just lost focus, it was already ours before
+            // - don't send any wxActivateEvent
+            g_sendActivateEvent = -1;
+            break;
+    }
+
+    g_activeFrame = win;
+    g_lastActiveFrame = g_activeFrame;
+        
+    // wxPrintf( wxT("active: %s\n"), win->GetTitle().c_str() );
+        
+    wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
+    wxActivateEvent event(wxEVT_ACTIVATE, TRUE, g_activeFrame->GetId());
+    event.SetEventObject(g_activeFrame);
+    g_activeFrame->GetEventHandler()->ProcessEvent(event);
+
+    return FALSE;
+}
+
+//-----------------------------------------------------------------------------
+// "focus_out_event"
+//-----------------------------------------------------------------------------
+
+static gint gtk_frame_focus_out_callback( GtkWidget *widget, 
+                                          GdkEventFocus *WXUNUSED(gdk_event), 
+                                          wxTopLevelWindowGTK *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+
+    // if the focus goes out of our app alltogether, OnIdle() will send
+    // wxActivateEvent, otherwise gtk_window_focus_in_callback() will reset
+    // g_sendActivateEvent to -1
+    g_sendActivateEvent = 0;
+        
+    // wxASSERT_MSG( (g_activeFrame == win), wxT("TLW deactivatd although it wasn't active") );
+        
+    // wxPrintf( wxT("inactive: %s\n"), win->GetTitle().c_str() );
+        
+    wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
+    wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
+    event.SetEventObject(g_activeFrame);
+    g_activeFrame->GetEventHandler()->ProcessEvent(event);
+
+    g_activeFrame = NULL;
+        
+    return FALSE;
+}
 
 //-----------------------------------------------------------------------------
 // "focus" from m_window
@@ -372,11 +451,13 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
         }
     }
 
-    if (m_parent && (((GTK_IS_WINDOW(m_parent->m_widget)) &&
+    wxWindow *topParent = wxGetTopLevelParent(m_parent);
+    if (topParent && (((GTK_IS_WINDOW(topParent->m_widget)) &&
 		      (GetExtraStyle() & wxTOPLEVEL_EX_DIALOG)) ||
 		     (style & wxFRAME_FLOAT_ON_PARENT)))
     {
-        gtk_window_set_transient_for( GTK_WINDOW(m_widget), GTK_WINDOW(m_parent->m_widget) );
+        gtk_window_set_transient_for( GTK_WINDOW(m_widget),
+                                      GTK_WINDOW(topParent->m_widget) );
     }
 
 #if GTK_CHECK_VERSION(2,2,0)
@@ -457,6 +538,12 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     gtk_signal_connect( GTK_OBJECT(m_widget), "focus",
         GTK_SIGNAL_FUNC(gtk_frame_focus_callback), (gpointer)this );
 
+    // activation
+    gtk_signal_connect( GTK_OBJECT(m_widget), "focus_in_event",
+        GTK_SIGNAL_FUNC(gtk_frame_focus_in_callback), (gpointer)this );
+    gtk_signal_connect( GTK_OBJECT(m_widget), "focus_out_event",
+        GTK_SIGNAL_FUNC(gtk_frame_focus_out_callback), (gpointer)this );
+            
     // decorations
     if ((m_miniEdge > 0) || (style & wxSIMPLE_BORDER) || (style & wxNO_BORDER))
     {
@@ -517,6 +604,11 @@ wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
     {
         gtk_window_set_focus( GTK_WINDOW(m_widget), NULL );
     }
+    
+    if (g_activeFrame == this)
+        g_activeFrame = NULL;
+    if (g_lastActiveFrame == this)
+        g_lastActiveFrame = NULL;
 }
 
 
@@ -869,6 +961,20 @@ void wxTopLevelWindowGTK::OnInternalIdle()
     }
 
     wxWindow::OnInternalIdle();
+    
+    // Synthetize activate events.
+    if ( g_sendActivateEvent != -1 )
+    {
+        bool activate = g_sendActivateEvent != 0;
+        
+        // if (!activate) wxPrintf( wxT("de") );
+        // wxPrintf( wxT("activate\n") );
+        
+        // do it only once
+        g_sendActivateEvent = -1;
+
+        wxTheApp->SetActive(activate, (wxWindow *)g_lastActiveFrame);
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1067,4 +1173,8 @@ bool wxTopLevelWindowGTK::SetShape(const wxRegion& region)
     return do_shape_combine_region(window, region);
 }
 
-// vi:sts=4:sw=4:et
+bool wxTopLevelWindowGTK::IsActive()
+{
+    return (this == (wxTopLevelWindowGTK*)g_activeFrame);
+}
+

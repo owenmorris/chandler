@@ -5,11 +5,10 @@ Build-Depends: debhelper (>=4.0), flex, bison, gettext, libgtk2.0-dev, =PY, =PY-
 Maintainer: Ron Lee <ron@debian.org>
 Standards-Version: 3.6.1.1
 
-Package: libwxgtk=V
+Package: libwxgtk=SOV
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}
-Replaces: wxgtk2.1
 Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ runtime)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
@@ -22,11 +21,8 @@ Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ runtime)
 Package: libwxgtk=V-dev
 Architecture: any
 Section: libdevel
-Depends: wx=V-headers (= ${Source-Version}), libwxgtk=V (= ${Source-Version}), libc6-dev
-Suggests: wxwin=V-doc, libstdc++-dev, gettext, xlibmesa-gl-dev | libgl-dev, xlibmesa-glu-dev | libglu-dev
-Conflicts: libwxgtk-dev, libwxbase-dev
-Replaces: libwxgtk-dev, libwxbase-dev, wxgtk2.1-dev
-Provides: libwxgtk-dev
+Depends: wx=V-headers (= ${Source-Version}), libwxgtk=SOV (= ${Source-Version}), libc6-dev
+Suggests: wx=V-common | wx-common, wx=V-doc, libstdc++-dev, gettext, xlibmesa-gl-dev | libgl-dev, xlibmesa-glu-dev | libglu-dev
 Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ development)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
@@ -41,9 +37,6 @@ Architecture: any
 Section: libdevel
 Priority: extra
 Depends: wx=V-headers (= ${Source-Version}), libc6-dev
-Conflicts: libwxgtk-dbg, libwxbase-dbg
-Replaces: libwxgtk-dbg, libwxbase-dbg
-Provides: libwxgtk-dbg
 Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ development)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
@@ -54,55 +47,70 @@ Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ development)
  provides many internal checks by wxWidgets itself that are not performed on
  apps compiled with the 'release version' libs in the -dev package.
 
-Package: libwxgtk=V-python
+Package: libwxgtk=SOV-python
 Architecture: any
 Section: python
-Depends: =PY, ${shlibs:Depends}
-Suggests: wx=V-doc, wx=V-examples, =PY-xml
-Conflicts: libwxgtk-python, libwxgtk=V-dbg-python, python-wxwin, libwxgtk2.2-python-contrib, libwxgtk2.2-python, libwxgtk2.3-python
-Replaces: libwxgtk-python, libwxgtk=V-dbg-python, python-wxwin, libwxgtk2.2-python-contrib, libwxgtk2.2-python, libwxgtk2.3-python
-Provides: libwxgtk-python
+Depends: wxpython, =PY, ${shlibs:Depends}
 Description: wxWidgets Cross-platform C++ GUI toolkit (wxPython binding)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
  unpopular ones as well).  For more information see http://wxwidgets.org
  .
- This package provides a Python binding to the wxGTK library and its
- contrib libs.  If you wish to use xrced you'll also need the python-xml
- package installed.
+ This package provides a Python binding to the wxGTK library and the
+ wxPython runtime support libraries.  If you wish to use xrc you'll also
+ need the =PY-xml package installed.
 
-Package: libwxgtk=V-contrib
+Package: libwxgtk=SOV-dbg-python
 Architecture: any
-Section: libs
+Section: python
+Depends: wxpython, =PY, ${shlibs:Depends}
+Description: wxWindows Cross-platform C++ GUI toolkit (wxPython binding)
+ wxWindows is a class library for C++ providing GUI (Graphical User
+ Interface) and other facilities on more than one platform.  Version =V
+ currently supports subsets of GTK+, Motif, and MS Windows.
+ .
+ This package provides a Python binding to the wxGTK debug library.
+ It is useful for developers as many common errors may be caught, but
+ you should _never_ upload packages to Debian that depend upon this
+ package explicitly, use the libwxgtk=SOV-python package instead.
+ .
+ If you wish to use xrc you'll also need the =PY-xml package installed.
+
+Package: wxpython=SOV
+Architecture: any
+Section: python
+Depends: libwxgtk=SOV-python, =PY, ${shlibs:Depends}
+Suggests: wxwin=V-doc, wxwin=V-examples, =PY-xml
+Conflicts: wxpython
+Replaces: wxpython, libwxgtk2.4-python
+Provides: wxpython
+Description: wxWidgets Cross-platform C++ GUI toolkit (wxPython common files)
+ wxWidgets (formerly known as wxWindows) is a class library for C++ providing
+ GUI components and other facilities on several popular platforms (and some
+ unpopular ones as well).  For more information see http://wxwidgets.org
+ .
+ This package provides support utilities and common files for wxPython=SOV.
+ If you wish to use xrced you'll also need the =PY-xml package installed.
+
+Package: wx=V-common
+Architecture: any
+Section: devel
 Depends: ${shlibs:Depends}
-Description: wxWidgets Cross-platform C++ GUI toolkit (runtime contrib libs)
+Conflicts: wx-common
+Replaces: wx-common, wxwin2.4-headers, libwxgtk2.4-contrib-dev
+Provides: wx-common
+Description: wxWidgets Cross-platform C++ GUI toolkit (common support files)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
  unpopular ones as well).  For more information see http://wxwidgets.org
  .
- This package provides the contrib libs from the wxWidgets source tree
-
-Package: libwxgtk=V-contrib-dev
-Architecture: any
-Section: libdevel
-Depends: wx=V-headers (= ${Source-Version}), libwxgtk=V-dev (= ${Source-Version}), libwxgtk=V-contrib (= ${Source-Version}), libc6-dev
-Conflicts: libwxgtk-contrib-dev
-Replaces: libwxgtk-contrib-dev
-Provides: libwxgtk-contrib-dev
-Description: wxWidgets Cross-platform C++ GUI toolkit (development contrib libs)
- wxWidgets (formerly known as wxWindows) is a class library for C++ providing
- GUI components and other facilities on several popular platforms (and some
- unpopular ones as well).  For more information see http://wxwidgets.org
- .
- Install this package if you wish to compile applications that use the
- contrib libs from the wxWidgets source tree.
+ This package provides common support files not bound to any
+ particular wxWidgets release, such as font metrics required by some
+ ports, and miscellaneous developer aids and binary utilities.
 
 Package: wx=V-headers
 Architecture: any
 Section: devel
-Conflicts: wx-headers, wxwin-headers
-Replaces: wx-headers, wxwin-headers, wxgtk2.1-dev, libwxgtk2.3
-Provides: wx-headers
 Description: wxWidgets Cross-platform C++ GUI toolkit (header files)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
@@ -127,8 +135,6 @@ Description: wxWidgets Cross-platform C++ GUI toolkit (i18n support)
 Package: wx=V-doc
 Architecture: all
 Section: doc
-Conflicts: wx-doc, wxwin2.2-doc, wxwin-doc
-Replaces: wx-doc, wxwin-doc
 Provides: wx-doc
 Suggests: doc-base, www-browser
 Description: wxWidgets Cross-platform C++ GUI toolkit (documentation)
@@ -150,35 +156,10 @@ Description: wxWidgets Cross-platform C++ GUI toolkit (examples)
  This package contains examples of using the wxWidgets toolkit in
  C++ and with the wxPython language binding.
 
-Package: libwxgtk=V-dbg-python
-Architecture: any
-Section: python
-Depends: =PY, ${shlibs:Depends}
-Suggests: wxwin=V-doc, wxwin=V-examples, =PY-xml
-Conflicts: libwxgtk=V-python
-Replaces: libwxgtk=V-python
-Provides: libwxgtk=V-python
-Description: wxWindows Cross-platform C++ GUI toolkit (wxPython binding)
- wxWindows is a class library for C++ providing GUI (Graphical User
- Interface) and other facilities on more than one platform.  Version =V
- currently supports subsets of GTK+, Motif, and MS Windows.
- .
- This package provides a Python binding to the wxGTK debug library.
- It is useful for developers as many common errors may be caught.
- Unfortunately it cannot be installed at the same time as the release
- packages, but it will replace them for other applications that require
- wxPython.  You should _never_ upload packages to Debian that depend upon
- this package explicitly, use the libwxgtk=V-python package instead.
- .
- If you wish to use xrced you'll also need the python-xml package installed.
-
 Package: libwxmsw=V-dev
 Architecture: i386
 Section: otherosfs
 Depends: wx=V-headers-msw (= ${Source-Version})
-Conflicts: libwxmsw-dev
-Replaces: libwxmsw-dev
-Provides: libwxmsw-dev
 Description: wxMSW mingw32msvc-cross
  mingw32msvc-cross wxMSW libs.
 
@@ -186,9 +167,6 @@ Package: libwxmsw=V-dbg
 Architecture: i386
 Section: otherosfs
 Depends: wx=V-headers-msw (= ${Source-Version})
-Conflicts: libwxmsw-dbg
-Replaces: libwxmsw-dbg
-Provides: libwxmsw-dbg
 Description: wxMSW mingw32msvc-cross (debug)
  mingw32msvc-cross wxMSW libs.
  __WXDEBUG__ version.
@@ -197,9 +175,6 @@ Package: wx=V-headers-msw
 Architecture: i386
 Section: otherosfs
 Depends: wx=V-headers (= ${Source-Version})
-Conflicts: wx-headers-msw, wxwin-headers-msw
-Replaces: wx-headers-msw, wxwin-headers-msw
-Provides: wx-headers-msw
 Description: Extra wxWidgets headers for mingw32msvc-cross
  Headers required by the wxWidgets mingw32msvc-cross libraries.
 

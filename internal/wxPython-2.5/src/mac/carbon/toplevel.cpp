@@ -49,6 +49,9 @@
 
 #include <ToolUtils.h>
 
+//For targeting OSX
+#include "wx/mac/private.h"
+
 // ----------------------------------------------------------------------------
 // globals
 // ----------------------------------------------------------------------------
@@ -983,6 +986,16 @@ void  wxTopLevelWindowMac::MacCreateRealWindow( const wxString& title,
     {
         wclass = kDocumentWindowClass ;
     }
+#if defined( __WXMAC__ ) && TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
+    else if ( HasFlag( wxFRAME_DRAWER ) )
+    {
+        wclass = kDrawerWindowClass;
+        // Should this be left for compositing check below?
+        // CreateNewWindow will fail without it, should wxDrawerWindow turn
+        // on compositing before calling MacCreateRealWindow?
+        attr |= kWindowCompositingAttribute;// | kWindowStandardHandlerAttribute;
+    }
+#endif  //10.2 and up
     else
     {
         if ( HasFlag( wxMINIMIZE_BOX ) || HasFlag( wxMAXIMIZE_BOX ) ||

@@ -82,7 +82,7 @@ class Diagram(object):
     def ShowAll(self, show):
         """Call Show for each shape in the diagram."""
         for shape in self._shapeList:
-            shape.Show()
+            shape.Show(show)
 
     def DrawOutline(self, dc, x1, y1, x2, y2):
         """Draw an outline rectangle on the current device context."""
@@ -117,6 +117,14 @@ class Diagram(object):
         if self._snapToGrid:
             return self._gridSpacing * int(x / self._gridSpacing + 0.5), self._gridSpacing * int(y / self._gridSpacing + 0.5)
         return x, y
+
+    def SetGridSpacing(self, spacing): 
+        """Sets grid spacing.""" 
+        self._gridSpacing = spacing 
+ 
+    def SetSnapToGrid(self, snap): 
+        """Sets snap-to-grid mode.""" 
+        self._snapToGrid = snap 
 
     def GetGridSpacing(self):
         """Return the grid spacing."""

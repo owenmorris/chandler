@@ -28,7 +28,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_TEXTCTRL && !defined(__SMARTPHONE__)
+#if wxUSE_TEXTCTRL && !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
 
 #ifndef WX_PRECOMP
     #include "wx/textctrl.h"
@@ -991,8 +991,8 @@ bool wxTextCtrl::EmulateKeyPress(const wxKeyEvent& event)
     size_t lenOld = GetValue().length();
 
     wxUint32 code = event.GetRawKeyCode();
-    ::keybd_event(code, 0, 0 /* key press */, 0);
-    ::keybd_event(code, 0, KEYEVENTF_KEYUP, 0);
+    ::keybd_event((BYTE)code, 0, 0 /* key press */, 0);
+    ::keybd_event((BYTE)code, 0, KEYEVENTF_KEYUP, 0);
 
     // assume that any alphanumeric key changes the total number of characters
     // in the control - this should work in 99% of cases
@@ -2122,9 +2122,12 @@ bool wxTextCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                     case WM_SETCURSOR:
                         // ok, so it is hardcoded - do we really nee to
                         // customize it?
-                        ::SetCursor(GetHcursorOf(wxCursor(wxCURSOR_HAND)));
-                        *result = TRUE;
-                        break;
+                        {
+                            wxCursor cur(wxCURSOR_HAND);
+                            ::SetCursor(GetHcursorOf(cur));
+                            *result = TRUE;
+                            break;
+                        }
 
                     case WM_MOUSEMOVE:
                     case WM_LBUTTONDOWN:
@@ -2403,7 +2406,7 @@ bool wxTextCtrl::SetStyle(long start, long end, const wxTextAttr& style)
 
         const wxArrayInt& tabs = style.GetTabs();
 
-        pf.cTabCount = wxMin(tabs.GetCount(), MAX_TAB_STOPS);
+        pf.cTabCount = (SHORT)wxMin(tabs.GetCount(), MAX_TAB_STOPS);
         size_t i;
         for (i = 0; i < (size_t) pf.cTabCount; i++)
         {
@@ -2642,4 +2645,4 @@ bool wxRichEditModule::Load(int version)
 
 #endif // wxUSE_RICHEDIT
 
-#endif // wxUSE_TEXTCTRL && !__SMARTPHONE__
+#endif // wxUSE_TEXTCTRL && !(__SMARTPHONE__ && __WXWINCE__)

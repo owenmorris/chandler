@@ -72,9 +72,9 @@ INCOMPATIBLE CHANGES SINCE 2.4.x
   At this time, the only situation known not to work the same as
   before is the following:
 
-	 win = new SomeWidget(parent);
-	 win->SetSize(SomeNonDefaultSize);
-	 sizer->Add(win);
+    win = new SomeWidget(parent);
+    win->SetSize(SomeNonDefaultSize);
+    sizer->Add(win);
 
   In this case the old code would have used the new size as the
   minimum, but now the sizer will use the default size as the minimum
@@ -147,10 +147,15 @@ INCOMPATIBLE CHANGES SINCE 2.4.x
 - Identical functionality of wxFileDialog::ParseWildcard,
   wxGenericDirCtrl::ParseFilter, Motif and MSW parsing native dialogs
   is now accessible in ::wxParseCommonDialogsFilter
-- wxNotebookSizer and wxBookCtrlSizer are now deprecated -- the are no longer
+- wxNotebookSizer and wxBookCtrlSizer are now deprecated -- they are no longer
   needed, you can treat wxNotebook as any other control and put it directly
   into the sizer that was wxNotebookSizer's parent sizer in old code.
-
+- wxFile methods now return wxFileOffset which may be a 64 bit integer type,
+  even on 32 bit platforms, instead of off_t and so the return value of
+  wxFile::Length(), for example, shouldn't be assigned to off_t variable any
+  more (the compiler might warn you about this).
+- wxListItem::m_data is now of type wxUIntPtr, not long, for compatibility
+  with 64 bit systems
 
 
 DEPRECATED METHODS SINCE 2.4.x
@@ -188,6 +193,7 @@ versions, please update your code to not use them.
   and has now been removed
 - wxTaskBarIcon::OnXXX() virtual methods: use events instead
 - obsolete and not used wxUSE_GENERIC_DIALOGS_IN_MSW has been removed
+- wxDbTable::wxDbTable with wxChar* deprecated, same with wxString& instead
 
 
 OTHER CHANGES
@@ -198,6 +204,7 @@ OTHER CHANGES
 
 All:
 
+- support for huge (>2 Gb) files (Tim Kosse)
 - number of fixes to wxPluginManager (Rick Brice, Hans Van Leemputten)
 - fixed memory leak in wxURL when using a proxy (Steven Van Ingelgem)
 - fixed bug in wxDateTime::Set(jdn) when DST was in effect
@@ -208,25 +215,40 @@ All:
 - basic UDP sockets support (Lenny Maiorani)
 - fixed wxDateTime::GetWeekDayName() for some dates (Daniel Kaps)
 - deprecated wxDateTime::SetToTheWeek() in favour of SetToWeekOfYear()
+- active mode support in wxFTP (Randall Fox)
+- sped up wxHTTP and wxFTP
+- added wxStringInput/OutputStreams
+- added wxFileConfig::Save(wxOutputStream)
+- fixed wxString's behavior with inserted null characters
 
 All (GUI):
 
 - added wxWindow::MoveBefore/AfterInTabOrder() to change tab navigation order
-- added wxTaskBarIcon::CreatePopupMenu which is now recommended way
-  of showing popup menu; calling wxTaskBarIcon::PopupMenu directly
+- added wxTaskBarIcon::CreatePopupMenu which is now the recommended way
+  of showing a popup menu; calling wxTaskBarIcon::PopupMenu directly
   is discouraged
 - added ..._CMD_...(id) variants for wxGrid event table entry macros
-- added wxWindow::Navigate for programmatic navigation to the next control.
+- added wxWindow::Navigate for programmatic navigation to the next control
 - wxTextCtrl::OnChar now inserts a tab character if wxTE_PROCESS_TAB is set
 - added wxKeyEvent::GetUnicodeKey()
 - added wxKeyEvent::CmdDown() and wxMouseEvent::CmdDown()
 - implemented wxListCtrl::FindItem() for non-MSW (Robin Stoll)
 - added status bar fields styles support (Tim Kosse)
+- added convenience functions wxSizer::AddSpacer() and
+  wxSizer::AddStretchSpacer() (as well as Prepend and Insert variants)
 - added samples/splash
 - added support for stock buttons
 - added wxTopLevelWindow::RequestUserAttention()
 - support for comma in contrib gizmo wxLEDNumberCtrl (Grant Likely)
 - recursive wxSizer::Show for subsizer and return value if element was found
+- added wxChoicebook control
+- smoother time estimation updates in wxProgressDialog (Christian Sturmlechner)
+- the XRC contrib library was moved to the core
+- wx(Choice/List/Note)book controls send CHANG(ED/ING) events in SetSelection
+- it is now possible to create a wxFont with given size in pixels (d2walter)
+- added wxTopLevelWindow::IsActive()
+- wxSystemSettings::GetMetric now returns -1 for metrics that are not
+  supported, instead of zero.
 
 Unix:
 
@@ -235,6 +257,22 @@ Unix:
 - wx-config script was modified to allow choosing from multiple installed
   builds of wxWidgets and to return flags/libs for selected libraries only
 - wx-config has new --version-full option
+
+wxCocoa:
+
+- added Unicode compatability layer for OSX 10.2
+- fixed so that wxCocoa runs in OSX 10.2 
+- Tooltips now supported
+- wxSound now supported
+- wxDisplay now supported 
+- Some stock cursors now supported 
+
+wxMac:
+
+- fixed MLTE text control GetLineText and GetLineLength on OSX 
+- added OSX wxTaskBarIcon implementation for the OSX Dock 
+- added Unicode compatability layer for OSX 10.2
+- wxGetKeyState now works with nearly all wx key codes
 
 wxGTK:
 
@@ -256,6 +294,7 @@ wxGTK:
 - implemented alpha channel support in wxBitmap
 - added native GTK+2 wxArtProvider implementation with ability to load
   icons from icon theme in addition to recognized stock art
+- fixed crash on 64 bit platforms (Paul Cornett)
 
 wxMotif:
 
@@ -272,6 +311,11 @@ wxMSW:
 - fixed flat style for toolbars under XP, Windows Classic style
 - fixed truncation of transferred data in wxConnection under unicode build
 - wxChoice and wxComboBox dropdown background can be set now too (Adrian Lupei)
+- fixed wxMaximizeEvent generation in wxFrame
+- don't send duplicate EVT_COMBOBOX events whenever selection changes any more
+- implemented support for selecting printer bin (Steven Van Ingelgem)
+- fixed wxListCtrl::SetSingleStyle() which was broken since a few releases
+- fixed print setup problem (always uses default printer) in Unicode build
 
 wxUniv/X11:
 
@@ -279,9 +323,9 @@ wxUniv/X11:
 
 wxWinCE:
 
-- added native SmartPhone wxTextCtrl implementation using spinners
-- added native SmartPhone wxChoice implementation using spinners
-- added automatized but customizable handling of native SmartPhone menus
+- added native WinCE driven smartphone wxTextCtrl implementation using spinners
+- added native WinCE driven smartphone wxChoice implementation using spinners
+- added automatized but customizable handling of native WinCE driven smartphone menus
 - fixed wxRadioBox and wxStaticBox
 
 wxHTML:
@@ -402,7 +446,6 @@ All:
 
 All (GUI):
 
-- added wxListBook control
 - added 3-state checkboxes for MSW/Mac (Dimitri Schoolwerth)
 - added some support for C++ exceptions in the library (do read the manual!)
 - added wxListCtrl::GetViewRect()
@@ -543,7 +586,7 @@ wxBase:
 All GUI ports:
 
 - added wxVScrolledWindow, wxVListBox and wxHtmlLbox classes
-- added wxListbook
+- added wxListbook control
 - added alpha channel support to wxImage
 - added wxRenderer class allowing to customize the drawing of generic controls
 - added wxCLOSE_BOX style for dialogs and frames

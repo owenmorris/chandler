@@ -89,14 +89,18 @@
   in the entries it reads: for example, if you have an entry
     score_file = $HOME/.score
   a call to Read(&str, "score_file") will return a complete path to .score file
-  unless the expansion was previousle disabled with SetExpandEnvVars(FALSE) call
+  unless the expansion was previousle disabled with SetExpandEnvVars(false) call
   (it's on by default, the current status can be retrieved with
    IsExpandingEnvVars function).
 */
 class WXDLLIMPEXP_BASE wxFileConfigGroup;
 class WXDLLIMPEXP_BASE wxFileConfigEntry;
 class WXDLLIMPEXP_BASE wxFileConfigLineList;
+
+#if wxUSE_STREAMS
 class WXDLLIMPEXP_BASE wxInputStream;
+class WXDLLIMPEXP_BASE wxOutputStream;
+#endif // wxUSE_STREAMS
 
 class WXDLLIMPEXP_BASE wxFileConfig : public wxConfigBase
 {
@@ -126,8 +130,7 @@ public:
 
 #if wxUSE_STREAMS
     // ctor that takes an input stream.
-  wxFileConfig(wxInputStream &inStream,
-               wxMBConv& conv = wxConvUTF8);
+  wxFileConfig(wxInputStream &inStream, wxMBConv& conv = wxConvUTF8);
 #endif // wxUSE_STREAMS
 
     // dtor will save unsaved data
@@ -150,20 +153,28 @@ public:
   virtual bool GetFirstEntry(wxString& str, long& lIndex) const;
   virtual bool GetNextEntry (wxString& str, long& lIndex) const;
 
-  virtual size_t GetNumberOfEntries(bool bRecursive = FALSE) const;
-  virtual size_t GetNumberOfGroups(bool bRecursive = FALSE) const;
+  virtual size_t GetNumberOfEntries(bool bRecursive = false) const;
+  virtual size_t GetNumberOfGroups(bool bRecursive = false) const;
 
   virtual bool HasGroup(const wxString& strName) const;
   virtual bool HasEntry(const wxString& strName) const;
 
-  virtual bool Flush(bool bCurrentOnly = FALSE);
+  virtual bool Flush(bool bCurrentOnly = false);
 
   virtual bool RenameEntry(const wxString& oldName, const wxString& newName);
   virtual bool RenameGroup(const wxString& oldName, const wxString& newName);
 
-  virtual bool DeleteEntry(const wxString& key, bool bGroupIfEmptyAlso = TRUE);
+  virtual bool DeleteEntry(const wxString& key, bool bGroupIfEmptyAlso = true);
   virtual bool DeleteGroup(const wxString& szKey);
   virtual bool DeleteAll();
+
+  // additional, wxFileConfig-specific, functionality
+#if wxUSE_STREAMS
+  // save the entire config file text to the given stream, note that the text
+  // won't be saved again in dtor when Flush() is called if you use this method
+  // as it won't be "changed" any more
+  virtual bool Save(wxOutputStream& os, wxMBConv& conv = wxConvUTF8);
+#endif // wxUSE_STREAMS
 
 public:
   // functions to work with this list
@@ -198,30 +209,38 @@ private:
   // the same as SetPath("/")
   void SetRootPath();
 
+  // set/test the dirty flag
+  void SetDirty() { m_isDirty = true; }
+  void ResetDirty() { m_isDirty = false; }
+  bool IsDirty() const { return m_isDirty; }
+
+
   // member variables
   // ----------------
-  wxFileConfigLineList *m_linesHead,        // head of the linked list
-                       *m_linesTail;        // tail
+  wxFileConfigLineList *m_linesHead,    // head of the linked list
+                       *m_linesTail;    // tail
 
-  wxString    m_strLocalFile,     // local  file name passed to ctor
-              m_strGlobalFile;    // global
-  wxString    m_strPath;          // current path (not '/' terminated)
+  wxString    m_strLocalFile,           // local  file name passed to ctor
+              m_strGlobalFile;          // global
+  wxString    m_strPath;                // current path (not '/' terminated)
 
   wxFileConfigGroup *m_pRootGroup,      // the top (unnamed) group
                     *m_pCurrentGroup;   // the current group
 
   wxMBConv   &m_conv;
-        
+
 #ifdef __UNIX__
-  int m_umask;                    // the umask to use for file creation
+  int m_umask;                          // the umask to use for file creation
 #endif // __UNIX__
 
-    DECLARE_NO_COPY_CLASS(wxFileConfig)
+  bool m_isDirty;                       // if true, we have unsaved changes
+
+  DECLARE_NO_COPY_CLASS(wxFileConfig)
 };
 
 #endif
   // wxUSE_CONFIG
 
-#endif  
+#endif
   //_FILECONF_H
 

@@ -160,7 +160,7 @@ public:
     bool SetItemState(long item, long state, long stateMask) ;
 
     // Sets the item image
-    bool SetItemImage(long item, int image, int selImage) ;
+    bool SetItemImage(long item, int image, int selImage = -1) ;
 
     // Gets the item text
     wxString GetItemText(long item) const ;
@@ -169,7 +169,7 @@ public:
     void SetItemText(long item, const wxString& str) ;
 
     // Gets the item data
-    long GetItemData(long item) const ;
+    wxUIntPtr GetItemData(long item) const ;
 
     // Sets the item data
     bool SetItemData(long item, long data) ;
@@ -284,7 +284,7 @@ public:
 
     // Find an item whose data matches this data, starting from the item after 'start'
     // or the beginning if 'start' is -1.
-    long FindItem(long start, long data);
+    long FindItem(long start, wxUIntPtr data);
 
     // Find an item nearest this position in the specified direction, starting from
     // the item after 'start' or the beginning if 'start' is -1.

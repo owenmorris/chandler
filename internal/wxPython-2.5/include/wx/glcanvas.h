@@ -17,6 +17,8 @@
 #include "wx/x11/glcanvas.h"
 #elif defined(__WXMAC__)
 #include "wx/mac/glcanvas.h"
+#elif defined(__WXCOCOA__)
+#include "wx/cocoa/glcanvas.h"
 #elif defined(__WXPM__)
 #include "wx/os2/glcanvas.h"
 #endif
@@ -30,7 +32,7 @@ public:
 
     // use this in the constructor of the user-derived wxGLApp class to
     // determine if an OpenGL rendering context with these attributes
-    // is available - returns TRUE if so, FALSE if not.
+    // is available - returns true if so, false if not.
     bool InitGLVisual(int *attribList);
 
 private:

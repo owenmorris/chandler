@@ -155,11 +155,6 @@ void wxRemoveHandleAssociation(wxWindowMSW *win);
 extern void wxAssociateWinWithHandle(HWND hWnd, wxWindowMSW *win);
 wxWindow *wxFindWinFromHandle(WXHWND hWnd);
 
-// this magical function is used to translate VK_APPS key presses to right
-// mouse clicks
-static void TranslateKbdEventToMouse(wxWindowMSW *win,
-                                     int *x, int *y, WPARAM *flags);
-
 // get the text metrics for the current font
 static TEXTMETRIC wxGetTextMetrics(const wxWindowMSW *win);
 
@@ -586,7 +581,7 @@ void wxWindowMSW::SetFocusFromKbd()
 }
 
 // Get the window with the focus
-wxWindow *wxWindowBase::FindFocus()
+wxWindow *wxWindowBase::DoFindFocus()
 {
     HWND hWnd = ::GetFocus();
     if ( hWnd )
@@ -1021,14 +1016,14 @@ void wxWindowMSW::UnsubclassWin()
     }
 }
 
-void wxWindowMSW::AssociateHandle(WXWidget handle) 
+void wxWindowMSW::AssociateHandle(WXWidget handle)
 {
     if ( m_hWnd )
     {
       if ( !::DestroyWindow(GetHwnd()) )
         wxLogLastError(wxT("DestroyWindow"));
     }
-    
+
     WXHWND wxhwnd = (WXHWND)handle;
 
     SetHWND(wxhwnd);
@@ -1036,9 +1031,9 @@ void wxWindowMSW::AssociateHandle(WXWidget handle)
 }
 
 void wxWindowMSW::DissociateHandle()
-{ 
+{
     // this also calls SetHWND(0) for us
-    UnsubclassWin(); 
+    UnsubclassWin();
 }
 
 
@@ -2285,31 +2280,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
 #endif
 
         case WM_SIZE:
-            switch ( wParam )
-            {
-                case SIZE_MAXHIDE:
-                case SIZE_MAXSHOW:
-                    // we're not interested in these messages at all
-                    break;
-
-                case SIZE_MINIMIZED:
-                    // we shouldn't send sizev events for these messages as the
-                    // client size may be negative which breaks existing code
-                    //
-                    // OTOH we might send another (wxMinimizedEvent?) one or
-                    // add an additional parameter to wxSizeEvent if this is
-                    // useful to anybody
-                    break;
-
-                default:
-                    wxFAIL_MSG( _T("unexpected WM_SIZE parameter") );
-                    // fall through nevertheless
-
-                case SIZE_MAXIMIZED:
-                case SIZE_RESTORED:
-                    processed = HandleSize(LOWORD(lParam), HIWORD(lParam),
-                                           wParam);
-            }
+            processed = HandleSize(LOWORD(lParam), HIWORD(lParam), wParam);
             break;
 
 #if !defined(__WXWINCE__)
@@ -2686,13 +2657,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
                     // special case of VK_APPS: treat it the same as right mouse
                     // click because both usually pop up a context menu
                     case VK_APPS:
-                        {
-                            WPARAM flags;
-                            int x, y;
-
-                            TranslateKbdEventToMouse(this, &x, &y, &flags);
-                            processed = HandleMouseEvent(WM_RBUTTONDOWN, x, y, flags);
-                        }
+                        processed = HandleMouseEvent(WM_RBUTTONDOWN, -1, -1, 0);
                         break;
 #endif // VK_APPS
 
@@ -2711,11 +2676,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
             // special case of VK_APPS: treat it the same as right mouse button
             if ( wParam == VK_APPS )
             {
-                WPARAM flags;
-                int x, y;
-
-                TranslateKbdEventToMouse(this, &x, &y, &flags);
-                processed = HandleMouseEvent(WM_RBUTTONUP, x, y, flags);
+                processed = HandleMouseEvent(WM_RBUTTONUP, -1, -1, 0);
             }
             else
 #endif // VK_APPS
@@ -3407,6 +3368,8 @@ bool wxWindowMSW::HandleCreate(WXLPCREATESTRUCT cs, bool *mayCreate)
 #ifndef __WXWINCE__
     if ( ((CREATESTRUCT *)cs)->dwExStyle & WS_EX_CONTROLPARENT )
         EnsureParentHasControlParentStyle(GetParent());
+#else
+    wxUnusedVar(cs);
 #endif // !__WXWINCE__
 
     // TODO: should generate this event from WM_NCCREATE
@@ -3747,9 +3710,7 @@ wxWindowMSW::MSWOnDrawItem(int WXUNUSED_UNLESS_ODRAWN(id),
 }
 
 bool
-wxWindowMSW::MSWOnMeasureItem(int WXUNUSED_UNLESS_ODRAWN(id),
-                              WXMEASUREITEMSTRUCT *
-                                  WXUNUSED_UNLESS_ODRAWN(itemStruct))
+wxWindowMSW::MSWOnMeasureItem(int id, WXMEASUREITEMSTRUCT *itemStruct)
 {
 #if wxUSE_OWNER_DRAWN && wxUSE_MENUS_NATIVE
     // is it a menu item?
@@ -3774,7 +3735,10 @@ wxWindowMSW::MSWOnMeasureItem(int WXUNUSED_UNLESS_ODRAWN(id),
     {
         return item->MSWOnMeasure(itemStruct);
     }
-#endif // wxUSE_OWNER_DRAWN
+#else
+    wxUnusedVar(id);
+    wxUnusedVar(itemStruct);
+#endif // wxUSE_OWNER_DRAWN && wxUSE_MENUS_NATIVE
 
     return false;
 }
@@ -4170,7 +4134,8 @@ bool wxWindowMSW::HandleMaximize()
 
 bool wxWindowMSW::HandleMove(int x, int y)
 {
-    wxMoveEvent event(wxPoint(x, y), m_windowId);
+    wxPoint point(x,y);
+    wxMoveEvent event(point, m_windowId);
     event.SetEventObject(this);
 
     return GetEventHandler()->ProcessEvent(event);
@@ -4187,16 +4152,40 @@ bool wxWindowMSW::HandleMoving(wxRect& rect)
     return rc;
 }
 
-bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h),
-                             WXUINT WXUNUSED(flag))
+bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
 {
-    // don't use w and h parameters as they specify the client size while
-    // according to the docs EVT_SIZE handler is supposed to receive the total
-    // size
-    wxSizeEvent event(GetSize(), m_windowId);
-    event.SetEventObject(this);
+    bool processed = false;
 
-    return GetEventHandler()->ProcessEvent(event);
+    switch ( wParam )
+    {
+        default:
+            wxFAIL_MSG( _T("unexpected WM_SIZE parameter") );
+            // fall through nevertheless
+
+        case SIZE_MAXHIDE:
+        case SIZE_MAXSHOW:
+            // we're not interested in these messages at all
+            break;
+
+        case SIZE_MINIMIZED:
+            processed = HandleMinimize();
+            break;
+
+        case SIZE_MAXIMIZED:
+            /* processed = */ HandleMaximize();
+            // fall through to send a normal size event as well
+
+        case SIZE_RESTORED:
+            // don't use w and h parameters as they specify the client size
+            // while according to the docs EVT_SIZE handler is supposed to
+            // receive the total size
+            wxSizeEvent event(GetSize(), m_windowId);
+            event.SetEventObject(this);
+
+            processed = GetEventHandler()->ProcessEvent(event);
+    }
+
+    return processed;
 }
 
 bool wxWindowMSW::HandleSizing(wxRect& rect)
@@ -4720,7 +4709,7 @@ int wxWindowMSW::HandleMenuChar(int chAccel, WXLPARAM lParam)
                         // FIXME-UNICODE: this comparison doesn't risk to work
                         // for non ASCII accelerator characters I'm afraid, but
                         // what can we do?
-                        if ( wxToupper(*p) == chAccel )
+                        if ( (wchar_t)wxToupper(*p) == (wchar_t)chAccel )
                         {
                             return i;
                         }
@@ -5056,10 +5045,10 @@ int wxCharCodeMSWToWX(int keySym, WXLPARAM lParam)
     return id;
 }
 
-int wxCharCodeWXToMSW(int id, bool *isVirtual)
+WXWORD wxCharCodeWXToMSW(int id, bool *isVirtual)
 {
     *isVirtual = true;
-    int keySym;
+    WXWORD keySym;
     switch (id)
     {
     case WXK_CANCEL:    keySym = VK_CANCEL; break;
@@ -5128,7 +5117,7 @@ int wxCharCodeWXToMSW(int id, bool *isVirtual)
     default:
         {
             *isVirtual = false;
-            keySym = id;
+            keySym = (WORD)id;
             break;
         }
     }
@@ -5138,7 +5127,7 @@ int wxCharCodeWXToMSW(int id, bool *isVirtual)
 bool wxGetKeyState(wxKeyCode key)
 {
     bool bVirtual;
-    int vkey = wxCharCodeWXToMSW(key, &bVirtual);
+    WORD vkey = wxCharCodeWXToMSW(key, &bVirtual);
     SHORT state;
 
     switch (key)
@@ -5712,26 +5701,6 @@ const char *wxGetMessageName(int message)
     }
 }
 #endif //__WXDEBUG__
-
-static void TranslateKbdEventToMouse(wxWindowMSW *win,
-                                     int *x, int *y, WPARAM *flags)
-{
-    // construct the key mask
-    WPARAM& fwKeys = *flags;
-
-    fwKeys = MK_RBUTTON;
-    if ( wxIsCtrlDown() )
-        fwKeys |= MK_CONTROL;
-    if ( wxIsShiftDown() )
-        fwKeys |= MK_SHIFT;
-
-    // simulate right mouse button click
-    DWORD dwPos = ::GetMessagePos();
-    *x = GET_X_LPARAM(dwPos);
-    *y = GET_Y_LPARAM(dwPos);
-
-    win->ScreenToClient(x, y);
-}
 
 static TEXTMETRIC wxGetTextMetrics(const wxWindowMSW *win)
 {

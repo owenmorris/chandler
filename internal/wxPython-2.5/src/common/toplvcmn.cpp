@@ -67,7 +67,7 @@ wxTopLevelWindowBase::~wxTopLevelWindowBase()
     bool shouldExit = IsLastBeforeExit();
 
     wxTopLevelWindows.DeleteObject(this);
-    
+
     if ( shouldExit )
     {
         // then do it
@@ -88,12 +88,12 @@ bool wxTopLevelWindowBase::Destroy()
         // not be done if this TLW is the
         // only one left since we then would
         // risk not to get any idle events
-        // at all anymore during which we 
+        // at all anymore during which we
         // could delete any pending events.
         Hide();
     }
 
-    return TRUE;
+    return true;
 }
 
 bool wxTopLevelWindowBase::IsLastBeforeExit() const
@@ -116,10 +116,10 @@ wxSize wxTopLevelWindowBase::GetMaxSize() const
 
     wxClientDisplayRect( 0, 0, &w, &h );
 
-    if( size.GetWidth() == -1 )
+    if( size.GetWidth() == wxDefaultCoord )
         size.SetWidth( w );
 
-    if( size.GetHeight() == -1 )
+    if( size.GetHeight() == wxDefaultCoord )
         size.SetHeight( h );
 
     return size;
@@ -187,7 +187,7 @@ void wxTopLevelWindowBase::DoClientToScreen(int *x, int *y) const
 
 // default resizing behaviour - if only ONE subwindow, resize to fill the
 // whole client area
-void wxTopLevelWindowBase::OnSize(wxSizeEvent& WXUNUSED(event))
+void wxTopLevelWindowBase::DoLayout()
 {
     // if we're using constraints or sizers - do use them
     if ( GetAutoLayout() )
@@ -257,7 +257,7 @@ void wxTopLevelWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 {
     if ( event.GetSetEnabled() )
         Enable(event.GetEnabled());
-    
+
     if ( event.GetSetText() )
     {
         if ( event.GetText() != GetTitle() )

@@ -69,7 +69,7 @@ static inline WORD GetNumberOfColours(WORD bitsPerPixel)
 {
     // only 1, 4 and 8bpp bitmaps use palettes (well, they could be used with
     // 24bpp ones too but we don't support this as I think it's quite uncommon)
-    return bitsPerPixel <= 8 ? 1 << bitsPerPixel : 0;
+    return (WORD)(bitsPerPixel <= 8 ? 1 << bitsPerPixel : 0);
 }
 
 // wrapper around ::GetObject() for DIB sections
@@ -118,7 +118,7 @@ bool wxDIB::Create(int width, int height, int depth)
     info->bmiHeader.biHeight = height;
 
     info->bmiHeader.biPlanes = 1;
-    info->bmiHeader.biBitCount = depth;
+    info->bmiHeader.biBitCount = (WORD)depth;
     info->bmiHeader.biSizeImage = GetLineSize(width, depth)*height;
 
     m_handle = ::CreateDIBSection
@@ -603,7 +603,7 @@ wxPalette *wxDIB::CreatePalette() const
 
     // initialize the palette header
     pPalette->palVersion = 0x300;  // magic number, not in docs but works
-    pPalette->palNumEntries = biClrUsed;
+    pPalette->palNumEntries = (WORD)biClrUsed;
 
     // and the colour table (it starts right after the end of the header)
     const RGBQUAD *pRGB = (RGBQUAD *)((char *)&ds.dsBmih + ds.dsBmih.biSize);
@@ -667,17 +667,30 @@ bool wxDIB::Create(const wxImage& image)
     {
         // copy one DIB line
         unsigned char *dst = dstLineStart;
-        for ( int x = 0; x < w; x++ )
+        if ( alpha )
         {
-            // also, the order of RGB is inversed for DIBs
-            *dst++ = src[2];
-            *dst++ = src[1];
-            *dst++ = src[0];
-
-            src += 3;
-
-            if ( alpha )
-                *dst++ = *alpha++;
+            for ( int x = 0; x < w; x++ )
+            {
+                // RGB order is reversed, and we need to premultiply
+                // all channels by alpha value for use with ::AlphaBlend.
+                const unsigned char a = *alpha++;
+                *dst++ = (unsigned char)((src[2] * a + 127) / 255);
+                *dst++ = (unsigned char)((src[1] * a + 127) / 255);
+                *dst++ = (unsigned char)((src[0] * a + 127) / 255);
+                *dst++ = a;
+                src += 3;
+            }
+        }
+        else // no alpha channel
+        {
+            for ( int x = 0; x < w; x++ )
+            {
+                // RGB order is reversed.
+                *dst++ = src[2];
+                *dst++ = src[1];
+                *dst++ = src[0];
+                src += 3;
+            }
         }
 
         // pass to the previous line in the image

@@ -31,6 +31,7 @@
 #if wxUSE_FONTMAP
 
 #ifndef WX_PRECOMP
+    #include "wx/gdicmn.h"
     #include "wx/font.h"
     #include "wx/encinfo.h"
 #endif
@@ -165,7 +166,7 @@ void wxFontEnumeratorHelper::DoEnumerate()
                          (LPARAM)this) ;
 #else // __WIN32__
     LOGFONT lf;
-    lf.lfCharSet = m_charset;
+    lf.lfCharSet = (BYTE)m_charset;
     wxStrncpy(lf.lfFaceName, m_facename, WXSIZEOF(lf.lfFaceName));
     lf.lfPitchAndFamily = 0;
     ::EnumFontFamiliesEx(hDC, &lf, (wxFONTENUMPROC)wxFontEnumeratorProc,

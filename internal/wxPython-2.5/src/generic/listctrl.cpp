@@ -94,8 +94,10 @@ DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_END_LABEL_EDIT)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ITEM)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS)
+#if WXWIN_COMPATIBILITY_2_4
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_GET_INFO)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_SET_INFO)
+#endif
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_SELECTED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_DESELECTED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_KEY_DOWN)
@@ -164,7 +166,7 @@ public:
 
     void SetItem( const wxListItem &info );
     void SetImage( int image ) { m_image = image; }
-    void SetData( long data ) { m_data = data; }
+    void SetData( wxUIntPtr data ) { m_data = data; }
     void SetPosition( int x, int y );
     void SetSize( int width, int height );
 
@@ -203,7 +205,7 @@ public:
     int m_image;
 
     // user data associated with the item
-    long m_data;
+    wxUIntPtr m_data;
 
     // the item coordinates are not used in report mode, instead this pointer
     // is NULL and the owner window is used to retrieve the item position and
@@ -517,6 +519,8 @@ public:
                       const wxString &name = _T("listctrlmainwindow") );
 
     virtual ~wxListMainWindow();
+    
+    wxWindow *GetMainWindowOfCompositeControl() { return GetParent(); }
 
     bool HasFlag(int flag) const { return m_parent->HasFlag(flag); }
 
@@ -679,7 +683,7 @@ public:
     void DeleteEverything();
     void EnsureVisible( long index );
     long FindItem( long start, const wxString& str, bool partial = false );
-    long FindItem( long start, long data);
+    long FindItem( long start, wxUIntPtr data);
     long FindItem( const wxPoint& pt );
     long HitTest( int x, int y, int &flags );
     void InsertItem( wxListItem &item );
@@ -3303,7 +3307,7 @@ void wxListMainWindow::SetFocus()
     //     focus to the panel from wxListTextCtrl because the text control should
     //     disappear when the user clicks outside it.
 
-    wxWindow *oldFocus = FindFocus();
+    wxWindow *oldFocus = DoFindFocus();
 
     if ( oldFocus && oldFocus->GetParent() == this )
     {
@@ -4271,7 +4275,7 @@ long wxListMainWindow::FindItem(long start, const wxString& str, bool WXUNUSED(p
     return wxNOT_FOUND;
 }
 
-long wxListMainWindow::FindItem(long start, long data)
+long wxListMainWindow::FindItem(long start, wxUIntPtr data)
 {
     long pos = start;
     if (pos < 0)
@@ -4466,9 +4470,9 @@ int LINKAGEMODE list_ctrl_compare_func_1( wxListLineData **arg1, wxListLineData 
     wxListLineData *line2 = *arg2;
     wxListItem item;
     line1->GetItem( 0, item );
-    long data1 = item.m_data;
+    wxUIntPtr data1 = item.m_data;
     line2->GetItem( 0, item );
-    long data2 = item.m_data;
+    wxUIntPtr data2 = item.m_data;
     return list_ctrl_compare_func_2( data1, data2, list_ctrl_compare_data );
 }
 
@@ -4820,7 +4824,8 @@ bool wxGenericListCtrl::SetItemState( long item, long state, long stateMask )
     return true;
 }
 
-bool wxGenericListCtrl::SetItemImage( long item, int image, int WXUNUSED(selImage) )
+bool
+wxGenericListCtrl::SetItemImage( long item, int image, int WXUNUSED(selImage) )
 {
     wxListItem info;
     info.m_image = image;
@@ -4840,7 +4845,7 @@ void wxGenericListCtrl::SetItemText( long item, const wxString& str )
     m_mainWin->SetItemText(item, str);
 }
 
-long wxGenericListCtrl::GetItemData( long item ) const
+wxUIntPtr wxGenericListCtrl::GetItemData( long item ) const
 {
     wxListItem info;
     info.m_itemId = item;
@@ -5080,7 +5085,7 @@ long wxGenericListCtrl::FindItem( long start, const wxString& str,  bool partial
     return m_mainWin->FindItem( start, str, partial );
 }
 
-long wxGenericListCtrl::FindItem( long start, long data )
+long wxGenericListCtrl::FindItem( long start, wxUIntPtr data )
 {
     return m_mainWin->FindItem( start, data );
 }
@@ -5351,7 +5356,7 @@ void wxGenericListCtrl::SetFocus()
 {
     /* The test in window.cpp fails as we are a composite
        window, so it checks against "this", but not m_mainWin. */
-    if ( FindFocus() != this )
+    if ( DoFindFocus() != this )
         m_mainWin->SetFocus();
 }
 
@@ -5378,9 +5383,9 @@ wxString wxGenericListCtrl::OnGetItemText(long WXUNUSED(item), long WXUNUSED(col
 
 int wxGenericListCtrl::OnGetItemImage(long WXUNUSED(item)) const
 {
-    // same as above
-    wxFAIL_MSG( _T("wxGenericListCtrl::OnGetItemImage not supposed to be called") );
-
+    wxCHECK_MSG(!GetImageList(wxIMAGE_LIST_SMALL),
+                -1,
+                wxT("List control has an image list, OnGetItemImage should be overridden."));
     return -1;
 }
 

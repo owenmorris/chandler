@@ -19,7 +19,7 @@
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__EMX__)
 // Some older compilers (such as EMX) cannot handle
-// #pragma interface/implementation correctly, iff 
+// #pragma interface/implementation correctly, iff
 // #pragma implementation is used in _two_ translation
 // units (as created by e.g. event.cpp compiled for
 // libwx_base and event.cpp compiled for libwx_gui_core).
@@ -122,8 +122,7 @@ void wxMessageOutputDebug::Printf(const wxChar* format, ...)
     out.Replace(wxT("\t"), wxT("        "));
     out.Replace(wxT("\n"), wxT("\r\n"));
     ::OutputDebugString(out);
-#elif defined(__WXMAC__) 
-#if !defined(__DARWIN__)
+#elif defined(__WXMAC__) && !defined(__DARWIN__)
     if ( wxIsDebuggerRunning() )
     {
         Str255 pstr;
@@ -141,11 +140,6 @@ void wxMessageOutputDebug::Printf(const wxChar* format, ...)
     if ( out.Right(1) != wxT("\n") )
         wxFputs( wxT("\n") , stderr ) ;
     fflush( stderr ) ;
-#endif
-#else // !MSW, !Mac
-    // FIXME: why is wxFputs() not defined under Linux?
-    fputs(out.mb_str(), stderr);
-    fflush(stderr);
 #endif // platform
 }
 

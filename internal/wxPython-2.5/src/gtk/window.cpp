@@ -73,11 +73,6 @@
 #include <pango/pangox.h>
 #endif
 
-#ifdef __WXGTK20__
-    #define SET_CONTAINER_FOCUS(w, d) gtk_widget_child_focus((w), (d))
-#else
-    #define SET_CONTAINER_FOCUS(w, d) gtk_container_focus(GTK_CONTAINER(w), (d))
-#endif
 
 #ifdef __WXGTK20__
     #ifdef HAVE_XIM
@@ -242,20 +237,9 @@ static bool g_captureWindowHasMouse = FALSE;
 // keeps its previous value
 static wxWindowGTK *g_focusWindowLast = (wxWindowGTK*) NULL;
 
-// the frame that is currently active (i.e. its child has focus). It is
-// used to generate wxActivateEvents
-static wxWindowGTK *g_activeFrame = (wxWindowGTK*) NULL;
-static bool g_activeFrameLostFocus = FALSE;
-
 // If a window get the focus set but has not been realized
 // yet, defer setting the focus to idle time.
 wxWindowGTK *g_delayedFocus = (wxWindowGTK*) NULL;
-
-// if we detect that the app has got/lost the focus, we set this variable to
-// either TRUE or FALSE and an activate event will be sent during the next
-// OnIdle() call and it is reset to -1: this value means that we shouldn't
-// send any activate events at all
-static int        g_sendActivateEvent = -1;
 
 // hack: we need something to pass to gtk_menu_popup, so we store the time of
 // the last click here
@@ -1965,7 +1949,7 @@ static gint gtk_window_focus_in_callback( GtkWidget *widget,
                                           wxWindow *win )
 {
     DEBUG_MAIN_THREAD
-
+    
     if (g_isIdle)
         wxapp_install_idle_handler();
 
@@ -1973,23 +1957,6 @@ static gint gtk_window_focus_in_callback( GtkWidget *widget,
     if (win->m_imData)
         gtk_im_context_focus_in(win->m_imData->context);
 #endif
-
-    if (!win->m_hasVMT) return FALSE;
-    if (g_blockEventsOnDrag) return FALSE;
-
-    switch ( g_sendActivateEvent )
-    {
-        case -1:
-            // we've got focus from outside, synthetize wxActivateEvent
-            g_sendActivateEvent = 1;
-            break;
-
-        case 0:
-            // another our window just lost focus, it was already ours before
-            // - don't send any wxActivateEvent
-            g_sendActivateEvent = -1;
-            break;
-    }
 
     g_focusWindowLast =
     g_focusWindow = win;
@@ -2011,36 +1978,12 @@ static gint gtk_window_focus_in_callback( GtkWidget *widget,
     }
 #endif // wxUSE_CARET
 
-    g_activeFrameLostFocus = FALSE;
-
-    wxWindowGTK *active = wxGetTopLevelParent(win);
-    if ( active != g_activeFrame )
-    {
-        if ( g_activeFrame )
-        {
-            wxLogTrace(wxT("activate"), wxT("Deactivating frame %p (from focus_in)"), g_activeFrame);
-            wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
-            event.SetEventObject(g_activeFrame);
-            g_activeFrame->GetEventHandler()->ProcessEvent(event);
-        }
-
-        wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), active);
-        g_activeFrame = active;
-        wxActivateEvent event(wxEVT_ACTIVATE, TRUE, g_activeFrame->GetId());
-        event.SetEventObject(g_activeFrame);
-        g_activeFrame->GetEventHandler()->ProcessEvent(event);
-
-        // Don't send focus events in addition to activate
-        // if (win == g_activeFrame)
-        //    return TRUE;
-    }
-
     // does the window itself think that it has the focus?
     if ( !win->m_hasFocus )
     {
         // not yet, notify it
         win->m_hasFocus = TRUE;
-
+        
         if ( DoSendFocusEvents(win) )
         {
            gtk_signal_emit_stop_by_name( GTK_OBJECT(widget), "focus_in_event" );
@@ -2067,29 +2010,9 @@ static gint gtk_window_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk
         gtk_im_context_focus_out(win->m_imData->context);
 #endif
 
-    if (!win->m_hasVMT) return FALSE;
-    if (g_blockEventsOnDrag) return FALSE;
-
     wxLogTrace( TRACE_FOCUS,
                 _T("%s: focus out"), win->GetName().c_str() );
 
-    if ( !g_activeFrameLostFocus && g_activeFrame )
-    {
-        // VZ: commenting this out because it does happen (although not easy
-        //     to reproduce, I only see it when using wxMiniFrame and not
-        //     always) and makes using Mahogany quite annoying
-#if 0
-        wxASSERT_MSG( wxGetTopLevelParent(win) == g_activeFrame,
-                        wxT("unfocusing window that hasn't gained focus properly") );
-#endif // 0
-
-        g_activeFrameLostFocus = TRUE;
-    }
-
-    // if the focus goes out of our app alltogether, OnIdle() will send
-    // wxActivateEvent, otherwise gtk_window_focus_in_callback() will reset
-    // g_sendActivateEvent to -1
-    g_sendActivateEvent = 0;
 
     wxWindowGTK *winFocus = wxFindFocusedChild(win);
     if ( winFocus )
@@ -2364,7 +2287,7 @@ static gint gtk_scrollbar_button_release_callback( GtkRange *widget,
 // because it is static and so couldn't be made virtual
 // ----------------------------------------------------------------------------
 
-wxWindow *wxWindowBase::FindFocus()
+wxWindow *wxWindowBase::DoFindFocus()
 {
     // the cast is necessary when we compile in wxUniversal mode
     return (wxWindow *)g_focusWindow;
@@ -2797,9 +2720,6 @@ wxWindowGTK::~wxWindowGTK()
     if (g_focusWindow == this)
         g_focusWindow = NULL;
 
-    if (g_activeFrame == this)
-        g_activeFrame = NULL;
-
     if ( g_delayedFocus == this )
         g_delayedFocus = NULL;
 
@@ -2902,14 +2822,17 @@ void wxWindowGTK::PostCreation()
 
     // focus handling
 
-    if (m_focusWidget == NULL)
-        m_focusWidget = m_widget;
+    if (!GTK_IS_WINDOW(m_widget))
+    {
+        if (m_focusWidget == NULL)
+            m_focusWidget = m_widget;
+            
+        gtk_signal_connect( GTK_OBJECT(m_focusWidget), "focus_in_event",
+            GTK_SIGNAL_FUNC(gtk_window_focus_in_callback), (gpointer)this );
 
-    gtk_signal_connect( GTK_OBJECT(m_focusWidget), "focus_in_event",
-        GTK_SIGNAL_FUNC(gtk_window_focus_in_callback), (gpointer)this );
-
-    gtk_signal_connect( GTK_OBJECT(m_focusWidget), "focus_out_event",
-         GTK_SIGNAL_FUNC(gtk_window_focus_out_callback), (gpointer)this );
+        gtk_signal_connect( GTK_OBJECT(m_focusWidget), "focus_out_event",
+            GTK_SIGNAL_FUNC(gtk_window_focus_out_callback), (gpointer)this );
+    }
 
     // connect to the various key and mouse handlers
 
@@ -3132,30 +3055,6 @@ void wxWindowGTK::OnInternalIdle()
 
     // Update invalidated regions.
     GtkUpdate();
-
-    // Synthetize activate events.
-    if ( g_sendActivateEvent != -1 )
-    {
-        bool activate = g_sendActivateEvent != 0;
-
-        // do it only once
-        g_sendActivateEvent = -1;
-
-        wxTheApp->SetActive(activate, (wxWindow *)g_focusWindowLast);
-    }
-
-    if ( g_activeFrameLostFocus )
-    {
-        if ( g_activeFrame )
-        {
-            wxLogTrace(wxT("activate"), wxT("Deactivating frame %p (from idle)"), g_activeFrame);
-            wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
-            event.SetEventObject(g_activeFrame);
-            g_activeFrame->GetEventHandler()->ProcessEvent(event);
-            g_activeFrame = NULL;
-        }
-        g_activeFrameLostFocus = FALSE;
-    }
 
     wxCursor cursor = m_cursor;
     if (g_globalCursor.Ok()) cursor = g_globalCursor;
@@ -3626,8 +3525,16 @@ void wxWindowGTK::SetFocus()
     }
     else if (m_widget)
     {
+#ifdef __WXGTK20__
+        if (GTK_IS_CONTAINER(m_widget))
+        {
+            gtk_widget_child_focus( m_widget, GTK_DIR_TAB_FORWARD );
+        }
+        else
+#endif
         if (GTK_WIDGET_CAN_FOCUS(m_widget) && !GTK_WIDGET_HAS_FOCUS (m_widget) )
         {
+        
             if (!GTK_WIDGET_REALIZED(m_widget))
             {
                 // we can't set the focus to the widget now so we remember that
@@ -3648,11 +3555,14 @@ void wxWindowGTK::SetFocus()
                 gtk_widget_grab_focus (m_widget);
             }
         }
-        else if (GTK_IS_CONTAINER(m_widget))
+        else 
+#ifndef __WXGTK20__
+        if (GTK_IS_CONTAINER(m_widget))
         {
-            SET_CONTAINER_FOCUS( m_widget, GTK_DIR_TAB_FORWARD );
+            gtk_container_focus( GTK_CONTAINER(m_widget), GTK_DIR_TAB_FORWARD );
         }
         else
+#endif
         {
            wxLogTrace(TRACE_FOCUS,
                       _T("Can't set focus to %s(%s)"),

@@ -670,6 +670,7 @@ bool wxMDIParentFrame::MSWTranslateMessage(WXMSG* msg)
 void wxMDIChildFrame::Init()
 {
     m_needsResize = true;
+    m_needsInitialShow = true;
 }
 
 bool wxMDIChildFrame::Create(wxMDIParentFrame *parent,
@@ -681,7 +682,6 @@ bool wxMDIChildFrame::Create(wxMDIParentFrame *parent,
                              const wxString& name)
 {
   SetName(name);
-  wxWindowBase::Show(true); // MDI child frame starts off shown
 
   if ( id != wxID_ANY )
     m_windowId = id;
@@ -725,7 +725,7 @@ bool wxMDIChildFrame::Create(wxMDIParentFrame *parent,
   else
       mcs.cy = CW_USEDEFAULT;
 
-  DWORD msflags = WS_OVERLAPPED | WS_CLIPCHILDREN | WS_VISIBLE ;
+  DWORD msflags = WS_OVERLAPPED | WS_CLIPCHILDREN;
   if (style & wxMINIMIZE_BOX)
     msflags |= WS_MINIMIZEBOX;
   if (style & wxMAXIMIZE_BOX)
@@ -773,6 +773,12 @@ wxMDIChildFrame::~wxMDIChildFrame()
     MSWDestroyWindow();
 }
 
+bool wxMDIChildFrame::Show(bool show)
+{
+    m_needsInitialShow = false;
+    return wxFrame::Show(show);
+}
+
 // Set the client size (i.e. leave the calculation of borders etc.
 // to wxWidgets)
 void wxMDIChildFrame::DoSetClientSize(int width, int height)
@@ -811,7 +817,8 @@ void wxMDIChildFrame::DoSetClientSize(int width, int height)
 
   MoveWindow(hWnd, point.x, point.y, actual_width, actual_height, (BOOL)true);
 
-  wxSizeEvent event(wxSize(width, height), m_windowId);
+  wxSize size(width, height);
+  wxSizeEvent event(size, m_windowId);
   event.SetEventObject( this );
   GetEventHandler()->ProcessEvent(event);
 }
@@ -1303,6 +1310,16 @@ void wxMDIClientWindow::DoSetSize(int x, int y, int width, int height, int sizeF
 
 void wxMDIChildFrame::OnIdle(wxIdleEvent& event)
 {
+    // wxMSW prior to 2.5.3 created MDI child frames as visible, which resulted
+    // in flicker e.g. when the frame contained controls with non-trivial
+    // layout. Since 2.5.3, the frame is created hidden as all other top level
+    // windows. In order to maintain backward compatibility, the frame is shown
+    // in OnIdle, unless Show(false) was called by the programmer before.
+    if ( m_needsInitialShow )
+    {
+        Show(true);
+    }
+
     // MDI child frames get their WM_SIZE when they're constructed but at this
     // moment they don't have any children yet so all child windows will be
     // positioned incorrectly when they are added later - to fix this, we

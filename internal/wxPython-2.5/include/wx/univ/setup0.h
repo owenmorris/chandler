@@ -484,13 +484,24 @@
 // wxSound class
 #define wxUSE_SOUND 1
 
+// Use wxWidget's XRC XML-based resource system.  Recommended.
+//
+// Default is 1
+//
+// Recommended setting: 1 (requires wxUSE_XML)
+#define wxUSE_XRC       1
+
 // XML parsing classes. Note that their API will change in the future, so
 // using wxXmlDocument and wxXmlNode in your app is not recommended.
 //
 // Default is 1
 //
-// Recommended setting: 1 (needed by XRC)
-#define wxUSE_XML       1
+// Recommended setting: 1 (required by XRC)
+#if wxUSE_XRC
+#  define wxUSE_XML       1
+#else
+#  define wxUSE_XML       0
+#endif
 
 // Set to 1 to compile MS Windows XP theme engine support
 #define wxUSE_UXTHEME           0
@@ -604,6 +615,14 @@
 //
 // Recommended setting: 1
 #define wxUSE_LISTBOOK 1
+
+// wxChoicebook control is similar to wxNotebook but uses wxChoice instead of
+// the tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_CHOICEBOOK 1
 
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.

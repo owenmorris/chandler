@@ -145,7 +145,7 @@ void wxTopLevelWindowMSW::Init()
 
     m_winLastFocused = (wxWindow *)NULL;
 
-#ifdef __SMARTPHONE__
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
     m_MenuBarHWND = 0;
 #endif
 }
@@ -174,7 +174,7 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
     }
     //else: WS_OVERLAPPED is 0 anyhow, so it is on by default
 
-#ifndef __SMARTPHONE__
+#if !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
     // border and caption styles
     if ( style & wxRESIZE_BORDER )
         msflags |= WS_THICKFRAME;
@@ -220,18 +220,7 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
     {
         // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
-
-#if 1
-		// take advantage of WinXP native window double-buffering
-		if (wxApp::GetComCtl32Version() >= 582)
-//			if (GetKeyState( VK_CAPITAL ) == 0)
-			{
-				*exflags |= 0x02000000;	// WS_EX_COMPOSITED
-//				MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
-			}
-#endif
-
-		if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
+        if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
         {
             if ( style & wxFRAME_TOOL_WINDOW )
             {
@@ -439,13 +428,7 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
-#if 1
-	// cannot let this flag go through...
-	if (! IsTopLevel())
-		exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
-#endif
-
-	return MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
+    return MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
 }
 
 bool wxTopLevelWindowMSW::Create(wxWindow *parent,
@@ -546,7 +529,7 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
     }
 #endif
 
-#ifdef __SMARTPHONE__
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
     SetRightMenu(); // to nothing for initialization
 #endif
 
@@ -924,7 +907,7 @@ void wxTopLevelWindowMSW::RequestUserAttention(int flags)
     // check if we can use FlashWindowEx(): unfortunately an explicit test for
     // FLASHW_STOP, for example, doesn't work because MSVC6 headers do #define
     // it but don't provide FlashWindowEx() declaration
-#if WINVER >= 0x0500
+#if (WINVER >= 0x0500 && (defined FLASHW_STOP))
     // available in the headers, check if it is supported by the system
     typedef BOOL (WINAPI *FlashWindowEx_t)(FLASHWINFO *pfwi);
     FlashWindowEx_t s_pfnFlashWindowEx = NULL;

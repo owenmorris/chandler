@@ -117,6 +117,12 @@ int _System soclose(int);
 #  endif
 #endif
 
+#else 
+   /* undefine for OSX - its really an int */
+#  ifdef __DARWIN__
+#    undef SOCKLEN_T
+#    define SOCKLEN_T int
+#  endif
 #endif /* SOCKLEN_T */
 
 /*
@@ -248,6 +254,7 @@ GSocket::GSocket()
   m_stream              = true;
   m_gui_dependent       = NULL;
   m_non_blocking        = false;
+  m_reusable            = false;
   m_timeout             = 10*60*1000;
                                 /* 10 minutes * 60 sec * 1000 millisec */
   m_establishing        = false;
@@ -917,7 +924,7 @@ GSocketEventFlags GSocket::Select(GSocketEventFlags flags)
 
     /* Do not use a static struct, Linux can garble it */
     tv.tv_sec = m_timeout / 1000;
-    tv.tv_usec = (m_timeout % 1000) / 1000;
+    tv.tv_usec = (m_timeout % 1000) * 1000;
 
     FD_ZERO(&readfds);
     FD_ZERO(&writefds);

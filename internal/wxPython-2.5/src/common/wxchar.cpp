@@ -130,11 +130,11 @@ bool WXDLLEXPORT wxOKlibc()
             (strcasecmp(cur_locale + strlen(cur_locale) - 4, "utf8")) ||
             (strcasecmp(cur_locale + strlen(cur_locale) - 5, "utf-8"))) {
       // nope, don't use libc conversion
-      return FALSE;
+      return false;
     }
   }
 #endif
-  return TRUE;
+  return true;
 }
 
 // ============================================================================
@@ -180,10 +180,10 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
         {
             static char s_szFlags[256] = "%";
             size_t flagofs = 1;
-            bool adj_left = FALSE,
-                 in_prec = FALSE,
-                 prec_dot = FALSE,
-                 done = FALSE;
+            bool adj_left = false,
+                 in_prec = false,
+                 prec_dot = false,
+                 done = false;
             int ilen = 0;
             size_t min_width = 0,
                    max_width = wxSTRING_MAXLEN;
@@ -194,7 +194,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                 if (in_prec && !prec_dot) \
                 { \
                     s_szFlags[flagofs++] = '.'; \
-                    prec_dot = TRUE; \
+                    prec_dot = true; \
                 }
 
 #define APPEND_CH(ch) \
@@ -220,12 +220,12 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                     case wxT('\0'):
                         APPEND_CH(_T('\0'));
 
-                        done = TRUE;
+                        done = true;
                         break;
 
                     case wxT('%'):
                         APPEND_CH(_T('%'));
-                        done = TRUE;
+                        done = true;
                         break;
 
                     case wxT('#'):
@@ -239,14 +239,14 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
 
                     case wxT('-'):
                         CHECK_PREC
-                        adj_left = TRUE;
+                        adj_left = true;
                         s_szFlags[flagofs++] = ch;
                         break;
 
                     case wxT('.'):
                         CHECK_PREC
-                        in_prec = TRUE;
-                        prec_dot = FALSE;
+                        in_prec = true;
+                        prec_dot = false;
                         max_width = 0;
                         // dot will be auto-added to s_szFlags if non-negative
                         // number follows
@@ -372,7 +372,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                             APPEND_STR(tmp);
                         }
 
-                        done = TRUE;
+                        done = true;
                         break;
 
                     case wxT('e'):
@@ -400,7 +400,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                             APPEND_STR(tmp);
                         }
 
-                        done = TRUE;
+                        done = true;
                         break;
 
                     case wxT('p'):
@@ -415,7 +415,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                                 wxConvLibc.cMB2WX(szScratch);
                             APPEND_STR(tmp);
 
-                            done = TRUE;
+                            done = true;
                         }
                         break;
 
@@ -447,7 +447,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                                 for (i = 1; i < min_width; i++)
                                     APPEND_CH(_T(' '));
 
-                            done = TRUE;
+                            done = true;
                         }
                         break;
 
@@ -517,7 +517,7 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                                 for (i = len; i < min_width; i++)
                                     APPEND_CH(_T(' '));
 
-                            done = TRUE;
+                            done = true;
                         }
                         break;
 
@@ -537,14 +537,14 @@ int WXDLLEXPORT wxVsnprintf_(wxChar *buf, size_t lenMax,
                             long int *val = va_arg(argptr, long int *);
                             *val = lenCur;
                         }
-                        done = TRUE;
+                        done = true;
                         break;
 
                     default:
                         // bad format, leave unchanged
                         APPEND_CH(_T('%'));
                         APPEND_CH(ch);
-                        done = TRUE;
+                        done = true;
                         break;
                 }
             }
@@ -1043,6 +1043,85 @@ WXDLLEXPORT int wxTolower(wxChar ch) { return (wxChar)CharLower((LPTSTR)(ch)); }
 WXDLLEXPORT int wxToupper(wxChar ch) { return (wxChar)CharUpper((LPTSTR)(ch)); }
 #endif
 
+#if defined(__DARWIN__) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2 ) 
+
+WXDLLEXPORT size_t wxInternalMbstowcs (wchar_t * out, const char * in, size_t outlen)
+{
+    if (!out)
+    {
+        size_t outsize = 0;
+        while(*in++)
+            outsize++;
+        return outsize;
+    }
+    
+    const char* origin = in;
+    
+    while (outlen-- && *in)
+    {
+        *out++ = (wchar_t) *in++;
+    }
+    
+    *out = '\0';
+    
+    return in - origin;
+}
+
+WXDLLEXPORT size_t	wxInternalWcstombs (char * out, const wchar_t * in, size_t outlen)
+{
+    if (!out)
+    {
+        size_t outsize = 0;
+        while(*in++)
+            outsize++;
+        return outsize;
+    }
+    
+    const wchar_t* origin = in;
+    
+    while (outlen-- && *in)
+    {
+        *out++ = (char) *in++;
+    }
+    
+    *out = '\0';
+    
+    return in - origin;
+}
+        
+#if defined(wxNEED_WX_CTYPE_H)
+
+#include <CoreFoundation/CoreFoundation.h>
+
+CFCharacterSetRef cfalnumset = CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric);
+CFCharacterSetRef cfalphaset = CFCharacterSetGetPredefined(kCFCharacterSetLetter);
+CFCharacterSetRef cfcntrlset = CFCharacterSetGetPredefined(kCFCharacterSetControl);
+CFCharacterSetRef cfdigitset = CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit);
+//CFCharacterSetRef cfgraphset = kCFCharacterSetControl && !' '
+CFCharacterSetRef cflowerset = CFCharacterSetGetPredefined(kCFCharacterSetLowercaseLetter);
+//CFCharacterSetRef cfprintset = !kCFCharacterSetControl
+CFCharacterSetRef cfpunctset = CFCharacterSetGetPredefined(kCFCharacterSetPunctuation);
+CFCharacterSetRef cfspaceset = CFCharacterSetGetPredefined(kCFCharacterSetWhitespaceAndNewline);
+CFCharacterSetRef cfupperset = CFCharacterSetGetPredefined(kCFCharacterSetUppercaseLetter);
+
+WXDLLEXPORT int wxIsalnum(wxChar ch) { return CFCharacterSetIsCharacterMember(cfalnumset, ch); }
+WXDLLEXPORT int wxIsalpha(wxChar ch) { return CFCharacterSetIsCharacterMember(cfalphaset, ch); }
+WXDLLEXPORT int wxIscntrl(wxChar ch) { return CFCharacterSetIsCharacterMember(cfcntrlset, ch); }
+WXDLLEXPORT int wxIsdigit(wxChar ch) { return CFCharacterSetIsCharacterMember(cfdigitset, ch); }
+WXDLLEXPORT int wxIsgraph(wxChar ch) { return !CFCharacterSetIsCharacterMember(cfcntrlset, ch) && ch != ' '; }
+WXDLLEXPORT int wxIslower(wxChar ch) { return CFCharacterSetIsCharacterMember(cflowerset, ch); }
+WXDLLEXPORT int wxIsprint(wxChar ch) { return !CFCharacterSetIsCharacterMember(cfcntrlset, ch); }
+WXDLLEXPORT int wxIspunct(wxChar ch) { return CFCharacterSetIsCharacterMember(cfpunctset, ch); }
+WXDLLEXPORT int wxIsspace(wxChar ch) { return CFCharacterSetIsCharacterMember(cfspaceset, ch); }
+WXDLLEXPORT int wxIsupper(wxChar ch) { return CFCharacterSetIsCharacterMember(cfupperset, ch); }
+WXDLLEXPORT int wxIsxdigit(wxChar ch) { return wxIsdigit(ch) || (ch>='a' && ch<='f') || (ch>='A' && ch<='F'); }
+WXDLLEXPORT int wxTolower(wxChar ch) { return (wxChar)tolower((char)(ch)); }
+WXDLLEXPORT int wxToupper(wxChar ch) { return (wxChar)toupper((char)(ch)); }
+
+#endif  // wxNEED_WX_CTYPE_H
+
+#endif  // defined(__DARWIN__) and OSX <= 10.2
+
 #ifndef wxStrdupA
 
 WXDLLEXPORT char *wxStrdupA(const char *s)
@@ -1099,11 +1178,28 @@ WXDLLEXPORT wxWCharBuffer wxSetlocale(int category, const wxChar *locale)
 }
 #endif
 
+#if wxUSE_WCHAR_T && !defined(HAVE_WCSLEN)
+WXDLLEXPORT size_t wxWcslen(const wchar_t *s)
+{
+    size_t n = 0;
+    while ( *s++ )
+        n++;
+
+    return n;
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // string.h functions
 // ----------------------------------------------------------------------------
 
 #ifdef wxNEED_WX_STRING_H
+
+// RN:  These need to be c externed for the regex lib
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 WXDLLEXPORT wxChar * wxStrcat(wxChar *dest, const wxChar *src)
 {
   wxChar *ret = dest;
@@ -1138,6 +1234,16 @@ WXDLLEXPORT wxChar * wxStrcpy(wxChar *dest, const wxChar *src)
   while ((*dest++ = *src++));
   return ret;
 }
+
+WXDLLEXPORT size_t wxStrlen_(const wxChar *s)
+{
+    size_t n = 0;
+    while ( *s++ )
+        n++;
+            
+    return n;
+}
+
 
 WXDLLEXPORT wxChar * wxStrncat(wxChar *dest, const wxChar *src, size_t n)
 {
@@ -1196,7 +1302,7 @@ WXDLLEXPORT size_t wxStrspn(const wxChar *s, const wxChar *accept)
 
 WXDLLEXPORT const wxChar *wxStrstr(const wxChar *haystack, const wxChar *needle)
 {
-    wxCHECK_RET( needle, NULL, _T("NULL argument in wxStrstr") );
+    wxASSERT_MSG( needle != NULL, _T("NULL argument in wxStrstr") );
 
     // VZ: this is not exactly the most efficient string search algorithm...
 
@@ -1212,6 +1318,10 @@ WXDLLEXPORT const wxChar *wxStrstr(const wxChar *haystack, const wxChar *needle)
 
     return NULL;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 WXDLLEXPORT double wxStrtod(const wxChar *nptr, wxChar **endptr)
 {
@@ -1259,7 +1369,7 @@ WXDLLEXPORT long int wxStrtol(const wxChar *nptr, wxChar **endptr, int base)
   while ((wxIsdigit(*nptr) && (*nptr - wxT('0') < base)) ||
          (wxIsalpha(*nptr) && (wxToupper(*nptr) - wxT('A') + 10 < base))) nptr++;
 
-  wxString data(nptr, nptr-start);
+  wxString data(start, nptr-start);
   wxWX2MBbuf dat = data.mb_str(wxConvLocal);
   char *rdat = wxMBSTRINGCAST dat;
   long int ret = strtol(dat, &rdat, base);
@@ -1268,6 +1378,12 @@ WXDLLEXPORT long int wxStrtol(const wxChar *nptr, wxChar **endptr, int base)
 
   return ret;
 }
+
+WXDLLEXPORT unsigned long int wxStrtoul(const wxChar *nptr, wxChar **endptr, int base)
+{
+    return (unsigned long int) wxStrtol(nptr, endptr, base);
+}
+
 #endif // wxNEED_WX_STRING_H
 
 #ifdef wxNEED_WX_STDIO_H
@@ -1427,8 +1543,8 @@ WXDLLEXPORT wxChar * wxStrtok(wxChar *psz, const wxChar *delim, wxChar **save_pt
 // missing C RTL functions
 // ----------------------------------------------------------------------------
 
-#if (defined(__MWERKS__) && !defined(__MACH__) && (__MSL__ < 0x00008000)) || \
-     defined(__WXWINCE__)
+#if wxNEED_STRDUP
+
 char *strdup(const char *s)
 {
     char *dest = (char*) malloc( strlen( s ) + 1 ) ;
@@ -1436,30 +1552,16 @@ char *strdup(const char *s)
         strcpy( dest , s ) ;
     return dest ;
 }
-#endif
-
-#if (defined(__MWERKS__) && !defined(__MACH__)) || (defined(__WXWINCE__) && _WIN32_WCE <= 211)
-
-int isascii( int c )
-{
-    return ( c >= 0 && c < 128 );
-}
-#endif
+#endif // wxNEED_STRDUP
 
 #if defined(__WXWINCE__) && (_WIN32_WCE <= 211)
-#if (_WIN32_WCE < 300)
+
 void *calloc( size_t num, size_t size )
 {
     void** ptr = (void **)malloc(num * size);
     memset( ptr, 0, num * size);
     return ptr;
 }
-#endif
 
-int isspace(int c)
-{
-    return (c == ' ');
-}
-
-#endif
+#endif // __WXWINCE__ <= 211
 

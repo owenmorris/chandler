@@ -78,9 +78,27 @@ WX_DEFINE_EXPORTED_LIST( wxSizerItemList );
        growablecols
     minsize
 */
+
 //---------------------------------------------------------------------------
 // wxSizerItem
 //---------------------------------------------------------------------------
+
+void wxSizerItem::Init()
+{
+    m_window = NULL;
+    m_sizer = NULL;
+    m_show = true;
+    m_userData = NULL;
+}
+
+void wxSizerItem::Init(const wxSizerFlags& flags)
+{
+    Init();
+
+    m_proportion = flags.GetProportion();
+    m_flag = flags.GetFlags();
+    m_border = flags.GetBorderInPixels();
+}
 
 wxSizerItem::wxSizerItem( int width, int height, int proportion, int flag, int border, wxObject* userData )
     : m_window( NULL )
@@ -130,15 +148,12 @@ wxSizerItem::wxSizerItem( wxSizer *sizer, int proportion, int flag, int border, 
 }
 
 wxSizerItem::wxSizerItem()
-    : m_window( NULL )
-    , m_sizer( NULL )
-    , m_proportion( 0 )
-    , m_border( 0 )
-    , m_flag( 0 )
-    , m_show( true )
-    , m_ratio( 0.0 )
-    , m_userData( NULL )
 {
+    Init();
+
+    m_proportion = 0;
+    m_border = 0;
+    m_flag = 0;
 }
 
 wxSizerItem::~wxSizerItem()
@@ -342,125 +357,12 @@ wxSizer::~wxSizer()
     WX_CLEAR_LIST(wxSizerItemList, m_children);
 }
 
-void wxSizer::Add( wxWindow *window, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Append( new wxSizerItem( window, proportion, flag, border, userData ) );
-    window->SetContainingSizer( this );
-}
-
-void wxSizer::Add( wxSizer *sizer, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Append( new wxSizerItem( sizer, proportion, flag, border, userData ) );
-}
-
-void wxSizer::Add( int width, int height, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Append( new wxSizerItem( width, height, proportion, flag, border, userData ) );
-}
-
-void wxSizer::Add( wxSizerItem *item )
-{
-    m_children.Append( item );
-
-    if( item->GetWindow() )
-        item->GetWindow()->SetContainingSizer( this );
-}
-
-void wxSizer::AddSpacer(int size)
-{
-    Add(size, size);
-}
-
-void wxSizer::AddStretchSpacer(int prop)
-{
-    Add(0, 0, prop);
-}
-
-void wxSizer::Prepend( wxWindow *window, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Insert( new wxSizerItem( window, proportion, flag, border, userData ) );
-    window->SetContainingSizer( this );
-}
-
-void wxSizer::Prepend( wxSizer *sizer, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Insert( new wxSizerItem( sizer, proportion, flag, border, userData ) );
-}
-
-void wxSizer::Prepend( int width, int height, int proportion, int flag, int border, wxObject* userData )
-{
-    m_children.Insert( new wxSizerItem( width, height, proportion, flag, border, userData ) );
-}
-
-void wxSizer::Prepend( wxSizerItem *item )
-{
-    m_children.Insert( item );
-
-    if( item->GetWindow() )
-        item->GetWindow()->SetContainingSizer( this );
-}
-
-void wxSizer::PrependSpacer(int size)
-{
-    Prepend(size, size);
-}
-
-void wxSizer::PrependStretchSpacer(int prop)
-{
-    Prepend(0, 0, prop);
-}
-
-void wxSizer::Insert( size_t index,
-                      wxWindow *window,
-                      int proportion,
-                      int flag,
-                      int border,
-                      wxObject* userData )
-{
-    m_children.Insert( index,
-                       new wxSizerItem( window, proportion, flag, border, userData ) );
-    window->SetContainingSizer( this );
-}
-
-void wxSizer::Insert( size_t index,
-                      wxSizer *sizer,
-                      int proportion,
-                      int flag,
-                      int border,
-                      wxObject* userData )
-{
-    m_children.Insert( index,
-                       new wxSizerItem( sizer, proportion, flag, border, userData ) );
-}
-
-void wxSizer::Insert( size_t index,
-                      int width,
-                      int height,
-                      int proportion,
-                      int flag,
-                      int border,
-                      wxObject* userData )
-{
-    m_children.Insert( index,
-                       new wxSizerItem( width, height, proportion, flag, border, userData ) );
-}
-
 void wxSizer::Insert( size_t index, wxSizerItem *item )
 {
     m_children.Insert( index, item );
 
     if( item->GetWindow() )
         item->GetWindow()->SetContainingSizer( this );
-}
-
-void wxSizer::InsertSpacer(size_t index, int size)
-{
-    Insert(index, size, size);
-}
-
-void wxSizer::InsertStretchSpacer(size_t index, int prop)
-{
-    Insert(index, 0, 0, prop);
 }
 
 bool wxSizer::Remove( wxWindow *window )
@@ -693,9 +595,9 @@ wxSize wxSizer::FitSize( wxWindow *window )
 
     // Limit the size if sizeMax != wxDefaultSize
 
-    if ( size.x > sizeMax.x && sizeMax.x != -1 )
+    if ( size.x > sizeMax.x && sizeMax.x != wxDefaultCoord )
         size.x = sizeMax.x;
-    if ( size.y > sizeMax.y && sizeMax.y != -1 )
+    if ( size.y > sizeMax.y && sizeMax.y != wxDefaultCoord )
         size.y = sizeMax.y;
 
     return size;
@@ -729,9 +631,9 @@ wxSize wxSizer::VirtualFitSize( wxWindow *window )
 
     // Limit the size if sizeMax != wxDefaultSize
 
-    if ( size.x > sizeMax.x && sizeMax.x != -1 )
+    if ( size.x > sizeMax.x && sizeMax.x != wxDefaultCoord )
         size.x = sizeMax.x;
-    if ( size.y > sizeMax.y && sizeMax.y != -1 )
+    if ( size.y > sizeMax.y && sizeMax.y != wxDefaultCoord )
         size.y = sizeMax.y;
 
     return size;

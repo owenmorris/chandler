@@ -23,7 +23,26 @@
 
 #ifndef WX_PRECOMP
     #include "wx/defs.h"
+    #include "wx/utils.h"
 #endif
+
+//------------------------------------------------------------------------
+// Check for use of MSLU
+//------------------------------------------------------------------------
+
+#if wxUSE_BASE
+
+bool WXDLLIMPEXP_BASE wxUsingUnicowsDll()
+{
+#if wxUSE_UNICODE_MSLU
+    return (wxGetOsVersion() == wxWIN95);
+#else
+    return false;
+#endif
+}
+
+#endif // wxUSE_BASE
+
 
 #if wxUSE_UNICODE_MSLU
 
@@ -197,6 +216,14 @@ WXDLLIMPEXP_BASE int wxMSLU__wstat(const wxChar *name, struct _stat *buffer)
         return _stat((const char*)wxConvFile.cWX2MB(name), buffer);
     else
         return _wstat(name, buffer);
+}
+
+WXDLLIMPEXP_BASE int wxMSLU__wstati64(const wxChar *name, struct _stati64 *buffer)
+{
+    if ( wxUsingUnicowsDll() )
+        return _stati64((const char*)wxConvFile.cWX2MB(name), buffer);
+    else
+        return _wstati64(name, buffer);
 }
 
 #endif // compilers having wopen() &c

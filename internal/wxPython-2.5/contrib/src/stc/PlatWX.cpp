@@ -574,7 +574,7 @@ Window::~Window() {
 
 void Window::Destroy() {
     if (id) {
-        Show(FALSE);
+        Show(false);
         GETWIN(id)->Destroy();
     }
     id = 0;
@@ -684,7 +684,7 @@ public:
         : wxListView(parent, id, pos, size, style)
     {}
 
-    
+
     void OnFocus(wxFocusEvent& event) {
         GetParent()->SetFocus();
         event.Skip();
@@ -693,7 +693,7 @@ public:
     void OnKillFocus(wxFocusEvent& WXUNUSED(event)) {
         // Do nothing.  Prevents base class from resetting the colors...
     }
-    
+
 #ifdef __WXMAC__
     // For some reason I don't understand yet the focus doesn't really leave
     // the listbox like it should, so if we get any events feed them back to
@@ -708,9 +708,9 @@ public:
     // And we need to force the focus back when being destroyed
     ~wxSTCListBox() {
         GetGrandParent()->SetFocus();
-    }    
-#endif    
-    
+    }
+#endif
+
 private:
     DECLARE_EVENT_TABLE()
 };
@@ -751,7 +751,7 @@ public:
         Hide();
     }
 
-            
+
     // On OSX and (possibly others) there can still be pending
     // messages/events for the list control when Scintilla wants to
     // close it, so do a pending delete of it instead of destroying
@@ -767,10 +767,10 @@ public:
 #endif
         if ( !wxPendingDelete.Member(this) )
             wxPendingDelete.Append(this);
-        return TRUE;
+        return true;
     }
 
-    
+
     int IconWidth() {
         wxImageList* il = lv->GetImageList(wxIMAGE_LIST_SMALL);
         if (il != NULL) {
@@ -816,9 +816,9 @@ private:
 
 
 BEGIN_EVENT_TABLE(wxSTCListBoxWin, wxWindow)
-    EVT_SET_FOCUS          (    wxSTCListBoxWin::OnFocus)
-    EVT_SIZE               (    wxSTCListBoxWin::OnSize)
-    EVT_LIST_ITEM_ACTIVATED(-1, wxSTCListBoxWin::OnActivate)
+    EVT_SET_FOCUS          (          wxSTCListBoxWin::OnFocus)
+    EVT_SIZE               (          wxSTCListBoxWin::OnSize)
+    EVT_LIST_ITEM_ACTIVATED(wxID_ANY, wxSTCListBoxWin::OnActivate)
 END_EVENT_TABLE()
 
 
@@ -981,10 +981,10 @@ int ListBoxImpl::Length() {
 
 
 void ListBoxImpl::Select(int n) {
-    bool select = TRUE;
+    bool select = true;
     if (n == -1) {
         n = 0;
-        select = FALSE;
+        select = false;
     }
     GETLB(id)->Focus(n);
     GETLB(id)->Select(n, select);
@@ -998,7 +998,7 @@ int ListBoxImpl::GetSelection() {
 
 int ListBoxImpl::Find(const char *WXUNUSED(prefix)) {
     // No longer used
-    return -1;
+    return wxNOT_FOUND;
 }
 
 
@@ -1019,7 +1019,7 @@ void ListBoxImpl::RegisterImage(int type, const char *xpm_data) {
 
     if (! imgList) {
         // assumes all images are the same size
-        imgList = new wxImageList(bmp.GetWidth(), bmp.GetHeight(), TRUE);
+        imgList = new wxImageList(bmp.GetWidth(), bmp.GetHeight(), true);
         imgTypeMap = new wxArrayInt;
     }
 
@@ -1121,7 +1121,7 @@ unsigned int Platform::DoubleClickTime() {
 }
 
 bool Platform::MouseButtonBounce() {
-	return FALSE;
+    return false;
 }
 void Platform::DebugDisplay(const char *s) {
     wxLogDebug(stc2wx(s));
@@ -1183,31 +1183,31 @@ void Platform::DebugPrintf(const char *format, ...) {
 static bool assertionPopUps = true;
 
 bool Platform::ShowAssertionPopUps(bool assertionPopUps_) {
-	bool ret = assertionPopUps;
-	assertionPopUps = assertionPopUps_;
-	return ret;
+    bool ret = assertionPopUps;
+    assertionPopUps = assertionPopUps_;
+    return ret;
 }
 
 void Platform::Assert(const char *c, const char *file, int line) {
-	char buffer[2000];
-	sprintf(buffer, "Assertion [%s] failed at %s %d", c, file, line);
-	if (assertionPopUps) {
-            /*int idButton = */
-            wxMessageBox(stc2wx(buffer),
-                         wxT("Assertion failure"),
-                         wxICON_HAND | wxOK);
-//  		if (idButton == IDRETRY) {
-//  			::DebugBreak();
-//  		} else if (idButton == IDIGNORE) {
-//  			// all OK
-//  		} else {
-//  			abort();
-//  		}
-	} else {
-		strcat(buffer, "\r\n");
-		Platform::DebugDisplay(buffer);
-		abort();
-	}
+    char buffer[2000];
+    sprintf(buffer, "Assertion [%s] failed at %s %d", c, file, line);
+    if (assertionPopUps) {
+        /*int idButton = */
+        wxMessageBox(stc2wx(buffer),
+                     wxT("Assertion failure"),
+                     wxICON_HAND | wxOK);
+//      if (idButton == IDRETRY) {
+//          ::DebugBreak();
+//      } else if (idButton == IDIGNORE) {
+//          // all OK
+//      } else {
+//          abort();
+//      }
+    } else {
+        strcat(buffer, "\r\n");
+        Platform::DebugDisplay(buffer);
+        abort();
+    }
 }
 
 
@@ -1249,25 +1249,47 @@ double ElapsedTime::Duration(bool reset) {
 //----------------------------------------------------------------------
 
 #if wxUSE_UNICODE
+
+#include "UniConversion.h"
+
+// Convert using Scintilla's functions instead of wx's, Scintilla's are more
+// forgiving and won't assert...
+    
 wxString stc2wx(const char* str, size_t len)
 {
-    // note: we assume that str is of length len not including the terminating null.
-
     if (!len)
         return wxEmptyString;
-    else if (str[len-1] == 0)
-        // It's already terminated correctly.
-        return wxString(str, wxConvUTF8, len);
 
-    char *buffer=new char[len+1];
-    strncpy(buffer, str, len);
-    buffer[len]=0;
+    size_t wclen = UCS2Length(str, len);
+    wxWCharBuffer buffer(wclen+1);
 
-    wxString cstr(buffer, wxConvUTF8, len);
-
-    delete[] buffer;
-    return cstr;
+    size_t actualLen = UCS2FromUTF8(str, len, buffer.data(), wclen+1);
+    return wxString(buffer.data(), actualLen);
 }
+
+
+
+wxString stc2wx(const char* str)
+{
+    return stc2wx(str, strlen(str));
+}
+
+
+const wxWX2MBbuf wx2stc(const wxString& str)
+{
+    const wchar_t* wcstr = str.c_str();
+    size_t wclen         = str.length();
+    size_t len           = UTF8Length(wcstr, wclen);
+
+    wxCharBuffer buffer(len+1);
+    UTF8FromUCS2(wcstr, wclen, buffer.data(), len);
+
+    // TODO check NULL termination!!
+
+    
+    return buffer;
+}
+
 #endif
 
 

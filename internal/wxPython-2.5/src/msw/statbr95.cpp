@@ -119,12 +119,28 @@ bool wxStatusBar95::Create(wxWindow *parent,
     InheritAttributes();
 
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR));
+    
+    // we must refresh the frame size when the statusbar is created, because
+    // its client area might change
+    wxFrame *frame = wxDynamicCast(GetParent(), wxFrame);
+    if ( frame )
+    {
+        frame->SendSizeEvent();
+    }
 
     return true;
 }
 
 wxStatusBar95::~wxStatusBar95()
 {
+    // we must refresh the frame size when the statusbar is deleted but the
+    // frame is not - otherwise statusbar leaves a hole in the place it used to
+    // occupy
+    wxFrame *frame = wxDynamicCast(GetParent(), wxFrame);
+    if ( frame && !frame->IsBeingDeleted() )
+    {
+        frame->SendSizeEvent();
+    }
 }
 
 void wxStatusBar95::SetFieldsCount(int nFields, const int *widths)

@@ -127,7 +127,7 @@
 // In debug mode, causes new to be defined to be WXDEBUG_NEW (see object.h). If
 // this causes problems (e.g. link errors), set this to 0. You may need to set
 // this to 0 if using templates (at least for VC++). This switch is currently
-// ignored for mingw / cygwin 
+// ignored for mingw / cygwin
 //
 // Default is 0
 //
@@ -428,13 +428,24 @@
 // wxSound class
 #define wxUSE_SOUND      1
 
+// Use wxWidget's XRC XML-based resource system.  Recommended.
+//
+// Default is 1
+//
+// Recommended setting: 1 (requires wxUSE_XML)
+#define wxUSE_XRC       1
+
 // XML parsing classes. Note that their API will change in the future, so
 // using wxXmlDocument and wxXmlNode in your app is not recommended.
 //
 // Default is 1
 //
-// Recommended setting: 1 (needed by XRC)
-#define wxUSE_XML       1
+// Recommended setting: 1 (required by XRC)
+#if wxUSE_XRC
+#  define wxUSE_XML       1
+#else
+#  define wxUSE_XML       0
+#endif
 
 // ----------------------------------------------------------------------------
 // Individual GUI controls
@@ -541,6 +552,14 @@
 //
 // Recommended setting: 1
 #define wxUSE_LISTBOOK 1
+
+// wxChoicebook control is similar to wxNotebook but uses wxChoice instead of
+// the tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_CHOICEBOOK 1
 
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.
@@ -768,7 +787,7 @@
 // wxWebKit is a wrapper for Apple's WebKit framework, use it if you want to embed
 // the Safari browser control
 // 0 by default because of Jaguar compatibility problems
-#define wxUSE_WEBKIT	0
+#define wxUSE_WEBKIT        0
 
 // OpenGL canvas
 #define wxUSE_GLCANVAS       0

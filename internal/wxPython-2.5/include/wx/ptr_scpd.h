@@ -10,7 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 //  This class closely follows the implementation of the boost
-//  library scoped_ptr and is an adaption for c++ macro's in 
+//  library scoped_ptr and is an adaption for c++ macro's in
 //  the wxWidgets project. The original authors of the boost
 //  scoped_ptr are given below with their respective copyrights.
 
@@ -39,19 +39,28 @@
    still force a semicolon after the macro
 */
 
+#ifdef __WATCOMC__
+    #define wxFOR_ONCE(name)              for(int name=0; name<1; name++)
+    #define wxPRE_NO_WARNING_SCOPE(name)  wxFOR_ONCE(wxMAKE_UNIQUE_NAME(name))
+    #define wxPOST_NO_WARNING_SCOPE(name)
+#else
+    #define wxPRE_NO_WARNING_SCOPE(name)  do
+    #define wxPOST_NO_WARNING_SCOPE(name) while ( 0 )
+#endif
+
 #define wxCHECKED_DELETE(ptr)                                                 \
-    do                                                                        \
+    wxPRE_NO_WARNING_SCOPE(scope_var1)                                        \
     {                                                                         \
         typedef char complete[sizeof(*ptr)];                                  \
         delete ptr;                                                           \
-    } while ( 0 )
+    } wxPOST_NO_WARNING_SCOPE(scope_var1)
 
 #define wxCHECKED_DELETE_ARRAY(ptr)                                           \
-    do                                                                        \
+    wxPRE_NO_WARNING_SCOPE(scope_var2)                                        \
     {                                                                         \
         typedef char complete[sizeof(*ptr)];                                  \
         delete [] ptr;                                                        \
-    } while ( 0 )
+    } wxPOST_NO_WARNING_SCOPE(scope_var2)
 
 /* These scoped pointers are *not* assignable and cannot be used
    within a container.  Look for wxDECLARE_SHARED_PTR for this

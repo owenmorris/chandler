@@ -164,9 +164,24 @@
 #undef HAVE_CONST_CAST
 
 /*
+ * Define if your compiler supports reinterpret_cast<>()
+ */
+#undef HAVE_REINTERPRET_CAST
+
+/*
  * Define if your compiler supports static_cast<>()
  */
 #undef HAVE_STATIC_CAST
+
+/*
+ * Define if your compiler has C99 va_copy
+ */
+#undef HAVE_VA_COPY
+
+/*
+ * Define if va_list type is an array
+ */
+#undef VA_LIST_IS_ARRAY
 
 /*
  * Define if your compiler has std::wstring
@@ -477,6 +492,7 @@
  */
 #define wxUSE_NOTEBOOK 0
 #define wxUSE_LISTBOOK 0
+#define wxUSE_CHOICEBOOK 0
 /*
  * Use this control
  */
@@ -906,6 +922,11 @@
  * wxHTML
  */
 #define wxUSE_HTML 0
+
+/*
+ * wxXRC
+ */
+#define wxUSE_XRC 0
 
 /*
  * wxWebKitCtrl

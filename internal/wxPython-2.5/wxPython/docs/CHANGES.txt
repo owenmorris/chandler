@@ -1,7 +1,7 @@
 Recent Changes for wxPython
 =====================================================================
 
-2.5.2.9
+2.5.3.1
 -------
 
 wxMac focus and border refreshes corrected.
@@ -83,6 +83,114 @@ wxMac: fix for toolbar tooltips
 wx.Sizer.Show (and Hide) now take an optional parameter specifying if
 the item to be shown should be searched for recursivly in subsizers,
 and return a boolean value indicating if the item was found.
+
+wxMSW: fixed MaximizeEvent generation in wx.Frame
+
+wxMSW: fixed sending duplicate EVT_COMBOBOX events
+
+Smoother time estimation updates in wx.ProgressDialog (patch 992813)
+
+Made wx.Listbook events more consistent with wx.Notebook ones (patch
+1001271)
+
+Fixed rounding errors in variable status bar panes widths computation
+(patch 1030021)
+
+Added possibility to specify printer bin (patch 910272)
+
+wxMSW: fixed wx.ListCtrl's SetWindowStyleFlag() to not remove
+WS_VISIBLE; also refresh the control automatically (closes bug
+1019440)
+
+Added wx.Choicebook, yet another notebook-like control.
+
+wxMSW: Make radiobutton tab behaviour the same on MSW as in standard
+MSW app, i.e. tab into the activated, not necessarily the first radio
+button.
+
+Added limited support for wxEventLoop (you can't derive from a
+wx.PyEventLoop version yet...)  Updated and moved the sample showing
+how to replace the MainLoop to samples/mainloop/mainloop.py.
+
+The C++ xrc lib has been moved out of contrib and into the core, so it
+is always built by default.  wxPython's build has also changed
+accordingly and will build the xrc module as part of the core set of
+modules built by default.  If you were axplicitly using BUILD_XRC then
+it will no longer be recognized as a build option, otherwise you
+should notice no difference.
+
+wxMac: Fixed radio toolbar buttons to correctly untoggle the others
+when a new one is selected.
+
+wxMac: Fixed GetLineLength and GetLineText for MLTE text controls
+
+wxMac: wx.TaskBarIcon is implemented by allowing you to change the
+app's icon on the Dock and also specifying a menu that should be
+merged with the normal dock popup menu.  See the MigrationGuide for
+more details and a warning.
+
+Added wx.TopLevelWindow.IsActive() which tells you if the frame or
+dialog is or containts the active window with the keyboard focus.
+
+Added ability to create a font based on pixel size rather than point
+size via the FontFromPixelSize constructor.
+
+Updated the Scintilla used by StyledTextCtrl to version 1.61
+
+Improved image HitTest for TreeListCtrl.
+
+Added wx.App.IsMainLoopRunning.
+
+wxGTK: Make wxComboBox spit out a bit fewer surplus events when
+holding down the mouse button.
+
+wxGTK: Enable key based navigation through notebook tabs as in the
+native control with Left and right keys. Support for vetoing.
+
+FloatCanvas updates from Chris Barker
+
+PyPlot updates from Gordon Williams:
+   - Added bar graph demo
+   - Modified line end shape from round to square.
+   - Removed FloatDCWrapper for conversion to ints and ints in
+     arguments
+   - Imported modules given leading underscore to name.
+   - Added Cursor Line Tracking and User Point Labels. 
+   - Demo for Cursor Line Tracking and Point Labels.
+   - Size of plot preview frame adjusted to show page better.
+   - Added helper functions PositionUserToScreen and
+     PositionScreenToUser in PlotCanvas.
+   - Added functions GetClosestPoints (all curves) and GetClosestPoint
+     (only closest curve) can be in either user coords or screen
+     coords.
+
+MaskedEdit updates from Will Sadkin:
+    - Added '*' mask char that means "all ansii chars" (ords 32-255)
+    - Added proper unicode support to masked controls and wx.tools.dbg
+    - Fixed two reported missing import bugs introduced by package
+      creation
+    - Converted masked package doc strings to reST format for better
+      epydoc support
+    - lots of doc string improvements and function hiding to better
+      reflect package's public contents.
+
+Restructured the installer packages slightly to help facilitate having
+multiple versions of wxPython installed at the same time.  See the
+Migrarion Guide for more information.
+
+Applied patch from Pim Van Heuven that modifies 4 files:
+    - wxPython/demo/ListCtrl_edit.py (new demo)
+    - wxPython/demo/Main.py (include new demo in demo app)
+    - wxPython/wx/lib/mixins/listctrl.py (several improvements to 
+      TextEditMixin)
+    - wxPython/wx/lib/wxpTag.py (some small fixes)
+
+Added (thanks to Kevin Ollivier!) wrappers for wx.WebKitCtrl for the
+OSX build.  Other platforms will raise an exception if you try to use
+it. 
+
+wxPython on OSX can now be built in Unicode mode, can support multiple
+version installs, and comes with an uninstaller script.
 
 
 
@@ -1477,7 +1585,7 @@ Added new HTML printing classes.
 
 Added wxWindow.GetHandle
 
-Apparently wxMouseEvent.Position has been depreciated in wxWindows as
+Apparently wxMouseEvent.Position has been deprecated in wxWindows as
 it is no longer available by default.  You can use GetPositionTuple
 (returning a tuple with x,y) instead, or GetPosition (returning a
 wxPoint.)
@@ -1559,7 +1667,7 @@ wxGTK.  Added them back in since the methods exist now.
 Wrapped the wxHtmlHelpController and related classes.
 
 Wrapped the C++ versions of wxSizer and friends.  The Python-only
-versions are still in the library, but depreciated.  (You will get a
+versions are still in the library, but deprecated.  (You will get a
 warning message if you try to use them, but the warning can be
 disabled.) The usage of the C++ versions is slightly different, and
 the functionality of wxBorderSizer is now part of wxBoxSizer.  I have
@@ -1719,7 +1827,7 @@ Added wxGrid.GetCells
 Added wxSystemSettings static methods as functions with names like
 wxSystemSettings_GetSystemColour.
 
-Removed wxPyMenu since using menu callbacks have been depreciated in
+Removed wxPyMenu since using menu callbacks have been deprecated in
 wxWindows.  Use wxMenu and events instead.
 
 Added alternate wxBitmap constructor (for MSW only) as

@@ -239,7 +239,7 @@ wxConfigPathChanger::wxConfigPathChanger(const wxConfigBase *pContainer,
     strPath = wxCONFIG_PATH_SEPARATOR;
   }
 
-  if ( !strPath.IsEmpty() ) {
+  if ( !strPath.IsEmpty() && m_pContainer->GetPath() != strPath ) {
     // do change the path
     m_bChanged = true;
     m_strName = strEntry.AfterLast(wxCONFIG_PATH_SEPARATOR);
@@ -352,7 +352,7 @@ wxString wxExpandEnvVars(const wxString& str)
 
           // check the closing bracket
           if ( bracket != Bracket_None ) {
-            if ( m == str.Len() || str[m] != (char)bracket ) {
+            if ( m == str.Len() || str[m] != (wxChar)bracket ) {
               // under MSW it's common to have '%' characters in the registry
               // and it's annoying to have warnings about them each time, so
               // ignroe them silently if they are not used for env vars

@@ -447,13 +447,24 @@
 // wxSound class
 #define wxUSE_SOUND      1
 
+// Use wxWidget's XRC XML-based resource system.  Recommended.
+//
+// Default is 1
+//
+// Recommended setting: 1 (requires wxUSE_XML)
+#define wxUSE_XRC       1
+
 // XML parsing classes. Note that their API will change in the future, so
 // using wxXmlDocument and wxXmlNode in your app is not recommended.
 //
 // Default is 1
 //
-// Recommended setting: 1 (needed by XRC)
-#define wxUSE_XML       1
+// Recommended setting: 1 (required by XRC)
+#if wxUSE_XRC
+#  define wxUSE_XML       1
+#else
+#  define wxUSE_XML       0
+#endif
 
 // ----------------------------------------------------------------------------
 // Individual GUI controls
@@ -564,6 +575,14 @@
 //
 // Recommended setting: 1
 #define wxUSE_LISTBOOK 1
+
+// wxChoicebook control is similar to wxNotebook but uses wxChoice instead of
+// the tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_CHOICEBOOK 1
 
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.
@@ -792,7 +811,7 @@
 //
 // Recommended setting: 1 (wxHTML is great!), set to 0 if you want compile a
 // smaller library.
-#define wxUSE_HTML          0
+#define wxUSE_HTML          1
 
 // Setting wxUSE_GLCANVAS to 1 enables OpenGL support. You need to have OpenGL
 // headers and libraries to be able to compile the library with wxUSE_GLCANVAS
@@ -905,7 +924,7 @@
 // that use the connection) should support forward only scrolling of cursors,
 // or both forward and backward support for backward scrolling cursors is
 // dependent on the data source as well as the ODBC driver being used.
-#define wxODBC_FWD_ONLY_CURSORS	 1
+#define wxODBC_FWD_ONLY_CURSORS     1
 
 // Default is 0.  Set to 1 to use the deprecated classes, enum types, function,
 // member variables.  With a setting of 1, full backward compatability with the

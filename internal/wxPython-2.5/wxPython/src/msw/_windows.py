@@ -294,6 +294,7 @@ FRAME_FLOAT_ON_PARENT = _windows_.FRAME_FLOAT_ON_PARENT
 FRAME_NO_WINDOW_MENU = _windows_.FRAME_NO_WINDOW_MENU
 FRAME_NO_TASKBAR = _windows_.FRAME_NO_TASKBAR
 FRAME_SHAPED = _windows_.FRAME_SHAPED
+FRAME_DRAWER = _windows_.FRAME_DRAWER
 DIALOG_MODAL = _windows_.DIALOG_MODAL
 DIALOG_MODELESS = _windows_.DIALOG_MODELESS
 USER_COLOURS = _windows_.USER_COLOURS
@@ -374,6 +375,18 @@ class TopLevelWindow(_core.Window):
     def RequestUserAttention(*args, **kwargs):
         """RequestUserAttention(self, int flags=USER_ATTENTION_INFO)"""
         return _windows_.TopLevelWindow_RequestUserAttention(*args, **kwargs)
+
+    def IsActive(*args, **kwargs):
+        """IsActive(self) -> bool"""
+        return _windows_.TopLevelWindow_IsActive(*args, **kwargs)
+
+    def MacSetMetalAppearance(*args, **kwargs):
+        """MacSetMetalAppearance(self, bool on)"""
+        return _windows_.TopLevelWindow_MacSetMetalAppearance(*args, **kwargs)
+
+    def MacGetMetalAppearance(*args, **kwargs):
+        """MacGetMetalAppearance(self) -> bool"""
+        return _windows_.TopLevelWindow_MacGetMetalAppearance(*args, **kwargs)
 
 
 class TopLevelWindowPtr(TopLevelWindow):
@@ -2050,18 +2063,18 @@ def PreHtmlListBox(*args, **kwargs):
 
 class TaskBarIcon(_core.EvtHandler):
     def __repr__(self):
-        return "<%s.%s; proxy of C++ wxTaskBarIcon instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
+        return "<%s.%s; proxy of C++ wxPyTaskBarIcon instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args, **kwargs):
         """__init__(self) -> TaskBarIcon"""
         newobj = _windows_.new_TaskBarIcon(*args, **kwargs)
         self.this = newobj.this
         self.thisown = 1
         del newobj.thisown
-    def __del__(self, destroy=_windows_.delete_TaskBarIcon):
-        """__del__(self)"""
-        try:
-            if self.thisown: destroy(self)
-        except: pass
+        self._setCallbackInfo(self, TaskBarIcon, 0)
+
+    def _setCallbackInfo(*args, **kwargs):
+        """_setCallbackInfo(self, PyObject self, PyObject _class, int incref)"""
+        return _windows_.TaskBarIcon__setCallbackInfo(*args, **kwargs)
 
     def Destroy(*args, **kwargs):
         """
@@ -2104,7 +2117,7 @@ class TaskBarIconEvent(_core.Event):
     def __repr__(self):
         return "<%s.%s; proxy of C++ wxTaskBarIconEvent instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args, **kwargs):
-        """__init__(self, wxEventType evtType, TaskBarIcon tbIcon) -> TaskBarIconEvent"""
+        """__init__(self, wxEventType evtType, wxTaskBarIcon tbIcon) -> TaskBarIconEvent"""
         newobj = _windows_.new_TaskBarIconEvent(*args, **kwargs)
         self.this = newobj.this
         self.thisown = 1
@@ -3701,6 +3714,21 @@ PRINT_MODE_PREVIEW = _windows_.PRINT_MODE_PREVIEW
 PRINT_MODE_FILE = _windows_.PRINT_MODE_FILE
 PRINT_MODE_PRINTER = _windows_.PRINT_MODE_PRINTER
 PRINT_MODE_STREAM = _windows_.PRINT_MODE_STREAM
+PRINTBIN_DEFAULT = _windows_.PRINTBIN_DEFAULT
+PRINTBIN_ONLYONE = _windows_.PRINTBIN_ONLYONE
+PRINTBIN_LOWER = _windows_.PRINTBIN_LOWER
+PRINTBIN_MIDDLE = _windows_.PRINTBIN_MIDDLE
+PRINTBIN_MANUAL = _windows_.PRINTBIN_MANUAL
+PRINTBIN_ENVELOPE = _windows_.PRINTBIN_ENVELOPE
+PRINTBIN_ENVMANUAL = _windows_.PRINTBIN_ENVMANUAL
+PRINTBIN_AUTO = _windows_.PRINTBIN_AUTO
+PRINTBIN_TRACTOR = _windows_.PRINTBIN_TRACTOR
+PRINTBIN_SMALLFMT = _windows_.PRINTBIN_SMALLFMT
+PRINTBIN_LARGEFMT = _windows_.PRINTBIN_LARGEFMT
+PRINTBIN_LARGECAPACITY = _windows_.PRINTBIN_LARGECAPACITY
+PRINTBIN_CASSETTE = _windows_.PRINTBIN_CASSETTE
+PRINTBIN_FORMSOURCE = _windows_.PRINTBIN_FORMSOURCE
+PRINTBIN_USER = _windows_.PRINTBIN_USER
 class PrintData(_core.Object):
     def __repr__(self):
         return "<%s.%s; proxy of C++ wxPrintData instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
@@ -3759,6 +3787,10 @@ class PrintData(_core.Object):
         """GetQuality(self) -> int"""
         return _windows_.PrintData_GetQuality(*args, **kwargs)
 
+    def GetBin(*args, **kwargs):
+        """GetBin(self) -> int"""
+        return _windows_.PrintData_GetBin(*args, **kwargs)
+
     def SetNoCopies(*args, **kwargs):
         """SetNoCopies(self, int v)"""
         return _windows_.PrintData_SetNoCopies(*args, **kwargs)
@@ -3794,6 +3826,10 @@ class PrintData(_core.Object):
     def SetQuality(*args, **kwargs):
         """SetQuality(self, int quality)"""
         return _windows_.PrintData_SetQuality(*args, **kwargs)
+
+    def SetBin(*args, **kwargs):
+        """SetBin(self, int bin)"""
+        return _windows_.PrintData_SetBin(*args, **kwargs)
 
     def GetPrinterCommand(*args, **kwargs):
         """GetPrinterCommand(self) -> String"""

@@ -270,6 +270,9 @@ typedef int wxWindowID;
     #ifndef HAVE_CONST_CAST
         #define HAVE_CONST_CAST
     #endif
+    #ifndef HAVE_REINTERPRET_CAST
+        #define HAVE_REINTERPRET_CAST
+    #endif
     #ifndef HAVE_STATIC_CAST
         #define HAVE_STATIC_CAST
     #endif
@@ -285,6 +288,12 @@ typedef int wxWindowID;
     #define wx_const_cast(t, x) const_cast<t>(x)
 #else
     #define wx_const_cast(t, x) ((t)(x))
+#endif
+
+#ifdef HAVE_REINTERPRET_CAST
+    #define wx_reinterpret_cast(t, x) reinterpret_cast<t>(x)
+#else
+    #define wx_reinterpret_cast(t, x) ((t)(x))
 #endif
 
 /* for consistency with wxStatic/DynamicCast defined in wx/object.h */
@@ -313,6 +322,50 @@ typedef int wxWindowID;
         #define HAVE_STD_STRING_COMPARE
     #endif
 #endif
+
+/* provide replacement for C99 va_copy() if the compiler doesn't have it */
+
+/* could be already defined by configure or the user */
+#ifndef wxVaCopy
+    /* if va_copy is a macro or configure detected that we have it, use it */
+    #if defined(va_copy) || defined(HAVE_VA_COPY)
+        #define wxVaCopy va_copy
+    #else /* no va_copy, try to provide a replacement */
+        /*
+           configure tries to determine whether va_list is an array or struct
+           type, but it may not be used under Windows, so deal with a few
+           special cases.
+         */
+
+        #ifdef __WATCOMC__
+            /* Watcom uses array type for va_list except for PPC and Alpha */
+            #if !defined(__PPC__) && !defined(__AXP__)
+                #define VA_LIST_IS_ARRAY
+            #endif
+        #endif /* __WATCOMC__ */
+
+        #if defined(__PPC__) && (defined(_CALL_SYSV) || defined (_WIN32))
+            /*
+                PPC using SysV ABI and NT/PPC are special in that they use an
+                extra level of indirection.
+             */
+            #define VA_LIST_IS_POINTER
+        #endif /* SysV or Win32 on __PPC__ */
+
+        /*
+            note that we use memmove(), not memcpy(), in case anybody tries
+            to do wxVaCopy(ap, ap)
+         */
+        #if defined(VA_LIST_IS_POINTER)
+            #define wxVaCopy(d, s)  memmove(*(d), *(s), sizeof(va_list))
+        #elif defined(VA_LIST_IS_ARRAY)
+            #define wxVaCopy(d, s) memmove((d), (s), sizeof(va_list))
+        #else /* we can only hope that va_lists are simple lvalues */
+            #define wxVaCopy(d, s) ((d) = (s))
+        #endif
+    #endif /* va_copy/!va_copy */
+#endif // wxVaCopy
+
 
 /*  ---------------------------------------------------------------------------- */
 /*  portable calling conventions macros */
@@ -731,6 +784,28 @@ typedef wxUint32 wxDword;
     #error "Pointers can't be stored inside integer types."
 #endif
 
+#ifdef __cplusplus
+/* And also define a simple function to cast pointer to it. */
+inline wxUIntPtr wxPtrToUInt(void *p)
+{
+    /*
+       VC++ 7.1 gives warnings about casts such as below even when they're
+       explicit with /Wp64 option, suppress them as we really know what we're
+       doing here
+     */
+#ifdef __VISUALC__
+    #pragma warning(disable: 4311) /* pointer truncation from '' to '' */
+#endif
+
+    return wx_reinterpret_cast(wxUIntPtr, p);
+
+#ifdef __VISUALC__
+    #pragma warning(default: 4311)
+#endif
+}
+#endif /*__cplusplus*/
+
+
 /*  64 bit */
 
 /*  NB: we #define and not typedef wxLongLong_t because we want to be able to */
@@ -1056,7 +1131,7 @@ enum wxStretch
     wxFIXED_MINSIZE           = 0x8000,
     wxTILE                    = 0xc000,
 
-    // for compatibility only, default now, don't use explicitly any more
+    /* for compatibility only, default now, don't use explicitly any more */
 #if WXWIN_COMPATIBILITY_2_4
     wxADJUST_MINSIZE          = 0x00100000
 #else
@@ -1206,6 +1281,9 @@ enum wxBorder
 #define wxFRAME_EX_CONTEXTHELP  0x00000004
 #define wxDIALOG_EX_CONTEXTHELP 0x00000004
 
+/*  Create a window which is attachable to another top level window */
+#define wxFRAME_DRAWER          0x0020
+
 /*
  * MDI parent frame style flags
  * Can overlap with some of the above.
@@ -1336,6 +1414,27 @@ enum wxBorder
 #define wxNB_RIGHT            0x0040
 #define wxNB_BOTTOM           0x0080
 #define wxNB_MULTILINE        0x0100
+#define wxNB_DEFAULT          wxNB_TOP
+
+/*
+ * wxListbook flags
+ */
+#define wxLB_DEFAULT          0x0
+#define wxLB_TOP              0x1
+#define wxLB_BOTTOM           0x2
+#define wxLB_LEFT             0x4
+#define wxLB_RIGHT            0x8
+#define wxLB_ALIGN_MASK       0xf
+
+/*
+ * wxChoicebook flags
+ */
+#define wxCHB_DEFAULT         0x0
+#define wxCHB_TOP             0x1
+#define wxCHB_BOTTOM          0x2
+#define wxCHB_LEFT            0x4
+#define wxCHB_RIGHT           0x8
+#define wxCHB_ALIGN_MASK      0xf
 
 /*
  * wxTabCtrl flags
@@ -2072,8 +2171,8 @@ typedef unsigned long   WXDWORD;
 typedef unsigned short  WXWORD;
 
 
-//typedef void*       WXWidget;
-//typedef void*       WXWindow;
+/* typedef void*       WXWidget; */
+/* typedef void*       WXWindow; */
 typedef WX_OPAQUE_TYPE(ControlRef ) * WXWidget ;
 typedef WX_OPAQUE_TYPE(WindowRef) * WXWindow ;
 typedef void*       WXDisplay;
@@ -2149,16 +2248,23 @@ DECLARE_WXCOCOA_OBJC_CLASS(NSBitmapImageRep);
 DECLARE_WXCOCOA_OBJC_CLASS(NSBox);
 DECLARE_WXCOCOA_OBJC_CLASS(NSButton);
 DECLARE_WXCOCOA_OBJC_CLASS(NSColor);
+DECLARE_WXCOCOA_OBJC_CLASS(NSColorPanel);
 DECLARE_WXCOCOA_OBJC_CLASS(NSControl);
+DECLARE_WXCOCOA_OBJC_CLASS(NSCursor);
 DECLARE_WXCOCOA_OBJC_CLASS(NSEvent);
+DECLARE_WXCOCOA_OBJC_CLASS(NSFontPanel);
 DECLARE_WXCOCOA_OBJC_CLASS(NSImage);
 DECLARE_WXCOCOA_OBJC_CLASS(NSLayoutManager);
 DECLARE_WXCOCOA_OBJC_CLASS(NSMenu);
+DECLARE_WXCOCOA_OBJC_CLASS(NSMenuExtra);
 DECLARE_WXCOCOA_OBJC_CLASS(NSMenuItem);
 DECLARE_WXCOCOA_OBJC_CLASS(NSMutableArray);
 DECLARE_WXCOCOA_OBJC_CLASS(NSNotification);
+DECLARE_WXCOCOA_OBJC_CLASS(NSObject);
 DECLARE_WXCOCOA_OBJC_CLASS(NSPanel);
 DECLARE_WXCOCOA_OBJC_CLASS(NSScrollView);
+DECLARE_WXCOCOA_OBJC_CLASS(NSSound);
+DECLARE_WXCOCOA_OBJC_CLASS(NSStatusItem);
 DECLARE_WXCOCOA_OBJC_CLASS(NSTableColumn);
 DECLARE_WXCOCOA_OBJC_CLASS(NSTableView);
 DECLARE_WXCOCOA_OBJC_CLASS(NSTextContainer);

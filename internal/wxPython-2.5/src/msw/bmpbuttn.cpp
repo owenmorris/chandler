@@ -29,6 +29,7 @@
 #endif
 
 #include "wx/msw/private.h"
+#include "wx/image.h"
 
 // ----------------------------------------------------------------------------
 // macros
@@ -87,6 +88,10 @@ wxCONSTRUCTOR_5( wxBitmapButton , wxWindow* , Parent , wxWindowID , Id , wxBitma
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxBitmapButton, wxButton)
 #endif
+
+BEGIN_EVENT_TABLE(wxBitmapButton, wxBitmapButtonBase)
+    EVT_SYS_COLOUR_CHANGED(wxBitmapButton::OnSysColourChanged)
+END_EVENT_TABLE()
 
 /*
 TODO PROPERTIES :
@@ -166,6 +171,33 @@ bool wxBitmapButton::Create(wxWindow *parent, wxWindowID id,
     SetBestSize(size);
 
     return true;
+}
+
+bool wxBitmapButton::SetBackgroundColour(const wxColour& colour)
+{
+    if ( !wxBitmapButtonBase::SetBackgroundColour(colour) )
+    {
+        // didn't change
+        return false;
+    }
+
+    // invalidate the brush, it will be recreated the next time it's needed
+    m_brushDisabled = wxNullBrush;
+
+    return true;
+}
+
+void wxBitmapButton::OnSysColourChanged(wxSysColourChangedEvent& event)
+{
+    m_brushDisabled = wxNullBrush;
+
+    if ( !IsEnabled() )
+    {
+        // this change affects our current state
+        Refresh();
+    }
+
+    event.Skip();
 }
 
 // VZ: should be at the very least less than wxDEFAULT_BUTTON_MARGIN
@@ -415,11 +447,28 @@ void wxBitmapButton::DrawButtonFocus( WXHDC dc, int left, int top, int right,
     DrawFocusRect( (HDC) dc, &rect );
 }
 
-extern HBRUSH wxDisableButtonBrush;
-void wxBitmapButton::DrawButtonDisable( WXHDC dc, int left, int top, int right,
-    int bottom, bool with_marg )
+void
+wxBitmapButton::DrawButtonDisable( WXHDC dc,
+                                   int left, int top, int right, int bottom,
+                                   bool with_marg )
 {
-    HBRUSH  old = (HBRUSH) SelectObject( (HDC) dc, wxDisableButtonBrush );
+    if ( !m_brushDisabled.Ok() )
+    {
+        // draw a bitmap with two black and two background colour pixels
+        wxBitmap bmp(2, 2);
+        wxMemoryDC dc;
+        dc.SelectObject(bmp);
+        dc.SetPen(*wxBLACK_PEN);
+        dc.DrawPoint(0, 0);
+        dc.DrawPoint(1, 1);
+        dc.SetPen(GetBackgroundColour());
+        dc.DrawPoint(0, 1);
+        dc.DrawPoint(1, 0);
+
+        m_brushDisabled = wxBrush(bmp);
+    }
+
+    SelectInHDC selectBrush((HDC)dc, GetHbrushOf(m_brushDisabled));
 
     // ROP for "dest |= pattern" operation -- as it doesn't have a standard
     // name, give it our own
@@ -434,8 +483,6 @@ void wxBitmapButton::DrawButtonDisable( WXHDC dc, int left, int top, int right,
     }
 
     ::PatBlt( (HDC) dc, left, top, right, bottom, PATTERNPAINT);
-
-    ::SelectObject( (HDC) dc, old );
 }
 
 void wxBitmapButton::SetDefault()

@@ -92,7 +92,7 @@ wxAcceleratorTable::wxAcceleratorTable(const wxString& resource)
     M_ACCELDATA->m_ok = (hAccel != 0);
 }
 
-extern int wxCharCodeWXToMSW(int id, bool *isVirtual);
+extern WXWORD wxCharCodeWXToMSW(int id, bool *isVirtual);
 
 // Create from an array
 wxAcceleratorTable::wxAcceleratorTable(int n, const wxAcceleratorEntry entries[])
@@ -120,7 +120,7 @@ wxAcceleratorTable::wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]
 
         arr[i].fVirt = fVirt;
         arr[i].key = key;
-        arr[i].cmd = entries[i].GetCommand();
+        arr[i].cmd = (WORD)entries[i].GetCommand();
     }
 
     M_ACCELDATA->m_hAccel = ::CreateAcceleratorTable(arr, n);

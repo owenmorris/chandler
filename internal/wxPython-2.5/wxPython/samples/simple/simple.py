@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
-# A very simple wxPython example.  Just a wxFrame, wxPanel,
-# wxStaticText, wxButton, and a wxBoxSizer, but it shows the basic
+# A very simple wxPython example.  Just a wx.Frame, wx.Panel,
+# wx.StaticText, wx.Button, and a wx.BoxSizer, but it shows the basic
 # structure of any wxPython application.
 #----------------------------------------------------------------------
 
@@ -74,10 +74,13 @@ class MyFrame(wx.Frame):
 class MyApp(wx.App):
     def OnInit(self):
         frame = MyFrame(None, "Simple wxPython App")
-        frame.Show(True)
         self.SetTopWindow(frame)
+
+        print "Print statements go to this stdout window by default."
+
+        frame.Show(True)
         return True
         
-app = MyApp(True)
+app = MyApp(redirect=True)
 app.MainLoop()
 

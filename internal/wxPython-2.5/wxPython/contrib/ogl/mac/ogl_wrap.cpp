@@ -969,7 +969,7 @@ static PyObject *_wrap_ShapeRegion_SetText(PyObject *, PyObject *args, PyObject 
     PyObject *resultobj;
     wxShapeRegion *arg1 = (wxShapeRegion *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -982,7 +982,7 @@ static PyObject *_wrap_ShapeRegion_SetText(PyObject *, PyObject *args, PyObject 
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1220,7 +1220,7 @@ static PyObject *_wrap_ShapeRegion_SetName(PyObject *, PyObject *args, PyObject 
     PyObject *resultobj;
     wxShapeRegion *arg1 = (wxShapeRegion *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -1233,7 +1233,7 @@ static PyObject *_wrap_ShapeRegion_SetName(PyObject *, PyObject *args, PyObject 
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1261,7 +1261,7 @@ static PyObject *_wrap_ShapeRegion_SetColour(PyObject *, PyObject *args, PyObjec
     PyObject *resultobj;
     wxShapeRegion *arg1 = (wxShapeRegion *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -1274,7 +1274,7 @@ static PyObject *_wrap_ShapeRegion_SetColour(PyObject *, PyObject *args, PyObjec
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -1744,7 +1744,7 @@ static PyObject *_wrap_ShapeRegion_SetPenColour(PyObject *, PyObject *args, PyOb
     PyObject *resultobj;
     wxShapeRegion *arg1 = (wxShapeRegion *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -1757,7 +1757,7 @@ static PyObject *_wrap_ShapeRegion_SetPenColour(PyObject *, PyObject *args, PyOb
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -2405,7 +2405,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnDrawBranches(PyObject *, PyObjec
     PyObject *resultobj;
     wxPyShapeEvtHandler *arg1 = (wxPyShapeEvtHandler *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) False ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -2753,7 +2753,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMovePre(PyObject *, PyObject *ar
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -2812,7 +2812,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMovePost(PyObject *, PyObject *a
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -3260,7 +3260,7 @@ static PyObject *_wrap_PyShapeEvtHandler_base_OnMoveLink(PyObject *, PyObject *a
     PyObject *resultobj;
     wxPyShapeEvtHandler *arg1 = (wxPyShapeEvtHandler *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -4406,7 +4406,7 @@ static PyObject *_wrap_PyShape_CalculateSize(PyObject *, PyObject *args, PyObjec
 static PyObject *_wrap_PyShape_Select(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
-    bool arg2 = (bool) True ;
+    bool arg2 = (bool) true ;
     wxDC *arg3 = (wxDC *) NULL ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -4443,8 +4443,8 @@ static PyObject *_wrap_PyShape_Select(PyObject *, PyObject *args, PyObject *kwar
 static PyObject *_wrap_PyShape_SetHighlight(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
-    bool arg2 = (bool) True ;
-    bool arg3 = (bool) False ;
+    bool arg2 = (bool) true ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -4565,7 +4565,7 @@ static PyObject *_wrap_PyShape_SetSensitivityFilter(PyObject *, PyObject *args, 
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     int arg2 = (int) OP_ALL ;
-    bool arg3 = (bool) False ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -4628,7 +4628,7 @@ static PyObject *_wrap_PyShape_SetDraggable(PyObject *, PyObject *args, PyObject
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     bool arg2 ;
-    bool arg3 = (bool) False ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -4846,7 +4846,7 @@ static PyObject *_wrap_PyShape_SetShadowMode(PyObject *, PyObject *args, PyObjec
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     int arg2 ;
-    bool arg3 = (bool) False ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -5409,7 +5409,7 @@ static PyObject *_wrap_PyShape_Move(PyObject *, PyObject *args, PyObject *kwargs
     wxDC *arg2 = 0 ;
     double arg3 ;
     double arg4 ;
-    bool arg5 = (bool) True ;
+    bool arg5 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -5651,7 +5651,7 @@ static PyObject *_wrap_PyShape_SetSize(PyObject *, PyObject *args, PyObject *kwa
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     double arg2 ;
     double arg3 ;
-    bool arg4 = (bool) True ;
+    bool arg4 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -5891,7 +5891,7 @@ static PyObject *_wrap_PyShape_AddText(PyObject *, PyObject *args, PyObject *kwa
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -5904,7 +5904,7 @@ static PyObject *_wrap_PyShape_AddText(PyObject *, PyObject *args, PyObject *kwa
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6011,7 +6011,7 @@ static PyObject *_wrap_PyShape_FormatText(PyObject *, PyObject *args, PyObject *
     wxDC *arg2 = 0 ;
     wxString *arg3 = 0 ;
     int arg4 = (int) 0 ;
-    bool temp3 = False ;
+    bool temp3 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -6033,7 +6033,7 @@ static PyObject *_wrap_PyShape_FormatText(PyObject *, PyObject *args, PyObject *
     {
         arg3 = wxString_in_helper(obj2);
         if (arg3 == NULL) SWIG_fail;
-        temp3 = True;
+        temp3 = true;
     }
     if (obj3) {
         arg4 = (int)SWIG_As_int(obj3); 
@@ -6220,7 +6220,7 @@ static PyObject *_wrap_PyShape_SetTextColour(PyObject *, PyObject *args, PyObjec
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxString *arg2 = 0 ;
     int arg3 = (int) 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -6234,7 +6234,7 @@ static PyObject *_wrap_PyShape_SetTextColour(PyObject *, PyObject *args, PyObjec
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     if (obj2) {
         arg3 = (int)SWIG_As_int(obj2); 
@@ -6331,7 +6331,7 @@ static PyObject *_wrap_PyShape_SetRegionName(PyObject *, PyObject *args, PyObjec
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxString *arg2 = 0 ;
     int arg3 = (int) 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -6345,7 +6345,7 @@ static PyObject *_wrap_PyShape_SetRegionName(PyObject *, PyObject *args, PyObjec
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     if (obj2) {
         arg3 = (int)SWIG_As_int(obj2); 
@@ -6414,7 +6414,7 @@ static PyObject *_wrap_PyShape_GetRegionId(PyObject *, PyObject *args, PyObject 
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxString *arg2 = 0 ;
     int result;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -6427,7 +6427,7 @@ static PyObject *_wrap_PyShape_GetRegionId(PyObject *, PyObject *args, PyObject 
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -6456,7 +6456,7 @@ static PyObject *_wrap_PyShape_NameRegions(PyObject *, PyObject *args, PyObject 
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxString const &arg2_defvalue = wxPyEmptyString ;
     wxString *arg2 = (wxString *) &arg2_defvalue ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -6470,7 +6470,7 @@ static PyObject *_wrap_PyShape_NameRegions(PyObject *, PyObject *args, PyObject 
         {
             arg2 = wxString_in_helper(obj1);
             if (arg2 == NULL) SWIG_fail;
-            temp2 = True;
+            temp2 = true;
         }
     }
     {
@@ -6606,7 +6606,7 @@ static PyObject *_wrap_PyShape_FindRegion(PyObject *, PyObject *args, PyObject *
     wxString *arg2 = 0 ;
     int *arg3 = (int *) 0 ;
     wxPyShape *result;
-    bool temp2 = False ;
+    bool temp2 = false ;
     int temp3 ;
     int res3 = 0 ;
     PyObject * obj0 = 0 ;
@@ -6622,7 +6622,7 @@ static PyObject *_wrap_PyShape_FindRegion(PyObject *, PyObject *args, PyObject *
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -7059,7 +7059,7 @@ static PyObject *_wrap_PyShape_EraseLinks(PyObject *, PyObject *args, PyObject *
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxDC *arg2 = 0 ;
     int arg3 = (int) -1 ;
-    bool arg4 = (bool) False ;
+    bool arg4 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -7105,7 +7105,7 @@ static PyObject *_wrap_PyShape_DrawLinks(PyObject *, PyObject *args, PyObject *k
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxDC *arg2 = 0 ;
     int arg3 = (int) -1 ;
-    bool arg4 = (bool) False ;
+    bool arg4 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -7740,8 +7740,8 @@ static PyObject *_wrap_PyShape_HasDescendant(PyObject *, PyObject *args, PyObjec
 static PyObject *_wrap_PyShape_CreateNewCopy(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
-    bool arg2 = (bool) True ;
-    bool arg3 = (bool) True ;
+    bool arg2 = (bool) true ;
+    bool arg3 = (bool) true ;
     wxPyShape *result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -8187,7 +8187,7 @@ static PyObject *_wrap_PyShape_base_OnDrawBranches(PyObject *, PyObject *args, P
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) False ;
+    bool arg3 = (bool) false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -8535,7 +8535,7 @@ static PyObject *_wrap_PyShape_base_OnMovePre(PyObject *, PyObject *args, PyObje
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -8594,7 +8594,7 @@ static PyObject *_wrap_PyShape_base_OnMovePost(PyObject *, PyObject *args, PyObj
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -9042,7 +9042,7 @@ static PyObject *_wrap_PyShape_base_OnMoveLink(PyObject *, PyObject *args, PyObj
     PyObject *resultobj;
     wxPyShape *arg1 = (wxPyShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -9595,7 +9595,7 @@ static PyObject *_wrap_PseudoMetaFile_LoadFromMetaFile(PyObject *, PyObject *arg
     double *arg3 = (double *) 0 ;
     double *arg4 = (double *) 0 ;
     bool result;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -9610,7 +9610,7 @@ static PyObject *_wrap_PseudoMetaFile_LoadFromMetaFile(PyObject *, PyObject *arg
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     if ((SWIG_ConvertPtr(obj2,(void **)(&arg3),SWIGTYPE_p_double,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
@@ -10285,7 +10285,7 @@ static PyObject *_wrap_PseudoMetaFile_DrawText(PyObject *, PyObject *args, PyObj
     wxPseudoMetaFile *arg1 = (wxPseudoMetaFile *) 0 ;
     wxString *arg2 = 0 ;
     wxPoint *arg3 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     wxPoint temp3 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -10300,7 +10300,7 @@ static PyObject *_wrap_PseudoMetaFile_DrawText(PyObject *, PyObject *args, PyObj
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         arg3 = &temp3;
@@ -11319,7 +11319,7 @@ static PyObject *_wrap_PyRectangleShape_base_OnMovePre(PyObject *, PyObject *arg
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -11378,7 +11378,7 @@ static PyObject *_wrap_PyRectangleShape_base_OnMovePost(PyObject *, PyObject *ar
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -11826,7 +11826,7 @@ static PyObject *_wrap_PyRectangleShape_base_OnMoveLink(PyObject *, PyObject *ar
     PyObject *resultobj;
     wxPyRectangleShape *arg1 = (wxPyRectangleShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -12649,7 +12649,7 @@ static PyObject *_wrap_PyControlPoint_base_OnMovePre(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -12708,7 +12708,7 @@ static PyObject *_wrap_PyControlPoint_base_OnMovePost(PyObject *, PyObject *args
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -13156,7 +13156,7 @@ static PyObject *_wrap_PyControlPoint_base_OnMoveLink(PyObject *, PyObject *args
     PyObject *resultobj;
     wxPyControlPoint *arg1 = (wxPyControlPoint *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -13571,7 +13571,7 @@ static PyObject *_wrap_PyBitmapShape_SetFilename(PyObject *, PyObject *args, PyO
     PyObject *resultobj;
     wxPyBitmapShape *arg1 = (wxPyBitmapShape *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -13584,7 +13584,7 @@ static PyObject *_wrap_PyBitmapShape_SetFilename(PyObject *, PyObject *args, PyO
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -14053,7 +14053,7 @@ static PyObject *_wrap_PyBitmapShape_base_OnMovePre(PyObject *, PyObject *args, 
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -14112,7 +14112,7 @@ static PyObject *_wrap_PyBitmapShape_base_OnMovePost(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -14560,7 +14560,7 @@ static PyObject *_wrap_PyBitmapShape_base_OnMoveLink(PyObject *, PyObject *args,
     PyObject *resultobj;
     wxPyBitmapShape *arg1 = (wxPyBitmapShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -15302,7 +15302,7 @@ static PyObject *_wrap_PyDrawnShape_DrawText(PyObject *, PyObject *args, PyObjec
     wxPyDrawnShape *arg1 = (wxPyDrawnShape *) 0 ;
     wxString *arg2 = 0 ;
     wxPoint *arg3 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     wxPoint temp3 ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -15317,7 +15317,7 @@ static PyObject *_wrap_PyDrawnShape_DrawText(PyObject *, PyObject *args, PyObjec
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         arg3 = &temp3;
@@ -15431,7 +15431,7 @@ static PyObject *_wrap_PyDrawnShape_LoadFromMetaFile(PyObject *, PyObject *args,
     wxPyDrawnShape *arg1 = (wxPyDrawnShape *) 0 ;
     wxString *arg2 = 0 ;
     bool result;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -15444,7 +15444,7 @@ static PyObject *_wrap_PyDrawnShape_LoadFromMetaFile(PyObject *, PyObject *args,
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -16321,7 +16321,7 @@ static PyObject *_wrap_PyDrawnShape_base_OnMovePre(PyObject *, PyObject *args, P
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -16380,7 +16380,7 @@ static PyObject *_wrap_PyDrawnShape_base_OnMovePost(PyObject *, PyObject *args, 
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -16828,7 +16828,7 @@ static PyObject *_wrap_PyDrawnShape_base_OnMoveLink(PyObject *, PyObject *args, 
     PyObject *resultobj;
     wxPyDrawnShape *arg1 = (wxPyDrawnShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -18148,7 +18148,7 @@ static PyObject *_wrap_PyCompositeShape_base_OnMovePre(PyObject *, PyObject *arg
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -18207,7 +18207,7 @@ static PyObject *_wrap_PyCompositeShape_base_OnMovePost(PyObject *, PyObject *ar
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -18655,7 +18655,7 @@ static PyObject *_wrap_PyCompositeShape_base_OnMoveLink(PyObject *, PyObject *ar
     PyObject *resultobj;
     wxPyCompositeShape *arg1 = (wxPyCompositeShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -19475,7 +19475,7 @@ static PyObject *_wrap_PyDividedShape_base_OnMovePre(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -19534,7 +19534,7 @@ static PyObject *_wrap_PyDividedShape_base_OnMovePost(PyObject *, PyObject *args
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -19982,7 +19982,7 @@ static PyObject *_wrap_PyDividedShape_base_OnMoveLink(PyObject *, PyObject *args
     PyObject *resultobj;
     wxPyDividedShape *arg1 = (wxPyDividedShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -20868,7 +20868,7 @@ static PyObject *_wrap_PyDivisionShape_SetLeftSideColour(PyObject *, PyObject *a
     PyObject *resultobj;
     wxPyDivisionShape *arg1 = (wxPyDivisionShape *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -20881,7 +20881,7 @@ static PyObject *_wrap_PyDivisionShape_SetLeftSideColour(PyObject *, PyObject *a
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -21012,7 +21012,7 @@ static PyObject *_wrap_PyDivisionShape_SetTopSideColour(PyObject *, PyObject *ar
     PyObject *resultobj;
     wxPyDivisionShape *arg1 = (wxPyDivisionShape *) 0 ;
     wxString *arg2 = 0 ;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -21025,7 +21025,7 @@ static PyObject *_wrap_PyDivisionShape_SetTopSideColour(PyObject *, PyObject *ar
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -21539,7 +21539,7 @@ static PyObject *_wrap_PyDivisionShape_base_OnMovePre(PyObject *, PyObject *args
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -21598,7 +21598,7 @@ static PyObject *_wrap_PyDivisionShape_base_OnMovePost(PyObject *, PyObject *arg
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -22046,7 +22046,7 @@ static PyObject *_wrap_PyDivisionShape_base_OnMoveLink(PyObject *, PyObject *arg
     PyObject *resultobj;
     wxPyDivisionShape *arg1 = (wxPyDivisionShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -22791,7 +22791,7 @@ static PyObject *_wrap_PyEllipseShape_base_OnMovePre(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -22850,7 +22850,7 @@ static PyObject *_wrap_PyEllipseShape_base_OnMovePost(PyObject *, PyObject *args
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -23298,7 +23298,7 @@ static PyObject *_wrap_PyEllipseShape_base_OnMoveLink(PyObject *, PyObject *args
     PyObject *resultobj;
     wxPyEllipseShape *arg1 = (wxPyEllipseShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -24037,7 +24037,7 @@ static PyObject *_wrap_PyCircleShape_base_OnMovePre(PyObject *, PyObject *args, 
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -24096,7 +24096,7 @@ static PyObject *_wrap_PyCircleShape_base_OnMovePost(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -24544,7 +24544,7 @@ static PyObject *_wrap_PyCircleShape_base_OnMoveLink(PyObject *, PyObject *args,
     PyObject *resultobj;
     wxPyCircleShape *arg1 = (wxPyCircleShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -24815,7 +24815,7 @@ static PyObject *_wrap_new_ArrowHead(PyObject *, PyObject *args, PyObject *kwarg
     wxPseudoMetaFile *arg6 = (wxPseudoMetaFile *) NULL ;
     long arg7 = (long) -1 ;
     wxArrowHead *result;
-    bool temp5 = False ;
+    bool temp5 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -24848,7 +24848,7 @@ static PyObject *_wrap_new_ArrowHead(PyObject *, PyObject *args, PyObject *kwarg
         {
             arg5 = wxString_in_helper(obj4);
             if (arg5 == NULL) SWIG_fail;
-            temp5 = True;
+            temp5 = true;
         }
     }
     if (obj5) {
@@ -25418,7 +25418,7 @@ static PyObject *_wrap_PyLineShape_AddArrow(PyObject *, PyObject *args, PyObject
     wxString *arg6 = (wxString *) &arg6_defvalue ;
     wxPseudoMetaFile *arg7 = (wxPseudoMetaFile *) NULL ;
     long arg8 = (long) -1 ;
-    bool temp6 = False ;
+    bool temp6 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -25452,7 +25452,7 @@ static PyObject *_wrap_PyLineShape_AddArrow(PyObject *, PyObject *args, PyObject
         {
             arg6 = wxString_in_helper(obj5);
             if (arg6 == NULL) SWIG_fail;
-            temp6 = True;
+            temp6 = true;
         }
     }
     if (obj6) {
@@ -25526,7 +25526,7 @@ static PyObject *_wrap_PyLineShape_ClearArrow(PyObject *, PyObject *args, PyObje
     wxPyLineShape *arg1 = (wxPyLineShape *) 0 ;
     wxString *arg2 = 0 ;
     bool result;
-    bool temp2 = False ;
+    bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     char *kwnames[] = {
@@ -25539,7 +25539,7 @@ static PyObject *_wrap_PyLineShape_ClearArrow(PyObject *, PyObject *args, PyObje
     {
         arg2 = wxString_in_helper(obj1);
         if (arg2 == NULL) SWIG_fail;
-        temp2 = True;
+        temp2 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25680,7 +25680,7 @@ static PyObject *_wrap_PyLineShape_DeleteArrowHead(PyObject *, PyObject *args, P
     int arg2 ;
     wxString *arg3 = 0 ;
     bool result;
-    bool temp3 = False ;
+    bool temp3 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -25696,7 +25696,7 @@ static PyObject *_wrap_PyLineShape_DeleteArrowHead(PyObject *, PyObject *args, P
     {
         arg3 = wxString_in_helper(obj2);
         if (arg3 == NULL) SWIG_fail;
-        temp3 = True;
+        temp3 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -25914,7 +25914,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHead(PyObject *, PyObject *args, PyO
     int arg2 ;
     wxString *arg3 = 0 ;
     wxArrowHead *result;
-    bool temp3 = False ;
+    bool temp3 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -25930,7 +25930,7 @@ static PyObject *_wrap_PyLineShape_FindArrowHead(PyObject *, PyObject *args, PyO
     {
         arg3 = wxString_in_helper(obj2);
         if (arg3 == NULL) SWIG_fail;
-        temp3 = True;
+        temp3 = true;
     }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -27439,7 +27439,7 @@ static PyObject *_wrap_PyLineShape_base_OnMovePre(PyObject *, PyObject *args, Py
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -27498,7 +27498,7 @@ static PyObject *_wrap_PyLineShape_base_OnMovePost(PyObject *, PyObject *args, P
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -27946,7 +27946,7 @@ static PyObject *_wrap_PyLineShape_base_OnMoveLink(PyObject *, PyObject *args, P
     PyObject *resultobj;
     wxPyLineShape *arg1 = (wxPyLineShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -28982,7 +28982,7 @@ static PyObject *_wrap_PyPolygonShape_base_OnMovePre(PyObject *, PyObject *args,
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -29041,7 +29041,7 @@ static PyObject *_wrap_PyPolygonShape_base_OnMovePost(PyObject *, PyObject *args
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -29489,7 +29489,7 @@ static PyObject *_wrap_PyPolygonShape_base_OnMoveLink(PyObject *, PyObject *args
     PyObject *resultobj;
     wxPyPolygonShape *arg1 = (wxPyPolygonShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -30259,7 +30259,7 @@ static PyObject *_wrap_PyTextShape_base_OnMovePre(PyObject *, PyObject *args, Py
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     bool result;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -30318,7 +30318,7 @@ static PyObject *_wrap_PyTextShape_base_OnMovePost(PyObject *, PyObject *args, P
     double arg4 ;
     double arg5 ;
     double arg6 ;
-    bool arg7 = (bool) True ;
+    bool arg7 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -30766,7 +30766,7 @@ static PyObject *_wrap_PyTextShape_base_OnMoveLink(PyObject *, PyObject *args, P
     PyObject *resultobj;
     wxPyTextShape *arg1 = (wxPyTextShape *) 0 ;
     wxDC *arg2 = 0 ;
-    bool arg3 = (bool) True ;
+    bool arg3 = (bool) true ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -31813,7 +31813,7 @@ static PyObject *_wrap_new_PyShapeCanvas(PyObject *, PyObject *args, PyObject *k
     wxPyShapeCanvas *result;
     wxPoint temp3 ;
     wxSize temp4 ;
-    bool temp6 = False ;
+    bool temp6 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
@@ -31853,7 +31853,7 @@ static PyObject *_wrap_new_PyShapeCanvas(PyObject *, PyObject *args, PyObject *k
         {
             arg6 = wxString_in_helper(obj5);
             if (arg6 == NULL) SWIG_fail;
-            temp6 = True;
+            temp6 = true;
         }
     }
     {
@@ -33781,8 +33781,8 @@ static void *_p_wxInitDialogEventTo_p_wxObject(void *x) {
 static void *_p_wxLayoutAlgorithmTo_p_wxObject(void *x) {
     return (void *)((wxObject *)  ((wxLayoutAlgorithm *) x));
 }
-static void *_p_wxTaskBarIconTo_p_wxObject(void *x) {
-    return (void *)((wxObject *) (wxEvtHandler *) ((wxTaskBarIcon *) x));
+static void *_p_wxPyTaskBarIconTo_p_wxObject(void *x) {
+    return (void *)((wxObject *) (wxEvtHandler *) ((wxPyTaskBarIcon *) x));
 }
 static void *_p_wxFindDialogEventTo_p_wxObject(void *x) {
     return (void *)((wxObject *) (wxEvent *)(wxCommandEvent *) ((wxFindDialogEvent *) x));
@@ -34324,8 +34324,8 @@ static void *_p_wxPreviewControlBarTo_p_wxEvtHandler(void *x) {
 static void *_p_wxPyPreviewControlBarTo_p_wxEvtHandler(void *x) {
     return (void *)((wxEvtHandler *) (wxWindow *)(wxPanel *)(wxPreviewControlBar *) ((wxPyPreviewControlBar *) x));
 }
-static void *_p_wxTaskBarIconTo_p_wxEvtHandler(void *x) {
-    return (void *)((wxEvtHandler *)  ((wxTaskBarIcon *) x));
+static void *_p_wxPyTaskBarIconTo_p_wxEvtHandler(void *x) {
+    return (void *)((wxEvtHandler *)  ((wxPyTaskBarIcon *) x));
 }
 static void *_p_wxFrameTo_p_wxEvtHandler(void *x) {
     return (void *)((wxEvtHandler *) (wxWindow *)(wxTopLevelWindow *) ((wxFrame *) x));
@@ -34435,10 +34435,10 @@ static swig_type_info _swigt__p_wxPyDivisionShape[] = {{"_p_wxPyDivisionShape", 
 static swig_type_info _swigt__p_wxPyDrawnShape[] = {{"_p_wxPyDrawnShape", 0, "wxPyDrawnShape *", 0, 0, 0, 0},{"_p_wxPyDrawnShape", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPyPolygonShape[] = {{"_p_wxPyPolygonShape", 0, "wxPyPolygonShape *", 0, 0, 0, 0},{"_p_wxPyPolygonShape", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxBitmap[] = {{"_p_wxBitmap", 0, "wxBitmap *", 0, 0, 0, 0},{"_p_wxBitmap", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_wxObject[] = {{"_p_wxObject", 0, "wxObject *", 0, 0, 0, 0},{"_p_wxQueryLayoutInfoEvent", _p_wxQueryLayoutInfoEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxLayoutConstraints", _p_wxLayoutConstraintsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyControlPoint", _p_wxPyControlPointTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewFrame", _p_wxPreviewFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPreviewFrame", _p_wxPyPreviewFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGBSizerItem", _p_wxGBSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizerItem", _p_wxSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollEvent", _p_wxScrollEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIndividualLayoutConstraint", _p_wxIndividualLayoutConstraintTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxOGLConstraint", _p_wxOGLConstraintTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPolygonShape", _p_wxPyPolygonShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDivisionShape", _p_wxPyDivisionShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDrawnShape", _p_wxPyDrawnShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizer", _p_wxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBoxSizer", _p_wxBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxStaticBoxSizer", _p_wxStaticBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridBagSizer", _p_wxGridBagSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxUpdateUIEvent", _p_wxUpdateUIEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxArrowHead", _p_wxArrowHeadTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPanel", _p_wxPyPanelTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFontData", _p_wxFontDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintData", _p_wxPrintDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvent", _p_wxEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFlexGridSizer", _p_wxFlexGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridSizer", _p_wxGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTaskBarIcon", _p_wxTaskBarIconTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxLayoutAlgorithm", _p_wxLayoutAlgorithmTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxInitDialogEvent", _p_wxInitDialogEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindDialogEvent", _p_wxFindDialogEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaintEvent", _p_wxPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNcPaintEvent", _p_wxNcPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDisplayChangedEvent", _p_wxDisplayChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaletteChangedEvent", _p_wxPaletteChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseCaptureChangedEvent", _p_wxMouseCaptureChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSysColourChangedEvent", _p_wxSysColourChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewCanvas", _p_wxPreviewCanvasTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShapeCanvas", _p_wxPyShapeCanvasTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyEllipseShape", _p_wxPyEllipseShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSetCursorEvent", _p_wxSetCursorEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplitterEvent", _p_wxSplitterEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFSFile", _p_wxFSFileTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindReplaceData", _p_wxFindReplaceDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyBitmapShape", _p_wxPyBitmapShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPySizer", _p_wxPySizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIChildFrame", _p_wxMDIChildFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColourData", _p_wxColourDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyEvent", _p_wxPyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", _p_wxNotifyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyWindow", _p_wxPyWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplashScreen", _p_wxSplashScreenTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileDialog", _p_wxFileDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMultiChoiceDialog", _p_wxMultiChoiceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSingleChoiceDialog", _p_wxSingleChoiceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTextEntryDialog", _p_wxTextEntryDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMessageDialog", _p_wxMessageDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxProgressDialog", _p_wxProgressDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindReplaceDialog", _p_wxFindReplaceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxShowEvent", _p_wxShowEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrinter", _p_wxPrinterTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuItem", _p_wxMenuItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIdleEvent", _p_wxIdleEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindowCreateEvent", _p_wxWindowCreateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxQueryNewPaletteEvent", _p_wxQueryNewPaletteEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMaximizeEvent", _p_wxMaximizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIconizeEvent", _p_wxIconizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizeEvent", _p_wxSizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMoveEvent", _p_wxMoveEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxActivateEvent", _p_wxActivateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxJPEGHandler", _p_wxJPEGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPCXHandler", _p_wxPCXHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNMHandler", _p_wxPNMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxXPMHandler", _p_wxXPMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGIFHandler", _p_wxGIFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNGHandler", _p_wxPNGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxANIHandler", _p_wxANIHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCURHandler", _p_wxCURHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxICOHandler", _p_wxICOHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBMPHandler", _p_wxBMPHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImageHandler", _p_wxImageHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTIFFHandler", _p_wxTIFFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", _p_wxEvtHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCalculateLayoutEvent", _p_wxCalculateLayoutEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShapeEvtHandler", _p_wxPyShapeEvtHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyVListBox", _p_wxPyVListBoxTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyHtmlListBox", _p_wxPyHtmlListBoxTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyTextShape", _p_wxPyTextShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDividedShape", _p_wxPyDividedShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxAcceleratorTable", _p_wxAcceleratorTableTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMiniFrame", _p_wxMiniFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImage", _p_wxImageTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFrame", _p_wxFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPrintout", _p_wxPyPrintoutTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollWinEvent", _p_wxScrollWinEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTaskBarIconEvent", _p_wxTaskBarIconEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDiagram", _p_wxDiagramTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxStatusBar", _p_wxStatusBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIParentFrame", _p_wxMDIParentFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxObject", 0, 0, 0, 0, 0, 0},{"_p_wxWindowDestroyEvent", _p_wxWindowDestroyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNavigationKeyEvent", _p_wxNavigationKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxKeyEvent", _p_wxKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrolledWindow", _p_wxScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyScrolledWindow", _p_wxPyScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyVScrolledWindow", _p_wxPyVScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIClientWindow", _p_wxMDIClientWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTopLevelWindow", _p_wxTopLevelWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashWindow", _p_wxSashWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplitterWindow", _p_wxSplitterWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplashScreenWindow", _p_wxSplashScreenWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashLayoutWindow", _p_wxSashLayoutWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPopupWindow", _p_wxPopupWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPopupTransientWindow", _p_wxPyPopupTransientWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTipWindow", _p_wxTipWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashEvent", _p_wxSashEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintPreview", _p_wxPrintPreviewTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPrintPreview", _p_wxPyPrintPreviewTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPanel", _p_wxPanelTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFontDialog", _p_wxFontDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDirDialog", _p_wxDirDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColourDialog", _p_wxColourDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDialog", _p_wxDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialog", _p_wxPageSetupDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintDialog", _p_wxPrintDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShape", _p_wxPyShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxAttachmentPoint", _p_wxAttachmentPointTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileSystem", _p_wxFileSystemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxContextMenuEvent", _p_wxContextMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuEvent", _p_wxMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCloseEvent", _p_wxCloseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseEvent", _p_wxMouseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEraseEvent", _p_wxEraseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCommandEvent", _p_wxPyCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCommandEvent", _p_wxCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewControlBar", _p_wxPreviewControlBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPreviewControlBar", _p_wxPyPreviewControlBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCircleShape", _p_wxPyCircleShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyLineShape", _p_wxPyLineShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCompositeShape", _p_wxPyCompositeShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyRectangleShape", _p_wxPyRectangleShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDropFilesEvent", _p_wxDropFilesEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFocusEvent", _p_wxFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxChildFocusEvent", _p_wxChildFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPseudoMetaFile", _p_wxPseudoMetaFileTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialogData", _p_wxPageSetupDialogDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintDialogData", _p_wxPrintDialogDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxShapeRegion", _p_wxShapeRegionTo_p_wxObject, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_wxObject[] = {{"_p_wxObject", 0, "wxObject *", 0, 0, 0, 0},{"_p_wxQueryLayoutInfoEvent", _p_wxQueryLayoutInfoEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxLayoutConstraints", _p_wxLayoutConstraintsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyControlPoint", _p_wxPyControlPointTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewFrame", _p_wxPreviewFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPreviewFrame", _p_wxPyPreviewFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGBSizerItem", _p_wxGBSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizerItem", _p_wxSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollEvent", _p_wxScrollEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIndividualLayoutConstraint", _p_wxIndividualLayoutConstraintTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxOGLConstraint", _p_wxOGLConstraintTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPolygonShape", _p_wxPyPolygonShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDivisionShape", _p_wxPyDivisionShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDrawnShape", _p_wxPyDrawnShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizer", _p_wxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBoxSizer", _p_wxBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxStaticBoxSizer", _p_wxStaticBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridBagSizer", _p_wxGridBagSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxUpdateUIEvent", _p_wxUpdateUIEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxArrowHead", _p_wxArrowHeadTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPanel", _p_wxPyPanelTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFontData", _p_wxFontDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintData", _p_wxPrintDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvent", _p_wxEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFlexGridSizer", _p_wxFlexGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridSizer", _p_wxGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyTaskBarIcon", _p_wxPyTaskBarIconTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxLayoutAlgorithm", _p_wxLayoutAlgorithmTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxInitDialogEvent", _p_wxInitDialogEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindDialogEvent", _p_wxFindDialogEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaintEvent", _p_wxPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNcPaintEvent", _p_wxNcPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDisplayChangedEvent", _p_wxDisplayChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaletteChangedEvent", _p_wxPaletteChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseCaptureChangedEvent", _p_wxMouseCaptureChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSysColourChangedEvent", _p_wxSysColourChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewCanvas", _p_wxPreviewCanvasTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShapeCanvas", _p_wxPyShapeCanvasTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyEllipseShape", _p_wxPyEllipseShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSetCursorEvent", _p_wxSetCursorEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplitterEvent", _p_wxSplitterEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFSFile", _p_wxFSFileTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindReplaceData", _p_wxFindReplaceDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyBitmapShape", _p_wxPyBitmapShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPySizer", _p_wxPySizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIChildFrame", _p_wxMDIChildFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColourData", _p_wxColourDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyEvent", _p_wxPyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", _p_wxNotifyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyWindow", _p_wxPyWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplashScreen", _p_wxSplashScreenTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileDialog", _p_wxFileDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMultiChoiceDialog", _p_wxMultiChoiceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSingleChoiceDialog", _p_wxSingleChoiceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTextEntryDialog", _p_wxTextEntryDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMessageDialog", _p_wxMessageDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxProgressDialog", _p_wxProgressDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFindReplaceDialog", _p_wxFindReplaceDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxShowEvent", _p_wxShowEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrinter", _p_wxPrinterTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuItem", _p_wxMenuItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIdleEvent", _p_wxIdleEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindowCreateEvent", _p_wxWindowCreateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxQueryNewPaletteEvent", _p_wxQueryNewPaletteEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMaximizeEvent", _p_wxMaximizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIconizeEvent", _p_wxIconizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizeEvent", _p_wxSizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMoveEvent", _p_wxMoveEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxActivateEvent", _p_wxActivateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxJPEGHandler", _p_wxJPEGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPCXHandler", _p_wxPCXHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNMHandler", _p_wxPNMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxXPMHandler", _p_wxXPMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGIFHandler", _p_wxGIFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNGHandler", _p_wxPNGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxANIHandler", _p_wxANIHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCURHandler", _p_wxCURHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxICOHandler", _p_wxICOHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBMPHandler", _p_wxBMPHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImageHandler", _p_wxImageHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTIFFHandler", _p_wxTIFFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", _p_wxEvtHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCalculateLayoutEvent", _p_wxCalculateLayoutEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShapeEvtHandler", _p_wxPyShapeEvtHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyVListBox", _p_wxPyVListBoxTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyHtmlListBox", _p_wxPyHtmlListBoxTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyTextShape", _p_wxPyTextShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyDividedShape", _p_wxPyDividedShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxAcceleratorTable", _p_wxAcceleratorTableTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMiniFrame", _p_wxMiniFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImage", _p_wxImageTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFrame", _p_wxFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPrintout", _p_wxPyPrintoutTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollWinEvent", _p_wxScrollWinEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTaskBarIconEvent", _p_wxTaskBarIconEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDiagram", _p_wxDiagramTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxStatusBar", _p_wxStatusBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIParentFrame", _p_wxMDIParentFrameTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxObject", 0, 0, 0, 0, 0, 0},{"_p_wxWindowDestroyEvent", _p_wxWindowDestroyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNavigationKeyEvent", _p_wxNavigationKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxKeyEvent", _p_wxKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrolledWindow", _p_wxScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyScrolledWindow", _p_wxPyScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyVScrolledWindow", _p_wxPyVScrolledWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMDIClientWindow", _p_wxMDIClientWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTopLevelWindow", _p_wxTopLevelWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashWindow", _p_wxSashWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplitterWindow", _p_wxSplitterWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSplashScreenWindow", _p_wxSplashScreenWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashLayoutWindow", _p_wxSashLayoutWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPopupWindow", _p_wxPopupWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPopupTransientWindow", _p_wxPyPopupTransientWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTipWindow", _p_wxTipWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSashEvent", _p_wxSashEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintPreview", _p_wxPrintPreviewTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPrintPreview", _p_wxPyPrintPreviewTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPanel", _p_wxPanelTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFontDialog", _p_wxFontDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDirDialog", _p_wxDirDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColourDialog", _p_wxColourDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDialog", _p_wxDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialog", _p_wxPageSetupDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintDialog", _p_wxPrintDialogTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyShape", _p_wxPyShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxAttachmentPoint", _p_wxAttachmentPointTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileSystem", _p_wxFileSystemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxContextMenuEvent", _p_wxContextMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuEvent", _p_wxMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCloseEvent", _p_wxCloseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseEvent", _p_wxMouseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEraseEvent", _p_wxEraseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCommandEvent", _p_wxPyCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCommandEvent", _p_wxCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPreviewControlBar", _p_wxPreviewControlBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyPreviewControlBar", _p_wxPyPreviewControlBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCircleShape", _p_wxPyCircleShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyLineShape", _p_wxPyLineShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCompositeShape", _p_wxPyCompositeShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyRectangleShape", _p_wxPyRectangleShapeTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDropFilesEvent", _p_wxDropFilesEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFocusEvent", _p_wxFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxChildFocusEvent", _p_wxChildFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPseudoMetaFile", _p_wxPseudoMetaFileTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialogData", _p_wxPageSetupDialogDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPrintDialogData", _p_wxPrintDialogDataTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxShapeRegion", _p_wxShapeRegionTo_p_wxObject, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPyBitmapShape[] = {{"_p_wxPyBitmapShape", 0, "wxPyBitmapShape *", 0, 0, 0, 0},{"_p_wxPyBitmapShape", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPyShapeEvtHandler[] = {{"_p_wxPyShapeEvtHandler", 0, "wxPyShapeEvtHandler *", 0, 0, 0, 0},{"_p_wxPyControlPoint", _p_wxPyControlPointTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyRectangleShape", _p_wxPyRectangleShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyCompositeShape", _p_wxPyCompositeShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyCircleShape", _p_wxPyCircleShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyLineShape", _p_wxPyLineShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyDividedShape", _p_wxPyDividedShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyEllipseShape", _p_wxPyEllipseShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPolygonShape", _p_wxPyPolygonShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyDrawnShape", _p_wxPyDrawnShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyDivisionShape", _p_wxPyDivisionShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyShape", _p_wxPyShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyShapeEvtHandler", 0, 0, 0, 0, 0, 0},{"_p_wxPyBitmapShape", _p_wxPyBitmapShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyTextShape", _p_wxPyTextShapeTo_p_wxPyShapeEvtHandler, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
-static swig_type_info _swigt__p_wxEvtHandler[] = {{"_p_wxEvtHandler", 0, "wxEvtHandler *", 0, 0, 0, 0},{"_p_wxSplashScreen", _p_wxSplashScreenTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMiniFrame", _p_wxMiniFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPanel", _p_wxPyPanelTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFindReplaceDialog", _p_wxFindReplaceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTextEntryDialog", _p_wxTextEntryDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSingleChoiceDialog", _p_wxSingleChoiceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMultiChoiceDialog", _p_wxMultiChoiceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFileDialog", _p_wxFileDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMessageDialog", _p_wxMessageDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxProgressDialog", _p_wxProgressDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPanel", _p_wxPanelTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxStatusBar", _p_wxStatusBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPopupTransientWindow", _p_wxPyPopupTransientWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPopupWindow", _p_wxPopupWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSashLayoutWindow", _p_wxSashLayoutWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSplashScreenWindow", _p_wxSplashScreenWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSplitterWindow", _p_wxSplitterWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSashWindow", _p_wxSashWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTopLevelWindow", _p_wxTopLevelWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIClientWindow", _p_wxMDIClientWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyVScrolledWindow", _p_wxPyVScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyScrolledWindow", _p_wxPyScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxScrolledWindow", _p_wxScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTipWindow", _p_wxTipWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPreviewFrame", _p_wxPyPreviewFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewFrame", _p_wxPreviewFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIChildFrame", _p_wxMDIChildFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", 0, 0, 0, 0, 0, 0},{"_p_wxPyShapeCanvas", _p_wxPyShapeCanvasTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewCanvas", _p_wxPreviewCanvasTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyWindow", _p_wxPyWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyHtmlListBox", _p_wxPyHtmlListBoxTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyVListBox", _p_wxPyVListBoxTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPreviewControlBar", _p_wxPyPreviewControlBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewControlBar", _p_wxPreviewControlBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTaskBarIcon", _p_wxTaskBarIconTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFrame", _p_wxFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFontDialog", _p_wxFontDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxDirDialog", _p_wxDirDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxColourDialog", _p_wxColourDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxDialog", _p_wxDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialog", _p_wxPageSetupDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPrintDialog", _p_wxPrintDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIParentFrame", _p_wxMDIParentFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_wxEvtHandler[] = {{"_p_wxEvtHandler", 0, "wxEvtHandler *", 0, 0, 0, 0},{"_p_wxSplashScreen", _p_wxSplashScreenTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMiniFrame", _p_wxMiniFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPanel", _p_wxPyPanelTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFindReplaceDialog", _p_wxFindReplaceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTextEntryDialog", _p_wxTextEntryDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSingleChoiceDialog", _p_wxSingleChoiceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMultiChoiceDialog", _p_wxMultiChoiceDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFileDialog", _p_wxFileDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMessageDialog", _p_wxMessageDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxProgressDialog", _p_wxProgressDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPanel", _p_wxPanelTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxStatusBar", _p_wxStatusBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPopupTransientWindow", _p_wxPyPopupTransientWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPopupWindow", _p_wxPopupWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSashLayoutWindow", _p_wxSashLayoutWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSplashScreenWindow", _p_wxSplashScreenWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSplitterWindow", _p_wxSplitterWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxSashWindow", _p_wxSashWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTopLevelWindow", _p_wxTopLevelWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIClientWindow", _p_wxMDIClientWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyVScrolledWindow", _p_wxPyVScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyScrolledWindow", _p_wxPyScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxScrolledWindow", _p_wxScrolledWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxTipWindow", _p_wxTipWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPreviewFrame", _p_wxPyPreviewFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewFrame", _p_wxPreviewFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIChildFrame", _p_wxMDIChildFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", 0, 0, 0, 0, 0, 0},{"_p_wxPyShapeCanvas", _p_wxPyShapeCanvasTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewCanvas", _p_wxPreviewCanvasTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyWindow", _p_wxPyWindowTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyHtmlListBox", _p_wxPyHtmlListBoxTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyVListBox", _p_wxPyVListBoxTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyPreviewControlBar", _p_wxPyPreviewControlBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPreviewControlBar", _p_wxPreviewControlBarTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPyTaskBarIcon", _p_wxPyTaskBarIconTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFrame", _p_wxFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxFontDialog", _p_wxFontDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxDirDialog", _p_wxDirDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxColourDialog", _p_wxColourDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxDialog", _p_wxDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPageSetupDialog", _p_wxPageSetupDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxPrintDialog", _p_wxPrintDialogTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{"_p_wxMDIParentFrame", _p_wxMDIParentFrameTo_p_wxEvtHandler, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPyEllipseShape[] = {{"_p_wxPyEllipseShape", 0, "wxPyEllipseShape *", 0, 0, 0, 0},{"_p_wxPyCircleShape", _p_wxPyCircleShapeTo_p_wxPyEllipseShape, 0, 0, 0, 0, 0},{"_p_wxPyEllipseShape", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPyShapeCanvas[] = {{"_p_wxPyShapeCanvas", 0, "wxPyShapeCanvas *", 0, 0, 0, 0},{"_p_wxPyShapeCanvas", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxPoint[] = {{"_p_wxPoint", 0, "wxPoint *", 0, 0, 0, 0},{"_p_wxPoint", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};

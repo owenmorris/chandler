@@ -49,6 +49,8 @@ _treeList = [
     ('Recent Additions/Updates', [
         'StockButtons',
         'Ticker',
+        'Choicebook',
+        'ListCtrl_edit',
         ]),
 
     # managed windows == things with a (optional) caption you can close
@@ -89,6 +91,7 @@ _treeList = [
         'CheckBox',
         'CheckListBox',
         'Choice',
+        'Choicebook',
         'ComboBox',
         'Gauge',
         'Grid',
@@ -96,6 +99,7 @@ _treeList = [
         'ListBox',
         'ListCtrl',
         'ListCtrl_virtual',
+        'ListCtrl_edit',
         'Listbook',
         'Menu',
         'Notebook',
@@ -261,6 +265,60 @@ class MyTP(wx.PyTipProvider):
     def GetTip(self):
         return "This is my tip"
 
+#---------------------------------------------------------------------------
+# A class to be used to simply display a message in the demo pane
+# rather than running the sample itself.
+
+class MessagePanel(wx.Panel):
+    def __init__(self, parent, message, caption='', flags=0):
+        wx.Panel.__init__(self, parent)
+
+        # Make widgets
+        if flags:
+            artid = None
+            if flags & wx.ICON_EXCLAMATION:
+                artid = wx.ART_WARNING            
+            elif flags & wx.ICON_ERROR:
+                artid = wx.ART_ERROR
+            elif flags & wx.ICON_QUESTION:
+                artid = wx.ART_QUESTION
+            elif flags & wx.ICON_INFORMATION:
+                artid = wx.ART_INFORMATION
+
+            if artid is not None:
+                bmp = wx.ArtProvider.GetBitmap(artid, wx.ART_MESSAGE_BOX, (32,32))
+                icon = wx.StaticBitmap(self, -1, bmp)
+            else:
+                icon = (32,32) # make a spacer instead
+
+        if caption:
+            caption = wx.StaticText(self, -1, caption)
+            caption.SetFont(wx.Font(28, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        message = wx.StaticText(self, -1, message)
+
+        # add to sizers for layout
+        tbox = wx.BoxSizer(wx.VERTICAL)
+        if caption:
+            tbox.Add(caption)
+            tbox.Add((10,10))
+        tbox.Add(message)
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add((10,10), 1)
+        hbox.Add(icon)
+        hbox.Add((10,10))
+        hbox.Add(tbox)
+        hbox.Add((10,10), 1)
+
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add((10,10), 1)
+        box.Add(hbox, 0, wx.EXPAND)
+        box.Add((10,10), 2)
+
+        self.SetSizer(box)
+        
+        
 
 #---------------------------------------------------------------------------
 # A class to be used to display source code in the demo.  Try using the
@@ -396,8 +454,7 @@ try:
             # The rest remains unchanged.
 
             # Line numbers in margin
-            self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#99A9C2')
-    
+            self.StyleSetSpec(wx.stc.STC_STYLE_LINENUMBER,'fore:#000000,back:#99A9C2')    
             # Highlighted brace
             self.StyleSetSpec(wx.stc.STC_STYLE_BRACELIGHT,'fore:#00009D,back:#FFFF00')
             # Unmatched brace
@@ -947,12 +1004,98 @@ class DemoErrorPanel(wx.Panel):
 
 #---------------------------------------------------------------------------
 
+class DemoTaskBarIcon(wx.TaskBarIcon):
+    TBMENU_RESTORE = wx.NewId()
+    TBMENU_CLOSE   = wx.NewId()
+    TBMENU_CHANGE  = wx.NewId()
+    TBMENU_REMOVE  = wx.NewId()
+    
+    def __init__(self, frame):
+        wx.TaskBarIcon.__init__(self)
+        self.frame = frame
+
+        # Set the image
+        icon = self.MakeIcon(images.getWXPdemoImage())
+        self.SetIcon(icon, "wxPython Demo")
+        self.imgidx = 1
+        
+        # bind some events
+        self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarActivate, id=self.TBMENU_RESTORE)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarChange, id=self.TBMENU_CHANGE)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarRemove, id=self.TBMENU_REMOVE)
+
+
+    def CreatePopupMenu(self):
+        """
+        This method is called by the base class when it needs to popup
+        the menu for the default EVT_RIGHT_DOWN event.  Just create
+        the menu how you want it and return it from this function,
+        the base class takes care of the rest.
+        """
+        menu = wx.Menu()
+        menu.Append(self.TBMENU_RESTORE, "Restore wxPython Demo")
+        menu.Append(self.TBMENU_CLOSE,   "Close wxPython Demo")
+        menu.AppendSeparator()
+        menu.Append(self.TBMENU_CHANGE, "Change the TB Icon")
+        menu.Append(self.TBMENU_REMOVE, "Remove the TB Icon")
+        return menu
+
+
+    def MakeIcon(self, img):
+        """
+        The various platforms have different requirements for the
+        icon size...
+        """
+        if "wxMSW" in wx.PlatformInfo:
+            img = img.Scale(16, 16)
+        elif "wxGTK" in wx.PlatformInfo:
+            img = img.Scale(22, 22)
+        # wxMac can be any size upto 128x128, so leave the source img alone....
+        icon = wx.IconFromBitmap(img.ConvertToBitmap() )
+        return icon
+    
+
+    def OnTaskBarActivate(self, evt):
+        if self.frame.IsIconized():
+            self.frame.Iconize(False)
+        if not self.frame.IsShown():
+            self.frame.Show(True)
+        self.frame.Raise()
+
+
+    def OnTaskBarClose(self, evt):
+        self.frame.Close()
+
+
+    def OnTaskBarChange(self, evt):
+        names = [ "WXPdemo", "WXP", "Mondrian", "Test2m",
+                  "Blom08m", "Blom10m", "Blom15m" ]
+        name = names[self.imgidx]
+        
+        getFunc = getattr(images, "get%sImage" % name)
+        self.imgidx += 1
+        if self.imgidx >= len(names):
+            self.imgidx = 0
+            
+        icon = self.MakeIcon(getFunc())
+        self.SetIcon(icon, "This is a new icon: " + name)
+
+
+    def OnTaskBarRemove(self, evt):
+        self.RemoveIcon()
+
+
+#---------------------------------------------------------------------------
 class wxPythonDemo(wx.Frame):
     overviewText = "wxPython Overview"
 
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, size = (950, 720),
                           style=wx.DEFAULT_FRAME_STYLE | wx.NO_FULL_REPAINT_ON_RESIZE)
+
+        self.SetMinSize((640,480))
 
         self.loaded = False
         self.cwd = os.getcwd()
@@ -962,22 +1105,10 @@ class wxPythonDemo(wx.Frame):
         self.shell = None
         self.firstTime = True
 
-        icon = images.getMondrianIcon()
+        icon = images.getWXPdemoIcon()
         self.SetIcon(icon)
 
-        if wx.Platform != '__WXMAC__':
-            # setup a taskbar icon, and catch some events from it
-            dim = 16  # (may want to use 22 on wxGTK, but 16 looks okay too)
-            icon = wx.IconFromBitmap(
-                images.getMondrianImage().Scale(dim,dim).ConvertToBitmap() )
-            #icon = wx.Icon('bmp_source/mondrian.ico', wx.BITMAP_TYPE_ICO)
-            #icon = images.getMondrianIcon()
-            self.tbicon = wx.TaskBarIcon()
-            self.tbicon.SetIcon(icon, "wxPython Demo")
-            self.tbicon.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
-            self.tbicon.Bind(wx.EVT_TASKBAR_RIGHT_UP, self.OnTaskBarMenu)
-            self.tbicon.Bind(wx.EVT_MENU, self.OnTaskBarActivate, id=self.TBMENU_RESTORE)
-            self.tbicon.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
+        self.tbicon = DemoTaskBarIcon(self)
 
         wx.CallAfter(self.ShowTip)
 
@@ -1013,7 +1144,7 @@ class wxPythonDemo(wx.Frame):
  
         item = menu.Append(-1, 'E&xit\tAlt-X', 'Get the heck outta here!')
         self.Bind(wx.EVT_MENU, self.OnFileExit, item)
-        wx.App_SetMacExitMenuItemId(item.GetId())
+        wx.App.SetMacExitMenuItemId(item.GetId())
         self.mainmenu.Append(menu, '&File')
 
         # Make a Demo menu
@@ -1053,7 +1184,7 @@ class wxPythonDemo(wx.Frame):
                                 'An interactive interpreter window with the demo app and frame objects in the namesapce')
         menu.AppendSeparator()
         helpItem = menu.Append(-1, '&About\tCtrl-H', 'wxPython RULES!!!')
-        wx.App_SetMacAboutMenuItemId(helpItem.GetId())
+        wx.App.SetMacAboutMenuItemId(helpItem.GetId())
 
         self.Bind(wx.EVT_MENU, self.OnOpenShellWindow, shellItem)
         self.Bind(wx.EVT_MENU, self.OnHelpAbout, helpItem)
@@ -1120,7 +1251,7 @@ class wxPythonDemo(wx.Frame):
             panel.Bind(wx.EVT_ERASE_BACKGROUND, EmptyHandler)
 
         if "gtk2" in wx.PlatformInfo:
-            self.ovr.NormalizeFontSizes()
+            self.ovr.SetStandardFonts()
         self.SetOverview(self.overviewText, mainOverview)
 
 
@@ -1139,12 +1270,15 @@ class wxPythonDemo(wx.Frame):
         #wx.Log_SetTraceMask(wx.TraceMessages)
 
 
+        self.Bind(wx.EVT_ACTIVATE, self.OnActivate)
+        wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, self.OnAppActivate)
+
         # add the windows to the splitter and split it.
         splitter2.SplitHorizontally(self.nb, self.log, -160)
         splitter.SplitVertically(self.tree, splitter2, 200)
 
-        splitter.SetMinimumPaneSize(20)
-        splitter2.SetMinimumPaneSize(20)
+        splitter.SetMinimumPaneSize(120)
+        splitter2.SetMinimumPaneSize(60)
 
         # Make the splitter on the right expand the top window when resized
         def SplitterOnSize(evt):
@@ -1256,9 +1390,8 @@ class wxPythonDemo(wx.Frame):
         self.ShutdownDemoModule()
         overviewText = ""
         
-        # o If the demo returns a window it is placed in a tab.
-        # o Otherwise, a placeholder tab is created, informing the user that the
-        #   demo runs outside the main window, and allowing it to be reloaded.
+        # o The RunTest() for all samples must now return a window that can
+        #   be palced in a tab in the main notebook.
         # o If an error occurs (or has occured before) an error tab is created.
         
         if module is not None:
@@ -1455,6 +1588,7 @@ class wxPythonDemo(wx.Frame):
         self.demoPage = None
         self.codePage = None
         self.mainmenu = None
+        self.tbicon.Destroy()
         self.Destroy()
 
 
@@ -1492,38 +1626,10 @@ class wxPythonDemo(wx.Frame):
             self.tree.EnsureVisible(selectedDemo)
 
 
-    #---------------------------------------------
-    def OnTaskBarActivate(self, evt):
-        if self.IsIconized():
-            self.Iconize(False)
-        if not self.IsShown():
-            self.Show(True)
-        self.Raise()
-
-    #---------------------------------------------
-
-    TBMENU_RESTORE = 1000
-    TBMENU_CLOSE   = 1001
-
-    def OnTaskBarMenu(self, evt):
-        menu = wx.Menu()
-        menu.Append(self.TBMENU_RESTORE, "Restore wxPython Demo")
-        menu.Append(self.TBMENU_CLOSE,   "Close")
-        self.tbicon.PopupMenu(menu)
-        menu.Destroy()
-
-    #---------------------------------------------
-    def OnTaskBarClose(self, evt):
-        self.Close()
-
-        # because of the way wx.TaskBarIcon.PopupMenu is implemented we have to
-        # prod the main idle handler a bit to get the window to actually close
-        wx.GetApp().ProcessIdle()
-
 
     #---------------------------------------------
     def OnIconfiy(self, evt):
-        wx.LogMessage("OnIconfiy: %d" % evt.Iconized())
+        wx.LogMessage("OnIconfiy: %s" % evt.Iconized())
         evt.Skip()
 
     #---------------------------------------------
@@ -1531,8 +1637,15 @@ class wxPythonDemo(wx.Frame):
         wx.LogMessage("OnMaximize")
         evt.Skip()
 
+    #---------------------------------------------
+    def OnActivate(self, evt):
+        wx.LogMessage("OnActivate: %s" % evt.GetActive())
+        evt.Skip()
 
-
+    #---------------------------------------------
+    def OnAppActivate(self, evt):
+        wx.LogMessage("OnAppActivate: %s" % evt.GetActive())
+        evt.Skip()
 
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------

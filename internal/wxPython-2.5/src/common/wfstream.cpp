@@ -34,26 +34,26 @@ wxFileInputStream::wxFileInputStream(const wxString& fileName)
   : wxInputStream()
 {
     m_file = new wxFile(fileName, wxFile::read);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFileInputStream::wxFileInputStream()
   : wxInputStream()
 {
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
     m_file = NULL;
 }
 
 wxFileInputStream::wxFileInputStream(wxFile& file)
 {
     m_file = &file;
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
 }
 
 wxFileInputStream::wxFileInputStream(int fd)
 {
     m_file = new wxFile(fd);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFileInputStream::~wxFileInputStream()
@@ -69,7 +69,7 @@ size_t wxFileInputStream::GetSize() const
 
 size_t wxFileInputStream::OnSysRead(void *buffer, size_t size)
 {
-    off_t ret = m_file->Read(buffer, size);
+    wxFileOffset ret = m_file->Read(buffer, size);
 
     // NB: we can't use a switch here because HP-UX CC doesn't allow
     //     switching over long long (which off_t is in 64bit mode)
@@ -93,12 +93,12 @@ size_t wxFileInputStream::OnSysRead(void *buffer, size_t size)
     return ret;
 }
 
-off_t wxFileInputStream::OnSysSeek(off_t pos, wxSeekMode mode)
+wxFileOffset wxFileInputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
     return m_file->Seek(pos, mode);
 }
 
-off_t wxFileInputStream::OnSysTell() const
+wxFileOffset wxFileInputStream::OnSysTell() const
 {
     return m_file->Tell();
 }
@@ -110,7 +110,7 @@ off_t wxFileInputStream::OnSysTell() const
 wxFileOutputStream::wxFileOutputStream(const wxString& fileName)
 {
     m_file = new wxFile(fileName, wxFile::write);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 
     if (!m_file->IsOpened())
     {
@@ -126,20 +126,20 @@ wxFileOutputStream::wxFileOutputStream(const wxString& fileName)
 wxFileOutputStream::wxFileOutputStream(wxFile& file)
 {
     m_file = &file;
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
 }
 
 wxFileOutputStream::wxFileOutputStream()
                   : wxOutputStream()
 {
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
     m_file = NULL;
 }
 
 wxFileOutputStream::wxFileOutputStream(int fd)
 {
     m_file = new wxFile(fd);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFileOutputStream::~wxFileOutputStream()
@@ -160,12 +160,12 @@ size_t wxFileOutputStream::OnSysWrite(const void *buffer, size_t size)
     return ret;
 }
 
-off_t wxFileOutputStream::OnSysTell() const
+wxFileOffset wxFileOutputStream::OnSysTell() const
 {
     return m_file->Tell();
 }
 
-off_t wxFileOutputStream::OnSysSeek(off_t pos, wxSeekMode mode)
+wxFileOffset wxFileOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
     return m_file->Seek(pos, mode);
 }
@@ -199,26 +199,26 @@ wxFFileInputStream::wxFFileInputStream(const wxString& fileName)
   : wxInputStream()
 {
     m_file = new wxFFile(fileName, _T("rb"));
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFFileInputStream::wxFFileInputStream()
   : wxInputStream()
 {
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
     m_file = NULL;
 }
 
 wxFFileInputStream::wxFFileInputStream(wxFFile& file)
 {
     m_file = &file;
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
 }
 
 wxFFileInputStream::wxFFileInputStream(FILE *file)
 {
     m_file = new wxFFile(file);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFFileInputStream::~wxFFileInputStream()
@@ -234,7 +234,7 @@ size_t wxFFileInputStream::GetSize() const
 
 size_t wxFFileInputStream::OnSysRead(void *buffer, size_t size)
 {
-    off_t ret;
+    wxFileOffset ret;
 
     ret = m_file->Read(buffer, size);
 
@@ -249,7 +249,7 @@ size_t wxFFileInputStream::OnSysRead(void *buffer, size_t size)
     return ret;
 }
 
-off_t wxFFileInputStream::OnSysSeek(off_t pos, wxSeekMode mode)
+wxFileOffset wxFFileInputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
 #ifdef __VMS
 #pragma message disable intsignchange
@@ -260,7 +260,7 @@ off_t wxFFileInputStream::OnSysSeek(off_t pos, wxSeekMode mode)
 #endif
 }
 
-off_t wxFFileInputStream::OnSysTell() const
+wxFileOffset wxFFileInputStream::OnSysTell() const
 {
     return m_file->Tell();
 }
@@ -272,7 +272,7 @@ off_t wxFFileInputStream::OnSysTell() const
 wxFFileOutputStream::wxFFileOutputStream(const wxString& fileName)
 {
     m_file = new wxFFile(fileName, _T("w+b"));
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 
     if (!m_file->IsOpened())
     {
@@ -288,20 +288,20 @@ wxFFileOutputStream::wxFFileOutputStream(const wxString& fileName)
 wxFFileOutputStream::wxFFileOutputStream(wxFFile& file)
 {
     m_file = &file;
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
 }
 
 wxFFileOutputStream::wxFFileOutputStream()
   : wxOutputStream()
 {
-    m_file_destroy = FALSE;
+    m_file_destroy = false;
     m_file = NULL;
 }
 
 wxFFileOutputStream::wxFFileOutputStream(FILE *file)
 {
     m_file = new wxFFile(file);
-    m_file_destroy = TRUE;
+    m_file_destroy = true;
 }
 
 wxFFileOutputStream::~wxFFileOutputStream()
@@ -323,12 +323,12 @@ size_t wxFFileOutputStream::OnSysWrite(const void *buffer, size_t size)
     return ret;
 }
 
-off_t wxFFileOutputStream::OnSysTell() const
+wxFileOffset wxFFileOutputStream::OnSysTell() const
 {
     return m_file->Tell();
 }
 
-off_t wxFFileOutputStream::OnSysSeek(off_t pos, wxSeekMode mode)
+wxFileOffset wxFFileOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
 #ifdef __VMS
 #pragma message disable intsignchange

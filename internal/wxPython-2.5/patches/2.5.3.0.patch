@@ -1,0 +1,128 @@
+Index: src/common/datetime.cpp
+===================================================================
+RCS file: /pack/cvsroots/wxwidgets/wxWidgets/src/common/datetime.cpp,v
+retrieving revision 1.106
+diff -u -4 -r1.106 datetime.cpp
+--- src/common/datetime.cpp	2004/10/06 20:21:57	1.106
++++ src/common/datetime.cpp	2004/10/22 03:09:35
+@@ -1167,18 +1167,13 @@
+         // mktime() rather unintuitively fails for Jan 1, 1970 if the hour is
+         // less than timezone - try to make it work for this case
+         if ( tm2.tm_year == 70 && tm2.tm_mon == 0 && tm2.tm_mday == 1 )
+         {
+-            // add timezone to make sure that date is in range
+-            tm2.tm_sec -= GetTimeZone();
+-
+-            timet = mktime(&tm2);
+-            if ( timet != (time_t)-1 )
+-            {
+-                timet += GetTimeZone();
+-
+-                return Set(timet);
+-            }
++            return Set((time_t)(
++                       GetTimeZone() +
++                       tm2.tm_hour * MIN_PER_HOUR * SEC_PER_MIN +
++                       tm2.tm_min * SEC_PER_MIN +
++                       tm2.tm_sec));
+         }
+ 
+         wxFAIL_MSG( _T("mktime() failed") );
+ 
+@@ -1261,9 +1256,12 @@
+ 
+         (void)Set(tm);
+ 
+         // and finally adjust milliseconds
+-        return SetMillisecond(millisec);
++        if (IsValid())
++            SetMillisecond(millisec);
++
++        return *this;
+     }
+     else
+     {
+         // do time calculations ourselves: we want to calculate the number of
+Index: src/common/dcbase.cpp
+===================================================================
+RCS file: /pack/cvsroots/wxwidgets/wxWidgets/src/common/dcbase.cpp,v
+retrieving revision 1.33
+diff -u -4 -r1.33 dcbase.cpp
+--- src/common/dcbase.cpp	2004/09/10 12:56:06	1.33
++++ src/common/dcbase.cpp	2004/10/22 03:09:35
+@@ -315,8 +315,12 @@
+     double           cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4;
+     double           x1, y1, x2, y2;
+ 
+     wxList::compatibility_iterator node = points->GetFirst();
++    if (node == NULL)
++        // empty list
++        return;
++    
+     p = (wxPoint *)node->GetData();
+ 
+     x1 = p->x;
+     y1 = p->y;
+Index: src/gtk/mdi.cpp
+===================================================================
+RCS file: /pack/cvsroots/wxwidgets/wxWidgets/src/gtk/mdi.cpp,v
+retrieving revision 1.65
+diff -u -4 -r1.65 mdi.cpp
+--- src/gtk/mdi.cpp	2004/09/30 16:33:15	1.65
++++ src/gtk/mdi.cpp	2004/10/22 03:09:35
+@@ -169,19 +169,21 @@
+         gtk_notebook_set_page( notebook, g_list_length( notebook->children ) - 1 );
+ 
+         /* need to set the menubar of the child */
+         wxMDIChildFrame *active_child_frame = GetActiveChild();
+-        wxMenuBar *menu_bar = active_child_frame->m_menuBar;
+-        if (menu_bar)
++        if (active_child_frame != NULL)
+         {
+-            menu_bar->m_width = m_width;
+-            menu_bar->m_height = wxMENU_HEIGHT;
+-            gtk_pizza_set_size( GTK_PIZZA(m_mainWidget),
+-                                menu_bar->m_widget,
+-                                0, 0, m_width, wxMENU_HEIGHT );
+-            menu_bar->SetInvokingWindow(active_child_frame);
++            wxMenuBar *menu_bar = active_child_frame->m_menuBar;
++            if (menu_bar)
++            {
++                menu_bar->m_width = m_width;
++                menu_bar->m_height = wxMENU_HEIGHT;
++                gtk_pizza_set_size( GTK_PIZZA(m_mainWidget),
++                                    menu_bar->m_widget,
++                                    0, 0, m_width, wxMENU_HEIGHT );
++                menu_bar->SetInvokingWindow(active_child_frame);
++            }
+         }
+-
+         m_justInserted = false;
+         return;
+     }
+ 
+Index: src/msw/combobox.cpp
+===================================================================
+RCS file: /pack/cvsroots/wxwidgets/wxWidgets/src/msw/combobox.cpp,v
+retrieving revision 1.88
+diff -u -4 -r1.88 combobox.cpp
+--- src/msw/combobox.cpp	2004/09/18 19:51:39	1.88
++++ src/msw/combobox.cpp	2004/10/22 03:09:35
+@@ -253,8 +253,17 @@
+             WXHWND hwnd;
+             UnpackCtlColor(wParam, lParam, &nCtlColor, &hdc, &hwnd);
+ 
+             return (WXLRESULT)OnCtlColor(hdc, hwnd, nCtlColor, nMsg, wParam, lParam);
++            
++        case CB_SETCURSEL:
++            // Selection was set with SetSelection.  Update the value too.
++            if (wParam < 0 || wParam > GetCount())
++                m_value = wxEmptyString;
++            else
++                m_value = GetString(wParam);
++            break;
++            
+     }
+ 
+     return wxChoice::MSWWindowProc(nMsg, wParam, lParam);
+ }

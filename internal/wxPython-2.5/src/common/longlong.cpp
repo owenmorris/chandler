@@ -50,14 +50,14 @@ void *wxLongLongNative::asArray() const
 {
     static unsigned char temp[8];
 
-    temp[0] = (m_ll >> 56) & 0xFF;
-    temp[1] = (m_ll >> 48) & 0xFF;
-    temp[2] = (m_ll >> 40) & 0xFF;
-    temp[3] = (m_ll >> 32) & 0xFF;
-    temp[4] = (m_ll >> 24) & 0xFF;
-    temp[5] = (m_ll >> 16) & 0xFF;
-    temp[6] = (m_ll >> 8)  & 0xFF;
-    temp[7] = (m_ll >> 0)  & 0xFF;
+    temp[0] = (unsigned char)((m_ll >> 56) & 0xFF);
+    temp[1] = (unsigned char)((m_ll >> 48) & 0xFF);
+    temp[2] = (unsigned char)((m_ll >> 40) & 0xFF);
+    temp[3] = (unsigned char)((m_ll >> 32) & 0xFF);
+    temp[4] = (unsigned char)((m_ll >> 24) & 0xFF);
+    temp[5] = (unsigned char)((m_ll >> 16) & 0xFF);
+    temp[6] = (unsigned char)((m_ll >> 8)  & 0xFF);
+    temp[7] = (unsigned char)((m_ll >> 0)  & 0xFF);
 
     return temp;
 }
@@ -66,14 +66,14 @@ void *wxULongLongNative::asArray() const
 {
     static unsigned char temp[8];
 
-    temp[0] = (m_ll >> 56) & 0xFF;
-    temp[1] = (m_ll >> 48) & 0xFF;
-    temp[2] = (m_ll >> 40) & 0xFF;
-    temp[3] = (m_ll >> 32) & 0xFF;
-    temp[4] = (m_ll >> 24) & 0xFF;
-    temp[5] = (m_ll >> 16) & 0xFF;
-    temp[6] = (m_ll >> 8)  & 0xFF;
-    temp[7] = (m_ll >> 0)  & 0xFF;
+    temp[0] = (unsigned char)((m_ll >> 56) & 0xFF);
+    temp[1] = (unsigned char)((m_ll >> 48) & 0xFF);
+    temp[2] = (unsigned char)((m_ll >> 40) & 0xFF);
+    temp[3] = (unsigned char)((m_ll >> 32) & 0xFF);
+    temp[4] = (unsigned char)((m_ll >> 24) & 0xFF);
+    temp[5] = (unsigned char)((m_ll >> 16) & 0xFF);
+    temp[6] = (unsigned char)((m_ll >> 8)  & 0xFF);
+    temp[7] = (unsigned char)((m_ll >> 0)  & 0xFF);
 
     return temp;
 }
@@ -508,41 +508,41 @@ wxULongLongWx& wxULongLongWx::operator--()
 bool wxLongLongWx::operator<(const wxLongLongWx& ll) const
 {
     if ( m_hi < ll.m_hi )
-        return TRUE;
+        return true;
     else if ( m_hi == ll.m_hi )
         return m_lo < ll.m_lo;
     else
-        return FALSE;
+        return false;
 }
 
 bool wxULongLongWx::operator<(const wxULongLongWx& ll) const
 {
     if ( m_hi < ll.m_hi )
-        return TRUE;
+        return true;
     else if ( m_hi == ll.m_hi )
         return m_lo < ll.m_lo;
     else
-        return FALSE;
+        return false;
 }
 
 bool wxLongLongWx::operator>(const wxLongLongWx& ll) const
 {
     if ( m_hi > ll.m_hi )
-        return TRUE;
+        return true;
     else if ( m_hi == ll.m_hi )
         return m_lo > ll.m_lo;
     else
-        return FALSE;
+        return false;
 }
 
 bool wxULongLongWx::operator>(const wxULongLongWx& ll) const
 {
     if ( m_hi > ll.m_hi )
-        return TRUE;
+        return true;
     else if ( m_hi == ll.m_hi )
         return m_lo > ll.m_lo;
     else
-        return FALSE;
+        return false;
 }
 
 // bitwise operators
@@ -796,7 +796,7 @@ void wxLongLongWx::Divide(const wxLongLongWx& divisorIn,
     //
     // with 0 <= abs(remainder) < abs(divisor)
     bool negRemainder = dividend.m_hi < 0;
-    bool negQuotient = FALSE;   // assume positive
+    bool negQuotient = false;   // assume positive
     if ( dividend.m_hi < 0 )
     {
         negQuotient = !negQuotient;
@@ -1078,11 +1078,11 @@ wxLongLongWx::ToString() const
     if ( ll < 0 )
     {
         ll.Negate();
-        neg = TRUE;
+        neg = true;
     }
     else
     {
-        neg = FALSE;
+        neg = false;
     }
 
     while ( ll != 0 )

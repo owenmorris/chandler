@@ -317,7 +317,7 @@ public:
 
         // reset the cached best size value so it will be recalculated the
         // next time it is needed.
-    void InvalidateBestSize() { m_bestSizeCache = wxDefaultSize; }
+    void InvalidateBestSize();
     void CacheBestSize(const wxSize& size) const
         { wxConstCast(this, wxWindowBase)->m_bestSizeCache = size; }
 
@@ -364,15 +364,23 @@ public:
         // set min/max size of the window
     virtual void SetSizeHints( int minW, int minH,
                                int maxW = wxDefaultCoord, int maxH = wxDefaultCoord,
-                               int incW = wxDefaultCoord, int incH = wxDefaultCoord );
+                               int incW = wxDefaultCoord, int incH = wxDefaultCoord )
+    {
+        DoSetSizeHints(minW, minH, maxW, maxH, incW, incH);
+    }
+    
     void SetSizeHints( const wxSize& minSize,
                        const wxSize& maxSize=wxDefaultSize,
                        const wxSize& incSize=wxDefaultSize)
     {
-        SetSizeHints(minSize.x, minSize.y,
-                     maxSize.x, maxSize.y,
-                     incSize.x, incSize.y);
+        DoSetSizeHints(minSize.x, minSize.y,
+                       maxSize.x, maxSize.y,
+                       incSize.x, incSize.y);
     }
+    
+    virtual void DoSetSizeHints(int minW, int minH,
+                                int maxW = wxDefaultCoord, int maxH = wxDefaultCoord,
+                               int incW = wxDefaultCoord, int incH = wxDefaultCoord );
 
     virtual void SetVirtualSizeHints( int minW, int minH,
                                       int maxW = wxDefaultCoord, int maxH = wxDefaultCoord );
@@ -493,7 +501,9 @@ public:
     virtual void SetFocusFromKbd() { SetFocus(); }
 
         // return the window which currently has the focus or NULL
-    static wxWindow *FindFocus() /* = 0: implement in derived classes */;
+    static wxWindow *FindFocus();
+    
+    static wxWindow *DoFindFocus() /* = 0: implement in derived classes */;
 
         // can this window have focus?
     virtual bool AcceptsFocus() const { return IsShown() && IsEnabled(); }
@@ -1072,6 +1082,12 @@ protected:
     // Send the wxWindowDestroyEvent
     void SendDestroyEvent();
 
+    // returns the main window of composite control; this is the window
+    // that FindFocus returns if the focus is in one of composite control's
+    // windows
+    virtual wxWindow *GetMainWindowOfCompositeControl() 
+        { return (wxWindow*)this; }
+
     // the window id - a number which uniquely identifies a window among
     // its siblings unless it is wxID_ANY
     wxWindowID           m_windowId;
@@ -1202,7 +1218,7 @@ protected:
     void SetBestSize(const wxSize& size) { SetBestFittingSize(size); }
 
     // set the initial window size if none is given (i.e. at least one of the
-    // components of the size passed to ctor/Create() is -1)
+    // components of the size passed to ctor/Create() is wxDefaultCoord)
     //
     // normally just calls SetBestSize() for controls, but can be overridden
     // not to do it for the controls which have to do some additional

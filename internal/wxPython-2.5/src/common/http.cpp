@@ -24,7 +24,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef WX_PRECOMP
 #include "wx/string.h"
+#include "wx/app.h"
+#endif
+
 #include "wx/tokenzr.h"
 #include "wx/socket.h"
 #include "wx/protocol/protocol.h"
@@ -33,7 +38,7 @@
 #include "wx/sckstrm.h"
 
 IMPLEMENT_DYNAMIC_CLASS(wxHTTP, wxProtocol)
-IMPLEMENT_PROTOCOL(wxHTTP, wxT("http"), wxT("80"), TRUE)
+IMPLEMENT_PROTOCOL(wxHTTP, wxT("http"), wxT("80"), true)
 
 #define HTTP_BSIZE 2048
 
@@ -41,8 +46,8 @@ wxHTTP::wxHTTP()
   : wxProtocol()
 {
   m_addr = NULL;
-  m_read = FALSE;
-  m_proxy_mode = FALSE;
+  m_read = false;
+  m_proxy_mode = false;
   m_post_buf = wxEmptyString;
   m_http_response = 0;
 
@@ -99,7 +104,7 @@ void wxHTTP::SetHeader(const wxString& header, const wxString& h_data)
 {
   if (m_read) {
     ClearHeaders();
-    m_read = FALSE;
+    m_read = false;
   }
 
   wxHeaderIterator it = FindHeader(header);
@@ -141,11 +146,11 @@ bool wxHTTP::ParseHeaders()
   wxStringTokenizer tokenzr;
 
   ClearHeaders();
-  m_read = TRUE;
+  m_read = true;
 
 #if defined(__VISAGECPP__)
 // VA just can't stand while(1)
-    bool bOs2var = TRUE;
+    bool bOs2var = true;
     while(bOs2var)
 #else
   while (1)
@@ -153,7 +158,7 @@ bool wxHTTP::ParseHeaders()
   {
     m_perr = GetLine(this, line);
     if (m_perr != wxPROTO_NOERR)
-      return FALSE;
+      return false;
 
     if (line.Length() == 0)
       break;
@@ -161,7 +166,7 @@ bool wxHTTP::ParseHeaders()
     wxString left_str = line.BeforeFirst(':');
     m_headers[left_str] = line.AfterFirst(':').Strip(wxString::both);
   }
-  return TRUE;
+  return true;
 }
 
 bool wxHTTP::Connect(const wxString& host, unsigned short port)
@@ -180,7 +185,7 @@ bool wxHTTP::Connect(const wxString& host, unsigned short port)
     delete m_addr;
     m_addr = NULL;
     m_perr = wxPROTO_NETERR;
-    return FALSE;
+    return false;
   }
 
   if ( port ) addr->Service(port);
@@ -189,7 +194,7 @@ bool wxHTTP::Connect(const wxString& host, unsigned short port)
 
   SetHeader(wxT("Host"), host);
 
-  return TRUE;
+  return true;
 }
 
 bool wxHTTP::Connect(wxSockAddress& addr, bool WXUNUSED(wait))
@@ -205,7 +210,7 @@ bool wxHTTP::Connect(wxSockAddress& addr, bool WXUNUSED(wait))
   if (ipv4addr)
       SetHeader(wxT("Host"), ipv4addr->OrigHostname());
 
-  return TRUE;
+  return true;
 }
 
 bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
@@ -222,7 +227,7 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
       SetHeader( wxT("Content-Length"), wxString::Format( wxT("%lu"), (unsigned long)m_post_buf.Len() ) );
     break;
   default:
-    return FALSE;
+    return false;
   }
 
   m_http_response = 0;
@@ -232,12 +237,11 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
     SetHeader(wxT("User-Agent"), wxT("wxWidgets 2.x"));
 
   SaveState();
-#if wxUSE_THREADS
-  SetFlags( wxThread::IsMain() ? wxSOCKET_NONE : wxSOCKET_BLOCK );
-#else
-  SetFlags( wxSOCKET_NONE );
-#endif
-  Notify(FALSE);
+
+  // we may use non blocking sockets only if we can dispatch events from them
+  SetFlags( wxIsMainThread() && wxApp::IsMainLoopRunning() ? wxSOCKET_NONE
+                                                           : wxSOCKET_BLOCK );
+  Notify(false);
 
   wxString buf;
   buf.Printf(wxT("%s %s HTTP/1.0\r\n"), request, path.c_str());
@@ -255,7 +259,7 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
   m_perr = GetLine(this, tmp_str);
   if (m_perr != wxPROTO_NOERR) {
     RestoreState();
-    return FALSE;
+    return false;
   }
 
   if (!tmp_str.Contains(wxT("HTTP/"))) {
@@ -264,7 +268,7 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
     SetHeader(wxT("Content-Length"), wxT("-1"));
     SetHeader(wxT("Content-Type"), wxT("none/none"));
     RestoreState();
-    return TRUE;
+    return true;
   }
 
   wxStringTokenizer token(tmp_str,wxT(' '));
@@ -289,7 +293,7 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
   default:
     m_perr = wxPROTO_NOFILE;
     RestoreState();
-    return FALSE;
+    return false;
   }
 
   ret_value = ParseHeaders();
@@ -343,9 +347,9 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
   if (!m_addr)
     return NULL;
 
-  // We set m_connected back to FALSE so wxSocketBase will know what to do.
+  // We set m_connected back to false so wxSocketBase will know what to do.
 #ifdef __WXMAC__
-        wxSocketClient::Connect(*m_addr , FALSE );
+        wxSocketClient::Connect(*m_addr , false );
         wxSocketClient::WaitOnConnect(10);
 
     if (!wxSocketClient::IsConnected())
@@ -367,7 +371,7 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
 
   inp_stream->m_read_bytes = 0;
 
-  Notify(FALSE);
+  Notify(false);
   SetFlags(wxSOCKET_BLOCK | wxSOCKET_WAITALL);
 
   return inp_stream;

@@ -221,8 +221,10 @@ DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_END_LABEL_EDIT)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ITEM)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS)
+#if WXWIN_COMPATIBILITY_2_4
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_GET_INFO)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_SET_INFO)
+#endif
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_SELECTED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_DESELECTED)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_LIST_KEY_DOWN)
@@ -447,8 +449,16 @@ void wxListCtrl::UpdateStyle()
         // The new window view style
         DWORD dwStyleNew = MSWGetStyle(m_windowStyle, NULL);
 
+        // some styles are not returned by MSWGetStyle()
+        if ( IsShown() )
+            dwStyleNew |= WS_VISIBLE;
+
         // Get the current window style.
         DWORD dwStyleOld = ::GetWindowLong(GetHwnd(), GWL_STYLE);
+
+        // we don't have wxVSCROLL style, but the list control may have it,
+        // don't change it then
+        dwStyleNew |= dwStyleOld & (WS_HSCROLL | WS_VSCROLL);
 
         // Only set the window style if the view bits have changed.
         if ( dwStyleOld != dwStyleNew )
@@ -510,30 +520,25 @@ void wxListCtrl::SetSingleStyle(long style, bool add)
             flag = flag & ~wxLC_MASK_SORT;
     }
 
-    if ( flag & style )
-    {
-        if ( !add )
-            flag -= style;
-    }
+    if ( add )
+        flag |= style;
     else
-    {
-        if ( add )
-        {
-            flag |= style;
-        }
-    }
+        flag &= ~style;
 
-    m_windowStyle = flag;
-
-    UpdateStyle();
+    SetWindowStyleFlag(flag);
 }
 
 // Set the whole window style
 void wxListCtrl::SetWindowStyleFlag(long flag)
 {
-    m_windowStyle = flag;
+    if ( flag != m_windowStyle )
+    {
+        m_windowStyle = flag;
 
-    UpdateStyle();
+        UpdateStyle();
+
+        Refresh();
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -935,7 +940,7 @@ void wxListCtrl::SetItemText(long item, const wxString& str)
 }
 
 // Gets the item data
-long wxListCtrl::GetItemData(long item) const
+wxUIntPtr wxListCtrl::GetItemData(long item) const
 {
     wxListItem info;
 
@@ -1257,7 +1262,6 @@ bool wxListCtrl::DeleteItem(long item)
 // Deletes all items
 bool wxListCtrl::DeleteAllItems()
 {
-    FreeAllInternalData();
     return ListView_DeleteAllItems(GetHwnd()) != 0;
 }
 
@@ -1373,7 +1377,7 @@ long wxListCtrl::FindItem(long start, const wxString& str, bool partial)
 // NOTE : Lindsay Mathieson - 14-July-2002
 //        No longer use ListView_FindItem as the data attribute is now stored
 //        in a wxListItemInternalData structure refernced by the actual lParam
-long wxListCtrl::FindItem(long start, long data)
+long wxListCtrl::FindItem(long start, wxUIntPtr data)
 {
     long  idx = start + 1;
     long count = GetItemCount();
@@ -1769,20 +1773,15 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 break;
 
             case HDN_GETDISPINFOW:
-                {
-                    LPNMHDDISPINFOW info = (LPNMHDDISPINFOW) lParam;
-                    // This is a fix for a strange bug under XP.
-                    // Normally, info->iItem is a valid index, but
-                    // sometimes this is a silly (large) number
-                    // and when we return false via wxControl::MSWOnNotify
-                    // to indicate that it hasn't yet been processed,
-                    // there's a GPF in Windows.
-                    // By returning true here, we avoid further processing
-                    // of this strange message.
-                    if ( (unsigned)info->iItem >= (unsigned)GetColumnCount() )
-                        return true;
-                }
-                // fall through
+                // letting Windows XP handle this message results in mysterious
+                // crashes in comctl32.dll seemingly because of bad message
+                // parameters
+                //
+                // I have no idea what is the real cause of the bug (which is,
+                // just to make things interesting, is impossible to reproduce
+                // reliably) but ignoring all these messages does fix it and
+                // doesn't seem to have any negative consequences
+                return true;
 
             default:
                 return wxControl::MSWOnNotify(idCtrl, lParam, result);
@@ -1920,6 +1919,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 wxDeleteInternalData(this, iItem);
                 break;
 
+#if WXWIN_COMPATIBILITY_2_4
             case LVN_SETDISPINFO:
                 {
                     eventType = wxEVT_COMMAND_LIST_SET_INFO;
@@ -1927,6 +1927,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                     wxConvertFromMSWListItem(GetHwnd(), event.m_item, info->item);
                 }
                 break;
+#endif
 
             case LVN_INSERTITEM:
                 eventType = wxEVT_COMMAND_LIST_INSERT_ITEM;
@@ -2172,6 +2173,10 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             // notifications - this makes deleting all items from a list ctrl
             // much faster
             *result = TRUE;
+
+            // also, we may free all user data now (couldn't do it before as
+            // the user should have access to it in OnDeleteAllItems() handler)
+            FreeAllInternalData();
             return true;
 
         case LVN_ENDLABELEDITA:
@@ -2371,9 +2376,9 @@ wxString wxListCtrl::OnGetItemText(long WXUNUSED(item), long WXUNUSED(col)) cons
 
 int wxListCtrl::OnGetItemImage(long WXUNUSED(item)) const
 {
-    // same as above
-    wxFAIL_MSG( _T("wxListCtrl::OnGetItemImage not supposed to be called") );
-
+    wxCHECK_MSG(!GetImageList(wxIMAGE_LIST_SMALL),
+                -1,
+                wxT("List control has an image list, OnGetItemImage should be overridden."));
     return -1;
 }
 

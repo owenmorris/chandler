@@ -81,12 +81,16 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
 
+    //
+    // NB: (RN) Ticks here are sometimes off in the GUI if there
+    // is not as many ticks as there are values
+    //
     UInt16 tickMarks = 0 ;
     if ( style & wxSL_AUTOTICKS )
-        tickMarks = (maxValue - minValue);
+        tickMarks = (maxValue - minValue) + 1; //+1 for the 0 value
 
-    if (tickMarks > 20)
-        tickMarks = tickMarks/5; //keep the number of tickmarks from becoming unwieldly
+    while (tickMarks > 20)
+            tickMarks /= 5; //keep the number of tickmarks from becoming unwieldly
 
     m_peer = new wxMacControl() ;
     verify_noerr ( CreateSliderControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds ,
@@ -287,17 +291,17 @@ wxInt32 wxSlider::MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF mevent )
 
 /* This is overloaded in wxSlider so that the proper width/height will always be used
 * for the slider different values would cause redrawing and mouse detection problems */
-void wxSlider::SetSizeHints( int minW, int minH,
-                            int maxW , int maxH ,
-                            int incW , int incH )
+void wxSlider::DoSetSizeHints( int minW, int minH,
+                               int maxW , int maxH ,
+                               int incW , int incH )
 {
     wxSize size = GetBestSize();
 
     if(GetWindowStyle() & wxSL_VERTICAL) {
-        wxWindow::SetSizeHints(size.x, minH, size.x, maxH, incW, incH);
+        wxWindow::DoSetSizeHints(size.x, minH, size.x, maxH, incW, incH);
     }
     else {
-        wxWindow::SetSizeHints(minW, size.y, maxW, size.y, incW, incH);
+        wxWindow::DoSetSizeHints(minW, size.y, maxW, size.y, incW, incH);
     }
 }
 

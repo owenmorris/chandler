@@ -194,7 +194,7 @@ bool wxFrame::Create(wxWindow *parent,
 
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
 
-#ifdef __SMARTPHONE__
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
     SetLeftMenu(wxID_EXIT, _("Done"));
 #endif
 
@@ -322,7 +322,7 @@ void wxFrame::PositionStatusBar()
 
 void wxFrame::AttachMenuBar(wxMenuBar *menubar)
 {
-#if defined(__SMARTPHONE__)
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
 
     wxMenu *autoMenu = NULL;
 
@@ -658,6 +658,8 @@ void wxFrame::PositionToolBar()
 // on the desktop, but are iconized/restored with it
 void wxFrame::IconizeChildFrames(bool bIconize)
 {
+    m_iconized = bIconize;
+
     for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
           node;
           node = node->GetNext() )
@@ -788,14 +790,13 @@ bool wxFrame::HandlePaint()
     }
 }
 
-bool wxFrame::HandleSize(int x, int y, WXUINT id)
+bool wxFrame::HandleSize(int WXUNUSED(x), int WXUNUSED(y), WXUINT id)
 {
-    bool processed = false;
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-
     switch ( id )
     {
-        case SIZENORMAL:
+        case SIZE_RESTORED:
+        case SIZE_MAXIMIZED:
             // only do it it if we were iconized before, otherwise resizing the
             // parent frame has a curious side effect of bringing it under it's
             // children
@@ -806,23 +807,16 @@ bool wxFrame::HandleSize(int x, int y, WXUINT id)
             IconizeChildFrames(false);
 
             (void)SendIconizeEvent(false);
-
-            // fall through
-
-        case SIZEFULLSCREEN:
-            m_iconized = FALSE;
             break;
 
-        case SIZEICONIC:
+        case SIZE_MINIMIZED:
             // iconize all child frames too
             IconizeChildFrames(true);
-
-            (void)SendIconizeEvent();
-
-            m_iconized = true;
             break;
     }
-#endif
+#else
+    wxUnusedVar(id);
+#endif // !__WXWINCE__
 
     if ( !m_iconized )
     {
@@ -848,13 +842,11 @@ bool wxFrame::HandleSize(int x, int y, WXUINT id)
             }
 
         }
-#endif
-
-
-        processed = wxWindow::HandleSize(x, y, id);
+#endif // WINCE_WITH_COMMANDBAR
     }
 
-    return processed;
+    // call the base class version to generate the appropriate events
+    return false;
 }
 
 bool wxFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
@@ -880,13 +872,13 @@ bool wxFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
         }
 #endif // wxUSE_MENUS_NATIVE
 
-#ifdef __SMARTPHONE__
+#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
         // handle here commands from Smartphone menu bar
         if ( wxTopLevelWindow::HandleCommand(id, cmd, control ) )
         {
             return true;
         }
-#endif // __SMARTPHONE__
+#endif // __SMARTPHONE__ && __WXWINCE__
 
         if ( ProcessCommand(id) )
         {
@@ -990,7 +982,7 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
             break;
 
         case WM_EXITMENULOOP:
-            processed = HandleMenuLoop(wxEVT_MENU_CLOSE, wParam);
+            processed = HandleMenuLoop(wxEVT_MENU_CLOSE, (WXWORD)wParam);
             break;
 
         case WM_QUERYDRAGICON:

@@ -28,7 +28,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_DIRDLG
+#if wxUSE_DIRDLG && !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
 
 #if defined(__WIN95__) && !defined(__GNUWIN32_OLD__) && wxUSE_OLE
 
@@ -140,7 +140,9 @@ int wxDirDialog::ShowModal()
     bi.hwndOwner      = parent ? GetHwndOf(parent) : NULL;
     bi.pidlRoot       = NULL;
     bi.pszDisplayName = NULL;
-#ifdef __WXWINCE__
+    // Please don't change this without checking it compiles
+    // with eVC++ first.
+#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
     bi.lpszTitle      = m_message.mb_str();
 #else
     bi.lpszTitle      = m_message.c_str();
@@ -289,4 +291,4 @@ static void ItemListFree(LPITEMIDLIST pidl)
     #include "../generic/dirdlgg.cpp"
 #endif // compiler/platform on which the code here compiles
 
-#endif // wxUSE_DIRDLG
+#endif // wxUSE_DIRDLG && !(__SMARTPHONE__ && __WXWINCE__)

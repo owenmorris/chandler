@@ -131,6 +131,14 @@ Acts according to DEBUG_INFO by default.
         </description>
     </option>
     
+    <option name="USE_XRC">
+        <values>0,1</values>
+        <default-value>1</default-value>
+        <description>
+            Build wxXRC library (USE_GUI must be 1)?
+        </description>
+    </option>
+    
     <option name="USE_OPENGL">
         <values>0,1</values>
         <default-value>0</default-value>
@@ -167,6 +175,14 @@ Acts according to DEBUG_INFO by default.
         <description>
             Use this to name your customized DLLs differently
         </description>
+    </option>
+    <!-- These basically do what vendor does in the places it didn't. -->
+    <!-- They should all be unified under some suitable descriptor    -->
+    <option name="WX_FLAVOUR">
+        <default-value></default-value>
+    </option>
+    <option name="WX_LIB_FLAVOUR">
+        <default-value></default-value>
     </option>
 
     <option name="CFG">
@@ -206,6 +222,7 @@ to run the tests, include CppUnit library here.
         <option name="TOOLKIT_LOWERCASE"/>
         <option name="TOOLKIT_VERSION"/>
         <option name="TOOLCHAIN_NAME"/>
+        <option name="TOOLCHAIN_FULLNAME"/>
         <option name="EXTRALIBS"/>
         <option name="EXTRALIBS_XML"/>
         <option name="EXTRALIBS_HTML"/>
@@ -304,6 +321,7 @@ Set the version of your Mingw installation here.
         <set var="RUNTIME_LIBS">dynamic</set>
         <set var="OFFICIAL_BUILD">0</set>
         <set var="USE_HTML">1</set>
+        <set var="USE_XRC">1</set>
         <set var="USE_OPENGL">1</set>
         <set var="USE_ODBC">1</set>
         <set var="MONOLITHIC">0</set>

@@ -1,4 +1,38 @@
-#include <wx/wx.h>
+/////////////////////////////////////////////////////////////////////////////
+// Name:        hid.h
+// Purpose:     DARWIN HID layer for WX
+// Author:      Ryan Norton
+// Modified by:
+// Created:     11/11/2003
+// RCS-ID:      $Id$
+// Copyright:   (c) Ryan Norton
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+// ===========================================================================
+// declarations
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// headers
+// ---------------------------------------------------------------------------
+
+#ifndef _WX_MACCARBONHID_H_
+#define _WX_MACCARBONHID_H_
+
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
+    #pragma interface "hid.h"
+#endif
+
+#include "wx/defs.h"
+
+
+// ---------------------------------------------------------------------------
+// definitions
+// ---------------------------------------------------------------------------
+
+//Mac OSX only
+#ifdef __DARWIN__
+
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOCFPlugIn.h>
 #include <IOKit/hid/IOHIDLib.h>
@@ -61,3 +95,8 @@ public:
 	bool Create();
 	virtual void BuildCookies(wxCFArray& Array);
 };
+
+#endif //__DARWIN__
+
+#endif 
+        //WX_MACCARBONHID_H

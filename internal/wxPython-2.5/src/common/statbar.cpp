@@ -99,7 +99,7 @@ void wxStatusBarBase::SetFieldsCount(int number, const int *widths)
 {
     wxCHECK_RET( number > 0, _T("invalid field number in SetFieldsCount") );
 
-    bool refresh = FALSE;
+    bool refresh = false;
 
     if ( number != m_nFields )
     {
@@ -152,7 +152,7 @@ void wxStatusBarBase::SetFieldsCount(int number, const int *widths)
 
         ReinitWidths();
 
-        refresh = TRUE;
+        refresh = true;
     }
     //else: keep the old m_statusWidths if we had them
 
@@ -161,7 +161,7 @@ void wxStatusBarBase::SetFieldsCount(int number, const int *widths)
         SetStatusWidths(number, widths);
 
         // already done from SetStatusWidths()
-        refresh = FALSE;
+        refresh = false;
     }
 
     if ( refresh )
@@ -243,16 +243,7 @@ wxArrayInt wxStatusBarBase::CalculateAbsWidths(wxCoord widthTotal) const
         }
 
         // the amount of extra width we have per each var width field
-        int nVarWidth;
-        if ( nVarCount )
-        {
-            int widthExtra = widthTotal - nTotalWidth;
-            nVarWidth = widthExtra > 0 ? widthExtra / nVarCount : 0;
-        }
-        else // no var width fields at all
-        {
-            nVarWidth = 0;
-        }
+        int widthExtra = widthTotal - nTotalWidth;
 
         // do fill the array
         for ( i = 0; i < m_nFields; i++ )
@@ -263,7 +254,10 @@ wxArrayInt wxStatusBarBase::CalculateAbsWidths(wxCoord widthTotal) const
             }
             else
             {
-                widths.Add(-m_statusWidths[i]*nVarWidth);
+                int nVarWidth = widthExtra > 0 ? (widthExtra * -m_statusWidths[i]) / nVarCount : 0;
+                nVarCount += m_statusWidths[i];
+                widthExtra -= nVarWidth;
+                widths.Add(nVarWidth);
             }
         }
     }

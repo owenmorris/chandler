@@ -55,6 +55,8 @@
 #include "wx/buffer.h"      // for wxCharBuffer
 #include "wx/strconv.h"     // for wxConvertXXX() macros and wxMBConv classes
 
+class WXDLLIMPEXP_BASE wxString;
+
 // ---------------------------------------------------------------------------
 // macros
 // ---------------------------------------------------------------------------
@@ -163,10 +165,6 @@ inline int Stricmp(const char *psz1, const char *psz2)
   #error  "Please define string case-insensitive compare for your OS/compiler"
 #endif  // OS/compiler
 }
-
-// return an empty wxString
-class WXDLLIMPEXP_BASE wxString; // not yet defined
-inline const wxString& wxGetEmptyString() { return *(wxString *)&wxEmptyString; }
 
 #if wxUSE_STL
 
@@ -574,17 +572,15 @@ public:
     // All compare functions return -1, 0 or 1 if the [sub]string is less,
     // equal or greater than the compare() argument.
 
-    // just like strcmp()
-  int compare(const wxStringBase& str) const
-    { return wxStrcmp(c_str(), str.c_str()); }
+    // comparison with another string
+  int compare(const wxStringBase& str) const;
     // comparison with a substring
   int compare(size_t nStart, size_t nLen, const wxStringBase& str) const;
     // comparison of 2 substrings
   int compare(size_t nStart, size_t nLen,
               const wxStringBase& str, size_t nStart2, size_t nLen2) const;
-    // just like strcmp()
-  int compare(const wxChar* sz) const
-    { return wxStrcmp(c_str(), sz); }
+    // comparison with a c string
+  int compare(const wxChar* sz) const;
     // substring comparison with first nCount characters of sz
   int compare(size_t nStart, size_t nLen,
               const wxChar* sz, size_t nCount = npos) const;
@@ -698,7 +694,7 @@ public:
   size_t Len() const { return length(); }
     // string contains any characters?
   bool IsEmpty() const { return empty(); }
-    // empty string is "FALSE", so !str will return TRUE
+    // empty string is "false", so !str will return true
   bool operator!() const { return IsEmpty(); }
     // truncate the string to given length
   wxString& Truncate(size_t uiLen);
@@ -823,8 +819,7 @@ public:
     // type differs because a function may either return pointer to the buffer
     // directly or have to use intermediate buffer for translation.
 #if wxUSE_UNICODE
-    const wxCharBuffer mb_str(wxMBConv& conv = wxConvLibc) const
-        { return conv.cWC2MB(c_str()); }
+    const wxCharBuffer mb_str(wxMBConv& conv = wxConvLibc) const;
 
     const wxWX2MBbuf mbc_str() const { return mb_str(*wxConvCurrent); }
 
@@ -847,8 +842,7 @@ public:
     const wxWX2MBbuf mbc_str() const { return mb_str(); }
 
 #if wxUSE_WCHAR_T
-    const wxWCharBuffer wc_str(wxMBConv& conv) const
-        { return conv.cMB2WC(c_str()); }
+    const wxWCharBuffer wc_str(wxMBConv& conv) const;
 #endif // wxUSE_WCHAR_T
 
     const wxChar* fn_str() const { return c_str(); }
@@ -973,15 +967,17 @@ public:
 
   // string comparison
     // case-sensitive comparison (returns a value < 0, = 0 or > 0)
-  int Cmp(const wxChar *psz) const { return wxStrcmp(c_str(), psz); }
+  int Cmp(const wxChar *psz) const;
+  int Cmp(const wxString& s) const;
     // same as Cmp() but not case-sensitive
-  int CmpNoCase(const wxChar *psz) const { return wxStricmp(c_str(), psz); }
+  int CmpNoCase(const wxChar *psz) const;
+  int CmpNoCase(const wxString& s) const;
     // test for the string equality, either considering case or not
     // (if compareWithCase then the case matters)
-  bool IsSameAs(const wxChar *psz, bool compareWithCase = TRUE) const
+  bool IsSameAs(const wxChar *psz, bool compareWithCase = true) const
     { return (compareWithCase ? Cmp(psz) : CmpNoCase(psz)) == 0; }
-    // comparison with a signle character: returns TRUE if equal
-  bool IsSameAs(wxChar c, bool compareWithCase = TRUE) const
+    // comparison with a signle character: returns true if equal
+  bool IsSameAs(wxChar c, bool compareWithCase = true) const
     {
       return (length() == 1) && (compareWithCase ? GetChar(0u) == c
                               : wxToupper(GetChar(0u)) == wxToupper(c));
@@ -998,7 +994,7 @@ public:
 
       // check that the string starts with prefix and return the rest of the
       // string in the provided pointer if it is not NULL, otherwise return
-      // FALSE
+      // false
   bool StartsWith(const wxChar *prefix, wxString *rest = NULL) const;
 
       // get first nCount characters
@@ -1035,25 +1031,25 @@ public:
 
   // trimming/padding whitespace (either side) and truncating
       // remove spaces from left or from right (default) side
-  wxString& Trim(bool bFromRight = TRUE);
+  wxString& Trim(bool bFromRight = true);
       // add nCount copies chPad in the beginning or at the end (default)
-  wxString& Pad(size_t nCount, wxChar chPad = wxT(' '), bool bFromRight = TRUE);
+  wxString& Pad(size_t nCount, wxChar chPad = wxT(' '), bool bFromRight = true);
 
   // searching and replacing
       // searching (return starting index, or -1 if not found)
-  int Find(wxChar ch, bool bFromEnd = FALSE) const;   // like strchr/strrchr
+  int Find(wxChar ch, bool bFromEnd = false) const;   // like strchr/strrchr
       // searching (return starting index, or -1 if not found)
   int Find(const wxChar *pszSub) const;               // like strstr
       // replace first (or all of bReplaceAll) occurences of substring with
       // another string, returns the number of replacements made
   size_t Replace(const wxChar *szOld,
                  const wxChar *szNew,
-                 bool bReplaceAll = TRUE);
+                 bool bReplaceAll = true);
 
     // check if the string contents matches a mask containing '*' and '?'
   bool Matches(const wxChar *szMask) const;
 
-    // conversion to numbers: all functions return TRUE only if the whole
+    // conversion to numbers: all functions return true only if the whole
     // string is a number and put the value of this number into the pointer
     // provided, the base is the numeric base in which the conversion should be
     // done and must be comprised between 2 and 36 or be 0 in which case the
@@ -1136,8 +1132,8 @@ public:
   int First( const wxChar ch ) const { return Find(ch); }
   int First( const wxChar* psz ) const { return Find(psz); }
   int First( const wxString &str ) const { return Find(str); }
-  int Last( const wxChar ch ) const { return Find(ch, TRUE); }
-  bool Contains(const wxString& str) const { return Find(str) != -1; }
+  int Last( const wxChar ch ) const { return Find(ch, true); }
+  bool Contains(const wxString& str) const { return Find(str) != wxNOT_FOUND; }
 
     // use IsEmpty()
   bool IsNull() const { return IsEmpty(); }
@@ -1286,6 +1282,17 @@ public:
 #if WXWIN_COMPATIBILITY_2_4 && !wxUSE_STL
     #include "wx/arrstr.h"
 #endif
+
+#if wxUSE_STL
+    // return an empty wxString (not very useful with wxUSE_STL == 1)
+    inline const wxString wxGetEmptyString() { return wxString(); }
+#else // !wxUSE_STL
+    // return an empty wxString (more efficient than wxString() here)
+    inline const wxString& wxGetEmptyString()
+    {
+        return *(wxString *)&wxEmptyString;
+    }
+#endif // wxUSE_STL/!wxUSE_STL
 
 // ----------------------------------------------------------------------------
 // wxStringBuffer: a tiny class allowing to get a writable pointer into string

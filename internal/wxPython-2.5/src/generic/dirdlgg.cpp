@@ -41,11 +41,9 @@
 #include "wx/artprov.h"
 #include "wx/bmpbuttn.h"
 
-//-----------------------------------------------------------------------------
-// wxGenericDirDialog
-//-----------------------------------------------------------------------------
-
-IMPLEMENT_DYNAMIC_CLASS(wxGenericDirDialog, wxDialog)
+// ----------------------------------------------------------------------------
+// constants
+// ----------------------------------------------------------------------------
 
 static const int ID_DIRCTRL = 1000;
 static const int ID_TEXTCTRL = 1001;
@@ -54,6 +52,26 @@ static const int ID_CANCEL = 1003;
 static const int ID_NEW = 1004;
 static const int ID_SHOW_HIDDEN = 1005;
 static const int ID_GO_HOME = 1006;
+
+// ---------------------------------------------------------------------------
+// macros
+// ---------------------------------------------------------------------------
+
+/* Macro for avoiding #ifdefs when value have to be different depending on size of
+   device we display on - take it from something like wxDesktopPolicy in the future
+ */
+
+#if defined(__SMARTPHONE__)
+    #define wxLARGESMALL(large,small) small
+#else
+    #define wxLARGESMALL(large,small) large
+#endif
+
+//-----------------------------------------------------------------------------
+// wxGenericDirDialog
+//-----------------------------------------------------------------------------
+
+IMPLEMENT_DYNAMIC_CLASS(wxGenericDirDialog, wxDialog)
 
 BEGIN_EVENT_TABLE(wxGenericDirDialog, wxDialog)
     EVT_CLOSE                (wxGenericDirDialog::OnCloseWindow)
@@ -82,11 +100,30 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
 
+    // smart phones does not support or do not waste space for wxButtons
+#if defined(__SMARTPHONE__)
+
+    wxMenu *dirMenu = new wxMenu;
+    dirMenu->Append(ID_GO_HOME, _("Home"));
+
+    if (style & wxDD_NEW_DIR_BUTTON)
+    {
+        dirMenu->Append(ID_NEW, _("New directory"));
+    }
+
+    dirMenu->AppendCheckItem(ID_SHOW_HIDDEN, _("Show hidden directories"));
+    dirMenu->AppendSeparator();
+    dirMenu->Append(wxID_CANCEL, _("Cancel"));
+
+    SetRightMenu(wxID_ANY, _("Options"), dirMenu);
+
+#else
+
     // 0) 'New' and 'Home' Buttons
     wxSizer* buttonsizer = new wxBoxSizer( wxHORIZONTAL );
 
     // VS: 'Home directory' concept is unknown to MS-DOS
-#ifndef __DOS__
+#if !defined(__DOS__)
     wxBitmapButton* homeButton =
         new wxBitmapButton(this, ID_GO_HOME,
                            wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_BUTTON));
@@ -112,6 +149,8 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
 
     topsizer->Add( buttonsizer, 0, wxTOP | wxALIGN_RIGHT, 10 );
 
+#endif // __SMARTPHONE__/!__SMARTPHONE__
+
     // 1) dir ctrl
     m_dirCtrl = NULL; // this is neccessary, event handler called from
                       // wxGenericDirCtrl would crash otherwise!
@@ -131,15 +170,19 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
                                      wxSize(300, 200),
                                      dirStyle);
 
-    topsizer->Add( m_dirCtrl, 1, wxTOP|wxLEFT|wxRIGHT | wxEXPAND, 10 );
+    topsizer->Add( m_dirCtrl, 1, wxTOP|wxLEFT|wxRIGHT | wxEXPAND, wxLARGESMALL(10,0) );
 
+#ifndef __SMARTPHONE__
     // Make the an option depending on a flag?
     wxCheckBox* check = new wxCheckBox( this, ID_SHOW_HIDDEN, _("Show hidden directories") );
     topsizer->Add( check, 0, wxLEFT|wxRIGHT|wxTOP | wxALIGN_RIGHT, 10 );
+#endif // !__SMARTPHONE__
 
     // 2) text ctrl
     m_input = new wxTextCtrl( this, ID_TEXTCTRL, m_path, wxDefaultPosition );
-    topsizer->Add( m_input, 0, wxTOP|wxLEFT|wxRIGHT | wxEXPAND, 10 );
+    topsizer->Add( m_input, 0, wxTOP|wxLEFT|wxRIGHT | wxEXPAND, wxLARGESMALL(10,0) );
+
+#ifndef __SMARTPHONE__
 
 #if wxUSE_STATLINE
     // 3) Static line
@@ -158,6 +201,9 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
     topsizer->Add( buttonsizer, 0, wxLEFT|wxTOP|wxBOTTOM | wxALIGN_RIGHT, 10 );
 
     okButton->SetDefault();
+
+#endif // !__SMARTPHONE__
+
     m_dirCtrl->SetFocus();
 
     SetAutoLayout( true );

@@ -52,13 +52,18 @@ static wxColour wxColourFromLong(long c) {
 
 
 static wxColour wxColourFromSpec(const wxString& spec) {
-    // spec should be "#RRGGBB"
-    long red, green, blue;
-    red = green = blue = 0;
-    spec.Mid(1,2).ToLong(&red,   16);
-    spec.Mid(3,2).ToLong(&green, 16);
-    spec.Mid(5,2).ToLong(&blue,  16);
-    return wxColour(red, green, blue);
+    // spec should be a colour name or "#RRGGBB"
+    if (spec.GetChar(0) == wxT('#')) {
+
+        long red, green, blue;
+        red = green = blue = 0;
+        spec.Mid(1,2).ToLong(&red,   16);
+        spec.Mid(3,2).ToLong(&green, 16);
+        spec.Mid(5,2).ToLong(&blue,  16);
+        return wxColour(red, green, blue);
+    }
+    else
+        return wxColour(spec);
 }
 
 //----------------------------------------------------------------------
@@ -115,7 +120,7 @@ BEGIN_EVENT_TABLE(wxStyledTextCtrl, wxControl)
     EVT_SYS_COLOUR_CHANGED      (wxStyledTextCtrl::OnSysColourChanged)
     EVT_ERASE_BACKGROUND        (wxStyledTextCtrl::OnEraseBackground)
     EVT_MENU_RANGE              (10, 16, wxStyledTextCtrl::OnMenu)
-    EVT_LISTBOX_DCLICK          (-1, wxStyledTextCtrl::OnListBox)
+    EVT_LISTBOX_DCLICK          (wxID_ANY, wxStyledTextCtrl::OnListBox)
 END_EVENT_TABLE()
 
 
@@ -161,7 +166,7 @@ void wxStyledTextCtrl::Create(wxWindow *parent,
 #endif
     m_swx = new ScintillaWX(this);
     m_stopWatch.Start();
-    m_lastKeyDownConsumed = FALSE;
+    m_lastKeyDownConsumed = false;
     m_vScrollBar = NULL;
     m_hScrollBar = NULL;
 #if wxUSE_UNICODE
@@ -193,7 +198,7 @@ long wxStyledTextCtrl::SendMsg(int msg, long wp, long lp) {
 //       this file.  Edit stc.cpp.in or gen_iface.py instead and regenerate.
 
 
-// Add text to the document.
+// Add text to the document at current position.
 void wxStyledTextCtrl::AddText(const wxString& text) {
                     wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(text);
                     SendMsg(2001, strlen(buf), (long)(const char*)buf);
@@ -219,7 +224,7 @@ void wxStyledTextCtrl::ClearDocumentStyle() {
     SendMsg(2005, 0, 0);
 }
 
-// The number of characters in the document.
+// Returns the number of characters in the document.
 int wxStyledTextCtrl::GetLength() {
     return SendMsg(2006, 0, 0);
 }
@@ -1514,6 +1519,36 @@ int wxStyledTextCtrl::GetWrapMode() {
     return SendMsg(2269, 0, 0);
 }
 
+// Set the display mode of visual flags for wrapped lines.
+void wxStyledTextCtrl::SetWrapVisualFlags(int wrapVisualFlags) {
+    SendMsg(2460, wrapVisualFlags, 0);
+}
+
+// Retrive the display mode of visual flags for wrapped lines.
+int wxStyledTextCtrl::GetWrapVisualFlags() {
+    return SendMsg(2461, 0, 0);
+}
+
+// Set the location of visual flags for wrapped lines.
+void wxStyledTextCtrl::SetWrapVisualFlagsLocation(int wrapVisualFlagsLocation) {
+    SendMsg(2462, wrapVisualFlagsLocation, 0);
+}
+
+// Retrive the location of visual flags for wrapped lines.
+int wxStyledTextCtrl::GetWrapVisualFlagsLocation() {
+    return SendMsg(2463, 0, 0);
+}
+
+// Set the start indent for wrapped lines.
+void wxStyledTextCtrl::SetWrapStartIndent(int indent) {
+    SendMsg(2464, indent, 0);
+}
+
+// Retrive the start indent for wrapped lines.
+int wxStyledTextCtrl::GetWrapStartIndent() {
+    return SendMsg(2465, 0, 0);
+}
+
 // Sets the degree of caching of layout information.
 void wxStyledTextCtrl::SetLayoutCache(int mode) {
     SendMsg(2272, mode, 0);
@@ -2345,6 +2380,11 @@ int wxStyledTextCtrl::AutoCompGetCurrent() {
     return SendMsg(2445, 0, 0);
 }
 
+// Enlarge the document to a particular size of text bytes.
+void wxStyledTextCtrl::Allocate(int bytes) {
+    SendMsg(2446, bytes, 0);
+}
+
 // Start notifying the container of all key presses and commands.
 void wxStyledTextCtrl::StartRecord() {
     SendMsg(3001, 0, 0);
@@ -2401,8 +2441,8 @@ int wxStyledTextCtrl::GetCurrentLine() {
 //
 //      bold                    turns on bold
 //      italic                  turns on italics
-//      fore:#RRGGBB            sets the foreground colour
-//      back:#RRGGBB            sets the background colour
+//      fore:[name or #RRGGBB]  sets the foreground colour
+//      back:[name or #RRGGBB]  sets the background colour
 //      face:[facename]         sets the font face name to use
 //      size:[num]              sets the font size in points
 //      eol                     turns on eol filling
@@ -2526,7 +2566,7 @@ bool wxStyledTextCtrl::SaveFile(const wxString& filename)
     wxFile file(filename, wxFile::write);
 
     if (!file.IsOpened())
-        return FALSE;
+        return false;
 
     bool success = file.Write(GetText(), *wxConvCurrent);
 
@@ -2544,7 +2584,7 @@ bool wxStyledTextCtrl::LoadFile(const wxString& filename)
     if (file.IsOpened())
     {
         wxString contents;
-        off_t len = file.Length();
+        size_t len = (size_t)file.Length();
         if (len > 0)
         {
 #if wxUSE_UNICODE
@@ -2576,12 +2616,12 @@ bool wxStyledTextCtrl::LoadFile(const wxString& filename)
 
 
 #if wxUSE_DRAG_AND_DROP
-wxDragResult wxStyledTextCtrl::DoDragOver(wxCoord x, wxCoord y, wxDragResult def) { 
-        return m_swx->DoDragOver(x, y, def); 
-} 
+wxDragResult wxStyledTextCtrl::DoDragOver(wxCoord x, wxCoord y, wxDragResult def) {
+        return m_swx->DoDragOver(x, y, def);
+}
 
 
-bool wxStyledTextCtrl::DoDropText(long x, long y, const wxString& data) { 
+bool wxStyledTextCtrl::DoDropText(long x, long y, const wxString& data) {
     return m_swx->DoDropText(x, y, data);
 }
 #endif
@@ -2687,7 +2727,14 @@ void wxStyledTextCtrl::OnChar(wxKeyEvent& evt) {
     // to let the char through in that case, otherwise if only ctrl or only
     // alt let's skip it.
     bool ctrl = evt.ControlDown();
+#ifdef __WXMAC__
+    // On the Mac the Alt key is just a modifier key (like Shift) so we need
+    // to allow the char events to be processed when Alt is pressed.
+    // TODO:  Should we check MetaDown instead in this case?
+    bool alt = false;
+#else
     bool alt  = evt.AltDown();
+#endif
     bool skip = ((ctrl || alt) && ! (ctrl && alt));
 
     int key = evt.GetKeyCode();
@@ -2935,7 +2982,7 @@ wxStyledTextEvent::wxStyledTextEvent(wxEventType commandType, int id)
     m_listType = 0;
     m_x = 0;
     m_y = 0;
-    m_dragAllowMove = FALSE;
+    m_dragAllowMove = false;
 #if wxUSE_DRAG_AND_DROP
     m_dragResult = wxDragNone;
 #endif

@@ -46,6 +46,11 @@ static const double twips2mm = (1/(METRIC_CONVERSION_CONSTANT*1440));
 static const double mm2pt = (METRIC_CONVERSION_CONSTANT*72);
 static const double pt2mm = (1/(METRIC_CONVERSION_CONSTANT*72));
 
+// 260 was taken from windef.h
+#ifndef MAX_PATH
+    #define MAX_PATH  260
+#endif
+
 // ---------------------------------------------------------------------------
 // standard icons from the resources
 // ---------------------------------------------------------------------------
@@ -220,7 +225,7 @@ enum wxSTD_COLOUR
     wxSTD_COL_BTNSHADOW,
     wxSTD_COL_BTNFACE,
     wxSTD_COL_BTNHIGHLIGHT,
-    wxSTD_COL_MAX,
+    wxSTD_COL_MAX
 };
 
 struct WXDLLEXPORT wxCOLORMAP
@@ -503,6 +508,23 @@ extern "C"
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
+// return the full name of the program file
+inline wxString wxGetFullModuleName()
+{
+    wxString fullname;
+    if ( !::GetModuleFileName
+            (
+                (HMODULE)wxGetInstance(),
+                wxStringBuffer(fullname, MAX_PATH),
+                MAX_PATH
+            ) )
+    {
+        wxLogLastError(_T("GetModuleFileName"));
+    }
+
+    return fullname;
+}
+
 #if wxUSE_GUI
 
 // cursor stuff
@@ -590,6 +612,13 @@ inline void *wxSetWindowUserData(HWND hwnd, void *data)
 
 #else // __WIN32__
 
+#ifdef __VISUALC__
+    // strangely enough, VC++ 7.1 gives warnings about 32 -> 64 bit conversions
+    // in the functions below, even in spite of the explicit casts
+    #pragma warning(disable:4311)
+    #pragma warning(disable:4312)
+#endif
+
 inline void *wxGetWindowProc(HWND hwnd)
 {
     return (void *)::GetWindowLong(hwnd, GWL_WNDPROC);
@@ -609,6 +638,11 @@ inline void *wxSetWindowUserData(HWND hwnd, void *data)
 {
     return (void *)::SetWindowLong(hwnd, GWL_USERDATA, (LONG)data);
 }
+
+#ifdef __VISUALC__
+    #pragma warning(default:4311)
+    #pragma warning(default:4312)
+#endif
 
 #endif // __WIN64__/__WIN32__
 

@@ -58,6 +58,9 @@ USE_GUI = 1
 # Build wxHTML library (USE_GUI must be 1)? [0,1]
 USE_HTML = 1
 
+# Build wxXRC library (USE_GUI must be 1)? [0,1]
+USE_XRC = 1
+
 # Build OpenGL canvas library (USE_GUI must be 1)? [0,1]
 USE_OPENGL = 0
 
@@ -72,6 +75,12 @@ OFFICIAL_BUILD = 0
 
 # Use this to name your customized DLLs differently 
 VENDOR = custom
+
+#  
+WX_FLAVOUR = 
+
+#  
+WX_LIB_FLAVOUR = 
 
 # Name of your custom configuration. This affects directory
 # where object files are stored as well as the location of

@@ -74,56 +74,88 @@ bool wxProtocol::Reconnect()
     if (!GetPeer(addr))
     {
         Close();
-        return FALSE;
+        return false;
     }
 
     if (!Close())
-        return FALSE;
-        
-    if (!Connect(addr))
-        return FALSE;
+        return false;
 
-    return TRUE;
+    if (!Connect(addr))
+        return false;
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------
 // Read a line from socket
 // ----------------------------------------------------------------------------
 
-// TODO ReadLine() should use buffers private to wxProtocol for efficiency!
-
-// static
-wxProtocolError wxProtocol::ReadLine(wxSocketBase *socket, wxString& result)
+/* static */
+wxProtocolError wxProtocol::ReadLine(wxSocketBase *sock, wxString& result)
 {
-    result.Empty();
-    char ch, chLast = '\0';
-    while ( !socket->Read(&ch, sizeof(ch)).Error() )
+    static const int LINE_BUF = 4095;
+
+    result.clear();
+
+    wxCharBuffer buf(LINE_BUF);
+    char *pBuf = buf.data();
+    while ( sock->WaitForRead() )
     {
-        switch ( ch )
+        // peek at the socket to see if there is a CRLF
+        sock->Peek(pBuf, LINE_BUF);
+
+        size_t nRead = sock->LastCount();
+        if ( !nRead && sock->Error() )
+            return wxPROTO_NETERR;
+
+        // look for "\r\n" paying attention to a special case: "\r\n" could
+        // have been split by buffer boundary, so check also for \r at the end
+        // of the last chunk and \n at the beginning of this one
+        pBuf[nRead] = '\0';
+        const char *eol = strchr(pBuf, '\n');
+
+        // if we found '\n', is there a '\r' as well?
+        if ( eol )
         {
-            case '\r':
-                // remember it, if the following is '\n', we're done
-                chLast = '\r';
-                break;
-
-            case '\n':
-                // only ends line if the previous character was '\r'
-                if ( chLast == '\r' )
+            if ( eol == pBuf )
+            {
+                // check for case of "\r\n" being split
+                if ( result.empty() || result.Last() != _T('\r') )
                 {
-                    // EOL found
-                    return wxPROTO_NOERR;
+                    // ignore the stray '\n'
+                    eol = NULL;
                 }
-                //else: fall through
+                //else: ok, got real EOL
 
-            default:
-                // normal char
-                if ( chLast )
+                // read just this '\n' and restart
+                nRead = 1;
+            }
+            else // '\n' in the middle of the buffer
+            {
+                // in any case, read everything up to and including '\n'
+                nRead = eol - pBuf + 1;
+
+                if ( eol[-1] != '\r' )
                 {
-                    result += wxString::FromAscii( chLast );
-                    chLast = '\0';
+                    // as above, simply ignore stray '\n'
+                    eol = NULL;
                 }
+            }
+        }
 
-                result += wxString::FromAscii( ch );
+        sock->Read(pBuf, nRead);
+        if ( sock->LastCount() != nRead )
+            return wxPROTO_NETERR;
+
+        pBuf[nRead] = '\0';
+        result += wxString::FromAscii(pBuf);
+
+        if ( eol )
+        {
+            // remove trailing "\r\n"
+            result.RemoveLast(2);
+
+            return wxPROTO_NOERR;
         }
     }
 
@@ -152,17 +184,17 @@ wxProtocolError GetLine(wxSocketBase *sock, wxString& result)
 
     // Not implemented on all systems
     // ret = (char *)memccpy(tmp_str, tmp_buf, '\n', avail);
-    found = FALSE;
+    found = false;
     for (ret=tmp_str;ret < (tmp_str+avail); ret++)
-        if (*ret == '\n') 
+        if (*ret == '\n')
         {
-            found = TRUE;
+            found = true;
             break;
         }
 
     if (!found)
         return wxPROTO_PROTERR;
-        
+
     *ret = 0;
 
     result = wxString::FromAscii( tmp_str );
@@ -170,7 +202,7 @@ wxProtocolError GetLine(wxSocketBase *sock, wxString& result)
 
     size = ret-tmp_str+1;
     sock->Unread(&tmp_buf[size], avail-size);
-  
+
     return wxPROTO_NOERR;
 #undef PROTO_BSIZE
 }

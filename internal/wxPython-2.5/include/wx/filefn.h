@@ -19,10 +19,79 @@
 #include "wx/list.h"
 #include "wx/arrstr.h"
 
-#ifndef __WXWINCE__
-#include <time.h>
+#ifdef __WXWINCE__
+    #include "wx/msw/wince/time.h"
+    #include "wx/msw/private.h"
+#else
+    #include <time.h>
 #endif
 
+#ifdef __WXWINCE__
+// Nothing
+#elif !defined(__MWERKS__)
+    #include <sys/types.h>
+    #include <sys/stat.h>
+#else
+    #ifdef __MACH__
+        #include <sys/types.h>
+        #include <utime.h>
+        #include <sys/stat.h>
+        #include <unistd.h>
+    #else
+        #include <stat.h>
+        #include <unistd.h>
+        #include <unix.h>
+    #endif
+#endif
+
+#ifdef __OS2__
+// need to check for __OS2__ first since currently both
+// __OS2__ and __UNIX__ are defined.
+    #include <process.h>
+    #include "wx/os2/private.h"
+    #include <io.h>
+    #ifdef __EMX__
+        #include <unistd.h>
+    #endif
+#elif defined(__UNIX__)
+    #include <unistd.h>
+    #include <dirent.h>
+#endif
+
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if !defined( __GNUWIN32__ ) && !defined( __MWERKS__ ) && !defined(__SALFORDC__) && !defined(__WXWINCE__)
+    #include <direct.h>
+    #include <dos.h>
+    #include <io.h>
+#endif // __WINDOWS__
+#endif // native Win compiler
+
+#if defined(__DOS__)
+    #ifdef __WATCOMC__
+        #include <direct.h>
+        #include <dos.h>
+        #include <io.h>
+    #endif
+    #ifdef __DJGPP__
+        #include <io.h>
+        #include <unistd.h>
+    #endif
+#endif
+
+#ifdef __BORLANDC__ // Please someone tell me which version of Borland needs
+                    // this (3.1 I believe) and how to test for it.
+                    // If this works for Borland 4.0 as well, then no worries.
+    #include <dir.h>
+#endif
+
+#ifdef __SALFORDC__
+    #include <dir.h>
+    #include <unix.h>
+#endif
+
+#ifndef __WXWINCE__
+    #include  <fcntl.h>       // O_RDONLY &c
+#endif
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
@@ -30,32 +99,20 @@
 #ifdef __WXWINCE__
     typedef long off_t;
 #else
-
-// define off_t
-#if !defined(__WXMAC__) || defined(__UNIX__) || defined(__MACH__)
-    #include  <sys/types.h>
-#else
-    typedef long off_t;
+    // define off_t
+    #if !defined(__WXMAC__) || defined(__UNIX__) || defined(__MACH__)
+        #include  <sys/types.h>
+    #else
+        typedef long off_t;
+    #endif
 #endif
 
-#if defined(__VISUALC__) || ( defined(__MWERKS__) && defined( __INTEL__) )
+#if (defined(__VISUALC__) && !defined(__WXWINCE__)) || ( defined(__MWERKS__) && defined( __INTEL__) )
     typedef _off_t off_t;
 #elif defined(__SYMANTEC__)
     typedef long off_t;
 #elif defined(__MWERKS__) && !defined(__INTEL__) && !defined(__MACH__)
     typedef long off_t;
-#endif
-
-#endif
-
-#if defined(__VISAGECPP__) && __IBMCPP__ >= 400
-//
-// VisualAge C++ V4.0 cannot have any external linkage const decs
-// in headers included by more than one primary source
-//
-extern const off_t wxInvalidOffset;
-#else
-const off_t wxInvalidOffset = (off_t)-1;
 #endif
 
 enum wxSeekMode
@@ -70,84 +127,209 @@ enum wxSeekMode
 // underscores to the usual names, some also have Unicode versions of them
 // ----------------------------------------------------------------------------
 
-// Microsoft compiler loves underscores, feed them to it
-#if defined( __VISUALC__ ) \
-    || ( defined(__MINGW32__) && !defined(__WINE__) && wxCHECK_W32API_VERSION( 0, 5 ) ) \
-    || ( defined(__MWERKS__) && defined(__WXMSW__) ) \
-    || ( defined(__DMC__) && defined(__WXMSW__) ) \
-    || ( defined(__WATCOMC__) && defined(__WXMSW__) )
-    // functions
-#if defined(__BORLANDC__) || defined(__WATCOMC__)
-    #define   _tell        tell
-#endif
-    #define   wxClose      _close
-    #define   wxRead       _read
-    #define   wxWrite      _write
-    #define   wxLseek      _lseek
-    #define   wxFsync      _commit
-    #define   wxEof        _eof
-
-    #define   wxTell       _tell
+// Wrappers around Win32 api functions like CreateFile, ReadFile and such
+// Implemented in filefnwce.cpp
+#if defined( __WXWINCE__)
+    typedef __int64 wxFileOffset;
+    #define wxFileOffsetFmtSpec _("I64")
+    int wxOpen(const wxChar *filename, int oflag, int WXUNUSED(pmode));
+    int wxAccess(const wxChar *name, int WXUNUSED(how));
+    int wxClose(int fd);
+    int wxFsync(int WXUNUSED(fd));
+    int wxRead(int fd, void *buf, unsigned int count);
+    int wxWrite(int fd, const void *buf, unsigned int count);
+    int wxEof(int fd);
+    wxFileOffset wxSeek(int fd, wxFileOffset offset, int origin);
+    #define wxLSeek wxSeek
+    wxFileOffset wxTell(int fd);
 
     #if wxUSE_UNICODE
         #if wxUSE_UNICODE_MSLU
-            #define   wxOpen       wxMSLU__wopen
- 
-            #define   wxAccess     wxMSLU__waccess
             #define   wxMkDir      wxMSLU__wmkdir
             #define   wxRmDir      wxMSLU__wrmdir
             #define   wxStat       wxMSLU__wstat
         #else
-            #define   wxOpen       _wopen
-            #define   wxAccess     _waccess
             #define   wxMkDir      _wmkdir
             #define   wxRmDir      _wrmdir
             #define   wxStat       _wstat
         #endif
     #else // !wxUSE_UNICODE
-#ifdef __BORLANDC__
-        #define   wxOpen       open
-#else
-        #define   wxOpen       _open
-#endif
-        #define   wxAccess     _access
         #define   wxMkDir      _mkdir
-#ifdef __WATCOMC__
-        #define   wxRmDir      rmdir
-#else
-        #define   wxRmDir      _rmdir
-#endif
+        #ifdef __WATCOMC__
+            #define   wxRmDir      rmdir
+        #else
+            #define   wxRmDir      _rmdir
+        #endif
         #define   wxStat       _stat
     #endif
-
-    // types
-#if defined(__WATCOMC__)&& wxUSE_UNICODE
-    #define   wxStructStat struct _wstat
-#else
     #define   wxStructStat struct _stat
-#endif
 
-    // constants (unless already defined by the user code)
-    #if !defined(O_RDONLY) && !defined(__BORLANDC__) && !defined(__WATCOMC__)
-        #define   O_RDONLY    _O_RDONLY
-        #define   O_WRONLY    _O_WRONLY
-        #define   O_RDWR      _O_RDWR
-        #define   O_EXCL      _O_EXCL
-        #define   O_CREAT     _O_CREAT
-        #define   O_BINARY    _O_BINARY
+// Microsoft compiler loves underscores, feed them to it
+#elif defined( __VISUALC__ ) \
+    || ( defined(__MINGW32__) && !defined(__WINE__) && wxCHECK_W32API_VERSION( 0, 5 ) ) \
+    || ( defined(__MWERKS__) && defined(__WXMSW__) ) \
+    || ( defined(__DMC__) && defined(__WXMSW__) ) \
+    || ( defined(__WATCOMC__) && defined(__WXMSW__) )
+
+    // detect compilers which have support for huge files (currently only
+    // Digital Mars doesn't)
+    #include "wx/msw/private.h"
+
+    #undef wxHAS_HUGE_FILES
+    #if defined(__MINGW32__)
+        #define wxHAS_HUGE_FILES 1
+    #elif defined(__MWERKS__)
+        #define wxHAS_HUGE_FILES 0
+    #elif defined(__DMC__)
+        #define wxHAS_HUGE_FILES 0
+    #elif ((_INTEGRAL_MAX_BITS >= 64) || defined(_LARGE_FILES))
+        #define wxHAS_HUGE_FILES 1
+    #else
+        #define wxHAS_HUGE_FILES 0
     #endif
 
+    // functions
+    #if defined(__BORLANDC__) || defined(__WATCOMC__)
+        #define   _tell        tell
+    #endif
+
+    #if wxHAS_HUGE_FILES
+        typedef wxLongLong_t wxFileOffset;
+        #define wxFileOffsetFmtSpec wxLongLongFmtSpec
+    #else
+        typedef off_t wxFileOffset;
+        #define wxFileOffsetFmtSpec _("")
+    #endif
+
+    #define   wxClose      _close
+
+    #if defined(__MWERKS__)
+        #if __MSL__ >= 0x6000
+            #define wxRead(fd, buf, nCount)  _read(fd, (void *)buf, nCount)
+            #define wxWrite(fd, buf, nCount) _write(fd, (void *)buf, nCount)
+        #else
+            #define wxRead(fd, buf, nCount)\
+                  _read(fd, (const char *)buf, nCount)
+            #define wxWrite(fd, buf, nCount)\
+                  _write(fd, (const char *)buf, nCount)
+        #endif
+    #else
+        #if defined(__DMC__) || defined(__WATCOMC__)
+            #define wxRead        ::read
+            #define wxWrite       ::write
+        #else
+            #define wxRead        _read
+            #define wxWrite        _write
+        #endif
+    #endif
+    #if wxHAS_HUGE_FILES
+        #define   wxSeek      _lseeki64
+        #define   wxLseek      _lseeki64
+        #define   wxTell       _telli64
+    #else
+        #define   wxSeek      _lseek
+        #define   wxLseek      _lseek
+        #define   wxTell       _tell
+    #endif
+    #define   wxFsync      _commit
+    #if defined(__WATCOMC__)
+        #define   wxEof        ::eof
+    #else
+        #define   wxEof        _eof
+    #endif
+
+    #if wxUSE_UNICODE
+        #if wxUSE_UNICODE_MSLU
+            #define   wxOpen       wxMSLU__wopen
+
+            #define   wxAccess     wxMSLU__waccess
+            #define   wxMkDir      wxMSLU__wmkdir
+            #define   wxRmDir      wxMSLU__wrmdir
+            #if wxHAS_HUGE_FILES
+                #define   wxStat       wxMSLU__wstati64
+            #else
+                #define   wxStat       wxMSLU__wstat
+            #endif
+        #else
+            #define   wxOpen       _wopen
+            #define   wxAccess     _waccess
+            #define   wxMkDir      _wmkdir
+            #define   wxRmDir      _wrmdir
+            #if wxHAS_HUGE_FILES
+                #define   wxStat       _wstati64
+            #else
+                #define   wxStat       _wstat
+            #endif
+        #endif
+    #else // !wxUSE_UNICODE
+        #ifdef __BORLANDC__
+            #define   wxOpen       open
+        #else
+            #define   wxOpen       _open
+        #endif
+        #define   wxAccess     _access
+        #define   wxMkDir      _mkdir
+        #ifdef __WATCOMC__
+            #define   wxRmDir      rmdir
+        #else
+            #define   wxRmDir      _rmdir
+        #endif
+        #if wxHAS_HUGE_FILES
+            #define   wxStat       _stati64
+        #else
+            #define   wxStat       _stat
+        #endif
+    #endif
+
+    // types: notice that Watcom is the only compiler to have a wide char
+    // version of struct stat as well as a wide char stat function variant
+    #if wxHAS_HUGE_FILES
+        #if wxUSE_UNICODE && defined(__WATCOMC__)
+            #define   wxStructStat struct _wstati64
+        #else
+            #define   wxStructStat struct _stati64
+        #endif
+    #else
+        #if wxUSE_UNICODE && defined(__WATCOMC__)
+            #define   wxStructStat struct _wstat
+        #else
+            #define   wxStructStat struct _stat
+        #endif
+    #endif
+
+    // constants (unless already defined by the user code)
     #if !defined(__BORLANDC__) && !defined(__WATCOMC__)
-        #define   S_IFMT      _S_IFMT
-        #define   S_IFDIR     _S_IFDIR
-        #define   S_IFREG     _S_IFREG
-    #endif // O_RDONLY
-#else
+        #ifndef O_RDONLY
+            #define   O_RDONLY    _O_RDONLY
+            #define   O_WRONLY    _O_WRONLY
+            #define   O_RDWR      _O_RDWR
+            #define   O_EXCL      _O_EXCL
+            #define   O_CREAT     _O_CREAT
+            #define   O_BINARY    _O_BINARY
+        #endif
+
+        #ifndef S_IFMT
+            #define   S_IFMT      _S_IFMT
+            #define   S_IFDIR     _S_IFDIR
+            #define   S_IFREG     _S_IFREG
+        #endif
+    #endif
+
+    // It's a private define, undefine it so nobody gets tempted to use it
+    #undef wxHAS_HUGE_FILES
+#else // Unix platforms using configure
+    typedef off_t wxFileOffset;
+    #ifdef _LARGE_FILES
+        #define wxFileOffsetFmtSpec wxLongLongFmtSpec
+    #else
+        #define wxFileOffsetFmtSpec _T("")
+    #endif
     // functions
     #define   wxClose      close
-    #define   wxRead       read
-    #define   wxWrite      write
+    #define   wxRead       ::read
+    #define   wxWrite      ::write
     #define   wxLseek      lseek
+    #define   wxSeek       lseek
     #define   wxFsync      commit
     #define   wxEof        eof
 
@@ -157,25 +339,31 @@ enum wxSeekMode
     #define   wxTell(fd)   lseek(fd, 0, SEEK_CUR)
 
     #define   wxStructStat struct stat
-    
-#if wxUSE_UNICODE
-#   define wxNEED_WX_UNISTD_H
-#if defined(__MWERKS__) && defined(macintosh)
-	#include <sys/stat.h>
-#endif
-#if defined(__DMC__)
-    typedef unsigned long mode_t;
-#endif
-WXDLLIMPEXP_BASE int wxStat( const wxChar *file_name, wxStructStat *buf );
-WXDLLIMPEXP_BASE int wxAccess( const wxChar *pathname, int mode );
-WXDLLIMPEXP_BASE int wxOpen( const wxChar *pathname, int flags, mode_t mode );
-#else
-    #define   wxOpen       open
-    #define   wxStat       stat
-    #define   wxAccess     access
-#endif
 
-#endif  // VC++
+    #if wxUSE_UNICODE
+        #define wxNEED_WX_UNISTD_H
+        #if defined(__DMC__)
+            typedef unsigned long mode_t;
+        #endif
+        WXDLLIMPEXP_BASE int wxStat( const wxChar *file_name, wxStructStat *buf );
+        WXDLLIMPEXP_BASE int wxAccess( const wxChar *pathname, int mode );
+        WXDLLIMPEXP_BASE int wxOpen( const wxChar *pathname, int flags, mode_t mode );
+    #else
+        #define   wxOpen       open
+        #define   wxStat       stat
+        #define   wxAccess     access
+    #endif
+#endif // platforms
+
+#if defined(__VISAGECPP__) && __IBMCPP__ >= 400
+//
+// VisualAge C++ V4.0 cannot have any external linkage const decs
+// in headers included by more than one primary source
+//
+extern const wxFileOffset wxInvalidOffset;
+#else
+const wxFileOffset wxInvalidOffset = (wxFileOffset)-1;
+#endif
 
 // ----------------------------------------------------------------------------
 // functions
@@ -237,16 +425,16 @@ WXDLLIMPEXP_BASE wxString wxFindNextFile();
 WXDLLIMPEXP_BASE bool wxIsWild(const wxString& pattern);
 
 // Does the pattern match the text (usually a filename)?
-// If dot_special is TRUE, doesn't match * against . (eliminating
+// If dot_special is true, doesn't match * against . (eliminating
 // `hidden' dot files)
-WXDLLIMPEXP_BASE bool wxMatchWild(const wxString& pattern,  const wxString& text, bool dot_special = TRUE);
+WXDLLIMPEXP_BASE bool wxMatchWild(const wxString& pattern,  const wxString& text, bool dot_special = true);
 
 // Concatenate two files to form third
 WXDLLIMPEXP_BASE bool wxConcatFiles(const wxString& file1, const wxString& file2, const wxString& file3);
 
 // Copy file1 to file2
 WXDLLIMPEXP_BASE bool wxCopyFile(const wxString& file1, const wxString& file2,
-                            bool overwrite = TRUE);
+                                 bool overwrite = true);
 
 // Remove file
 WXDLLIMPEXP_BASE bool wxRemoveFile(const wxString& file);
@@ -316,16 +504,16 @@ WXDLLIMPEXP_BASE bool wxRmdir(const wxString& dir, int flags = 0);
 // this is useful for wxString::IsSameAs(): to compare two file names use
 // filename1.IsSameAs(filename2, wxARE_FILENAMES_CASE_SENSITIVE)
 #if defined(__UNIX__) && !defined(__DARWIN__) && !defined(__OS2__)
-  #define wxARE_FILENAMES_CASE_SENSITIVE  TRUE
+  #define wxARE_FILENAMES_CASE_SENSITIVE  true
 #else   // Windows, Mac OS and OS/2
-  #define wxARE_FILENAMES_CASE_SENSITIVE  FALSE
+  #define wxARE_FILENAMES_CASE_SENSITIVE  false
 #endif  // Unix/Windows
 
 // is the char a path separator?
 inline bool wxIsPathSeparator(wxChar c)
 {
     // under DOS/Windows we should understand both Unix and DOS file separators
-#if ( defined(__UNIX__) && !defined(__OS2__) )|| defined(__MAC__) 
+#if ( defined(__UNIX__) && !defined(__OS2__) )|| defined(__MAC__)
     return c == wxFILE_SEP_PATH;
 #else
     return c == wxFILE_SEP_PATH_DOS || c == wxFILE_SEP_PATH_UNIX;
@@ -363,6 +551,41 @@ WXDLLIMPEXP_BASE int wxParseCommonDialogsFilter(const wxString& wildCard, wxArra
 // classes
 // ----------------------------------------------------------------------------
 
+#ifdef __UNIX__
+
+// set umask to the given value in ctor and reset it to the old one in dtor
+class WXDLLIMPEXP_BASE wxUmaskChanger
+{
+public:
+    // change the umask to the given one if it is not -1: this allows to write
+    // the same code whether you really want to change umask or not, as is in
+    // wxFileConfig::Flush() for example
+    wxUmaskChanger(int umaskNew)
+    {
+        m_umaskOld = umaskNew == -1 ? -1 : (int)umask((mode_t)umaskNew);
+    }
+
+    ~wxUmaskChanger()
+    {
+        if ( m_umaskOld != -1 )
+            umask((mode_t)m_umaskOld);
+    }
+
+private:
+    int m_umaskOld;
+};
+
+// this macro expands to an "anonymous" wxUmaskChanger object under Unix and
+// nothing elsewhere
+#define wxCHANGE_UMASK(m) wxUmaskChanger wxMAKE_UNIQUE_NAME(umaskChanger_)(m)
+
+#else // !__UNIX__
+
+#define wxCHANGE_UMASK(m)
+
+#endif // __UNIX__/!__UNIX__
+
+
 // Path searching
 class WXDLLIMPEXP_BASE wxPathList : public wxStringList
 {
@@ -381,7 +604,7 @@ public:
     wxString FindAbsoluteValidPath(const wxString& filename);
     // Given full path and filename, add path to list
     void EnsureFileAccessible(const wxString& path);
-    // Returns TRUE if the path is in the list
+    // Returns true if the path is in the list
     bool Member(const wxString& path);
 
 private:

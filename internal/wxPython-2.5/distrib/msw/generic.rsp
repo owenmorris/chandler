@@ -10,6 +10,7 @@ setup.h.in
 install-sh
 mkinstalldirs
 wx-config.in
+wx-config-inplace.in
 version-script.in
 setup.h_vms
 regen
@@ -63,25 +64,10 @@ docs/html/images/*.gif
 docs/tech/*.txt
 docs/tech/*.htm
 
-src/makeenvs/*.env
-
-src/*.inc
-src/mkdir
-src/make.env.in
-src/makeprog.env.in
-src/makelib.env.in
-src/files.lst
-
 src/common/*.cpp
-src/common/dosyacc.c
-src/common/doslex.c
-src/common/vmsyacc.c
-src/common/vmslex.c
 src/common/extended.c
 src/common/unzip.c
 src/common/unzip.h
-src/common/*.l
-src/common/*.y
 src/common/*.inc
 src/common/base.rc
 
@@ -465,12 +451,6 @@ samples/event/*.pro
 samples/event/*.bkl
 
 samples/except/*.cpp
-samples/except/*.rc
-samples/except/makefile*
-samples/except/*.xpm
-samples/except/*.bkl
-
-samples/except/*.cpp
 samples/except/*.h
 samples/except/makefile*
 samples/except/*.rc
@@ -598,6 +578,20 @@ samples/html/help/helpfiles/*.hhc
 samples/html/help/helpfiles/*.hhk
 samples/html/help/helpfiles/*.hhp
 samples/html/help/*.bkl
+
+samples/html/htmlctrl/*.cpp
+samples/html/htmlctrl/*.h
+samples/html/htmlctrl/makefile*
+samples/html/htmlctrl/*.rc
+samples/html/htmlctrl/*.def
+samples/html/htmlctrl/*.bmp
+samples/html/htmlctrl/*.xpm
+samples/html/htmlctrl/*.xbm
+samples/html/htmlctrl/*.png
+samples/html/htmlctrl/*.ico
+samples/html/htmlctrl/*.txt
+samples/html/htmlctrl/*.pro
+samples/html/htmlctrl/*.bkl
 
 samples/html/printing/*.cpp
 samples/html/printing/*.h
@@ -741,6 +735,8 @@ samples/internat/ja/*.mo
 samples/internat/ja/*.po
 samples/internat/ka/*.mo
 samples/internat/ka/*.po
+samples/internat/pl/*.mo
+samples/internat/pl/*.po
 samples/internat/*.bkl
 
 samples/ipc/*.cpp
@@ -1186,6 +1182,7 @@ samples/taskbar/*.def
 samples/taskbar/*.bmp
 samples/taskbar/*.ico
 samples/taskbar/*.txt
+samples/taskbar/*.xpm
 
 samples/text/*.cpp
 samples/text/*.h
@@ -1337,6 +1334,7 @@ demos/forty/*.txt
 demos/forty/*.pro
 demos/forty/*.bkl
 demos/forty/*.r
+demos/forty/*.htm
 
 demos/fractal/*.cpp
 demos/fractal/*.h
@@ -1422,8 +1420,12 @@ tests/*.cpp
 tests/*.fc
 
 tests/arrays/*.cpp
+tests/datetime/*.cpp
+tests/filename/*.cpp
 tests/filesys/*.cpp
+tests/fontmap/*.cpp
 tests/formatconverter/*.cpp
+tests/hashes/*.cpp
 tests/longlong/*.cpp
 tests/mbconv/*.cpp
 

@@ -55,19 +55,19 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxT("webkitctrl"));
     virtual ~wxWebKitCtrl();
-    
+
     void LoadURL(const wxString &url);
-    
+
     bool CanGoBack();
     bool CanGoForward();
     bool GoBack();
     bool GoForward();
-    void Reload(); 
+    void Reload();
     void Stop();
     bool CanGetPageSource();
     wxString GetPageSource();
     void SetPageSource(wxString& source, const wxString& baseUrl = wxEmptyString);
-    
+
     //we need to resize the webview when the control size changes
     void OnSize(wxSizeEvent &event);
 protected:
@@ -79,9 +79,9 @@ private:
     wxWindowID m_windowID;
     wxString m_currentURL;
     wxString m_pageTitle;
-    void* m_webView;
-    //It should be WebView, but WebView is Cocoa only, so any class which included
-    //this header would have to link to Cocoa, so for now use void* instead.
+    struct objc_object *m_webView;
+    //It should be WebView*, but WebView is an Objective-C class
+    //TODO: look into using DECLARE_WXCOCOA_OBJC_CLASS rather than this.
 };
 
 // ----------------------------------------------------------------------------
@@ -118,13 +118,13 @@ protected:
 typedef void (wxEvtHandler::*wxWebKitStateChangedEventFunction)(wxWebKitStateChangedEvent&);
 
 BEGIN_DECLARE_EVENT_TYPES()
-    DECLARE_LOCAL_EVENT_TYPE(wxEVT_WEBKIT_STATE_CHANGED, -1)
+    DECLARE_LOCAL_EVENT_TYPE(wxEVT_WEBKIT_STATE_CHANGED, wxID_ANY)
 END_DECLARE_EVENT_TYPES()
 
 #define EVT_WEBKIT_STATE_CHANGED(func) \
             DECLARE_EVENT_TABLE_ENTRY( wxEVT_WEBKIT_STATE_CHANGED, \
-                            -1,                       \
-                            -1,                       \
+                            wxID_ANY, \
+                            wxID_ANY, \
                             (wxObjectEventFunction)   \
                             (wxWebKitStateChangedEventFunction) & func, \
                             (wxObject *) NULL ),

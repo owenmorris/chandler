@@ -1,10 +1,18 @@
+#!/bin/bash
 #----------------------------------------------------------------------
 # This file defines the common configure flags I use for all my
 # wxWindows builds for the various configure-based ports.
 #----------------------------------------------------------------------
 
 
-BASE_CFG_FLAGS="--with-opengl --enable-debug  --enable-geometry --enable-sound --with-sdl --enable-display --prefix=/opt/wx/2.5"
+BASE_CFG_FLAGS="--prefix=/opt/wx/2.5"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --with-opengl"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --enable-debug"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --enable-geometry"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --enable-sound"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --with-sdl"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --enable-display"
+BASE_CFG_FLAGS="$BASE_CFG_FLAGS --enable-xrc"
 
 
 

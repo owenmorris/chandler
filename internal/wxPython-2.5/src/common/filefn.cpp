@@ -31,7 +31,7 @@
 
 #include "wx/utils.h"
 #include "wx/intl.h"
-#include "wx/file.h"
+#include "wx/file.h" // This does include filefn.h
 #include "wx/filename.h"
 #include "wx/dir.h"
 
@@ -54,76 +54,6 @@
     #include  "wx/mac/private.h"  // includes mac headers
 #endif
 
-#ifdef __WXWINCE__
-#include "wx/msw/wince/time.h"
-#include "wx/msw/private.h"
-#else
-#include <time.h>
-#endif
-
-#ifdef __WXWINCE__
-// Nothing
-#elif !defined(__MWERKS__)
-    #include <sys/types.h>
-    #include <sys/stat.h>
-#else
-#ifdef __MACH__
-#include <sys/types.h>
-#include <utime.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#else
-    #include <stat.h>
-    #include <unistd.h>
-    #include <unix.h>
-    #include <fcntl.h>
-#endif
-#endif
-
-#ifdef __OS2__
-// need to check for __OS2__ first since currently both
-// __OS2__ and __UNIX__ are defined.
-    #include <process.h>
-    #include "wx/os2/private.h"
-#ifdef __EMX__
-    #include <unistd.h>
-#endif
-#elif defined(__UNIX__)
-    #include <unistd.h>
-    #include <dirent.h>
-    #include <fcntl.h>
-#endif
-
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
-#if !defined( __GNUWIN32__ ) && !defined( __MWERKS__ ) && !defined(__SALFORDC__) && !defined(__WXWINCE__)
-    #include <direct.h>
-    #include <dos.h>
-    #include <io.h>
-#endif // __WINDOWS__
-#endif // native Win compiler
-
-#if defined(__DOS__)
-    #ifdef __WATCOMC__
-        #include <direct.h>
-        #include <dos.h>
-        #include <io.h>
-    #endif
-    #ifdef __DJGPP__
-        #include <unistd.h>
-    #endif
-#endif
-
-#ifdef __BORLANDC__ // Please someone tell me which version of Borland needs
-                    // this (3.1 I believe) and how to test for it.
-                    // If this works for Borland 4.0 as well, then no worries.
-    #include <dir.h>
-#endif
-
-#ifdef __SALFORDC__
-    #include <dir.h>
-    #include <unix.h>
-#endif
-
 #include "wx/log.h"
 
 // No, Cygwin doesn't appear to have fnmatch.h after all.
@@ -134,11 +64,6 @@
 #ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
     #include "wx/msw/mslu.h"
-
-    // for _getcwd
-    #ifdef __MINGW32__
-        #include <io.h>
-    #endif
 
     // sys/cygwin.h is needed for cygwin_conv_to_full_win32_path()
     //
@@ -564,9 +489,9 @@ wxChar *wxExpandPath(wxChar *buf, const wxChar *name)
     trimchars[3] = 0;
 
 #ifdef __WXMSW__
-     const wxChar     SEP = wxT('\\');
+    const wxChar     SEP = wxT('\\');
 #else
-     const wxChar     SEP = wxT('/');
+    const wxChar     SEP = wxT('/');
 #endif
     buf[0] = wxT('\0');
     if (name == NULL || *name == wxT('\0'))
@@ -915,9 +840,9 @@ wxString wxPathOnly (const wxString& path)
 #define kDefaultPathStyle kCFURLHFSPathStyle
 #endif
 
-wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathComponent ) 
+wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathComponent )
 {
-	CFURLRef fullURLRef;
+    CFURLRef fullURLRef;
     fullURLRef = CFURLCreateFromFSRef(NULL, fsRef);
     if ( additionalPathComponent )
     {
@@ -926,19 +851,19 @@ wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathCompon
             additionalPathComponent,false);
         CFRelease( parentURLRef ) ;
     }
-	CFStringRef cfString = CFURLCopyFileSystemPath(fullURLRef, kDefaultPathStyle);
-	CFRelease( fullURLRef ) ;
-	return wxMacCFStringHolder(cfString).AsString(wxLocale::GetSystemEncoding());
+    CFStringRef cfString = CFURLCopyFileSystemPath(fullURLRef, kDefaultPathStyle);
+    CFRelease( fullURLRef ) ;
+    return wxMacCFStringHolder(cfString).AsString(wxLocale::GetSystemEncoding());
 }
 
-OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef ) 
+OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef )
 {
     OSStatus err = noErr ;
-	CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, wxMacCFStringHolder(path ,wxLocale::GetSystemEncoding() ) , kDefaultPathStyle, false);
-	if ( NULL != url )
-	{
-	    if ( CFURLGetFSRef(url, fsRef) == false )
-	        err = fnfErr ;
+    CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, wxMacCFStringHolder(path ,wxLocale::GetSystemEncoding() ) , kDefaultPathStyle, false);
+    if ( NULL != url )
+    {
+        if ( CFURLGetFSRef(url, fsRef) == false )
+            err = fnfErr ;
         CFRelease( url ) ;
     }
     else
@@ -948,7 +873,7 @@ OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef )
     return err ;
 }
 
-wxString wxMacHFSUniStrToString( ConstHFSUniStr255Param uniname ) 
+wxString wxMacHFSUniStrToString( ConstHFSUniStr255Param uniname )
 {
     CFStringRef cfname = CFStringCreateWithCharacters( kCFAllocatorDefault,
                                                       uniname->unicode,
@@ -986,7 +911,7 @@ wxDos2UnixFilename (wxChar *s)
           *s = _T('/');
 #ifdef __WXMSW__
         else
-          *s = wxTolower (*s);        // Case INDEPENDENT
+          *s = (wxChar)wxTolower (*s);        // Case INDEPENDENT
 #endif
         s++;
       }
@@ -1096,11 +1021,9 @@ wxCopyFile (const wxString& file1, const wxString& file2, bool overwrite)
         return false;
     }
 
-#ifdef __UNIX__
     // reset the umask as we want to create the file with exactly the same
     // permissions as the original one
-    mode_t oldUmask = umask( 0 );
-#endif // __UNIX__
+    wxCHANGE_UMASK(0);
 
     // create file2 with the same permissions than file1 and open it for
     // writing
@@ -1108,11 +1031,6 @@ wxCopyFile (const wxString& file1, const wxString& file2, bool overwrite)
     wxFile fileOut;
     if ( !fileOut.Create(file2, overwrite, fbuf.st_mode & 0777) )
         return false;
-
-#ifdef __UNIX__
-    /// restore the old umask
-    umask(oldUmask);
-#endif // __UNIX__
 
     // copy contents of file1 to file2
     char buf[4096];
@@ -1426,7 +1344,7 @@ wxChar *wxGetWorkingDirectory(wxChar *buf, int sz)
         if ( getcwd( lbuf , sizeof( lbuf ) ) )
         {
             wxString res( lbuf , *wxConvCurrent ) ;
-		    wxStrcpy( buf , res ) ;			
+            wxStrcpy( buf , res ) ;
             ok = true;
         }
         else
@@ -1435,12 +1353,12 @@ wxChar *wxGetWorkingDirectory(wxChar *buf, int sz)
         APIRET rc;
         ULONG ulDriveNum = 0;
         ULONG ulDriveMap = 0;
-	rc = ::DosQueryCurrentDisk(&ulDriveNum, &ulDriveMap);
+        rc = ::DosQueryCurrentDisk(&ulDriveNum, &ulDriveMap);
         ok = rc == 0;
-	if (ok)
-	{
-	    sz -= 3;
-	    rc = ::DosQueryCurrentDir( 0 // current drive
+        if (ok)
+        {
+            sz -= 3;
+            rc = ::DosQueryCurrentDir( 0 // current drive
                                       ,cbuf + 3
                                       ,(PULONG)&sz
                                      );
@@ -1517,7 +1435,7 @@ bool wxSetWorkingDirectory(const wxString& d)
 #elif defined(__UNIX__) || defined(__WXMAC__) || defined(__DOS__)
     return (chdir(wxFNSTRINGCAST d.fn_str()) == 0);
 #elif defined(__WINDOWS__)
-    
+
 #ifdef __WIN32__
 #ifdef __WXWINCE__
     // No equivalent in WinCE
@@ -1531,11 +1449,11 @@ bool wxSetWorkingDirectory(const wxString& d)
     if (isDriveSpec)
     {
         wxChar firstChar = d[0];
-        
+
         // To upper case
         if (firstChar > 90)
             firstChar = firstChar - 32;
-        
+
         // To a drive number
         unsigned int driveNo = firstChar - 64;
         if (driveNo > 0)
@@ -1545,10 +1463,10 @@ bool wxSetWorkingDirectory(const wxString& d)
         }
     }
     bool success = (chdir(WXSTRINGCAST d) == 0);
-    
+
     return success;
 #endif
-    
+
 #endif
 }
 
@@ -1649,13 +1567,13 @@ time_t WXDLLEXPORT wxFileModificationTime(const wxString& filename)
             {
                 wxLogLastError(_T("FileTimeToLocalFileTime"));
             }
-            
+
             SYSTEMTIME st;
             if ( !::FileTimeToSystemTime(&ftLocal, &st) )
             {
                 wxLogLastError(_T("FileTimeToSystemTime"));
             }
-            
+
             dateTime.Set(st.wDay, wxDateTime::Month(st.wMonth - 1), st.wYear,
                 st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
             return dateTime.GetTicks();

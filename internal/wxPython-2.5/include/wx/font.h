@@ -31,6 +31,7 @@
 class WXDLLEXPORT wxFontData;
 class WXDLLEXPORT wxFontBase;
 class WXDLLEXPORT wxFont;
+class WXDLLEXPORT wxSize;
 
 // ----------------------------------------------------------------------------
 // font constants
@@ -123,13 +124,31 @@ public:
         int family,                 // see wxFontFamily enum
         int style,                  // see wxFontStyle enum
         int weight,                 // see wxFontWeight enum
-        bool underlined = FALSE,    // not underlined by default
+        bool underlined = false,    // not underlined by default
         const wxString& face = wxEmptyString,              // facename
         wxFontEncoding encoding = wxFONTENCODING_DEFAULT); // ISO8859-X, ...
 
     // from the font components but using the font flags instead of separate
     // parameters for each flag
     static wxFont *New(int pointSize,
+                       wxFontFamily family,
+                       int flags = wxFONTFLAG_DEFAULT,
+                       const wxString& face = wxEmptyString,
+                       wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
+
+    // from the font components
+    static wxFont *New(
+        const wxSize& pixelSize,    // size of the font in pixels
+        int family,                 // see wxFontFamily enum
+        int style,                  // see wxFontStyle enum
+        int weight,                 // see wxFontWeight enum
+        bool underlined = FALSE,    // not underlined by default
+        const wxString& face = wxEmptyString,              // facename
+        wxFontEncoding encoding = wxFONTENCODING_DEFAULT); // ISO8859-X, ...
+
+    // from the font components but using the font flags instead of separate
+    // parameters for each flag
+    static wxFont *New(const wxSize& pixelSize,
                        wxFontFamily family,
                        int flags = wxFONTFLAG_DEFAULT,
                        const wxString& face = wxEmptyString,
@@ -150,6 +169,8 @@ public:
 
     // accessors: get the font characteristics
     virtual int GetPointSize() const = 0;
+    virtual wxSize GetPixelSize() const;
+    virtual bool IsUsingSizeInPixels() const;
     virtual int GetFamily() const = 0;
     virtual int GetStyle() const = 0;
     virtual int GetWeight() const = 0;
@@ -165,6 +186,7 @@ public:
 
     // change the font characteristics
     virtual void SetPointSize( int pointSize ) = 0;
+    virtual void SetPixelSize( const wxSize& pixelSize );
     virtual void SetFamily( int family ) = 0;
     virtual void SetStyle( int style ) = 0;
     virtual void SetWeight( int weight ) = 0;
@@ -184,8 +206,8 @@ public:
     wxString GetWeightString() const;
 
     // Unofficial API, don't use
-    virtual void SetNoAntiAliasing( bool WXUNUSED(no) = TRUE ) {  }
-    virtual bool GetNoAntiAliasing() const { return FALSE; }
+    virtual void SetNoAntiAliasing( bool WXUNUSED(no) = true ) {  }
+    virtual bool GetNoAntiAliasing() const { return false; }
 
     // the default encoding is used for creating all fonts with default
     // encoding parameter

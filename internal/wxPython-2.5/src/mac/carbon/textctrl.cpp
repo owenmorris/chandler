@@ -2,7 +2,7 @@
 // Name:        textctrl.cpp
 // Purpose:     wxTextCtrl
 // Author:      Stefan Csomor
-// Modified by:
+// Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
 // RCS-ID:      $Id$
 // Copyright:   (c) Stefan Csomor
@@ -300,6 +300,7 @@ public :
                              const wxSize& size, long style ) ;
     ~wxMacMLTEClassicControl() ;
     virtual void VisibilityChanged(bool shown) ;
+    virtual bool NeedsFocusRect() const;
 protected :
     OSStatus                 DoCreate();
 public :
@@ -360,8 +361,6 @@ bool wxTextCtrl::Create(wxWindow *parent, wxWindowID id,
     if ( !wxTextCtrlBase::Create(parent, id, pos, size, style & ~(wxHSCROLL|wxVSCROLL), validator, name) )
         return FALSE;
 
-    wxSize mySize = size ;
-
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;    
 
     if ( m_windowStyle & wxTE_MULTILINE )
@@ -391,7 +390,10 @@ bool wxTextCtrl::Create(wxWindow *parent, wxWindowID id,
     {
         // this control draws the border itself
         if ( !HasFlag(wxNO_BORDER) )
+        {
             m_windowStyle &= ~wxSUNKEN_BORDER ;
+            bounds = wxMacGetBoundsForControl( this , pos , size ) ;    
+        }    
         m_peer = new wxMacMLTEClassicControl( this , str , pos , size , style ) ;
     }
 
@@ -766,6 +768,7 @@ void wxTextCtrl::OnEraseBackground(wxEraseEvent& event)
     // while this is true for MLTE under classic, the HITextView is somehow
     // transparent but background erase is not working correctly, so intercept
     // things while we can...
+    event.Skip() ;
 }
 
 void wxTextCtrl::OnChar(wxKeyEvent& event)
@@ -1155,7 +1158,7 @@ wxMacUnicodeTextControl::wxMacUnicodeTextControl( wxWindow *wxPeer,
     m_windowStyle = style ;
     Rect bounds = wxMacGetBoundsForControl( wxPeer , pos , size ) ;    
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
     wxMacCFStringHolder cf(st , m_font.GetEncoding()) ;
     CFStringRef cfr = cf ;
     Boolean isPassword = ( m_windowStyle & wxTE_PASSWORD ) != 0 ;
@@ -1197,13 +1200,17 @@ wxString wxMacUnicodeTextControl::GetStringValue() const
         wxMacCFStringHolder cf(value) ;
         result = cf.AsString() ;
     }
+#if '\n' == 10
+    wxMacConvertNewlines13To10( &result ) ;
+#else
     wxMacConvertNewlines10To13( &result ) ;
+#endif
     return result ;
 }
 void wxMacUnicodeTextControl::SetStringValue( const wxString &str) 
 {
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
     wxMacCFStringHolder cf(st , m_font.GetEncoding() ) ;
     verify_noerr( SetData<CFStringRef>(  0, m_valueTag , cf ) ) ;
 }
@@ -1250,7 +1257,7 @@ void wxMacUnicodeTextControl::SetSelection( long from , long to )
 void wxMacUnicodeTextControl::WriteText(const wxString& str)
 {
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
     #if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
         wxMacCFStringHolder cf(st , m_font.GetEncoding() ) ;
         CFStringRef value = cf ;
@@ -1371,14 +1378,19 @@ wxString wxMacMLTEControl::GetStringValue() const
         }
 #endif
     }
+#if '\n' == 10
+    wxMacConvertNewlines13To10( &result ) ;
+#else
     wxMacConvertNewlines10To13( &result ) ;
+#endif
     return result ;
 }
 
 void wxMacMLTEControl::SetStringValue( const wxString &str) 
 {
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+
+    wxMacConvertNewlines10To13( &st ) ;
     EditHelper help(m_txn) ;
 
     // wxMacWindowClipper c( this ) ;
@@ -1600,13 +1612,13 @@ long wxMacMLTEControl::GetLastPosition() const
 void wxMacMLTEControl::Replace( long from , long to , const wxString str ) 
 {
     wxString value = str ;
-    wxMacConvertNewlines13To10( &value ) ;
+    wxMacConvertNewlines10To13( &value ) ;
 
     EditHelper help( m_txn ) ;
 
     TXNSetSelection(m_txn , from , to ) ;
     TXNClear( m_txn ) ;
-    SetTXNData( str , kTXNUseCurrentSelection, kTXNUseCurrentSelection ) ;
+    SetTXNData( value , kTXNUseCurrentSelection, kTXNUseCurrentSelection ) ;
 }
 
 void wxMacMLTEControl::Remove( long from , long to )
@@ -1636,7 +1648,7 @@ void wxMacMLTEControl::WriteText(const wxString& str)
 {
     EditHelper helper( m_txn ) ;
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
 
     long start , end , dummy ;
     GetSelection( &start , &dummy ) ;
@@ -1806,41 +1818,37 @@ void wxMacMLTEControl::SetTXNData( const wxString& st , TXNOffset start , TXNOff
 wxString wxMacMLTEControl::GetLineText(long lineNo) const
 {
     wxString line ;
-    Point curpt ;
-    wxString content = GetStringValue() ;
 
     if ( lineNo < GetNumberOfLines() )
     {
-        // TODO find a better implementation : while we can get the 
-        // line metrics of a certain line, we don't get its starting
-        // position, so it would probably be rather a binary search
-        // for the start position
-        long xpos = 0 ; 
         long ypos = 0 ;
-        int lastHeight = 0 ;
-        long lastpos = GetLastPosition() ;
-
-        ItemCount n ;
-        for ( n = 0 ; n <= (ItemCount)lastpos ; ++n )
+        
+        Fixed 	lineWidth,
+                lineHeight,
+                currentHeight = 0;
+        
+        // get the first possible position in the control
+        Point firstPoint;
+        TXNOffsetToPoint(m_txn, 0, &firstPoint);
+        
+        // Iterate through the lines until we reach the one we want,
+        // adding to our current y pixel point position
+        while (ypos < lineNo)
         {
-            TXNOffsetToPoint( m_txn,  n , &curpt);
-
-            if ( curpt.v > lastHeight )
-            {
-                if ( ypos == lineNo )
-                    return line ;
+            TXNGetLineMetrics(m_txn, ypos++, &lineWidth, &lineHeight);
+            currentHeight += lineHeight;
+        }
+        
+        Point thePoint = { firstPoint.v + (currentHeight >> 16), firstPoint.h + (0) };
+        TXNOffset theOffset;
+        TXNPointToOffset(m_txn, thePoint, &theOffset);
                     
-                xpos = 0 ;
-                if ( n > 0 )
-                    ++ypos ;
-                lastHeight = curpt.v ;
-            }
-            else
-            {
-                if ( ypos == lineNo )
-                    line += content[n] ;
-                ++xpos ;
-            }
+        wxString content = GetStringValue() ;
+        Point currentPoint = thePoint;
+        while(thePoint.v == currentPoint.v && theOffset < content.length())
+        {
+            line += content[theOffset];
+            TXNOffsetToPoint(m_txn, ++theOffset, &currentPoint);
         }
     }
     return line ;
@@ -1848,38 +1856,41 @@ wxString wxMacMLTEControl::GetLineText(long lineNo) const
 
 int  wxMacMLTEControl::GetLineLength(long lineNo) const
 {
-    Point curpt ;
+    int theLength = 0;
+
     if ( lineNo < GetNumberOfLines() )
     {
-        // TODO find a better implementation : while we can get the 
-        // line metrics of a certain line, we don't get its starting
-        // position, so it would probably be rather a binary search
-        // for the start position
-        long xpos = 0 ; 
         long ypos = 0 ;
-        int lastHeight = 0 ;
-        long lastpos = GetLastPosition() ;
-
-        ItemCount n ;
-        for ( n = 0 ; n <= (ItemCount) lastpos ; ++n )
+        
+        Fixed 	lineWidth,
+                lineHeight,
+                currentHeight = 0;
+        
+        // get the first possible position in the control
+        Point firstPoint;
+        TXNOffsetToPoint(m_txn, 0, &firstPoint);
+        
+        // Iterate through the lines until we reach the one we want,
+        // adding to our current y pixel point position
+        while (ypos < lineNo)
         {
-            TXNOffsetToPoint( m_txn ,  n , &curpt);
-
-            if ( curpt.v > lastHeight )
-            {
-                if ( ypos == lineNo )
-                    return xpos ;
+            TXNGetLineMetrics(m_txn, ypos++, &lineWidth, &lineHeight);
+            currentHeight += lineHeight;
+        }
+        
+        Point thePoint = { firstPoint.v + (currentHeight >> 16), firstPoint.h + (0) };
+        TXNOffset theOffset;
+        TXNPointToOffset(m_txn, thePoint, &theOffset);
                     
-                xpos = 0 ;
-                if ( n > 0 )
-                    ++ypos ;
-                lastHeight = curpt.v ;
-            }
-            else
-                ++xpos ;
+        wxString content = GetStringValue() ;
+        Point currentPoint = thePoint;
+        while(thePoint.v == currentPoint.v && theOffset < content.length())
+        {
+            ++theLength;
+            TXNOffsetToPoint(m_txn, ++theOffset, &currentPoint);
         }
     }
-    return 0 ;
+    return theLength ;
 }
 
 
@@ -2346,9 +2357,7 @@ wxMacMLTEClassicControl::wxMacMLTEClassicControl( wxWindow *wxPeer,
     m_windowStyle = style ;
     Rect bounds = wxMacGetBoundsForControl( wxPeer , pos , size ) ;    
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
-
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
 
     short featurSet;
 
@@ -2464,6 +2473,21 @@ OSStatus wxMacMLTEClassicControl::DoCreate()
     return err;
 }
 
+//
+// HACKHACK: (RN)
+// Classic controls are not initially focused and
+// smaller ones are focused badly with the focus rect
+// this "fixes" the above issue - but there is probably a 
+// a better way.
+//
+// Still, on smaller text controls the focus rect is off
+//
+
+bool wxMacMLTEClassicControl::NeedsFocusRect() const 
+{
+    return m_windowStyle & wxNO_BORDER ? false : true;
+}
+
 // ----------------------------------------------------------------------------
 // MLTE control implementation (OSX part)
 // ----------------------------------------------------------------------------
@@ -2481,7 +2505,7 @@ wxMacMLTEHIViewControl::wxMacMLTEHIViewControl( wxWindow *wxPeer,
     m_windowStyle = style ;
     Rect bounds = wxMacGetBoundsForControl( wxPeer , pos , size ) ;    
     wxString st = str ;
-    wxMacConvertNewlines13To10( &st ) ;
+    wxMacConvertNewlines10To13( &st ) ;
     
     HIRect hr = { bounds.left , bounds.top , bounds.right - bounds.left , bounds.bottom- bounds.top } ;
 

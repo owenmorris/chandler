@@ -1,4 +1,49 @@
-#include "hid.h"
+/////////////////////////////////////////////////////////////////////////////
+// Name:        hid.cpp
+// Purpose:     DARWIN HID layer for WX Implementation
+// Author:      Ryan Norton
+// Modified by:
+// Created:     11/11/2003
+// RCS-ID:      $Id$
+// Copyright:   (c) Ryan Norton
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
+// ===========================================================================
+// declarations
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// headers
+// ---------------------------------------------------------------------------
+
+#ifdef __GNUG__
+#pragma implementation "hid.h"
+#endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+    #include "wx/defs.h"
+#endif
+
+
+//DARWIN _ONLY_
+#ifdef __DARWIN__
+
+#include "wx/mac/carbon/private/hid.h"
+#include "wx/string.h"
+#include "wx/log.h"
+
+
+// ---------------------------------------------------------------------------
+// assertion macros
+// ---------------------------------------------------------------------------
 
 #define wxFORCECHECK_MSG(arg, msg)  \
 {\
@@ -12,11 +57,18 @@
 #define wxKERNCHECK(arg, msg) wxFORCECHECK_MSG(arg != KERN_SUCCESS, msg)
 #define wxSCHECK(arg, msg) wxFORCECHECK_MSG(arg != S_OK, msg)
 
+#ifdef __WXDEBUG___
+#	define wxVERIFY(arg)	wxASSERT(arg)
+#else
+#	define wxVERIFY(arg)	arg
+#endif
+
+/*
 void CFShowTypeIDDescription(CFTypeRef pData)
 {
 	if(!pData)
 	{
-		wxMessageBox("AHHH!");
+		wxASSERT(false);
 		return;
 	}
 	
@@ -26,11 +78,15 @@ void CFShowTypeIDDescription(CFTypeRef pData)
 							 )
 				);	
 }
+*/
 
 // ============================================================================
 // implementation
 // ============================================================================
 
+// ---------------------------------------------------------------------------
+// wxHIDDevice
+// ---------------------------------------------------------------------------
 
 bool wxHIDDevice::Create (const int& nClass, const int& nType)
 {
@@ -46,7 +102,7 @@ bool wxHIDDevice::Create (const int& nClass, const int& nType)
 	//The call to IOServiceMatching filters down the
 	//the services we want to hid services (and also eats the
 	//dictionary up for us (consumes one reference))
-	wxASSERT((pDictionary = IOServiceMatching(kIOHIDDeviceKey)) != NULL );
+	wxVERIFY((pDictionary = IOServiceMatching(kIOHIDDeviceKey)) != NULL );
 
 	//Here we'll filter down the services to what we want
 	if (nType != -1)
@@ -73,7 +129,7 @@ bool wxHIDDevice::Create (const int& nClass, const int& nType)
 	io_object_t pObject;
 	while ( (pObject = IOIteratorNext(pIterator)) != NULL)
 	{
-		wxASSERT(IORegistryEntryCreateCFProperties(pObject, &pDictionary,
+		wxVERIFY(IORegistryEntryCreateCFProperties(pObject, &pDictionary,
 											kCFAllocatorDefault, kNilOptions) == KERN_SUCCESS);
 
 		//Just for sanity :)
@@ -91,7 +147,7 @@ bool wxHIDDevice::Create (const int& nClass, const int& nType)
 		wxCFArray CookieArray = CFDictionaryGetValue(pDictionary, CFSTR(kIOHIDElementKey));
 		BuildCookies(CookieArray);
 		if (m_ppQueue != NULL)
-			wxASSERT((*m_ppQueue)->start(m_ppQueue) == S_OK);
+			wxVERIFY((*m_ppQueue)->start(m_ppQueue) == S_OK);
 
 		//Create the interface (good grief - long function names!)
 		SInt32 nScore;
@@ -111,7 +167,7 @@ bool wxHIDDevice::Create (const int& nClass, const int& nType)
 		(*ppPlugin)->Release(ppPlugin);
 		
 		//open the HID interface...
-		wxASSERT((*m_ppDevice)->open(m_ppDevice, 0) == S_OK);
+		wxVERIFY((*m_ppDevice)->open(m_ppDevice, 0) == S_OK);
 		
 		//cleanup
 		CFRelease(pDictionary);
@@ -138,7 +194,7 @@ void wxHIDDevice::AddCookie(CFTypeRef Data, const int& i)
 void wxHIDDevice::AddCookieInQueue(CFTypeRef Data, const int& i)
 {
 	AddCookie(Data, i);
-	wxASSERT((*m_ppQueue)->addElement(m_ppQueue, m_pCookies[i], 0) == S_OK);//3rd Param flags (none yet)
+	wxVERIFY((*m_ppQueue)->addElement(m_ppQueue, m_pCookies[i], 0) == S_OK);//3rd Param flags (none yet)
 }
 	
 void wxHIDDevice::InitCookies(const size_t& dwSize, bool bQueue)
@@ -147,8 +203,8 @@ void wxHIDDevice::InitCookies(const size_t& dwSize, bool bQueue)
 	if (bQueue)
 	{
 		wxASSERT( m_ppQueue != NULL);
-		wxASSERT(  (m_ppQueue = (*m_ppDevice)->allocQueue(m_ppDevice)) != NULL);
-		wxASSERT(  (*m_ppQueue)->create(m_ppQueue, 0, 512) == S_OK); //Param 2, flags, none yet
+		wxVERIFY(  (m_ppQueue = (*m_ppDevice)->allocQueue(m_ppDevice)) != NULL);
+		wxVERIFY(  (*m_ppQueue)->create(m_ppQueue, 0, 512) == S_OK); //Param 2, flags, none yet
 	}		
 }
 
@@ -181,112 +237,11 @@ wxHIDDevice::~wxHIDDevice()
 		}
 	}
 }
-/*
-enum
-{
-	kHIDUsage_KeyboardHyphen	= 0x2D,	
-	kHIDUsage_KeyboardEqualSign	= 0x2E,	
-	kHIDUsage_KeyboardOpenBracket	= 0x2F,	
-	kHIDUsage_KeyboardCloseBracket	= 0x30,
-	kHIDUsage_KeyboardBackslash	= 0x31,	//* \ or | *
-	kHIDUsage_KeyboardNonUSPound	= 0x32,	/* Non-US # or _ *
-	kHIDUsage_KeyboardSemicolon	= 0x33,	/* ; or : *
-	kHIDUsage_KeyboardQuote	= 0x34,	/* ' or " *
-	kHIDUsage_KeyboardGraveAccentAndTilde	= 0x35,	/* Grave Accent and Tilde *
-	kHIDUsage_KeyboardComma	= 0x36,	/* , or < *
-	kHIDUsage_KeyboardPeriod	= 0x37,	/* . or > *
-	kHIDUsage_KeyboardSlash	= 0x38,	/* / or ? *
-	kHIDUsage_KeyboardCapsLock	= 0x39,	/* Caps Lock *
 
-	kHIDUsage_KeyboardPrintScreen	= 0x46,	/* Print Screen *
-	kHIDUsage_KeyboardScrollLock	= 0x47,	/* Scroll Lock *
-	kHIDUsage_KeyboardPause	= 0x48,	/* Pause *
-	kHIDUsage_KeyboardInsert	= 0x49,	/* Insert *
-	kHIDUsage_KeyboardHome	= 0x4A,	/* Home *
-	kHIDUsage_KeyboardDeleteForward	= 0x4C,	/* Delete Forward *
+// ---------------------------------------------------------------------------
+// wxHIDKeyboard
+// ---------------------------------------------------------------------------
 
-	kHIDUsage_KeyboardUpArrow
-	kHIDUsage_KeypadNumLock
-	kHIDUsage_KeypadSlash
-	kHIDUsage_KeypadAsterisk
-	kHIDUsage_KeypadHyphen
-	kHIDUsage_KeypadPlus
-	kHIDUsage_KeypadEnter
-	kHIDUsage_KeypadPeriod
-	kHIDUsage_KeyboardNonUSBackslash
-	kHIDUsage_KeyboardApplication
-	kHIDUsage_KeyboardPower
-	kHIDUsage_KeypadEqualSign
-};
-/*
-	enum wxKeyCode
-	{
-
-		WXK_START   = 300,
-		WXK_LBUTTON,
-		WXK_RBUTTON,
-		WXK_CANCEL,
-		WXK_MBUTTON,
-		WXK_CLEAR,
-		WXK_SHIFT,
-		WXK_ALT,
-		WXK_CONTROL,
-		WXK_MENU,
-		WXK_PAUSE,
-		WXK_PRIOR,  *  Page up *
-		WXK_NEXT,   *  Page down *
-		WXK_END,
-		WXK_HOME,
-		WXK_LEFT,
-		WXK_UP,
-		WXK_RIGHT,
-		WXK_DOWN,
-		WXK_SELECT,
-		WXK_PRINT,
-		WXK_EXECUTE,
-		WXK_SNAPSHOT,
-		WXK_INSERT,
-		WXK_HELP,
-		WXK_MULTIPLY,
-		WXK_ADD,
-		WXK_SEPARATOR,
-		WXK_SUBTRACT,
-		WXK_DECIMAL,
-		WXK_DIVIDE,
-		WXK_PAGEUP,
-		WXK_PAGEDOWN,
-
-		WXK_NUMPAD_SPACE,
-		WXK_NUMPAD_TAB,
-		WXK_NUMPAD_ENTER,
-		WXK_NUMPAD_HOME,
-		WXK_NUMPAD_LEFT,
-		WXK_NUMPAD_UP,
-		WXK_NUMPAD_RIGHT,
-		WXK_NUMPAD_DOWN,
-		WXK_NUMPAD_PRIOR,
-		WXK_NUMPAD_PAGEUP,
-		WXK_NUMPAD_NEXT,
-		WXK_NUMPAD_PAGEDOWN,
-		WXK_NUMPAD_END,
-		WXK_NUMPAD_BEGIN,
-		WXK_NUMPAD_INSERT,
-		WXK_NUMPAD_DELETE,
-		WXK_NUMPAD_EQUAL,
-		WXK_NUMPAD_MULTIPLY,
-		WXK_NUMPAD_ADD,
-		WXK_NUMPAD_SEPARATOR,
-		WXK_NUMPAD_SUBTRACT,
-		WXK_NUMPAD_DECIMAL,
-		WXK_NUMPAD_DIVIDE,
-
-		WXK_WINDOWS_LEFT,
-		WXK_WINDOWS_RIGHT,
-		WXK_WINDOWS_MENU ,
-		WXK_COMMAND
-	};
-
- */
 enum
 {
 	WXK_RSHIFT = 400,
@@ -415,3 +370,5 @@ void wxHIDKeyboard::BuildCookies(wxCFArray& Array)
 		}
 	}
 }//end buildcookies
+
+#endif //__DARWIN__

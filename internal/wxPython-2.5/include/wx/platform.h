@@ -143,36 +143,45 @@
 #endif /* Win32 */
 
 #if defined(__WXMSW__) || defined(__WIN32__)
-#    if !defined(__WINDOWS__)
-#        define __WINDOWS__
-#    endif
+#   if !defined(__WINDOWS__)
+#       define __WINDOWS__
+#   endif
 #endif
 
 #ifdef __WINE__
-#    ifndef __WIN95__
-#        define __WIN95__
-#    endif
+#   ifndef __WIN95__
+#       define __WIN95__
+#   endif
 #endif /* WINE */
 
-/* detect SmartPhone */
+/* detect MS SmartPhone */
 #if defined( WIN32_PLATFORM_WFSP )
-#    ifndef __SMARTPHONE__
-#        define __SMARTPHONE__
-#    endif
+#   ifndef __SMARTPHONE__
+#       define __SMARTPHONE__
+#   endif
+#   ifndef __WXWINCE__
+#       define __WXWINCE__
+#   endif
 #endif
 
 /* detect PocketPC */
 #if defined( WIN32_PLATFORM_PSPC )
-#    ifndef __POCKETPC__
-#        define __POCKETPC__
-#    endif
+#   ifndef __POCKETPC__
+#       define __POCKETPC__
+#   endif
+#   ifndef __WXWINCE__
+#       define __WXWINCE__
+#   endif
 #endif
 
 /* detect Standard WinCE SDK */
 #if defined( WCE_PLATFORM_STANDARDSDK )
-#    ifndef __WINCE_STANDARDSDK__
-#        define __WINCE_STANDARDSDK__
-#    endif
+#   ifndef __WINCE_STANDARDSDK__
+#       define __WINCE_STANDARDSDK__
+#   endif
+#   ifndef __WXWINCE__
+#       define __WXWINCE__
+#   endif
 #endif
 
 #if defined(_WIN32_WCE) && !defined(WIN32_PLATFORM_WFSP) && !defined(WIN32_PLATFORM_PSPC)
@@ -184,6 +193,9 @@
 #       ifndef __HANDHELDPC__
 #           define __HANDHELDPC__
 #       endif
+#   endif
+#   ifndef __WXWINCE__
+#       define __WXWINCE__
 #   endif
 #endif
 
@@ -415,12 +427,6 @@
 #    define __UNIX__
 #endif /* Unix */
 
-#if defined(__HPUX__) && !defined(__WXGTK__)
-#    ifndef __WXMOTIF__
-#        define __WXMOTIF__
-#    endif /* __WXMOTIF__ */
-#endif
-
 #if defined(__WXMOTIF__) || defined(__WXX11__)
 #    define __X__
 #endif
@@ -510,6 +516,15 @@
 
 #if !defined(wxUSE_WXDIB) && defined(__WXMSW__)
 #    define wxUSE_WXDIB 1
+#endif
+
+/*
+    We need AvailabilityMacros.h for ifdefing out things that don't exist on 
+    OSX 10.2 and lower
+    FIXME:  We need a better way to detect for 10.3 then including a system header
+*/
+#ifdef __DARWIN__
+    #include <AvailabilityMacros.h>
 #endif
 
 #endif /* _WX_PLATFORM_H_ */

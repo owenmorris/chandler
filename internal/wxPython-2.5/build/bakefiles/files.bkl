@@ -31,6 +31,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
                                      ports (wxGTK, wxMotif, wxX11)
 
        HTML                          wxHTML files
+       XRC                           wxXRC files
 
      * one file may be listed in several groups
 
@@ -176,6 +177,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/common/object.cpp
     src/common/process.cpp
     src/common/regex.cpp
+    src/common/sstream.cpp
     src/common/stopwatch.cpp
     src/common/strconv.cpp
     src/common/stream.cpp
@@ -272,6 +274,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/regex.h
     wx/scopeguard.h
     wx/snglinst.h
+    wx/sstream.h
     wx/stack.h
     wx/stockitem.h
     wx/stopwatch.h
@@ -452,6 +455,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/common/xpmdecod.cpp
     src/generic/busyinfo.cpp
     src/generic/choicdgg.cpp
+    src/generic/choicbkg.cpp
     src/generic/dcpsg.cpp
     src/generic/dirctrlg.cpp
     src/generic/dragimgg.cpp
@@ -561,6 +565,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/bookctrl.h
     wx/busyinfo.h
     wx/caret.h
+    wx/choicebk.h
     wx/clipbrd.h
     wx/cmdproc.h
     wx/colordlg.h
@@ -707,6 +712,32 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="GTK_LOWLEVEL_HDR" hints="files">
     $(XWIN_LOWLEVEL_HDR)
     wx/generic/paletteg.h
+    wx/gtk/app.h
+    wx/gtk/bitmap.h
+    wx/gtk/brush.h
+    wx/gtk/clipbrd.h
+    wx/gtk/colour.h
+    wx/gtk/cursor.h
+    wx/gtk/dataform.h
+    wx/gtk/dataobj.h
+    wx/gtk/dataobj2.h
+    wx/gtk/dc.h
+    wx/gtk/dcclient.h
+    wx/gtk/dcmemory.h
+    wx/gtk/dcscreen.h
+    wx/gtk/dnd.h
+    wx/gtk/font.h
+    wx/gtk/gdiobj.h
+    wx/gtk/icon.h
+    wx/gtk/minifram.h
+    wx/gtk/pen.h
+    wx/gtk/popupwin.h
+    wx/gtk/region.h
+    wx/gtk/timer.h
+    wx/gtk/tooltip.h
+    wx/gtk/toplevel.h
+    wx/gtk/win_gtk.h
+    wx/gtk/window.h
 </set>
 <set var="GTK_SRC" hints="files">
     <!-- Generic implementations used by wxGTK: -->
@@ -766,48 +797,27 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/generic/statusbr.h
     wx/generic/tabg.h
     wx/gtk/accel.h
-    wx/gtk/app.h
-    wx/gtk/bitmap.h
     wx/gtk/bmpbuttn.h
-    wx/gtk/brush.h
     wx/gtk/button.h
     wx/gtk/checkbox.h
     wx/gtk/checklst.h
     wx/gtk/colordlg.h
     wx/gtk/choice.h
-    wx/gtk/clipbrd.h
-    wx/gtk/colour.h
     wx/gtk/combobox.h
     wx/gtk/control.h
-    wx/gtk/cursor.h
-    wx/gtk/dataform.h
-    wx/gtk/dataobj.h
-    wx/gtk/dataobj2.h
-    wx/gtk/dc.h
-    wx/gtk/dcclient.h
-    wx/gtk/dcmemory.h
-    wx/gtk/dcscreen.h
     wx/gtk/dialog.h
-    wx/gtk/dnd.h
     wx/gtk/filedlg.h
-    wx/gtk/font.h
     wx/gtk/fontdlg.h
     wx/gtk/frame.h
     wx/gtk/gauge.h
-    wx/gtk/gdiobj.h
-    wx/gtk/icon.h
     wx/gtk/listbox.h
     wx/gtk/mdi.h
     wx/gtk/menu.h
     wx/gtk/menuitem.h
-    wx/gtk/minifram.h
     wx/gtk/msgdlg.h
     wx/gtk/notebook.h
-    wx/gtk/pen.h
-    wx/gtk/popupwin.h
     wx/gtk/radiobox.h
     wx/gtk/radiobut.h
-    wx/gtk/region.h
     wx/gtk/scrolbar.h
     wx/gtk/scrolwin.h
     wx/gtk/slider.h
@@ -820,12 +830,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/gtk/tbargtk.h
     wx/gtk/textctrl.h
     wx/gtk/tglbtn.h
-    wx/gtk/timer.h
-    wx/gtk/tooltip.h
-    wx/gtk/toplevel.h
     wx/gtk/treectrl.h
-    wx/gtk/win_gtk.h
-    wx/gtk/window.h
 </set>
 
 
@@ -1113,9 +1118,15 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 </set>
 
 <set var="MSW_ONLY_LOWLEVEL_SRC" hints="files">
+    src/msw/helpchm.cpp
+    src/msw/helpwin.cpp
     src/msw/ole/automtn.cpp
     src/msw/ole/uuid.cpp
-    src/msw/dirdlg.cpp
+</set>
+
+<set var="MSW_ONLY_LOWLEVEL_HDR" hints="files">
+    wx/msw/helpchm.h
+    wx/msw/helpwin.h
 </set>
 
 <set var="MSW_SRC" hints="files">
@@ -1131,6 +1142,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/msw/combobox.cpp
     src/msw/control.cpp
     src/msw/dialog.cpp
+    src/msw/dirdlg.cpp
     src/msw/dragimag.cpp
     src/msw/filedlg.cpp
     src/msw/frame.cpp
@@ -1192,6 +1204,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/msw/dirdlg.h
     wx/msw/dragimag.h
     wx/msw/enhmeta.h
+    wx/msw/evtloop.h
     wx/msw/filedlg.h
     wx/msw/font.h
     wx/msw/frame.h
@@ -1259,7 +1272,6 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     <!-- bitmaps -->
     wx/msw/colours.bmp
     wx/msw/csquery.bmp
-    wx/msw/disable.bmp
     <!-- cursors -->
     wx/msw/blank.cur
     wx/msw/bullseye.cur
@@ -1299,15 +1311,11 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="MSW_ONLY_SRC" hints="files">
     src/msw/fdrepdlg.cpp
     src/msw/fontdlg.cpp
-    src/msw/helpchm.cpp
-    src/msw/helpwin.cpp
 </set>
 <set var="MSW_ONLY_HDR" hints="files">
     wx/msw/fdrepdlg.h
     wx/msw/fontdlg.h
     wx/msw/helpbest.h
-    wx/msw/helpchm.h
-    wx/msw/helpwin.h
     wx/msw/ole/automtn.h
     wx/msw/ole/uuid.h
 </set>
@@ -1317,21 +1325,24 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/generic/dirdlgg.cpp
     src/generic/fdrepdlg.cpp
     src/generic/fontdlgg.cpp
-    src/msw/wince/choicece.cpp 
+    src/msw/wince/choicece.cpp
     src/msw/wince/crt.cpp
     src/msw/wince/filedlgwce.cpp
+    src/msw/wince/filefnwce.cpp
     src/msw/wince/helpwce.cpp
     src/msw/wince/menuce.cpp
     src/msw/wince/tbarwce.cpp
+    src/msw/wince/textctrlce.cpp
 </set>
 <set var="WINCE_HDR" hints="files">
     wx/generic/fdrepdlg.h
     wx/generic/fontdlgg.h
-    wx/msw/wince/choicece.h 
+    wx/msw/wince/choicece.h
     wx/msw/wince/helpwce.h
     wx/msw/wince/libraries.h
     wx/msw/wince/missing.h
     wx/msw/wince/tbarwce.h
+    wx/msw/wince/textctrlce.h
     wx/msw/wince/resources.h
 </set>
 
@@ -1611,6 +1622,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/mac/carbon/gauge.cpp
     src/mac/carbon/gdiobj.cpp
     src/mac/carbon/gsockosx.cpp
+    src/mac/carbon/hid.cpp
     src/mac/carbon/icon.cpp
     src/mac/carbon/listbox.cpp
     src/mac/carbon/mdi.cpp
@@ -1703,6 +1715,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mac/helpxxxx.h
     wx/mac/icon.h
     wx/mac/imaglist.h
+    wx/mac/joystick.h
     wx/mac/listbox.h
     wx/mac/listctrl.h
     wx/mac/macnotfy.h
@@ -1736,6 +1749,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/mac/stattext.h
     wx/mac/statusbr.h
     wx/mac/tabctrl.h
+    wx/mac/taskbarosx.h
     wx/mac/textctrl.h
     wx/mac/timer.h
     wx/mac/tglbtn.h
@@ -1871,6 +1885,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/cocoa/checklst.mm
     src/cocoa/choice.mm
     src/cocoa/clipbrd.mm
+    src/cocoa/colordlg.mm
     src/cocoa/colour.mm
     src/cocoa/combobox.mm
     src/cocoa/control.mm
@@ -1882,8 +1897,12 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/cocoa/dcmemory.mm
     src/cocoa/dcscreen.cpp
     src/cocoa/dialog.mm
+    src/cocoa/display.mm
+    src/cocoa/drawer.mm
     src/cocoa/evtloop.mm
+    src/cocoa/filedlg.mm
     src/cocoa/font.cpp
+    src/cocoa/fontdlg.mm
     src/cocoa/fontenum.mm
     src/cocoa/fontutil.cpp
     src/cocoa/frame.mm
@@ -1896,6 +1915,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/cocoa/mdi.mm
     src/cocoa/menu.mm
     src/cocoa/menuitem.mm
+    src/cocoa/msgdlg.mm
     src/cocoa/notebook.mm
     src/cocoa/pen.mm
     src/cocoa/radiobox.mm
@@ -1904,16 +1924,19 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     src/cocoa/scrolbar.mm
     src/cocoa/settings.cpp
     src/cocoa/slider.mm
+    src/cocoa/sound.mm
     src/cocoa/spinbutt.mm
     src/cocoa/statbmp.mm
     src/cocoa/statbox.mm
     src/cocoa/statline2.mm
     src/cocoa/stattext.mm
+    src/cocoa/taskbar.mm
     src/cocoa/textctrl.mm
     src/cocoa/toolbar.mm
+    src/cocoa/tooltip.mm
     src/cocoa/toplevel.mm
     src/cocoa/utils.cpp
-    src/cocoa/utilsexc.cpp
+    src/cocoa/utilsexc.mm
     src/cocoa/window.mm
     <!-- Generic implementations used by wxCocoa: -->
     src/generic/accel.cpp
@@ -1959,6 +1982,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/checklst.h
     wx/cocoa/choice.h
     wx/cocoa/clipbrd.h
+    wx/cocoa/colordlg.h
     wx/cocoa/colour.h
     wx/cocoa/combobox.h
     wx/cocoa/control.h
@@ -1971,7 +1995,11 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/dcmemory.h
     wx/cocoa/dcscreen.h
     wx/cocoa/dialog.h
+    wx/cocoa/display.h
+    wx/cocoa/drawer.h
+    wx/cocoa/filedlg.h
     wx/cocoa/font.h
+    wx/cocoa/fontdlg.h
     wx/cocoa/frame.h
     wx/cocoa/gauge.h
     wx/cocoa/gdiobj.h
@@ -1982,6 +2010,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/mdi.h
     wx/cocoa/menu.h
     wx/cocoa/menuitem.h
+    wx/cocoa/msgdlg.h
     wx/cocoa/notebook.h
     wx/cocoa/pen.h
     wx/cocoa/radiobox.h
@@ -1989,11 +2018,13 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
     wx/cocoa/region.h
     wx/cocoa/scrolbar.h
     wx/cocoa/slider.h
+    wx/cocoa/sound.h
     wx/cocoa/spinbutt.h
     wx/cocoa/statbmp.h
     wx/cocoa/statbox.h
     wx/cocoa/statline.h
     wx/cocoa/stattext.h
+    wx/cocoa/taskbar.h
     wx/cocoa/textctrl.h
     wx/cocoa/toolbar.h
     wx/cocoa/toplevel.h
@@ -2180,12 +2211,17 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 </set>
 
 <set var="ADVANCED_MAC_SRC" hints="files">
+    src/common/taskbarcmn.cpp
+    src/mac/carbon/drawer.cpp
     src/mac/carbon/joystick.cpp
     src/mac/carbon/sound.cpp
+    src/mac/carbon/taskbar.cpp
 </set>
 <set var="ADVANCED_MAC_HDR" hints="files">
+    wx/mac/carbon/drawer.h
     wx/mac/carbon/joystick.h
     wx/mac/carbon/sound.h
+    wx/mac/carbon/taskbarosx.h
 </set>
 
 <set var="ADVANCED_OS2_SRC" hints="files">
@@ -2278,6 +2314,96 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 
 <!-- ====================================================================== -->
+<!--                                wxXRC                                   -->
+<!-- ====================================================================== -->
+
+<set var="XRC_SRC" hints="files">
+    src/xrc/xh_bmpbt.cpp
+    src/xrc/xh_bmp.cpp
+    src/xrc/xh_bttn.cpp
+    src/xrc/xh_cald.cpp
+    src/xrc/xh_chckb.cpp
+    src/xrc/xh_chckl.cpp
+    src/xrc/xh_choic.cpp
+    src/xrc/xh_combo.cpp
+    src/xrc/xh_dlg.cpp
+    src/xrc/xh_frame.cpp
+    src/xrc/xh_gauge.cpp
+    src/xrc/xh_gdctl.cpp
+    src/xrc/xh_html.cpp
+    src/xrc/xh_listb.cpp
+    src/xrc/xh_listc.cpp
+    src/xrc/xh_menu.cpp
+    src/xrc/xh_notbk.cpp
+    src/xrc/xh_panel.cpp
+    src/xrc/xh_radbt.cpp
+    src/xrc/xh_radbx.cpp
+    src/xrc/xh_scrol.cpp
+    src/xrc/xh_scwin.cpp
+    src/xrc/xh_sizer.cpp
+    src/xrc/xh_slidr.cpp
+    src/xrc/xh_spin.cpp
+    src/xrc/xh_split.cpp
+    src/xrc/xh_statbar.cpp
+    src/xrc/xh_stbmp.cpp
+    src/xrc/xh_stbox.cpp
+    src/xrc/xh_stlin.cpp
+    src/xrc/xh_sttxt.cpp
+    src/xrc/xh_text.cpp
+    src/xrc/xh_tglbtn.cpp
+    src/xrc/xh_toolb.cpp
+    src/xrc/xh_tree.cpp
+    src/xrc/xh_unkwn.cpp
+    src/xrc/xh_wizrd.cpp
+    src/xrc/xmlres.cpp
+    src/xrc/xmlrsall.cpp
+</set>
+<set var="XRC_HDR" hints="files">
+    wx/xrc/xh_all.h
+    wx/xrc/xh_bmpbt.h
+    wx/xrc/xh_bmp.h
+    wx/xrc/xh_bttn.h
+    wx/xrc/xh_cald.h
+    wx/xrc/xh_chckb.h
+    wx/xrc/xh_chckl.h
+    wx/xrc/xh_choic.h
+    wx/xrc/xh_combo.h
+    wx/xrc/xh_dlg.h
+    wx/xrc/xh_frame.h
+    wx/xrc/xh_gauge.h
+    wx/xrc/xh_gdctl.h
+    wx/xrc/xh_html.h
+    wx/xrc/xh_listb.h
+    wx/xrc/xh_listc.h
+    wx/xrc/xh_menu.h
+    wx/xrc/xh_notbk.h
+    wx/xrc/xh_panel.h
+    wx/xrc/xh_radbt.h
+    wx/xrc/xh_radbx.h
+    wx/xrc/xh_scrol.h
+    wx/xrc/xh_scwin.h
+    wx/xrc/xh_sizer.h
+    wx/xrc/xh_slidr.h
+    wx/xrc/xh_spin.h
+    wx/xrc/xh_split.h
+    wx/xrc/xh_statbar.h
+    wx/xrc/xh_stbmp.h
+    wx/xrc/xh_stbox.h
+    wx/xrc/xh_stlin.h
+    wx/xrc/xh_sttxt.h
+    wx/xrc/xh_text.h
+    wx/xrc/xh_tglbtn.h
+    wx/xrc/xh_toolb.h
+    wx/xrc/xh_tree.h
+    wx/xrc/xh_unkwn.h
+    wx/xrc/xh_wizrd.h
+    wx/xrc/xmlres.h
+</set>
+
+
+
+
+<!-- ====================================================================== -->
 <!--                               XML classes                              -->
 <!-- ====================================================================== -->
 
@@ -2297,6 +2423,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="OPENGL_SRC" hints="files">
     <if cond="TOOLKIT=='MAC'">src/mac/carbon/glcanvas.cpp</if>
+    <if cond="TOOLKIT=='COCOA'">src/cocoa/glcanvas.mm</if>
     <if cond="TOOLKIT=='GTK'">src/gtk/glcanvas.cpp</if>
     <if cond="TOOLKIT=='MSW'">src/msw/glcanvas.cpp</if>
     <if cond="TOOLKIT=='WINCE'">src/msw/glcanvas.cpp</if>
@@ -2307,6 +2434,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 
 <set var="OPENGL_HDR" hints="files">
     <if cond="TOOLKIT=='MAC'">wx/mac/carbon/glcanvas.h</if>
+    <if cond="TOOLKIT=='COCOA'">wx/cocoa/glcanvas.h</if>
     <if cond="TOOLKIT=='GTK'">wx/gtk/glcanvas.h</if>
     <if cond="TOOLKIT=='MSW'">wx/msw/glcanvas.h</if>
     <if cond="TOOLKIT=='WINCE'">wx/msw/glcanvas.h</if>
@@ -2499,7 +2627,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
             $(LOWLEVEL_HDR)
             $(GUI_CORE_HEADERS)
             $(ADVANCED_HDR) $(HTML_HDR)
-            $(OPENGL_HDR) $(DBGRID_HDR)
+            $(OPENGL_HDR) $(DBGRID_HDR) $(XRC_HDR)
         </if>
     </set>
 
@@ -2527,9 +2655,9 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
         $(NET_CMN_SRC) $(NET_UNIX_SRC) $(NET_WIN32_SRC) $(NET_WINCE_SRC)
         $(XML_SRC) $(ODBC_SRC)
     </set>
-    
-    
-    
+
+
+
     <!-- ================================================================ -->
     <!--        Define where plugins sources go if USE_PLUGINS=0          -->
     <!-- ================================================================ -->
@@ -2540,7 +2668,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
             $(UNIX_SOUND_SRC_SDL)
         </if>
     </set>
-    
+
     <set var="PLUGIN_MONOLIB_SRC">$(PLUGIN_ADV_SRC)</set>
-    
+
 </makefile>

@@ -93,6 +93,11 @@ USE_GUI = 1
 USE_HTML = 1
 !endif
 
+# Build wxXRC library (USE_GUI must be 1)? [0,1]
+!ifndef USE_XRC
+USE_XRC = 1
+!endif
+
 # Build OpenGL canvas library (USE_GUI must be 1)? [0,1]
 !ifndef USE_OPENGL
 USE_OPENGL = 0
@@ -116,6 +121,16 @@ OFFICIAL_BUILD = 0
 # Use this to name your customized DLLs differently 
 !ifndef VENDOR
 VENDOR = custom
+!endif
+
+#  
+!ifndef WX_FLAVOUR
+WX_FLAVOUR = 
+!endif
+
+#  
+!ifndef WX_LIB_FLAVOUR
+WX_LIB_FLAVOUR = 
 !endif
 
 # Name of your custom configuration. This affects directory

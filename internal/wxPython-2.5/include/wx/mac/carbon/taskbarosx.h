@@ -22,27 +22,41 @@ class WXDLLEXPORT wxMenu;
 class WXDLLEXPORT wxTaskBarIcon : public wxTaskBarIconBase
 {
 public:
-	//type of taskbar item to create (currently only DOCK is implemented)
-	enum wxTaskBarIconType
-	{
-		DOCK,
-		STATUSITEM,
-		MENUEXTRA
-	};
-	
+        //type of taskbar item to create 
+    //TODO:  currently only DOCK is implemented
+        enum wxTaskBarIconType
+        {
+                DOCK,
+                STATUSITEM,
+                MENUEXTRA
+        };
+        
     wxTaskBarIcon(const wxTaskBarIconType& nType = DOCK);
     virtual ~wxTaskBarIcon();
 
-    // Operations:
+    inline bool IsOk() const { return true; }
+    inline bool IsIconInstalled() const { return m_iconAdded; }
+    
+    //TODO: not tested extensively
     bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString);
     bool RemoveIcon();
+    //TODO: end not tested extensively
+    
+    //pops up the menu
     bool PopupMenu(wxMenu *menu);
+
+    //internal functions - don't call       
+    wxMenu* GetCurrentMenu();
+    wxMenu* DoCreatePopupMenu();
 
 protected:
     wxTaskBarIconType m_nType;
-	
+    void* m_pEventHandlerRef;
+    wxMenu* m_pMenu;
+    WXHMENU m_theLastMenu;
+    bool m_iconAdded;
+            
     DECLARE_DYNAMIC_CLASS(wxTaskBarIcon)
 };
-
 #endif
     // _TASKBAR_H_

@@ -49,7 +49,8 @@ enum
     wxFRAME_NO_WINDOW_MENU,
     wxFRAME_NO_TASKBAR,
     wxFRAME_SHAPED,
-
+    wxFRAME_DRAWER,
+    
     // Obsolete
     wxDIALOG_MODAL,
     wxDIALOG_MODELESS,
@@ -85,13 +86,13 @@ public:
     // No constructor as it can not be used directly from Python
 
     // maximize = True => maximize, otherwise - restore
-    virtual void Maximize(bool maximize = True);
+    virtual void Maximize(bool maximize = true);
 
     // undo Maximize() or Iconize()
     virtual void Restore();
 
     // iconize = True => iconize, otherwise - restore
-    virtual void Iconize(bool iconize = True);
+    virtual void Iconize(bool iconize = true);
 
     // return True if the frame is maximized
     virtual bool IsMaximized() const;
@@ -127,10 +128,18 @@ public:
     // inactive (should be called when a background event occurs)
     virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
 
-
+    // Is this the active frame (highlighted in the taskbar)?
+    virtual bool IsActive();
+    
 #ifdef __WXMAC__
     void MacSetMetalAppearance( bool on ) ;
     bool MacGetMetalAppearance() const ;
+#else
+    %extend {
+        // TODO: Should they raise not implemented or just NOP???
+        void MacSetMetalAppearance( bool on ) { /*wxPyRaiseNotImplemented();*/ }
+        bool MacGetMetalAppearance() const    { /*wxPyRaiseNotImplemented();*/ return false; }
+    }
 #endif
 };
 

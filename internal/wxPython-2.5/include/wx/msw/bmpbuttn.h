@@ -18,6 +18,7 @@
 
 #include "wx/button.h"
 #include "wx/bitmap.h"
+#include "wx/brush.h"
 
 #define wxDEFAULT_BUTTON_MARGIN 4
 
@@ -48,6 +49,7 @@ public:
                 const wxString& name = wxButtonNameStr);
 
     // Implementation
+    virtual bool SetBackgroundColour(const wxColour& colour);
     virtual void SetDefault();
     virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
     virtual void DrawFace( WXHDC dc, int left, int top, int right, int bottom, bool sel );
@@ -57,7 +59,15 @@ public:
 protected:
     virtual wxSize DoGetBestSize() const;
 
-private:
+    // invalidate m_brushDisabled when system colours change
+    void OnSysColourChanged(wxSysColourChangedEvent& event);
+
+
+    // the brush we use to draw disabled buttons
+    wxBrush m_brushDisabled;
+
+
+    DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxBitmapButton)
 };
 

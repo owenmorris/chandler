@@ -1589,6 +1589,11 @@ void wxWindowDC::DoDrawText( const wxString &text, wxCoord x, wxCoord y )
     CalcBoundingBox (x, y);
 }
 
+
+// TODO: There is an example of rotating text with GTK2 that would probably be
+// a better approach here:
+//           http://www.daa.com.au/pipermail/pygtk/2003-April/005052.html
+
 void wxWindowDC::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, double angle )
 {
     if (angle == 0.0)
@@ -1601,18 +1606,22 @@ void wxWindowDC::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, 
 
     if (!m_window) return;
 
-#ifdef __WXGTK20__
+    wxCoord w;
+    wxCoord h;
+
+#ifdef  __WXGTK20__
     // implement later without GdkFont for GTK 2.0
-    return;
+    GetTextExtent(text, &w, &h, NULL,NULL, &m_font);
+    
 #else
     GdkFont *font = m_font.GetInternalFont( m_scaleY );
 
     wxCHECK_RET( font, wxT("invalid font") );
 
     // the size of the text
-    wxCoord w = gdk_string_width( font, text.mbc_str() );
-    wxCoord h = font->ascent + font->descent;
-
+    w = gdk_string_width( font, text.mbc_str() );
+    h = font->ascent + font->descent;
+#endif
     // draw the string normally
     wxBitmap src(w, h);
     wxMemoryDC dc;
@@ -1665,8 +1674,8 @@ void wxWindowDC::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, 
             wxCoord dstX = (wxCoord)(r*cos(angleOrig) + 0.5),
                     dstY = (wxCoord)(r*sin(angleOrig) + 0.5);
 
-            // black pixel?
-            bool textPixel = data[(srcY*w + srcX)*3] == 0;
+            // non-white pixel?
+            bool textPixel = data[(srcY*w + srcX)*3] != 0xff;
             if ( textPixel || (m_backgroundMode == wxSOLID) )
             {
                 // change colour if needed
@@ -1703,7 +1712,6 @@ void wxWindowDC::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord y, 
     // update the bounding box
     CalcBoundingBox(x + minX, y + minY);
     CalcBoundingBox(x + maxX, y + maxY);
-#endif
 }
 
 void wxWindowDC::DoGetTextExtent(const wxString &string,
@@ -1711,10 +1719,17 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
                                  wxCoord *descent, wxCoord *externalLeading,
                                  wxFont *theFont) const
 {
+    if ( width )
+        *width = 0;
+    if ( height )
+        *height = 0;
+    if ( descent )
+        *descent = 0;
+    if ( externalLeading )
+        *externalLeading = 0;
+
     if (string.IsEmpty())
     {
-        if (width) (*width) = 0;
-        if (height) (*height) = 0;
         return;
     }
     
@@ -1761,21 +1776,25 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
         pango_layout_iter_free(iter);
         *descent = h - PANGO_PIXELS(baseline);
     }
-    if (externalLeading)
-        *externalLeading = 0;  // ??
     
     // Reset old font description
     if (theFont)
         pango_layout_set_font_description( m_layout, m_fontdesc );
 #else // GTK+ 1.x
     wxFont fontToUse = m_font;
-    if (theFont) fontToUse = *theFont;
+    if (theFont)
+        fontToUse = *theFont;
     
     GdkFont *font = fontToUse.GetInternalFont( m_scaleY );
-    if (width) (*width) = wxCoord(gdk_string_width( font, string.mbc_str() ) / m_scaleX);
-    if (height) (*height) = wxCoord((font->ascent + font->descent) / m_scaleY);
-    if (descent) (*descent) = wxCoord(font->descent / m_scaleY);
-    if (externalLeading) (*externalLeading) = 0;  // ??
+    if ( !font )
+        return;
+
+    if (width)
+        *width = wxCoord(gdk_string_width( font, string.mbc_str() ) / m_scaleX);
+    if (height)
+        *height = wxCoord((font->ascent + font->descent) / m_scaleY);
+    if (descent)
+        *descent = wxCoord(font->descent / m_scaleY);
 #endif // GTK+ 2/1
 }
 

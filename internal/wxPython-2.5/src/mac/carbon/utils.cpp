@@ -40,6 +40,7 @@
 #include <Sound.h>
 #endif
 
+#if wxUSE_GUI
 #if TARGET_API_MAC_OSX
 #include <CoreServices/CoreServices.h>
 #else
@@ -50,6 +51,7 @@
 #include <ATSUnicode.h>
 #include <TextCommon.h>
 #include <TextEncodingConverter.h>
+#endif // wxUSE_GUI
 
 #include  "wx/mac/private.h"  // includes mac headers
 
@@ -1706,7 +1708,9 @@ void  wxMacControl::Convert( wxPoint *pt , wxMacControl *from , wxMacControl *to
 void wxMacControl::SetRect( Rect *r ) 
 {
 #if TARGET_API_MAC_OSX
-    HIRect hir = { r->left , r->top , r->right - r->left , r->bottom - r->top } ;
+	//A HIRect is actually a CGRect on OSX - which consists of two structures -
+	//CGPoint and CGSize, which have two floats each
+    HIRect hir = { { r->left , r->top }, { r->right - r->left , r->bottom - r->top } } ;
     HIViewSetFrame ( m_controlRef , &hir ) ;
 #else
     SetControlBounds( m_controlRef , r ) ;

@@ -242,7 +242,7 @@ public:
     void SetData(long data)
         { m_mask |= wxLIST_MASK_DATA; m_data = data; }
     void SetData(void *data)
-        { m_mask |= wxLIST_MASK_DATA; m_data = (long)data; }
+        { m_mask |= wxLIST_MASK_DATA; m_data = wxPtrToUInt(data); }
 
     void SetWidth(int width)
         { m_mask |= wxLIST_MASK_WIDTH; m_width = width; }
@@ -263,7 +263,7 @@ public:
     long GetState() const { return m_state & m_stateMask; }
     const wxString& GetText() const { return m_text; }
     int GetImage() const { return m_image; }
-    long GetData() const { return m_data; }
+    wxUIntPtr GetData() const { return m_data; }
 
     int GetWidth() const { return m_width; }
     wxListColumnFormat GetAlign() const { return (wxListColumnFormat)m_format; }
@@ -292,7 +292,7 @@ public:
     long            m_stateMask;// Which flags of m_state are valid (uses same flags)
     wxString        m_text;     // The label/header text
     int             m_image;    // The zero-based index into an image list
-    long            m_data;     // App-defined data
+    wxUIntPtr       m_data;     // App-defined data
 
     // For columns only
     int             m_format;   // left, right, centre
@@ -421,8 +421,10 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_END_LABEL_EDIT, 703)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ITEM, 704)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS, 705)
+#if WXWIN_COMPATIBILITY_2_4
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_GET_INFO, 706)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_SET_INFO, 707)
+#endif
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_SELECTED, 708)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_ITEM_DESELECTED, 709)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_LIST_KEY_DOWN, 710)
@@ -441,31 +443,33 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
 
-#define EVT_LIST_BEGIN_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_DRAG, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_BEGIN_RDRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_RDRAG, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_BEGIN_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_END_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_END_LABEL_EDIT, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_DELETE_ITEM(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_DELETE_ITEM, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_DELETE_ALL_ITEMS(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_GET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_GET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_SET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_SET_INFO, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_KEY_DOWN(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_KEY_DOWN, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_INSERT_ITEM(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_INSERT_ITEM, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_BEGIN_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_DRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_BEGIN_RDRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_RDRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_BEGIN_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_END_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_END_LABEL_EDIT, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_DELETE_ITEM(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_DELETE_ITEM, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_DELETE_ALL_ITEMS(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#if WXWIN_COMPATIBILITY_2_4
+#define EVT_LIST_GET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_GET_INFO, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_SET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_SET_INFO, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#endif
+#define EVT_LIST_KEY_DOWN(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_KEY_DOWN, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_INSERT_ITEM(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_INSERT_ITEM, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
 
-#define EVT_LIST_COL_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_CLICK, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_COL_RIGHT_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_RIGHT_CLICK, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_COL_BEGIN_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_BEGIN_DRAG, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_COL_DRAGGING(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_DRAGGING, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_COL_END_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_END_DRAG, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_COL_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_COL_RIGHT_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_RIGHT_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_COL_BEGIN_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_BEGIN_DRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_COL_DRAGGING(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_DRAGGING, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_COL_END_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_COL_END_DRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
 
-#define EVT_LIST_ITEM_SELECTED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_SELECTED, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_ITEM_DESELECTED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_DESELECTED, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
-#define EVT_LIST_ITEM_RIGHT_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_LIST_ITEM_MIDDLE_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_LIST_ITEM_ACTIVATED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_ACTIVATED, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_LIST_ITEM_FOCUSED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_FOCUSED, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_LIST_ITEM_SELECTED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_SELECTED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_ITEM_DESELECTED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_DESELECTED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), NULL ),
+#define EVT_LIST_ITEM_RIGHT_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_LIST_ITEM_MIDDLE_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_LIST_ITEM_ACTIVATED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_ACTIVATED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_LIST_ITEM_FOCUSED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_ITEM_FOCUSED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
 
-#define EVT_LIST_CACHE_HINT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_CACHE_HINT, id, -1, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_LIST_CACHE_HINT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_LIST_CACHE_HINT, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxListEventFunction, & fn ), (wxObject *) NULL ),
 
 #endif // wxUSE_LISTCTRL
 

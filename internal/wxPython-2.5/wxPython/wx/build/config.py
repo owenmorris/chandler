@@ -27,6 +27,7 @@ from distutils.dir_util  import mkpath
 from distutils.dep_util  import newer
 from distutils.spawn     import spawn
 
+import distutils.command.install
 import distutils.command.install_data
 import distutils.command.install_headers
 import distutils.command.clean
@@ -37,9 +38,9 @@ import distutils.command.clean
 
 VER_MAJOR        = 2      # The first three must match wxWidgets
 VER_MINOR        = 5
-VER_RELEASE      = 2
-VER_SUBREL       = 9      # wxPython release num for x.y.z release of wxWidgets
-VER_FLAGS        = "p"     # release flags, such as prerelease num, unicode, etc.
+VER_RELEASE      = 3
+VER_SUBREL       = 1      # wxPython release num for x.y.z release of wxWidgets
+VER_FLAGS        = ""     # release flags, such as prerelease num, unicode, etc.
 
 DESCRIPTION      = "Cross platform GUI toolkit for Python"
 AUTHOR           = "Robin Dunn"
@@ -80,7 +81,6 @@ Topic :: Software Development :: User Interfaces
 BUILD_GLCANVAS = 1 # If true, build the contrib/glcanvas extension module
 BUILD_OGL = 1      # If true, build the contrib/ogl extension module
 BUILD_STC = 1      # If true, build the contrib/stc extension module
-BUILD_XRC = 1      # XML based resource system
 BUILD_GIZMOS = 1   # Build a module for the gizmos contrib library
 BUILD_DLLWIDGET = 0# Build a module that enables unknown wx widgets
                    # to be loaded from a DLL and to be used from Python.
@@ -122,6 +122,24 @@ UNDEF_NDEBUG = 1   # Python 2.2 on Unix/Linux by default defines NDEBUG,
 NO_SCRIPTS = 0     # Don't install the tool scripts
 NO_HEADERS = 0     # Don't install the wxPython *.h and *.i files
 
+INSTALL_MULTIVERSION = 1 # Install the packages such that multiple versions
+                   # can co-exist.  When turned on the wx and wxPython
+                   # pacakges will be installed in a versioned subdir
+                   # of site-packages, and a *.pth file will be
+                   # created that adds that dir to the sys.path.  In
+                   # addition, a wxselect.py module will be installed
+                   # to site-pacakges that will allow applications to
+                   # choose a specific version if more than one are
+                   # installed.
+                   
+FLAVOUR = ""       # Optional flavour string to be appended to VERSION
+                   # in MULTIVERSION installs
+
+EP_ADD_OPTS = 1    # When doing MULTIVERSION installs the wx port and
+                   # ansi/unicode settings can optionally be added to the
+                   # subdir path used in site-packages
+                   
+                   
 WX_CONFIG = None   # Usually you shouldn't need to touch this, but you can set
                    # it to pass an alternate version of wx-config or alternate
                    # flags, eg. as required by the .deb in-tree build.  By
@@ -145,16 +163,22 @@ CONTRIBS_INC = ""  # A dir to add as an -I flag when compiling the contribs
 
 # Some MSW build settings
 
-FINAL = 0          # Mirrors use of same flag in wx makefiles,
-                   # (0 or 1 only) should probably find a way to
-                   # autodetect this...
+MONOLITHIC = 1     # The core wxWidgets lib can be built as either a
+                   # single monolithic DLL or as a collection of DLLs.
+                   # This flag controls which set of libs will be used
+                   # on Windows.  (For other platforms it is automatic
+                   # via using wx-config.)
 
-HYBRID = 1         # If set and not debug or FINAL, then build a
-                   # hybrid extension that can be used by the
-                   # non-debug version of python, but contains
-                   # debugging symbols for wxWidgets and wxPython.
-                   # wxWidgets must have been built with /MD, not /MDd
-                   # (using FINAL=hybrid will do it.)
+FINAL = 0          # Will use the release version of the wxWidgets libs on MSW.
+
+HYBRID = 1         # Will use the "hybrid" version of the wxWidgets
+                   # libs on MSW.  A "hybrid" build is one that is
+                   # basically a release build, but that also defines
+                   # __WXDEBUG__ to activate the runtime checks and
+                   # assertions in the library.  When any of these is
+                   # triggered it is turned into a Python exception so
+                   # this is a very useful feature to have turned on.
+
 
                    # Version part of wxWidgets LIB/DLL names
 WXDLLVER = '%d%d' % (VER_MAJOR, VER_MINOR)
@@ -215,12 +239,12 @@ if os.name == 'nt':
 #----------------------------------------------------------------------
 
 # Boolean (int) flags
-for flag in ['BUILD_GLCANVAS', 'BUILD_OGL', 'BUILD_STC', 'BUILD_XRC',
+for flag in ['BUILD_GLCANVAS', 'BUILD_OGL', 'BUILD_STC', 
              'BUILD_GIZMOS', 'BUILD_DLLWIDGET', 'BUILD_IEWIN', 'BUILD_ACTIVEX',
              'CORE_ONLY', 'PREP_ONLY', 'USE_SWIG', 'UNICODE',
              'UNDEF_NDEBUG', 'NO_SCRIPTS', 'NO_HEADERS', 'BUILD_RENAMERS',
-             'FULL_DOCS', 
-             'FINAL', 'HYBRID', ]:
+             'FULL_DOCS', 'INSTALL_MULTIVERSION', 'EP_ADD_OPTS',
+             'MONOLITHIC', 'FINAL', 'HYBRID', ]:
     for x in range(len(sys.argv)):
         if sys.argv[x].find(flag) == 0:
             pos = sys.argv[x].find('=') + 1
@@ -230,7 +254,8 @@ for flag in ['BUILD_GLCANVAS', 'BUILD_OGL', 'BUILD_STC', 'BUILD_XRC',
 
 # String options
 for option in ['WX_CONFIG', 'WXDLLVER', 'BUILD_BASE', 'WXPORT', 'SWIG',
-               'CONTRIBS_INC', 'WXPY_SRC']:
+               'CONTRIBS_INC', 'WXPY_SRC', 'FLAVOUR', 
+               ]:
     for x in range(len(sys.argv)):
         if sys.argv[x].find(option) == 0:
             pos = sys.argv[x].find('=') + 1
@@ -269,6 +294,8 @@ def Verify_WX_CONFIG():
                 msg("Found wx-config: " + fp)
                 msg("    Using flags: " + flags)
                 WX_CONFIG = fp + flags
+                if hasattr(sys, 'setup_is_main') and not sys.setup_is_main:
+                    WX_CONFIG += " 2>/dev/null "
                 break
         else:
             msg("ERROR: WX_CONFIG not specified and wx-config not found on the $PATH")
@@ -398,16 +425,25 @@ class wx_extra_clean(distutils.command.clean.clean):
 
 
 
+class wx_install(distutils.command.install.install):
+    """
+    Turns off install_path_file
+    """
+    def initialize_options(self):
+        distutils.command.install.install.initialize_options(self)
+        self.install_path_file = 0
+        
+
 class wx_install_headers(distutils.command.install_headers.install_headers):
     """
     Install the header files to the WXPREFIX, with an extra dir per
     filename too
     """
-    def initialize_options (self):
+    def initialize_options(self):
         self.root = None
         distutils.command.install_headers.install_headers.initialize_options(self)
 
-    def finalize_options (self):
+    def finalize_options(self):
         self.set_undefined_options('install', ('root', 'root'))
         distutils.command.install_headers.install_headers.finalize_options(self)
 
@@ -480,15 +516,16 @@ def find_data_files(srcdir, *wildcards):
 def makeLibName(name):
     if os.name == 'posix':
         libname = '%s_%s-%s' % (WXBASENAME, name, WXRELEASE)
-    else:
+    elif name:
         libname = 'wxmsw%s%s_%s' % (WXDLLVER, libFlag(), name)
-
+    else:
+        libname = 'wxmsw%s%s' % (WXDLLVER, libFlag())
     return [libname]
 
 
 
 def adjustCFLAGS(cflags, defines, includes):
-    '''Extrace the raw -I, -D, and -U flags and put them into
+    '''Extract the raw -I, -D, and -U flags and put them into
        defines and includes as needed.'''
     newCFLAGS = []
     for flag in cflags:
@@ -509,7 +546,7 @@ def adjustCFLAGS(cflags, defines, includes):
 
 
 def adjustLFLAGS(lfags, libdirs, libs):
-    '''Extrace the -L and -l flags and put them in libdirs and libs as needed'''
+    '''Extract the -L and -l flags and put them in libdirs and libs as needed'''
     newLFLAGS = []
     for flag in lflags:
         if flag[:2] == '-L':
@@ -521,6 +558,35 @@ def adjustLFLAGS(lfags, libdirs, libs):
 
     return newLFLAGS
 
+
+
+def getExtraPath(shortVer=True, addOpts=False):
+    """Get the dirname that wxPython will be installed under."""
+
+    if shortVer:
+        # short version, just Major.Minor
+        ep = "wx-%d.%d" % (VER_MAJOR, VER_MINOR)
+        
+        # plus release if minor is odd
+        if VER_MINOR % 2 == 1:
+            ep += ".%d" % VER_RELEASE
+            
+    else:
+        # long version, full version 
+        ep = "wx-%d.%d.%d.%d" % (VER_MAJOR, VER_MINOR, VER_RELEASE, VER_SUBREL)
+
+    if addOpts:
+        port = WXPORT
+        if port == "msw": port = "win32"
+        ep += "-%s-%s" % (WXPORT, (UNICODE and 'unicode' or 'ansi'))
+        
+    if FLAVOUR:
+        ep += "-" + FLAVOUR
+
+    return ep
+
+
+
 #----------------------------------------------------------------------
 # sanity checks
 
@@ -528,7 +594,6 @@ if CORE_ONLY:
     BUILD_GLCANVAS = 0
     BUILD_OGL = 0
     BUILD_STC = 0
-    BUILD_XRC = 0
     BUILD_GIZMOS = 0
     BUILD_DLLWIDGET = 0
     BUILD_IEWIN = 0
@@ -541,7 +606,7 @@ if debug:
 if FINAL:
     HYBRID = 0
 
-if UNICODE and WXPORT not in ['msw', 'gtk2']:
+if UNICODE and WXPORT not in ['msw', 'gtk2', 'mac']:
     raise SystemExit, "UNICODE mode not currently supported on this WXPORT: "+WXPORT
 
 
@@ -593,13 +658,17 @@ if os.name == 'nt':
         defines.append( ('__WXDEBUG__', None) )
 
     libdirs = [ opj(WXDIR, 'lib', 'vc_dll') ]
-    libs = [ 'wxbase' + WXDLLVER + libFlag(),  # TODO: trim this down to what is really needed for the core
-             'wxbase' + WXDLLVER + libFlag() + '_net',
-             'wxbase' + WXDLLVER + libFlag() + '_xml',
-             makeLibName('core')[0],
-             makeLibName('adv')[0],
-             makeLibName('html')[0],
-             ]
+    if MONOLITHIC:
+        libs = makeLibName('')
+    else:
+        libs = [ 'wxbase' + WXDLLVER + libFlag(), 
+                 'wxbase' + WXDLLVER + libFlag() + '_net',
+                 'wxbase' + WXDLLVER + libFlag() + '_xml',
+                 makeLibName('core')[0],
+                 makeLibName('adv')[0],
+                 makeLibName('html')[0],
+                 makeLibName('xrc')[0],
+                 ]
 
     libs = libs + ['kernel32', 'user32', 'gdi32', 'comdlg32',
             'winspool', 'winmm', 'shell32', 'oldnames', 'comctl32',
@@ -717,7 +786,7 @@ else:
 
 if UNICODE:
     BUILD_BASE = BUILD_BASE + '.unicode'
-    VER_FLAGS += 'u'
+    ##VER_FLAGS += 'u'
 
 if os.path.exists('DAILY_BUILD'):
     

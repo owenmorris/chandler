@@ -36,6 +36,26 @@ enum wxPrintMode
     wxPRINT_MODE_STREAM = 4     // Send postscript data into a stream 
 };
 
+enum wxPrintBin
+{
+    wxPRINTBIN_DEFAULT,
+
+    wxPRINTBIN_ONLYONE,
+    wxPRINTBIN_LOWER,
+    wxPRINTBIN_MIDDLE,
+    wxPRINTBIN_MANUAL,
+    wxPRINTBIN_ENVELOPE,
+    wxPRINTBIN_ENVMANUAL,
+    wxPRINTBIN_AUTO,
+    wxPRINTBIN_TRACTOR,
+    wxPRINTBIN_SMALLFMT,
+    wxPRINTBIN_LARGEFMT,
+    wxPRINTBIN_LARGECAPACITY,
+    wxPRINTBIN_CASSETTE,
+    wxPRINTBIN_FORMSOURCE,
+
+    wxPRINTBIN_USER,
+};
 
 
 class wxPrintData : public wxObject {
@@ -59,7 +79,8 @@ public:
     const wxSize& GetPaperSize();
 
     int GetQuality();
-
+    wxPrintBin GetBin();
+    
     void SetNoCopies(int v);
     void SetCollate(bool flag);
     void SetOrientation(int orient);
@@ -70,7 +91,7 @@ public:
     void SetPaperId(wxPaperSize sizeId);
     void SetPaperSize(const wxSize& sz);
     void SetQuality(int quality);
-
+    void SetBin(wxPrintBin bin);
     // PostScript-specific data
     const wxString& GetPrinterCommand();
     const wxString& GetPrinterOptions();
@@ -261,7 +282,7 @@ public:
 
     void CreateAbortWindow(wxWindow* parent, wxPyPrintout* printout);
     wxPrintDialogData& GetPrintDialogData();
-    bool Print(wxWindow *parent, wxPyPrintout *printout, int prompt=True);
+    bool Print(wxWindow *parent, wxPyPrintout *printout, int prompt=true);
     wxDC* PrintDialog(wxWindow *parent);
     void ReportError(wxWindow *parent, wxPyPrintout *printout, const wxString& message);
     bool Setup(wxWindow *parent);
@@ -278,7 +299,7 @@ public:
 
 // Since this one would be tough and ugly to do with the Macros...
 void wxPyPrintout::GetPageInfo(int *minPage, int *maxPage, int *pageFrom, int *pageTo) {
-    bool hadErr = False;
+    bool hadErr = false;
     bool found;
 
     bool blocked = wxPyBeginBlockThreads();
@@ -289,22 +310,22 @@ void wxPyPrintout::GetPageInfo(int *minPage, int *maxPage, int *pageFrom, int *p
 
             val = PyTuple_GetItem(result, 0);
             if (PyInt_Check(val))    *minPage = PyInt_AsLong(val);
-            else hadErr = True;
+            else hadErr = true;
 
             val = PyTuple_GetItem(result, 1);
             if (PyInt_Check(val))    *maxPage = PyInt_AsLong(val);
-            else hadErr = True;
+            else hadErr = true;
 
             val = PyTuple_GetItem(result, 2);
             if (PyInt_Check(val))    *pageFrom = PyInt_AsLong(val);
-            else hadErr = True;
+            else hadErr = true;
 
             val = PyTuple_GetItem(result, 3);
             if (PyInt_Check(val))    *pageTo = PyInt_AsLong(val);
-            else hadErr = True;
+            else hadErr = true;
         }
         else
-            hadErr = True;
+            hadErr = true;
 
         if (hadErr) {
             PyErr_SetString(PyExc_TypeError, "GetPageInfo should return a tuple of 4 integers.");
@@ -539,30 +560,30 @@ public:
 
 %{
 
-#define DEC_PYCALLBACK_BOOL_PREWINDC(CBNAME)                                    \
-    bool CBNAME(wxPreviewCanvas* a, wxDC& b);                                   \
+#define DEC_PYCALLBACK_BOOL_PREWINDC(CBNAME)                                            \
+    bool CBNAME(wxPreviewCanvas* a, wxDC& b);                                           \
     bool base_##CBNAME(wxPreviewCanvas* a, wxDC& b)
 
 
-#define IMP_PYCALLBACK_BOOL_PREWINDC(CLASS, PCLASS, CBNAME)                     \
-    bool CLASS::CBNAME(wxPreviewCanvas* a, wxDC& b) {                           \
-        bool rval=False;                                                        \
-        bool found;                                                             \
-        bool blocked = wxPyBeginBlockThreads();                                                \
-        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                \
-            PyObject* win = wxPyMake_wxObject(a,false);                               \
-            PyObject* dc  = wxPyMake_wxObject(&b,false);                              \
-            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", win, dc));\
-            Py_DECREF(win);                                                     \
-            Py_DECREF(dc);                                                      \
-        }                                                                       \
-        wxPyEndBlockThreads(blocked);                                                  \
-        if (! found)                                                            \
-            rval = PCLASS::CBNAME(a, b);                                        \
-        return rval;                                                            \
-    }                                                                           \
-    bool CLASS::base_##CBNAME(wxPreviewCanvas* a, wxDC& b) {                    \
-        return PCLASS::CBNAME(a, b);                                            \
+#define IMP_PYCALLBACK_BOOL_PREWINDC(CLASS, PCLASS, CBNAME)                             \
+    bool CLASS::CBNAME(wxPreviewCanvas* a, wxDC& b) {                                   \
+        bool rval=false;                                                                \
+        bool found;                                                                     \
+        bool blocked = wxPyBeginBlockThreads();                                         \
+        if ((found = wxPyCBH_findCallback(m_myInst, #CBNAME))) {                        \
+            PyObject* win = wxPyMake_wxObject(a,false);                                 \
+            PyObject* dc  = wxPyMake_wxObject(&b,false);                                \
+            rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(OO)", win, dc));      \
+            Py_DECREF(win);                                                             \
+            Py_DECREF(dc);                                                              \
+        }                                                                               \
+        wxPyEndBlockThreads(blocked);                                                   \
+        if (! found)                                                                    \
+            rval = PCLASS::CBNAME(a, b);                                                \
+        return rval;                                                                    \
+    }                                                                                   \
+    bool CLASS::base_##CBNAME(wxPreviewCanvas* a, wxDC& b) {                            \
+        return PCLASS::CBNAME(a, b);                                                    \
     }
 
 

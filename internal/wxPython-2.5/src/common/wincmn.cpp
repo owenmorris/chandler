@@ -78,7 +78,7 @@
 #endif // wxUSE_CARET
 
 #if wxUSE_SYSTEM_OPTIONS
-	#include "wx/sysopt.h"
+    #include "wx/sysopt.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -156,7 +156,7 @@ wxWindowBase::wxWindowBase()
     // no style bits
     m_exStyle =
     m_windowStyle = 0;
-    
+
     m_backgroundStyle = wxBG_STYLE_SYSTEM;
 
 #if wxUSE_CONSTRAINTS
@@ -490,7 +490,7 @@ void wxWindowBase::Centre(int direction)
     }
 
     // move the window to this position (keeping the old size but using
-    // SetSize() and not Move() to allow xNew and/or yNew to be -1)
+    // SetSize() and not Move() to allow xNew and/or yNew to be wxDefaultCoord)
     SetSize(xNew, yNew, width, height, wxSIZE_ALLOW_MINUS_ONE);
 }
 
@@ -518,7 +518,7 @@ void wxWindowBase::FitInside()
 static bool wxHasRealChildren(const wxWindowBase* win)
 {
     int realChildCount = 0;
-    
+
     for ( wxWindowList::compatibility_iterator node = win->GetChildren().GetFirst();
           node;
           node = node->GetNext() )
@@ -530,6 +530,16 @@ static bool wxHasRealChildren(const wxWindowBase* win)
     return (realChildCount > 0);
 }
 #endif
+    
+void wxWindowBase::InvalidateBestSize()
+{
+    m_bestSizeCache = wxDefaultSize;
+
+    // parent's best size calculation may depend on its children's
+    // best sizes, so let's invalidate it as well to be safe:
+    if (m_parent)
+        m_parent->InvalidateBestSize();
+}
 
 // return the size best suited for the current window
 wxSize wxWindowBase::DoGetBestSize() const
@@ -660,7 +670,7 @@ void wxWindowBase::SetBestFittingSize(const wxSize& size)
 
     // Merge the size with the best size if needed
     wxSize best = GetBestFittingSize();
-    
+
     // If the current size doesn't match then change it
     if (GetSize() != best)
         SetSize(best);
@@ -674,9 +684,9 @@ wxPoint wxWindowBase::GetClientAreaOrigin() const
 }
 
 // set the min/max size of the window
-void wxWindowBase::SetSizeHints(int minW, int minH,
-                                int maxW, int maxH,
-                                int WXUNUSED(incW), int WXUNUSED(incH))
+void wxWindowBase::DoSetSizeHints(int minW, int minH,
+                                  int maxW, int maxH,
+                                  int WXUNUSED(incW), int WXUNUSED(incH))
 {
     // setting min width greater than max width leads to infinite loops under
     // X11 and generally doesn't make any sense, so don't allow it
@@ -1027,7 +1037,7 @@ wxColour wxWindowBase::GetForegroundColour() const
 
 bool wxWindowBase::SetBackgroundColour( const wxColour &colour )
 {
-    if ( colour == m_backgroundColour ) 
+    if ( colour == m_backgroundColour )
         return false;
 
     m_hasBgCol = colour.Ok();
@@ -2043,12 +2053,16 @@ void wxWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
             if ( event.GetText() != control->GetLabel() )
                 control->SetLabel(event.GetText());
         }
+    }
+#endif // wxUSE_CONTROLS
+
+    if ( event.GetSetChecked() )
+    {
 #if wxUSE_CHECKBOX
         wxCheckBox *checkbox = wxDynamicCastThis(wxCheckBox);
         if ( checkbox )
         {
-            if ( event.GetSetChecked() )
-                checkbox->SetValue(event.GetChecked());
+            checkbox->SetValue(event.GetChecked());
         }
 #endif // wxUSE_CHECKBOX
 
@@ -2056,12 +2070,10 @@ void wxWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
         wxRadioButton *radiobtn = wxDynamicCastThis(wxRadioButton);
         if ( radiobtn )
         {
-            if ( event.GetSetChecked() )
-                radiobtn->SetValue(event.GetChecked());
+            radiobtn->SetValue(event.GetChecked());
         }
 #endif // wxUSE_RADIOBTN
     }
-#endif
 }
 
 #if 0
@@ -2089,10 +2101,10 @@ wxPoint wxWindowBase::ConvertPixelsToDialog(const wxPoint& pt)
 {
     int charWidth = GetCharWidth();
     int charHeight = GetCharHeight();
-    wxPoint pt2(-1, -1);
-    if (pt.x != -1)
+    wxPoint pt2 = wxDefaultPosition;
+    if (pt.x != wxDefaultCoord)
         pt2.x = (int) ((pt.x * 4) / charWidth);
-    if (pt.y != -1)
+    if (pt.y != wxDefaultCoord)
         pt2.y = (int) ((pt.y * 8) / charHeight);
 
     return pt2;
@@ -2102,10 +2114,10 @@ wxPoint wxWindowBase::ConvertDialogToPixels(const wxPoint& pt)
 {
     int charWidth = GetCharWidth();
     int charHeight = GetCharHeight();
-    wxPoint pt2(-1, -1);
-    if (pt.x != -1)
+    wxPoint pt2 = wxDefaultPosition;
+    if (pt.x != wxDefaultCoord)
         pt2.x = (int) ((pt.x * charWidth) / 4);
-    if (pt.y != -1)
+    if (pt.y != wxDefaultCoord)
         pt2.y = (int) ((pt.y * charHeight) / 8);
 
     return pt2;
@@ -2465,6 +2477,16 @@ void wxWindowBase::DoMoveInTabOrder(wxWindow *win, MoveKind move)
     {
         siblings.Append(self);
     }
+}
+
+// ----------------------------------------------------------------------------
+// focus handling
+// ----------------------------------------------------------------------------
+
+/*static*/ wxWindow* wxWindowBase::FindFocus()
+{
+    wxWindowBase *win = DoFindFocus();
+    return win ? win->GetMainWindowOfCompositeControl() : NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -2886,7 +2908,7 @@ wxAccStatus wxWindowAccessible::GetFocus(int* WXUNUSED(childId), wxAccessible** 
 // Gets a variant representing the selected children
 // of this object.
 // Acceptable values:
-// - a null variant (IsNull() returns TRUE)
+// - a null variant (IsNull() returns true)
 // - a list variant (GetType() == wxT("list")
 // - an integer representing the selected child element,
 //   or 0 if this object is selected (GetType() == wxT("long")
