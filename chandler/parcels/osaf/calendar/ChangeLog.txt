@@ -3,6 +3,7 @@
 2003-08-11 Katie Capps Parlante <capps@osafoundation.org>
    * Added Location to calendar model
    * Changed names of calendar model attributes
+   * Changed repository path/location of calendar schema to match proposal
 
 2003-08-07 Katie Capps Parlante <capps@osafoundation.org>
    * Basic unit test for calendar data parcel, works with framework

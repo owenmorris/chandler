@@ -66,7 +66,7 @@ class wxTableViewer(wxPanel):
         self.grid.CreateGrid(100, 3)
         # self.grid.SetColLabelSize(0)
         self.grid.SetColLabelValue(0, _("Start Time"))
-        self.grid.SetColLabelValue(1, _("End Time"))
+        self.grid.SetColLabelValue(1, _("Duration"))
         self.grid.SetColLabelValue(2, _("Headline"))
         self.grid.SetRowLabelSize(0)        
         self.grid.SetSize(self.GetClientSize())
