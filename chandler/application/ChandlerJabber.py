@@ -53,21 +53,27 @@ class JabberClient:
         self.connected = false
         self.loggedIn = false
         self.timer = None
-        
-        self.presenceStateMap = {}
-        self.nameMap = {}
-        self.accessibleViews = {}
-        self.openPeers = {}
+ 
+        self.ResetState()
  
         self.rosterParcel = self.FindParcel('Roster')
         self.contactsParcel = self.FindParcel('Contacts')
+        
+        self.confirmDialog = None
         
         # this is used to give a one-time call to the roster after we log in
         self.rosterNotified = false
         
         self.ReadAccountFromPreferences()
         self.Login()
-            
+ 
+    # reset the presence state
+    def ResetState(self):
+        self.presenceStateMap = {}
+        self.nameMap = {}
+        self.accessibleViews = {}
+        self.openPeers = {}
+
     # set up the reference to the roster parcel by iterating through the
     # parcel list
     def FindParcel(self, parcelName):
@@ -129,6 +135,7 @@ class JabberClient:
 
         # store a reference to the client object in the connection
         self.connection.jabberclient = self
+        self.ResetState()
         
         if not self.IsRegistered():     
             if not self.Register():
@@ -247,10 +254,13 @@ class JabberClient:
     def IsSubscribed(self, jabberID):
         realIDs = self.roster.getJIDs()
         searchID = str(jabberID).lower()
+        print "issub", jabberID, realIDs, searchID
         for realID in realIDs:
             idParts = str(realID).split('/')
             if idParts[0].lower() == searchID:
+                print "true"
                 return true
+        print "False"
         return false
         
     # logout from the jabber server and terminate the connection
@@ -492,11 +502,17 @@ class JabberClient:
         mappedObjectStr = base64.decodestring(mappedObjectStr)
         return cPickle.loads(mappedObjectStr)	
     
-    # put up a dialog to confirm the subscription request
+    # put up a dialog to confirm the subscription request.  If this is called reentrantly,
+    # ignore subsequent requests
     def ConfirmSubscription(self, subscriptionType, who):
-        message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)
-        dialog = wxMessageDialog(self.application.wxMainFrame, message, _("Confirm Subscription"), wxYES_NO | wxICON_QUESTION)
-        result = dialog.ShowModal()
+        # if we're already doing this, ignore the request
+        if self.confirmDialog != None:
+            return
+        
+        displayName = self.GetNameFromID(who)
+        message = '%s wishes to %s to your presence information.  Do you approve?' % (displayName, subscriptionType)
+        self.confirmDialog = wxMessageDialog(self.application.wxMainFrame, message, _("Confirm Subscription"), wxYES_NO | wxICON_QUESTION)
+        result = self.confirmDialog.ShowModal()
         
         if result == wxID_YES:
             if subscriptionType == 'subscribe':
@@ -505,9 +521,13 @@ class JabberClient:
             elif subscriptionType == 'unsubscribe':
                 self.connection.send(Presence(to=who, type='unsubscribed'))
                 self.connection.send(Presence(to=who, type='unsubscribe'))
-
-    # notify the presence panel that presence has changed
-    
+            
+            self.NotifyPresenceChanged(jabberID)
+                
+        self.confirmDialog = None
+        
+                        
+    # notify the presence panel that presence has changed   
     def NotifyPresenceChanged(self, who):
         app = application.Application.app
         if app.presenceWindow != None:
@@ -567,7 +587,12 @@ class JabberClient:
             subscribeType = 'subscribe'
         else:
             subscribeType = 'unsubscribe'
+        
         self.connection.send(Presence(to=jabberID, type=subscribeType))
+        
+        # fetch the roster again to resync state with server
+        self.roster = self.connection.requestRoster()
+        self.NotifyPresenceChanged(jabberID)
 
 # here's a subclass of timer to periodically drive the event mechanism
 class JabberTimer(wxTimer):
@@ -577,13 +602,16 @@ class JabberTimer(wxTimer):
         
     def Notify(self):
         if self.jabberClient.connection != None:
-           # we want to notify the roster package just once after login to
-           # synchronize presence info with the sidebar, so do that here if necessary
-           if not self.jabberClient.rosterNotified:
-               if self.jabberClient.rosterParcel != None:
-                   self.jabberClient.rosterParcel.SynchronizePresence()
-               self.jabberClient.rosterNotified = true
+            # we want to notify the roster package just once after login to
+            # synchronize presence info with the sidebar, so do that here if necessary
+            if not self.jabberClient.rosterNotified:
+                self.jabberClient.rosterParcel = self.jabberClient.FindParcel('Roster')
+                self.jabberClient.contactsParcel = self.jabberClient.FindParcel('Contacts')
+  
+                if self.jabberClient.rosterParcel != None:
+                    self.jabberClient.rosterParcel.SynchronizePresence()
+                self.jabberClient.rosterNotified = true
            
-           # process Jabber events
-           self.jabberClient.connection.process(0)			
+            # process Jabber events
+            self.jabberClient.connection.process(0)			
         
