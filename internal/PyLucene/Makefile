@@ -2,6 +2,7 @@
 include ../Makefile.inc
 
 VERSION=1.3-final
+RELVER=0.3-1
 PYLUCENE=$(INTERNAL)/PyLucene
 LUCENE=$(PYLUCENE)/lucene-$(VERSION)
 DB=$(EXTERNAL)/persistence/db/db-4.2.52
@@ -41,7 +42,7 @@ build: sources apply
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP).tar.gz \
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/PyLucene.py \
                   $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
                   $(SNAP)/bin/libdb_java42$(SUFFIX).dll
@@ -52,7 +53,7 @@ ifeq ($(OS),Darwin)
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP).tar.gz \
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/PyLucene.py \
                   $(SNAP)/$(SITE)/_PyLucene.so \
                   $(SNAP)/db/lib/libdb_java-4.2.jnilib \
@@ -65,7 +66,7 @@ else
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP).tar.gz \
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/PyLucene.py \
                   $(SNAP)/$(SITE)/_PyLucene.so \
                   $(SNAP)/db/lib/libdb_java-4.2.so \

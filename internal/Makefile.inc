@@ -1,6 +1,8 @@
 
 EXTERNAL=$(BUILD_ROOT)
-INTERNAL=$(BUILD_ROOT)/../internal
+INTERNAL=$(dir $(BUILD_ROOT))internal
 
 include $(EXTERNAL)/Makefile.inc
 
+env::
+	@echo INTERNAL is $(INTERNAL)

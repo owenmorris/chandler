@@ -1,6 +1,7 @@
 
 include ../Makefile.inc
 
+RELVER=0.3-1
 UUIDEXT=$(INTERNAL)/UUIDext
 
 BUILD=build_$(SNAP)
@@ -12,7 +13,7 @@ build:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(UUIDEXT)/UUIDext-$(SNAP).tar.gz \
+        tar -cvzf $(UUIDEXT)/UUIDext-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/UUIDext*
 
 clean:

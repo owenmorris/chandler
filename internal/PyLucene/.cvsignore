@@ -1,4 +1,4 @@
-PyLucene-release.tar.gz
-PyLucene-debug.tar.gz
+PyLucene-release*.tar.gz
+PyLucene-debug-*.tar.gz
 lucene-1.3-final
 build_*
