@@ -25,6 +25,7 @@
 %import misc.i
 %pythoncode { wx = _core }
 %pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
+%include _mincal_rename.i
 
 //---------------------------------------------------------------------------
 
