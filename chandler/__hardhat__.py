@@ -20,15 +20,18 @@ def build(buildenv):
 
     if buildenv['os'] == 'posix':
         os.chdir("distrib/linux/launcher")
-        hardhatlib.executeCommand( buildenv, info['name'],
-         [buildenv['make']],
-         "Making launcher programs")
         if buildenv['version'] == 'release':
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['make']],
+             "Making launcher programs")
             hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
              os.sep + "release")
             hardhatlib.copyFile("chandler", buildenv['root'] + \
              os.sep + "release")
         if buildenv['version'] == 'debug':
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['make'], "DEBUG=1"],
+             "Making launcher programs")
             hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
              os.sep + "debug")
             hardhatlib.copyFile("chandler", buildenv['root'] + \
