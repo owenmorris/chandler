@@ -311,11 +311,11 @@ class MainView(View):
             format = self.findPath("//userdata/icalImportFormat")
             if format is None:
                 format = ICalendar.ICalendarFormat(name="icalImportFormat",
-                 parent=parent)
+                 parent=parent, view=self.itsView)
             share = self.findPath("//userdata/icalImportShare")
             if share is None:
                 share = Sharing.Share(name="icalImportShare", parent=parent,
-                 conduit=conduit, format=format)
+                 conduit=conduit, format=format, view=self.itsView)
             share.get()
             self.setStatusMessage ("Import completed")
         except Exception, e:
@@ -327,7 +327,7 @@ class MainView(View):
         logger = self.itsView.getLogger()
         self.setStatusMessage ("Exporting to " + ical.OUTFILE)
         try:
-            if ical.exportFile(ical.OUTFILE, repository):
+            if ical.exportFile(ical.OUTFILE, self.itsView):
                 self.setStatusMessage ("Export completed")
             else:
                 logger.info("Failed exportFile")
