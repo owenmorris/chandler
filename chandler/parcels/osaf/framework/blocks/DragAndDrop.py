@@ -29,7 +29,12 @@ class DropReceiveWidget (object):
     def __init__(self, *arguments, **keywords):
         super (DropReceiveWidget, self).__init__ (*arguments, **keywords)
         self.dropTarget = DropTarget(self)
-        self.SetDropTarget(self.dropTarget)
+        # If it is a grid, then we need to use grid window rather than self
+        try:
+            window = self.GetGridWindow()
+        except AttributeError:
+            window = self
+        window.SetDropTarget(self.dropTarget)
         
     def OnRequestDrop(self, x, y):
         """
