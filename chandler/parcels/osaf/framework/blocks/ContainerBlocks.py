@@ -151,7 +151,7 @@ class BoxContainer(RectangularChild):
         parent.Remove(child)
         child.Destroy()
         parent.Layout()
-        
+
 
 class EmbeddedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
@@ -171,8 +171,8 @@ class EmbeddedContainer(RectangularChild):
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.render (self.wxParent, self.wxParentWindow)
-            
-            
+
+
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         id = 0
@@ -483,16 +483,26 @@ class TreeNode:
         self.nodeId = nodeId
         self.treeList = treeList
 
-    def AddChildNode (self, data, title, hasChildren):
+    def AddChildNode (self, data, names, hasChildren):
         childNodeId = self.treeList.AppendItem (self.nodeId,
-                                                title,
+                                                names.pop(0),
                                                 -1,
                                                 -1,
                                                 wxTreeItemData (data))
+        index = 1
+        for name in names:
+            self.treeList.SetItemText (childNodeId, name, index)
+            index += 1
+
         self.treeList.SetItemHasChildren (childNodeId, hasChildren)
 
-    def AddRootNode (self, data, title, hasChildren):
-        rootNodeId = self.treeList.AddRoot (title, -1, -1, wxTreeItemData (data))
+    def AddRootNode (self, data, names, hasChildren):
+        rootNodeId = self.treeList.AddRoot (names.pop(0), -1, -1, wxTreeItemData (data))
+        index = 1
+        for name in names:
+            SetItemText (rootNodeId, name, index)
+            index += 1
+
         self.treeList.SetItemHasChildren (rootNodeId, hasChildren)
                                              
     def GetData (self):
@@ -581,9 +591,17 @@ class RepositoryTreeList(TreeList):
         item = node.GetData()
         if item:
             for child in item:
-                node.AddChildNode (child, child.getItemName(), child.hasChildren())
+                names = [child.getItemName()]
+                names.append (str(child.getItemDisplayName()))
+                try:
+                    names.append (child.kind.getItemName())
+                except AttributeError:
+                    names.append ('(kindless)')
+                names.append (str(child.getUUID()))
+                names.append (str(child.getItemPath()))
+                node.AddChildNode (child, names, child.hasChildren())
         else:
-            node.AddRootNode (Globals.repository, '//', True)
+            node.AddRootNode (Globals.repository, ['//'], True)
 
     def OnGoToURI (self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
