@@ -81,7 +81,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
                 os.environ["BUILD_ROOT"] = extModuleDir
                 log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
-                
+
                 print "Building " + relStr
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
                 log.write("Expanding external sources\n")
@@ -113,7 +113,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             CopyLog(os.path.join(releaseModeDir, logPath), log)
             ret = "init_failed"
-            
+
         finally:
             if releaseMode == "debug":
                 # OK to do release dir
