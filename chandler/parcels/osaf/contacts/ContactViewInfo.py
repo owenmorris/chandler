@@ -49,13 +49,11 @@ class ContactViewInfo(Persistent):
         self.description = description
         self.sharingPolicy = 'private'
         self.remoteFlag = false
-        
+               
     def FilterContact(self, contact):
-        # if a class is specified and it doesn't match, reject it
-        if self.queryClass != None:
-            akoURL = contact.GetAkoURL()
-            if not (contact.GetAkoURL() == self.queryClass):
-                return false
+        # if a class is specified and it doesn't match, reject it        
+        if not isinstance(contact, self.queryClass):
+            return false
         
         # if there are any filter conditions, loop through them
         if self.queryFilter == None:

@@ -53,7 +53,7 @@ class MiniContactCard(wxPanel):
     def LayoutSmallCard(self, container, displayName):
         self.AddTextWidget(container, displayName, self.miniCardView.nameFont, 2)
 
-        addressList = self.contact.GetAddresses()
+        addressList = self.contact.GetContactMethods()
         for addressItem in addressList:
             addressValue = addressItem.GetFirstFormattedValue()
             if addressValue == None:
@@ -66,8 +66,8 @@ class MiniContactCard(wxPanel):
 
     def LayoutMediumCard(self, container, displayName):
         self.AddTextWidget(container, displayName, self.miniCardView.nameFont, 2)        
-        addressList = self.contact.GetAddresses()
-        for addressItem in addressList:
+        addressList = self.contact.GetContactMethods()
+        for addressItem in addressList:            
             addressValue = addressItem.GetFirstFormattedValue()
             if addressValue == None:
                 continue
@@ -122,7 +122,7 @@ class MiniContactCard(wxPanel):
             self.AddTextWidget(vBox, fieldValue, self.miniCardView.itemFont, 2)
 
         # add addresses
-        addressList = self.contact.GetAddresses()
+        addressList = self.contact.GetContactMethods()
         gridSizer = wxFlexGridSizer(cols=2, vgap=0, hgap=8)
         gridSizer.AddGrowableCol(1)
         for addressItem in addressList:

@@ -665,6 +665,10 @@ class Item(object):
 
         return None
 
+    def IsRemote(self):
+        '''by default, an item is not remote'''
+        return False
+
     def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.
         
@@ -873,7 +877,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tags.append(tag)
 
     def endElement(self, tag):
-
+ 
         withValue = False
 
         if self.delegates:

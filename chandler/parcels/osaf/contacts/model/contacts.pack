@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<pack name="Contacts">
+  <item path="//Schema">
+    <item file="ContactsSchemaRoot.xml">
+    	<item file="ContactsSchema.xml"/>
+    </item>
+  </item>
+  <item file="ContactsRoot.xml"/>
+</pack>

@@ -40,7 +40,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 40
+    VERSION = 41
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -293,6 +293,11 @@ class wxApplication (wxApp):
             self.repository.loadPack(os.path.join(self.chandlerDirectory, "parcels", 
                                                   "OSAF", "calendar", "model", 
                                                   "calendar.pack"))
+       
+        if not self.repository.find('//Contacts'):
+            self.repository.loadPack(os.path.join(self.chandlerDirectory, "parcels", 
+                                                  "OSAF", "contacts", "model", 
+                                                  "contacts.pack"))
 
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
@@ -372,6 +377,8 @@ class wxApplication (wxApp):
         """
             Exit the application
         """
+        application.Application.app.repository.commit(purge=True)
+        
         # FIXME:  This will not fully quit the app if a stdout window has been
         # opened by a print statement.  We should also close that stdout window.
         self.wxMainFrame.Close()

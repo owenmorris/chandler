@@ -131,7 +131,7 @@ class ContactAddressList(wxPanel):
         description = item.GetMethodDescription()
         itemType = item.GetMethodType()
         if itemType == 'jabberID':
-            jabberID = item.GetAttribute(chandler.jabberAddress)
+            jabberID = item.GetAttribute('jabberAddress')
             # FIXME: Call IsValid on the item?
             if ((jabberID != None) and (len(jabberID) > 0) and (jabberID != 'jabber id')):
                 if app.jabberClient.IsSubscribed(jabberID):
@@ -250,7 +250,7 @@ class ContactAddressList(wxPanel):
                 displayString = text
 
             # notes are multi-line
-            if partType == chandler.note:
+            if partType == 'note':
                 widget = wxStaticText(self, -1, displayString, style=wxTE_MULTILINE)
             else:
                 widget = wxStaticText(self, -1, displayString)
@@ -275,12 +275,12 @@ class ContactAddressList(wxPanel):
         vBox.Add(locationWidget, 0)
 
         # fetch the list of attributes associated with this item, and create widgets for them 
-        attributes = item.GetAddressAttributes()
+        attributes = item.GetAddressAttributes()        
         itemType = item.GetMethodType()
         
         hBox = wxBoxSizer(wxHORIZONTAL)
 
-        for attribute in attributes:    
+        for attribute in attributes:
             if attribute == 'linebreak':
                vBox.Add(hBox, 0)
                hBox = wxBoxSizer(wxHORIZONTAL)      
@@ -299,7 +299,7 @@ class ContactAddressList(wxPanel):
         # add the comment field, if necessary
         if item.HasComment():
             comment = item.GetMethodComment()
-            widget = self.RenderTextField(comment, self.commentFont, item, chandler.methodComment)
+            widget = self.RenderTextField(comment, self.commentFont, item, 'methodComment')
             vBox.Add(widget, 0, wxEXPAND)
             
         container.Add(vBox, 1, wxEXPAND)
@@ -343,7 +343,7 @@ class ContactAddressList(wxPanel):
     def ActivateNextField(self):
         if self.singleContactView.editAddressItem != None:  
             # look up the current item position
-            addresses = self.contact.GetAddresses()
+            addresses = self.contact.GetContactMethods()
             index = addresses.index(self.singleContactView.editAddressItem)
             newIndex = index
             newPart = self.singleContactView.editPart
@@ -359,7 +359,7 @@ class ContactAddressList(wxPanel):
                 newItem = addresses[newIndex]
                 attributes = newItem.GetAddressAttributes()
                 newPart = attributes[0]
-            elif (self.singleContactView.editPart == chandler.methodComment):
+            elif (self.singleContactView.editPart == 'methodComment'):
                 newPart = ''
             else:   
                 # it's not the last one, so bump to the next attribute
@@ -379,11 +379,7 @@ class ContactAddressList(wxPanel):
         # add the address and display it
         newAddressItem = self.contact.AddAddress(newType, label)
         attributes = newAddressItem.GetAddressAttributes()
-
-        # add the address item and commit the changes
-        repository = Repository()
-        repository.AddThing(newAddressItem)
-
+        
         self.RenderWidgets()
         
         # FIXME: ugly hack to force sizing and scrolling
@@ -408,12 +404,21 @@ class ContactAddressList(wxPanel):
             self.AddNewAddress(addressLabel, true)
         
         dialog.ShowModal()
-    
+ 
+    # FIXME: hack to access metadata in ContactModel - this should eventually
+    # be gotten from the real repository, plus we should have an easier way
+    def GetContactMetaData(self):
+         contentView = self.singleContactView.GetParent()
+         viewer = contentView.contactsView
+         return viewer.contactMetaData
+        
     # test if the first part of an address item has its default value
     def HasDefaultValue(self, contactItem):
         attribute = contactItem.GetFirstAttribute()
         currentValue = contactItem.GetAttribute(attribute)
-        attributeTemplate = contactItem.GetAttributeTemplate(attribute)
+        metadata = self.GetContactMetaData()
+        
+        attributeTemplate = metadata.GetAttributeTemplate(attribute)
         if attributeTemplate == None:
             defaultValue = ''
         else:
@@ -429,7 +434,7 @@ class ContactAddressList(wxPanel):
         if attributes[-1] != self.singleContactView.editPart:
             return true
         
-        addresses = self.contact.GetAddresses()
+        addresses = self.contact.GetContactMethods()
         index = addresses.index(self.singleContactView.editAddressItem)
         index += 1
         
@@ -555,21 +560,21 @@ class AddressActionHandler:
         needsSeparator = true
         
         if methodType == 'email':
-            itemLabel = _('Compose email to %s') % (self.item.GetAttribute(chandler.emailAddress))
+            itemLabel = _('Compose email to %s') % (self.item.GetAttribute('emailaddress'))
             self._AddMenuItem(actionMenu, itemLabel, self.ComposeEmail, true)
         elif methodType == 'phone':
-            itemLabel = _('Call %s') % (self.item.GetFormattedAttribute(chandler.phonenumber))
+            itemLabel = _('Call %s') % (self.item.GetFormattedAttribute('phonenumber'))
             self._AddMenuItem(actionMenu, itemLabel, self.MakePhoneCall, true)        
         elif methodType == 'postal':
             itemLabel = _('Show map of address')
             self._AddMenuItem(actionMenu, itemLabel, self.ShowMap, true)
         elif methodType == 'jabberID':
             contact = self.addressList.contact
-            jabberID = self.item.GetAttribute(chandler.jabberAddress)
+            jabberID = self.item.GetAttribute('jabberAddress')
             isPresent = app.jabberClient.IsPresent(jabberID)
             isSubscribed = app.jabberClient.IsSubscribed(jabberID)
 
-            itemLabel = _('Compose instant message to %s') % (self.item.GetAttribute(chandler.jabberAddress))
+            itemLabel = _('Compose instant message to %s') % (self.item.GetAttribute('jabberAddress'))
             self._AddMenuItem(actionMenu, itemLabel, self.ComposeIM, isPresent)
             
             itemLabel = _("Add %s to roster") % (contact.GetFullName())
@@ -579,7 +584,7 @@ class AddressActionHandler:
             self._AddMenuItem(actionMenu, itemLabel, self.UnsubscribeToPresence, isSubscribed)
 
         elif methodType == 'website':
-            itemLabel = _('Display webpage %s') % (self.item.GetAttribute(chandler.url))
+            itemLabel = _('Display webpage %s') % (self.item.GetAttribute('url'))
             self._AddMenuItem(actionMenu, itemLabel, self.DisplayWebsite, true)
         else:
             needsSeparator = false
@@ -655,7 +660,7 @@ class AddressActionHandler:
         if not self.item.HasComment():
             self.item.SetMethodComment(_('comment goes here'))
         
-        self.addressList.SetEditItem(self.item, chandler.methodComment, true)
+        self.addressList.SetEditItem(self.item, 'methodComment', true)
         
         
     def ComposeEmail(self, event):
@@ -670,18 +675,18 @@ class AddressActionHandler:
         app.wxMainFrame.GoToURL(url)
         
     def SubscribeToPresence(self, event):
-        jabberID = self.item.GetAttribute(chandler.jabberAddress)
+        jabberID = self.item.GetAttribute('jabberAddress')
         app.jabberClient.RequestSubscription(jabberID, true)
    
     def UnsubscribeToPresence(self, event):
-        jabberID = self.item.GetAttribute(chandler.jabberAddress)
+        jabberID = self.item.GetAttribute('jabberAddress')
         app.jabberClient.RequestSubscription(jabberID, false)
    
     def ShowMap(self, event):
         wxMessageBox(_("The Show Map command isn't implemented yet."))
 
     def DisplayWebsite(self, event):
-        url = self.item.GetAttribute(chandler.url)
+        url = self.item.GetAttribute('url')
         if not url.startswith('http://'):
             url = 'http://' + url
         webbrowser.open(url)

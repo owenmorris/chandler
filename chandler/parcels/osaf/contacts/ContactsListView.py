@@ -54,8 +54,8 @@ class ContactsListPanel(wxPanel):
         
         container = wxBoxSizer(wxVERTICAL)
 
-        # populate the list		
-        tID = wxNewId()		
+        # populate the list
+        tID = wxNewId()
         contactList = self.contactView.GetSortedContacts()
         self.list = ContactsListControl(self, tID, style=wxNO_BORDER|wxLC_VIRTUAL|wxLC_REPORT|wxLC_VRULES|wxLC_HRULES)
         self.list.SetListInfo(self, contactList)
@@ -73,7 +73,7 @@ class ContactsListPanel(wxPanel):
     # FIXME: For now, this is hard-wired, but soon we'll fetch it from
     # the underlying view
     def GetColumnFields(self):
-        return [(_('Name'), chandler.sortname), (_('Home Phone'), chandler.phonenumber), (_('Main Email'), chandler.emailAddress)]
+        return [(_('Name'), 'sortname'), (_('Home Phone'), 'phonenumber'), (_('Main Email'), 'emailaddress')]
         
     # populate the contacts list from the data in the table. First, loop through
     # the field list and make a column for each field
@@ -125,7 +125,7 @@ class ContactsListPanel(wxPanel):
     def GetSelectedIndex(self):
         return self.currentIndex
     
-    # use the row to contact index to return the currently selected contact, if any	
+    # use the row to contact index to return the currently selected contact, if any
     def GetSelectedContact(self):
         if self.currentIndex != None:
             return self.GetContactFromRowIndex(self.currentIndex)

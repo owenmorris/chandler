@@ -1,5 +1,10 @@
 # ChangeLog for Contacts Parcel
 
+2003-08-19 andy@differnet.com
+
+   * ported contacts package to Andi's new repository.  Lots of changes, and probably
+     lots of breakage, but it's working well enough for the initial check-in
+     
 2003-07-21 ducky@osafoundation.org
 
    * Added "About Contacts" Help menu option

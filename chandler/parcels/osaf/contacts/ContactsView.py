@@ -15,14 +15,12 @@ from wxPython.xrc import *
 
 from application.Application import app
 from application.ViewerParcel import *
-from application.repository.Namespace import chandler
-from application.repository.Repository import Repository
 from application.PresencePanel import *
 
 from persistence import Persistent
 from persistence.list import PersistentList
 
-from application.repository.Contact import Contact
+from OSAF.contacts.model.ContactEntity import *
 
 from OSAF.contacts.ContactsControlBar import ContactsControlBar
 from OSAF.contacts.ContactsIndexView import ContactsIndexView
@@ -44,8 +42,8 @@ class ContactsViewer(ViewerParcel):
         self.InitializeViews()
         
         # keep some preferences in the persistent object
-        self.useOneNameField = true
-        self.queryOpen = false
+        self.useOneNameField = True
+        self.queryOpen = False
         
         self.currentViewTypeIndex = 0
         self.currentViewIndex = 0
@@ -63,21 +61,21 @@ class ContactsViewer(ViewerParcel):
         
         # add the 'All Contacts' view
         description = _('Display all contacts in the local repository.')
-        view = ContactViewInfo(chandler.Contact, None, _('All Contacts'), description)
+        view = ContactViewInfo(ContactEntity, None, _('All Contacts'), description)
         self.views.append(view)
         tree.AddURL(self, 'Contacts/All Contacts')
         
         # add the 'Coworkers' view
         description = _('Display all contacts that are Coworkers')
         condition = FilterCondition(None, 'hasgroup', 'Coworkers', true)
-        view = ContactViewInfo(chandler.Contact, [condition], _('Coworkers'), description)
+        view = ContactViewInfo(ContactEntity, [condition], _('Coworkers'), description)
         self.views.append(view)
         tree.AddURL(self, 'Contacts/Coworkers')
         
         # add the 'Companies' view
         description = _('Display all contacts that are companies')
         condition = FilterCondition(chandler.contactType, 'equals', 'Company', true)
-        view = ContactViewInfo(chandler.Contact, [condition], _('Companies'), description)
+        view = ContactViewInfo(ContactEntity, [condition], _('Companies'), description)
         self.views.append(view)
         tree.AddURL(self, 'Contacts/Companies')
     
@@ -140,10 +138,8 @@ class ContactsViewer(ViewerParcel):
         viewInfo = self.GetViewFromURL(url)
         if viewInfo != None:
             # build the objectlist by iterating through the local repository
-            repository = Repository()
-            for item in repository.thingList:
-                # let the view filter according to its query
-                if viewInfo.FilterContact(item):
+            for item in app.repository.find("//Contacts"):
+                if isinstance(item, ContactEntity) and viewInfo.FilterContact(item):
                     # enforce privacy
                     if self.AllowedToAccess(item, jabberID):
                         contactList.append(item)
@@ -164,9 +160,8 @@ class ContactsViewer(ViewerParcel):
 
     # iterate through the repository to find a contact with the passed in name
     def FindContactByName(self, targetName):
-        repository = Repository()
-        for item in repository.thingList:
-            if isinstance(item, Contact):
+        for item in app.repository.find("//Contacts"):
+            if isinstance(item, ContactEntity):
                 contactName = item.GetFullName()
                 if contactName == targetName:
                     return item
@@ -179,19 +174,16 @@ class ContactsViewer(ViewerParcel):
         # first, see if we already have a contact with this name
         newContact = self.FindContactByName(fullname)
         if newContact == None:
-            newContact = Contact('Person')      
-            newContact.SetNameAttribute(chandler.fullname, fullname)
 
-            # add the contact and commit the changes
-            repository = Repository()
-            repository.AddThing(newContact)
-
+            # add the contact        
+            factory = ContactEntityFactory(app.repository)
+            newContact = factory.NewItem()
+            newContact.SetNameAttribute('fullname', fullname)
+            
         if methodType != None and not newContact.HasContactMethod(methodType, methodValue):
             newContactMethod = newContact.AddAddress(methodType, methodLabel)
             attributes = newContactMethod.GetAddressAttributes()
             newContactMethod.SetAttribute(attributes[0], methodValue)
-            repository = Repository()
-            repository.Commit()
         
         # update only if we're the current package
         if app.wxMainFrame.activeParcel == self:
@@ -482,9 +474,8 @@ class wxContactsViewer(wxViewerParcel):
                 message = _("Sorry, but %s is not present!") % (self.remoteAddress)
                 wxMessageBox(message)
         else:
-            repository = Repository()
-            for item in repository.thingList:
-                if self.currentViewInfo.FilterContact(item):
+            for item in app.repository.find("//Contacts"):
+                if isinstance(item, ContactEntity) and self.currentViewInfo.FilterContact(item):
                     contactList.append(item)
             
             self.remoteLoadInProgress = false
@@ -544,25 +535,26 @@ class wxContactsViewer(wxViewerParcel):
             pass
 
         # remove the contact from the repository
-        repository = Repository()
-        repository.DeleteThing(contactToDelete)
+        contactToDelete.delete()
    
     # here's the code to add a new contact using the passed-in template description
     # FIXME: for now, we only handle the person and company types
     def AddNewContact(self, contactType):   
-        template = self.contactMetaData.GetTemplate(contactType)
-        classType = template.GetContactClass()
-        newContact = Contact(classType)     
+        factory = ContactEntityFactory(app.repository)
+        
+        template = self.contactMetaData.GetTemplate(contactType)      
+        classType = template.GetContactClass()      
+        newContact = factory.NewItem(contactType=classType)     
         
         # fetch the default name and set it up
         firstDefault = self.contactMetaData.GetNameAttributeDefaultValue(chandler.firstname)
         lastDefault  = self.contactMetaData.GetNameAttributeDefaultValue(chandler.lastname)
         
         if classType == 'Person':
-            newContact.SetNameAttribute(chandler.firstname, firstDefault)
-            newContact.SetNameAttribute(chandler.lastname, lastDefault)
+            newContact.SetNamePart('firstname', firstDefault)
+            newContact.SetNamePart('lastname', lastDefault)
         else:
-            newContact.SetNameAttribute(chandler.fullname, _('New Company'))
+            newContact.SetNamePart('fullname', _('New Company'))
             
         # add the new contact to the list
         self.AddContact(newContact)
@@ -577,7 +569,7 @@ class wxContactsViewer(wxViewerParcel):
         addressList = self.contentView.GetAddressList()
         contactMethods = template.GetContactMethods()
         for contactMethod in contactMethods:
-            addressList.AddNewAddress(contactMethod, false)
+            addressList.AddNewAddress(contactMethod, False)
  
         # set up the header and body attributes to display
         attributes = template.GetHeaderAttributes()
@@ -586,19 +578,15 @@ class wxContactsViewer(wxViewerParcel):
         attributes = template.GetBodyAttributes()
         newContact.SetBodyAttributes(attributes)
 
-        # commit the object to the repository
-        repository = Repository()
-        repository.AddThing(newContact)
-
         # FIXME: hack to force proper layout
         self.contentView.SetContact(None)
         self.contentView.SetContact(newContact)
          
         # start editing the name
         if self.model.useOneNameField:
-            attribute = chandler.fullname
+            attribute = 'fullname'
         else:
-            attribute = chandler.firstname
+            attribute = 'firstname'
         
         namePlate = self.contentView.GetNamePlate()
         namePlate.SetEditAttribute(attribute, false)
@@ -618,8 +606,9 @@ class wxContactsViewer(wxViewerParcel):
         # to the repository
         if result == wxID_YES:
             contact.remoteAddress = None
-            repository = Repository()
-            repository.AddThing(contact)
+            # FIXME: AddThing
+            #repository = Repository()
+            #repository.AddThing(contact)
         dialog.Destroy()
         
     # menu command handlers       
@@ -628,8 +617,9 @@ class wxContactsViewer(wxViewerParcel):
     def DeleteContactCommand(self, event):
         success = self.indexView.DeleteContact()
         if success:
-            repository = Repository()
-            repository.Commit()
+            # FIXME
+            #repository = Repository()
+            #repository.Commit()
  
             self.EnableMenuItems()
             

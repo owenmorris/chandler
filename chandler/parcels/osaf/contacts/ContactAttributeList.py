@@ -437,7 +437,7 @@ class ContactAttributeList(wxPanel):
         # add relationship links
 
         # render the designated attributes
-        attributes = self.contact.GetBodyAttributes()       
+        attributes = self.contact.GetBodyAttributes()
         attributeDictionary = self.singleContactView.contactsView.GetAttributeDictionary()
         
         for attribute in attributes:

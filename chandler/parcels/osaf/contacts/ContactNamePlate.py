@@ -64,10 +64,10 @@ class ContactNamePlate(wxPanel):
     def GetNamePlateAttributes(self):
         fieldList = copy(self.contact.GetHeaderAttributes())
         if self.UseOneNameField():
-            fieldList.insert(0, chandler.fullname)
+            fieldList.insert(0, 'fullname')
         else:
-            fieldList.insert(0, chandler.lastname)
-            fieldList.insert(0, chandler.firstname)
+            fieldList.insert(0, 'lastname')
+            fieldList.insert(0, 'firstname')
         return fieldList
 
     def GetAttributeDictionary(self):
@@ -95,11 +95,11 @@ class ContactNamePlate(wxPanel):
                     self.UpdateEnumeration(text)
 
                     # commit the changes
-                    repository = Repository()
-                    repository.Commit()
+                    #repository = Repository()
+                    #repository.Commit()
 
                     # if the last name changed, resort the contacts
-                    if self.editAttribute == chandler.lastname or self.editAttribute == chandler.fullname:
+                    if self.editAttribute == 'lastname' or self.editAttribute == 'fullname':
                         # since ResortContacts can make a new contentView which would destroy
                         # this object, we freeze the content view before calling it so that can't happen
                         contentView = self.indexView.contactsView.contentView
@@ -116,7 +116,7 @@ class ContactNamePlate(wxPanel):
             # render for the new attribute
             self.editAttribute = newAttribute
             self.RenderWidgets()
-
+            
     # terminate editing, if any, by accepting changes
     def DoneEditing(self):
         self.SetEditAttribute('', true)
@@ -150,11 +150,11 @@ class ContactNamePlate(wxPanel):
     # a text control, if its attribute is the edit attribute
     def RenderTextField(self, text, attribute, font):
         if self.editAttribute == attribute:
-            isFullName = attribute == chandler.fullname
+            isFullName = attribute == 'fullname'
             if isFullName:
                 choiceList = {}
-                choiceList['firstname'] = self.GetChoiceList(chandler.firstname)
-                choiceList['lastname'] = self.GetChoiceList(chandler.lastname)
+                choiceList['firstname'] = self.GetChoiceList('firstname')
+                choiceList['lastname'] = self.GetChoiceList('lastname')
             else:
                 choiceList = self.GetChoiceList(attribute)
 
@@ -200,21 +200,20 @@ class ContactNamePlate(wxPanel):
         nameBox = wxBoxSizer(wxHORIZONTAL)
 
         # at least for now, we support two different ways of entering the name, determined by a preference.
-        # We use a single, parsed field, or separate first and lastname fields
-
+        # We use a single, parsed field, or separate first and lastname fields       
         if self.UseOneNameField():
             fullName = self.contact.GetFullName()
-            widget = self.RenderTextField(fullName, chandler.fullname, self.nameFont)
+            widget = self.RenderTextField(fullName, 'fullname', self.nameFont)
             nameBox.Add(widget, 0)
         else:
-            firstName = self.contact.GetNameAttribute(chandler.firstname)
-            widget = self.RenderTextField(firstName, chandler.firstname, self.nameFont)
+            firstName = self.contact.GetNameAttribute('firstname')
+            widget = self.RenderTextField(firstName, 'firstname', self.nameFont)
             nameBox.Add(widget, 0)
 
             nameBox.Add(8, -1)
 
-            lastName = self.contact.GetNameAttribute(chandler.lastname)
-            widget = self.RenderTextField(lastName, chandler.lastname, self.nameFont)
+            lastName = self.contact.GetNameAttribute('lastname')
+            widget = self.RenderTextField(lastName, 'lastname', self.nameFont)
             nameBox.Add(widget, 1)
 
         vBox.Add(nameBox, 0)
@@ -226,7 +225,9 @@ class ContactNamePlate(wxPanel):
             if value == None:
                 attributeDictionary = self.GetAttributeDictionary()
                 value = attributeDictionary.GetAttributeDefaultValue(attribute)
-
+                if value == None or value == '':
+                    value = attribute
+                    
             newWidget = self.RenderTextField(value, attribute, self.itemFont)
             vBox.Add(newWidget, 0, wxEXPAND)
 
@@ -254,7 +255,7 @@ class ContactNamePlate(wxPanel):
 
     # Activate the next editable field
     def ActivateNextField(self):
-        foundField = false
+        foundField = False
         attributeDictionary = self.GetAttributeDictionary()
         fieldList = self.GetNamePlateAttributes()
         editAttribute = self.editAttribute
@@ -265,7 +266,7 @@ class ContactNamePlate(wxPanel):
             attributeType = attributeDictionary.GetAttributeType(fieldList[newIndex])
             foundField = attributeType != 'enumeration'
             editAttribute = fieldList[newIndex]
-
+            
         self.SetEditAttribute(fieldList[newIndex], true)
 
     # determine if the next field after the passed in one has it's default value

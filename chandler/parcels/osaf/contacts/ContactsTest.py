@@ -17,12 +17,8 @@ import xml.sax.handler
 from wxPython.wx import *
 import random
 
-from OSAF.contacts.ContactsModel import *
-
-from application.repository.Namespace import chandler
-from application.repository.Repository import Repository
-
-from application.repository.Contact import Contact
+from OSAF.contacts.model.ContactEntity import *
+from application.Application import app
 
 NAME_FILE = "names.txt"
 
@@ -36,6 +32,8 @@ class ContactsTest:
         self.domainList = ['random', 'aol.com', 'earthlink.net', 'mac.com', 'yahoo.com', 'hotmail.com', 'mailblocks.com', 'pacbell.net']
         self.domainSuffixes = ['com', 'org']
         self.groups = ['', '', 'Friends', 'Family', 'Coworkers']
+        
+        self.factory = ContactEntityFactory(app.repository)
         
     # load the name data from a file
     def LoadNames(self):
@@ -91,27 +89,27 @@ class ContactsTest:
     def AddAddresses(self, contact, firstName):
         phoneNumber = self.GeneratePhoneNumber()
         contactMethod = contact.AddAddress("phone", "Home Phone")       
-        contactMethod.SetAttribute(chandler.phonenumber, phoneNumber)
+        contactMethod.SetAttribute('phonenumber', phoneNumber)
         
         phoneNumber = self.GeneratePhoneNumber()
         contactMethod = contact.AddAddress("phone", "Work Phone")
-        contactMethod.SetAttribute(chandler.phonenumber, phoneNumber)
+        contactMethod.setAttribute('phonenumber', phoneNumber)
         
         emailAddress = self.GenerateEmailAddress(firstName)
         contactMethod = contact.AddAddress("email", "Main Email")
-        contactMethod.SetAttribute(chandler.emailAddress, emailAddress)
- 
-        # display the sharing policy
-        contact.SetBodyAttributes([chandler.sharing])
+        contactMethod.setAttribute('emailaddress', emailAddress)
+         
+        # display the sharing policy; FIXME: disabled
+        #contact.SetBodyAttributes([chandler.sharing])
 
     def GenerateContact(self):
         # make a new contact
-        newContact = Contact('Person')      
+        newContact = self.factory.NewItem()      
                 
         # generate a name
         contactName = self.GenerateName()
-        newContact.SetNameAttribute(chandler.firstname, contactName[0])
-        newContact.SetNameAttribute(chandler.lastname, contactName[1])
+        newContact.SetNamePart('firstname', contactName[0])
+        newContact.SetNamePart('lastname', contactName[1])
                 
         # generate some addresses and attributes
         self.AddAddresses(newContact, contactName[0])               
@@ -125,12 +123,10 @@ class ContactsTest:
     
     def GenerateContacts(self, count):
         currentCount = count
-        repository = Repository()
         while (currentCount > 0):
             contact = self.GenerateContact()
-            repository.thingList.append(contact)          
             currentCount -= 1
                         
         self.contactView.contactList = self.contactView.QueryContacts()
-        repository.Commit()
+        #repository.Commit()
         

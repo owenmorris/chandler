@@ -82,13 +82,13 @@ class ContactsDialog(wxDialog):
         
         for template in attributeData.GetAllAttributeTemplates():
             attributeURL = template.GetURL()
-            if ((attributeURL != chandler.contactType) and
-                (attributeURL != chandler.contactName) and
-                (attributeURL != chandler.contactMethod) and
-                (attributeURL != chandler.photoURL) and
-                (attributeURL != chandler.group) and
-                (attributeURL != chandler.headerAttribute) and
-                (attributeURL != chandler.bodyAttribute)):     
+            if ((attributeURL != 'contactType') and
+                (attributeURL != 'contactName') and
+                (attributeURL != 'contactMethod') and
+                (attributeURL != 'photoURL') and
+                (attributeURL != 'group') and
+                (attributeURL != 'headerAttribute') and
+                (attributeURL != 'bodyAttribute')):     
                 
                 displayName = template.GetDisplayName()
                 attributeList.append(displayName)
