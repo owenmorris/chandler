@@ -256,6 +256,10 @@
     <attributes itemref="cal:priority"/>
 
     <displayAttribute itemref="cal:headline"/>
+    <whoAttribute itemref=""/>
+    <aboutAttribute itemref=""/>
+    <dateAttribute itemref=""/>
+
     <classes key="python">OSAF.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
   </Kind>

@@ -14,14 +14,24 @@ from mx import DateTime
 import OSAF.contentmodel.calendar.Calendar as Calendar
 import OSAF.contentmodel.contacts.Contacts as Contacts
 import OSAF.contentmodel.mail.Mail as Mail
+import OSAF.contentmodel.notes.Notes as Notes
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 
 DURATIONS = [30, 60, 90, 120, 150, 180]
 
+def GenerateCalendarParticipant():
+    email = Mail.EmailAddress()
+    domainName = random.choice(DOMAIN_LIST)
+    handle = random.choice(LASTNAMES).lower()
+    email.emailAddress = "%s@%s" % (handle, domainName)
+    return email
+
 def GenerateCalendarEvent(days):
     event = Calendar.CalendarEvent()
     event.headline = random.choice(HEADLINES)
+    for i in range(random.randint(1, 2)):
+        event.participants.append(GenerateCalendarParticipant())
     
     # Choose random days, hours
     startDelta = DateTime.DateTimeDelta(random.randint(0, days),
@@ -36,6 +46,19 @@ def GenerateCalendarEvents(count, days):
     """ Generate _count_ events over the next _days_ number of days """
     for index in range(count):
         GenerateCalendarEvent(days)
+
+TITLES = ["Reading list", "Restaurant recommendation", "Vacation ideas",
+          "Grocery list", "Gift ideas"]
+
+def GenerateNote():
+    """ Generate one Note item """
+    note = Notes.Note()
+    note.title = random.choice(TITLES)
+
+def GenerateNotes(count):
+    """ Generate _count_ notes """
+    for index in range(count):
+        GenerateNote()
 
 DOMAIN_LIST = ['aol.com', 'earthlink.net', 'mac.com', 'yahoo.com',
                'hotmail.com', 'mailblocks.com', 'pacbell.net',

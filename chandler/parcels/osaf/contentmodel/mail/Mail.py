@@ -71,6 +71,10 @@ class MailMessage(ContentModel.ContentItem):
             kind = MailParcel.getMailMessageKind()
         ContentModel.ContentItem.__init__(self, name, parent, kind)
 
+        self.whoAttribute = "replyAddress"
+        self.aboutAttribute = "subject"
+        self.dateAttribute = "dateRecieved"
+
 class Attachment(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

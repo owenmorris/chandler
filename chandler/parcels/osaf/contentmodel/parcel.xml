@@ -80,6 +80,33 @@
     <core:inverseAttribute itemref="fyiLinks"/>
   </core:Attribute>
 
+  <core:Attribute itemName="whoAttribute">
+    <core:displayName>Who</core:displayName>
+    <core:description>The attribute used to describe "who" for this content item</core:description>
+    <core:issues>Should this apply to the kind or the item?</core:issues>
+    <core:type itemref="core:Symbol"/>
+    <core:cardinality>single</core:cardinality>
+    <core:defaultValue type="core:Symbol">creator</core:defaultValue>
+  </core:Attribute>
+
+  <core:Attribute itemName="aboutAttribute">
+    <core:displayName>About</core:displayName>
+    <core:description>The attribute used to describe "about" for this content item</core:description>
+    <core:issues>Should this apply to the kind or the item?</core:issues>
+    <core:type itemref="core:Symbol"/>
+    <core:cardinality>single</core:cardinality>
+    <core:defaultValue type="core:Symbol">displayName</core:defaultValue>
+  </core:Attribute>
+
+  <core:Attribute itemName="dateAttribute">
+    <core:displayName>Date</core:displayName>
+    <core:description>The attribute with the most relevant date for this content item</core:description>
+    <core:issues>Should this apply to the kind or the item?</core:issues>
+    <core:type itemref="core:Symbol"/>
+    <core:cardinality>single</core:cardinality>
+    <core:defaultValue type="core:Symbol">createdOn</core:defaultValue>
+  </core:Attribute>
+
   <core:Kind itemName="ContentItem">
     <core:displayName>Content Item</core:displayName>
     <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
@@ -95,6 +122,12 @@
     <core:attributes itemref="fyiLinkedToItems"/>
     <core:attributes itemref="notes:attachedNotes"/>
     <core:attributes itemref="notes:conversations"/>
+
+    <!-- display attributes -->
+    <core:attributes itemref="whoAttribute"/>
+    <core:attributes itemref="aboutAttribute"/>
+    <core:attributes itemref="dateAttribute"/>
+
     <core:classes key="python">OSAF.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 

@@ -82,6 +82,46 @@ class ContentItem(Item.Item):
         self.projects = []
         self.groups = []
 
+    def getWho(self):
+        """Returns a string representation of the whoAttribute"""
+
+        if not self.hasAttributeValue(self.whoAttribute): return " "
+        
+        cardinality = self.getAttributeAspect(self.whoAttribute,
+                                              'cardinality')
+        if (cardinality == 'single'):
+            whoString = str(self.getAttributeValue(self.whoAttribute))
+        else:
+            whoString = None
+            for who in self.getAttributeValue(self.whoAttribute):
+                if whoString:
+                    whoString = "%s, %s" % (whoString,
+                                            who.getItemDisplayName())
+                else:
+                    whoString = who.getItemDisplayName()
+
+        if not whoString: return " "
+
+        return whoString
+
+    def getAbout(self):
+        """Returns a string representation of the aboutAttribute"""
+        if not self.hasAttributeValue(self.aboutAttribute): return " "
+        
+        aboutString = str(self.getAttributeValue(self.aboutAttribute))
+        return aboutString
+
+    def getDate(self):
+        """Returns a string representation of the dateAttribute"""
+        if not self.hasAttributeValue(self.dateAttribute): return " "
+        
+        date = self.getAttributeValue(self.dateAttribute)
+
+        if not date: return " "
+        
+        dateString = date.Format("%B %d, %Y    %I:%M %p")
+        return dateString
+
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

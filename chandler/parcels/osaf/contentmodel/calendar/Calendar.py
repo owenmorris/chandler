@@ -90,6 +90,10 @@ class CalendarEvent(ContentModel.ContentItem):
         ContentModel.ContentItem.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
+        self.participants = []
+        self.whoAttribute = "participants"
+        self.aboutAttribute = "headline"
+        self.dateAttribute = "startTime"
 
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""

@@ -51,6 +51,8 @@ class Note(ContentModel.ContentItem):
             kind = NotesParcel.getNoteKind()
         ContentModel.ContentItem.__init__(self, name, parent, kind)
 
+        self.aboutAttribute = "title"
+
 class Conversation(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
