@@ -119,7 +119,23 @@ class PresencePanel(wxScrolledWindow):
         entryContainer.Add(nameWidget, 0, wxEXPAND)
                 
         return entryContainer
+ 
+    # get the list of accessible views and add it to the passed-in container
+    def AddAccessibleViews(self, jabberID, container):
+        viewList = self.jabberClient.GetAccessibleViews(jabberID)
+        if viewList == None:
+            return
         
+        if len(viewList) == 0:
+            messageWidget = wxStaticText(self, -1, _("No Views Available"))
+            messageWidget.SetFont(self.nameFont)
+            container.Add(messageWidget, 0, wxEXPAND | wxWEST, 36)
+        else:
+            for view in viewList:
+                viewWidget = wxStaticText(self, -1, view)
+                viewWidget.SetFont(self.nameFont)
+                container.Add(viewWidget, 0, wxEXPAND | wxWEST, 36)
+   
     # loop through the buddy list, rendering the presence state
     # of each entry
     def LayoutWidgets(self):
@@ -133,8 +149,11 @@ class PresencePanel(wxScrolledWindow):
             buddyList = self.jabberClient.GetRosterIDs(false)
         
             for jabberID in buddyList:
-                presenceEntry = self.RenderPresenceEntry(jabberID)
+                presenceEntry = self.RenderPresenceEntry(jabberID)                
                 container.Add(presenceEntry, 0, wxEXPAND)
+                if self.IsOpen(jabberID):
+                    self.AddAccessibleViews(jabberID, container)
+                    
                 container.Add(-1, 4)
                 
         self.SetSizer(container)           

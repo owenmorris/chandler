@@ -38,14 +38,10 @@ class PresenceState:
         self.type = type
         self.status = status
         self.resource = resource
-        self.available_views = None
-        
-    def setAvailableViews(self, available_views):
-        self.avialable_views = None
     
 class JabberClient:
-    def __init__(self, viewer):
-        self.viewer = viewer
+    def __init__(self, application):
+        self.application = application
         
         self.jabberID = None
         self.password = ''
@@ -58,6 +54,7 @@ class JabberClient:
         self.timer = None
         
         self.presenceStateMap = {}
+        self.accessibleViews = {}
         self.openPeers = {}
                 
         self.ReadAccountFromPreferences()
@@ -92,10 +89,10 @@ class JabberClient:
 
     # get the account information from the preferences system
     def ReadAccountFromPreferences(self):
-        self.jabberID = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/jabberID')
-        self.password = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/jabberpassword')
-        self.name = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/username')
-        self.email = self.viewer.model.preferences.GetPreferenceValue('chandler/identity/emailaddress')
+        self.jabberID = self.application.model.preferences.GetPreferenceValue('chandler/identity/jabberID')
+        self.password = self.application.model.preferences.GetPreferenceValue('chandler/identity/jabberpassword')
+        self.name = self.application.model.preferences.GetPreferenceValue('chandler/identity/username')
+        self.email = self.application.model.preferences.GetPreferenceValue('chandler/identity/emailaddress')
                                         
     # login to the Jabber server
     def Login(self):
@@ -203,7 +200,8 @@ class JabberClient:
             activeIDs.append(id)
             
         return activeIDs
-            
+
+    # logout from the jabber server and terminate the connection
     def Logout(self):
         if self.connected:
             self.connection.disconnect()
@@ -223,7 +221,7 @@ class JabberClient:
         if self.accessibleViews.has_key(strippedID):
             return self.accessibleViews[strippedID]	
 
-        self.requestAccessibleViews(strippedID)
+        self.RequestAccessibleViews(strippedID)
         # add empty key to avoid repeated requests
         self.accessibleViews[strippedID] = {}
         return None
@@ -232,7 +230,7 @@ class JabberClient:
         strippedID = jabberID.getStripped()
         
         self.accessibleViews[strippedID] = newViews
-        self.NotifyPresenceChanged(None)
+        self.NotifyPresenceChanged(strippedID)
     
     # the following is invoked when permissions have changed on some view,
     # so we can notify anyone who cares
@@ -244,7 +242,8 @@ class JabberClient:
     # handle requests for accessible views 
     def HandleViewRequest(self, requestJabberID):
         # get the dictionary containing the accessible views
-        views = self.viewer.indexView.GetAccessibleViews(requestJabberID)
+        views = self.application.GetAccessibleViews(requestJabberID)
+        print "handle view request ", views
         
         # pickle the result
         viewStr = cPickle.dumps(views)		
@@ -253,7 +252,7 @@ class JabberClient:
         viewStr = string.replace(viewStr, ' ', '--b--')
         
         # send it back to the requestor		
-        self.viewer.jabberClient.SendShimmerResponse(viewStr, requestJabberID, 'chandler:response-views')
+        self.application.jabberClient.SendShimmerResponse(viewStr, requestJabberID, 'chandler:response-views')
         self.openPeers[requestJabberID] = 1
         
     def FixExtraBlanks(self, str):
@@ -279,19 +278,19 @@ class JabberClient:
         subject = messageElement.getSubject()
         
         xRequest = messageElement.getX()		
-
+        print "handle message", xRequest, type, body, fromAddress
         if xRequest != None:
             if xRequest == 'chandler:shimmer-request':
-                self.viewer.repository.ReceivedRequest(body, fromAddress)
+                self.application.repository.ReceivedRequest(body, fromAddress)
                 return
             elif xRequest == 'chandler:shimmer-response':
-                self.viewer.repository.ReceivedShimmerResponse(body)
+                self.application.repository.ReceivedShimmerResponse(body)
                 return
             elif xRequest == 'chandler:chandler-response':
-                self.viewer.repository.ReceivedChandlerResponse(body, fromAddress, FALSE)
+                self.application.repository.ReceivedChandlerResponse(body, fromAddress, FALSE)
                 return
             elif xRequest == 'chandler:chandler-response-done':
-                self.viewer.repository.ReceivedChandlerResponse(body, fromAddress, TRUE)
+                self.application.repository.ReceivedChandlerResponse(body, fromAddress, TRUE)
                 return
             elif xRequest == 'chandler:request-views':
                 self.HandleViewRequest(fromAddress)
@@ -335,6 +334,7 @@ class JabberClient:
         error = iqElement.getError()
                     
     def RequestAccessibleViews(self, jabberID):
+        print "in request accessible views", jabberID
         requestMessage = Message(jabberID, 'Requesting accessible views')
         requestMessage.setX('chandler:request-views')
         requestMessage.setSubject('Requesting accessible views')
