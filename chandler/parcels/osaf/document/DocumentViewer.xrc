@@ -8,6 +8,9 @@
     <object class="wxMenuItem" name="TimeclockDocument">
        <label>View Timeclock document</label>
     </object>
+    <object class="wxMenuItem" name="RepositoryDocument">
+       <label>View Repository document</label>
+    </object>
 </object>
 
 <object class="wxMenu" name="HelpMenu">

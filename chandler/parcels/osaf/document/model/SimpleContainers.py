@@ -12,8 +12,7 @@ class BoxContainer(Container):
 
     def Render(self, parent, parentSizer):
         sizer = wxBoxSizer(self.style['orientation'])
-        parentSizer.Add(sizer, self.style['weight'], self.style['flag'], 
-                        self.style['border'])
+        self.AddToSizer(sizer, parentSizer)
         self.RenderChildren(parent, sizer)
         
     

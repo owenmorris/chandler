@@ -8,18 +8,7 @@ from wxPython.wx import *
 
 class Container(Block):
     def RenderChildren(self, parent, sizer):
-        try:
-            children = self._children
-        except:
-            return # Container has no children
-        childList = []
-        for key in children.keys():
-            childItem = children[key]
-            childList.append(childItem)
-        childList.sort(self.SortChildren)
-        for childItem in childList:
+        childrenIterator = self.iterChildren()
+        for childItem in childrenIterator:
             childItem.Render(parent, sizer)
-
-    def SortChildren(self, itemOne, itemTwo):
-        return itemOne.positionInParent - itemTwo.positionInParent
     

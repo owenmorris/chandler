@@ -18,6 +18,10 @@ from OSAF.document.model.Document import Document
 from OSAF.document.model.SimpleContainers import *
 from OSAF.document.model.SimpleControls import *
 
+from OSAF.document.RepositoryDocument import RepositoryDocument
+from OSAF.document.TimeclockDocument import TimeclockDocument
+from OSAF.document.MrMenusDocument import MrMenusDocument
+
 class DocumentViewer(ViewerParcel):
     def __init__(self):
         ViewerParcel.__init__(self)
@@ -41,88 +45,27 @@ class wxDocumentViewer(wxViewerParcel):
         """
           Sets up the handlers for the menu items.
         """
-        EVT_MENU(self, XRCID('MrMenusDocument'), self.OnShowMrMenus)
-        EVT_MENU(self, XRCID('TimeclockDocument'), self.OnShowTimeclock)
+        welcomeDocument = app.repository.find('//Documents/WelcomeDocument')
+        if welcomeDocument != None:
+            welcomeDocument.delete()
+        welcomeDocument = Document('WelcomeDocument')
+        container = BoxContainer('container', welcomeDocument)
+        container.style['orientation'] = wxVERTICAL
+        title = Label('title', container)
+        title.style['label'] = 'Please choose the view you would like to see from the Document menu'
+        title.style['weight'] = 0
+        title.style['fontpoint'] = 14
+        welcomeDocument.Render(self)
+        
+        self.mrMenusDocument = MrMenusDocument(self)
+        self.timeclockDocument = TimeclockDocument(self)
+        self.repositoryDocument = RepositoryDocument(self)
+        EVT_MENU(self, XRCID('MrMenusDocument'), self.mrMenusDocument.ShowMrMenus)
+        EVT_MENU(self, XRCID('TimeclockDocument'), self.timeclockDocument.ShowTimeclock)
+        EVT_MENU(self, XRCID('RepositoryDocument'), self.repositoryDocument.ShowRepository)
         
         EVT_MENU(self, XRCID('MenuAboutDocument'), self.OnAboutDocument)
         
-        if wxPlatform == '__WXMSW__':
-            EVT_ERASE_BACKGROUND(self, self.OnEraseBackground)
-            
-    def OnShowMrMenus(self, event):
-        """
-          Show the MrMenus document.
-        """
-        mrmenusDocument = app.repository.find('//Document/MrMenusDocument')
-        if mrmenusDocument != None:
-            mrmenusDocument.delete()
-        mrmenusDocument = self.CreateMrMenusDocument()
-        mrmenusDocument.Render(self)
-
-    def OnShowTimeclock(self, event):
-        """
-          Show the Timeclock document.
-        """
-        timeclockDocument = app.repository.find('//Document/TimeclockDocument')
-        if timeclockDocument != None:
-            timeclockDocument.delete()
-        timeclockDocument = self.CreateTimeclockDocument()
-        timeclockDocument.Render(self)
-    
-    def CreateMrMenusDocument(self):
-        """
-          Creates the MrMenus document to be shown.
-        """
-        mrmenusDocument = Document('MrMenusDocument')
-        radiobox = RadioBox('RadioBox', mrmenusDocument)
-        radiobox.style['label'] = 'Please choose'
-        radiobox.style['dimensions'] = 1
-        radiobox.style['choices'] = ['Lunch', 'Dinner']
-        radiobox.style['weight'] = 0
-        radiobox.style['flag'] = wxALIGN_CENTER|wxALL
-        radiobox.style['border'] = 25
-        
-        return mrmenusDocument
-    
-    def CreateTimeclockDocument(self):
-        """
-          Creates the Timeclock document to be shown.
-        """
-        timeclockDocument = Document('TimeclockDocument')
-        verticalSizer = BoxContainer('OuterSizer', timeclockDocument)
-        verticalSizer.style['orientation'] = wxVERTICAL
-
-        buttonSizer = BoxContainer('ButtonSizer', verticalSizer)
-        buttonSizer.style['orientation'] = wxHORIZONTAL
-        startButton = Button('StartButton', buttonSizer, 0)
-        startButton.style['label'] = 'Start Clock'
-        startButton.style['flag'] = wxALIGN_CENTRE|wxALL
-        startButton.style['border'] = 5
-
-        stopButton = Button('StopButton', buttonSizer, 1)
-        stopButton.style['label'] = 'Stop Clock'
-        stopButton.style['flag'] = wxALIGN_CENTRE|wxALL
-        stopButton.style['border'] = 5
-
-        radiobox = RadioBox('CustomerBox', verticalSizer, 1)
-        radiobox.style['label'] = 'Customer:'
-        radiobox.style['dimensions'] = 1
-        radiobox.style['choices'] = ['Floss Recycling Incorporated', 
-                                     'Northside Cowbell Foundry Corp.',
-                                     'Cuneiform Designs, Ltd.']
-
-        billableHours = Button('BillableHours', verticalSizer, 2)
-        billableHours.style['label'] = 'See Billable Hours'
-
-        billableAmount = Button('BillableAmount', verticalSizer, 3)
-        billableAmount.style['label'] = 'See Billable Amount'
-        
-        return timeclockDocument
-        
-        
-    def OnEraseBackground(self, event):
-        pass
-    
     def OnAboutDocument(self, event):
         pageLocation = self.model.path + os.sep + "AboutDocument.html"
         infoPage = SplashScreen(self, _("About Document"), pageLocation, 

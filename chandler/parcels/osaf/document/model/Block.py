@@ -8,7 +8,28 @@ from application.Application import app
 from wxPython.wx import *
 
 class Block(Item):
-    def __init__(self, name, parent=None, positionInParent=0, **_kwds):
+    def __init__(self, name, parent=None,
+                 label=None,
+                 id=-1,
+                 orientation=None,
+                 value=None,
+                 choices=None,
+                 dimensions=1,
+                 style=0,
+                 weight=1,
+                 flag=wxEXPAND,
+                 border=0,
+                 fontpoint=12,
+                 fontfamily=wxSWISS,
+                 fontstyle=wxNORMAL,
+                 fontweight=wxNORMAL,
+                 fontunderline=False,
+                 fontname=None,
+                 
+                 contentspec=None,
+                 notifications=None,
+                 isOpen=False,
+                 **_kwds):
         if not parent:
             self._container = app.repository.find('//Document')
         else:
@@ -17,22 +38,36 @@ class Block(Item):
         super(Block, self).__init__(name, self._container, 
                                     self._kind, **_kwds)
         
-        self.positionInParent = positionInParent
-        self.contentspec = {}
         self.style = {}
-        self.notifications = {}
-        self.isOpen = False
-        self.style['label'] = ''
-        self.style['id'] = -1
-        self.style['orientation'] = wxVERTICAL
-        self.style['value'] = ''
-        self.style['choices'] = []
+
+        self.style['label'] = label or ''
+        self.style['id'] = id
+        self.style['orientation'] = orientation or wxVERTICAL
+        self.style['value'] = value or ''
+        self.style['choices'] = choices or []
         self.style['dimensions'] = 1
-        self.style['style'] = 0
-        self.style['weight'] = 1
-        self.style['flag'] = 0
-        self.style['border'] = 0
+        self.style['style'] = style
+        self.style['weight'] = weight
+        self.style['flag'] = flag
+        self.style['border'] = border
+
+        self.style['fontpoint'] = fontpoint
+        self.style['fontfamily'] = fontfamily
+        self.style['fontstyle'] = fontstyle
+        self.style['fontweight'] = fontweight
+        self.style['fontunderline'] = fontunderline
+        self.style['fontname'] = fontname or 'Arial'
+
+
+        self.contentspec = contentspec or {}
+        self.notifications = notifications or {}
+        self.isOpen = isOpen
         
     def GetSchemaLocation(self):
         return '//Schema/DocumentSchema/Block'
+    
+    def AddToSizer(self, item, sizer):
+        if sizer != None:
+            sizer.Add(item, self.style['weight'], self.style['flag'],
+                      self.style['border'])
     

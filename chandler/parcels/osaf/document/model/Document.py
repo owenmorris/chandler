@@ -15,4 +15,5 @@ class Document(Container):
         sizer = wxBoxSizer(self.style['orientation'])
         self.RenderChildren(view, sizer)
         view.SetSizerAndFit(sizer)
+        return view
  

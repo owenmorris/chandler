@@ -86,77 +86,98 @@
     <attributes itemref="doc:notifications"/>
     <attributes itemref="doc:positionInParent"/>
 
-    <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
+    <classes key="python">OSAF.document.model.SimpleContainers.BoxContainer</classes>
     <superKinds itemref="doc:Container" />
   </Kind>
 
   <Kind itemName="doc:Button">
     <displayName>Button</displayName>
     
-    <classes key="python">OSAF.document.model.Button.Button</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.Button</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
   
   <Kind itemName="doc:List">
     <displayName>List</displayName>
     
-    <classes key="python">OSAF.document.model.List.List</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.List</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:Text">
     <displayName>Text</displayName>
     
-    <classes key="python">OSAF.document.model.Text.Text</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.Text</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+  
+  <Kind itemName="Doc:HtmlWindow">
+    <displayName>HtmlWindow</displayName>
+    
+    <classes key="python">OSAF.document.model.SimpleControls.HtmlWindow</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:Label">
     <displayName>Label</displayName>
     
-    <classes key="python">OSAF.document.model.Label.Label</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.Label</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:ScrolledWindow">
     <displayName>ScrolledWindow</displayName>
     
-    <classes key="python">OSAF.document.model.ScrolledWindow.ScrolledWindow</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.ScrolledWindow</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+
+  <Kind itemName="doc:SplitterWindow">
+    <displayName>SplitterWindow</displayName>
+    
+    <classes key="python">OSAF.document.model.SimpleControls.SplitterWindow</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:ToggleButton">
     <displayName>ToggleButton</displayName>
     
-    <classes key="python">OSAF.document.model.ToggleButton.ToggleButton</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.ToggleButton</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:Choice">
     <displayName>Choice</displayName>
     
-    <classes key="python">OSAF.document.model.Choice.Choice</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.Choice</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:Tree">
     <displayName>Tree</displayName>
     
-    <classes key="python">OSAF.document.model.Tree.Tree</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.Tree</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
+  <Kind itemName="doc:TreeList">
+    <displayName>TreeList</displayName>
+    
+    <classes key="python">OSAF.document.model.SimpleControls.TreeList</classes>
+    <superKinds itemref="doc:Block" />
+  </Kind>
+      
   <Kind itemName="doc:RadioBox">
     <displayName>RadioBox</displayName>
     
-    <classes key="python">OSAF.document.model.RadioBox.RadioBox</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.RadioBox</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
   <Kind itemName="doc:RadioButton">
     <displayName>RadioButton</displayName>
     
-    <classes key="python">OSAF.document.model.RadioButton.RadioButton</classes>
+    <classes key="python">OSAF.document.model.SimpleControls.RadioButton</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
