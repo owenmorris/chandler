@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//parcels/osaf/framework/webdav"
-        itsName="webdav"
+<Parcel itsName="webdav"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:dav="http://osafoundation.org/parcels/osaf/framework/webdav">
 

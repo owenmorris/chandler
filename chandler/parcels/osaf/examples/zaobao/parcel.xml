@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//parcels/osaf/examples/zaobao"
-        itsName="zaobao"
+<Parcel itsName="zaobao"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
         xmlns:fw="http://osafoundation.org/parcels/osaf/framework"

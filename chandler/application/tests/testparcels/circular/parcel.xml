@@ -6,5 +6,4 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="circular"
-        describes="//parcels/circular"
         xmlns="http://osafoundation.org/parcels/core"/>

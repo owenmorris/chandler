@@ -5,8 +5,7 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/depB/depC"
-        itsName="depC"
+<Parcel itsName="depC"
         xmlns="http://osafoundation.org/parcels/core">
 
   <namespace value="http://testparcels.org/parcels/depB/depC" />

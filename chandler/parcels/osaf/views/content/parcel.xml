@@ -5,8 +5,7 @@
 <!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/osaf/views/content"
-             itsName="content"
+<core:Parcel itsName="content"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:calendarBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"

@@ -5,8 +5,7 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/osaf/framework"
-        itsName="framework"
+<Parcel itsName="framework"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:app="http://osafoundation.org/parcels/osaf/framework"
         xmlns:webdav="http://osafoundation.org/parcels/osaf/framework/webdav">

@@ -5,12 +5,4 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/osaf/views"
-        itsName="views"
-        xmlns="http://osafoundation.org/parcels/core">
-
-  <description>Chandler views</description>
-  <version>0.3</version>
-  <author>Open Source Applications Foundation</author>
-
-</Parcel>
+<Parcel itsName="views" xmlns="http://osafoundation.org/parcels/core" />

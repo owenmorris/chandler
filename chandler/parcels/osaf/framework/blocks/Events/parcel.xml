@@ -5,8 +5,7 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/osaf/framework/blocks/Events"
-             itsName="Events"
+<core:Parcel itsName="Events"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"

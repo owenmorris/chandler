@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//parcels/notification"
-	itsName="notification"
+<Parcel itsName="notification"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:notification="http://testparcels.org/notification">
-  
+
   <namespace value="http://testparcels.org/notification"/>
 
   <displayName>Notification</displayName>

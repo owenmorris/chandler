@@ -6,7 +6,6 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="calendar"
-        describes="//parcels/circular/calendar"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:cal="http://testparcels.org/calendar"
         xmlns:con="http://testparcels.org/contact">
