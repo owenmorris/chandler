@@ -42,7 +42,8 @@ enum wxColumnHeaderFlagAttr
     wxCOLUMNHEADER_FLAGATTR_Enabled,
     wxCOLUMNHEADER_FLAGATTR_Selected,
     wxCOLUMNHEADER_FLAGATTR_SortEnabled,
-    wxCOLUMNHEADER_FLAGATTR_SortDirection
+    wxCOLUMNHEADER_FLAGATTR_SortDirection,
+    wxCOLUMNHEADER_FLAGATTR_FixedWidth
 };
 
 enum wxColumnHeaderHitTestResult
@@ -99,11 +100,16 @@ public:
 
     wxSize CalculateDefaultSize( void ) const;
     long GetTotalUIExtent( void ) const;
-    void ResizeToFit( void );
+    bool ResizeToFit( void );
+    bool RescaleToFit(
+        long            newWidth );
     bool ResizeDivision(
         long            itemIndex,
         long            originX );
 
+    bool GetFlagProportionalResizing( void ) const;
+    void SetFlagProportionalResizing(
+        bool                bFlagValue );
     bool GetFlagVisibleSelection( void ) const;
     void SetFlagVisibleSelection(
         bool                bFlagValue );

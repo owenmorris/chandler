@@ -17,7 +17,7 @@ class TestPanel( wx.Panel ):
         # NB: should be 17 for Mac; 20 for all other platforms
         # wxColumnHeader can handle it
         self.colHeight = 20
-        self.colStartX = 200
+        self.colStartX = 175
         self.colStartY = 20
 
         self.stepSize = 0
@@ -61,15 +61,7 @@ class TestPanel( wx.Panel ):
 
         prompt = "[Unicode build: %d]" %(ch1.GetFlagUnicode())
         hasUnicode = ch1.GetFlagUnicode()
-        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 50), (150, 20) )
-
-        cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
-        cb1.SetValue( True )
-
-        cb2 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX + 120, miscControlsY), (150, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
-        cb2.SetValue( True )
+        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 60), (150, 20) )
 
         btn = wx.Button( self, -1, "Resize Bounds", (10, self.colStartY) )
         self.Bind( wx.EVT_BUTTON, self.OnTestResizeBoundsButton, btn )
@@ -82,6 +74,20 @@ class TestPanel( wx.Panel ):
 
         btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 10 + 25) )
         self.Bind( wx.EVT_BUTTON, self.OnTestResizeDivisionButton, btn )
+
+        self.colStartX += 60
+
+        cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
+        cb1.SetValue( True )
+
+        cb2 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
+        cb2.SetValue( True )
+
+        cb3 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb3 )
+        cb3.SetValue( True )
 
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
@@ -146,6 +152,13 @@ class TestPanel( wx.Panel ):
         self.ch1.SetFlagVisibleSelection( curEnabled )
         self.ch2.SetFlagVisibleSelection( curEnabled )
         self.l0.SetLabel( "selection visible (%d)" %(curEnabled) )
+
+    def OnTestProportionalResizingCheckBox( self, event ):
+        curEnabled = self.ch1.GetFlagProportionalResizing()
+        curEnabled = not curEnabled
+        self.ch1.SetFlagProportionalResizing( curEnabled )
+        self.ch2.SetFlagProportionalResizing( curEnabled )
+        self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
 
 #----------------------------------------------------------------------
 

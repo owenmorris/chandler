@@ -10,6 +10,7 @@
 %rename(COLUMNHEADER_FLAGATTR_Selected)     wxCOLUMNHEADER_FLAGATTR_Selected;
 %rename(COLUMNHEADER_FLAGATTR_SortEnabled)  wxCOLUMNHEADER_FLAGATTR_SortEnabled;
 %rename(COLUMNHEADER_FLAGATTR_SortDirection)  wxCOLUMNHEADER_FLAGATTR_SortDirection;
+%rename(COLUMNHEADER_FLAGATTR_FixedWidth)   wxCOLUMNHEADER_FLAGATTR_FixedWidth;
 %rename(COLUMNHEADER_HITTEST_NoPart)        wxCOLUMNHEADER_HITTEST_NoPart;
 %rename(COLUMNHEADER_HITTEST_ItemZero)      wxCOLUMNHEADER_HITTEST_ItemZero;
 %rename(ColumnHeaderEvent)                  wxColumnHeaderEvent;

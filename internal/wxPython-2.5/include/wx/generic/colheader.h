@@ -54,40 +54,40 @@ public:
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
 		bool				bUseUnicode,
-		bool				bVisibleSelection );
+		bool				bVisibleSelection ) const;
 
 	long HitTest(
-		const wxPoint		&locationPt );
+		const wxPoint		&locationPt ) const;
 
 	void GetItemData(
-		wxColumnHeaderItem				*info );
+		wxColumnHeaderItem				*info ) const;
 	void SetItemData(
 		const wxColumnHeaderItem		*info );
 
 	void GetBitmapRef(
-		wxBitmap			&bitmapRef );
+		wxBitmap			&bitmapRef ) const;
 	void SetBitmapRef(
 		wxBitmap			&bitmapRef,
 		const wxRect		*boundsR );
 
 	void GetLabelText(
-		wxString			&textBuffer );
+		wxString			&textBuffer ) const;
 	void SetLabelText(
 		const wxString		&textBuffer );
 
-	long GetLabelJustification( void );
+	long GetLabelJustification( void ) const;
 	void SetLabelJustification(
 		long			textJust );
 
 	void GetUIExtent(
 		long			&originX,
-		long			&extentX );
+		long			&extentX ) const;
 	void SetUIExtent(
 		long			originX,
 		long			extentX );
 
 	bool GetFlagAttribute(
-		wxColumnHeaderFlagAttr		flagEnum );
+		wxColumnHeaderFlagAttr		flagEnum ) const;
 	bool SetFlagAttribute(
 		wxColumnHeaderFlagAttr		flagEnum,
 		bool						bFlagValue );
@@ -137,6 +137,7 @@ public:
 	bool					m_BSelected;
 	bool					m_BSortEnabled;
 	bool					m_BSortAscending;
+	bool					m_BFixedWidth;
 };
 
 class WXDLLIMPEXP_ADV wxColumnHeader : public wxControl
@@ -172,11 +173,16 @@ public:
 
 	wxSize CalculateDefaultSize( void ) const;
 	long GetTotalUIExtent( void ) const;
-	void ResizeToFit( void );
+	bool ResizeToFit( void );
+	bool RescaleToFit(
+		long				newWidth );
 	bool ResizeDivision(
 		long			itemIndex,
-		long			originX );
+		long				originX );
 
+	bool GetFlagProportionalResizing( void ) const;
+	void SetFlagProportionalResizing(
+		bool				bFlagValue );
 	bool GetFlagVisibleSelection( void ) const;
 	void SetFlagVisibleSelection(
 		bool				bFlagValue );
@@ -322,6 +328,7 @@ protected:
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
+	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 	bool					m_BUseUnicode;
 

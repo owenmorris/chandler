@@ -159,6 +159,7 @@ void wxColumnHeader::Init( void )
 	m_ItemCount = 0;
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 
+	m_BProportionalResizing = true;
 	m_BVisibleSelection = true;
 
 #if wxUSE_UNICODE
@@ -166,6 +167,20 @@ void wxColumnHeader::Init( void )
 #else
 	m_BUseUnicode = false;
 #endif
+}
+
+bool wxColumnHeader::GetFlagProportionalResizing( void ) const
+{
+	return m_BProportionalResizing;
+}
+
+void wxColumnHeader::SetFlagProportionalResizing(
+	bool			bFlagValue )
+{
+	if (m_BProportionalResizing == bFlagValue)
+		return;
+
+	m_BProportionalResizing = bFlagValue;
 }
 
 bool wxColumnHeader::GetFlagVisibleSelection( void ) const
@@ -431,6 +446,9 @@ void wxColumnHeader::DoSetSize(
 
 	wxControl::DoSetSize( x, y, width, height, sizeFlags );
 
+	if (m_BProportionalResizing)
+		RescaleToFit( width );
+
 	// FIXME: sloppy hack
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
@@ -587,17 +605,28 @@ long		extentX, i;
 	return extentX;
 }
 
-void wxColumnHeader::ResizeToFit( void )
+bool wxColumnHeader::RescaleToFit(
+	long				newWidth )
+{
+	if (newWidth <= 0)
+		return false;
+
+	return true;
+}
+
+bool wxColumnHeader::ResizeToFit( void )
 {
 long		extentX;
 
 	extentX = GetTotalUIExtent();
 	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
+
+	return true;
 }
 
 bool wxColumnHeader::ResizeDivision(
-	long			itemIndex,
-	long			originX )
+	long				itemIndex,
+	long				originX )
 {
 wxColumnHeaderItem		*itemRef1, *itemRef2;
 long						deltaV;
@@ -1458,7 +1487,7 @@ wxColumnHeaderItem::~wxColumnHeaderItem()
 // NB: a copy and nothing else...
 //
 void wxColumnHeaderItem::GetItemData(
-	wxColumnHeaderItem			*info )
+	wxColumnHeaderItem			*info ) const
 {
 	if (info == NULL)
 		return;
@@ -1471,6 +1500,7 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_BSelected = m_BSelected;
 	info->m_BSortEnabled = m_BSortEnabled;
 	info->m_BSortAscending = m_BSortAscending;
+	info->m_BFixedWidth = m_BFixedWidth;
 
 	GetLabelText( info->m_LabelTextRef );
 
@@ -1493,6 +1523,7 @@ void wxColumnHeaderItem::SetItemData(
 	m_BSelected = info->m_BSelected;
 	m_BSortEnabled = info->m_BSortEnabled;
 	m_BSortAscending = info->m_BSortAscending;
+	m_BFixedWidth = info->m_BFixedWidth;
 
 	SetLabelText( info->m_LabelTextRef );
 
@@ -1512,7 +1543,7 @@ bool		bResultV;
 }
 
 void wxColumnHeaderItem::GetBitmapRef(
-	wxBitmap			&bitmapRef )
+	wxBitmap			&bitmapRef ) const
 {
 	if (m_BitmapRef != NULL)
 		bitmapRef = *m_BitmapRef;
@@ -1545,7 +1576,7 @@ wxRect			targetBoundsR;
 }
 
 void wxColumnHeaderItem::GetLabelText(
-	wxString			&textBuffer )
+	wxString			&textBuffer ) const
 {
 	textBuffer = m_LabelTextRef;
 }
@@ -1556,7 +1587,7 @@ void wxColumnHeaderItem::SetLabelText(
 	m_LabelTextRef = textBuffer;
 }
 
-long wxColumnHeaderItem::GetLabelJustification( void )
+long wxColumnHeaderItem::GetLabelJustification( void ) const
 {
 	return m_TextJust;
 }
@@ -1569,7 +1600,7 @@ void wxColumnHeaderItem::SetLabelJustification(
 
 void wxColumnHeaderItem::GetUIExtent(
 	long			&originX,
-	long			&extentX )
+	long			&extentX ) const
 {
 	originX = m_OriginX;
 	extentX = m_ExtentX;
@@ -1590,7 +1621,7 @@ void wxColumnHeaderItem::SetUIExtent(
 }
 
 bool wxColumnHeaderItem::GetFlagAttribute(
-	wxColumnHeaderFlagAttr		flagEnum )
+	wxColumnHeaderFlagAttr		flagEnum ) const
 {
 bool			bResult;
 
@@ -1612,6 +1643,10 @@ bool			bResult;
 
 	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
 		bResult = m_BSortAscending;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_FixedWidth:
+		bResult = m_BFixedWidth;
 		break;
 
 	default:
@@ -1647,6 +1682,10 @@ bool			bResult;
 		m_BSortAscending = bFlagValue;
 		break;
 
+	case wxCOLUMNHEADER_FLAGATTR_FixedWidth:
+		m_BFixedWidth = bFlagValue;
+		break;
+
 	default:
 		bResult = false;
 		break;
@@ -1656,7 +1695,7 @@ bool			bResult;
 }
 
 long wxColumnHeaderItem::HitTest(
-	const wxPoint		&locationPt )
+	const wxPoint		&locationPt ) const
 {
 long		targetX, resultV;
 
@@ -1671,7 +1710,7 @@ long wxColumnHeaderItem::DrawItem(
 	wxClientDC		*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
-	bool				bVisibleSelection )
+	bool				bVisibleSelection ) const
 {
 //	if ((boundsR == NULL) || boundsR->IsEmpty())
 	if (boundsR == NULL)
