@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/osaf/framework/attributeEditors"
+        itsName="attributeEditors"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/attributeEditors">
+
+  <version>0.3</version>
+
+  <Kind itsName="AttributeEditorsKind">
+    <superKinds itemref="Item"/>
+    
+    <Attribute itsName="editorString">
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <attributes itemref="doc:AttributeEditorsKind/editorString"/>
+  </Kind>
+
+  <doc:AttributeEditorsKind itsName="AttributeEditors">
+    <editorString key="String" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="_default" value="osaf.framework.attributeEditors.AttributeEditors.DefaultAttributeEditor"/>
+  </doc:AttributeEditorsKind>
+
+</Parcel>

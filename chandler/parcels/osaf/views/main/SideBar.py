@@ -14,12 +14,7 @@ class SideBarDelegate (AttributeDelegate):
             item = item.contents
         except AttributeError:
             pass
-        attributeName = self.blockItem.columnAttributeNames [column]
-        try:
-            value = item.getAttributeValue (attributeName)
-        except AttributeError:
-            value = "Unnamed"
-        return value
+        return item, self.blockItem.columnAttributeNames [column]
 
     def SetElementValue (self, row, column, value):
         view = self.blockItem.contents[row]

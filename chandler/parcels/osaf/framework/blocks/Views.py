@@ -156,5 +156,6 @@ class View(BoxContainer):
                         return
             block = block.parentBlock
         # none found, to remove dynamic additions we synch to the Active View
-        assert candidate is not None, "Couldn't find a dynamic child to synchronize with"
-        synchToDynamicBlock (candidate, False)
+        #assert candidate, "Couldn't find a dynamic child to synchronize with"
+        if candidate:
+            synchToDynamicBlock (candidate, False)

@@ -16,6 +16,7 @@ import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
 import mx.DateTime as DateTime
+from osaf.framework.attributeEditors.AttributeEditors import AttributeEditor
 
 class Button(RectangularChild):
     def instantiateWidget(self):
@@ -201,7 +202,7 @@ class ListDelegate (object):
         return len (self.blockItem.contents)
 
     def GetElementType (self, row, column):
-        return "string"
+        return "String"
 
     def GetColumnHeading (self, column, item):
         return self.blockItem.columnHeadings [column]
@@ -211,22 +212,20 @@ class AttributeDelegate (ListDelegate):
     def GetColumnCount (self):
         return len (self.blockItem.columnAttributeNames)
 
-    def GetElementValue (self, row, column):
-        item = self.blockItem.contents [row]
-        attributeName = self.blockItem.columnAttributeNames [column]
+    def GetElementType (self, row, column):
         try:
-            value = item.getAttributeValue (attributeName)
-        except AttributeError:
-            value = "Unnamed"
+            item = self.blockItem.contents[row]
+        except IndexError:
+            type = "_default"
         else:
-            if item.getAttributeAspect (attributeName, "cardinality") == "list":
-                compoundValue = value
-                value = ""
-                for part in compoundValue:
-                    if value:
-                        value = value + ", "
-                    value = value + part.getItemDisplayName()
-        return value
+            attributeName = self.blockItem.columnAttributeNames [column]
+            type = item.getAttributeAspect (attributeName, 'type').itsName
+            if type != "String":
+                type = "_default"
+        return type
+
+    def GetElementValue (self, row, column):
+        return self.blockItem.contents [row], self.blockItem.columnAttributeNames [column]
 
     def SetElementValue (self, row, column, value):
         item = self.blockItem.contents[row]
@@ -334,6 +333,8 @@ class List(RectangularChild):
 class wxTableData(wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
+        self.defaultAttribute = wx.grid.GridCellAttr()
+        self.defaultAttribute.SetReadOnly (True)
 
     def GetNumberRows (self):
         """
@@ -369,6 +370,13 @@ class wxTableData(wx.grid.PyGridTableBase):
     def GetTypeName (self, row, column):
         return self.GetView().GetElementType (row, column)
 
+    def GetAttr (self, row, column, kind):
+        attribute = self.base_GetAttr (row, column, kind)
+        if not attribute and self.GetTypeName (row, column) == "_default":
+            attribute = self.defaultAttribute
+            attribute.IncRef()
+        return attribute
+        
 
 class wxTable(DropReceiveWidget, wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
@@ -391,9 +399,10 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         self.SetCellHighlightPenWidth(0)
 
-        self.SetDefaultRenderer (ImageRenderer())
-        self.RegisterDataType ("image", ImageRenderer(), None);
-
+        self.SetDefaultRenderer (GridCellAttributeRenderer("_default"))
+        self.RegisterDataType ("String",
+                               GridCellAttributeRenderer("String"),
+                               GridCellAttributeEditor("String"))
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
@@ -412,6 +421,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         table before initializing it's view so GetView() returns none.
         """
         gridTable = wxTableData()
+
         self.currentRows = gridTable.GetNumberRows()
         self.currentColumns = gridTable.GetNumberCols()
 
@@ -535,63 +545,80 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                                  {'item':item})
 
 
-class AttributeRenderer (wx.grid.PyGridCellRenderer):
-    def Format (self, value):
-        theType = type (value)
-        
-        if theType == str:
-            return value
+class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
+    def __init__(self, type):
+        super (GridCellAttributeRenderer, self).__init__ ()
+        self.delegate = AttributeEditor.GetAttributeEditor (type)
 
-        elif theType == type (DateTime.DateTime(0)):
-            return value.Format("%B %d, %Y    %I:%M %p")
-        
-        else:
-            result = ""
-            for piece in value:
-                result = result + ', ' + self.Format (piece)
-            return result
-
-    def Draw (self, grid, attr, dc, rect, row, col, isSelected):
+    def SetTextColorsAndFont (self, grid, attr, dc, isSelected):
         """
-          We have to set the clipping region on the grid's DC, otherwise
-          the text will draw outside the cell
-
-          SetTextColoursAndFont(grid, attr, dc, isSelected);
-      
-          grid.DrawTextRectangle(dc, grid.GetCellValue(row, col),
-                                 rect, hAlign, vAlign);
+          Set the text foreground, text background, brush and font into the dc
         """
-        dc.SetClippingRect (rect)
-
-        value = grid.GetTable().GetValue (row, col)
-        formattedValue = self.Format (value)
-
-        dc.SetBackgroundMode(wx.SOLID)
-        dc.SetFont(wx.SWISS_FONT)
-
-        if isSelected:
-            dc.SetTextForeground (grid.GetSelectionForeground())
-            dc.SetTextBackground (grid.GetSelectionBackground())
-            dc.SetBrush (wx.Brush (grid.GetSelectionBackground(), wx.SOLID))
-            dc.SetPen (wx.Pen (grid.GetSelectionBackground(), 1, wx.SOLID))
+        if grid.IsEnabled():
+            if isSelected:
+                dc.SetTextBackground (grid.GetSelectionBackground())
+                dc.SetTextForeground (grid.GetSelectionForeground())
+                dc.SetBrush (wx.Brush (grid.GetSelectionBackground(), wx.SOLID))
+            else:
+                dc.SetTextBackground (attr.GetBackgroundColour())
+                dc.SetTextForeground (attr.GetTextColour())
+                dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
         else:
-            dc.SetTextForeground (attr.GetTextColour())
-            dc.SetTextBackground (attr.GetBackgroundColour())
-            dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
-            dc.SetPen (wx.Pen (attr.GetBackgroundColour(), 1, wx.SOLID))
+            dc.SetTextBackground (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
+            dc.SetTextForeground (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_GRAYTEXT))
+            dc.SetBrush (wx.Brush (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE), wxSOLID))
 
-        dc.DrawRectangleRect (rect)
-        dc.DrawText(formattedValue, (rect.x+1, rect.y+1))
+        dc.SetFont (attr.GetFont())
 
-        width, height = dc.GetTextExtent(formattedValue)
-        
-        if width > rect.width - 2:
-            width, height = dc.GetTextExtent("...")
-            x = rect.x + 1 + rect.width - 2 - width
-            dc.DrawRectangle ((x, rect.y + 1), (width + 1, height))
-            dc.DrawText ("...", (x, rect.y + 1))
+    def Draw (self, grid, attr, dc, rect, row, column, isSelected):
+        """
+          Currently only handles left justified multiline text
+        """
+        self.SetTextColorsAndFont (grid, attr, dc, isSelected)
+        item, attributeName = grid.GetElementValue (row, column)
+        self.delegate.Draw (dc, rect, item, attributeName, isSelected)
 
-        dc.DestroyClippingRegion()
+
+class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
+    def __init__(self, type):
+        super (GridCellAttributeEditor, self).__init__ ()
+        self.delegate = AttributeEditor.GetAttributeEditor (type)
+
+    def Create (self, parent, id, evtHandler):
+        """
+          Create an edit control to edit the text
+        """
+        self.control = self.delegate.Create (parent, id)
+        self.SetControl (self.control)
+        if evtHandler:
+            self.control.PushEventHandler (evtHandler)
+
+    def PaintBackground (self, *arguments, **keywords):
+        """
+          background drawing is done by the edit control
+        """
+        pass
+
+    def BeginEdit (self, row,  column, grid):
+        item, attributeName = grid.GetElementValue (row, column)
+        self.initialValue = self.delegate.GetAttributeValue (item, attributeName)
+        self.delegate.BeginControlEdit (self.control, self.initialValue)
+
+    def EndEdit (self, row, column, grid):
+        value = self.delegate.GetControlValue (self.control)
+        if value == self.initialValue:
+            changed = False
+        else:
+            changed = True
+            grid.SetElementValue (row, column, value)
+        return changed
+
+    def Reset (self):
+        self.delegate.SetControlValue (self.control, self.initialValue)
+
+    def GetValue (self):
+        return self.delegate.GetControlValue (self.control)
+
 
 class ImageRenderer (wx.grid.PyGridCellRenderer):
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
