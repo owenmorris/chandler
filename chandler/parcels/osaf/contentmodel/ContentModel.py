@@ -104,9 +104,6 @@ class ContentItem(Item.Item):
             kind = ContentModel.getContentItemKind()
         super (ContentItem, self).__init__(name, parent, kind)
 
-        # @@@DLD remove this line, since it's done in InitOutgoingAttributes
-        self.createdOn = DateTime.now ()
-
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.

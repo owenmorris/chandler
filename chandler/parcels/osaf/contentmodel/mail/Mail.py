@@ -363,9 +363,6 @@ class MailMessageMixin(MIMEContainer):
             kind = MailParcel.getMailMessageMixinKind()
         super (MailMessageMixin, self).__init__(name, parent, kind)
 
-        # @@@DLD remove this line, it's being done in _initMixin
-        self.mimeType = "MESSAGE"
-
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
