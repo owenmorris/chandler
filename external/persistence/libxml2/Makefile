@@ -66,8 +66,15 @@ $(SRC)/$(BUILD)/Makefile: apply
                      --with-python=$(WP) \
                      $(CONF_DBG)
 
-build: $(SRC)/$(BUILD)/Makefile
+compile: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
+
+py:
+	cd $(SRC)/python; \
+	$(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
+                              install --force
+
+build: compile py
 
 snap: 
 	cd $(BUILD_ROOT); \
