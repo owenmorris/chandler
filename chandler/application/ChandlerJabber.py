@@ -131,11 +131,11 @@ class JabberClient:
 
         # instant message arrived
         description = _("You have received a new instant message.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/instant-message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
         
         # instant message sent
         description = _("You have sent a new instant message.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/instant-message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        self.application.model.notificationManager.DeclareNotification('chandler/im/message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
                                                 
     # login to the Jabber server
     def Login(self):
@@ -412,6 +412,18 @@ class JabberClient:
         
         # it's a mainstream instant message (not one of our structured ones).
         if self.rosterParcel != None:
+            # post a message-arrived notification
+            messageNotification = Notification("chandler/im/message-arrived","messageType", None)
+            
+            messageData = {}
+            messageData['body'] = body
+            messageData['fromAddress'] = fromAddress
+            messageData['toAddress'] = toAddress
+            messageData['subject'] = subject
+            
+            messageNotification.SetData(messageData)
+            self.application.model.notificationManager.PostNotification(messageNotification)
+
             self.rosterParcel.ReceivedMessage(fromAddress, subject, body)
         
     # handle incoming presence requests by automatically accepting them

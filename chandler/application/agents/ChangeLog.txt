@@ -5,3 +5,11 @@
     * added the agents sub-directory
     * added the Notification Manager, written by Andrew Francis
     <andrewfr_ice@yahoo.com>
+    
+2003-08-31 Andy Hertzfeld <andy@differnet.com>
+
+    * first big check-in of agent framework
+    * added model directory with Chandler schema for Agent persistent data, agents.xml
+    * added model classes AgentItem, Action, Condition, Instruction, Repertoire
+    * added Agent and AgentManager classes
+    

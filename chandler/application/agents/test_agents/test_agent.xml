@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<agent name="Test Agent">
+   <attribute name="roles">watcher</attribute>
+   <attribute name="resume">This is our very first agent, who does random
+       sorts of things in orfer to test the framework.
+    </attribute>
+
+   <instruction enabled="True">
+      <condition name="IM arrived">
+         <attribute name="actionType">condition</attribute>      
+         <attribute name="conditionType">notification</attribute>
+         <attribute name="actionDescription">This condition is invoked when an instant message arrives</attribute>
+         <attribute name="conditionNotification">chandler/im/message-arrived</attribute>        
+      </condition>
+      
+      <action name="Send Email">
+         <attribute name="actionType">inline</attribute>
+         <attribute name="actionDescription">Send an email to the owner of this agent</attribute>
+         <attribute name="actionScript">print data['body']</attribute>
+      </action>     
+   </instruction> 
+</agent>

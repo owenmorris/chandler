@@ -21,6 +21,7 @@ class Notification:
         self.source = source
         self.id = self.GetUniqueId()
         self.creationTime = time.time()       #add the time the event is created
+        self.data = None
         
     # Utility function
     

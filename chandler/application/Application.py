@@ -16,6 +16,7 @@ from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
 
 from application.agents.Notifications.NotificationManager import NotificationManager
+from application.agents.AgentManager import AgentManager
 
 from persistence import Persistent 
 from persistence.list import PersistentList
@@ -311,15 +312,21 @@ class wxApplication (wxApp):
 
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
-            #self.repository.loadPack(os.path.join(self.chandlerDirectory,
-            #                                      "parcels", "OSAF",
-            #                                      "contacts", "model", 
-            #                                      "contacts.pack"))
             contactsPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                        'OSAF', 'contacts', 'model',
-                                        'contacts.xml')
+                                    'OSAF', 'contacts', 'model',
+                                    'contacts.xml')
             loader.load(contactsPath)
 
+        # Load the agent schema
+        if not self.repository.find('//Agents'):       
+            agentsPath = os.path.join(self.chandlerDirectory,
+                                    'application', 'agents', 'model',
+                                    'agents.xml')
+            loader.load(agentsPath)
+                    
+        # initialize the agent manager
+        self.agentManager = AgentManager(self)
+            
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
 
