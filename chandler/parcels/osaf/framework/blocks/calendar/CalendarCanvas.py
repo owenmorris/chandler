@@ -160,9 +160,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
-            if ((item.startTime >= date) and
-                (item.startTime < nextDate) and
-                item.duration):
+            if (item.hasAttributeValue('startTime') and
+                item.duration and
+                (item.startTime >= date) and
+                (item.startTime < nextDate)):
                 items.append(item)
         return items
 
@@ -494,12 +495,16 @@ class WeekBlock(CalendarBlock):
     def __init__(self, *arguments, **keywords):
         super(WeekBlock, self).__init__ (*arguments, **keywords)
 
-        # need to fix this
-        self.daysPerView = 7
-        self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)
-        self.setRange(DateTime.today())
-
+    def initAttributes(self):
+        if not self.hasAttributeValue('rangeStart'):
+            self.setRange(DateTime.today())
+        if not self.hasAttributeValue('rangeIncrement'):
+            self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)        
     def instantiateWidget(self):
+        # @@@ KCP move to a callback that gets called from parcel loader
+        # after item has all of its attributes assigned from parcel xml
+        self.initAttributes()
+        
         return wxWeekPanel(self.parentBlock.widget,
                            Block.Block.getWidgetID(self))
 
