@@ -85,13 +85,13 @@ will be stored in the repository at the path
 
 As the parcel loader parses the XML, whenever it sees an element with
 the <code>itemName</code> attribute it creates an item in the repository.
-For a parcel file, the outermost element should be {//Schema/Core}Parcel.
-When defining kinds and attributes, use elements of {//Schema/Core}Kind and
-{//Schema/Core}Attribute.  <i>Note:  we're currently overloading the
-meaning of our namespaces to use them as repository paths; this syntax
-is likely to change in the future.</i> The nesting arrangement of the
-items in a parcel file will be duplicated in the repository hierarchy.
-</p>
+For a parcel file, the outermost element should be Parcel. When defining
+kinds and attributes, use elements of Kind and Attribute.  Remember that
+all elements of these types must be in the XML namespace //Schema/Core.
+<i>Note:  we're currently overloading the meaning of our namespaces to
+use them as repository paths; this syntax is likely to change in the
+future.</i> The nesting arrangement of the items in a parcel file will
+be duplicated in the repository hierarchy.  </p>
 
 <p> First the <code>&lt;Parcel&gt;</code> element:  its
 <code>itemName</code> attribute is used to name the item in the repository.
