@@ -12,6 +12,10 @@ import os, shutil
 from distutils.core import setup, Extension
 from distutils.command import build_ext
 
+# XXX This is a hack to force search order that works
+# XXX for Chandler.
+from distutils.sysconfig import get_config_var
+
 # This copy of swig_sources is from Python 2.2.
 
 def swig_sources (self, sources):
@@ -66,14 +70,24 @@ my_inc = os.path.join(os.getcwd(), 'SWIG')
 
 if os.name == 'nt':
     openssl_dir = 'c:\\pkg\\openssl'
-    include_dirs = [my_inc, openssl_dir + '/include']
-    library_dirs = [openssl_dir + '\\lib']
+    # XXX This is a hack to force search order that works
+    # XXX for Chandler.
+    prefix_dir = get_config_var('prefix')
+    include_dirs = [prefix_dir + '\\..\\include',
+                    my_inc,
+                    openssl_dir + '/include']
+    library_dirs = [prefix_dir + '\\..\\lib',
+                    openssl_dir + '\\lib']
     libraries = ['ssleay32', 'libeay32']
     extra_compile_args = [ "-DTHREADING" ]
 
 elif os.name == 'posix':
-    include_dirs = [my_inc, '/usr/include']
-    library_dirs = ['/usr/lib']
+    # XXX This is a hack to force search order that works
+    # XXX for Chandler.    
+    include_dirs = [get_config_var('INCLUDEDIR'),
+                    my_inc, '/usr/include']
+    library_dirs = [get_config_var('LIBDIR'),
+                    '/usr/lib']
     libraries = ['ssl', 'crypto']
     extra_compile_args = [ "-DTHREADING" ]
 
