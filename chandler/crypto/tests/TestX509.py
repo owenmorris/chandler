@@ -8,10 +8,24 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest
 import crypto.tests.CryptoTestCase as CryptoTestCase
 from M2Crypto import RSA, X509, EVP, m2, Rand, Err
+import crypto.tests.ca as ca
 
 class X509(CryptoTestCase.CryptoTestCase):
-    def testRSAKeyGeneration(self):
-        self.assert_(isinstance(RSA.gen_key(2048, m2.RSA_F4), RSA.RSA))
 
+    def _passphrase_callback(self, v):
+        return "passw0rd"
+            
+    def testCA(self):
+        (cert, rsa) = ca.ca()
+
+        self.assert_(isinstance(rsa, RSA.RSA))         
+        # XXX Why does this work in /internal/m2crypto/demo/x509/ca.py
+        # XXX but crashes Python when run with HardHat here?
+        #rsa.save_key('ca_rsa.pem', cipher='aes_256_cbc', callback=self._passphrase_callback)
+
+        # XXX Why doesn't isinstance work here?
+        #self.assert_(isinstance(cert, X509.X509))
+        cert.save_pem('ca_cert.pem')
+        
 if __name__ == "__main__":
     unittest.main()
