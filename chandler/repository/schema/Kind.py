@@ -208,6 +208,9 @@ class Kind(Item):
         if isinstance(value, SingleRef):
             return self.getRepository()[value.getUUID()].isItemOf(self)
 
+        if isinstance(value, Item):
+            return value.isItemOf(self)
+    
         return False
 
     # end typeness of Kind as SingleRef

@@ -208,7 +208,7 @@ class _noneRef(ItemRef):
         return None
 
     def check(self, item, name):
-        pass
+        return True
 
     def _refCount(self):
         return 0
