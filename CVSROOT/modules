@@ -29,7 +29,7 @@ Chandler osaf/chandler/Chandler
 
 chandler  osaf/chandler/Chandler & chandler-top
 
-chandler-top  -d chandler   osaf/chandler/Makefile
+chandler-top  -d .   osaf/chandler Makefile
 
 hardhat osaf/hardhat
 
