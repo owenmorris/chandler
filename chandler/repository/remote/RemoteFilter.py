@@ -14,12 +14,13 @@ from repository.util.Streams import BZ2OutputStream, ZlibOutputStream
 
 class RemoteFilter(XMLFilter):
 
-    def __init__(self, store, versionId):
+    def __init__(self, store, versionId, force=False):
 
         XMLFilter.__init__(self, None)
 
         self.store = store
         self.versionId = versionId
+        self.force = force
         
         self._attrs = []
         self._isOn = False
@@ -32,6 +33,7 @@ class RemoteFilter(XMLFilter):
         self._keyBuffer = None
         self._document = None
         self._indexWriter = None
+        self._count = 0
         
     def output(self):
 
@@ -94,9 +96,10 @@ class RemoteFilter(XMLFilter):
 
     def itemsStart(self, attrs):
 
-        versionId = UUID(attrs['versionId'])
-        if versionId != self.versionId:
-            raise ValueError, "remote version ids don't match"
+        if attrs is not None and 'versionId' in attrs:
+            versionId = UUID(attrs['versionId'])
+            if versionId != self.versionId:
+                raise ValueError, "remote version ids don't match"
 
         self._txnStarted = self.store.startTransaction()
         self._lock = self.store.acquireLock()
@@ -129,7 +132,7 @@ class RemoteFilter(XMLFilter):
 
         version = self.store._versions.getDocVersion(self.itemUUID,
                                                      self.itemVersion)
-        if version == self.itemVersion:
+        if not self.force and version == self.itemVersion:
             self._isSkipping = True
             self._isOn = False
 
@@ -152,6 +155,7 @@ class RemoteFilter(XMLFilter):
             if self._document is None:
                 self._document = xml
 
+            self._count += 1
             self.store.saveItem(xml, self.itemUUID, self.itemVersion,
                                 (self.itemParent, self.itemName), None, 0)
 
