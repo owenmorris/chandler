@@ -72,7 +72,9 @@
     <ref type="path">/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactName.ContactName</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactName.ContactName</value>
+  </attribute>
 
 </item>
 
@@ -130,7 +132,9 @@
     <ref type="path">/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactMethod.ContactMethod</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactMethod.ContactMethod</value>
+  </attribute>
 </item>
 
 <!-- Attributes used in PhoneContactMethod -->
@@ -154,7 +158,9 @@
     <ref type="path">//Schema/ContactsSchema/ContactMethod</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactMethod.ContactMethod</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactMethod.ContactMethod</value>
+  </attribute>
 </item>
 
 <!-- Attributes used in EmailContactMethod -->
@@ -178,7 +184,9 @@
     <ref type="path">//Schema/ContactsSchema/ContactMethod</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactMethod.ContactMethod</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactMethod.ContactMethod</value>
+  </attribute>
 </item>
 
 <!-- Attributes used in ContactFormat -->
@@ -219,7 +227,9 @@
     <ref type="path">/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactFormat.ContactFormat</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactFormat.ContactFormat</value>
+  </attribute>
 </item>
 
 
@@ -346,7 +356,9 @@
     <ref type="path">/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.contacts.model.ContactEntity.ContactEntity</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.contacts.model.ContactEntity.ContactEntity</value>
+  </attribute>
 
 </item>
 

@@ -62,7 +62,9 @@
     <ref type="path">//Schema/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.Location.Location</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.calendar.model.Location.Location</value>
+  </attribute>
 
 </item>
 
@@ -81,7 +83,9 @@
     <ref type="path">//Schema/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.CalendarEvent.CalendarEvent</attribute>
+  <attribute name="Classes">
+    <value name="python">OSAF.calendar.model.CalendarEvent.CalendarEvent</value>
+  </attribute>
 </item>
 
 </items>
