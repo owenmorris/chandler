@@ -499,7 +499,7 @@ SWIG_Check_unsigned_SS_long(PyObject* obj)
 #ifdef __cplusplus
 extern "C" {
 #endif
-static PyObject *_wrap_new_wxMiniCalendarDateAttr(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_new_MiniCalendarDateAttr(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     double arg1 = (double) 0 ;
     wxMiniCalendarDateAttr *result;
@@ -508,7 +508,7 @@ static PyObject *_wrap_new_wxMiniCalendarDateAttr(PyObject *, PyObject *args, Py
         (char *) "busyPercentage", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|O:new_wxMiniCalendarDateAttr",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"|O:new_MiniCalendarDateAttr",kwnames,&obj0)) goto fail;
     if (obj0) {
         arg1 = (double)SWIG_As_double(obj0); 
         if (PyErr_Occurred()) SWIG_fail;
@@ -527,7 +527,7 @@ static PyObject *_wrap_new_wxMiniCalendarDateAttr(PyObject *, PyObject *args, Py
 }
 
 
-static PyObject *_wrap_wxMiniCalendarDateAttr_SetBusy(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarDateAttr_SetBusy(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarDateAttr *arg1 = (wxMiniCalendarDateAttr *) 0 ;
     double arg2 ;
@@ -537,7 +537,7 @@ static PyObject *_wrap_wxMiniCalendarDateAttr_SetBusy(PyObject *, PyObject *args
         (char *) "self",(char *) "busyPercentage", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxMiniCalendarDateAttr_SetBusy",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:MiniCalendarDateAttr_SetBusy",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarDateAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (double)SWIG_As_double(obj1); 
@@ -556,7 +556,7 @@ static PyObject *_wrap_wxMiniCalendarDateAttr_SetBusy(PyObject *, PyObject *args
 }
 
 
-static PyObject *_wrap_wxMiniCalendarDateAttr_GetBusy(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarDateAttr_GetBusy(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarDateAttr *arg1 = (wxMiniCalendarDateAttr *) 0 ;
     double result;
@@ -565,7 +565,7 @@ static PyObject *_wrap_wxMiniCalendarDateAttr_GetBusy(PyObject *, PyObject *args
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendarDateAttr_GetBusy",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendarDateAttr_GetBusy",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarDateAttr,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -582,14 +582,14 @@ static PyObject *_wrap_wxMiniCalendarDateAttr_GetBusy(PyObject *, PyObject *args
 }
 
 
-static PyObject * wxMiniCalendarDateAttr_swigregister(PyObject *, PyObject *args) {
+static PyObject * MiniCalendarDateAttr_swigregister(PyObject *, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
     SWIG_TypeClientData(SWIGTYPE_p_wxMiniCalendarDateAttr, obj);
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
-static PyObject *_wrap_new_wxMiniCalendarEvent(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_new_MiniCalendarEvent(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxEventType arg2 ;
@@ -600,7 +600,7 @@ static PyObject *_wrap_new_wxMiniCalendarEvent(PyObject *, PyObject *args, PyObj
         (char *) "cal",(char *) "type", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:new_wxMiniCalendarEvent",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:new_MiniCalendarEvent",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (wxEventType)SWIG_As_int(obj1); 
@@ -619,7 +619,7 @@ static PyObject *_wrap_new_wxMiniCalendarEvent(PyObject *, PyObject *args, PyObj
 }
 
 
-static PyObject *_wrap_wxMiniCalendarEvent_GetDate(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarEvent_GetDate(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarEvent *arg1 = (wxMiniCalendarEvent *) 0 ;
     wxDateTime result;
@@ -628,7 +628,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_GetDate(PyObject *, PyObject *args, P
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendarEvent_GetDate",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendarEvent_GetDate",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -649,7 +649,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_GetDate(PyObject *, PyObject *args, P
 }
 
 
-static PyObject *_wrap_wxMiniCalendarEvent_SetDate(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarEvent_SetDate(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarEvent *arg1 = (wxMiniCalendarEvent *) 0 ;
     wxDateTime *arg2 = 0 ;
@@ -659,7 +659,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_SetDate(PyObject *, PyObject *args, P
         (char *) "self",(char *) "date", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxMiniCalendarEvent_SetDate",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:MiniCalendarEvent_SetDate",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxDateTime,
@@ -683,7 +683,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_SetDate(PyObject *, PyObject *args, P
 }
 
 
-static PyObject *_wrap_wxMiniCalendarEvent_SetWeekDay(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarEvent_SetWeekDay(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarEvent *arg1 = (wxMiniCalendarEvent *) 0 ;
     int arg2 ;
@@ -693,7 +693,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_SetWeekDay(PyObject *, PyObject *args
         (char *) "self",(char *) "wd", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxMiniCalendarEvent_SetWeekDay",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:MiniCalendarEvent_SetWeekDay",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (int)SWIG_As_int(obj1); 
@@ -712,7 +712,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_SetWeekDay(PyObject *, PyObject *args
 }
 
 
-static PyObject *_wrap_wxMiniCalendarEvent_GetWeekDay(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendarEvent_GetWeekDay(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendarEvent *arg1 = (wxMiniCalendarEvent *) 0 ;
     int result;
@@ -721,7 +721,7 @@ static PyObject *_wrap_wxMiniCalendarEvent_GetWeekDay(PyObject *, PyObject *args
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendarEvent_GetWeekDay",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendarEvent_GetWeekDay",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendarEvent,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -738,14 +738,14 @@ static PyObject *_wrap_wxMiniCalendarEvent_GetWeekDay(PyObject *, PyObject *args
 }
 
 
-static PyObject * wxMiniCalendarEvent_swigregister(PyObject *, PyObject *args) {
+static PyObject * MiniCalendarEvent_swigregister(PyObject *, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
     SWIG_TypeClientData(SWIGTYPE_p_wxMiniCalendarEvent, obj);
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
-static PyObject *_wrap_new_wxMiniCalendar__SWIG_0(PyObject *, PyObject *args) {
+static PyObject *_wrap_new_MiniCalendar__SWIG_0(PyObject *, PyObject *args) {
     PyObject *resultobj;
     wxWindow *arg1 = (wxWindow *) 0 ;
     int arg2 = (int) -1 ;
@@ -770,7 +770,7 @@ static PyObject *_wrap_new_wxMiniCalendar__SWIG_0(PyObject *, PyObject *args) {
     PyObject * obj5 = 0 ;
     PyObject * obj6 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"O|OOOOOO:new_wxMiniCalendar",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"O|OOOOOO:new_MiniCalendar",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxWindow,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
@@ -832,11 +832,11 @@ static PyObject *_wrap_new_wxMiniCalendar__SWIG_0(PyObject *, PyObject *args) {
 }
 
 
-static PyObject *_wrap_new_wxMiniCalendar__SWIG_1(PyObject *, PyObject *args) {
+static PyObject *_wrap_new_MiniCalendar__SWIG_1(PyObject *, PyObject *args) {
     PyObject *resultobj;
     wxMiniCalendar *result;
     
-    if(!PyArg_ParseTuple(args,(char *)":new_wxMiniCalendar")) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)":new_MiniCalendar")) goto fail;
     {
         if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
@@ -852,7 +852,7 @@ static PyObject *_wrap_new_wxMiniCalendar__SWIG_1(PyObject *, PyObject *args) {
 }
 
 
-static PyObject *_wrap_new_wxMiniCalendar(PyObject *self, PyObject *args) {
+static PyObject *_wrap_new_MiniCalendar(PyObject *self, PyObject *args) {
     int argc;
     PyObject *argv[8];
     int ii;
@@ -862,7 +862,7 @@ static PyObject *_wrap_new_wxMiniCalendar(PyObject *self, PyObject *args) {
         argv[ii] = PyTuple_GetItem(args,ii);
     }
     if (argc == 0) {
-        return _wrap_new_wxMiniCalendar__SWIG_1(self,args);
+        return _wrap_new_MiniCalendar__SWIG_1(self,args);
     }
     if ((argc >= 1) && (argc <= 7)) {
         int _v;
@@ -877,12 +877,12 @@ static PyObject *_wrap_new_wxMiniCalendar(PyObject *self, PyObject *args) {
         }
         if (_v) {
             if (argc <= 1) {
-                return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                return _wrap_new_MiniCalendar__SWIG_0(self,args);
             }
             _v = SWIG_Check_int(argv[1]);
             if (_v) {
                 if (argc <= 2) {
-                    return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                    return _wrap_new_MiniCalendar__SWIG_0(self,args);
                 }
                 {
                     void *ptr;
@@ -895,32 +895,32 @@ static PyObject *_wrap_new_wxMiniCalendar(PyObject *self, PyObject *args) {
                 }
                 if (_v) {
                     if (argc <= 3) {
-                        return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                        return _wrap_new_MiniCalendar__SWIG_0(self,args);
                     }
                     {
                         _v = wxPySimple_typecheck(argv[3], wxT("wxPoint"), 2);
                     }
                     if (_v) {
                         if (argc <= 4) {
-                            return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                            return _wrap_new_MiniCalendar__SWIG_0(self,args);
                         }
                         {
                             _v = wxPySimple_typecheck(argv[4], wxT("wxSize"), 2);
                         }
                         if (_v) {
                             if (argc <= 5) {
-                                return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                                return _wrap_new_MiniCalendar__SWIG_0(self,args);
                             }
                             _v = SWIG_Check_long(argv[5]);
                             if (_v) {
                                 if (argc <= 6) {
-                                    return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                                    return _wrap_new_MiniCalendar__SWIG_0(self,args);
                                 }
                                 {
                                     _v = PyString_Check(argv[6]) || PyUnicode_Check(argv[6]);
                                 }
                                 if (_v) {
-                                    return _wrap_new_wxMiniCalendar__SWIG_0(self,args);
+                                    return _wrap_new_MiniCalendar__SWIG_0(self,args);
                                 }
                             }
                         }
@@ -930,12 +930,12 @@ static PyObject *_wrap_new_wxMiniCalendar(PyObject *self, PyObject *args) {
         }
     }
     
-    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'new_wxMiniCalendar'");
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'new_MiniCalendar'");
     return NULL;
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetDate(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetDate(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime *arg2 = 0 ;
@@ -945,7 +945,7 @@ static PyObject *_wrap_wxMiniCalendar_SetDate(PyObject *, PyObject *args, PyObje
         (char *) "self",(char *) "date", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxMiniCalendar_SetDate",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:MiniCalendar_SetDate",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if ((SWIG_ConvertPtr(obj1,(void **)(&arg2),SWIGTYPE_p_wxDateTime,
@@ -969,7 +969,7 @@ static PyObject *_wrap_wxMiniCalendar_SetDate(PyObject *, PyObject *args, PyObje
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetDate(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetDate(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime *result;
@@ -978,7 +978,7 @@ static PyObject *_wrap_wxMiniCalendar_GetDate(PyObject *, PyObject *args, PyObje
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetDate",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetDate",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -998,7 +998,7 @@ static PyObject *_wrap_wxMiniCalendar_GetDate(PyObject *, PyObject *args, PyObje
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetLowerDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetLowerDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime const &arg2_defvalue = wxDefaultDateTime ;
@@ -1010,7 +1010,7 @@ static PyObject *_wrap_wxMiniCalendar_SetLowerDateLimit(PyObject *, PyObject *ar
         (char *) "self",(char *) "date", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:wxMiniCalendar_SetLowerDateLimit",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:MiniCalendar_SetLowerDateLimit",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
@@ -1038,7 +1038,7 @@ static PyObject *_wrap_wxMiniCalendar_SetLowerDateLimit(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetUpperDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetUpperDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime const &arg2_defvalue = wxDefaultDateTime ;
@@ -1050,7 +1050,7 @@ static PyObject *_wrap_wxMiniCalendar_SetUpperDateLimit(PyObject *, PyObject *ar
         (char *) "self",(char *) "date", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:wxMiniCalendar_SetUpperDateLimit",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:MiniCalendar_SetUpperDateLimit",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
@@ -1078,7 +1078,7 @@ static PyObject *_wrap_wxMiniCalendar_SetUpperDateLimit(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetLowerDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetLowerDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime *result;
@@ -1087,7 +1087,7 @@ static PyObject *_wrap_wxMiniCalendar_GetLowerDateLimit(PyObject *, PyObject *ar
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetLowerDateLimit",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetLowerDateLimit",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1107,7 +1107,7 @@ static PyObject *_wrap_wxMiniCalendar_GetLowerDateLimit(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetUpperDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetUpperDateLimit(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime *result;
@@ -1116,7 +1116,7 @@ static PyObject *_wrap_wxMiniCalendar_GetUpperDateLimit(PyObject *, PyObject *ar
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetUpperDateLimit",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetUpperDateLimit",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1136,7 +1136,7 @@ static PyObject *_wrap_wxMiniCalendar_GetUpperDateLimit(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetDateRange(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetDateRange(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxDateTime const &arg2_defvalue = wxDefaultDateTime ;
@@ -1151,7 +1151,7 @@ static PyObject *_wrap_wxMiniCalendar_SetDateRange(PyObject *, PyObject *args, P
         (char *) "self",(char *) "lowerdate",(char *) "upperdate", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|OO:wxMiniCalendar_SetDateRange",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|OO:MiniCalendar_SetDateRange",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
@@ -1188,7 +1188,7 @@ static PyObject *_wrap_wxMiniCalendar_SetDateRange(PyObject *, PyObject *args, P
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetHeaderColours(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetHeaderColours(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour *arg2 = 0 ;
@@ -1202,7 +1202,7 @@ static PyObject *_wrap_wxMiniCalendar_SetHeaderColours(PyObject *, PyObject *arg
         (char *) "self",(char *) "colFg",(char *) "colBg", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:wxMiniCalendar_SetHeaderColours",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:MiniCalendar_SetHeaderColours",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1227,7 +1227,7 @@ static PyObject *_wrap_wxMiniCalendar_SetHeaderColours(PyObject *, PyObject *arg
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetHeaderColourFg(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetHeaderColourFg(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour result;
@@ -1236,7 +1236,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHeaderColourFg(PyObject *, PyObject *ar
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetHeaderColourFg",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetHeaderColourFg",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1257,7 +1257,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHeaderColourFg(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetHeaderColourBg(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetHeaderColourBg(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour result;
@@ -1266,7 +1266,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHeaderColourBg(PyObject *, PyObject *ar
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetHeaderColourBg",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetHeaderColourBg",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1287,7 +1287,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHeaderColourBg(PyObject *, PyObject *ar
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetHighlightColours(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetHighlightColours(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour *arg2 = 0 ;
@@ -1301,7 +1301,7 @@ static PyObject *_wrap_wxMiniCalendar_SetHighlightColours(PyObject *, PyObject *
         (char *) "self",(char *) "colFg",(char *) "colBg", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:wxMiniCalendar_SetHighlightColours",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:MiniCalendar_SetHighlightColours",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1326,7 +1326,7 @@ static PyObject *_wrap_wxMiniCalendar_SetHighlightColours(PyObject *, PyObject *
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetHighlightColourFg(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetHighlightColourFg(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour result;
@@ -1335,7 +1335,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHighlightColourFg(PyObject *, PyObject 
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetHighlightColourFg",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetHighlightColourFg",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1356,7 +1356,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHighlightColourFg(PyObject *, PyObject 
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetHighlightColourBg(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetHighlightColourBg(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     wxColour result;
@@ -1365,7 +1365,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHighlightColourBg(PyObject *, PyObject 
         (char *) "self", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:wxMiniCalendar_GetHighlightColourBg",kwnames,&obj0)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:MiniCalendar_GetHighlightColourBg",kwnames,&obj0)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -1386,7 +1386,7 @@ static PyObject *_wrap_wxMiniCalendar_GetHighlightColourBg(PyObject *, PyObject 
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_GetAttr(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_GetAttr(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     size_t arg2 ;
@@ -1397,7 +1397,7 @@ static PyObject *_wrap_wxMiniCalendar_GetAttr(PyObject *, PyObject *args, PyObje
         (char *) "self",(char *) "day", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:wxMiniCalendar_GetAttr",kwnames,&obj0,&obj1)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:MiniCalendar_GetAttr",kwnames,&obj0,&obj1)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
@@ -1416,7 +1416,7 @@ static PyObject *_wrap_wxMiniCalendar_GetAttr(PyObject *, PyObject *args, PyObje
 }
 
 
-static PyObject *_wrap_wxMiniCalendar_SetAttr(PyObject *, PyObject *args, PyObject *kwargs) {
+static PyObject *_wrap_MiniCalendar_SetAttr(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxMiniCalendar *arg1 = (wxMiniCalendar *) 0 ;
     size_t arg2 ;
@@ -1428,7 +1428,7 @@ static PyObject *_wrap_wxMiniCalendar_SetAttr(PyObject *, PyObject *args, PyObje
         (char *) "self",(char *) "day",(char *) "attr", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:wxMiniCalendar_SetAttr",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:MiniCalendar_SetAttr",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxMiniCalendar,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (size_t)SWIG_As_unsigned_SS_long(obj1); 
@@ -1449,7 +1449,7 @@ static PyObject *_wrap_wxMiniCalendar_SetAttr(PyObject *, PyObject *args, PyObje
 }
 
 
-static PyObject * wxMiniCalendar_swigregister(PyObject *, PyObject *args) {
+static PyObject * MiniCalendar_swigregister(PyObject *, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
     SWIG_TypeClientData(SWIGTYPE_p_wxMiniCalendar, obj);
@@ -1457,33 +1457,33 @@ static PyObject * wxMiniCalendar_swigregister(PyObject *, PyObject *args) {
     return Py_BuildValue((char *)"");
 }
 static PyMethodDef SwigMethods[] = {
-	 { (char *)"new_wxMiniCalendarDateAttr", (PyCFunction) _wrap_new_wxMiniCalendarDateAttr, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarDateAttr_SetBusy", (PyCFunction) _wrap_wxMiniCalendarDateAttr_SetBusy, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarDateAttr_GetBusy", (PyCFunction) _wrap_wxMiniCalendarDateAttr_GetBusy, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarDateAttr_swigregister", wxMiniCalendarDateAttr_swigregister, METH_VARARGS, NULL },
-	 { (char *)"new_wxMiniCalendarEvent", (PyCFunction) _wrap_new_wxMiniCalendarEvent, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarEvent_GetDate", (PyCFunction) _wrap_wxMiniCalendarEvent_GetDate, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarEvent_SetDate", (PyCFunction) _wrap_wxMiniCalendarEvent_SetDate, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarEvent_SetWeekDay", (PyCFunction) _wrap_wxMiniCalendarEvent_SetWeekDay, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarEvent_GetWeekDay", (PyCFunction) _wrap_wxMiniCalendarEvent_GetWeekDay, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendarEvent_swigregister", wxMiniCalendarEvent_swigregister, METH_VARARGS, NULL },
-	 { (char *)"new_wxMiniCalendar", _wrap_new_wxMiniCalendar, METH_VARARGS, NULL },
-	 { (char *)"wxMiniCalendar_SetDate", (PyCFunction) _wrap_wxMiniCalendar_SetDate, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetDate", (PyCFunction) _wrap_wxMiniCalendar_GetDate, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetLowerDateLimit", (PyCFunction) _wrap_wxMiniCalendar_SetLowerDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetUpperDateLimit", (PyCFunction) _wrap_wxMiniCalendar_SetUpperDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetLowerDateLimit", (PyCFunction) _wrap_wxMiniCalendar_GetLowerDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetUpperDateLimit", (PyCFunction) _wrap_wxMiniCalendar_GetUpperDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetDateRange", (PyCFunction) _wrap_wxMiniCalendar_SetDateRange, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetHeaderColours", (PyCFunction) _wrap_wxMiniCalendar_SetHeaderColours, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetHeaderColourFg", (PyCFunction) _wrap_wxMiniCalendar_GetHeaderColourFg, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetHeaderColourBg", (PyCFunction) _wrap_wxMiniCalendar_GetHeaderColourBg, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetHighlightColours", (PyCFunction) _wrap_wxMiniCalendar_SetHighlightColours, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetHighlightColourFg", (PyCFunction) _wrap_wxMiniCalendar_GetHighlightColourFg, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetHighlightColourBg", (PyCFunction) _wrap_wxMiniCalendar_GetHighlightColourBg, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_GetAttr", (PyCFunction) _wrap_wxMiniCalendar_GetAttr, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_SetAttr", (PyCFunction) _wrap_wxMiniCalendar_SetAttr, METH_VARARGS | METH_KEYWORDS, NULL },
-	 { (char *)"wxMiniCalendar_swigregister", wxMiniCalendar_swigregister, METH_VARARGS, NULL },
+	 { (char *)"new_MiniCalendarDateAttr", (PyCFunction) _wrap_new_MiniCalendarDateAttr, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarDateAttr_SetBusy", (PyCFunction) _wrap_MiniCalendarDateAttr_SetBusy, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarDateAttr_GetBusy", (PyCFunction) _wrap_MiniCalendarDateAttr_GetBusy, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarDateAttr_swigregister", MiniCalendarDateAttr_swigregister, METH_VARARGS, NULL },
+	 { (char *)"new_MiniCalendarEvent", (PyCFunction) _wrap_new_MiniCalendarEvent, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarEvent_GetDate", (PyCFunction) _wrap_MiniCalendarEvent_GetDate, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarEvent_SetDate", (PyCFunction) _wrap_MiniCalendarEvent_SetDate, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarEvent_SetWeekDay", (PyCFunction) _wrap_MiniCalendarEvent_SetWeekDay, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarEvent_GetWeekDay", (PyCFunction) _wrap_MiniCalendarEvent_GetWeekDay, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendarEvent_swigregister", MiniCalendarEvent_swigregister, METH_VARARGS, NULL },
+	 { (char *)"new_MiniCalendar", _wrap_new_MiniCalendar, METH_VARARGS, NULL },
+	 { (char *)"MiniCalendar_SetDate", (PyCFunction) _wrap_MiniCalendar_SetDate, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetDate", (PyCFunction) _wrap_MiniCalendar_GetDate, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetLowerDateLimit", (PyCFunction) _wrap_MiniCalendar_SetLowerDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetUpperDateLimit", (PyCFunction) _wrap_MiniCalendar_SetUpperDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetLowerDateLimit", (PyCFunction) _wrap_MiniCalendar_GetLowerDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetUpperDateLimit", (PyCFunction) _wrap_MiniCalendar_GetUpperDateLimit, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetDateRange", (PyCFunction) _wrap_MiniCalendar_SetDateRange, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetHeaderColours", (PyCFunction) _wrap_MiniCalendar_SetHeaderColours, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetHeaderColourFg", (PyCFunction) _wrap_MiniCalendar_GetHeaderColourFg, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetHeaderColourBg", (PyCFunction) _wrap_MiniCalendar_GetHeaderColourBg, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetHighlightColours", (PyCFunction) _wrap_MiniCalendar_SetHighlightColours, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetHighlightColourFg", (PyCFunction) _wrap_MiniCalendar_GetHighlightColourFg, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetHighlightColourBg", (PyCFunction) _wrap_MiniCalendar_GetHighlightColourBg, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_GetAttr", (PyCFunction) _wrap_MiniCalendar_GetAttr, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_SetAttr", (PyCFunction) _wrap_MiniCalendar_SetAttr, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"MiniCalendar_swigregister", MiniCalendar_swigregister, METH_VARARGS, NULL },
 	 { NULL, NULL, 0, NULL }
 };
 
@@ -1999,17 +1999,17 @@ SWIGEXPORT(void) SWIG_init(void) {
     }
     SWIG_InstallConstants(d,swig_const_table);
     
-    PyDict_SetItemString(d,"wxCAL_SUNDAY_FIRST", SWIG_From_int((int)wxCAL_SUNDAY_FIRST));
-    PyDict_SetItemString(d,"wxCAL_MONDAY_FIRST", SWIG_From_int((int)wxCAL_MONDAY_FIRST));
-    PyDict_SetItemString(d,"wxCAL_SHOW_SURROUNDING_WEEKS", SWIG_From_int((int)wxCAL_SHOW_SURROUNDING_WEEKS));
-    PyDict_SetItemString(d,"wxCAL_SHOW_PREVIEW", SWIG_From_int((int)wxCAL_SHOW_PREVIEW));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_NOWHERE", SWIG_From_int((int)wxCAL_HITTEST_NOWHERE));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_HEADER", SWIG_From_int((int)wxCAL_HITTEST_HEADER));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_DAY", SWIG_From_int((int)wxCAL_HITTEST_DAY));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_TODAY", SWIG_From_int((int)wxCAL_HITTEST_TODAY));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_INCMONTH", SWIG_From_int((int)wxCAL_HITTEST_INCMONTH));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_DECMONTH", SWIG_From_int((int)wxCAL_HITTEST_DECMONTH));
-    PyDict_SetItemString(d,"wxCAL_HITTEST_SURROUNDING_WEEK", SWIG_From_int((int)wxCAL_HITTEST_SURROUNDING_WEEK));
+    PyDict_SetItemString(d,"CAL_SUNDAY_FIRST", SWIG_From_int((int)wxCAL_SUNDAY_FIRST));
+    PyDict_SetItemString(d,"CAL_MONDAY_FIRST", SWIG_From_int((int)wxCAL_MONDAY_FIRST));
+    PyDict_SetItemString(d,"CAL_SHOW_SURROUNDING_WEEKS", SWIG_From_int((int)wxCAL_SHOW_SURROUNDING_WEEKS));
+    PyDict_SetItemString(d,"CAL_SHOW_PREVIEW", SWIG_From_int((int)wxCAL_SHOW_PREVIEW));
+    PyDict_SetItemString(d,"CAL_HITTEST_NOWHERE", SWIG_From_int((int)wxCAL_HITTEST_NOWHERE));
+    PyDict_SetItemString(d,"CAL_HITTEST_HEADER", SWIG_From_int((int)wxCAL_HITTEST_HEADER));
+    PyDict_SetItemString(d,"CAL_HITTEST_DAY", SWIG_From_int((int)wxCAL_HITTEST_DAY));
+    PyDict_SetItemString(d,"CAL_HITTEST_TODAY", SWIG_From_int((int)wxCAL_HITTEST_TODAY));
+    PyDict_SetItemString(d,"CAL_HITTEST_INCMONTH", SWIG_From_int((int)wxCAL_HITTEST_INCMONTH));
+    PyDict_SetItemString(d,"CAL_HITTEST_DECMONTH", SWIG_From_int((int)wxCAL_HITTEST_DECMONTH));
+    PyDict_SetItemString(d,"CAL_HITTEST_SURROUNDING_WEEK", SWIG_From_int((int)wxCAL_HITTEST_SURROUNDING_WEEK));
     PyDict_SetItemString(d, "wxEVT_MINI_CALENDAR_DOUBLECLICKED", PyInt_FromLong(wxEVT_MINI_CALENDAR_DOUBLECLICKED));
     PyDict_SetItemString(d, "wxEVT_MINI_CALENDAR_SEL_CHANGED", PyInt_FromLong(wxEVT_MINI_CALENDAR_SEL_CHANGED));
     PyDict_SetItemString(d, "wxEVT_MINI_CALENDAR_DAY_CHANGED", PyInt_FromLong(wxEVT_MINI_CALENDAR_DAY_CHANGED));
