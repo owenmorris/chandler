@@ -5,7 +5,7 @@ Schema Definition Support
 The ``spike.schema`` module is used to define new Spike content types and the
 relationships between them.
 
-    >>> from spike import schema
+    >>> from spike import schema, events
 
 
 ------------
@@ -24,7 +24,7 @@ type.
 
 Entities are normally compared (and hashed) by identity, so that two entities
 are only equal if they are the same entity.  After all, what would it mean
-to say that two people are "equal"?  The phrase "all men are created equal
+to say that two people are "equal"?  The phrase "all men are created equal"
 actually refers to equal *rights*, which is to say something like
 ``aPerson.rights == otherPerson.rights``, which is quite different from saying
 ``aPerson == otherPerson``!
@@ -128,6 +128,557 @@ This allows you to add new relationships to Chandler content types without
 needing to change Chandler's source code.
 
 
+Simple Entities
+===============
+
+Now let's define some simple entities and have a look at how they work::
+
+    >>> class Person(schema.Entity):
+    ...     name = schema.One(str)
+    ...     age = schema.One(int)
+    ...     parents = schema.Many()
+    ...     children = schema.Many(inverse=parents)
+    ...     def __repr__(self): return self.name
+
+You can create schema instances with initial values using keyword arguments,
+and then manipulate their attributes normally::
+
+    >>> Joe = Person(name="Joe", age=39)
+    >>> Joe
+    Joe
+    >>> Joe.age
+    39
+    >>> del Joe.age
+    >>> Joe.age
+    Traceback (most recent call last):
+    ...
+    AttributeError: age
+
+Attributes are type-checked::
+
+    >>> Joe.age = 1.5
+    Traceback (most recent call last):
+    ...
+    TypeError: 1.5 is not of type int
+
+And bidirectional relationships are automatically maintained::
+
+    >>> Bob = Person(name="Bob")
+    >>> Mary = Person(name="Mary")
+    >>> Joe.parents = [Bob, Mary]
+    >>> list(Bob.children)
+    [Joe]
+    >>> list(Mary.children)
+    [Joe]
+    >>> del Mary.children
+    >>> list(Joe.parents)
+    [Bob]
+    >>> Bob.children.remove(Joe)
+    >>> list(Joe.parents)
+    []
+
+
+
+------------
+Role Objects
+------------
+
+
+``One`` and ``Many``
+====================
+
+``spike.schema`` offers two basic types of roles: ``schema.One`` and
+``schema.Many``.  The only difference between the two is in what happens when
+they are accessed as attributes, and how many items are allowed to be in the
+link set for that role on a given entity.
+
+XXX Derived, Mapping, computeValue/defaultValue (``One`` only)
+
+
+The ``Role`` Base Type
+======================
+
+The base class for roles is ``schema.Role``.  It provides most of the
+default behavior of roles, so rather than duplicate examples for each
+individual role type, we'll examine the default behaviors first.
+
+All role objects have at least the following attributes and methods:
+
+``types`` (read-only)
+    This attribute is a tuple of the types that items in the role's link sets
+    are allowed to have.  You can set this initially as the first positional
+    argument (`types`) of a role class' constructor, e.g.::
+
+        >>> role = schema.Role(object)
+        >>> role.types
+        (<type 'object'>,)
+
+    If not specified, there are initially no acceptable types::
+
+        >>> role = schema.Role()
+        >>> role.types
+        ()
+
+    After a role is created, you can add additional types using the
+    ``addType()`` method.  In fact, the constructor just calls ``addType()``,
+    so all the rules shown below for the ``addType()`` method apply.
+
+
+``isReference`` (read-only)
+    True if the ``types`` attribute contains one or more entity types, false
+    otherwise.
+
+        >>> role = schema.Role()
+        >>> role.isReference
+        False
+        >>> role.addTypes(int)
+        >>> role.isReference
+        False
+
+        >>> class Dummy(schema.Entity): pass
+        >>> role = schema.Role(Dummy)
+        >>> role.isReference
+        True
+
+``inverse``
+    The role object that represents the "other side" of the relationship, or
+    ``None`` if not yet set.  Setting a role's inverse automatically attempts
+    to set the reverse role, so that each role's ``inverse`` attribute points
+    to the other.  Thus, you do not have to set both roles' ``inverse``
+    attributes in order to link them together.
+
+    ``inverse`` can be set via keyword argument to the role class'
+    constructor::
+
+        >>> role1 = schema.Role()
+        >>> print role1.inverse
+        None
+        >>> role2 = schema.Role(inverse=role1)
+        >>> role2.inverse is role1
+        True
+        >>> role1.inverse is role2
+        True
+
+    Or by setting the ``inverse`` attribute after construction::
+
+        >>> role1 = schema.Role()
+        >>> role2 = schema.Role()
+        >>> role2.inverse = role1
+        >>> role2.inverse is role1
+        True
+        >>> role1.inverse is role2
+        True
+
+    Once set, it cannot be changed, unless it is to the same role::
+
+        >>> role2.inverse = schema.Role()
+        Traceback (most recent call last):
+        ...
+        ValueError: Role inverse cannot be changed once set
+
+        >>> role2.inverse is role1      # no change took place
+        True
+
+    And trying to insert a new role into an existing pair also fails::
+
+        >>> role3 = schema.Role()
+        >>> print role3.inverse
+        None
+        >>> role3.inverse = role2
+        Traceback (most recent call last):
+        ...
+        ValueError: Role inverse cannot be changed once set
+
+        >>> print role3.inverse         # no change took place
+        None
+
+    Finally, note that using a pair of roles in a ``Relationship`` subclass
+    automatically sets ``inverse`` for you::
+
+        >>> class aRel(schema.Relationship):
+        ...     fwd = schema.Role()
+        ...     rev = schema.Role()
+        >>> aRel.fwd.inverse is aRel.rev
+        True
+        >>> aRel.rev.inverse is aRel.fwd
+        True
+
+
+``addType(types)``
+
+    Add the specified type or types to the role's ``types`` attribute::
+
+        >>> role = schema.Role()
+        >>> role.types
+        ()
+
+        >>> role.addTypes(int)
+        >>> role.types
+        (<type 'int'>,)
+
+    Adding the same type more than once has no effect::
+
+        >>> role.addTypes(int)
+        >>> role.types
+        (<type 'int'>,)
+
+    You may not add more than one value type, however::
+
+        >>> role.addTypes(str)
+        Traceback (most recent call last):
+        ...
+        TypeError: Multiple value types not allowed in one role
+
+        >>> role = schema.Role([str,int])
+        Traceback (most recent call last):
+        ...
+        TypeError: Multiple value types not allowed in one role
+
+    Nor may you mix entity and value types::
+
+        >>> role = schema.Role([Dummy,str])
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot mix entity and value types in one role
+
+        >>> role = schema.Role(Dummy)
+        >>> role.addTypes(str)
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot mix entity and value types in one role
+
+        >>> role.addTypes(schema.Entity,str)
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot mix entity and value types in one role
+
+        >>> role.types      # types should remain unchanged by aborted attempts
+        (<class 'Dummy'>,)
+
+
+``name`` (read-only)
+    The name under which this role was first defined in an entity class or
+    relationship, or ``None`` if the role has not been registered with a
+    class yet.
+
+        >>> role = schema.Role()
+        >>> print role.name
+        None
+        >>> class anEntity(schema.Entity):
+        ...     aRole = role
+        >>> role.name
+        'aRole'
+
+
+``owner`` (read-only)
+    The entity or relationship class in which the role was defined, or ``None``
+    if the role has not been registered with a class yet.
+
+        >>> role = schema.Role()
+        >>> print role.owner
+        None
+        >>> class anEntity(schema.Entity):
+        ...     aRole = role
+        >>> role.owner
+        <class 'anEntity'>
+
+    If a role's owner is an entity class, then setting ``aRole.inverse`` will
+    invoke ``aRole.inverse.addType(aRole.owner)``, so that the inverse role
+    will accept instances of the first role's owning type.  This allows you
+    to easily define bidirectional links without "forward references"; just
+    leave off the `types` argument in both role definitions, and specify an
+    `inverse` argument for the second::
+
+        >>> class anotherEntity(schema.Entity):
+        ...     otherRole = schema.Role(inverse=anEntity.aRole)
+        >>> anotherEntity.otherRole.types
+        (<class 'anEntity'>,)
+        >>> anEntity.aRole.types
+        (<class 'anotherEntity'>,)
+
+    As you can see, this ensures that both roles can accept the owning type of
+    the other role.  It also works for setting up self-recursive roles within a
+    single type::
+
+    >>> class Kind(schema.Entity):
+    ...     name = schema.One(str)
+    ...     subkinds = schema.Many()
+    ...     superkinds = schema.Many(inverse=subkinds)
+
+    >>> Kind.subkinds.types
+    (<class 'Kind'>,)
+    >>> Kind.superkinds.types
+    (<class 'Kind'>,)
+
+
+``of(ob)``
+    Return the linkset for this role and `ob`.  If the role has an ``inverse``,
+    `ob` must be an instance of the inverse role's types.  Otherwise, it may
+    be any object with a dictionary.  If `ob` does not meet these requirements,
+    ``schema.NullSet`` (an immutable empty set) is returned::
+
+        >>> Kind.superkinds.of(schema.Entity()) is schema.NullSet
+        True
+
+        >>> Kind.name.of(27) is schema.NullSet
+        True
+
+    However, if it does meet the requirements, an observable set (see
+    ``spike.models``) is returned, and is cached in ``ob.__dict__``, where it
+    will be used to answer future ``of()`` requests::
+
+        >>> aKind = Kind()
+        >>> s = Kind.superkinds.of(aKind)
+        >>> s
+        Set([], type=Kind)
+
+        >>> Kind.superkinds.of(aKind) is s      # same set returned each time
+        True
+
+        >>> Kind.superkinds in dir(aKind)   # because it's cached in __dict__
+        True
+
+    Note that it is not guaranteed that the set returned by ``of()`` is
+    modifiable; for example a "derived" role type might be computed from
+    other attributes of the object and would thus be unmodifiable except by
+    changing the attributes from which it derived.
+
+
+Creating Role Subclasses
+========================
+
+``newSet(ob)``
+    Return a new (possibly empty) default linkset for `ob`.  This method is
+    only called when `ob` does not have a cached linkset for the role, and it
+    should simply return a new observable set of appropriate type and contents.
+    The default implementation in ``Role`` just returns an observable set with
+    its type restrictions set according to those of the role::
+
+        >>> role = schema.Role(int)
+        >>> role.newSet(schema.Entity())
+        Set([], type=int)
+
+    If a role has no valid types defined, this method should raise a
+    ``TypeError`` to point out that the role isn't properly defined::
+
+        >>> class anEntity(schema.Entity):
+        ...     dummyRole = schema.Role()
+        >>> anEntity.dummyRole.newSet(anEntity())
+        Traceback (most recent call last):
+        ...
+        TypeError: No types defined for <Role dummyRole of <class 'anEntity'>>
+
+    The ``newSet()`` method of ``schema.Role`` adds a subscription to its
+    ``maintainInverse()`` method, which ensures that inverse linksets are
+    always maintained::
+
+        >>> anotherKind = Kind()
+        >>> Kind.superkinds.of(aKind).add(anotherKind)
+        >>> list(Kind.subkinds.of(anotherKind)) == [aKind]
+        True
+
+    (XXX should we do this for "unidirectional" relationships too, or let the
+    repository handle it?)
+
+    The ``newSet()`` method of ``schema.One`` also adds a subscription to
+    ensure that the new set can't have more than one item in it::
+
+        >>> class anEntity(schema.Entity):
+        ...     intRole = schema.One(int)
+        >>> s = anEntity.intRole.newSet(anEntity())
+        >>> s
+        Set([], type=int)
+        >>> s.add(1)
+        >>> s.add(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: <Role intRole of <class 'anEntity'>> is singular
+
+    Note that if ``newSet`` creates any event subscriptions for the returned
+    set, these should access the set only via the ``sender`` method of
+    received events.  This is because load events (see `Persistence Support`_
+    below) may replace the returned set with a different set instance, copying
+    the event subscriptions to the new set.
+
+
+Persistence Support
+===================
+
+In order to allow storage services to support delayed loading of linksets, the
+``Role.of()`` method initiates a ``schema.LoadEvent`` before creating a default
+linkset when the target object doesn't have a cached linkset for the role.
+The event's ``sender`` is the target object, its ``role`` is the role
+being requested, and its ``linkset`` is the new linkset that will be used.
+
+Receivers of this event can add or remove items from the ``linkset``, or
+replace it altogether by replacing it with another observable set.  If a
+receiver replaces the ``linkset``, it should ensure that the new set has
+the same type restrictions and event receivers as the previous set.  (You
+can use the old linkset's ``getReceivers()`` method to obtain the old
+receivers, and you can then subscribe them to the new set.)
+
+After all receivers have had a chance to affect the linkset, the role's
+``of()`` method will cache and return the event's ``linkset`` attribute.
+
+
+
+--------------------------
+Entities and Relationships
+--------------------------
+
+Standalone Relationships
+========================
+
+Sometimes, you need to be able to define a relationship without modifying one
+or both of the types involved.  For example, if you want to create a new
+contact-to-contact relationship with an existing ``Contact`` type whose source
+code you can't modify, you can define it like this::
+
+    >>> class Contact(schema.Entity): pass  # dummy contact class for demo
+
+    >>> class Likes(schema.Relationship):
+    ...     likedBy = schema.Many(Contact)
+    ...     likes   = schema.Many(Contact)
+
+    >>> Likes.likedBy.inverse is Likes.likes
+    True
+    >>> Likes.likes.inverse is Likes.likedBy
+    True
+
+You can then use ``Likes.likedBy.of(aContact)`` to find contacts who like
+``aContact``, or ``Likes.likes.of(aContact)`` to find contacts who ``aContact``
+likes.  This allows you to extend Chandler with new relationships between
+existing types (even ones defined in different parcels), not just new types.
+
+Note that relationship classes must be defined using exactly two roles::
+
+    >>> class OneWay(schema.Relationship):
+    ...     thisWay = schema.Role()
+    Traceback (most recent call last):
+    ...
+    ValueError: Relationship must have exactly two roles
+
+    >>> class ThreeWay(schema.Relationship):
+    ...     thisWay = schema.Role()
+    ...     thatWay = schema.Role()
+    ...     otherWay = schema.Role()
+    Traceback (most recent call last):
+    ...
+    ValueError: Relationship must have exactly two roles
+
+Also note that relationships cannot be subclassed; you must define a new
+relationship instead::
+
+    >>> class SortOfLikes(Likes): pass
+    Traceback (most recent call last):
+    ...
+    TypeError: Relationships cannot be subclassed
+
+
+---------
+Internals
+---------
+
+This section describes and tests various internal aspects of the
+``spike.schema`` library.  You do not need to read it unless you are working on
+the internals or are just curious.
+
+
+Role Activation
+===============
+
+The ``activateInClass(cls,name)`` method of role objects informs the role that
+it has been used in the definition of class `cls`, under the name `name`.  This
+allows a role to determine its ``name`` and ``owner`` if it does not already
+know::
+
+    >>> role = schema.Role()
+    >>> class Owner(schema.Entity): pass
+    >>> role.activateInClass(Owner,"foo")
+    >>> role.name
+    'foo'
+    >>> role.owner is Owner
+    True
+
+Activating an already-activated role has no effect on its name or owner::
+
+    >>> role.activateInClass(object,"bar")
+    >>> role.name
+    'foo'
+    >>> role.owner is Owner
+    True
+
+And placing an instance of a role subclass in either a relationship or entity
+subclass automatically activates the role::
+
+    >>> class MockRole(schema.Role):
+    ...     def activateInClass(self,cls,name):
+    ...         print "activated %r in %r" % (name,cls)
+
+    >>> class TestEntity(schema.Entity):
+    ...     aRole = MockRole()
+    activated 'aRole' in <class 'TestEntity'>
+
+    >>> class TestRel(schema.Relationship):
+    ...     aRole = MockRole()
+    ...     invRole = MockRole()
+    activated 'aRole' in <class 'TestRel'>
+    activated 'invRole' in <class 'TestRel'>
+
+When a role with an ``inverse`` is activated in an entity class, the entity
+class is automatically added to the types of the inverse role::
+
+    >>> class E1(schema.Entity): pass
+    >>> class E2(schema.Entity): pass
+    >>> role1 = schema.Role()
+    >>> role1.activateInClass(E1,"role1")
+    >>> role1.types     # other end isn't activated yet, so types unknown
+    ()
+    >>> role2 = schema.Role()
+    >>> role2.inverse = role1
+    >>> role2.types     # this gets set because inverse is set
+    (<class 'E1'>,)
+    >>> role2.activateInClass(E2,"role2")
+    >>> role1.types
+    (<class 'E2'>,)
+
+
+Type Flattening
+===============
+
+The ``iterTypes()`` routine takes a type or (possibly nested) sequence of types
+as input, and yields the type objects that were input::
+
+    >>> list(schema.iterTypes(object))
+    [<type 'object'>]
+    >>> list(schema.iterTypes((int,str)))
+    [<type 'int'>, <type 'str'>]
+    >>> list(schema.iterTypes((object,(int,str))))
+    [<type 'object'>, <type 'int'>, <type 'str'>]
+
+If an object is found that is neither a type nor a sequence, an error occurs::
+
+    >>> list(schema.iterTypes(123))
+    Traceback (most recent call last):
+    ...
+    TypeError: 123 is not a type or sequence of types
+
+Strings require special handling to avoid infinite recursion, so let's test
+them too::
+
+    >>> list(schema.iterTypes("xyz"))
+    Traceback (most recent call last):
+    ...
+    TypeError: 'x' is not a type or sequence of types
+
+But the special handling should be applicable to any stringlike object, so
+we'll try it with unicode, too::
+
+    >>> list(schema.iterTypes(u"xyz"))
+    Traceback (most recent call last):
+    ...
+    TypeError: u'x' is not a type or sequence of types
+
 
 -----
 To Do
@@ -139,62 +690,34 @@ Roles
 
 * Role classes exist for each cardinality (initially: One & Many)
 
-* Roles are descriptors (__get__, __set__, __delete__)
-
-* Roles have a way to set name/parent class, and they do not change once set
-
-* Activating a role adds the containing class to the inverse role's allowed
-  classes (using self.inverse.addType)
-
 * Roles __reduce__ as global objects (so they don't get pickled)
-
-* Setting ``aRole.inverse`` ensures that ``aRole.inverse.inverse is aRole``
 
 * Role knows how to create a default set of the right type for its cardinality
   (and notices if it has no valid types defined)
 
-* Role subscribes created set so that its inverse reference is
-  automatically updated, if it has one (Q: should we do this for
-  "unidirectional" relationships too?  or let the repository handle it?)
-
-* Role knows its required type(s), requiredness, and other metadata (policies?)
-
-* Role.addType()  (should flatten arbitrary type tuples, reject non-types, and
-  ignore duplicates)
+* Role knows its requiredness, and other metadata (policies?)
 
 * Role.__setattr__ doesn't allow setting unless current value is None/unset, or
   new value equals old value  (addType should bypass using __set__)
 
-* Role.__init__ sets attrs via keywords
-
-
 
 Entity Classes
 
-* EntityClass sets name and parent class for embedded Roles
-
 * Entity.__setattr__ only allows setting class-defined, non-method attributes
-
-* Entity.__init__ sets attrs via keywords
-
-
-Relationships
-
-* Relationship expects two roles in class dict, and attempts to link them by
-  setting the ``.inverse`` of one to point to the other.
 
 
 Misc.
 
 * Support derived roles
 
+* Unique keys via ``schema.Key(*roles)``
+
 * All schema objects know their fully-qualified import name (for UUID lookups)
-  
+
 * Should we have a general hook for attribute metadata, like in peak.binding?
   Since we have to scan and activate descriptors so they know their name, it
   seems reasonable to allow other metadata here.  It would also prevent an
   explosion of keyword options to descriptors and roles as Chandler's metadata
   needs evolve, while allowing third parties to define and use their own kinds
   of structural metadata.
-
 

@@ -473,6 +473,12 @@ like::
          subclasses = inheritance.subclasses
          superclasses = inheritance.superclasses
 
+or even::
+
+    class Kind(schema.Entity):
+         subclasses = schema.Many()
+         superclasses = schema.Many(inverse=subclasses)
+
 thus allowing bidirectional relationships to be defined without needing to
 explicitly specify the type.  (Possible downside: if multiple types allowed to
 participate in a given end of the relationship, this may reduce type safety.)
