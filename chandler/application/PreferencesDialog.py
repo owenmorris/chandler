@@ -26,14 +26,16 @@ class PreferenceMetadataHandler(xml.sax.handler.ContentHandler):
     """
         xml sax handler to parse the metadata xml file
     """
-    def __init__(self, preferencesDictionary):
+    def __init__(self, preferencesDictionary, orderDictionary):
         self.prefDictionary = preferencesDictionary
         self.currentSection = []
         self.sectionName = ''
+        self.orderDictionary = orderDictionary
         
     def startElement(self, name, attributes):		                
         if name == 'Preferences':
             self.sectionName = attributes['section']
+            self.order = attributes['order']
             self.currentSection = []
         elif name == 'PreferenceItem':
             key = attributes['key']
@@ -52,15 +54,17 @@ class PreferenceMetadataHandler(xml.sax.handler.ContentHandler):
     def endElement(self, name):					
         if name == 'Preferences':
             self.prefDictionary[self.sectionName] = self.currentSection
+            if self.orderDictionary != None:
+                self.orderDictionary[self.sectionName] = self.order
             self.currentSection = []
 
 # package-level routine to load preferences metadata from an xml file
 # it's not a method of PreferencesDialog so parcels can easily call it
 # to load their parcel preference metadata
-def LoadPreferencesMetadata(filePath):
+def LoadPreferencesMetadata(filePath, orderDictionary):
     parser = xml.sax.make_parser()
     metaDataDictionary = {}
-    handler = PreferenceMetadataHandler(metaDataDictionary)
+    handler = PreferenceMetadataHandler(metaDataDictionary, orderDictionary)
                 
     parser.setContentHandler(handler)
     parser.parse(filePath)
@@ -75,7 +79,9 @@ class PreferencesDialog(wxDialog):
         self.defaultSection = default
             
         metadataPath = "application" + os.sep + "preferencesMetadata.xml"
-        self.preferencesMetadata = LoadPreferencesMetadata(metadataPath)
+        self.sectionOrder = {}
+        
+        self.preferencesMetadata = LoadPreferencesMetadata(metadataPath, self.sectionOrder)
         
         self.AddPackagePreferences()
         
@@ -89,6 +95,10 @@ class PreferencesDialog(wxDialog):
         self.SetSizerAndFit(self.container)
         self.SetAutoLayout(true)
 
+    # sort function to sort sections by their order parameter
+    def SortBySectionOrder(self, firstSection, secondSection):
+        return cmp(self.sectionOrder[firstSection], self.sectionOrder[secondSection])
+
     # loop through the parcel list, adding preference metadata from each package
     def AddPackagePreferences(self):
         pass
@@ -99,61 +109,86 @@ class PreferencesDialog(wxDialog):
 
         # get the section list
         sectionList = self.preferencesMetadata.keys()
+        sectionList.sort(self.SortBySectionOrder)
         
         # add the section list box and wire it up
         self.listbox = wxListBox(self, self.eventID, wxDefaultPosition, wxSize(100, 120),
                        sectionList, wxLB_SINGLE)
         
-        # set up the default section
-        if self.defaultSection == None:
-            defaultIndex = 0
-        else:
-            try:
-                defaultIndex = sectionList.index(self.defaultSection)
-            except ValueError:
-                defaultIndex = 0
-        self.listbox.SetSelection(defaultIndex)
-        
-        hBox.Add(self.listbox, 0, wxNORTH | wxWEST | wxSOUTH, 8)  
+        EVT_LISTBOX(self, self.eventID, self.SectionChanged)        
         self.eventID += 1
+        hBox.Add(self.listbox, 0, wxNORTH | wxWEST | wxSOUTH, 8)  
 
+        # set up the default section
+        self.SelectSection(self.defaultSection)
+        
         # add a small gap between the section list and the form
         hBox.Add(4, -1)
                 
         # add the form container
-        self.formContainer = wxBoxSizer(wxVERTICAL)
+        self.formContainer = wxScrolledWindow(self, -1)
         
         # render the form elements
         self.RenderSelectedForm() 
         hBox.Add(self.formContainer, 1, wxEXPAND | wxNORTH | wxEAST | wxSOUTH, 8)        
         
         self.container.Add(hBox, 1, wxEXPAND)
-    
+
+        self.formContainer.EnableScrolling(false, true)
+        
+    # select the passed in section
+    def SelectSection(self, sectionName):
+        if sectionName == None:
+            index = 0
+        else:
+            try:
+                sectionList = self.preferencesMetadata.keys()
+                sectionList.sort(self.SortBySectionOrder)
+                index = sectionList.index(sectionName)
+            except ValueError:
+                index = 0
+        self.listbox.SetSelection(index)
+
     # render the form selected by the section listbox
     def RenderSelectedForm(self):
         section = self.listbox.GetStringSelection()
         formElements = self.preferencesMetadata[section]
         
         # allocate a gridSizer to contain the form elements
-        gridSizer = wxFlexGridSizer(cols=2, vgap=4, hgap=4)
-        gridSizer.AddGrowableCol(1)
-        self.fieldList = []
+        self.ResetForm()
         
         # for this first implementation, we ignore the type
         for element in formElements:
-            label = wxStaticText(self, -1, element.label + ':')
+            labelValue = element.label + ':'
+            if element.type == 'password':
+                widget = wxTextCtrl(self.formContainer, -1, style=wxTE_PASSWORD)
+            elif element.type == 'boolean':
+                labelValue = '        '
+                widget = wxCheckBox(self.formContainer, -1,   '' + element.label, wxDefaultPosition, wxDefaultSize, wxNO_BORDER)
+            else:
+                widget = wxTextCtrl(self.formContainer, -1)
 
-            field = wxTextCtrl(self, -1)
-            self.fieldList.append((element.key, field))
-            field.SetSize(wxSize(180, -1))
+            label = wxStaticText(self.formContainer, -1, labelValue)
+
+            self.fieldList.append((element.key, widget, element.type))
+            if element.type != 'boolean':
+                widget.SetSize(wxSize(180, -1))
             
-            gridSizer.Add(label, flag=wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL)
-            gridSizer.Add(field, flag=wxEXPAND)
+            self.gridSizer.Add(label, flag=wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL)
+            self.gridSizer.Add(widget, flag=wxEXPAND)
 
-        self.formContainer.Add(gridSizer, 1, wxEXPAND)
-    
+        self.formContainer.SetSizerAndFit(self.gridSizer)
         self.RestorePreferences()
-        
+    
+    def ResetForm(self):
+        self.gridSizer = wxFlexGridSizer(cols=2, vgap=4, hgap=4)
+        self.gridSizer.AddGrowableCol(1)
+        self.fieldList = []
+    
+    def ClearForm(self):
+        self.formContainer.DestroyChildren()
+        self.ResetForm()
+
     # add the command buttons
     def AddButtons(self):
         hBox = wxBoxSizer(wxHORIZONTAL)
@@ -169,8 +204,11 @@ class PreferencesDialog(wxDialog):
     # set up the fields with the currently saved values
     def RestorePreferences(self):
         for fieldItem in self.fieldList:
-            key, field = fieldItem
+            key, field, type = fieldItem
             value = self.preferencesData.GetPreferenceValue(key)
+
+            if type == 'boolean':
+                value = value != None and value != 0
             if value == None:
                 value = ''
             field.SetValue(value)
@@ -178,9 +216,16 @@ class PreferencesDialog(wxDialog):
     # save the values in the fields to the persistent object
     def SavePreferences(self):
         for fieldItem in self.fieldList:
-            key, field = fieldItem
+            key, field, type = fieldItem
             value = field.GetValue()
             self.preferencesData.SetPreferenceValue(key, value)
             
-       
+    # handle list box section changed
+    def SectionChanged(self, event):
+        self.SavePreferences()
+        self.SelectSection(event.GetString())
+        self.ClearForm()
+        self.RenderSelectedForm()
+        self.Layout()
+        
     

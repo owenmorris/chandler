@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 <PreferencesMetaData>
 
-<Preferences section="Identity">
+<Preferences section="Identity" order="1">
     <PreferenceItem key="chandler/identity/username" label="Your Name" type="string" description="" />
     <PreferenceItem key="chandler/identity/emailaddress" label="Email Address" type="string" description="" />
     <PreferenceItem key="chandler/identity/jabberID" label="Jabber ID" type="string" description="" />
     <PreferenceItem key="chandler/identity/jabberpassword" label="Jabber Password" type="password" description="" />
+</Preferences>
+
+<Preferences section="Debugging" order="10">
+    <PreferenceItem key="chandler/debugging/debugmenu" label="Debug Menu On" type="boolean"/>
 </Preferences>
 
 </PreferencesMetaData>
