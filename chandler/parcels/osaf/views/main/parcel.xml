@@ -282,7 +282,6 @@
   <HTML itemName="AboutChandlerHTML">
     <url>application/welcome.html</url>
     <eventBoundary>True</eventBoundary>
-    <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </HTML>
 
@@ -432,7 +431,6 @@
     <tabPosEnum>Top</tabPosEnum>
     <tabNames>About Chandler</tabNames>
     
-    <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  
 
@@ -441,19 +439,13 @@
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:AboutChandler"/>
 
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
     <useButtons>False</useButtons>
     <rootPath  itemref="doc:URLRoot"/>
-
-    <minimumSize>10,10</minimumSize>
   </Tree>
  
   <BookmarksBar itemName="BookmarksBar">
     <!-- Attributes -->
     <bookmarksPath itemref="doc:BookmarksRoot"/>
-
-    <minimumSize>200,20</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <stretchFactor>0.0</stretchFactor>
   </BookmarksBar>
@@ -466,8 +458,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.25</splitPercentage>
-    
-    <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
   </SplitterWindow>
   
@@ -478,8 +468,6 @@
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-
-    <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
@@ -538,7 +526,6 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <size>800,650</size>
-    <minimumSize>10,10</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>
   </View>
 

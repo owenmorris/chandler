@@ -326,7 +326,7 @@
 
     <Attribute itemName="minimumSize">
       <type itemref="docSchema:SizeType"/>
-      <defaultValue type="docSchema:SizeType">0,0</defaultValue>
+      <defaultValue type="docSchema:SizeType">-1,-1</defaultValue>
     </Attribute>
 
     <Attribute itemName="border">
@@ -392,6 +392,7 @@
 
     <Attribute itemName="title">
       <type itemref="String"/>
+      <required>True</required>
     </Attribute>
     
     <Enumeration itemName="operationEnumType">
@@ -632,14 +633,17 @@
 
     <Attribute itemName="hideRoot">
       <type itemref="Boolean"/>
+      <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
 
     <Attribute itemName="noLines">
       <type itemref="Boolean"/>
+      <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
 
     <Attribute itemName="useButtons">
       <type itemref="Boolean"/>
+      <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
 
     <Attribute itemName="openedContainers">

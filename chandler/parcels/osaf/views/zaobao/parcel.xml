@@ -60,9 +60,6 @@
   <Tree itemName="ZaoBaoTree">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
     <rootPath itemref="zb:RSSChannel"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -118,21 +115,11 @@
     <childrenBlocks itemref="doc:ItemViewBox"/>
   </SplitterWindow>
 
-
-
-
-
-
-
-
   <!-- Example single channel view -->
 
   <Tree itemName="ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:osaf"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -163,9 +150,6 @@
   <Tree itemName="chandlerwiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chandlerwiki"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -195,9 +179,6 @@
   <Tree itemName="junglewiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:junglewiki"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -228,9 +209,6 @@
   <Tree itemName="ted_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:ted"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -261,9 +239,6 @@
   <Tree itemName="zaobao_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:zaobao"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -295,9 +270,6 @@
   <Tree itemName="chao_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chao"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -329,9 +301,6 @@
   <Tree itemName="lessig_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:lessig"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -363,9 +332,6 @@
   <Tree itemName="mark_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:diveintomark"/>
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>True</useButtons>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>

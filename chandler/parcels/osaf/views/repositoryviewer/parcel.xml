@@ -47,7 +47,6 @@
 
     <hideRoot>False</hideRoot>
     <noLines>False</noLines>
-    <useButtons>True</useButtons>
     <columnHeadings>Item Name</columnHeadings>
     <columnHeadings>Display Name</columnHeadings>
     <columnHeadings>Kind</columnHeadings>
