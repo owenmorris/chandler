@@ -408,7 +408,7 @@ class JabberClient:
         return viewStr
     
     # decode a Python object from a text string, using base64 and cPickle
-    def DecodeObjectList(self, objectStr):
+    def DecodePythonObject(self, objectStr):
         mappedObjectStr = objectStr.encode('ascii')
         mappedObjectStr = self.FixExtraBlanks(mappedObjectStr)
         mappedObjectStr = base64.decodestring(mappedObjectStr)
