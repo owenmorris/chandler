@@ -1265,19 +1265,19 @@ long wxColumnHeaderItem::ConvertJust(
 typedef struct { long valA; long valB; } AnonLongPair;
 static AnonLongPair	sMap[] =
 {
-#if defined(_WINDOWS_)
+#if defined(__WXMSW__)
 	{ wxCOLUMNHEADER_JustLeft, HDF_LEFT }
 	, { wxCOLUMNHEADER_JustCenter, HDF_CENTER }
 	, { wxCOLUMNHEADER_JustRight, HDF_RIGHT }
-#elif defined(_GTK_)
+#elif defined(__WXMAC__)
+	{ wxCOLUMNHEADER_JustLeft, teJustLeft }
+	, { wxCOLUMNHEADER_JustCenter, teJustCenter }
+	, { wxCOLUMNHEADER_JustRight, teJustRight }
+#else
 	// FIX-ME: GTK - wild guess
 	{ wxCOLUMNHEADER_JustLeft, 0 }
 	, { wxCOLUMNHEADER_JustCenter, 1 }
 	, { wxCOLUMNHEADER_JustRight, 2 }
-#else
-	{ wxCOLUMNHEADER_JustLeft, teJustLeft }
-	, { wxCOLUMNHEADER_JustCenter, teJustCenter }
-	, { wxCOLUMNHEADER_JustRight, teJustRight }
 #endif
 };
 
