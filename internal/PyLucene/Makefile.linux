@@ -23,8 +23,8 @@ CXX = $(GCJ)/bin/g++
 JCC = $(GCJ)/bin/gcj
 JCCH = $(GCJ)/bin/gcjh
 
-LUCENE = $(SRCDIR)/lucene
-DB = $(SRCDIR)/../db
+LUCENE = $(SRCDIR)/lucene-$(VERSION)
+DB = $(SRCDIR)/../db/db-$(DBVERSION)
 
 PYTHON_INC = $(RELDIR)/include/python2.3
 PYTHON_SITE = $(RELDIR)/lib/python2.3/site-packages

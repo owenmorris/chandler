@@ -2,6 +2,7 @@
 VERSION=1.3-final
 PYLUCENE=$(BUILD_ROOT)/persistence/PyLucene
 LUCENE=$(PYLUCENE)/lucene-$(VERSION)
+OS=$(shell uname)
 
 ifeq ($(DEBUG),1)
 
@@ -15,8 +16,19 @@ SNAP=release
 
 endif
 
+ifeq ($(OS),Darwin)
+
+SITE=Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
+OS_MAKE=Makefile.osx
+
+else
+
+SITE=lib/python2.3/site-packages
+OS_MAKE=Makefile.linux
+
+endif
+
 BUILD=build_$(SNAP)
-PYTHON_SITE=$(SNAP)/Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
 
 
 default: all
@@ -25,9 +37,9 @@ apply: patches
 	patch -Nup0 < patches; echo ok
 
 build: apply
-	$(MAKE) -f Makefile.osx GCJ=$(GCJ_HOME) $(COMP_OPT) \
-                                DBVERSION=4.2.52 VERSION=$(VERSION) \
-                                all install
+	$(MAKE) -f $(OS_MAKE) GCJ=$(GCJ_HOME) $(COMP_OPT) \
+                              DBVERSION=4.2.52 VERSION=$(VERSION) \
+                              all install
 
 expand: lucene-$(VERSION)-src.tar.gz
 	tar xvzf lucene-$(VERSION)-src.tar.gz
@@ -35,8 +47,8 @@ expand: lucene-$(VERSION)-src.tar.gz
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
-                  $(PYTHON_SITE)/PyLucene.py \
-                  $(PYTHON_SITE)/_PyLucene.so \
+                  $(SNAP)/$(SITE)/PyLucene.py \
+                  $(SNAP)/$(SITE)/_PyLucene.so \
                   $(SNAP)/db/lib/libdb_java-4.2.jnilib \
                   $(SNAP)/db/lib/libdb_java-4.2.la \
                   $(SNAP)/lib/libgcc_s.1.0.dylib \
