@@ -335,10 +335,10 @@ class wxApplication (wxApp):
 
         self.repository.commit()
 
-        # @@@ New parcel loading
-        import model.schema.LoadParcels as LoadParcels
-        LoadParcels.LoadParcels('parcels', self.repository)
-        self.repository.commit()
+        # @@@ New parcel loading -- not tested on all platforms
+        # import model.schema.LoadParcels as LoadParcels
+        # LoadParcels.LoadParcels('parcels', self.repository)
+        # self.repository.commit()
                                 
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
@@ -444,7 +444,7 @@ class wxApplication (wxApp):
         __init__.py (or __init__.pyc). __init__.py must assign the parcel's
         class name to parcelClass. For example:
             
-            parcelClass = "CalendarFile.CalendarClass"
+            parcelClass = 'CalendarFile.CalendarClass'
 
         CalendarFile is the python file (without the .py extension) that
         contains the class CalendarClass contained in the file which is
@@ -469,7 +469,7 @@ class wxApplication (wxApp):
             """
               Import the parcel, which should define parcelClass.
               
-              If you get an error like "Import can't find module,
+              If you get an error like: Import can't find module,
             or can't find name in module: No module named XYZ.XYZ
             on the following statement, you probably forgot to
             add a __init__.py file in some directory of the
