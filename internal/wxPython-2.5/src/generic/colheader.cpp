@@ -1233,7 +1233,7 @@ long					resultV;
 	// - need m_BitmapJustification  + mgmt. to fully implement nonMutEx behavior
 	// FIXME: scaling a la wxBytmap::SetWidth/Height doesn't apply !!!
 	// FIXME: protect against HBMP leaks?
-	if (HasValidBitmapRef( itemRef )))
+	if (itemRef->HasValidBitmapRef( itemRef->m_BitmapRef ))
 	{
 		itemData.fmt &= ~HDF_STRING;
 		itemData.fmt |= HDF_BITMAP;
