@@ -344,6 +344,7 @@ class X509:
             ext = self.get_ext_at(i)
             if ext.get_name() == name:
                 return ext
+        raise LookupError
 
     def get_ext_at(self, index):
         """
