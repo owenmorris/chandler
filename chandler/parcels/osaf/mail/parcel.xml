@@ -15,6 +15,16 @@
     <content:serverPort>143</content:serverPort>
   </content:EmailAccount>
 
+<content:EmailAccount itsName="IMAPAccount Two">
+  <content:displayName>Kauai</content:displayName>
+  <content:serverName>kauai</content:serverName>
+  <content:accountType>IMAP4</content:accountType>
+  <content:accountName>bkirsch</content:accountName>
+  <content:password>1234Osaf</content:password>
+  <content:serverPort>143</content:serverPort>
+</content:EmailAccount>
+
+
   <task:Task itsName="IMAPMailClient">
     <task:Schedule itsName="MailSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
