@@ -109,6 +109,16 @@ class ShareToolDialog(wx.Dialog):
             self.view.commit()
             # ...and selecting that view in the sidebar
             Globals.mainView.selectView(args['view'], showInDetailView=share.contents)
+
+            # Here's my best guess about how it should work, although I couldn't figure out
+            # how to test it -- DJA
+            collection = share.contents
+            mainView = Globals.view[0]
+            mainView.postEventByName ("AddToSidebar", {'items':[collection]})
+            self.view.commit()
+            # ...and selecting that view in the sidebar
+            mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
+            mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
             """
         self._populateSharesList()
 
