@@ -249,7 +249,7 @@ class AttributeDelegate (ListDelegate):
         item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
-        if item:
+        if item is not None:
             attributeName = self.blockItem.columnData [column]
             attribute = item.itsKind.getAttribute (attributeName)
             heading = attribute.getItemDisplayName()
@@ -538,7 +538,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
             if item != self.blockItem.selectedItemToView:
                 self.blockItem.selectedItemToView = item
-                if item:
+                if item is not None:
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
@@ -632,12 +632,12 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.MakeCellVisible (row, 0)
 
     def GoToItem(self, item):
-        if item:
+        if item != None:
             try:
                 row = self.blockItem.contents.index (item)
             except ValueError:
                 item = None
-        if item:
+        if item is not None:
             self.blockItem.selection.append ([row, row, True])
             self.blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
@@ -800,11 +800,12 @@ class Table (RectangularChild):
         item = notification.data ['item']
         if self.selectedItemToView != item:
             self.selectedItemToView = item
-            if item:
+            row = -1
+            if item is not None:
                 try:
                     row = self.contents.index (item)
                 except ValueError:
-                    row = -1
+                    pass
             if row < 0:
                 self.widget.ClearSelection()
             else:

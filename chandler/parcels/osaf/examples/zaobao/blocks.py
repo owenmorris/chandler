@@ -105,7 +105,7 @@ class ZaoBaoItemDetail(ItemDetail):
     def getHTMLText(self, item):
         if item == Globals.repository.view:
             return
-        if item:
+        if item is not None:
             displayName = item.getAttributeValue('displayName', default='<Untitled>')
 
             # make the html

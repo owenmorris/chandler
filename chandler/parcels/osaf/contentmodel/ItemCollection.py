@@ -104,9 +104,9 @@ class ItemCollection(ContentModel.ContentItem):
 
     def removeFilterKind (self, item):
         """
-          Remove an kind to the list of kinds to filter. If item = None remove all filters
+          Remove an kind to the list of kinds to filter. If item is not None remove all filters
         """
-        if item:
+        if item is not None:
             self._filterKinds.remove (str (item.itsPath))
         else:
             del self._filterKinds[:]
