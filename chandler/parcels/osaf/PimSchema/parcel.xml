@@ -1,0 +1,128 @@
+<Parcel parcelName="PimSchema"
+        xmlns="/Core"
+        xmlns:core="/Core"
+        xmlns:common="/OSAF/PimSchema">
+
+  <displayName>Pim Schema</displayName>
+  <description>Pim schema for the 0.3 release</description>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+  <displayName>Common</displayName>
+  <version>0.3</version>
+  <description>
+    The 'CommonSchema' is a place for Kinds and Attributes that aren't specific to any particular domain, and which might be generally useful across a variety of domains.
+  </description>
+
+<!-- Information Item -->
+  <AttributeDefinition id="common:projects">
+    <label>projects</label>
+    <comment>What project does this item belong to?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Project"/>
+    <inverseAttribute itemref="common:items"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="common:folders">
+    <label>folders</label>
+    <comment>What folders is this item filed in?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Folder"/>
+    <inverseAttribute itemref="common:items"/>
+  </AttributeDefinition>
+
+  <Kind id="common:InformationItem">
+    <label>Information Item</label>
+    <example>an Calendar Event -- 'Lunch with Tug'</example>
+    <example>a Contact -- 'Terry Smith'</example>
+    <example>a Task -- 'mail 1040 to IRS'</example>
+    <example>a Sailing Ship -- 'The Beagle'</example>
+    <comment>
+      Items can appear in Views.
+      Queries return collections of Items.
+      Users can add attributes to Items.
+      Everything is a type of Item.
+    </comment>
+    <issue>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issue>
+    <superKind itemref="common:Item"/>
+    <abstract/>
+    <attribute itemref="common:projects"/>
+    <attribute itemref="common:folders"/>
+  </Kind>
+
+
+<!-- Project -->
+  <AttributeDefinition id="common:parent_project">
+    <label>parent project</label>
+    <comment>projects can be organized into hierarchies</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Project"/>
+    <inverseAttribute itemref="common:sub projects"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="common:sub_projects">
+    <label>sub projects</label>
+    <comment>projects can be organized into hierarchies</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Project"/>
+    <inverseAttribute itemref="common:parent project"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="common:items">
+    <label>items</label>
+    <comment>items can be organized into projects</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:InformationItem"/>
+    <inverseAttribute itemref="common:projects"/>
+  </AttributeDefinition>
+
+  <Kind id="common:Project">
+    <label>Project</label>
+    <superKind itemref="common:Item"/>
+    <attribute itemref="common:name"/>
+    <attribute itemref="common:comment"/>
+    <attribute itemref="common:parent_project"/>
+    <attribute itemref="common:sub_projects"/>
+    <attribute itemref="common:items"/>
+  </Kind>
+
+<!-- Folder -->
+  <AttributeDefinition id="common:items">
+    <label>items</label>
+    <comment>What's in the folder?</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Item"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="common:type">
+    <label>type</label>
+    <comment>What types of items should the folder be expected to hold?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Taxon"/>
+  </AttributeDefinition>
+
+  <Kind id="common:Folder">
+    <label>Folder</label>
+    <example>Inbox</example>
+    <example>Sent</example>
+    <example>Spam</example>
+    <example>Work address list</example>
+    <example>Drafts</example>
+    <example>Recipes</example>
+    <example>E-mail folders</example>
+    <example>agent change log</example>
+    <example>agent registry</example>
+    <example>address book</example>
+    <example>change log</example>
+    <comment>
+      A Folder represents a folder of e-mail messages (a mailbox) or a folder of any other type of Item.
+    </comment>
+    <superKind itemref="common:Item"/>
+    <attribute itemref="common:name"/>
+    <attribute itemref="common:comment"/>
+    <attribute itemref="common:items"/>
+    <attribute itemref="common:type"/>
+  </Kind>
+
+</Parcel>
+     

@@ -1,0 +1,96 @@
+<Parcel parcelName="pim:CalendarSchema"
+        xmlns="/Core"
+        xmlns:core="/Core"
+	xmlns:pim="/OSAF/PimSchema"
+        xmlns:cal="/OSAF/PimSchema/CalendarSchema"
+        xmlns:contact="/OSAF/PimSchema/ContactSchema">
+
+  <displayName>Calendar Schema</displayName>
+  <description>Calendar schema for the 0.3 release</description>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+  <Attribute itemName="cal:startTime">
+    <displayName>Start Time</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="core:DateTime"/>
+  </Attribute>
+
+  <Attribute itemName="cal:endTime">
+    <displayName>End Time</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="core:DateTime"/>
+  </Attribute>
+
+  <Attribute itemName="cal:headline">
+    <displayName>Headline</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </Attribute>
+
+  <Attribute itemName="cal:location">
+    <displayName>Location</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="cal:Location"/>
+    <inverseAttribute itemref="cal:eventsAtLocation"/>
+  </Attribute>
+
+  <Attribute itemName="cal:calendar">
+    <displayName>Calendar</displayName>
+    <cardinality>set</cardinality>
+    <type itemref="cal:Calendar"/>
+  </Attribute>
+
+  <Attribute itemName="cal:participant">
+    <displayName>Participant</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="contact:ContactEntity"/>
+  </Attribute>
+
+  <Attribute itemName="cal:participatingIn">
+    <displayName>Participating In</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+  </Attribute>
+
+  <!-- @@@ temporary attribute, something for location and calendar -->
+  <Attribute itemName="cal:name">
+    <displayName>Name</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </Attribute>
+
+  <Attribute itemName="cal:eventsAtLocation">
+    <displayName>Calendar Events</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:location"/>
+  </Attribute>
+
+  <Kind itemName="cal:CalendarEvent">
+    <displayName>Calendar Event</displayName>
+    <attributes itemref="cal:headline"/>
+    <attributes itemref="cal:startTime"/>
+    <attributes itemref="cal:endTime"/>
+    <attributes itemref="cal:location"/>
+    <displayAttribute itemref="cal:headline"/>
+    <classes key="python">OSAF.PimSchema.CalendarSchema.CalendarEvent.CalendarEvent</classes>
+  </Kind>
+
+  <!-- @@@ Location may be not be calendar specific -->
+  <Kind itemName="cal:Location">
+    <displayName>Location</displayName>
+    <attributes itemref="cal:name"/>
+    <attributes itemref="cal:eventsAtLocation"/>
+    <displayAttribute itemref="cal:name"/>
+    <classes key="python">OSAF.PimSchema.CalendarSchema.Location.Location</classes>
+  </Kind>
+
+  <Kind itemName="cal:Calendar">
+    <displayName>Calendar</displayName>
+    <attributes itemref="cal:name"/>
+    <displayAttribute itemref="cal:name"/>
+    <classes key="python">OSAF.PimSchema.CalendarSchema.Calendar.Calendar</classes>
+  </Kind>
+
+</Parcel>
