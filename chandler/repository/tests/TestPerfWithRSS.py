@@ -46,7 +46,8 @@ class TestPerfWithRSS(unittest.TestCase):
 
         parcelDir = os.path.join(self.rootdir,'parcels')
         sys.path.insert(1, parcelDir)
-        LoadParcels.LoadParcels(parcelDir, self.rep)
+        LoadParcels.LoadParcel(os.path.join(parcelDir, 'OSAF', 'examples', 
+         'zaobao'), '//parcels/OSAF/examples/zaobao', parcelDir, self.rep)
         
         self.rep.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
