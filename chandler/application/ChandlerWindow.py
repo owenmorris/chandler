@@ -195,9 +195,6 @@ class wxChandlerWindow(wxFrame):
                 if wxPlatform == '__WXMAC__':
                     index -= 1
                 menuBar.Insert(index, debugMenu, _('Debug'))
-                menuBar.Check(XRCID('CreateNewRepository'),
-                               hasattr (application.Application.app.model,
-                                        'CreateNewRepository'))
 
         def OnToggleDebugMenu(self, event):
             hasMenu = self.HasDebugMenu()
