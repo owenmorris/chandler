@@ -22,7 +22,6 @@ dependencies = (
                 'Chandler/repository'
                )
 
-
 def build(buildenv):
 
     # Build the linux launcher program
