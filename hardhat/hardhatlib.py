@@ -743,6 +743,9 @@ def setupEnvironment(buildenv):
          os.pathsep + buildenv['path']
         os.putenv('BUILDMODE', 'release')
 
+    # to run Chandler-related scripts from directories other than 
+    # osaf/chandler/Chandler, PYTHONPATH is needed
+    os.putenv('PYTHONPATH', os.path.join(buildenv['root'], "Chandler"))
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
