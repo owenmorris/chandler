@@ -111,8 +111,7 @@ $(SRC)/$(BUILD)/Makefile:
                      --enable-display \
                      --with-libpng \
                      --with-gtk \
-                     --enable-gtk2 \
-                     --enable-unicode
+                     --enable-gtk2
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -123,7 +122,7 @@ wxPython:
                            INSTALL_MULTIVERSION=0 \
                            BUILD_BASE=$(BUILD) \
                            WX_CONFIG=$(PREFIX)/bin/wx-config \
-                           WXPORT=gtk2 UNICODE=1 \
+                           WXPORT=gtk2 \
                            build $(DIST_OPT) install FINAL=$(FINAL)
 
 MANIFEST=$(SNAP)/$(SITE)/wx \
