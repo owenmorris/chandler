@@ -34,6 +34,18 @@ diff -r -upN libxml2-2.6.16/configure.in libxml2-2.6.16-patched/configure.in
      else
  	if test -x "$with_python"
  	then
+diff -r -upN libxml2-2.6.16/encoding.c libxml2-2.6.16-patched/encoding.c
+--- libxml2-2.6.16/encoding.c	Sat Nov  6 07:19:31 2004
++++ libxml2-2.6.16-patched/encoding.c	Mon Jan 10 19:14:23 2005
+@@ -2335,7 +2335,7 @@ ISO8859xToUTF8(unsigned char* out, int *
+     unsigned int c;
+ 
+     if ((out == NULL) || (outlen == NULL) || (inlen == NULL) ||
+-        (in == NULL) || (xlattable == NULL))
++        (in == NULL) || (unicodetable == NULL))
+ 	return(-1);
+     outend = out + *outlen;
+     inend = in + *inlen;
 diff -r -upN libxml2-2.6.16/parser.c libxml2-2.6.16-patched/parser.c
 --- libxml2-2.6.16/parser.c	Tue Nov  9 10:48:18 2004
 +++ libxml2-2.6.16-patched/parser.c	Tue Jan  4 21:03:14 2005
