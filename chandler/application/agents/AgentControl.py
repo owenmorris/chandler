@@ -3,23 +3,26 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
-
-from wxPython.wx import *
 import application.Globals as Globals
-import AgentThread
+from wxPython.wx import *
+import os
 
 __all__ = ['wxAgentControl']
 
 class wxAgentControl(wxPyControl):
     """ The widget associated with agents """
 
+    def __getAgentItem(self):
+        return Globals.repository[self.agentID]
+
+    agent = property(__getAgentItem)
+
     def __init__(self, agentID):
         wxPyControl.__init__(self, self._GetToolBar(),
                              -1, wxDefaultPosition, wxSize(32,32),
                              wxNO_BORDER, wxDefaultValidator, 'wxAgentControl')
 
-        self.agent = Globals.repository.find(agentID)
+        self.agentID = agentID
         self.image = AgentImage()
         self.status = "idle"
 
@@ -29,9 +32,9 @@ class wxAgentControl(wxPyControl):
         EVT_MOUSE_EVENTS(self, self._OnMouseEvent)
 
         # start a timer to redraw us every so often
-        self.timer = wxTimer(self, 1)
-        EVT_TIMER(self, 1, self._OnTimer)
-        self.timer.Start(1000)
+        #self.timer = wxTimer(self, 1)
+        #EVT_TIMER(self, 1, self._OnTimer)
+        #self.timer.Start(1000)
 
     def AddToToolBar(self):
         toolbar = self._GetToolBar()
@@ -54,7 +57,7 @@ class wxAgentControl(wxPyControl):
         dc.Clear()
         self.image.Draw(dc, self.status)
         dc.EndDrawing()
-        
+
     def _OnMouseEvent (self, event):
         if event.ButtonUp():
             print "buttonup"
@@ -65,19 +68,17 @@ class wxAgentControl(wxPyControl):
         return False
 
     def _GetToolBar(self):
-        wxMainFrame = Globals.wxMainFrame
-        return wxMainFrame.navigationBar
+        return Globals.application.wxMainFrame.navigationBar
 
     def _GetStatus(self):
-        if self.agent.UpdateStatus():
-            status = self.agent.GetStatus('busyness')
-            # anything over 0.5 is probably bad
-            if status > 0.25:
-                return 'sprinting'
-            if status > 0.1:
-                return 'running'
-            else:
-                return 'idle'
+        status = self.agent.GetStatus('busyness')
+        # anything over 0.5 is probably bad
+        if status > 0.25:
+            return 'sprinting'
+        if status > 0.1:
+            return 'running'
+
+        return 'idle'
 
 class AgentImageLoader:
     def __init__(self):
