@@ -185,11 +185,11 @@ def init(buildenv):
 
         buildenv['python'] = os.path.join(buildenv['root'], 'release', 
          'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-         'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
+         'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
 
         buildenv['python_d'] = os.path.join(buildenv['root'], 'debug', 
          'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-         'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
+         'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
 
     # Determine the Python lib directory (the parent of site-packages)
     if buildenv['os'] == 'posix':
