@@ -72,12 +72,22 @@ public:
 		bool						bFlagValue );
 
 public:
-#if defined(__WXMAC__)
-	static void MacDrawThemeBackgroundNoArrows(
-		const void		*boundsR );
+#if defined(__WXGTK__)
+	static void GTKGetSortArrowBounds(
+		const wxRect		*itemBoundsR,
+		wxRect			*arrowBoundsR );
+	static void GTKDrawSortArrow(
+		wxClientDC		*dc,
+		const wxRect		*boundsR,
+		bool				bSortAscending );
 #endif
 
-	static long ConvertJust(
+#if defined(__WXMAC__)
+	static void MacDrawThemeBackgroundNoArrows(
+		const void			*boundsR );
+#endif
+
+	static long ConvertJustification(
 		long			sourceEnum,
 		bool			bToNative );
 

@@ -1004,7 +1004,7 @@ long		resultV;
 	itemData.cxy = (int)nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
-	itemData.fmt = wxColumnHeaderItem::ConvertJust( textJust, TRUE ) | HDF_STRING;
+	itemData.fmt = wxColumnHeaderItem::ConvertJustification( textJust, TRUE ) | HDF_STRING;
 	if (bSelected && bSortEnabled)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
@@ -1066,7 +1066,7 @@ long					resultV;
 	itemData.cxy = (int)(itemRef->m_ExtentX);
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
-	itemData.fmt = wxColumnHeaderItem::ConvertJust( itemRef->m_TextJust, TRUE ) | HDF_STRING;
+	itemData.fmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
 	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
@@ -1446,7 +1446,7 @@ OSStatus				errStatus;
 	qdBoundsR.right -= 16;
 	qdBoundsR.top += 1;
 
-	nativeTextJust = ConvertJust( m_TextJust, TRUE );
+	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
 	if (! m_LabelTextRef.IsEmpty())
 	{
@@ -1565,19 +1565,97 @@ const wxCoord		h = boundsR->height;
 	// FIXME: need to clip long text items
 	dc->DrawText( m_LabelTextRef, originX, localBoundsR.y + 1 );
 
-	// FIXME: need to draw sort direction arrows (if specified)
+	// draw sort direction arrows (if specified)
 	if (m_BSelected && m_BSortEnabled)
 	{
+#if defined(__WXGTK__)
+	wxRect		arrowBoundsR;
+
+		GTKGetSortArrowBounds( &localBoundsR, &arrowBoundsR );
+		GTKDrawSortArrow( dc, &arrowBoundsR, m_BSortAscending );
+#else
+		// FIXME: what about non-(Mac,MSW,GTK) platforms?
+#endif
 	}
 
 	return 0;
 #endif
 }
 
+// ================
+#if 0
+#pragma mark -
+#endif
+
+#if defined(__WXGTK__)
+// static
+void wxColumnHeaderItem::GTKGetSortArrowBounds(
+	const wxRect			*itemBoundsR,
+	wxRect				*arrowBoundsR )
+{
+int		sizeX, sizeY, insetX;
+
+	if (arrowBoundsR == NULL)
+		return;
+
+	if (itemBoundsR == NULL)
+	{
+		sizeX =
+		sizeY = 12;
+		insetX = 8;
+
+		arrowBoundsR->x = itemBoundsR->x - (sizeX + insetX);
+		arrowBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
+		arrowBoundsR->width = sizeX;
+		arrowBoundsR->height = sizeY;
+	}
+	else
+	{
+		arrowBoundsR->x =
+		arrowBoundsR->y =
+		arrowBoundsR->width =
+		arrowBoundsR->height = 0;
+	}
+}
+
+// static
+void wxColumnHeaderItem::GTKDrawSortArrow(
+	wxClientDC			*dc,
+	const wxRect			*boundsR,
+	bool					bSortAscending )
+{
+wxPoint		triPt[3];
+
+	if ((dc == NULL) || (boundsR == NULL))
+		return;
+
+	if (bSortAscending)
+	{
+		triPt[0].x = boundsR->width / 2;
+		triPt[0].y = 0;
+		triPt[1].x = boundsR->width;
+		triPt[1].y = boundsR->height;
+		triPt[2].x = 0;
+		triPt[2].y = boundsR->height;
+	}
+	else
+	{
+		triPt[0].x = 0;
+		triPt[0].y = 0;
+		triPt[1].x = boundsR->width;
+		triPt[1].y = 0;
+		triPt[2].x = boundsR->width / 2;
+		triPt[2].y = boundsR->height;
+	}
+
+	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
+}
+#endif
+
 #if defined(__WXMAC__)
 // static
 void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
-	const void			*boundsR )
+	const void				*boundsR )
 {
 ThemeButtonDrawInfo	drawInfo;
 Rect				qdBoundsR;
@@ -1612,9 +1690,9 @@ bool				bSelected;
 #endif
 
 // static
-long wxColumnHeaderItem::ConvertJust(
-	long		sourceEnum,
-	bool		bToNative )
+long wxColumnHeaderItem::ConvertJustification(
+	long			sourceEnum,
+	bool			bToNative )
 {
 typedef struct { long valA; long valB; } AnonLongPair;
 static AnonLongPair	sMap[] =
@@ -1628,7 +1706,7 @@ static AnonLongPair	sMap[] =
 	, { wxCOLUMNHEADER_JUST_Center, teJustCenter }
 	, { wxCOLUMNHEADER_JUST_Right, teJustRight }
 #else
-	// FIXME: GTK - wild guess
+	// FIXME: GTK - wild guess - irrelevant
 	{ wxCOLUMNHEADER_JUST_Left, 0 }
 	, { wxCOLUMNHEADER_JUST_Center, 1 }
 	, { wxCOLUMNHEADER_JUST_Right, 2 }
