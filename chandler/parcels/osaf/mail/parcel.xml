@@ -12,7 +12,7 @@
     <content:username>osafuser</content:username>
     <content:password>chandler</content:password>
     <content:port>143</content:port>
-    <content:useSSL>False</content:useSSL>
+    <content:useSSL>NoSSL</content:useSSL>
   </content:IMAPAccount>
 
   <task:Task itsName="IMAPMailClient">

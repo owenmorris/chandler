@@ -8,6 +8,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
 import twisted.internet.protocol as protocol
+import twisted.internet.ssl as ssl
 import twisted.mail.imap4 as imap4
 import repository.persistence.RepositoryView as RepositoryView
 import mx.DateTime as DateTime
@@ -19,6 +20,10 @@ import repository.util.UUID as UUID
 
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
+
+    def __init__(self, contextFactory, useSSL):
+        imap4.IMAP4Client.__init__(self, contextFactory)
+        self.useSSL = useSSL
 
     def serverGreeting(self, caps):
         """
@@ -32,7 +37,8 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @return C{None}
         """
 
-        self.serverCapabilities =  self.__disableTLS(caps)
+        if self.useSSL == 'NoSSL':
+            self.serverCapabilities =  self.__disableTLS(caps)
 
         d = defer.Deferred()
         d.addCallback(self.factory.callback, self)
@@ -59,7 +65,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, callback, errback):
+    def __init__(self, callback, errback, useSSL):
         """
         A C{protocol.ClientFactory} that creates C{ChandlerIMAP4Client} instances
         and stores the callback and errback to be used by the C{ChandlerIMAP4Client} instances
@@ -75,9 +81,13 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 
         self.callback = callback
         self.errback = errback
+        self.useSSL = useSSL
 
     def buildProtocol(self, addr):
-        p = self.protocol()
+        if self.useSSL == 'NoSSL':
+            p = self.protocol(contextFactory=None, useSSL=self.useSSL)
+        else:
+            p = self.protocol(ssl.ClientContextFactory(useM2=1), self.useSSL)
         p.factory = self
         return p
 
@@ -144,8 +154,10 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             self.account.setPinned()
 
-            host  = self.account.host
-            port = self.account.port
+            host    = self.account.host
+            port    = self.account.port
+            useSSL  = self.account.useSSL
+            portSSL = self.account.portSSL            
 
             if __debug__:
                 self.printAccount()
@@ -153,8 +165,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors)
-        reactor.connectTCP(host, port, factory)
+        factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors,
+                                       useSSL)
+        if useSSL == 'SSL':
+            reactor.connectSSL(host, portSSL, factory,
+                               ssl.ClientContextFactory(useM2=1))
+        else:
+            reactor.connectTCP(host, port, factory)
  
     def printAccount(self):
         """
@@ -170,6 +187,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         str  = "\nHost: %s\n" % self.account.host
         str += "Port: %d\n" % self.account.port
+        str += "PortSSL: %d\n" % self.account.portSSL
+        str += "SSL: %s\n" % self.account.useSSL
         str += "Username: %s\n" % self.account.username
         str += "Password: %s\n" % self.account.password
 
