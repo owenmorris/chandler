@@ -51,17 +51,36 @@
     <inverseAttribute itemref="contact:sections"/>
   </Attribute>
 
+  <Attribute itemName="homeSectionFor">
+    <displayName>Home Section For</displayName>
+    <description>A reference to the contact if this is the contact's home section.</description>
+    <cardinality>single</cardinality>
+    <type itemref="contact:Contact"/>
+    <inverseAttribute itemref="contact:homeSection"/>
+  </Attribute>
+
+  <Attribute itemName="workSectionFor">
+    <displayName>Work Section For</displayName>
+    <description>A reference to the contact if this is the contact's work section.</description>
+    <cardinality>single</cardinality>
+    <type itemref="contact:Contact"/>
+    <inverseAttribute itemref="contact:workSection"/>
+  </Attribute>
+
+
   <Attribute itemName="workSection">
     <displayName>Work Section</displayName>
     <description>A section of the contact for keeping track of work phone, work address, etc.</description>
-    <superAttribute itemref="contact:sections"/>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:workSectionFor"/>
     <cardinality>single</cardinality>
   </Attribute>
 
   <Attribute itemName="homeSection">
     <displayName>Home Section</displayName>
     <description>A section of the contact for keeping track of home phone, home address, etc.</description>
-    <superAttribute itemref="contact:sections"/>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:homeSectionFor"/>
     <cardinality>single</cardinality>
   </Attribute>
 
@@ -238,6 +257,8 @@
     <issues>We also need attributes for basic vCard info, like 'Timezone'. Optionally, we might also want other vCard attributes like 'Job Role', 'Latitude', 'Longitude', 'Mailer (a MIME X-Mailer value)', 'Business card logo', 'Agent or Assistant', 'Department', 'vCard Categories', 'vCard Note', 'Sound', 'UID', 'Public Key', and 'Source'.</issues>
     <issues>We also probably want some other attributes in order to interoperate with Outlook, like 'Language', 'Referred By', etc.</issues>
     <attributes itemref="contact:sectionOwner"/>
+    <attributes itemref="contact:homeSectionFor"/>
+    <attributes itemref="contact:workSectionFor"/>
     <attributes itemref="contact:phoneNumbers"/>
     <attributes itemref="contact:emailAddresses"/>
     <attributes itemref="contact:streetAddresses"/>
