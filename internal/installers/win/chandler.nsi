@@ -8,9 +8,9 @@
   ;
 
 !define PRODUCT_NAME "Chandler"
-!define PRODUCT_VERSION "0.4"
+!define PRODUCT_VERSION "0.4+"
 !define PRODUCT_PUBLISHER "Open Source Application Foundation"
-!define PRODUCT_WEB_SITE "http://osafoundation.org"
+!define PRODUCT_WEB_SITE "http://www.osafoundation.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\chandlerDebug.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
@@ -124,7 +124,14 @@ Section Uninstall
   Delete "$DESKTOP\Chandler.lnk"
   Delete "$SMPROGRAMS\Chandler\Chandler.lnk"
 
-  Delete "$INSTDIR\*.*"
+    ; currently commented out to prevent testing blow-outs ;)
+  ;Delete "$INSTDIR\*.*"
+  Delete "$INSTDIR\Chandler.py"
+  Delete "$INSTDIR\ChangeLog.txt"
+  Delete "$INSTDIR\HISTORY.txt"
+  Delete "$INSTDIR\LICENSE.txt"
+  Delete "$INSTDIR\setup.py"
+  Delete "$INSTDIR\version.py"
 
   RMDir "$SMPROGRAMS\Chandler"
 
@@ -137,7 +144,8 @@ Section Uninstall
   RMDir /r "$INSTDIR\tools"
   RMDir /r "$INSTDIR\__repository__"
 
-  RMDir "$INSTDIR"
+    ; currently commented out to prevent testing blow-outs ;)
+  ;RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
