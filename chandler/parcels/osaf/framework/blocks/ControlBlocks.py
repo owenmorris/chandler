@@ -246,6 +246,12 @@ class ListDelegate (object):
     def GetColumnHeading (self, column, item):
         return self.blockItem.columnHeadings [column]
 
+    def ReadOnly (self, row, column):
+        """
+          Second argument should be True if all cells have the first value
+        """
+        return False, True
+
 
 class AttributeDelegate (ListDelegate):
     def GetElementType (self, row, column):
@@ -451,9 +457,10 @@ class wxTableData(wx.grid.PyGridTableBase):
               An apparent bug in table asks for an attribute even when
             there are no entries in the table
             """
-            view = self.GetView()
-            if (view.GetElementCount() != 0 and
-                not delegate.ReadOnly (view.GetElementValue (row, column))):
+            grid = self.GetView()
+            if (grid.GetElementCount() != 0 and
+                not grid.ReadOnly (row, column)[0] and
+                not delegate.ReadOnly (grid.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute
             attribute.IncRef()
         return attribute
@@ -531,16 +538,12 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
-            topRow = event.GetTopRow()
-            bottomRow = event.GetBottomRow()
-            selecting = event.Selecting()
-            if topRow == 0 and bottomRow == (self.GetElementCount() -1):
-                self.blockItem.selection = []
-                if not selecting:
-                    return
-            self.blockItem.selection.append ([topRow, bottomRow, selecting])
-
+            self.blockItem.selection = []
             topLeftList = self.GetSelectionBlockTopLeft()
+            for topLeft, bottomRight in zip (topLeftList,
+                                             self.GetSelectionBlockBottomRight()):
+                self.blockItem.selection.append ([topLeft[0], bottomRight[0]])
+           
             topLeftList.sort()
             try:
                 (row, column) = topLeftList [0]
@@ -651,13 +654,9 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         firstSelectedRow = None
         if len (self.blockItem.contents) > 0:
             for range in self.blockItem.selection:
-                if range [2]:
-                    if firstSelectedRow is None:
-                        firstSelectedRow = range[0]
-                    self.SelectBlock (range[0], 0, range[1], newColumns, True)
-                else:
-                    for row in xrange (range[0], range[1] + 1):
-                        self.DeselectRow (row)            
+                if firstSelectedRow is None:
+                    firstSelectedRow = range[0]
+                self.SelectBlock (range[0], 0, range[1], newColumns, True)
         self.EndBatch() 
 
         #Update all displayed values
@@ -684,7 +683,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             except ValueError:
                 item = None
         if item is not None:
-            self.blockItem.selection.append ([row, row, True])
+            self.blockItem.selection.append ([row, row])
             self.blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
@@ -894,7 +893,13 @@ class Table (RectangularChild):
         self.widget.DeleteSelection()
         
     def onRemoveEventUpdateUI (self, event):
-        event.arguments ['Enable'] = len (self.selection) != 0
+        readOnly = True
+        for range in self.selection:
+            for row in xrange (range[0], range[1] + 1):
+                readOnly, always = self.widget.ReadOnly (row, 0)
+                if readOnly or always:
+                    break
+        return not readOnly
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):

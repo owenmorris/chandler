@@ -1156,16 +1156,19 @@
 
   <contentModel:ItemCollection itsName="allItemCollection">
     <displayName>All</displayName>
+    <outOfTheBoxCollection>True</outOfTheBoxCollection>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="inItemCollection">
     <displayName>In</displayName>
+    <outOfTheBoxCollection>True</outOfTheBoxCollection>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="outItemCollection">
     <displayName>Out</displayName>
+    <outOfTheBoxCollection>True</outOfTheBoxCollection>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
@@ -1254,6 +1257,7 @@
   <Sidebar itsName="Sidebar">
     <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
+    <elementDelegate>osaf.views.main.SideBar.SidebarAttributeDelegate</elementDelegate>
     <selectedItemToView itemref="doc:allItemCollection"/>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
@@ -1263,7 +1267,6 @@
     <selection>
       <core:Integer value="0"/>
       <core:Integer value="0"/>
-      <core:Boolean value="True"/>
     </selection>
     <border>0,0,4,0</border>
   </Sidebar>
@@ -1311,7 +1314,6 @@
     <selection>
       <core:Integer value="0"/>
       <core:Integer value="0"/>
-      <core:Boolean value="True"/>
     </selection>
   </Table>
 

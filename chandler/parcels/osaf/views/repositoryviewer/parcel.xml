@@ -17,9 +17,7 @@
     Layout blocks
   -->
   <Tree itsName="RepositoryTree">
-    <!-- Attributes -->
     <elementDelegate>osaf.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
-
     <hideRoot>False</hideRoot>
     <noLines>False</noLines>
     <columnHeadings>Item Name</columnHeadings>
@@ -39,27 +37,20 @@
  
   <ItemDetail itsName="ItemDetail"
               itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
-    <!-- Attributes -->
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <SplitterWindow itsName="RepositoryView">
     <displayName>Repository Viewer</displayName>
-
-    <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>
-
-    <!-- Attributes -->
     <eventBoundary>True</eventBoundary>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
   
   <Tree itsName="CPIATree">
-    <!-- Attributes -->
     <elementDelegate>osaf.views.repositoryviewer.Repository.CPIADelegate</elementDelegate>
-
     <hideRoot>False</hideRoot>
     <noLines>False</noLines>
     <columnHeadings>Block Name</columnHeadings>
@@ -79,19 +70,14 @@
  
   <ItemDetail itsName="CPIAItemDetail"
               itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
-    <!-- Attributes -->
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <SplitterWindow itsName="CPIAView">
     <displayName>CPIA Viewer</displayName>
-
-    <!-- Layout children -->
     <childrenBlocks itemref="doc:CPIATree"/>
     <childrenBlocks itemref="doc:CPIAItemDetail"/>
-
-    <!-- Attributes -->
     <eventBoundary>True</eventBoundary>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>

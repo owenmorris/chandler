@@ -336,6 +336,10 @@
       <initialValue type="String">__adhoc__</initialValue>
     </Attribute>
 
+    <Attribute itsName="outOfTheBoxCollection">
+      <type itemref="Boolean"/>
+    </Attribute>
+
     <Attribute itsName="shares">
       <type itemref="share:Share"/>
       <cardinality value="list" />
