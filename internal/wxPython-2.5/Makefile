@@ -2,7 +2,7 @@
 include ../Makefile.inc
 
 VERSION=2.5
-RELVER=$(VERSION)-2
+RELVER=$(VERSION)-3
 SRC=$(INTERNAL)/wxPython-$(VERSION)
 
 ifeq ($(DEBUG),1)
