@@ -6,3 +6,7 @@
 2003-08-22 Morgen Sagen
 
     * Added a windows launcher program
+
+2003-08-25 Morgen Sagen
+
+    * Linux and Windows launcher programs now pass argv properly
