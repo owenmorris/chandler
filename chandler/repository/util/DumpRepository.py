@@ -11,12 +11,18 @@ from repository.parcel.Util import PrintItem
 rootdir = os.environ['CHANDLERHOME']
 repdir = os.path.join(rootdir, 'Chandler', '__repository__')
 rep = XMLRepository(repdir)
-rep.open()
 
-# This works
-PrintItem("//parcels", rep)
+createRepository = False
 
-# This doesn't:
-# PrintItem("//Schema", rep)
+if createRepository:
+    rep.create()
+    schemaPack = os.path.join(rootdir, 'Chandler', 'repository', 'packs', 
+     'schema.pack')
+    rep.loadPack(schemaPack)
+    rep.commit()
+else:
+    rep.open( )
+
+PrintItem("//Schema", rep)
 
 rep.close()
