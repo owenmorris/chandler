@@ -10,6 +10,7 @@ dependencies = (
                 'python',
                 'distutils',
                 'persistence/xerces-c',
+                'persistence/pathan',
                 'wxpython',
                 'egenix-mx',
                 'zodb',
