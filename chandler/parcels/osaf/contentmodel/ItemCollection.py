@@ -7,8 +7,10 @@ import repository.item.Item as Item
 import application.Globals as Globals
 
 class ItemCollection(Item.Item):
-    def __init__(self, *args, **kwds):
-        super(ItemCollection, self).__init__(*args, **kwds)
+    def __init__(self, name=None, parent=None, kind):
+        if not parent:
+            parent = Globals.repository.findPath('//userdata/contentitems')
+        super(ItemCollection, self).__init__(name, parent, kind)
 
         # these are all Item attributes
         self.rule = None
@@ -75,7 +77,8 @@ class ItemCollection(Item.Item):
             self.__dirty()
 
     def removeInclusion(self, item):
-        self.inclusions.remove(item.itsUUID)
+        uuid = item.itsUUID
+        self.inclusions.remove(uuid)
 
         self.results.remove(uuid)
         self.__dirty()
