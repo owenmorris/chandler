@@ -1,12 +1,10 @@
 Chandler README.linux
 ---------------------
 
-* Running Chandler * 
+* Running Chandler *
 
-To run chandler, use the shell script "Chandler.sh" in this directory, like
+To run chandler, use the executable "chandler" in this directory, like
 so:
 
-% ./Chandler.sh
+% ./chandler
 
-Note, for this release you must be in the same directory as Chandler.sh and
-Chandler.py when running the shell script.
