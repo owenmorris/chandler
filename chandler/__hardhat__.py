@@ -45,6 +45,8 @@ def distribute(buildenv):
     # "Chandler_linux_M1.tar.gz")
     buildVersionShort = buildVersionShort.replace("CHANDLER_", "")
 
+    installSourceFile = None
+    installTargetFile = None
 
     if buildenv['version'] == 'debug':
 
@@ -96,20 +98,27 @@ def distribute(buildenv):
         elif buildenv['os'] == 'win':
 
             distName = 'Chandler_win_debug_' + buildVersionShort
-            distDir = buildenv['root'] + os.sep + distName
+            distDir  = buildenv['root'] + os.sep + distName
+            
             buildenv['distdir'] = distDir
+            
             if os.access(distDir, os.F_OK):
                 hardhatlib.rmdir_recursive(distDir)
+                
             os.mkdir(distDir)
 
-            manifestFile = "distrib" + os.sep + "win" + os.sep + \
-             "manifest.debug.win"
+            manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.debug.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            
             os.chdir(buildenv['root'])
+            
             hardhatlib.convertLineEndings(buildenv['distdir'])
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
-             distName)
+            installSourceFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
+            installSourceFile = os.path.join(installSourceFile, "Setup.exe")
+            installTargetFile = distName
+
+            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], distName)
 
     if buildenv['version'] == 'release':
 
@@ -161,18 +170,26 @@ def distribute(buildenv):
         if buildenv['os'] == 'win':
 
             distName = 'Chandler_win_' + buildVersionShort
-            distDir = buildenv['root'] + os.sep + distName
+            distDir  = buildenv['root'] + os.sep + distName
+
             buildenv['distdir'] = distDir
+
             if os.access(distDir, os.F_OK):
                 hardhatlib.rmdir_recursive(distDir)
+
             os.mkdir(distDir)
 
             manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
+
             os.chdir(buildenv['root'])
             hardhatlib.convertLineEndings(buildenv['distdir'])
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
-             distName)
+            installSourceFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
+
+            installSourceFile = os.path.join(installSourceFile, "Setup.exe")
+            installTargetFile = distName
+
+            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], distName)
 
     # put the compressed files in the right place if specified 'outputdir'
     if buildenv['outputdir']:
@@ -186,6 +203,29 @@ def distribute(buildenv):
             _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
         else:
             _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
+
+        # The end-user installer
+        if installSourceFile:
+            installTargetFile = os.path.join(buildenv['outputdir'], ('%s.exe' % installTargetFile))
+
+            if os.path.exists(installTargetFile):
+                os.remove(installTargetFile)
+
+            os.rename(installSourceFile, installTargetFile)
+            
+            if buildenv['version'] == 'release':
+                _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
+            else:
+                _outputLine(buildenv['outputdir'] + os.sep + "developer", installTargetFile)
+    else:
+        # we move the install file here so that it doesn't "pollute" the internal/installers/win tree
+        if installSourceFile:
+            installTargetFile = os.path.join(buildenv['root'], ('%s.exe' % installTargetFile))
+
+            if os.path.exists(installTargetFile):
+                os.remove(installTargetFile)
+
+            os.rename(installSourceFile, installTargetFile)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
