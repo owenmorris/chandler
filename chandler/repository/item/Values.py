@@ -23,15 +23,13 @@ class Values(dict):
 
         self._item = item
 
-    def _copy(self, orig, copies, copyPolicy):
+    def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
-
         for name, value in orig.iteritems():
-
             if isinstance(value, PersistentCollection):
                 self[name] = value._copy(item, name, value._companion,
-                                         copies, copyPolicy)
+                                         copyPolicy, copyFn)
 
             elif isinstance(value, ItemValue):
                 value = value._copy(item, name)
@@ -42,24 +40,11 @@ class Values(dict):
                 policy = (copyPolicy or
                           item.getAttributeAspect(name, 'copyPolicy',
                                                   default='copy'))
-                if policy == 'copy':
-                    self[name] = value
+                other = item.find(value.itsUUID)
+                copyOther = copyFn(item, other, policy)
 
-                elif policy == 'cascade':
-                    uuid = value.itsUUID
-                    value = copies.get(uuid, None)
-
-                    if value is None:
-                        value = item.find(uuid)
-
-                        if orig._item.itsParent is item.itsParent:
-                            valueParent = value.itsParent
-                        else:
-                            valueParent = item.itsParent
-                        value = value.copy(None, valueParent, copies,
-                                           copyPolicy)
-                        
-                    self[name] = SingleRef(value.itsUUID)
+                if copyOther is not None:
+                    self[name] = SingleRef(copyOther.itsUUID)
             else:
                 self[name] = value
 
@@ -188,14 +173,12 @@ class References(Values):
 
         self._item = item
 
-    def _copy(self, orig, copies, copyPolicy):
+    def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
         for name, value in orig.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
-            if policy == 'copy' or policy == 'cascade':
-                value._copy(self, orig._item, item, name,
-                            policy, copyPolicy, copies)
+            value._copy(self, orig._item, item, name, policy, copyFn)
 
     def __setitem__(self, key, value, *args):
 

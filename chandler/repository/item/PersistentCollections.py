@@ -67,7 +67,7 @@ class PersistentCollection(object):
 
         if isinstance(value, PersistentCollection):
             value = value._copy(self._item, self._attribute, self._companion,
-                                {}, 'copy')
+                                'copy', lambda x, other, z: other)
         elif isinstance(value, list):
             value = PersistentList(self._item, self._attribute,
                                    self._companion, value)
@@ -98,28 +98,6 @@ class PersistentCollection(object):
             if isinstance(value, repository.item.Item.Item):
                 if not self._item.hasValue(self._companion, value):
                     self._item.addValue(self._companion, value)
-
-    def _copyItem(self, value, item, copies, policy, copyPolicy):
-
-        # value: item value to copy
-        # item: item being copied causing item value to be copied
-
-        if policy == 'copy':
-            return value
-
-        if policy == 'cascade':
-            valueCopy = copies.get(value.itsUUID, None)
-
-            if valueCopy is None:
-                if self._item.itsParent is item.itsParent:
-                    valueParent = item.itsParent
-                else:
-                    valueParent = value.itsParent
-                valueCopy = value.copy(None, valueParent, copies, copyPolicy)
-
-            return valueCopy
-
-        return None
 
     def _iterItems(self, items=None):
 
@@ -153,7 +131,7 @@ class PersistentList(list, PersistentCollection):
         if initialValues is not None:
             self.extend(initialValues)
 
-    def _copy(self, item, attribute, companion, copies, copyPolicy):
+    def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
         copy = type(self)(item, attribute, companion)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
@@ -161,12 +139,12 @@ class PersistentList(list, PersistentCollection):
 
         for value in self:
             if isinstance(value, repository.item.Item.Item):
-                value = self._copyItem(value, item, copies, policy, copyPolicy)
+                value = copyFn(item, value, policy)
                 if value is not None:
                     copy.append(value)
             elif isinstance(value, PersistentCollection):
                 copy.append(value._copy(item, attribute, companion,
-                                        copies, copyPolicy))
+                                        copyPolicy, copyFn))
             else:
                 copy.append(value)
 
@@ -296,7 +274,7 @@ class PersistentDict(dict, PersistentCollection):
         if initialValues is not None:
             self.update(initialValues)
 
-    def _copy(self, item, attribute, companion, copies, copyPolicy):
+    def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
         copy = type(self)(item, attribute, companion)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
@@ -304,12 +282,12 @@ class PersistentDict(dict, PersistentCollection):
         
         for key, value in self.iteritems():
             if isinstance(value, repository.item.Item.Item):
-                value = self._copyItem(value, item, copies, policy, copyPolicy)
+                value = copyFn(item, value, policy)
                 if value is not None:
                     copy[key] = value
             elif isinstance(value, PersistentCollection):
                 copy[key] = value._copy(item, attribute, companion,
-                                        copies, copyPolicy)
+                                        copyPolicy, copyFn)
             else:
                 copy[key] = value
 

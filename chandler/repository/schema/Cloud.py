@@ -110,6 +110,9 @@ class Cloud(Item):
               everywhere they occur.
 
             - any other item references are not set on the item copies.
+
+        The copy of the cloud entrypoint, C{item}, is first in the results
+        list.
         
         @param item: the entry point of the cloud.
         @type item: an C{Item} instance
@@ -129,48 +132,30 @@ class Cloud(Item):
         if copies is None:
             copies = {}
 
-        copy = item.copy(name, parent, copies, 'remove')
-        results = [copy]
-
-        def copyValue(item, name, value):
-            uuid = value._uuid
+        results = []
+        def copyOther(copy, other, policy):
+            uuid = other._uuid
             if uuid in items:
                 if uuid in copies:
                     return copies[uuid]
                 else:
-                    value = value.copy(None, parent, copies, 'remove')
-                    results.append(value)
-                    return value
+                    other = other.copy(None, parent, copies, 'remove',
+                                       None, copyOther)
+                    results.append(other)
+                    return other
             elif uuid in references:
-                return value
+                return other
             else:
                 return None
 
-        for item in copying:
-            if not item._uuid in copies:
-                copy = item.copy(None, parent, copies, 'remove')
-            else:
-                copy = copies[item._uuid]
-                
-            refs = copy._references
-            for name, value in item.iterAttributeValues(referencesOnly=True):
-                if isinstance(value, Item):
-                    value = copyValue(copy, name, value)
-                    if value is not None and name not in refs:
-                        copy.setAttributeValue(name, value, _attrDict=refs)
-                elif value is None:
-                    copy.setAttributeValue(name, None, _attrDict=refs)
-                else:
-                    if name in refs:
-                        refDict = refs[name]
-                    else:
-                        refDict = refs[name] = copy._refDict(name)
-                        
-                    for v in value:
-                        v = copyValue(copy, name, v)
-                        if v is not None and v not in refDict:
-                            refDict.append(v)
+        copy = item.copy(name, parent, copies, 'remove', None, copyOther)
+        results.insert(0, copy)
 
+        for item in copying:
+            if item._uuid not in copies:
+                results.append(item.copy(None, parent, copies, 'remove',
+                                         None, copyOther))
+                
         return results
 
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):

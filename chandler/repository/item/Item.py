@@ -1282,7 +1282,7 @@ class Item(object):
         return False
 
     def copy(self, name=None, parent=None, copies=None,
-             copyPolicy=None, cloudAlias=None):
+             copyPolicy=None, cloudAlias=None, copyFn=None):
         """
         Copy this item.
 
@@ -1338,8 +1338,25 @@ class Item(object):
         item._status |= Item.NEW
         copies[self._uuid] = item
 
-        item._values._copy(self._values, copies, copyPolicy)
-        item._references._copy(self._references, copies, copyPolicy)
+        def copyOther(copy, other, policy):
+            if policy == 'copy':
+                return other
+            elif policy == 'cascade':
+                copyOther = copies.get(other.itsUUID, None)
+                if copyOther is None:
+                    if self.itsParent is copy.itsParent:
+                        parent = other.itsParent
+                    else:
+                        parent = copy.itsParent
+                    copyOther = other.copy(None, parent, copies, copyPolicy)
+                return copyOther
+            else:
+                return None
+
+        if copyFn is None:
+            copyFn = copyOther
+        item._values._copy(self._values, copyPolicy, copyFn)
+        item._references._copy(self._references, copyPolicy, copyFn)
 
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(self)
