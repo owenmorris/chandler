@@ -10,16 +10,6 @@ from repository.item.Item import Item
 The Condition Class is a persistent object that's a kind of action.  Conditions are periodically evaluated,
 and trigger a set if actions they evaluate positively
 """
-class ConditionFactory:
-    def __init__(self, repository):
-        self._container = repository.find("//Agents")
-        self._kind = repository.find("//Schema/AgentsSchema/Condition")
-        self.repository = repository
-        
-    def NewItem(self, name):
-        item = Condition(name, self._container, self._kind)                            
-        return item
-
 class Condition(Item):
 
     def GetNotifications(self):

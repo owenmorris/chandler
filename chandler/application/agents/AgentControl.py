@@ -3,27 +3,27 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import os
+
 from wxPython.wx import *
 import application.Application
-import os
+import AgentThread
 
 __all__ = ['wxAgentControl']
 
 class wxAgentControl(wxPyControl):
+    """ The widget associated with agents """
 
-    def __init__(self, agent):
-        """
-        The widget associated with agents
-        """
+    def __init__(self, agentID):
         wxPyControl.__init__(self, self._GetToolBar(),
                              -1, wxDefaultPosition, wxSize(32,32),
-                             wxNO_BORDER, wxDefaultValidator, "wxAgentControl")
+                             wxNO_BORDER, wxDefaultValidator, 'wxAgentControl')
 
-        self.agent = agent
+        self.agent = application.Application.app.repository.find(agentID)
         self.image = AgentImage()
         self.status = "idle"
 
-        self.SetToolTipString(agent.GetName())
+        self.SetToolTipString(self.agent.GetName())
 
         EVT_PAINT(self, self._OnPaint)
         EVT_MOUSE_EVENTS(self, self._OnMouseEvent)
@@ -70,14 +70,14 @@ class wxAgentControl(wxPyControl):
 
     def _GetStatus(self):
         if self.agent.UpdateStatus():
-            status = self.agent.GetStatus("busyness")
+            status = self.agent.GetStatus('busyness')
             # anything over 0.5 is probably bad
             if status > 0.25:
-                return "sprinting"
+                return 'sprinting'
             if status > 0.1:
-                return "running"
+                return 'running'
             else:
-                return "idle"
+                return 'idle'
 
 class AgentImageLoader:
     def __init__(self):

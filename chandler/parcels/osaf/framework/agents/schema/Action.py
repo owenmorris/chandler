@@ -9,7 +9,9 @@ import time
 
 from wxPython.wx import *
 
+from model.item.Item import Item
 from repository.item.Item import Item
+import application.Application # for repository
 
 class Timer:
     def __init__(self):
@@ -34,16 +36,6 @@ The Action Class is a persistent object containing information about a
 particular action that can be executed by an agent, either explictly at the
 user's request, or automatically, as specified by a conditional instruction.
 """
-class ActionFactory:
-    def __init__(self, repository):
-        self._container = repository.find("//Agents")
-        self._kind = repository.find("//Schema/AgentsSchema/Action")
-        self.repository = repository
-
-    def NewItem(self, name):
-        item = Action(name, self._container, self._kind)
-        return item
-
 class Action(Item):
     def __init__(self, name, parent, kind):
         Item.__init__(self, name, parent, kind)
@@ -98,6 +90,13 @@ class Action(Item):
         
     def Execute(self, agent, notification):
         start = time.clock()
+
+        result = self._Execute(agent, notification)
+
+        self.timer.update(time.clock() - start)
+        return result
+
+    def _Execute(self, agent, notification):
         '''
           perform an action according to the action type.
           FIXME:  right now we run the scripts in the current context, so
@@ -136,11 +135,9 @@ class Action(Item):
                 result = methodObject(instance)
             else:
                 # FIXME: should probably throw an exception here
-                print "unknown action type", agent.GetName(), self.GetName(), self.actionType
+                print "unknown action type", agent.getItemName(), self.GetName(), self.actionType
         except:
             print "failed to execute action", self.GetName()
-
-        self.timer.update(time.clock() - start)
 
         return result
 
@@ -166,26 +163,30 @@ The DeferredAction class is a simple wrapper for an action that allows
 an action to be invoked without passing any parameters.
 """
 class DeferredAction:
-    def __init__(self, action, agent, needConfirm, notification):
-        self.action = action
-        self.agent = agent
-        self.needConfirm = needConfirm
-        self.notification = notification
+    def __init__(self, actionID):
+        self.actionID = actionID
 
-    def _GetPermissionMessage(self):
-        if self.action.hasAttributeValue('actionPermissionRequest'):
-            message = self.action.actionPermissionRequest
+    def _GetPermissionMessage(self, action, agent):
+        if action.hasAttributeValue('actionPermissionRequest'):
+            message = action.actionPermissionRequest
         else:
             message = _('Agent [agentname] needs your permission.  Do you grant it?')
 
-        message = message.replace('[agentname]', self.agent.GetName())
+        message = message.replace('[agentname]', agent.getItemName())
         return message
 
-    def Execute(self):
-        if self.needConfirm:
-            application = self.agent.agentManager.application
-            message = self._GetPermissionMessage()
-            confirmDialog = wxMessageDialog(application.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+    def Execute(self, agentID, notification):
+        app = application.Application.app
+        repository = app.repository
+
+        repository.commit()
+
+        action = repository.find(self.actionID)
+        agent = repository.find(agentID)
+
+        if action.NeedsConfirmation():
+            message = self._GetPermissionMessage(action, agent)
+            confirmDialog = wxMessageDialog(app.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
 
             result = confirmDialog.ShowModal()
             confirmDialog.Destroy()
@@ -193,4 +194,4 @@ class DeferredAction:
             if result != wxID_YES:
                 return False
 
-        return self.action.Execute(self.agent, self.notification)
+        return action.Execute(agent, notification)

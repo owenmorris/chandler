@@ -3,8 +3,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application.Application
 from wxPython.wx import *
-
 from application.agents.model.Action import Action
 
 """
@@ -30,7 +30,7 @@ class DialogAction(Action):
             
         return result
     
-    def Execute(self, agent, notification):
+    def _Execute(self, agent, notification):
         """
            Use wxWindows to display a dialog, with text derived from a template specified by the action,
            and data from the data parameter.   The data parameter is a dictionary associating values with keys
@@ -40,8 +40,8 @@ class DialogAction(Action):
         message = self._SubstituteAttributes(template, notification.GetData())
         
         if self.actionType == 'confirmdialog':
-            application = agent.agentManager.application
-            confirmDialog = wxMessageDialog(application.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+            app = application.Application.app
+            confirmDialog = wxMessageDialog(app.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
                         
             result = confirmDialog.ShowModal()
             confirmDialog.Destroy()

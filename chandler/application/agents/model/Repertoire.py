@@ -10,16 +10,6 @@ from repository.item.Item import Item
 The Repertoire Class holds conditions and actions that aren't associated with particular instructions,
 to allow the user to add new instructions
 """
-class RepertoireFactory:
-    def __init__(self, repository):
-        self._container = repository.find("//Agents")
-        self._kind = repository.find("//Schema/AgentsSchema/Repertoire")
-        self.repository = repository
-        
-    def NewItem(self, name):
-        item = Repertoire(name, self._container, self._kind)
-        return item
-
 class Repertoire(Item):
 
     def GetConditions(self):
