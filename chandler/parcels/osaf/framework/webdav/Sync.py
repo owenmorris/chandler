@@ -150,7 +150,7 @@ def syncToServer(dav, item):
 
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
                     
-            else:
+            elif atype is not None:
                 atypepath = "%s" % (atype.itsPath)
                 props += makePropString(name, namespace, atype.makeString(value))
 
