@@ -10,6 +10,7 @@ _CHANDLER_.tmp
 _CHANDLER_.lock
 _CHANDLER_.index
 _CHANDLER_
+__database__
 Chandler-project.wpu
 *.pyc
 *.pyo
