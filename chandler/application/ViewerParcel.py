@@ -193,7 +193,9 @@ class wxViewerParcel(wxPanel):
         self.model = model
         self.resources = resources
         self.OnInit()
-        EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
+        # Only bind erase background on Windows for flicker reasons
+        if wxPlatform == '__WXMSW__':
+            EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
                 
     def OnEraseBackground (self, event):
         """
