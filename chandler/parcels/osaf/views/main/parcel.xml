@@ -303,8 +303,8 @@
     <children itemref="doc:CalendarView"/>
     <children itemref="doc:ContactsView"/>
     <children itemref="doc:NotesView"/>
-    <!-- children itemref="doc:MonthView"/ -->
-    <!-- children itemref="doc:WeekView"/ -->
+    <children itemref="doc:MonthView"/>
+    <children itemref="doc:WeekView"/>
   </Node>
 
   <Node itemName="AboutChandler">

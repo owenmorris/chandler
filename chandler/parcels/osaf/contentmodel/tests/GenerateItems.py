@@ -18,7 +18,7 @@ import OSAF.contentmodel.notes.Notes as Notes
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 
-DURATIONS = [30, 60, 90, 120, 150, 180]
+DURATIONS = [60, 90, 120, 150, 180]
 
 def GenerateCalendarParticipant():
     email = Mail.EmailAddress()
