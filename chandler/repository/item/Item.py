@@ -481,6 +481,7 @@ class Item(object):
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
+            print item, attrName, collectionName, indexName
             refDict = self.getAttributeValue(collectionName, default=None,
                                              _attrDict=self._references)
             if refDict is not None and item._uuid in refDict:
@@ -495,19 +496,14 @@ class Item(object):
                 _attrDict = self._references
             elif self._kind.getOtherName(name, default=None) is not None:
                 _attrDict = self._references
+            elif self.getAttributeAspect(name, 'redirectTo',
+                                         default=None) is not None:
+                raise IndirectValueError, (self, name, 'redirectTo')
+            elif self.getAttributeAspect(name, 'inheritFrom',
+                                         default=None) is not None:
+                raise IndirectValueError, (self, name, 'inheritFrom')
             else:
-                redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   default=None)
-                if redirect is not None:
-                    item = self
-                    names = redirect.split('.')
-                    for i in xrange(len(names) - 1):
-                        item = item.getAttributeValue(names[i])
-
-                    return item.monitorValue(name, set)
-
-                else:
-                    _attrDict = self._values
+                _attrDict = self._values
 
         if set:
             _attrDict._setMonitored(name)
@@ -2526,3 +2522,9 @@ class StaleItemError(ItemError):
 
     def __str__(self):
         return Item.__repr__(self.getItem())
+
+class IndirectValueError(ValueError):
+    "Indirect values on %s.%s via %s are not supported"
+
+    def __str__(self):
+        return self.__doc__ %(self.args)

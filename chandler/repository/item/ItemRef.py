@@ -589,7 +589,7 @@ class RefDict(LinkedMap):
 
         return self.has_key(obj, load)
 
-    def addIndex(self, name, indexType, **kwds):
+    def addIndex(self, indexName, indexType, **kwds):
         """
         Add an index to this ref collection.
 
@@ -622,20 +622,20 @@ class RefDict(LinkedMap):
               context of this index, C{i0 > i1}, a negative number if C{i0 <
               i1}, or zero if C{i0 == i1}.
 
-        @param name: the name of the index
-        @type name: a string
+        @param indexName: the name of the index
+        @type indexName: a string
         @param indexType: the type of index
         @type indexType: a string
         """
 
         if self._indexes is not None:
-            if name in self._indexes:
-                raise IndexAlreadyExists, (self, name)
+            if indexName in self._indexes:
+                raise IndexAlreadyExists, (self, indexName)
         else:
             self._indexes = {}
 
         index = self._createIndex(indexType, **kwds)
-        self._indexes[name] = index
+        self._indexes[indexName] = index
 
         if not self._getRepository().isLoading():
             self.fillIndex(index)
@@ -644,7 +644,7 @@ class RefDict(LinkedMap):
             if indexType == 'attribute':
                 from repository.item.Monitors import Monitors
                 Monitors.attach(self._item, '_reIndex',
-                                'set', kwds['attribute'], self._name, name)
+                                'set', kwds['attribute'], self._name, indexName)
 
     def _createIndex(self, indexType, **kwds):
 

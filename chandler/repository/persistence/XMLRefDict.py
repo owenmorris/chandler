@@ -255,8 +255,13 @@ class XMLNumericIndex(NumericIndex):
         indexes = self._getIndexes()
         
         self._version = version
-        self._head = indexes.loadKey(self, self._key, version, self._headKey)
-        self._tail = indexes.loadKey(self, self._key, version, self._tailKey)
+        head = indexes.loadKey(self, self._key, version, self._headKey)
+        tail = indexes.loadKey(self, self._key, version, self._tailKey)
+
+        if head is not None:
+            self._head = head
+        if tail is not None:
+            self._tail = tail
 
     def _loadKey(self, key):
 
@@ -532,11 +537,12 @@ class MergeList(LinkedMap):
             alias = self._get(child)._alias
             if oldAlias is not None:
                 if oldAlias != alias and link._alias != alias:
-                    raise MergeError, ('merging children', self.item,
-                                       'child %s renamed to %s and %s' %(oldAlias, link._alias, alias), MergeError.RENAME)
-        elif link._alias in self._aliases:
-            raise MergeError, ('merging children', self.item,
-                               'child %s conflicts with other child %s, both are named %s' %(child, self._aliases[link._alias], link._alias), MergeError.RENAME)
+                    raise MergeError, ('merging children', self.item, 'child %s renamed to %s and %s' %(oldAlias, link._alias, alias), MergeError.RENAME)
+
+        if link._alias in self._aliases:
+            alias = link._alias
+            if exists and self._aliases[alias] != child or not exists:
+                raise MergeError, ('merging children', self.item, 'child %s conflicts with other child %s, both are named %s' %(child, self._aliases[alias], alias), MergeError.RENAME)
 
         if prev is None:
             if exists:

@@ -141,10 +141,10 @@ class TestMerge(RepositoryTestCase):
     def test0MergeN(self):
         self.merge(6, 9)
 
-    def testRenameSame(self):
+    def testRenameSameSame(self):
         self.rename('foo', 'foo')
 
-    def testRenameDifferent(self):
+    def testRenameSameDifferent(self):
         try:
             self.rename('foo', 'bar')
         except MergeError, e:
@@ -166,15 +166,37 @@ class TestMerge(RepositoryTestCase):
         main = self.rep.setCurrentView(view)
         po = self.rep['p']
         ko = self.rep.findPath('//Schema/Core/Item')
-
         ko.newItem('foo', po)
         view.commit()
         
         view = self.rep.setCurrentView(main)
         pm = self.rep['p']
         km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('foo', pm)
 
-        ko.newItem('foo', pm)
+        try:
+            main.commit()
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.RENAME)
+        else:
+            self.assert_(False)
+
+    def testRenameDifferentSameName(self):
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('foo', pm)
+        km.newItem('bar', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        po['foo'].rename('baz')
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+        pm['bar'].rename('baz')
 
         try:
             main.commit()
