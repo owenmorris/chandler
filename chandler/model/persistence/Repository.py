@@ -23,14 +23,19 @@ class Repository(object):
 
     def create(self):
 
+        self._init()
+        
+    def open(self, verbose=False):
+
+        self._init()
+        
+    def _init(self):
+
         self._roots = {}
         self._registry = {}
         self._unresolvedRefs = []
         self._orphans = []
         
-    def open(self, verbose=False):
-        raise NotImplementedError, "Repository.open"
-
     def close(self, purge=False, verbose=False):
         raise NotImplementedError, "Repository.close"
 
@@ -39,6 +44,9 @@ class Repository(object):
     
     def createRefDict(self, item, name, otherName, ordered=False):
         raise NotImplementedError, "Repository.createRefDict"
+    
+    def addTransaction(self, item):
+        raise NotImplementedError, "Repository.addTransaction"
     
     def __iter__(self):
 
@@ -72,6 +80,7 @@ class Repository(object):
 
     def _addOrphan(self, parentRef, item):
 
+        self._registerItem(item)
         self._orphans.append((parentRef, item))
 
     def getPath(self, path):
@@ -151,10 +160,11 @@ class Repository(object):
                 self.dir(child, path)
             path.pop()
         
-    def _appendRef(self, item, name, other, otherName, otherCard, itemRef):
+    def _appendRef(self, item, name, other, otherName, otherCard, itemRef,
+                   refDict):
 
         self._unresolvedRefs.append((item, name, other, otherName, otherCard,
-                                     itemRef))
+                                     itemRef, refDict))
 
     def resolveRefs(self, verbose=True):
 
@@ -168,34 +178,41 @@ class Repository(object):
                     i += 1
                     continue
 
-                ref[5]._attach(ref[0], ref[1], other, ref[3], ref[4])
+                ref[5].attach(ref[6], ref[0], ref[1], other, ref[3], ref[4])
                     
             self._unresolvedRefs.pop(i)
 
     def resolveOrphans(self):
 
+        orphans = []
         for orphan in self._orphans:
-            orphan[1].move(self.find(orphan[0]))
-        self._orphans = []
+            parent = self.find(orphan[0])
+            if parent is None:
+                print 'Warning: parent not found:', orphan[0]
+                orphans.append(orphan)
+            else:
+                orphan[1].move(parent, loading=True)
 
-    def _loadItemFile(self, path,
-                      parent=None, verbose=False, afterLoadHooks=None):
+        self._orphans = orphans
+
+    def _loadItemFile(self, path, parent=None, verbose=False,
+                      afterLoadHooks=None, loading=False):
 
         if verbose:
             print path
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks, loading)
         xml.sax.parse(path, handler)
 
         return handler.item
 
-    def _loadItemString(self, string,
-                        parent=None, verbose=False, afterLoadHooks=None):
+    def _loadItemString(self, string, parent=None, verbose=False,
+                        afterLoadHooks=None, loading=False):
 
         if verbose:
-            print string
+            print string[51:73]
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks, loading)
         xml.sax.parseString(string, handler)
 
         return handler.item

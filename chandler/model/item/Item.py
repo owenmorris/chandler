@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 
 from ItemRef import ItemRef
-from ItemRef import References, RefDict
+from ItemRef import Attributes, References, RefDict
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -30,20 +30,34 @@ class Item(object):
         
         super(Item, self).__init__()
 
-        self._deleted = False
-        self._attributes = _kwds.get('_attributes') or {}
-        self._references = _kwds.get('_references') or References()
+        self._status = 0
         self._uuid = _kwds.get('_uuid') or UUID()
+
+        attributes = _kwds.get('_attributes')
+        if attributes is not None:
+            attributes._setItem(self)
+            self._attributes = attributes
+        else:
+            self._attributes = Attributes(self)
+
+        references = _kwds.get('_references')
+        if references is not None:
+            references._setItem(self)
+            self._references = references
+        else:
+            self._references = References(self)
         
         self._name = name or self._uuid.str64()
         self._root = None
 
-        self._kind = None
-        self._setKind(kind)
-
         if parent is not None:
             self._parent = parent
-            self._setRoot(parent._addItem(self))
+            self._setRoot(parent._addItem(self), _kwds.get('_loading', False))
+        else:
+            self._parent = None
+
+        self._kind = None
+        self._setKind(kind, loading=_kwds.get('_loading', False))
 
     def __iter__(self):
 
@@ -62,7 +76,7 @@ class Item(object):
 
     def __getattr__(self, name):
 
-        if self._deleted:
+        if self._status & Item.DELETED:
             raise ValueError, "item is deleted: %s" %(str(self))
 
         return self.getAttribute(name)
@@ -145,8 +159,8 @@ class Item(object):
                 old = _attrDict.get(name)
 
                 if isinstance(old, ItemRef):
-                    old.reattach(self, name, old.other(self), value,
-                                 self._otherName(name))
+                    old.reattach(_attrDict, self, name,
+                                 old.other(self), value, self._otherName(name))
                     return
                 else:
                     old.clear()
@@ -237,7 +251,7 @@ class Item(object):
             del _attrDict[name]
 
             if isinstance(value, ItemRef):
-                value.detach(self, name,
+                value.detach(_attrDict, self, name,
                              value.other(self), self._otherName(name))
             elif isinstance(value, RefDict):
                 value.clear()
@@ -416,7 +430,15 @@ class Item(object):
                     self._references.has_key(name))
         else:
             return _attrDict.has_key(name)
+
+    def isDeleted(self):
+
+        return (self._status & Item.DELETED) != 0
     
+    def isDirty(self):
+
+        return (self._status & Item.DIRTY) != 0
+
     def delete(self):
         """Delete this item and disconnect all its item references.
 
@@ -426,7 +448,8 @@ class Item(object):
         A deleted item is no longer reachable through the repository or other
         items. It is an error to access deleted item reference."""
 
-        if not self._deleted and not hasattr(self, '_deleting'):
+        if (not (self._status & Item.DELETED) and
+            not hasattr(self, '_deleting')):
             self._deleting = True
             others = []
             
@@ -451,7 +474,7 @@ class Item(object):
             self._parent._removeItem(self)
             self._setRoot(None)
 
-            self._deleted = True
+            self._status |= Item.DELETED
             del self._deleting
 
             for other in others:
@@ -481,7 +504,7 @@ class Item(object):
 
         count = 0
 
-        if not self._deleted:
+        if not (self._status & Item.DELETED):
             for name in self._references.iterkeys():
                 policy = self.getAttrAspect(name, 'CountPolicy', 'none')
                 if policy == 'count':
@@ -512,20 +535,26 @@ class Item(object):
         
         return self._root
 
-    def _setRoot(self, root):
+    def _setRoot(self, root, loading=False):
 
         oldRepository = self.getRepository()
         self._root = root
         newRepository = self.getRepository()
 
         if oldRepository is not newRepository:
+
             if oldRepository is not None:
-                oldRepository._unregisterItem(self)
+                raise NotImplementedError, 'changing repositories'
+
             if newRepository is not None:
                 newRepository._registerItem(self)
 
+                if not loading:
+                    newRepository.addTransaction(self)
+                    self._status |= Item.DIRTY
+
         for child in self:
-            child._setRoot(root)
+            child._setRoot(root, loading)
 
     def getParent(self):
         """Return this item's container parent.
@@ -534,7 +563,7 @@ class Item(object):
 
         return self._parent
 
-    def _setKind(self, kind):
+    def _setKind(self, kind, loading=False):
 
         if self._kind is not None:
             self._kind.detach('Items', self)
@@ -542,8 +571,10 @@ class Item(object):
         self._kind = kind
 
         if self._kind is not None:
-            self._references['Kind'] = ItemRef(self._references, self, 'Kind',
-                                               self._kind, 'Items', 'dict')
+            ref = ItemRef(self._references, self, 'Kind',
+                          self._kind, 'Items', 'dict',
+                          loading)
+            self._references.__setitem__('Kind', ref, loading)
 
     def getRepository(self):
         '''Return this item's repository.
@@ -562,12 +593,12 @@ class Item(object):
         self._name = name
         self._parent._addItem(self)
 
-    def move(self, parent):
+    def move(self, parent, loading=False):
         'Move this item under another container or make it a root.'
 
         if self._parent is not parent:
             self._parent._removeItem(self)
-            self._setRoot(parent._addItem(self))
+            self._setRoot(parent._addItem(self), loading)
             self._parent = parent
     
     def _addItem(self, item):
@@ -649,13 +680,6 @@ class Item(object):
             return self.find(Path(spec))
 
         return None
-
-    def save(self, repository, **args):
-
-        repository.saveItem(self, **args)
-
-        for child in self:
-            child.save(repository, **args)
 
     def toXML(self, generator, withSchema=False):
         'Generate the XML representation for this item.'
@@ -770,18 +794,21 @@ class Item(object):
             raise ImportError, "Module %s has no class %s" %(module, name)
 
     loadClass = classmethod(loadClass)
-
+    DELETED = 0x1
+    DIRTY   = 0x2
+    
 
 class ItemHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading items.'
     
     typeHandlers = {}
     
-    def __init__(self, repository, parent, afterLoadHooks):
+    def __init__(self, repository, parent, afterLoadHooks, loading):
 
         self.repository = repository
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
+        self.loading = loading
 
     def startDocument(self):
 
@@ -870,8 +897,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def itemStart(self, itemHandler, attrs):
 
-        self.attributes = {}
-        self.references = References()
+        self.attributes = Attributes(None)
+        self.references = References(None)
         self.refs = []
         self.collections = []
         self.attrDefs = []
@@ -895,17 +922,17 @@ class ItemHandler(xml.sax.ContentHandler):
                                _uuid = UUID(attrs.get('uuid')),
                                _attributes = self.attributes,
                                _references = self.references,
-                               _afterLoadHooks = self.afterLoadHooks)
+                               _afterLoadHooks = self.afterLoadHooks,
+                               _loading=self.loading)
 
         if parent is None:
             self.repository._addOrphan(self.parentRef, item)
 
-        for value in item._references.itervalues():
-            if isinstance(value, RefDict):
-                value._setItem(item)
-
         for ref in self.refs:
-            other = item.find(ref[1])
+            if isinstance(ref[1], UUID):
+                other = self.repository.find(ref[1])
+            else:
+                other = item.find(ref[1])
             
             if len(ref) == 3:
                 attrName = refName = ref[0][0]
@@ -917,7 +944,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 refName = ref[0]
                 if refName is None:
                     if other is None:
-                        raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(str(ref[1]), str(ref[1]), str(item.getPath()))
+                        raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(ref[1], ref[1], item.getPath())
                     else:
                         refName = other.refName(attrName)
                 otherName = ref[2]._otherName
@@ -927,29 +954,39 @@ class ItemHandler(xml.sax.ContentHandler):
             if other is not None:
                 value = other._references.get(otherName)
                 if value is None:
-                    valueDict[refName] = ItemRef(valueDict, item, attrName,
-                                                 other, otherName, otherCard)
+                    ref = ItemRef(valueDict, item, attrName,
+                                  other, otherName, otherCard,
+                                  self.loading)
+                    valueDict.__setitem__(refName, ref, self.loading)
                 elif isinstance(value, ItemRef):
                     if value._other is None:
                         value._other = item
                         valueDict[refName] = value
+                        if not self.loading:
+                            valueDict._attach(value, other, otherName,
+                                              item, attrName)
                 elif isinstance(value, RefDict):
                     otherRefName = item.refName(otherName)
                     if value.has_key(otherRefName):
                         value = value._getRef(otherRefName)
                         if value._other is None:
                             value._other = item
-                            valueDict[refName] = value
+                            valueDict.__setitem__(refName, value, self.loading)
+                            if not self.loading:
+                                valueDict._attach(value, other, otherName,
+                                                  item, attrName)
                     else:
-                        valueDict[refName] = ItemRef(valueDict, item, attrName,
-                                                     other, otherName,
-                                                     otherCard)
+                        ref = ItemRef(valueDict, item, attrName,
+                                      other, otherName, otherCard,
+                                      self.loading)
+                        valueDict.__setitem__(refName, ref, self.loading)
             else:
-                value = ItemRef(valueDict, item, attrName, other, otherName,
-                                otherCard)
-                valueDict[refName] = value
+                value = ItemRef(valueDict, item, attrName,
+                                other, otherName, otherCard, self.loading)
+                valueDict.__setitem__(refName, value, self.loading)
                 self.repository._appendRef(item, attrName,
-                                           ref[1], otherName, otherCard, value)
+                                           ref[1], otherName, otherCard,
+                                           value, valueDict)
 
     def kindEnd(self, itemHandler, attrs):
 
@@ -1025,6 +1062,16 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             value = self.collections.pop()
             self.references[attrs['name']] = value
+
+    def dbEnd(self, itemHandler, attrs):
+
+        refDict = self.collections[-1]
+        refDict._prepareKey(UUID(self.tagAttrs[-2]['uuid']), UUID(self.data))
+
+        otherCard = self.tagAttrs[-1].get('otherCard', None)
+
+        for ref in refDict._dbRefs():
+            self.refs.append((ref[0], ref[1], refDict, otherCard))
 
     def valueStart(self, itemHandler, attrs):
 
@@ -1119,7 +1166,7 @@ class ItemHandler(xml.sax.ContentHandler):
             return Path(data)
 
         if typeName == 'bool':
-            return data != False
+            return data != 'False'
 
         if typeName == 'int':
             return int(data)

@@ -14,7 +14,8 @@ class Kind(Item):
 
         super(Kind, self).__init__(name, parent, kind, **_kwds)
 
-        self._attributes['NotFoundAttrDefs'] = []  # recursion avoidance
+        # recursion avoidance
+        self._attributes.__setitem__('NotFoundAttrDefs', [], True)
 
     def newItem(self, name, parent):
         '''Create an item of this kind.

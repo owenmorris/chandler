@@ -13,7 +13,7 @@ from model.item.ItemRef import ItemRef
 from model.item.ItemRef import RefDict
 from model.persistence.Repository import Repository
 
-from bsddb.db import DBEnv, DB, DB_CREATE, DB_INIT_MPOOL, DB_BTREE
+from bsddb.db import DBEnv, DB, DB_CREATE, DB_TRUNCATE, DB_INIT_MPOOL, DB_BTREE
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
@@ -37,21 +37,30 @@ class XMLRepository(Repository):
         self.dbHome = dbHome
         self._env = None
         self._ctx = XmlQueryContext()
+        self._transaction = {}
         
     def create(self):
 
         if self._env is None:
             super(XMLRepository, self).create()
             self._env = DBEnv()
-            self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
-            self._refs = XMLRepository.refContainer(self._env, "__refs__")
-            self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
-            self._data = XMLRepository.xmlContainer(self._env, "__data__")
+            self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
+            self._refs = XMLRepository.refContainer(self._env, "__refs__",
+                                                    True)
+            self._schema = XMLRepository.xmlContainer(self._env, "__schema__",
+                                                      True)
+            self._data = XMLRepository.xmlContainer(self._env, "__data__",
+                                                    True)
 
     def open(self, verbose=False):
 
         if self._env is None:
-            self.create()
+            super(XMLRepository, self).open()
+            self._env = DBEnv()
+            self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
+            self._refs = XMLRepository.refContainer(self._env, "__refs__")
+            self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
+            self._data = XMLRepository.xmlContainer(self._env, "__data__")
             self._load(verbose=verbose)
 
     def close(self, purge=False, verbose=False):
@@ -79,7 +88,8 @@ class XMLRepository(Repository):
 
             for value in container.query("/item"):
                 self._loadItemString(value.asDocument().getContent(),
-                                     verbose=verbose, afterLoadHooks=hooks)
+                                     verbose=verbose, afterLoadHooks=hooks,
+                                     loading=True)
 
             self.resolveOrphans()
             for hook in hooks:
@@ -125,8 +135,12 @@ class XMLRepository(Repository):
     def _saveRoot(self, root, container,
                   withSchema=False, verbose=False):
 
-        root.save(self, container = container,
-                  withSchema = withSchema, verbose = verbose)
+        log = self._transaction.get(root.getName(), None)
+        if log is not None:
+            for item in log:
+                self.saveItem(item, container = container,
+                              withSchema = withSchema, verbose = verbose)
+            del log[:]
 
     def saveItem(self, item, **args):
 
@@ -153,15 +167,30 @@ class XMLRepository(Repository):
 
         return XMLRefDict(self, item, name, otherName, ordered)
 
+    def addTransaction(self, item):
+
+        if not self.isOpen():
+            raise DBError, 'Repository is not open'
+
+        name = item.getRoot().getName()
+        if self._transaction.has_key(name):
+            self._transaction[name].append(item)
+        else:
+            self._transaction[name] = [ item ]
+    
 
     class xmlContainer(object):
 
-        def __init__(self, env, name):
+        def __init__(self, env, name, create=False):
 
             super(XMLRepository.xmlContainer, self).__init__()
         
             self._xml = XmlContainer(env, name)
-            if not self._xml.exists(None):
+
+            if create:
+                if self._xml.exists(None):
+                    self._xml.remove(None)
+
                 self._xml.open(None, DB_CREATE)
                 self._xml.addIndex(None, "", "item",
                                    "edge-attribute-equality-string")
@@ -200,12 +229,16 @@ class XMLRepository(Repository):
 
     class refContainer(object):
 
-        def __init__(self, env, name):
+        def __init__(self, env, name, create=False):
 
             super(XMLRepository.refContainer, self).__init__()
         
             self._db = DB(env)
-            self._db.open(name, None, DB_BTREE, DB_CREATE)
+
+            if create:
+                self._db.open(name, None, DB_BTREE, DB_CREATE | DB_TRUNCATE)
+            else:
+                self._db.open(name, None, DB_BTREE)
             
         def close(self):
 
@@ -214,93 +247,117 @@ class XMLRepository(Repository):
 
         def put(self, key, value):
 
-            self._db.put(key, value);
+            self._db.put(key, value)
+
+        def delete(self, key, value):
+
+            self._db.delete(key, value)
 
         def get(self, key):
 
-            return self._db.get(key);
+            return self._db.get(key)
+
+        def cursor(self):
+
+            return self._db.cursor()
 
 
 class XMLRefDict(RefDict):
 
-    def __init__(self, repository, item, name, otherName, ordered)
+    def __init__(self, repository, item, name, otherName, ordered):
         
+        self._log = []
+        self._item = None
+        self._uuid = UUID()
+        self._buffer = cStringIO.StringIO()
+        self._repository = repository
+
         super(XMLRefDict, self).__init__(item, name, otherName, ordered)
 
-        self._repository = repository
-        self._buffer = cStringIO.StringIO()
+    def _detach(self, itemRef, item, name, other, otherName):
 
-    def __setitem__(self, key, value):
+        if other is not None:
+            self._log.append((1, other.refName(name), other.getUUID()))
 
-        if self._item is not None:
-            other = value.other(self._item)
+    def _attach(self, itemRef, item, name, other, otherName):
 
-            if other is not None:
-                self._writeRef(other)
+        if other is not None:
+            self._log.append((0, other.refName(name), other.getUUID()))
+        
+    def _writeRef(self, key, uuid):
 
-       super(RefDict, self).__setitem__(key, value)
-
-    def _writeRef(self, item):
-
-        self._buffer.seek(31, 0)
+        self._buffer.truncate(32)
+        self._buffer.seek(0, 2)
 
         if isinstance(key, UUID):
+            self._buffer.write('\0')
             self._buffer.write(key._uuid)
         else:
+            self._buffer.write('\1')
             self._buffer.write(key)
 
-        self._repository._refs.put(self._buffer.getvalue(), other._uuid._uuid)
+        self._repository._refs.put(self._buffer.getvalue(), uuid._uuid)
 
-    def __getitem__(self, key):
+    def _eraseRef(self, key, uuid):
 
-#        value = super(dict, self).get(key, None)
-#        if value is not None:
-#            return value
-#
-#        self._buffer.reset()
-#        self._buffer.write(item._uuid._uuid)
-#        self._buffer.write(uuid._uuid)
-#
-#        if isinstance(key, UUID):
-#            self._buffer.write(key._uuid)
-#        else:
-#            self._buffer.write(key)
-#
-#        uuid = UUID(self._repository._refs.get(self._buffer.getvalue()))
-#        other = self.repository.find(uuid)
+        self._buffer.truncate(32)
+        self._buffer.seek(0, 2)
 
-        return super(RefDict, self).__getitem__(key)
-        
+        if isinstance(key, UUID):
+            self._buffer.write('\0')
+            self._buffer.write(key._uuid)
+        else:
+            self._buffer.write('\1')
+            self._buffer.write(key)
+
+        self._repository._refs.delete(self._buffer.getvalue(), uuid._uuid)
+
+    def _dbRefs(self):
+
+        self._buffer.truncate(32)
+        key = self._buffer.getvalue()
+
+        cursor = self._repository._refs.cursor()
+
+        val = cursor.set_range(key)
+        while val is not None and val[0].startswith(key):
+            if val[0][32] == '\0':
+                k = UUID(val[0][33:])
+            else:
+                k = val[0][33:]
+
+            yield (k, UUID(val[1]))
+            val = cursor.next()
+
+        cursor.close()
+
     def _setItem(self, item):
 
         if self._item is not None and self._item is not item:
             raise ValueError, 'Item is already set'
         
         self._item = item
-
         if item is not None:
-            if item._kind is not None:
-                attrDef = item._kind.getAttrDef(name)
-                if attrDef is not None:
-                    uuid = attrDef.getUUID()
-                else:
-                    uuid = UUID()
-            else:
-                uuid = UUID()
+            self._prepareKey(item._uuid, self._uuid)
 
-            self._buffer.reset()
-            self._buffer.write(self._item._uuid._uuid)
-            self._buffer.write(uuid._uuid)
+    def _prepareKey(self, uItem, uuid):
 
-            for item in self:
-                self._writeRef(item)
+        self._uuid = uuid
+
+        self._buffer.reset()
+        self._buffer.write(uItem._uuid)
+        self._buffer.write(uuid._uuid)
             
-
     def _xmlValues(self, generator):
 
-        for ref in self._iteritems():
-            ref[1]._xmlValue(ref[0], self._item, generator)
+        for entry in self._log:
+            if entry[0] == 0:
+                self._writeRef(entry[1], entry[2])
+            else:
+                self._eraseRef(entry[1], entry[2])
+        del self._log[:]
 
-#        generator.startElement('db', {})
-#        generator.characters(self._uuid.str64())
-#        generator.endElement('db')
+        if len(self) > 0:
+            generator.startElement('db', {})
+            generator.characters(self._uuid.str64())
+            generator.endElement('db')

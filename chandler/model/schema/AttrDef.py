@@ -6,7 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from model.item.Item import Item
 from model.item.ItemRef import RefDict
-from Kind import Kind
+from model.schema.Kind import Kind
+
 
 class AttrDef(Item):
 

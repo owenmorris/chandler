@@ -36,7 +36,7 @@ class FileRepository(Repository):
     def open(self, verbose=False):
 
         if not self._isOpen:
-            super(FileRepository, self).create()
+            super(FileRepository, self).open()
             self._load(verbose=verbose)
             self._isOpen = True
 
@@ -67,7 +67,8 @@ class FileRepository(Repository):
         for uuid in contents.readlines():
             self._loadItemFile(os.path.join(self._dir, dir,
                                             uuid[:-1] + '.item'),
-                               verbose=verbose, afterLoadHooks=hooks)
+                               verbose=verbose, afterLoadHooks=hooks,
+                               loading=True)
         contents.close()
 
         self.resolveOrphans()
@@ -119,6 +120,12 @@ class FileRepository(Repository):
 
     def _saveRoot(self, root, withSchema=False, verbose=False):
 
+        def save(item, repository, **args):
+
+            repository.saveItem(item, **args)
+            for child in item:
+                save(child, repository, **args)
+
         name = root.getName()
         dir = os.path.join(self._dir, name)
 
@@ -128,8 +135,8 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        root.save(self, contents = rootContents, withSchema = withSchema,
-                  verbose = verbose)
+        save(root, self, contents = rootContents, withSchema = withSchema,
+             verbose = verbose)
         rootContents.close()
 
     def saveItem(self, item, **args):
@@ -157,9 +164,13 @@ class FileRepository(Repository):
 
         return FileRefDict(item, name, otherName, ordered)
     
+    def addTransaction(self, item):
+        pass
+    
 
 class FileRefDict(RefDict):
 
     def _xmlValues(self, generator):
+
         for ref in self._iteritems():
             ref[1]._xmlValue(ref[0], self._item, generator)
