@@ -310,6 +310,9 @@ class JabberClient:
     # the following is invoked when permissions have changed on some view,
     # so we can notify anyone who cares
     def PermissionsChanged(self, view):
+        if not self.IsConnected():
+            return
+        
         for jabberID in self.openPeers.keys():
             if self.openPeers[jabberID] == 1:
                 self.HandleViewRequest(jabberID)
