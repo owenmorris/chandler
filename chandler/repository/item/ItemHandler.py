@@ -4,21 +4,21 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
 import repository.item as ItemPackage
 
 from repository.item.PersistentCollections import PersistentCollection
-from repository.item.PersistentCollections import SingleRef
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.ItemRef import Values, References, RefArgs, NoneRef
 
+from repository.util.SingleRef import SingleRef
 from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.ClassLoader import ClassLoader
+from repository.util.SAX import ContentHandler
 
 
-class ItemHandler(xml.sax.ContentHandler):
+class ItemHandler(ContentHandler):
     'A SAX ContentHandler implementation responsible for loading items.'
     
     typeHandlers = {}
@@ -44,7 +44,9 @@ class ItemHandler(xml.sax.ContentHandler):
     def startElement(self, tag, attrs):
 
         self.data = ''
-
+        if attrs is None:
+            attrs = {}
+            
         if self.delegates:
             delegate = self.delegates[-1]
             delegateClass = type(delegate)
@@ -503,7 +505,7 @@ class ItemHandler(xml.sax.ContentHandler):
             if types:
                 return types[0]
             
-            raise TypeError, 'no handler for values of type %s' %(type(value))
+            raise TypeError, 'No handler for values of type %s' %(type(value))
 
     def typeName(cls, repository, value):
 
@@ -597,7 +599,7 @@ class ItemHandler(xml.sax.ContentHandler):
     }
 
 
-class ItemsHandler(xml.sax.ContentHandler):
+class ItemsHandler(ContentHandler):
 
     def __init__(self, repository, parent, afterLoadHooks):
 

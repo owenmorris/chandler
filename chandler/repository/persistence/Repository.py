@@ -4,7 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, os, os.path, xml.sax, threading, logging
+import sys, os, os.path, threading, logging
+import libxml2
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
@@ -17,7 +18,16 @@ from repository.persistence.PackHandler import PackHandler
 
 class RepositoryError(ValueError):
     "All repository related exceptions go here"
-    
+
+class VersionConflictError(RepositoryError):
+    "Another thread changed %s and saved those changes before this thread got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved."
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0].getItemPath())
+
+    def getItem(self):
+        return self.args[0]
+
 
 class Repository(object):
     """An abstract item repository.
@@ -178,6 +188,9 @@ class RepositoryView(object):
     def createRefDict(self, item, name, otherName, persist):
         raise NotImplementedError, "RepositoryView.createRefDict"
     
+    def getTextType(self):
+        raise NotImplementedError, "RepositoryView.getTextType"
+    
     def isLoading(self):
 
         return (self._status & RepositoryView.LOADING) != 0
@@ -268,7 +281,7 @@ class RepositoryView(object):
         if not packs:
             packs = Item('Packs', self, None)
 
-        xml.sax.parse(path, PackHandler(path, parent, self))
+        libxml2.SAXParseFile(PackHandler(path, parent, self), path, 0)
 
     def dir(self, item=None, path=None):
         'Print out a listing of each item in the repository or under item.'
@@ -305,7 +318,7 @@ class RepositoryView(object):
         self.logger.debug(path)
             
         handler = ItemsHandler(self, parent or self, afterLoadHooks)
-        xml.sax.parse(path, handler)
+        libxml2.SAXParseFile(handler, path, 0)
 
         return handler.items
 
@@ -315,7 +328,8 @@ class RepositoryView(object):
             self.logger.debug(string[51:73])
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
-        xml.sax.parseString(string, handler)
+        ctx = libxml2.createPushParser(handler, string, len(string), "item")
+        ctx.parseChunk('', 0, 1)
 
         return handler.item
 

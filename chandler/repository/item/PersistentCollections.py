@@ -8,6 +8,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.item.Item
 
 from repository.util.UUID import UUID
+from repository.util.SingleRef import SingleRef
+
 
 class ReadOnlyError(ValueError):
     "thrown when a read-only collection is modified"
@@ -299,40 +301,3 @@ class PersistentDict(dict, PersistentCollection):
     def _iteritems(self):
 
         return super(PersistentDict, self).iteritems()
-
-
-class SingleRef(object):
-
-    __slots__ = "_uuid"
-
-    def __init__(self, uuid):
-
-        super(SingleRef, self).__init__()
-        self._uuid = uuid
-
-    def __str__(self):
-
-        return self._uuid.str64()
-
-    def __repr__(self):
-
-        return "<ref: %s>" %(self._uuid.str16())
-
-    def __getstate__(self):
-
-        return self._uuid._uuid
-
-    def __setstate__(self, state):
-
-        self._uuid = UUID(state)
-    
-    def getUUID(self):
-
-        return self._uuid
-
-    def __cmp__(self, other):
-
-        if not isinstance(other, SingleRef):
-            raise TypeError, type(other)
-        
-        return self._uuid.__cmp__(other._uuid)

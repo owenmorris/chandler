@@ -6,13 +6,17 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">A Bill of Divorcement</attribute>
-    <attribute name="frenchTitle">Heritage</attribute>
+    <attribute name="frenchTitle">Héritage</attribute>
     <attribute name="released">1932-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text>Interné depuis vingt-cinq ans, un homme s'échappe le jour où il apprend que sa femme va divorcer. Il retrouve sa fille qui lui donne toute son affection.</text>
+    </attribute>
   </item>
 
   <item>

@@ -4,16 +4,16 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
 import os.path
 import re
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
+from repository.util.SAX import ContentHandler
 from repository.item.Item import Item
 
 
-class PackHandler(xml.sax.ContentHandler):
+class PackHandler(ContentHandler):
     'A SAX ContentHandler implementation responsible for loading packs.'
 
     def __init__(self, path, parent, repository):

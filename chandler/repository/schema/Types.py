@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import mx.DateTime
 import repository.util.UUID
 import repository.util.Path
-import repository.item.PersistentCollections
+import repository.util.SingleRef
 
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
@@ -61,7 +61,7 @@ class Type(Item):
     def getImplementationType(self):
         return self.implementationTypes['python']
 
-    def handlerName(cls):
+    def handlerName(self):
         return None
 
     def makeValue(self, data):
@@ -97,30 +97,38 @@ class Type(Item):
     def getValue(self, itemHandler, data):
         return self.makeValue(data)
 
-    handlerName = classmethod(handlerName)
-
 
 class String(Type):
 
     def getImplementationType(self):
+
         return unicode
 
-    def handlerName(cls):
+    def handlerName(self):
+
         return 'unicode'
 
     def makeValue(self, data):
-        return unicode(data)
+
+        if isinstance(data, unicode):
+            return data
+
+        return unicode(data, 'utf-8')
 
     def makeString(self, value):
-        return unicode(value)
+
+        return value
 
     def recognizes(self, value):
+
         return type(value) is unicode or type(value) is str
+
+    def typeXML(self, value, generator, withSchema):
+
+        generator.cdataSection(value)
 
     def _compareTypes(self, other):
         return -1
-
-    handlerName = classmethod(handlerName)
 
 
 class Symbol(Type):
@@ -128,7 +136,7 @@ class Symbol(Type):
     def getImplementationType(self):
         return str
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'str'
 
     def makeValue(self, data):
@@ -137,15 +145,13 @@ class Symbol(Type):
     def _compareTypes(self, other):
         return 1
     
-    handlerName = classmethod(handlerName)
-
 
 class Integer(Type):
 
     def getImplementationType(self):
         return int
     
-    def handlerName(cls):
+    def handlerName(self):
         return 'int'
 
     def makeValue(self, data):
@@ -154,15 +160,13 @@ class Integer(Type):
     def _compareTypes(self, other):
         return -1
 
-    handlerName = classmethod(handlerName)
-
 
 class Long(Type):
 
     def getImplementationType(self):
         return long
     
-    def handlerName(cls):
+    def handlerName(self):
         return 'long'
 
     def makeValue(self, data):
@@ -178,15 +182,13 @@ class Long(Type):
             return -1
         return 0
 
-    handlerName = classmethod(handlerName)
-
 
 class Float(Type):
 
     def getImplementationType(self):
         return float
     
-    def handlerName(cls):
+    def handlerName(self):
         return 'float'
     
     def makeValue(self, data):
@@ -199,21 +201,17 @@ class Float(Type):
     def _compareTypes(self, other):
         return 1
 
-    handlerName = classmethod(handlerName)
-
     
 class Complex(Type):
 
     def getImplementationType(self):
         return complex
     
-    def handlerName(cls):
+    def handlerName(self):
         return 'complex'
 
     def makeValue(self, data):
         return complex(data)
-
-    handlerName = classmethod(handlerName)
 
 
 class Boolean(Type):
@@ -221,18 +219,16 @@ class Boolean(Type):
     def getImplementationType(self):
         return bool
     
-    def handlerName(cls):
+    def handlerName(self):
         return 'bool'
     
     def makeValue(self, data):
         return data != 'False'
 
-    handlerName = classmethod(handlerName)
-
 
 class UUID(Type):
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'uuid'
 
     def makeValue(self, data):
@@ -241,27 +237,23 @@ class UUID(Type):
     def makeString(self, value):
         return value.str64()
 
-    handlerName = classmethod(handlerName)
-
 
 class SingleRef(Type):
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'ref'
     
     def makeValue(self, data):
         uuid = repository.util.UUID.UUID(data)
-        return repository.item.PersistentCollections.SingleRef(uuid)
+        return repository.util.SingleRef.SingleRef(uuid)
 
     def eval(self, value):
         return self.getRepository()[value]
 
-    handlerName = classmethod(handlerName)
-
 
 class Path(Type):
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'path'
 
     def makeValue(self, data):
@@ -273,15 +265,13 @@ class Path(Type):
             raise ValueError, 'Path %s evaluated to None' %(value)
         return item
 
-    handlerName = classmethod(handlerName)
-
 
 class NoneType(Type):
 
     def getImplementationType(self):
         return type(None)
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'none'
     
     def makeValue(self, data):
@@ -293,15 +283,13 @@ class NoneType(Type):
     def recognizes(self, value):
         return value is None
 
-    handlerName = classmethod(handlerName)
-
 
 class Class(Type):
 
     def getImplementationType(self):
         return type
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'class'
     
     def makeValue(self, data):
@@ -310,15 +298,13 @@ class Class(Type):
     def makeString(self, value):
         return "%s.%s" %(value.__module__, value.__name__)
         
-    handlerName = classmethod(handlerName)
-
 
 class Enumeration(Type):
 
     def getImplementationType(self):
         return type(self)
 
-    def handlerName(cls):
+    def handlerName(self):
         return 'str'
     
     def makeValue(self, data):
@@ -332,8 +318,6 @@ class Enumeration(Type):
             return self.values.index(value) >= 0
         except ValueError:
             return False
-
-    handlerName = classmethod(handlerName)
 
 
 class Struct(Type):
@@ -606,7 +590,7 @@ class Collection(Type):
 
 class Dictionary(Collection):
 
-    def handlerName(cls):
+    def handlerName(self):
 
         return 'dict'
 
@@ -647,12 +631,10 @@ class Dictionary(Collection):
 
         return PersistentDict(None, None)
 
-    handlerName = classmethod(handlerName)
-    
 
 class List(Collection):
 
-    def handlerName(cls):
+    def handlerName(self):
 
         return 'list'
 
@@ -686,4 +668,53 @@ class List(Collection):
 
         return PersistentList(None, None)
     
-    handlerName = classmethod(handlerName)
+
+class Text(Type):
+
+    def getImplementationType(self):
+
+        return self.getRepository().getTextType()
+
+    def makeValue(self, data):
+
+        text = self.getImplementationType()(encoding='utf-8',
+                                            mimetype='text/plain')
+        if data:
+            writer = text.getWriter(False)
+            writer.write(data)
+            writer.close()
+    
+    def getValue(self, itemHandler, data):
+
+        value = itemHandler.value
+        itemHandler.value = None
+        itemHandler.tagCounts.pop()
+
+        return value
+
+    def startValue(self, itemHandler):
+
+        itemHandler.tagCounts.append(0)
+        itemHandler.value = self.getImplementationType()()
+
+    def isValueReady(self, itemHandler):
+
+        return itemHandler.tagCounts[-1] == 0
+
+    def textStart(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] += 1
+
+    def textEnd(self, itemHandler, attrs):
+
+        itemHandler.value._textEnd(self.getRepository(),
+                                   itemHandler.data, attrs)
+        itemHandler.tagCounts[-1] -= 1
+
+    def typeXML(self, value, generator, withSchema):
+
+        value._xmlValue(self.getRepository(), generator)
+
+    def handlerName(self):
+
+        return 'text'

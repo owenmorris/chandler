@@ -11,6 +11,7 @@ dependencies = (
                 'persistence/xerces-c',
                 'persistence/pathan',
                 'persistence/dbxml',
+                'persistence/libxml2',
                 'egenix-mx',
                 'jabber-py',
                 'SOAPpy',

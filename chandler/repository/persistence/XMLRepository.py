@@ -4,9 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, os.path, re, xml.sax.saxutils
+import os, os.path, re, libxml2
 
-from xml.sax import parseString
 from datetime import datetime
 from struct import pack, unpack
 from threading import currentThread
@@ -291,7 +290,9 @@ class XMLContainer(object):
 
     def parseDoc(self, doc, handler):
 
-        parseString(doc.getContent(), handler)
+        string = doc.getContent()
+        ctx = libxml2.createPushParser(handler, string, len(string), "doc")
+        ctx.parseChunk('', 0, 1)
             
     def getDocUUID(self, doc):
 
@@ -462,7 +463,7 @@ class VerContainer(DBContainer):
 
     def setDocVersion(self, uuid, version, docId):
 
-        self.put("%s%s" %(uuid._uuid, pack('>l', ~version)), pack('>l', docId))
+        self.put(pack('>16sl', uuid._uuid, ~version), pack('>l', docId))
 
     def getDocVersion(self, uuid):
 
@@ -525,12 +526,12 @@ class VerContainer(DBContainer):
 
 class HistContainer(DBContainer):
 
-    def writeVersion(self, uuid, version, docId):
+    def writeVersion(self, uuid, version, docId, dirty):
 
-        self.put("%s%s" %(pack('>l', version), uuid._uuid), pack('>l', docId))
+        self.put(pack('>l16s', version, uuid._uuid), pack('>li', docId, dirty))
 
     # has to run within the commit transaction
-    def uuids(self, oldVersion, newVersion):
+    def apply(self, fn, oldVersion, newVersion):
 
         cursor = self.cursor()
 
@@ -539,15 +540,21 @@ class HistContainer(DBContainer):
         except DBNotFoundError:
             return
 
-        while value is not None:
-            version, = unpack('>l', value[0][0:4])
-            if version > newVersion:
-                break
+        try:
+            while value is not None:
+                version, uuid = unpack('>l16s', value[0])
+                if version > newVersion:
+                    break
 
-            yield UUID(value[0][4:20])
-            value = cursor.next()
+                fn(UUID(uuid), version, unpack('>li', value[1]))
+                value = cursor.next()
+        finally:
+            cursor.close()
 
-        cursor.close()
+
+
+class TextContainer(DBContainer):
+    pass
 
 
 class XMLStore(Store):
@@ -569,6 +576,7 @@ class XMLStore(Store):
             self._refs = RefContainer(self, "__refs__", txn, create)
             self._versions = VerContainer(self, "__versions__", txn, create)
             self._history = HistContainer(self, "__history__", txn, create)
+            self._text = TextContainer(self, "__text__", txn, create)
         finally:
             if txnStarted:
                 self._commitTransaction()
@@ -579,6 +587,7 @@ class XMLStore(Store):
         self._refs.close()
         self._versions.close()
         self._history.close()
+        self._text.close()
 
     def loadItem(self, version, uuid):
 

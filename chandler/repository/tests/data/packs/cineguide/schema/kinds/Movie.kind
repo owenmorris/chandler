@@ -10,6 +10,7 @@
     <ref alias="frenchTitle" type="path">/CineGuide/Attributes/frenchTitle</ref>
     <ref alias="released" type="path">/CineGuide/Attributes/released</ref>
     <ref alias="actors" type="path">/CineGuide/Attributes/actors</ref>
+    <ref alias="synopsis" type="path">/CineGuide/Attributes/synopsis</ref>
   </ref>
 
   <attribute name="displayAttribute">title</attribute>

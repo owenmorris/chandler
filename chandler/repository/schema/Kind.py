@@ -8,6 +8,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.Item import Item
 from repository.item.ItemRef import RefDict
 from repository.util.Path import Path
+from repository.util.UUID import UUID
+from repository.util.SingleRef import SingleRef
 
 
 class Kind(Item):
@@ -139,10 +141,27 @@ class Kind(Item):
                                   version, mode)
 
     def isAlias(self):
+
         return False
 
+    def makeValue(self, data):
+
+        return SingleRef(UUID(data))
+
+    def typeXML(self, value, generator, withSchema):
+
+        generator.characters(value.getUUID().str64())
+
+    def handlerName(self):
+
+        return 'ref'
+    
     def recognizes(self, value):
-        raise NotImplementedError, "Kind.recognizes()"
+
+        if isinstance(value, SingleRef):
+            return self.getRepository()[value.getUUID()].isItemOf(self)
+
+        return False
 
     def isSubKindOf(self, superKind):
 

@@ -4,7 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
 import cStringIO
 
 from repository.item.ItemRef import ItemRef, NoneRef, RefArgs
@@ -13,11 +12,12 @@ from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
-from repository.item.PersistentCollections import SingleRef
 
+from repository.util.SingleRef import SingleRef
 from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
+from repository.util.SAX import XMLGenerator
 
 
 class Item(object):
@@ -649,11 +649,18 @@ class Item(object):
 
         return (self._status & Item.DIRTY) != 0
 
-    def setDirty(self, dirty=True, attribute=None):
-        """Set the dirty bit on the item so that it gets persisted.
+    def getDirty(self):
+
+        return self._status & Item.DIRTY
+
+    def setDirty(self, dirty=None, attribute=None):
+        """Set a dirty bit on the item so that it gets persisted.
 
         Returns True if the dirty bit was changed from unset to set.
         Returns False otherwise."""
+
+        if dirty is None:
+            dirty = Item.ADIRTY
 
         if dirty:
             if self._status & Item.DIRTY == 0:
@@ -664,11 +671,13 @@ class Item(object):
                                                    default=True) == False:
                             return False
                     if repository.logItem(self):
-                        self._status |= Item.DIRTY
+                        self._status |= dirty
                         return True
                     elif self._status & Item.NEW:
                         repository.logger.warning('logging of new item %s failed',
                                                   self.getItemPath())
+            else:
+                self._status |= dirty
         else:
             self._status &= ~Item.DIRTY
 
@@ -678,7 +687,7 @@ class Item(object):
 
         self._version = version
         self._status &= ~Item.NEW
-        self.setDirty(False)
+        self.setDirty(0)
 
     def delete(self, recursive=False):
         """Delete this item and detach all its item references.
@@ -1040,7 +1049,7 @@ class Item(object):
         
         try:
             out = cStringIO.StringIO()
-            generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
+            generator = XMLGenerator(out, 'utf-8')
             generator.startDocument()
             self._xmlItem(generator,
                           withSchema = (self._status & Item.SCHEMA) != 0)
@@ -1203,15 +1212,16 @@ class Item(object):
     __new__   = classmethod(__new__)
     Nil       = object()
     
-    DELETED   = 0x01
-    DIRTY     = 0x02
-    DELETING  = 0x04
-    RAW       = 0x08
-    ATTACHING = 0x10
-    SCHEMA    = 0x20
-    NEW       = 0x40
-    STALE     = 0x80
-
+    DELETED   = 0x0001
+    ADIRTY    = 0x0002
+    DELETING  = 0x0004
+    RAW       = 0x0008
+    ATTACHING = 0x0010
+    SCHEMA    = 0x0020
+    NEW       = 0x0040
+    STALE     = 0x0080
+    HDIRTY    = 0x0100
+    DIRTY     = ADIRTY | HDIRTY
 
 class Children(LinkedMap):
 
@@ -1229,9 +1239,9 @@ class Children(LinkedMap):
     def linkChanged(self, link, key):
 
         if key is None:
-            self._item.setDirty()
+            self._item.setDirty(dirty=Item.HDIRTY)
         else:
-            link._value.setDirty()
+            link._value.setDirty(dirty=Item.HDIRTY)
     
     def __repr__(self):
 

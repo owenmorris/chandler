@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import cStringIO, xml.sax.saxutils
+import cStringIO
 
 from datetime import datetime
 from struct import pack, unpack
@@ -15,9 +15,12 @@ from dbxml import XmlDocument
 
 from repository.item.Item import Item
 from repository.item.ItemRef import RefDict, TransientRefDict
-from repository.persistence.Repository import Repository
+from repository.persistence.Repository import Repository, RepositoryError
+from repository.persistence.Repository import VersionConflictError
 from repository.persistence.Repository import OnDemandRepositoryView
 from repository.util.UUID import UUID
+from repository.util.SAX import XMLGenerator
+from repository.util.Text import Text
 
 
 class XMLRepositoryView(OnDemandRepositoryView):
@@ -55,7 +58,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 del self._deletedRegistry[item.getUUID()]
                 item._status &= ~Item.DELETED
             else:
-                item.setDirty(False)
+                item.setDirty(0)
                 item._unloadItem()
 
         del self._log[:]
@@ -70,6 +73,10 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         else:
             return TransientRefDict(item, name, otherName)
 
+    def getTextType(self):
+
+        return XMLText
+
     def commit(self):
 
         repository = self.repository
@@ -83,7 +90,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         count = len(self._log)
         txnStarted = False
         lock = None
-
+        
         while True:
             try:
                 txnStarted = store._startTransaction()
@@ -94,6 +101,19 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                         DB_LOCK_WRITE)
                     newVersion += 1
                     versions.put(self.ROOT_ID._uuid, pack('>l', ~newVersion))
+
+                    ood = {}
+                    for item in self._log:
+                        if not item.isNew():
+                            uuid = item._uuid
+                            version = versions.getDocVersion(uuid)
+                            assert version is not None
+                            if version > item._version:
+                                ood[uuid] = item
+
+                    if ood:
+                        self._mergeItems(ood, self.version, newVersion,
+                                         history)
                 
                     for item in self._log:
                         self._saveItem(item, newVersion,
@@ -110,6 +130,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 continue
             
             except:
+                self.logger.exception('aborting transaction')
                 if txnStarted:
                     store._abortTransaction()
                 if lock:
@@ -131,7 +152,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                         oldVersion = self.version
                         self.version = newVersion
 
-                        for uuid in history.uuids(oldVersion, newVersion):
+                        def unload(uuid, version, (docId, dirty)):
                             item = self._registry.get(uuid)
                             if item is not None and item._version < newVersion:
                                 if self.isDebug():
@@ -139,6 +160,9 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                                       item._version,
                                                       item.getItemPath())
                                 item._unloadItem()
+                            
+                        history.apply(unload, oldVersion, newVersion)
+
                     except:
                         if txnStarted:
                             store._abortTransaction()
@@ -157,21 +181,11 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
     def _saveItem(self, item, newVersion, data, versions, history):
 
-        uuid = item.getUUID()
-        if item.isNew():
-            version = None
-
-        else:
-            version = versions.getDocVersion(uuid)
-            if version is None:
-                raise ValueError, 'no version for %s' %(item.getItemPath())
-            elif version > item._version:
-                raise ValueError, '%s is out of date' %(item.getItemPath())
+        uuid = item._uuid
 
         if item.isDeleted():
-
             del self._deletedRegistry[uuid]
-            if version is not None:
+            if not item.isNew():
                 if self.isDebug():
                     self.logger.debug('Removing version %d of %s',
                                       item._version, item.getItemPath())
@@ -184,7 +198,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                   newVersion, item.getItemPath())
 
             out = cStringIO.StringIO()
-            generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
+            generator = XMLGenerator(out, 'utf-8')
             generator.startDocument()
             item._saveItem(generator, newVersion)
             generator.endDocument()
@@ -194,7 +208,22 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             out.close()
             docId = data.putDocument(doc)
             versions.setDocVersion(uuid, newVersion, docId)
-            history.writeVersion(uuid, newVersion, docId)
+            history.writeVersion(uuid, newVersion, docId, item.getDirty())
+
+    def _mergeItems(self, items, oldVersion, newVersion, history):
+
+        def check(uuid, version, (docId, dirty)):
+            item = items.get(uuid)
+            if item is not None:
+                if item.getDirty() & dirty:
+                    raise VersionConflictError, item
+
+        history.apply(check, oldVersion, newVersion)
+
+        for item in items.itervalues():
+            self.logger.info('Item %s is out of date but is mergeable',
+                             item.getItemPath())
+        raise NotImplementedError, 'item merging not yet implemented'
 
 
 class XMLRepositoryClientView(XMLRepositoryView):
@@ -394,3 +423,69 @@ class XMLClientRefDict(XMLRefDict):
 
     def _writeRef(self, key, version, uuid, previous, next, alias):
         raise NotImplementedError, "XMLClientRefDict._writeRef"
+
+
+class XMLText(Text):
+
+    def __init__(self, **kwds):
+
+        super(XMLText, self).__init__(**kwds)
+        self._uuid = None
+        self._view = None
+        self._version = 0
+        self._dirty = False
+        
+    def _setText(self, text):
+
+        super(XMLText, self)._setText(text)
+        self._dirty = True
+
+    def _xmlValue(self, view, generator):
+
+        if self._uuid is None:
+            self._uuid = UUID()
+            self._dirty = True
+
+        if self._dirty:
+            self._version += 1
+            view.repository.store._text.put(self._makeKey(), self._data)
+
+        attrs = {}
+        attrs['version'] = str(self._version)
+        attrs['mimetype'] = self.mimetype
+        attrs['encoding'] = self.encoding
+        if self._compression:
+            attrs['compression'] = self._compression
+        attrs['type'] = 'uuid'
+        
+        generator.startElement('text', attrs)
+        generator.characters(self._uuid.str64())
+        generator.endElement('text')
+
+    def _makeKey(self):
+
+        return "%s%s" %(self._uuid._uuid, pack('>l', ~self._version))
+
+    def _textEnd(self, view, data, attrs):
+
+        self.mimetype = attrs.get('mimetype', 'text/plain')
+        self._compression = attrs.get('compression', None)
+        self._version = long(attrs.get('version', '0'))
+        self._view = view
+
+        if attrs.has_key('encoding'):
+            self._encoding = attrs['encoding']
+
+        if attrs.get('type', 'text') == 'text':
+            writer = self.getWriter()
+            writer.write(data)
+            writer.close()
+        else:
+            self._uuid = UUID(data)
+
+    def _getData(self):
+
+        if self._uuid is None:
+            return super(XMLText, self)._getData()
+
+        return self._view.repository.store._text.get(self._makeKey())

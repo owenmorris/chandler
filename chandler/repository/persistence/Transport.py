@@ -4,12 +4,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, re, xmlrpclib, jabber
+import sys, re, xmlrpclib, jabber, libxml2
 
-from xml.sax import parseString
 from SOAPpy import SOAPProxy
 from repository.util.UUID import UUID
 from repository.persistence.Repository import Store
+
 
 class RemoteError(ValueError):
     pass
@@ -117,7 +117,8 @@ class SOAPTransport(Transport):
 
     def parseDoc(self, doc, handler):
 
-        parseString(doc, handler)
+        ctx = libxml2.createPushParser(handler, doc, len(doc), "item")
+        ctx.parseChunk('', 0, 1)
         
     def getDocUUID(self, doc):
 

@@ -4,12 +4,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
 import os, os.path
 
 from datetime import datetime
 
 from repository.util.UUID import UUID
+from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import Repository, RepositoryError
 from repository.persistence.Repository import RepositoryView
 from repository.item.ItemRef import RefDict, TransientRefDict
@@ -159,7 +159,7 @@ class FileRepositoryView(RepositoryView):
             if item.isDirty():
                 view._saveItem(item, **args)
                 count += 1
-                item.setDirty(False)
+                item.setDirty(0)
 
             contents.write(item.getUUID().str16())
             contents.write('\n')
@@ -192,7 +192,7 @@ class FileRepositoryView(RepositoryView):
                                 item.getRoot().getItemName(),
                                 uuid + '.item')
         out = file(filename, 'w')
-        generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
+        generator = XMLGenerator(out, 'utf-8')
 
         generator.startDocument()
         item._saveItem(generator, 0L)
