@@ -23,10 +23,7 @@ def main():
                                          'chandlerdb/util/rijndael.i'],
                                 include_dirs=['rijndael-2.4']))
 
-    if os.name == 'nt':
-        extensions.append(Extension('chandlerdb.util.lock',
-                                    sources=['chandlerdb/util/lock.c']))
-    elif os.name == 'posix':
+    if os.name in ('nt','posix'):
         modules.append('chandlerdb.util.lock')
     else:
         raise ValueError, 'unsupported os: %s' %(os.name)
