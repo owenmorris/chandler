@@ -99,7 +99,7 @@ def setup(directory, destroy=False):
     Globals.chandlerDirectory = directory
     logger(os.path.join(directory, 'chandler.log'))
     rep = repository(os.path.join(directory, '__repository__'), destroy)
-    parcels()
+    parcels(rep)
     return rep
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
