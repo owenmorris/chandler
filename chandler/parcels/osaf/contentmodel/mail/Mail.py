@@ -512,14 +512,16 @@ class EmailAddress(Item.Item):
         This code needs to be reworked!
         """
         
-    def getEmailAddress (cls, nameOrAddressString, fullName=''):
+    def getEmailAddress (cls, nameOrAddressString, fullName='', updateExisting=True):
         """
           Lookup or create an EmailAddress based
         on the supplied string.
         @param nameOrAddressString: emailAddress string, or fullName for lookup
         @type nameOrAddressString: C{String}
-        @param fullName: the fullName to use when a new item is created
+        @param fullName: explict fullName to use when a new item is created
         @type fullName: C{String}
+        @param updateExisting: if it's OK to update an existing entry
+        @type updateExisting: C{Boolean}
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
                not a valid email address.
         """
@@ -577,7 +579,7 @@ class EmailAddress(Item.Item):
             if isValidAddress:
                 if message.emailAddressesAreEqual(candidate.emailAddress, address):
                     # found an existing address!
-                    if fullName != '':
+                    if updateExisting and fullName != '':
                         # update the fullname with what the caller supplied.
                         candidate.fullName = fullName
                     return candidate
