@@ -60,6 +60,8 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Literal properties
         mailMessageItem.subject = "Hello"
         mailMessageItem.spamScore = 5
+        # Item Properties
+        mailMessageItem.replyAddress = emailAddressItem
 
         _verifyMailMessage(mailMessageItem)
 
@@ -69,7 +71,12 @@ class MailTest(TestContentModel.ContentModelTestCase):
         
         mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
         _verifyMailMessage(mailMessageItem)
-        
+
+        cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/mail",
+           "MailMessageMixin/Cloud")
+        items = cloud.getItems(mailMessageItem)
+        self.assertEqual(len(items), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
