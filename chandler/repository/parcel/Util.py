@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository
 
 def PrintItem(uri, rep, level=0):
-    """ 
+    """
     Given a uri, display its info along with all its children recursively
 
     Example:  PrintItem("//Schema", rep)
@@ -19,29 +19,44 @@ def PrintItem(uri, rep, level=0):
     for i in range(level):
         print " ",
     item = rep.find(uri)
-    print uri
+    print "%s (Kind: %s)" % (uri, item.kind.getItemPath() )
 
-    for i in range(level+2):
-        print " ",
-
-    print "attributes:"
-    for (attr,source) in GetAttributes(item):
-        for k in range(level+4):
+    # For Kinds, display their attributes (except for the internal ones
+    # like notFoundAttributes:
+    if "//Schema/Core/Kind" == str(item.kind.getItemPath()):
+        for i in range(level+2):
             print " ",
-        if source is item:
-            print attr.getItemPath()
-        else:
-            print attr.getItemPath(), "(from %s)" % source.getItemPath()
+        print "attributes:"
 
+        displayedAttrs = { }
+        for (name,attr) in item.kind.iterAttributes():
+            if name == "attributes" or \
+               name == "notFoundAttributes" or \
+               name == "inheritedAttributes":
+                continue
+            displayedAttrs[name] = attr
+
+        keys = displayedAttrs.keys()
+        keys.sort()
+        for key in keys:
+            for k in range(level+4):
+                print " ",
+            print "%s %s" % ( key, displayedAttrs[key].getItemPath() )
+
+    displayedAttrs = { }
     for (name, value) in item.iterAttributeValues():
+        displayedAttrs[name] = value
 
+    keys = displayedAttrs.keys()
+    keys.sort()
+    for name in keys:
+        value = displayedAttrs[name]
         t = type(value)
 
-        if name == "attributes":
-            pass
-
-
-        elif name == "notFoundAttributes" or name == "inheritedAttributes":
+        if name == "attributes" or \
+           name == "notFoundAttributes" or \
+           name == "inheritedAttributes" or \
+           name == "kind":
             pass
 
         elif t == list \
@@ -92,18 +107,3 @@ def PrintItem(uri, rep, level=0):
         childuri = child.getItemPath()
         PrintItem(childuri, rep, level+1)
 
-def GetAttributes(kind):
-    """ Build the list of attributes this kind has, including inherited
-    """
-    try:
-        for attr in kind.attributes:
-            yield (attr, kind)
-    except AttributeError, e:
-        pass
-
-    try:
-        for superKind in kind.superKinds:
-            for tuple in GetAttributes(superKind):
-                yield tuple
-    except AttributeError, e:
-        pass
