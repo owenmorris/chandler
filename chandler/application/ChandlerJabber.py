@@ -181,7 +181,6 @@ class JabberClient:
         if self.connection == None:
             return []
 
-        #self.roster = self.connection.requestRoster()
         ids = self.roster.getJIDs()
          
         activeIDs = []
@@ -222,6 +221,9 @@ class JabberClient:
         if self.accessibleViews.has_key(strippedID):
             return self.accessibleViews[strippedID]	
 
+        if not self.IsPresent(jabberID):
+            return None
+        
         self.RequestAccessibleViews(strippedID)
         # add empty key to avoid repeated requests
         self.accessibleViews[strippedID] = {}
@@ -338,12 +340,16 @@ class JabberClient:
     # initiate a request of objects from a remote view
     # pass the desired URL in the subject
     def RequestRemoteObjects(self, jabberID, url):
+        if not self.IsPresent(jabberID):
+            return false
+        
         messageText = _("Requesting remote objects from ") + url    
         requestMessage = Message(jabberID, messageText)
         requestMessage.setX('chandler:request-objects')
         requestMessage.setSubject(url)
         self.connection.send(requestMessage)
-
+        return true
+    
     # send a response from an object request back to the requestor
     def SendObjectResponse(self, jabberID, subject, body, responseType):
         responseMessage = Message(jabberID, body)
