@@ -78,7 +78,7 @@ LICENSE.txt
 Chandler-project.wpr
 
 # Grab crypto stuff
-glob=*.py
+glob=*.py,*.pem
 recursive=yes
 crypto
 
