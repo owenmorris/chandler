@@ -9,52 +9,52 @@ import twisted.python.threadable as threadable
 
 """required when using threads in Twisted"""
 threadable.init()
- 
+
 
 class TwistedReactorException(Exception):
     """Exception Class raised by L{TwistedReactorManager}"""
-    pass 
+    pass
 
-class TwistedReactorManager(threading.Thread):    
-    """Runs the Twisted Reactor in a Thread to prevent blocking of the 
-       Main Thread when C{reactor.run} is called. Only one instance of 
+class TwistedReactorManager(threading.Thread):
+    """Runs the Twisted Reactor in a Thread to prevent blocking of the
+       Main Thread when C{reactor.run} is called. Only one instance of
        the TwistedReactorManager can be initialized at a time"""
-    
-    
+
+
     __reactorRunning = False
 
     def run(self):
         """
         This method is called by C{Threading.Thread} when the thread is started.
 
-        It starts and runs the Twisted reactor. 
+        It starts and runs the Twisted reactor.
         @return: C{None}
         """
-        
+
         if self.__reactorRunning:
             raise TwistedReactorException("Reactor Already Running")
-              
+
         self.__reactorRunning = True
-              
+
         """call run passing a False flag indicating to the
            reactor not to install sig handlers. Sig handlers
            only work on the main thread"""
 
         reactor.run(False)
-            
+
     def startReactor(self):
         """
         This method starts the Twisted Reactor thread and runs the Twisted Reactor.
 
         @return: C{None}
         """
-        
+
         if self.__reactorRunning:
             raise TwistedReactorException("Reactor Already Running")
-             
+
         self.start()
-             
-            
+
+
     def stopReactor(self):
         """
         This method stops the Twisted Reactor which will terminate the C{Thread} as it goes out of
@@ -62,8 +62,8 @@ class TwistedReactorManager(threading.Thread):
 
         @return: C{None}
         """
-            
+
         if not self.__reactorRunning:
             raise TwistedReactorException("Reactor Not Running")
-           
+
         reactor.callFromThread(reactor.stop)
