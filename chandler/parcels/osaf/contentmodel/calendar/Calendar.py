@@ -24,28 +24,25 @@ class CalendarParcel(Parcel.Parcel):
 
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
-        repository = self.getRepository()
-
-        calendarPathStr = '//parcels/OSAF/contentmodel/calendar/%s'
 
         global CalendarEventKind
-        CalendarEventKind = repository.find(calendarPathStr % 'CalendarEvent')
+        CalendarEventKind = self.find('CalendarEvent')
         assert CalendarEventKind
 
         global LocationKind
-        LocationKind = repository.find(calendarPathStr % 'Location')
+        LocationKind = self.find('Location')
         assert LocationKind
 
         global CalendarKind
-        CalendarKind = repository.find(calendarPathStr % 'Calendar')
+        CalendarKind = self.find('Calendar')
         assert CalendarKind
 
         global RecurrencePatternKind
-        RecurrencePatternKind = repository.find(calendarPathStr % 'RecurrencePattern')
+        RecurrencePatternKind = self.find('RecurrencePattern')
         assert RecurrencePatternKind
 
         global ReminderKind
-        ReminderKind = repository.find(calendarPathStr % 'Reminder')
+        ReminderKind = self.find('Reminder')
         assert ReminderKind
 
 class CalendarEvent(ContentModel.ContentItem):

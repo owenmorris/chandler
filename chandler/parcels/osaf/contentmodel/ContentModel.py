@@ -34,15 +34,15 @@ class ContentModel(Parcel.Parcel):
         assert ContentItemParent
 
         global ContentItemKind
-        ContentItemKind = repository.find('//parcels/OSAF/contentmodel/ContentItem')
+        ContentItemKind = self.find('ContentItem')
         assert ContentItemKind
 
         global ProjectKind
-        ProjectKind = repository.find('//parcels/OSAF/contentmodel/Project')
+        ProjectKind = self.find('Project')
         assert ProjectKind
 
         global GroupKind
-        GroupKind = repository.find('//parcels/OSAF/contentmodel/Group')
+        GroupKind = self.find('Group')
         assert GroupKind
 
 class ContentItem(Item.Item):

@@ -14,8 +14,7 @@ import repository.parcel.LoadParcels as LoadParcels
 import OSAF.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
-class ContentItemTest(unittest.TestCase):
-
+class ContentModelTestCase(unittest.TestCase):
     def setUp(self):
         self.rootdir = os.environ['CHANDLERHOME']
         self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
@@ -36,6 +35,18 @@ class ContentItemTest(unittest.TestCase):
         Globals.repository = self.rep
         self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
         LoadParcels.LoadParcels(self.parceldir, self.rep)
+
+    def tearDown(self):
+        self.rep.close()
+        self.rep.delete()
+
+    def _reopenRepository(self):
+        self.rep.commit()
+        self.rep.close()
+        self.rep.open()
+
+
+class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
         # Check that the globals got created by the parcel
@@ -112,15 +123,6 @@ class ContentItemTest(unittest.TestCase):
         self._reopenRepository()
         project = self.rep.find("//userdata/contentitems/genericProject")
         self.assertEqual(len(project.itemsInProject), 1)
-
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-
-    def _reopenRepository(self):
-        self.rep.commit()
-        self.rep.close()
-        self.rep.open()
 
 if __name__ == "__main__":
     unittest.main()

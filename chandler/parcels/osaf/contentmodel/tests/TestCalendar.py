@@ -12,61 +12,113 @@ import unittest, os
 import repository.persistence.XMLRepository as XMLRepository
 import repository.parcel.LoadParcels as LoadParcels
 import OSAF.contentmodel.calendar.Calendar as Calendar
+import OSAF.contentmodel.ContentModel as ContentModel
+import OSAF.contentmodel.tests.TestContentModel as TestContentModel
 import application.Globals as Globals
 
-class CalendarTest(unittest.TestCase):
+import mx.DateTime as DateTime
 
-    def setUp(self):
-        self.rootdir = os.environ['CHANDLERHOME']
-        self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
-                                    'tests')
-
-        # Create an empty repository
-        self.rep = XMLRepository.XMLRepository(os.path.join(self.testdir,
-                                                            '__repository__'))
-        self.rep.create()
-
-        # Load the schema of schemas
-        schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository',
-                                  'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
-        self.rep.commit()
-
-        # Load the parcels
-        Globals.repository = self.rep
-        self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
-        LoadParcels.LoadParcels(self.parceldir, self.rep)
+class CalendarTest(TestContentModel.ContentModelTestCase):
 
     def testCalendar(self):
+
+        def _verifyCalendarEvent(event):
+            self.assertEqual(event.headline, "simple headline")
+            self.assertEqual(event.getAttributeValue('headline'),
+                              "simple headline")
+            self.assertEqual(event.getItemDisplayName(), "simple headline")
+
+            self.assertEqual(event.priority, 3)
+            self.assertEqual(event.getAttributeValue('priority'), 3)
+
+            self.assertEqual(event.transparency, "busy")
+            self.assertEqual(event.getAttributeValue('transparency'), "busy")
+
+        def _verifyCalendarItems(calendar, location, recurrence, reminder):
+            self.assertEqual(calendar.name, "simple calendar")
+            self.assertEqual(calendar.getAttributeValue('name'),
+                              "simple calendar")
+
+            self.assertEqual(location.name, "simple location")
+            self.assertEqual(location.getAttributeValue('name'),
+                              "simple location")
+
         # Check that the globals got created by the parcel
-        self.assert_(Calendar.CalendarKind)
-        self.assert_(Calendar.CalendarEventKind)
-        self.assert_(Calendar.LocationKind)
-        self.assert_(Calendar.RecurrencePatternKind)
-        self.assert_(Calendar.ReminderKind)
+        calendarPath = '//parcels/OSAF/contentmodel/calendar/%s'
+        
+        self.assertEqual(Calendar.CalendarEventKind,
+                         self.rep.find(calendarPath % 'CalendarEvent'))
+        self.assertEqual(Calendar.CalendarKind,
+                         self.rep.find(calendarPath % 'Calendar'))
+        self.assertEqual(Calendar.LocationKind,
+                         self.rep.find(calendarPath % 'Location'))
+        self.assertEqual(Calendar.RecurrencePatternKind,
+                         self.rep.find(calendarPath % 'RecurrencePattern'))
+        self.assertEqual(Calendar.ReminderKind,
+                         self.rep.find(calendarPath % 'Reminder'))
 
         # Construct a sample item
-        calendarItem = Calendar.Calendar("calendarItem")
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem")
+        calendarItem = Calendar.Calendar("calendarItem")
         locationItem = Calendar.Location("locationItem")
         recurrenceItem = Calendar.RecurrencePattern("recurrenceItem")
         reminderItem = Calendar.Reminder("reminderItem")
 
-        # Check that each item was created
-        self.assert_(calendarItem)
-        self.assert_(calendarEventItem)
-        self.assert_(locationItem)
-        self.assert_(recurrenceItem)
-        self.assert_(reminderItem)
+        # CalendarEvent properties
+        calendarEventItem.headline = "simple headline"
+        calendarEventItem.priority = 3
+        calendarEventItem.transparency = "busy"
+        _verifyCalendarEvent(calendarEventItem)
 
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
+        # Calendar properties
+        calendarItem.name = "simple calendar"
+        locationItem.name = "simple location"
+        _verifyCalendarItems(calendarItem, locationItem,
+                             recurrenceItem, reminderItem)
 
-    def _reopenRepository(self):
+        # Re-examine items
+        self._reopenRepository()
+
+        parent = ContentModel.ContentItemParent
+
+        calendarEventItem = parent.find("calendarEventItem")
+        calendarItem = parent.find("calendarItem")
+        locationItem = parent.find("locationItem")
+        recurrenceItem = parent.find("recurrenceItem")
+        reminderItem = parent.find("reminderItem")
+        
+        _verifyCalendarEvent(calendarEventItem)
+        _verifyCalendarItems(calendarItem, locationItem,
+                             recurrenceItem, reminderItem)
+
+    def testTimeFields(self):
+        # Test getDuration
+        firstItem = Calendar.CalendarEvent()
+        firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
+        firstItem.endTime = DateTime.DateTime(2003, 2, 1, 11, 30)
+        self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
+
+        # Test setDuration
+        secondItem = Calendar.CalendarEvent()
+        secondItem.startTime = DateTime.DateTime(2003, 3, 5, 9)
+        secondItem.duration = DateTime.DateTimeDelta(0, 1.5)
+        self.assertEqual(secondItem.endTime,
+                         DateTime.DateTime(2003, 3, 5, 10, 30))
+
+        # Test changeStartTime
+        firstItem.ChangeStart(DateTime.DateTime(2003, 3, 4, 12, 45))
+        self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
+        self.assertEqual(firstItem.startTime,
+                         DateTime.DateTime(2003, 3, 4, 12, 45))
+
+    def testDeleteItem(self):
+        item = Calendar.CalendarEvent()
+        path = item.getItemPath()
+        item.delete()
+        del item
+        itemShouldBeGone = self.rep.find(path)
+        self.assertEqual(itemShouldBeGone, None)
         self.rep.commit()
-        self.rep.close()
-        self.rep.open()
 
 if __name__ == "__main__":
     unittest.main()
