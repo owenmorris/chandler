@@ -261,7 +261,7 @@
     <Attribute itsName="items">
       <type itemref="SingleRef"/>
       <cardinality>list</cardinality>
-      <required>True</required>
+      <initialValue />
     </Attribute>
 
     <Enumeration itsName="operationType">

@@ -97,29 +97,13 @@ class ShareToolDialog(wx.Dialog):
          resources=self.resources, view=self.view, join=True)
         if share is not None:
             share.get()
-
-            # @@@MOR apparently the sidebar code has changed.  the following
-            # doesn't work:
-            """
-            # Add the collection to the sidebar by...
-            event = self.view.findPath("//parcels/osaf/views/main/NewItemCollection")
-            args = { 'collection' : share.contents }
-            # ...creating a new view (which gets returned as args['view'])...
-            event.Post(args)
-            self.view.commit()
-            # ...and selecting that view in the sidebar
-            Globals.mainView.selectView(args['view'], showInDetailView=share.contents)
-
-            # Here's my best guess about how it should work, although I couldn't figure out
-            # how to test it -- DJA
             collection = share.contents
             mainView = Globals.views[0]
-            mainView.postEventByName ("AddToSidebar", {'items':[collection]})
+            mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
             self.view.commit()
             # ...and selecting that view in the sidebar
             mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
             mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
-            """
         self._populateSharesList()
 
     def OnEditShare(self, evt):

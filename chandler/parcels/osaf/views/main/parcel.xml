@@ -28,11 +28,12 @@
     Block Events
   -->
 
-  <ModifyContentsEvent itsName="AddToSidebar">
-    <blockName>AddToSidebar</blockName>
+  <ModifyContentsEvent itsName="AddToSidebarWithoutCopying">
+    <blockName>AddToSidebarWithoutCopying</blockName>
     <methodName>onModifyContentsEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <copyItems>False</copyItems>
   </ModifyContentsEvent>
 
   <BlockEvent itsName="EditAccountPreferences">
@@ -1606,6 +1607,7 @@
     <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
     <eventsForNamedDispatch itemref="doc:SendMail"/>
     <eventsForNamedDispatch itemref="doc:ShareItem"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>
@@ -1629,7 +1631,7 @@
     <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
     <eventsForNamedDispatch itemref="doc:SendMail"/>
     <eventsForNamedDispatch itemref="doc:ShareItem"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebar"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>
