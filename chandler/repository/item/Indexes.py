@@ -71,10 +71,31 @@ class NumericIndex(Index, SkipList):
     responsible for providing persisted implementations.
     """
 
+    class node(SkipList.node):
+
+        def __init__(self, level, skipList):
+
+            super(NumericIndex.node, self).__init__(level, skipList)
+            self._entryValue = 0
+
+
     def __init__(self, **kwds):
 
         Index.__init__(self, **kwds)
         SkipList.__init__(self)
+
+    def _createNode(self, level):
+
+        return NumericIndex.node(level, self)
+
+    def getEntryValue(self, key):
+
+        return self[key]._entryValue
+
+    def setEntryValue(self, key, entryValue):
+
+        self[key]._entryValue = entryValue
+        self._keyChanged(key)
 
     def getKey(self, n):
 

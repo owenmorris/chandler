@@ -1293,6 +1293,10 @@ class Item(object):
         L{Cloud<repository.schema.Cloud.Cloud>} instance to drive the copy
         operation by using the C{cloudAlias} argument.
 
+        If this item has an C{onItemCopy} method defined, it is invoked on
+        the copy with the original as argument after the original's
+        attribute values were copied.
+
         @param name: the name of the item's copy
         @type name: a string
         @param parent: the parent of the item's copy, the original's parent
@@ -1330,6 +1334,9 @@ class Item(object):
 
         item._values._copy(self._values, copies, copyPolicy)
         item._references._copy(self._references, copies, copyPolicy)
+
+        if hasattr(cls, 'onItemCopy'):
+            item.onItemCopy(self)
 
         return item
 

@@ -39,8 +39,7 @@ class TypeKind(Kind):
         that is specific to the category of matching types.
         For example, Integer < Long < Float or String < Symbol."""
 
-        query = KindQuery()
-        matches = [i for i in query.run([self]) if i.recognizes(value)]
+        matches = [i for i in KindQuery().run([self]) if i.recognizes(value)]
         if matches:
             matches.sort(lambda x, y: x._compareTypes(y))
 
@@ -57,12 +56,10 @@ class Type(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Type, self)._fillItem(name, parent, kind, **kwds)
-
         self._status |= Item.SCHEMA | Item.PINNED
-        self._registerTypeHandler(self.getImplementationType())
 
     def _registerTypeHandler(self, implementationType):
-        
+
         if implementationType is not None:
             typeHandlers = ItemHandler.typeHandlers[self.itsView]
             if implementationType in typeHandlers:
@@ -70,15 +67,11 @@ class Type(Item):
             else:
                 typeHandlers[implementationType] = [ self._uuid ]
 
+    def onItemLoad(self):
+        self._registerTypeHandler(self.getImplementationType())
+
     def getImplementationType(self):
-
-        implementationTypes = self.getAttributeValue('implementationTypes',
-                                                     _attrDict=self._values,
-                                                     default=None)
-        if implementationTypes is not None:
-            return self.implementationTypes['python']
-
-        return None
+        return self.implementationTypes['python']
 
     def handlerName(self):
         return None

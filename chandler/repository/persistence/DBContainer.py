@@ -686,6 +686,7 @@ class IndexesContainer(DBContainer):
         if node is not None:
             level = node.getLevel()
             buffer.write(pack('b', node.getLevel()))
+            buffer.write(pack('>l', node._entryValue))
             for lvl in xrange(1, level + 1):
                 point = node.getPoint(lvl)
                 self._writeValue(buffer, point.prevKey)
@@ -730,9 +731,10 @@ class IndexesContainer(DBContainer):
                             if level == 0:
                                 return None
                     
-                            offset = 1
                             node = index._createNode(level)
-
+                            node._entryValue = unpack('>l', value[1:5])[0]
+                            offset = 5
+                            
                             for lvl in xrange(1, level + 1):
                                 point = node.getPoint(lvl)
 
