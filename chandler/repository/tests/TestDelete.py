@@ -29,6 +29,7 @@ class TestDelete(RepositoryTestCase):
     def testDeleteItemsInCollection(self):
 
         tools.timing.reset()
+
         self._reopenRepository()
         k = self.rep.findPath('//CineGuide/KHepburn')
         for m in k.movies:
@@ -43,6 +44,20 @@ class TestDelete(RepositoryTestCase):
         self.assert_(self.rep.check())
 
         tools.timing.results(verbose=False)
+
+    def testCloudDelete(self):
+
+        tools.timing.reset()
+
+        k = self.rep.findPath('//CineGuide/KHepburn')
+        k.delete(cloudAlias='remote')
+        self.rep.commit()
+        self.rep.check()
+        self._reopenRepository()
+        self.rep.check()
+
+        tools.timing.results(verbose=False)
+        
 
 if __name__ == "__main__":
 #    import hotshot

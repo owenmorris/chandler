@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import re
 
 from repository.item.Item import Item
+from repository.item.ItemError import RecursiveDeleteError
 from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
@@ -160,6 +161,54 @@ class Cloud(Item):
                                          None, copyOther))
                 
         return results
+
+    def deleteItems(self, item, recursive=False, cloudAlias=None):
+        """
+        Delete all items in the cloud.
+
+        Items are first gathered as documented in L{getItems}. They are then
+        deleted as follows:
+
+            - items in the result set returned by L{getItems} are deleted.
+
+            - references to items in the C{references} dictionary upon
+              returning from L{getItems}, that is, references to items that
+              are not considered part of the cloud but are nonetheless
+              referenced by items in it are removed.
+
+        It is an error to delete an item with children unless C{recursive}
+        is set to C{True}.
+
+        @param item: the entry point of the cloud.
+        @type item: an C{Item<repository.item.Item.Item>} instance
+        @param recursive: C{True} to recursively delete the items' children
+        too, C{False} otherwise (the default).
+        @type recursive: boolean
+        @param cloudAlias: the optional alias name to use for C{byCloud}
+        policy endpoints where the cloud is unspecified.
+        @type cloudAlias: a string
+        @return: the list of all item copies considered part of the cloud.
+        """
+
+        items = {}
+        references = {}
+        deleting = self.getItems(item, cloudAlias, items, references)
+
+        def deleteItem(item):
+            if not (item.isDeleted() or item.isDeleting()):
+                if recursive:
+                    item.delete(recursive=True, deletePolicy='remove')
+                else:
+                    if item.hasChildren():
+                        for child in item.iterChildren():
+                            if child._uuid in items:
+                                deleteItem(child)
+                            else:
+                                raise RecursiveDeleteError, item
+                    item.delete(deletePolicy='remove')
+
+        for item in deleting:
+            deleteItem(item)
 
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 

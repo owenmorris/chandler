@@ -1267,8 +1267,7 @@ class Item(object):
                 assert attrDict is not None
                 attrDict._setDirty(attribute)
                 if not noMonitors:
-                    # Item._invokeMonitors is defined in Monitors.py
-                    Item._invokeMonitors('set', self, attribute)
+                    Item._monitorsClass.invoke('set', self, attribute)
                 
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
@@ -1406,42 +1405,71 @@ class Item(object):
 
         return item
 
-    def delete(self, recursive=False):
+    def delete(self, recursive=False, deletePolicy=None, cloudAlias=None):
         """
         Delete this item.
 
+        By default, an attribute's deletePolicy aspect is C{remove} for
+        bi-directional references.
+
         If this item has references to other items and the C{deletePolicy}
         aspect of the attributes containing them is C{cascade} then these
-        other items are deleted too.
+        other items are deleted too when their count of counted references
+        is zero. References in an attribute are counted when the countPolicy
+        of the attribute is C{count}. It is C{none} by default.
+
+        Attribute delete policies can be overriden with a
+        L{Cloud<repository.schema.Cloud.Cloud>} instance to drive the delete
+        operation by using the C{cloudAlias} argument.
 
         It is an error to delete an item with children unless C{recursive}
         is set to C{True}.
 
+        If this item has an C{onItemDelete} method defined, it is invoked
+        before the item's deletion process is started.
+
+        @param deletePolicy: an optional deletePolicy to override the reference
+        attributes delete policies with.
+        @type deletePolicy: a string
+        @param cloudAlias: the optional alias name of a cloud in the item's
+        kind clouds list.
+        @type cloudAlias: a string
         @param recursive: C{True} to recursively delete this item's children
         too, C{False} otherwise (the default).
         @type recursive: boolean
         """
 
-        if not self._status & (Item.DELETED | Item.DELETING):
+        if cloudAlias is not None:
+            clouds = self._kind.getClouds(cloudAlias)
+            for cloud in clouds:
+                cloud.deleteItems(self, recursive, cloudAlias)
+            
+        elif not self._status & (Item.DELETED | Item.DELETING):
 
             if self._status & Item.STALE:
                 raise StaleItemError, self
 
             if not recursive and self.hasChildren():
-                raise ValueError, 'item %s has children, delete must be recursive' %(self)
+                raise RecursiveDeleteError, self
+
+            view = self.getRepositoryView()
+
+            if hasattr(type(self), 'onItemDelete'):
+                self.onItemDelete(view)
 
             self.setDirty(Item.NDIRTY)
             self._status |= Item.DELETING
             others = []
 
             for child in self.iterChildren():
-                child.delete(True)
+                child.delete(recursive=True, deletePolicy=deletePolicy)
 
             self._values.clear()
 
             for name in self._references.keys():
-                policy = self.getAttributeAspect(name, 'deletePolicy',
-                                                 default='remove')
+                policy = (deletePolicy or
+                          self.getAttributeAspect(name, 'deletePolicy',
+                                                  default='remove'))
                 if policy == 'cascade':
                     value = self._references._getRef(name)
                     if value is not None:
@@ -1452,10 +1480,7 @@ class Item(object):
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
-            parent = self.itsParent
-            view = self.getRepositoryView()
-            
-            parent._removeItem(self)
+            self.itsParent._removeItem(self)
             self._setRoot(None, view)
 
             self._status |= Item.DELETED | Item.STALE
@@ -1463,7 +1488,7 @@ class Item(object):
 
             for other in others:
                 if other.refCount(counted=True) == 0:
-                    other.delete()
+                    other.delete(recursive=recursive, deletePolicy=deletePolicy)
 
             self._kind = None
             

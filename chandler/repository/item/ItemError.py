@@ -55,6 +55,13 @@ class OwnedValueError(ValueError, ItemError):
                               self.args[1])
 
 
+class RecursiveDeleteError(ValueError, ItemError):
+    'Item %s has children, delete must be recursive'
+
+    def __str__(self):
+        return self.__doc__ %(self.getItem()._repr_())
+
+
 class NoSuchItemInCollectionError(ValueError, ItemError):
     "Item %s: no item %s in collection on attribute '%s'"
 

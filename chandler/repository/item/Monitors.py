@@ -13,11 +13,8 @@ class Monitors(Item):
 
         if not view.isRefCounted():
             self.setPinned()
-        Monitors.instances[view] = self
 
-        if 'monitoring' not in self._values:
-            self.setAttributeValue('monitoring', { 'set': {} },
-                                   _attrDict=self._values)
+        Monitors.instances[view] = self
 
     def getInstance(cls, view):
 
@@ -73,4 +70,4 @@ class Monitor(Item):
 # recursive import prevention
 #
 
-Item._invokeMonitors = Monitors.invoke
+Item._monitorsClass = Monitors
