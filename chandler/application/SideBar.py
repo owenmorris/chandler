@@ -58,8 +58,8 @@ class SideBar(Persistent):
             instanceId = id(instance)
             name = item[1]
             children = item[2]
-            hasChildren = len(children) > 0
-            uri = parentUri + '/' + name
+            hasChildren = len(children) > 0            
+            uri = parentUri + name
 
             if not sideBarURLTree.has_key(instanceId):
                 itemId = wxWindow.AppendItem(parent, name)
@@ -77,7 +77,7 @@ class SideBar(Persistent):
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarURLTree[instanceId].isOpen:
                     self.__UpdateURLTree(sideBarURLTree[instanceId].children, 
-                                         item[2], itemId, false, uri)
+                                         item[2], itemId, false, uri + '/')
             sideBarURLTree[instanceId].isMarked = true
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
@@ -96,7 +96,15 @@ class SideBar(Persistent):
         """
         wxWindow = app.association[id(self)]
         self.ignoreChangeSelect = true
-        wxWindow.SelectItem(wxWindow.uriDictMap[uri])
+        # FIXME:  If the user types a valid uri of an item that has never been
+        # displayed in the SideBar (because one of it's ancestors is collapsed)
+        # then that item will not yet be in the dict.  We have to recurse
+        # through the appURLTree to find the proper item and expand its
+        # ancestors if necessary.
+        try:
+            wxWindow.SelectItem(wxWindow.uriDictMap[uri])
+        except:
+            pass
         self.ignoreChangeSelect = false
                 
 class URLTreeEntry:
@@ -166,7 +174,9 @@ class wxSideBar(wxTreeCtrl):
         """
         if self.GetRootItem() == item:
             return uri
-        newUri = '/' + self.GetItemText(item) + uri
+        newUri = self.GetItemText(item)
+        if len(uri) != 0:
+            newUri = newUri + '/' + uri
         return self.BuildUriFromItem(self.GetItemParent(item), newUri)
             
     def OnItemExpanding(self, event):

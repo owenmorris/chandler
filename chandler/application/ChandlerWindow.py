@@ -209,12 +209,12 @@ class wxChandlerWindow(wxFrame):
         if not application.Application.app.association.has_key(id(self.model)):
             return false
         
-        if not uri.startswith('/'):
-            uri = '/' + uri
+        if uri.startswith('/'):
+            uri = uri[1:]
+        if uri.endswith('/'):
+            uri = uri[:-1]
         fields = uri.split('/')
-        if len(fields) < 2:
-            return false
-        uriParcelName = fields[1]
+        uriParcelName = fields[0]
         
         for item in application.Application.app.model.URLTree:
             parcel = item[0]
@@ -225,16 +225,16 @@ class wxChandlerWindow(wxFrame):
             allNames = [parcel.displayName]
             """
               In addition to having a display name, parcels can register
-            other root level display names by having a list otherNames.
+            other root level uris by having a list uriRootList.
             """
-            if (hasattr(parcel, 'otherNames')):
-                allNames += parcel.otherNames
+            if (hasattr(parcel, 'uriRootList')):
+                allNames += parcel.uriRootList
             for name in allNames:
                 if name == uriParcelName:
-                    parcel.SynchronizeView ()
                     self.sideBar.model.SelectUri(uri)
                     if doAddToHistory:
                         self.navigationBar.model.AddUriToHistory(uri)
                     self.navigationBar.model.SynchronizeView()
+                    parcel.SynchronizeView ()
                     return true
         return false
