@@ -11,6 +11,8 @@ from wxPython.xrc import *
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
+from application.ImportExport import ImportExport
+
 from persistence import Persistent 
 from persistence.list import PersistentList
 
@@ -224,6 +226,8 @@ class wxApplication (wxApp):
 		EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
 		EVT_MENU(self, XRCID ("About"), self.OnAbout)
 		EVT_MENU(self, XRCID ("Preferences"), self.OnPreferences)
+		EVT_MENU(self, XRCID("ImportItems"), self.OnImportItems)
+		EVT_MENU(self, XRCID("ExportItems"), self.OnExportItems)
 		
 		# view menu handlers
 		EVT_MENU(self, XRCID("TogglePresenceWindow"), self.TogglePresenceWindow)
@@ -378,6 +382,13 @@ class wxApplication (wxApp):
 		# This gives a chance for the app to respond to the events as well
 		if applicationCommand:
 			event.Skip()
+	
+	# handle the import and export command
+	def OnExportItems(self, event):
+		ImportExport().Export()
+		
+	def OnImportItems(self, event):
+		ImportExport().Import()
 
 	def GetAccessibleViews(self, jabberID):
 		"""

@@ -83,6 +83,13 @@
     <object class="wxMenuBar" name="MainMenuBar">
         <object class="wxMenu" name="FileMenu">
             <label>File</label>
+            <object class="wxMenuItem" name="ImportItems">
+                <label>Import Items from File</label>
+            </object>
+            <object class="wxMenuItem" name="ExportItems">
+                <label>Export Repository to File</label>
+            </object>
+            <object class="separator"/>
             <object class="wxMenuItem" name="Quit">
                 <label>Quit</label>
                 <accel>Ctrl+Q</accel>
@@ -157,6 +164,6 @@
             <label>Always Recreate Repository</label>
             <checkable>1</checkable>
         </object>
-    </object>
+     </object>
 
 </resource>

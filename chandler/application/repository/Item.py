@@ -76,6 +76,10 @@ class Item(Thing):
         remoteAddress = self.get(chandler.remoteAddress, None)
         return (remoteAddress != None)
     
+    # Items typically are top level objects
+    def IsTopLevel(self):
+        return 1
+    
     def GetRemoteAddress(self):
         return self.GetAttribute(chandler.remoteAddress)
     

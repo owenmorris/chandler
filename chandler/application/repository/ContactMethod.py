@@ -196,7 +196,11 @@ class ContactMethod(Item):
         
     def SetMethodAttributes(self, value):
         self.SetAttribute(chandler.methodAttributes, value)
-        
+ 
+    # even though it's an item, a ContactMethod is not a toplevel object
+    def IsTopLevel(self):
+        return 0
+
     # @@@ Depricated, should use GetMethodAttributes
     def GetAddressAttributes(self):
         return self.GetMethodAttributes()

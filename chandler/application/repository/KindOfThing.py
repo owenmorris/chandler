@@ -88,3 +88,7 @@ class KindOfThing(Thing):
         templateList = self[chandler.template]
         return templateList
     
+    # don't dump metaobjects like KindOfThing
+    def ShouldDump(self):
+        return 0
+     
