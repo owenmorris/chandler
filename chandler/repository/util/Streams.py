@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from bz2 import BZ2Compressor, BZ2Decompressor
+from zlib import compressobj, decompressobj
 from cStringIO import StringIO
 
 
@@ -17,11 +18,36 @@ class BZ2OutputStream(BZ2Compressor):
 
     def write(self, data):
 
-        self.outputStream.write(self.compress(data))
+        if data:
+            self.outputStream.write(self.compress(data))
 
     def flush(self):
 
         self.outputStream.write(super(BZ2OutputStream, self).flush())
+        self.outputStream.flush()
+
+    def close(self):
+
+        self.flush()
+        self.outputStream.close()
+
+
+class ZlibOutputStream(object):
+
+    def __init__(self, outputStream, level=9):
+
+        super(ZlibOutputStream, self).__init__(level)
+        self.compressobj = compressobj(level)
+        self.outputStream = outputStream
+
+    def write(self, data):
+
+        if data:
+            self.outputStream.write(self.compressobj.compress(data))
+
+    def flush(self):
+
+        self.outputStream.write(self.compressobj.flush())
         self.outputStream.flush()
 
     def close(self):
@@ -63,6 +89,23 @@ class BZ2InputStream(BZ2Decompressor):
     def read(self):
 
         return self.decompress(self.inputStream.read())
+
+    def close(self):
+
+        self.inputStream.close()
+
+
+class ZlibInputStream(object):
+
+    def __init__(self, inputStream):
+
+        super(ZlibInputStream, self).__init__()
+        self.decompressobj = decompressobj()
+        self.inputStream = inputStream
+
+    def read(self):
+
+        return self.decompressobj.decompress(self.inputStream.read())
 
     def close(self):
 

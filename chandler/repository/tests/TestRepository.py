@@ -74,7 +74,7 @@ class RepositoryTest(unittest.TestCase):
 #        pass
 
     def testCheck(self):
-        self.assert_(self.rep.check() is None)
+        self.assert_(self.rep.check())
 
     def testGetUUID(self):
         #TODO -- can't rely on UUID to be the same

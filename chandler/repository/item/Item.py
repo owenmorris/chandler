@@ -398,8 +398,11 @@ class Item(object):
 
     def check(self):
 
+        result = True
         for key, value in self._references.iteritems():
-            value.check(self, key)
+            result = result and value.check(self, key)
+
+        return result
         
     def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'

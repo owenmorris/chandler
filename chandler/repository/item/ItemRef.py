@@ -138,6 +138,8 @@ class ItemRef(object):
                                  other._item._kind.getItemPath(), otherName,
                                  otherOtherName)
 
+        return True
+
     def _refCount(self):
 
         return 1
@@ -797,6 +799,8 @@ class RefDict(LinkedMap):
             logger.error("Iterator on %s.%s doesn't match length (%d left for %d total)",
                          self._item.getItemPath(), self._name, l, len(self))
 
+        return True
+
 
 class TransientRefDict(RefDict):
 
@@ -807,7 +811,7 @@ class TransientRefDict(RefDict):
         pass
 
     def check(self, item, name):
-        pass
+        return True
 
     def _load(self, key):
         return False

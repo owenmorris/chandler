@@ -156,7 +156,7 @@ class Repository(object):
 
     def check(self):
 
-        self.view.check()
+        return self.view.check()
 
     def getUUID(self):
 
@@ -356,13 +356,16 @@ class RepositoryView(object):
     def check(self):
 
         def apply(item):
-
-            item.check()
+            result = item.check()
             for child in item:
-                apply(child)
+                result = result and apply(child)
+            return result
 
+        result = True
         for root in self.getRoots():
-            apply(root)
+            result = result and apply(root)
+
+        return result
 
     def hasRoot(self, name, load=True):
 

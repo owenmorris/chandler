@@ -33,7 +33,7 @@ class BasicRepositoryTest(unittest.TestCase):
     def testCreate(self):
         """ Create a repository and make sure it is open """
         self.rep.create()
-        self.rep.check()
+        self.assert_(self.rep.check())
         self.assert_(self.rep.isOpen())
 
     def testDestroy(self):
@@ -48,11 +48,10 @@ class BasicRepositoryTest(unittest.TestCase):
 TODO is there more pack testing we need to do?
         """
         self.rep.create()
-        self.rep.check()
+        self.assert_(self.rep.check())
         schemaPack = os.path.join(self.rootdir, 'repository', 'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
-        self.rep.check()
-        self.assert_(True)
+        self.assert_(self.rep.check())
     
     def tearDown(self):
         self.rep.close()

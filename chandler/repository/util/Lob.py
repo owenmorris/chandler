@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.util.Streams import BZ2OutputStream, BZ2InputStream
+from repository.util.Streams import ZlibOutputStream, ZlibInputStream
 from repository.util.Streams import OutputStreamWriter, InputStreamReader
 from repository.util.Streams import BufferedOutputStream, BufferedInputStream
 
@@ -22,17 +23,31 @@ class Lob(object):
     def getOutputStream(self, compression=None):
 
         outputStream = self._getBufferedOutputStream()
-        if compression == 'bz2':
-            outputStream = BZ2OutputStream(outputStream)
-            self._compression = compression
+
+        if compression:
+            if compression == 'bz2':
+                outputStream = BZ2OutputStream(outputStream)
+            elif compression == 'zlib':
+                outputStream = ZlibOutputStream(outputStream)
+            else:
+                raise ValueError, '%s compression not supported' %(compression)
+
+        self._compression = compression
 
         return outputStream
 
     def getInputStream(self):
 
         inputStream = self._getBufferedInputStream()
-        if self._compression == 'bz2':
-            inputStream = BZ2InputStream(inputStream)
+        compression = self._compression
+
+        if compression:
+            if compression == 'bz2':
+                inputStream = BZ2InputStream(inputStream)
+            elif compression == 'zlib':
+                inputStream = ZlibInputStream(inputStream)
+            else:
+                raise ValueError, '%s compression not supported' %(compression)
 
         return inputStream
 
