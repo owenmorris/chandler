@@ -107,8 +107,10 @@ def main():
                 print "newDir =", newDir
                 os.rename(os.path.join(buildDir, "output"), newDir)
                 log.write("Calling CreateIndex with " + newDir + "\n")
-                CreateIndex(outputDir, buildVersion)
+                if os.path.exists(outputDir+os.sep+"index.html"):
+                    os.remove(outputDir+os.sep+"index.html")
                 RotateDirectories(outputDir)
+                CreateIndex(outputDir, buildVersion)
             else:
                 print "There were no changes"
                 log.write("There were no changes in CVS\n")
@@ -160,12 +162,11 @@ def RotateDirectories(dir):
 def CreateIndex(outputDir, newDirName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
-    fileOut = file(outputDir+os.sep+"index.html.new", "w")
+    fileOut = file(outputDir+os.sep+"index.html", "w")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
-        fileOut.write("<p><a href=newDirName/" + actual + ">" +x+ "</a></p>\n")
+        fileOut.write("<p><a href="+newDirName+"/"+actual+">"+x+"</a></p>\n")
     fileOut.close()
-    os.rename(outputDir+os.sep+"index.html.new", outputDir+os.sep+"index.html")
 
 def _readFile(path):
     fileIn = open(path, "r")
