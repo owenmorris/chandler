@@ -51,6 +51,7 @@ _treeList = [
         'Ticker',
         'Choicebook',
         'ListCtrl_edit',
+        'ColumnHeader',
         ]),
 
     # managed windows == things with a (optional) caption you can close
@@ -92,7 +93,6 @@ _treeList = [
         'CheckListBox',
         'Choice',
         'Choicebook',
-        'ColumnHeader',
         'ComboBox',
         'Gauge',
         'Grid',
