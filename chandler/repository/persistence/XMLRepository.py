@@ -92,7 +92,7 @@ class XMLRepository(OnDemandRepository):
 
     def _lockOpen(self):
         
-        fd = lock.open(os.path.join(self.dbHome, '__lock__'))
+        fd = lock.open('__repository__.lock')
         if not lock.lock(fd, lock.LOCK_SH | lock.LOCK_NB):
             lock.close(fd)
             raise RepositoryOpenDeniedError
