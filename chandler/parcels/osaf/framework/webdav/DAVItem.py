@@ -4,6 +4,8 @@ import davlib
 import httplib
 import libxml2
 
+import Dav
+
 class BadItem(Exception):
     pass
 
@@ -45,6 +47,9 @@ class DAVItem(object):
         # an item that was already shared (and hence has a url and an etag
         # already.  This might be the best solution.
         r = self.dav.newConnection().propfind(url, body, depth)
+
+        if r.status == 404:
+            raise Dav.NotFound
 
         xmlgoop = r.read()
 

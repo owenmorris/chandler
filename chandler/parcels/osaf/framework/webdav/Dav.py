@@ -12,6 +12,11 @@ import Sync
    the right thing automatically.  Wouldn't that be nice.
 """
 
+class DAVException(Exception):
+    pass
+class NotFound(DAVException):
+    pass
+
 class DAV(object):
     def __init__(self, resourceURL):
         super(DAV, self).__init__()
@@ -31,7 +36,10 @@ class DAV(object):
         # return status.. or maybe just throw an exception if the put failed
 
     def getHeaders(self):
-        return self.newConnection().head(unicode(self.url))
+        r = self.newConnection().head(unicode(self.url))
+        if r.status == 404:
+            raise NotFound
+        return r
 
     def _getETag(self):
         return self.getHeaders().getheader('ETag', default='')
@@ -42,14 +50,26 @@ class DAV(object):
 
     def get(self):
         """ returns a newly created Item """
-        return Sync.getItem(self)
+        try:
+            return Sync.getItem(self)
+        except NotFound:
+            return None
 
     def put(self, item):
         # add an entry here to say that we're already here
         sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 
         sharing.itemMap[item.itsUUID] = item.itsUUID
+        
+        if item.hasAttributeValue('sharedURL'):
+            # we only support you sharing to a single URL at the moment
+            # it is an error to try and share to another place..
+            if item.sharedURL != self.url:
+                print 'Warning: trying to share %s to %s' % (unicode(item.sharedURL), unicode(self.url))
+            # for now, force our current url to be the shared url
+            self.url = item.sharedURL
+        else:
+            item.sharedURL = self.url
 
-        item.sharedURL = self.url
         self.sync(item)
 
     def sync(self, item):
