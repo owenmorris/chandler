@@ -25,30 +25,14 @@
 # can be useful for creating a module that consists of many directories
 # spread out over the entire source repository.
 
-Chandler osaf/chandler/Chandler
+chandler-python -a \
+    chandler \
+    hardhat
 
-chandler  osaf/chandler/Chandler
-
-hardhat osaf/hardhat
-
-chandler-app -a \
-    osaf/chandler/Chandler \
-    osaf/hardhat
-
-chandler-system -a \
-    osaf/chandler/Chandler \
-    osaf/chandler/egenix-mx \
-    osaf/chandler/jabber-py \
-    osaf/chandler/persistence \
-    osaf/chandler/pychecker \
-    osaf/chandler/python \
-    osaf/chandler/epydoc \
-    osaf/chandler/pyxml \
-    osaf/chandler/SOAPpy \
-    osaf/chandler/openssl \
-    osaf/chandler/m2crypto \
-    osaf/chandler/pyegads \
-    internal/wxPython-2.5 \
-    osaf/hardhat
+chandler-all -a \
+    external \
+    internal \
+    chandler \
+    hardhat
 	
-0.3 osaf/chandler/Chandler/distrib/docs
+0.3 chandler/distrib/docs
