@@ -160,10 +160,10 @@ class RefContainer(DBContainer):
             key = item.getUUID()._uuid
 
             try:
-                val = cursor.set_range(key, flags=DB_DIRTY_READ)
-                while val is not None and val[0].startswith(key):
+                value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                while value is not None and value[0].startswith(key):
                     cursor.delete()
-                    val = cursor.next()
+                    value = cursor.next()
             except DBNotFoundError:
                 pass
 
@@ -210,7 +210,12 @@ class VerContainer(DBContainer):
                 else:
                     return None
 
-                value = cursor.next()
+                while True:
+                    try:
+                        value = cursor.next()
+                        break
+                    except DBLockDeadlockError:
+                        self._logDL(4)
 
         finally:
             if cursor:
@@ -239,7 +244,12 @@ class VerContainer(DBContainer):
                     if docVersion <= version:
                         return unpack('>l', value[1])[0]
                         
-                    value = cursor.next()
+                    while True:
+                        try:
+                            value = cursor.next()
+                            break
+                        except DBLockDeadlockError:
+                            self._logDL(5)
                         
                 return None
 

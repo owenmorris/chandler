@@ -15,6 +15,8 @@ from repository.item.ItemHandler import ItemHandler, ItemsHandler
 from repository.item.ItemRef import ItemStub, DanglingRefError
 from repository.persistence.PackHandler import PackHandler
 
+from PyLucene import attachCurrentThread
+
 
 class RepositoryError(ValueError):
     "All repository related exceptions go here"
@@ -83,6 +85,9 @@ class Repository(object):
     
     def close(self, purge=False):
         pass
+
+    def closeView(self, purge=False):
+        self.view.close()
 
     def commit(self, purge=False):
 
@@ -207,7 +212,7 @@ class RepositoryView(object):
         self._childrenRegistry = {}
         self._stubs = []
         self._status = RepositoryView.OPEN
-
+        
         repository.store.attachView(self)
 
     def __str__(self):
@@ -229,6 +234,10 @@ class RepositoryView(object):
     def getTextType(self):
 
         raise NotImplementedError, "RepositoryView.getTextType"
+
+    def closeView(self):
+
+        self.close()
 
     def close(self):
 
@@ -800,3 +809,20 @@ class RepositoryNotifications(dict):
                     callback(uuid, 'History', reason, **kwds)
 
         self.clear()
+
+
+class RepositoryThread(threading.Thread):
+
+    def __init__(self, repository, *args, **kwds):
+
+        self.repository = repository
+        super(RepositoryThread, self).__init__(*args, **kwds)
+
+    def run(self):
+
+        try:
+            result = attachCurrentThread(super(RepositoryThread, self))
+        finally:
+            self.repository.closeView()
+
+        return result
