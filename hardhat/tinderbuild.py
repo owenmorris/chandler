@@ -61,7 +61,7 @@ def main():
 
         startInt = int(time.time())
 
-        if False and ( (startInt - (5 * 60)) < prevStartInt):
+        if ((startInt - (5 * 60)) < prevStartInt):
             print "Sleeping 5 minutes (" + buildName + ")"
             time.sleep(5 * 60)
             # re-fetch start time now that we've slept
