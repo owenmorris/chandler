@@ -24,15 +24,15 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.rep.commit()
 
         simpleParcel = self.rep.find("//parcels/simple")
-        self.assert_(simpleParcel.kind ==
+        self.assertEqual(simpleParcel.kind,
          self.rep.find('//Schema/Core/Parcel'))
 
         testAttribute = self.rep.find("//parcels/simple/TestAttribute")
-        self.assert_(testAttribute.kind ==
+        self.assertEqual(testAttribute.kind,
          self.rep.find('//Schema/Core/Attribute'))
 
         testKind = self.rep.find("//parcels/simple/TestKind")
-        self.assert_(testKind.kind ==
+        self.assertEqual(testKind.kind,
          self.rep.find('//Schema/Core/Kind'))
 
 
