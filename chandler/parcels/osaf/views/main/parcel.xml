@@ -1348,12 +1348,12 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="doc:SelectionChanged"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChangeLayout"/>
   </Toolbar>
 
-  <BlockEvent itemName="SelectionChanged">
-    <methodName>onSelectionChanged</methodName>
-    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  <BlockEvent itemName="ChangeLayout">
+    <methodName>onChangeLayoutEvent</methodName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <!--
@@ -1366,7 +1366,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="doc:SelectionChanged"/>
+    <event itemref="doc:ChangeLayout"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton">
@@ -1376,7 +1376,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="doc:SelectionChanged"/>
+    <event itemref="doc:ChangeLayout"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton">
@@ -1386,7 +1386,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="doc:SelectionChanged"/>
+    <event itemref="doc:ChangeLayout"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton">
@@ -1396,7 +1396,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="doc:SelectionChanged"/>
+    <event itemref="doc:ChangeLayout"/>
   </ToolbarItem>
 
 

@@ -681,7 +681,7 @@ class Table(RectangularChild):
         self.selection = notification.data['item']
         self.widget.GoToItem (self.selection)
 
-    def onSelectionChangedSentToSidebarEvent (self, notification):
+    def onRequestSelectSidebarItemEvent (self, notification):
         # Request the sidebar to change selection
         # Item specified is usually by name
         try:
@@ -704,7 +704,7 @@ class Table(RectangularChild):
                    ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':item})
 
-    def onSelectionChangedBroadcastEverywhereEvent (self, notification):
+    def onRequestSelectItemEvent (self, notification):
         # request the Table part of the Active View to change selection
         newSelection = notification.data['item']
         if newSelection in self.contents:
@@ -1046,7 +1046,10 @@ class ItemDetail(RectangularChild):
         """
         self.selection = notification.data['item']
         self.synchronizeWidget ()
-        
+
+class wxScrolledWindow (wx.ScrolledWindow):
+    pass
+
 class SelectionContainer(BoxContainer):
     """
     SelectionContainer
@@ -1055,6 +1058,28 @@ class SelectionContainer(BoxContainer):
     def __init__(self, *arguments, **keywords):
         super (SelectionContainer, self).__init__ (*arguments, **keywords)
         self.selection = None
+
+    def xinstantiateWidget (self):
+        # DLDTBD - figure out how to share this code with BoxContainer
+        if self.orientationEnum == 'Horizontal':
+            orientation = wx.HORIZONTAL
+        else:
+            orientation = wx.VERTICAL
+
+        sizer = wx.BoxSizer(orientation)
+        sizer.SetMinSize((200,200))
+
+        if self.parentBlock:
+            parentWidget = self.parentBlock.widget
+        else:
+            parentWidget = Globals.wxApplication.mainFrame
+ 
+        widget = wxScrolledWindow (parentWidget, Block.getWidgetID(self), \
+                                   size=(300,300), style=wx.VSCROLL)
+        widget.SetSizerAndFit (sizer)
+
+        widget.Show (self.isShown)
+        return widget
 
     def onSelectionChangedEvent (self, notification):
         """
@@ -1067,7 +1092,7 @@ class SelectionContainer(BoxContainer):
         # return the item being viewed
         return self.selection
     
-class ContentItemDetail(SelectionContainer):
+class ContentItemDetail(BoxContainer):
     """
     ContentItemDetail
     Any container block in the Content Item's Detail View hierarchy.

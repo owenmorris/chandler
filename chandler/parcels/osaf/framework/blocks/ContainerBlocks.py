@@ -136,7 +136,7 @@ class ChoiceContainer(BoxContainer):
         self.widget.setSelectedChoice(selectionIndex)
         self.synchronizeWidget()
 
-    def onSelectionChanged(self, notification):
+    def onChangeLayoutEvent(self, notification):
         # @@@ On the Mac, radio buttons do not work as radio
         # buttons, but rather they behave as individual toggle
         # buttons.  As a workaround, we deselect the other 

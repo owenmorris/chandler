@@ -125,22 +125,22 @@ class MainView(View):
         newItem.InitOutgoingAttributes ()
         Globals.repository.commit()
 
-        # lookup our selectionChangedEvents
+        # lookup our Request Select Events
         rootPath = '//parcels/osaf/framework/blocks/Events/'
-        sidebarSelectionChanged = Globals.repository.findPath \
-                                (rootPath + 'SelectionChangedSentToSidebar')
-        activeViewSelectionChanged = Globals.repository.findPath \
-                                   (rootPath + 'SelectionChangedBroadcastEverywhere')
+        requestSelectSidebarItem = Globals.repository.findPath \
+                                (rootPath + 'RequestSelectSidebarItem')
+        requestSelectItem = Globals.repository.findPath \
+                                   (rootPath + 'RequestSelectItem')
 
         # Tell the sidebar we want to go to the 'All' box
         args = {}
         args['itemName'] = 'AllTableView'
-        self.Post(sidebarSelectionChanged, args)
+        self.Post(requestSelectSidebarItem, args)
 
         # Tell the ActiveView to select our new item
         args = {}
         args['item'] = newItem
-        self.Post(activeViewSelectionChanged, args)
+        self.Post(requestSelectItem, args)
 
     def onNewEventUpdateUI (self, notification):
         notification.data ['Enable'] = True
