@@ -34,7 +34,7 @@ chandler-source -a \
     osaf/chandler/egenix-mx-base-2.0.4 \
     osaf/chandler/hardhat \
     osaf/chandler/wxWindows \
-    osaf/chandler/wx-Windows-2.4
+    osaf/chandler/wxWindows-2.4
 
 
 
