@@ -9,12 +9,14 @@
 	}
 
 .indentTitle {
-	font-weight: bold;
-	}
-
-.indentTitle {
-    padding-left:10px;
-	padding-top: 5px;
+border-width: 1px;
+border-style:solid;
+padding: 5px;
+background-color:#F0F0F0;
+margin-left:10px;
+margin-right:10px;
+margin-top:5px;
+font-weight: bold;
 }
 
 .examples, .issues, .sentenceAttributes {
@@ -59,7 +61,7 @@
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
-.topDetailBox, .detailBox, .sectionBox, .inheritanceBox {
+.topDetailBox, .sectionBox, .inheritanceBox {
 margin-bottom: 10px;
 border-width: 1px;
 padding: 5px;
@@ -84,11 +86,27 @@ background-color:#C5CAEB;
 }
 
 .detailBox {
-margin-top: 5px;
+border-width: 1px;
+padding: 5px;
+border-style:solid;
 background-color:#F0F0F0;
 margin-left:10px;
 margin-right:10px;
+margin-bottom:5px;
 }
+
+.attributeBox {
+border-bottom-width: 1px;
+border-left-width: 1px;
+border-right-width: 1px;
+border-bottom-style:solid;
+border-left-style:solid;
+border-right-style:solid;
+padding: 5px;
+margin-left:10px;
+margin-right:10px;
+}
+
 
 .detailBox ul {
 padding:0px;
