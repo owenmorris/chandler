@@ -1070,6 +1070,8 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 
 def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
 
+    sourceName = module + "_src_" + releaseId
+
     os.chdir(buildenv['osafroot'])
 
     if os.path.exists("osaf"):
@@ -1088,14 +1090,15 @@ def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
 	"Checking out " + cvsModule + " from CVS")
 
 	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
-	"Tarring current source")
+	 [buildenv['tar'], "cvf", sourceName+".tar", "osaf"], 
+	"Tarring current source to " + sourceName+".tar")
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Renaming latest-temp.tar latest.tar")
+	 "Copying " +sourceName+".tar to latest.tar")
 	if os.path.exists("latest.tar"):
 	    os.remove("latest.tar")
-	os.rename("latest-temp.tar", "latest.tar")
+	shutil.copy(sourceName+".tar", "latest.tar")
+
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Skipping checkout")
