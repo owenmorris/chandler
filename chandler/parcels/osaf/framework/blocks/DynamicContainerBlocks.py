@@ -19,7 +19,8 @@ class RefCollectionDictionary(object):
     the name accessor if you want to use something other than
     itsName to key the items in the collection.
     """
-    def __init__(self):
+    def __init__(self, *args, **kwds):
+        super(RefCollectionDictionary, self).__init__(*args, **kwds)
         # ensure that the collectionSpecifier exists
         if not self.hasAttributeValue(self.collectionSpecifier()):
             self.setAttributeValue(self.collectionSpecifier(), [])
@@ -57,7 +58,11 @@ class RefCollectionDictionary(object):
         @return: a C{Tuple} containing C{(item, collection)} or raises an exception if not found.
         """
         coll = self.getAttributeValue(self.collectionSpecifier())
-        return (coll.getByAlias(key), coll)
+        i = coll.getByAlias(key)
+        # DLDTBD - fix or remove!
+        if i is True:
+            i = None
+        return (i, coll)
         
     def index(self, key):
         """
@@ -126,7 +131,8 @@ class RefCollectionDictionary(object):
         """
         itemIndex, coll = self._index(key) # find the keyed item
         self.insert(itemIndex, value) # insert before
-        coll.removeItem(itemIndex) # remove keyed original
+        if itemIndex is not None:
+            coll.removeItem(itemIndex) # remove keyed original
             
     def insert(self, index, item):
         """
@@ -153,7 +159,12 @@ class RefCollectionDictionary(object):
         itemIndex, coll = self._index(key)
         coll.removeItem(itemIndex)
 
-class DynamicChild (object):
+
+class DynamicBlock (object):
+    # Abstract mixin class used to detect Dynamic blocks
+    pass
+
+class DynamicChild (DynamicBlock):
     # Abstract mixin class used to detect DynamicChild blocks
     pass
 
@@ -170,12 +181,30 @@ class DynamicContainer(RefCollectionDictionary):
         """
         return item.blockName
     
-    def rebuildDynamicContainers(cls, startingAtBlock, firstTime):
+    def ensureDynamicChildren(self):
         """
-           rebuildDynamicContainers rebuilds the dynamic
+          Make sure we have a DynamicChildren hierarchy, since all my
+        subclasses use that hierarchy when they synchronize.
+        If there is no DynamicChildren built, then initialize it from
+        the childrenBlocks hierarchy.
+        """
+        try:
+            children = len(self.dynamicChildren)
+        except attributeError:
+            children = 0
+        if not children:
+            # copy our static children as a useful starting point
+            self.dynamicChildren.clear()
+            for block in self.childrenBlocks:
+                self[block.blockName] = block
+
+    def synchronizeDynamicBlocks(cls, startingAtBlock):
+        """
+           synchronizeDynamicBlocks rebuilds the dynamic
         container hierarchy based on the blocks it finds in
-        a root section of the static block hierarchy.  Dynamic
-        associations between blocks are done by itemName, 
+        a root section of the static block hierarchy and then
+        calls synchronizeWidget on each container.  Dynamic
+        associations between blocks are done by blockName, 
         which must be unique.  Upon exit all DynamicContainer
         blocks found will have references to all dynamicChildren
         found, and those blocks will have an inverse reference
@@ -195,9 +224,6 @@ class DynamicContainer(RefCollectionDictionary):
 
         @param startingAtBlock: the starting block for the scan.
         @type startingAtBlock: C{Block}
-        @param firstTime: a flag used to determine if
-                we should force a rebuilt the dynamic container hierarchy.
-        @type firstTime: C{Boolean}
         """
         
         def rebuildContainers(block, containers):
@@ -205,12 +231,15 @@ class DynamicContainer(RefCollectionDictionary):
               scan one level of the static hierarchy looking for dynamic containers.
             """
             parent = block.parentBlock
-            if (parent):
+            if parent is not None:
                 rebuildContainers (parent, containers)
             for child in block.childrenBlocks:
                 # pick up container definitions
                 if isinstance (child, DynamicContainer):
-                    child.dynamicChildren = [] # rebuild children from scratch
+                    # initialize dynamic children starting with the static hierarchy
+                    child.dynamicChildren.clear()
+                    for block in child.childrenBlocks:
+                        child[block.blockName] = block
                     containers [child.blockName] = child
                                            
         def rebuildChildren(block, containers):
@@ -218,7 +247,7 @@ class DynamicContainer(RefCollectionDictionary):
               scan one level of the static hierarchy looking for dynamic children.
             """
             parent = block.parentBlock
-            if (parent):
+            if parent is not None:
                 rebuildChildren (parent, containers)
             for child in block.childrenBlocks:
                 # pick up children
@@ -232,8 +261,10 @@ class DynamicContainer(RefCollectionDictionary):
                     bar (bar needs to be listed before items).
                         """
                     locationName = child.location
-                    if not locationName:
+                    if locationName == '':
                         locationName = 'MenuBar'
+                    if locationName == 'inParentBlock':
+                        locationName = child.parentBlock.blockName
                     bar = containers [locationName]
                     
                     if child.operation == 'InsertBefore':
@@ -255,14 +286,6 @@ class DynamicContainer(RefCollectionDictionary):
                     else:
                        assert (False)
         """
-          Should we rebuild the dynamic container hierarchy?
-        Not needed if this is not the first time building
-        and we're currently ignoring synchronize widget.
-        """
-        if not firstTime and Globals.wxApplication.ignoreSynchronizeWidget:
-            return
-        
-        """
           Rebuild the dynamic container hierarchy.
         First establish all containers, then insert their children
         so the block declarations can be order-independent.
@@ -280,8 +303,14 @@ class DynamicContainer(RefCollectionDictionary):
             assert isinstance(menu, Menu), "Non-Menu block named %s found in \
                  Menu Bar (specify a location attribute)" % menu.blockName 
         for bar in containers.values():
-            bar.synchronizeWidget()
-    rebuildDynamicContainers=classmethod(rebuildDynamicContainers)
+            """
+            DLDTBD - call synchronizeWidget instead.
+            Can't call synchronizeWidget because IgnoreSynchronizeWidget
+            is true because we're in Tab's synchronizeWidget.
+            """
+            if hasattr(bar, 'widget'):
+                bar.widget.wxSynchronizeWidget()
+    synchronizeDynamicBlocks=classmethod(synchronizeDynamicBlocks)
 
 class wxMenuItem (wx.MenuItem):
     def __init__(self, style, *arguments, **keywords):
@@ -350,7 +379,7 @@ class wxMenu(wx.Menu):
         self.blockItem.synchronizeItems()
     """
       wxWindows doesn't implement convenient menthods for dealing
-    with menus, so we'll write our own: getMenuItems, deleteItem
+    with menus, so we'll write our own: getMenuItems, removeItem
     getItemTitle, and setMenuItem
     """
     def getMenuItems (self):
@@ -361,15 +390,15 @@ class wxMenu(wx.Menu):
         title = self.GetLabel (id)
         return title
     
-    def deleteItem (self, index, oldItem):
-        self.DestroyItem (oldItem)
+    def removeItem (self, index, oldItem):
+        self.RemoveItem (oldItem)
             
     def setMenuItem (self, newItem, oldItem, index):
         # now set the menu item
         itemsInMenu = self.GetMenuItemCount()
         assert (index <= itemsInMenu)
         if index < itemsInMenu:
-            self.deleteItem (index, oldItem)
+            self.removeItem (index, oldItem)
         if isinstance (newItem.widget, wxMenuItem):
             success = self.InsertItem (index, newItem.widget)
             assert success
@@ -389,7 +418,7 @@ class wxMenuBar(wx.MenuBar):
             
     """
       wxWindows doesn't implement convenient menthods for dealing
-    with menus, so we'll write our own: getMenuItems, deleteItem
+    with menus, so we'll write our own: getMenuItems, removeItem
     getItemTitle, and setMenuItem
     """
     def getMenuItems (self):
@@ -402,9 +431,8 @@ class wxMenuBar(wx.MenuBar):
         title = wxMenuObject.GetLabelTop (index)
         return title
     
-    def deleteItem (self, index, oldItem):
+    def removeItem (self, index, oldItem):
         oldMenu = self.Remove (index)
-        oldMenu.Destroy()
         
     def setMenuItem (self, newItem, oldItem, index):
         itemsInMenu = self.GetMenuCount()
@@ -413,7 +441,6 @@ class wxMenuBar(wx.MenuBar):
         if index < itemsInMenu:
             oldMenu = self.Replace (index, newItem.widget, title)
             assert oldMenu == oldItem
-            oldMenu.Destroy()
         else:
             success = self.Append (newItem.widget, title)
             assert success
@@ -429,6 +456,7 @@ class MenuItem (Block.Block, DynamicChild):
         
 class MenuBar(Block.Block, DynamicContainer):
     def instantiateWidget (self):
+        self.ensureDynamicChildren ()
         return wxMenuBar()
 
     def synchronizeItems(self):
@@ -441,28 +469,29 @@ class MenuBar(Block.Block, DynamicContainer):
         index = 0
         for menuItem in self.dynamicChildren:
             # ensure that the menuItem has been instantiated
-            if not menuItem.hasAttributeValue("widget"):
+            if not hasattr (menuItem, "widget"):
                 menuItem.widget = menuItem.instantiateWidget()
                 menuItem.widget.blockItem = menuItem
-            menuItem.widget.wxSynchronizeWidget()
+                menuItem.widget.wxSynchronizeWidget()
 
             try:
                 oldItem = oldMenuList.pop(0)
             except IndexError:
                 oldItem = None
 
-            if not menuItem is oldItem:
+            if oldItem is None or menuItem.widget.this is not oldItem.this:
                 # set the new item in the menu
                 self.widget.setMenuItem (menuItem, oldItem, index)
 
             index += 1
                 
         for oldItem in oldMenuList:
-            self.widget.deleteItem (index, oldItem)
+            self.widget.removeItem (index, oldItem)
             index += 1
 
 class Menu(MenuBar, DynamicChild):
     def instantiateWidget (self):
+        self.ensureDynamicChildren ()
         return wxMenu()
     
 """  
@@ -510,6 +539,7 @@ class wxToolbar(wx.ToolBar):
             
 class Toolbar(Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
+        self.ensureDynamicChildren ()
         return wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,

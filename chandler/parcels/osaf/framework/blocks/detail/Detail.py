@@ -365,7 +365,7 @@ class ToEditField (EditTextAttribute):
             return
         try:
             numContacts = len(whoContacts)
-        except:
+        except TypeError:
             numContacts = 0            
         if numContacts > 0:
             whoNames = []

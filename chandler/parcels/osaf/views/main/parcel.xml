@@ -186,33 +186,66 @@
     <blockName>FileMenu</blockName>
     <title>&amp;File</title>
     <location>MenuBar</location>
+    <childrenBlocks itemref="doc:NewTabItem"/>
+    <childrenBlocks itemref="doc:CloseTabItem"/>
+    <childrenBlocks itemref="doc:FileSeparator1"/>
+    <childrenBlocks itemref="doc:QuitItem"/>
   </Menu>
 
   <Menu itsName="EditMenu">
     <blockName>EditMenu</blockName>
     <title>&amp;Edit</title>
     <location>MenuBar</location>
+    <childrenBlocks itemref="doc:UndoItem"/>
+    <childrenBlocks itemref="doc:RedoItem"/>
+    <childrenBlocks itemref="doc:EditSeparator1"/>
+    <childrenBlocks itemref="doc:CutItem"/>
+    <childrenBlocks itemref="doc:CopyItem"/>
+    <childrenBlocks itemref="doc:PasteItem"/>
+    <childrenBlocks itemref="doc:EditSeparator2"/>
+    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
+    <childrenBlocks itemref="doc:EditSeparator3"/>
+    <childrenBlocks itemref="doc:PreferencesItem"/>
   </Menu>
     
   <Menu itsName="ViewMenu">
     <blockName>ViewMenu</blockName>
     <title>&amp;View</title>
     <location>MenuBar</location>
+    <childrenBlocks itemref="doc:ViewSideBarItem"/>
+    <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
+    <childrenBlocks itemref="doc:ViewStatusBarItem"/>
   </Menu>
 
   <Menu itsName="TestMenu">
     <blockName>TestMenu</blockName>
     <title>&amp;Test</title>
+    <childrenBlocks itemref="doc:GenerateAllItem"/>
+    <childrenBlocks itemref="doc:GenerateContactItem"/>
+    <childrenBlocks itemref="doc:GenerateCalendarItem"/>
+    <childrenBlocks itemref="doc:GenerateNoteItem"/>
+    <childrenBlocks itemref="doc:ImportContactItem"/>
+    <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:ReloadParcelsItem"/>
+    <childrenBlocks itemref="doc:CommitRepositoryItem"/>
+    <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
   </Menu>
   
   <Menu itsName="HelpMenu">
     <blockName>HelpMenu</blockName>
     <title>&amp;Help</title>
+    <childrenBlocks itemref="doc:AboutChandlerItem"/>
   </Menu>
  
   <!-- the Menu Bar -->
   <MenuBar itsName="MenuBar">
     <blockName>MenuBar</blockName>
+    <childrenBlocks itemref="doc:FileMenu"/>
+    <childrenBlocks itemref="doc:EditMenu"/>
+    <childrenBlocks itemref="doc:ViewMenu"/>
+    <childrenBlocks itemref="doc:TestMenu"/>    
+    <childrenBlocks itemref="doc:HelpMenu"/>
   </MenuBar>
 
   <!--
@@ -432,6 +465,19 @@
     <title>Add Additional Views</title>
     <location>TestMenu</location>
     <helpString>Add views to the sidebar</helpString>
+
+    <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
+    <childrenBlocks itemref="doc:TestSeparator1"/>
+    <childrenBlocks itemref="doc:AddDemoViewItem"/>
+    <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
+    <childrenBlocks itemref="doc:AddMixedViewItem"/>
+    <childrenBlocks itemref="doc:TestSeparator2"/>
+    <childrenBlocks itemref="doc:AddNoteViewItem"/>
+    <childrenBlocks itemref="doc:AddTaskViewItem"/>
+    <childrenBlocks itemref="doc:AddMailViewItem"/>
+    <childrenBlocks itemref="doc:AddKindViewsItem"/>
+    <childrenBlocks itemref="doc:TestSeparator3"/>
+    <childrenBlocks itemref="doc:AddStockQuoteItem"/>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -538,23 +584,23 @@
   <Toolbar itemName="NavigationBar"
            itemClass="osaf.framework.blocks.NavigationBlocks.NavigationBar">
     <blockName>NavigationBar</blockName>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="doc:GoBackButton"/>
-    <dynamicChildren itemref="doc:GoForwardButton"/>
-    <dynamicChildren itemref="doc:Spacer1"/>
-    <dynamicChildren itemref="doc:SyncButton"/>
-    <dynamicChildren itemref="doc:NewButton"/>
-    <dynamicChildren itemref="doc:ReplyButton"/>
-    <dynamicChildren itemref="doc:DiscussButton"/>
-    <dynamicChildren itemref="doc:ForwardButton"/>
-    <dynamicChildren itemref="doc:Spacer2"/>
-    <dynamicChildren itemref="doc:DeleteButton"/>
-    <dynamicChildren itemref="doc:JunkButton"/>
-    <dynamicChildren itemref="doc:Spacer3"/>
-    <dynamicChildren itemref="doc:FontsButton"/>
-    <dynamicChildren itemref="doc:PrintButton"/>
-    <dynamicChildren itemref="doc:Spacer4"/>
-    <dynamicChildren itemref="doc:SearchBox"/>
+    <!-- Children -->
+    <childrenBlocks itemref="doc:GoBackButton"/>
+    <childrenBlocks itemref="doc:GoForwardButton"/>
+    <childrenBlocks itemref="doc:Spacer1"/>
+    <childrenBlocks itemref="doc:SyncButton"/>
+    <childrenBlocks itemref="doc:NewButton"/>
+    <childrenBlocks itemref="doc:ReplyButton"/>
+    <childrenBlocks itemref="doc:DiscussButton"/>
+    <childrenBlocks itemref="doc:ForwardButton"/>
+    <childrenBlocks itemref="doc:Spacer2"/>
+    <childrenBlocks itemref="doc:DeleteButton"/>
+    <childrenBlocks itemref="doc:JunkButton"/>
+    <childrenBlocks itemref="doc:Spacer3"/>
+    <childrenBlocks itemref="doc:FontsButton"/>
+    <childrenBlocks itemref="doc:PrintButton"/>
+    <childrenBlocks itemref="doc:Spacer4"/>
+    <childrenBlocks itemref="doc:SearchBox"/>
     
     <!-- Attributes -->
     <toolSize>24,24</toolSize>
@@ -806,24 +852,6 @@
     <childrenBlocks itemref="doc:NavigationBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
     
-    <!-- NavigationBar ToolbarItems -->
-    <childrenBlocks itemref="doc:GoBackButton"/>
-    <childrenBlocks itemref="doc:GoForwardButton"/>
-    <childrenBlocks itemref="doc:Spacer1"/>
-    <childrenBlocks itemref="doc:SyncButton"/>
-    <childrenBlocks itemref="doc:NewButton"/>
-    <childrenBlocks itemref="doc:ReplyButton"/>
-    <childrenBlocks itemref="doc:DiscussButton"/>
-    <childrenBlocks itemref="doc:ForwardButton"/>
-    <childrenBlocks itemref="doc:Spacer2"/>
-    <childrenBlocks itemref="doc:DeleteButton"/>
-    <childrenBlocks itemref="doc:JunkButton"/>
-    <childrenBlocks itemref="doc:Spacer3"/>
-    <childrenBlocks itemref="doc:FontsButton"/>
-    <childrenBlocks itemref="doc:PrintButton"/>
-    <childrenBlocks itemref="doc:Spacer4"/>
-    <childrenBlocks itemref="doc:SearchBox"/>
-    
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -834,53 +862,6 @@
 
     <!-- Menus -->
     <childrenBlocks itemref="doc:MenuBar"/>
-    <childrenBlocks itemref="doc:FileMenu"/>
-    <childrenBlocks itemref="doc:NewTabItem"/>
-    <childrenBlocks itemref="doc:CloseTabItem"/>
-    <childrenBlocks itemref="doc:FileSeparator1"/>
-    <childrenBlocks itemref="doc:QuitItem"/>
-    <childrenBlocks itemref="doc:EditMenu"/>
-    <childrenBlocks itemref="doc:UndoItem"/>
-    <childrenBlocks itemref="doc:RedoItem"/>
-    <childrenBlocks itemref="doc:EditSeparator1"/>
-    <childrenBlocks itemref="doc:CutItem"/>
-    <childrenBlocks itemref="doc:CopyItem"/>
-    <childrenBlocks itemref="doc:PasteItem"/>
-    <childrenBlocks itemref="doc:EditSeparator2"/>
-    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
-    <childrenBlocks itemref="doc:EditSeparator3"/>
-    <childrenBlocks itemref="doc:PreferencesItem"/>
-    <childrenBlocks itemref="doc:ViewMenu"/>
-    <childrenBlocks itemref="doc:ViewSideBarItem"/>
-    <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
-    <childrenBlocks itemref="doc:ViewStatusBarItem"/>
-    <childrenBlocks itemref="doc:TestMenu"/>
-    <childrenBlocks itemref="doc:GenerateAllItem"/>
-    <childrenBlocks itemref="doc:GenerateContactItem"/>
-    <childrenBlocks itemref="doc:GenerateCalendarItem"/>
-    <childrenBlocks itemref="doc:GenerateNoteItem"/>
-    <childrenBlocks itemref="doc:ImportContactItem"/>
-    <childrenBlocks itemref="doc:GetNewMailItem"/>
-    <childrenBlocks itemref="doc:CheckRepositoryItem"/>
-    <childrenBlocks itemref="doc:ShowPyCrustItem"/>
-    <childrenBlocks itemref="doc:ReloadParcelsItem"/>
-    <childrenBlocks itemref="doc:CommitRepositoryItem"/>
-    <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
-    <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
-    <childrenBlocks itemref="doc:TestSeparator1"/>
-    <childrenBlocks itemref="doc:AddDemoViewItem"/>
-    <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
-    <childrenBlocks itemref="doc:AddMixedViewItem"/>
-    <childrenBlocks itemref="doc:TestSeparator2"/>
-    <childrenBlocks itemref="doc:AddNoteViewItem"/>
-    <childrenBlocks itemref="doc:AddTaskViewItem"/>
-    <childrenBlocks itemref="doc:AddMailViewItem"/>
-    <childrenBlocks itemref="doc:AddKindViewsItem"/>
-    <childrenBlocks itemref="doc:TestSeparator3"/>
-    <childrenBlocks itemref="doc:AddStockQuoteItem"/>
-    
-    <childrenBlocks itemref="doc:HelpMenu"/>
-    <childrenBlocks itemref="doc:AboutChandlerItem"/>
     
     <!-- StatusBar -->
     <childrenBlocks itemref="doc:StatusBar"/>

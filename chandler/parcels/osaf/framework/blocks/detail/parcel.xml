@@ -7,7 +7,7 @@
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail"
              itsName="detail"
-	     itemClass="osaf.framework.blocks.detail.Detail.DetailParcel"
+	         itemClass="osaf.framework.blocks.detail.Detail.DetailParcel"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
@@ -73,7 +73,19 @@
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:NotesArea"/>
-    <!-- ToolbarItems -->
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <size>80,20</size>
+    <minimumSize>80,40</minimumSize>
+    <eventBoundary>True</eventBoundary>
+    <isShown>False</isShown>
+  </ContentItemDetail>
+
+  <!-- MarkupBar -->
+  <Toolbar itemName="MarkupBar1"
+           itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
+    <blockName>MarkupBar1</blockName>
+    <!-- Children Blocks-->
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
     <childrenBlocks itemref="doc:SharingButton"/>
@@ -90,35 +102,6 @@
     <childrenBlocks itemref="doc:QueuedFlag"/>
     <childrenBlocks itemref="doc:Spacer3"/>
     <childrenBlocks itemref="doc:PrivateButton"/>
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <size>80,20</size>
-    <minimumSize>80,40</minimumSize>
-    <eventBoundary>True</eventBoundary>
-    <isShown>False</isShown>
-  </ContentItemDetail>
-
-  <!-- MarkupBar -->
-  <Toolbar itemName="MarkupBar1"
-           itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
-    <blockName>MarkupBar1</blockName>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="doc:TriageButton"/>
-    <dynamicChildren itemref="doc:Triage"/>
-    <dynamicChildren itemref="doc:SharingButton"/>
-    <dynamicChildren itemref="doc:TaskStamp"/>
-    <dynamicChildren itemref="doc:CalendarStamp"/>
-    <dynamicChildren itemref="doc:Spacer1"/>
-    <dynamicChildren itemref="doc:NeedsReplyButton"/>
-    <dynamicChildren itemref="doc:Spacer2"/>
-    <dynamicChildren itemref="doc:OutboxFlag"/>
-    <dynamicChildren itemref="doc:RepliedFlag"/>
-    <dynamicChildren itemref="doc:ForwardedFlag"/>
-    <dynamicChildren itemref="doc:RedirectedFlag"/>
-    <dynamicChildren itemref="doc:DraftFlag"/>
-    <dynamicChildren itemref="doc:QueuedFlag"/>
-    <dynamicChildren itemref="doc:Spacer3"/>
-    <dynamicChildren itemref="doc:PrivateButton"/>
     <!-- Attributes -->
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>16,16</toolSize>

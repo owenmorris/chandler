@@ -410,11 +410,6 @@
     <childrenBlocks itemref="view:MonthViewButton1"/>
     <childrenBlocks itemref="view:WeekViewButton1"/>
     <childrenBlocks itemref="view:DayViewButton1"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton1"/>
-    <dynamicChildren itemref="view:MonthViewButton1"/>
-    <dynamicChildren itemref="view:WeekViewButton1"/>
-    <dynamicChildren itemref="view:DayViewButton1"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -430,11 +425,6 @@
     <childrenBlocks itemref="view:MonthViewButton2"/>
     <childrenBlocks itemref="view:WeekViewButton2"/>
     <childrenBlocks itemref="view:DayViewButton2"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton2"/>
-    <dynamicChildren itemref="view:MonthViewButton2"/>
-    <dynamicChildren itemref="view:WeekViewButton2"/>
-    <dynamicChildren itemref="view:DayViewButton2"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -450,11 +440,6 @@
     <childrenBlocks itemref="view:MonthViewButton3"/>
     <childrenBlocks itemref="view:WeekViewButton3"/>
     <childrenBlocks itemref="view:DayViewButton3"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton3"/>
-    <dynamicChildren itemref="view:MonthViewButton3"/>
-    <dynamicChildren itemref="view:WeekViewButton3"/>
-    <dynamicChildren itemref="view:DayViewButton3"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -470,11 +455,6 @@
     <childrenBlocks itemref="view:MonthViewButton5"/>
     <childrenBlocks itemref="view:WeekViewButton5"/>
     <childrenBlocks itemref="view:DayViewButton5"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton5"/>
-    <dynamicChildren itemref="view:MonthViewButton5"/>
-    <dynamicChildren itemref="view:WeekViewButton5"/>
-    <dynamicChildren itemref="view:DayViewButton5"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -490,11 +470,6 @@
     <childrenBlocks itemref="view:MonthViewButton6"/>
     <childrenBlocks itemref="view:WeekViewButton6"/>
     <childrenBlocks itemref="view:DayViewButton6"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton6"/>
-    <dynamicChildren itemref="view:MonthViewButton6"/>
-    <dynamicChildren itemref="view:WeekViewButton6"/>
-    <dynamicChildren itemref="view:DayViewButton6"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>

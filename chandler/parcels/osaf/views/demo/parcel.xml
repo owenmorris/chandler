@@ -73,8 +73,15 @@
   <Menu itsName="DemoMenu">
     <blockName>DemoMenu</blockName>
     <title>Block Demo</title>
+    <!-- location: empty string means MenuBar -->
+    <location></location>
     <itemLocation>HelpMenu</itemLocation>
     <helpString></helpString>
+
+    <childrenBlocks itemref="doc:IntroMenuItem"/>    
+    <childrenBlocks itemref="doc:ButtonsMenuItem"/>
+    <childrenBlocks itemref="doc:ControlsMenuItem"/>
+    <childrenBlocks itemref="doc:HTMLMenuItem"/>
   </Menu>
 
   <!--
@@ -407,10 +414,6 @@
 
     <!-- Menus -->
     <childrenBlocks itemref="doc:DemoMenu"/>
-    <childrenBlocks itemref="doc:IntroMenuItem"/>    
-    <childrenBlocks itemref="doc:ButtonsMenuItem"/>
-    <childrenBlocks itemref="doc:ControlsMenuItem"/>
-    <childrenBlocks itemref="doc:HTMLMenuItem"/>
 
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Tabs"/>

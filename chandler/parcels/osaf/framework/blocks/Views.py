@@ -101,22 +101,33 @@ class View(BoxContainer):
 
 
     def onSetActiveView (self, block):
+        """ 
+        Set a new Active View.
+        The Active View is the whole right hand side of Chandler, which
+        represents a coarse unit of functionality.
+        """
+        import DynamicContainerBlocks as DynamicContainerBlocks
+        Globals.activeView = block
+        # function to set and remember the dynamic Block we synch to
+        def synchToDynamicBlock(block):
+            if block != Globals.mainView.lastDynamicParent:
+                Globals.mainView.lastDynamicParent = block
+                if block is None:
+                    block = Globals.activeView
+                DynamicContainerBlocks.DynamicContainer.\
+                                      synchronizeDynamicBlocks(block)
         """
           Cruise up the parent hierarchy looking for the parent of the first
         DynamicChild (Menu, MenuBar, ToolbarItem, etc). 
         If it's not the same as the last time the focus changed then we need 
         to rebuild the Dynamic Containers.
         """
-        import DynamicContainerBlocks as DynamicContainerBlocks
-        firstTime = Globals.activeView == None
-        Globals.activeView = block
         while (block):
             for child in block.childrenBlocks:
-                if isinstance (child, DynamicContainerBlocks.DynamicChild):
-                    if block != Globals.mainView.lastDynamicParent:
-                        Globals.mainView.lastDynamicParent = block
-                        DynamicContainerBlocks.DynamicContainer.\
-                                              rebuildDynamicContainers(block, firstTime)
+                if isinstance (child, DynamicContainerBlocks.DynamicBlock):
+                    synchToDynamicBlock(block)
                     return
             block = block.parentBlock
+        # none found, to remove dynamic additions we synch to the Active View
+        synchToDynamicBlock(None)
             
