@@ -9,7 +9,8 @@ dependencies = (
                 'wxWindows',
                 'distutils',
                 'egenix-mx-base-2.0.4',
-                'ZODB4'
+                'ZODB4',
+                'PyXML'
                )
 
 
