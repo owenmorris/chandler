@@ -22,7 +22,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         ic = ItemCollection.NamedCollection()
         for index in range(100):
             item = GenerateItems.GenerateCalendarEvent(100)
-            ic.include(item)
+            ic.add(item)
 
             # test __contains__
             self.assert_(item in ic)
@@ -42,7 +42,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         del index
 
         # test exclude
-        ic.exclude(item)
+        ic.remove(item)
         self.assert_(item not in ic)
         
 

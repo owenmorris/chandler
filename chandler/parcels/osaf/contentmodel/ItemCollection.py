@@ -8,9 +8,7 @@ import application.Globals as Globals
 
 """
  * Need to dirty the collection when the rule attribute is changed
- * Need to figure out what remove() should actually do
- * Is it possible to remove include/exclude all together and replace them
-   with append and remove?
+ * think about implementing the full Set API
 """
 
 class ItemCollection(Item.Item):
@@ -27,13 +25,13 @@ class ItemCollection(Item.Item):
     def onItemLoad(self):
         # subscribe to query_changed notifications incase our query changes
         events = [Globals.repository.findPath('//parcels/osaf/framework/query_changed')]
-        Globals.notificationManager.Subscribe(events, id(self), self._queryChangedCallback)
+        Globals.notificationManager.Subscribe(events, self.itsUUID, self._queryChangedCallback)
 
         # refresh the result cache
         self.__refresh()
 
     def onItemUnload(self):
-        Globals.notificationManager.Unsubscribe(id(self))
+        Globals.notificationManager.Unsubscribe(self.itsUUID)
 
     def _queryChangedCallback(self, notification):
         # if the query that changed is ours, we must refresh our result cache
@@ -61,16 +59,31 @@ class ItemCollection(Item.Item):
     def __getitem__(self, index):
         return self.getRepositoryView()[self.results[index]]
 
+    def __delitem__(self, index):
+        self.__remove(self.results[index])
+
     def index(self, item):
         return self.results.index(item.itsUUID)
 
     def remove(self, item):
-        # need to define what it really means to remove an item
-        raise NotImplementedError
+        return self.__remove(item.itsUUID)
+            
+    def __remove(self, uuid):
+        if uuid not in self.results:
+            raise ValueError, 'list.remove(x): x not in list'
 
+        self.exclusions.append(uuid)
 
-    # Inclusion and Exclusion APIs
-    def include(self, item):
+        # if the item we're removing was included manually then
+        # remove it from that list
+        if uuid in self.inclusions:
+            self.inclusions.remove(uuid)
+
+        # remove it from our result cache
+        self.results.remove(uuid)
+        self.__dirty()
+
+    def add(self, item):
         uuid = item.itsUUID
 
         # don't add ourselves more than once
@@ -81,6 +94,9 @@ class ItemCollection(Item.Item):
 
         # if the item we're including was already excluded, remove it
         # from that list
+        # XXX this code could result in an item being included
+        # both specifically and by a rule.  remove will do the right
+        # thing though.
         if uuid in self.exclusions:
             self.exclusions.remove(uuid)
 
@@ -88,33 +104,18 @@ class ItemCollection(Item.Item):
             self.results.append(uuid)
             self.__dirty()
 
-    def removeInclusion(self, item):
-        uuid = item.itsUUID
-        self.inclusions.remove(uuid)
 
-        self.results.remove(uuid)
-        self.__dirty()
-
-    def exclude(self, item):
-        uuid = item.itsUUID
-
-        # don't add ourselves more than once
-        if uuid in self.exclusions:
-            return
-
-        self.exclusions.append(uuid)
-
-        # if the item we're excluded was already included, remove it
-        # from that list
-        if uuid in self.inclusions:
-            self.inclusions.remove(uuid)
-
-        if uuid in self.results:
-            self.results.remove(uuid)
-            self.__dirty()
+    # APIs to deal with exclusions
+    def iterExclusions(self):
+        repository = self.getRepositoryView()
+        results = self.exclusions
+        for uuid in results:
+            yield repository[uuid]
 
     def removeExclusion(self, item):
         self.exclusions.remove(item.itsUUID)
+        # we can't know if removing an exclusion effects the result list
+        # without rebuilding the whole thing...
         self.__refresh()
 
 
@@ -158,11 +159,11 @@ class AdHocCollection(ItemCollection):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = Globals.repository.findPath('//parcels/osaf/contentmodel/AdHocCollection')
-        super(NamedCollection, self).__init__(name, parent, kind)
+        super(AdHocCollection, self).__init__(name, parent, kind)
         
 class EphemeralCollection(ItemCollection):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = Globals.repository.findPath('//parcels/osaf/contentmodel/EphemeralCollection')
-        super(NamedCollection, self).__init__(name, parent, kind)
+        super(EphemeralCollection, self).__init__(name, parent, kind)
 

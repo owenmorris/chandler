@@ -192,9 +192,9 @@ class Block(Item):
                 try:
                     index = self.contents.index (item)
                 except ValueError:
-                    operation = 'include'
+                    operation = 'add'
                 else:
-                    operation = 'exclude'
+                    operation = 'remove'
             method = getattr (self.contents, operation)
             method (item)
 

@@ -425,7 +425,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
 
     def AddItem(self, itemUUID):
         item = Globals.repository.findUUID(itemUUID)
-        self.blockItem.contents.include(item)
+        self.blockItem.contents.add(item)
 
     def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:

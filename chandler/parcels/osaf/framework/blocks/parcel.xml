@@ -229,14 +229,14 @@
     </Attribute>
 
     <Enumeration itsName="operationType">
-      <values>include</values>
-      <values>exclude</values>
+      <values>add</values>
+      <values>remove</values>
       <values>toggle</values>
     </Enumeration>
 
     <Attribute itsName="operation">
       <type itemref="docSchema:ModifyContentsEvent/operationType"/>
-      <defaultValue type="docSchema:ModifyContentsEvent/operationType">include</defaultValue>
+      <defaultValue type="docSchema:ModifyContentsEvent/operationType">add</defaultValue>
     </Attribute>
 
     <Attribute itsName="copyItems">
