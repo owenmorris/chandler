@@ -47,7 +47,7 @@ class RepositoryView(object):
 
         return "<%s: %s>" %(type(self).__name__, self.name)
 
-    def setCurrentView(self, view=None):
+    def setCurrentView(self):
         """
         Make this view the current view for the current thread.
 
@@ -56,7 +56,7 @@ class RepositoryView(object):
         current thread.
         """
 
-        self.repository.setCurrentView(view or self)
+        return self.repository.setCurrentView(self)
 
     def _isRepository(self):
 
@@ -162,7 +162,7 @@ class RepositoryView(object):
     def _setLoading(self, loading=True):
 
         if self.repository.view is not self:
-            raise RepositoryError, "View '%s' is not current view" %(self)
+            raise RepositoryError, "In thread %s the current view is %s, not %s" %(threading.currentThread(), self.repository.view, self)
 
         status = (self._status & RepositoryView.LOADING != 0)
 
@@ -391,13 +391,13 @@ class RepositoryView(object):
         
     def _loadItemsFile(self, path, parent=None, afterLoadHooks=None):
 
-        self.logger.debug(path)
+        self.logger.debug("Loading item file: %s", path)
             
         handler = ItemsHandler(self, parent or self, afterLoadHooks)
         libxml2.SAXParseFile(handler, path, 0)
         if handler.errorOccurred():
             raise handler.saxError()
-        
+
         return handler.items
 
     def _loadItemString(self, string, parent=None, afterLoadHooks=None):

@@ -211,10 +211,13 @@ class Repository(object):
         <repository.persistence.RepositoryView.RepositoryView>} instance
         """
 
-        if view.repository is not self:
+        if view is not None and view.repository is not self:
             raise RepositoryError, 'Repository does not own view: %s' %(view)
 
+        previous = self.getCurrentView(False)
         self._threaded.view = view
+
+        return previous
 
     def __iter__(self):
         """
@@ -415,9 +418,21 @@ class Repository(object):
         except ValueError:
             return None
 
+    def isDebug(self):
+
+        return self.logger.getEffectiveLevel() <= logging.DEBUG
+        
+    def setDebug(self, debug):
+
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
+
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     OPEN = 0x1
     view = property(getCurrentView, setCurrentView)
+    debug = property(isDebug, setDebug)
 
 
 class OnDemandRepository(Repository):

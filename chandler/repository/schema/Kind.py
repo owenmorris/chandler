@@ -181,7 +181,10 @@ class Kind(Item):
             if superKind is not None:
                 attribute = superKind.getAttribute(name)
                 if attribute is not None:
-                    self.addValue('inheritedAttributes', attribute, alias=name)
+                    # during core schema loading _kind can be None
+                    if attribute._kind is not None:
+                        self.addValue('inheritedAttributes',
+                                      attribute, alias=name)
                     return attribute
             else:
                 cache = False
