@@ -461,7 +461,7 @@
                      itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
     <blockName value="CalendarDuration"/>
     <childrenBlocks itemref="doc:StaticCalendarDuration"/>
-    <childrenBlocks itemref="doc:EditCalendarDuration"/>
+    <childrenBlocks itemref="doc:AECalendarDuration"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <minimumSize>300, 24</minimumSize>
@@ -489,6 +489,18 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
   </EditText>
+
+  <AEBlock itsName="AECalendarDuration">
+    <blockName value="AECalendarDuration"/>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <viewAttribute value="duration"/>
+  </AEBlock>
 
   <ContentItemDetail itsName="CalendarLocation"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">

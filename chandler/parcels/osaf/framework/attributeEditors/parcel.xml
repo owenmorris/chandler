@@ -26,6 +26,7 @@
   <doc:AttributeEditorsKind itsName="AttributeEditors">
     <editorString key="String" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="DateTime" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor"/>
+    <editorString key="DateTimeDelta" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeDeltaAttributeEditor"/>
     <editorString key="ContentItem" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="EmailAddress" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="ContactName" value="osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor"/>

@@ -1066,4 +1066,49 @@
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 
+  <!-- View Style Kind -->
+  <Kind itsName="ViewStyleKind">
+    <displayName itsValue="View Style"/>
+    <description>Name/Value pairs that describe the style of view to present</description>
+    <description> when rendering or editing a value in this context.</description>
+    
+    <Attribute itsName="styleHints">
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+  </Kind>
+
+  <!-- Attribute Editor Block Kind -->
+  <Kind itsName="AEBlock">
+    <displayName itsValue="Attribute Editor Block Kind"/>
+    <description>Block that instantiates an appropriate Attribute Editor.</description>
+    <superKinds itemref="docSchema:BoxContainer"/>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.AEBlock</classes>
+    
+    <Attribute itsName="viewStyle">
+      <type itemref="docSchema:ViewStyleKind"/>
+    </Attribute>
+
+    <Attribute itsName="viewAttribute">
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itsName="viewItem">
+      <type itemref="Item"/>
+    </Attribute>
+
+    <!-- @@@DLD figure out a way to get attributes like these into the viewStyle -->
+    <!--    otherwise we'll need to keep adding attributes to AEBlock for each new AE. -->
+
+    <!-- attributes of Static Text -->
+    <attributes itemref="docSchema:textAlignmentEnum"/>
+    <attributes itemref="docSchema:characterStyle"/>
+
+    <!-- attributes of Edit Text -->
+    <attributes itemref="docSchema:EditText/lineStyleEnum"/>
+    <attributes itemref="docSchema:EditText/textStyleEnum"/>
+    <attributes itemref="docSchema:EditText/readOnly"/>
+
+  </Kind>
+
 </Parcel>

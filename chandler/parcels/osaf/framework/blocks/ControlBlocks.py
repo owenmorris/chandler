@@ -1170,3 +1170,382 @@ class ContentItemDetail(BoxContainer):
         # return the root of the Detail View
         # delegate to our parent, until we get to the Detail View Root
         return self.parentBlock.detailRoot()
+
+"""
+Attribute Editor Block
+
+This Block uses the type of the attribute to determine how to display itself.
+
+Notes
+-----
+* This block is under construction!  Many details of the AE Block and Attribute
+    Editors (AEs) in general, are still being worked out.
+
+* Style Handling needs work.  Our plan is to use a single Mega-style Kind and 
+    reference those Items from AEBlock, and from the Attribute Editor definitions.  
+    Layout-based attributes will still be placed on the AEBlock, with non-layout 
+    style settings in the separate style Item.  We'll set up the font style,
+    color, brush, etc for both Draw and the control.  
+  Style will do two things for us: 
+    1) Provide font, color, ... style information for drawing
+    2) Help determine the best matching Attribute Editor for a given attribute,
+        when more than one AE is available for a single Type.
+
+* Type Conversion.  Each AEs provides a GetAttribute (and optional SetAttribute) method
+    that does any type conversion needed by that editor.  For example, the DateTime
+    AE converts to/from String because it uses the StringAttribute editor to
+    display the value in a TextCtrl.
+
+* Attributes can be Python Properties, meaning they have methods attached to them.
+    There is still a glitch with this; it's hard to figure out how to do type 
+    conversion in the SetAttribute() code.  I should have a solution for this
+    soon.
+
+* We rebind the editor with each call to wxAEBlock.wxSynchronize, in order to 
+    get the best binding to the current attribute value.
+
+* I added a RepositoryAttributeEditor that can display any type of thing the
+    repository knows about by using its methods to convert to/from String.
+
+Tasks
+-----
+* Move some of these notes to the wiki.
+
+* Improve support for Properties, since the attribute and its kind is not known.
+    I plan on using ItemHandler.typeHandler to lookup the handler appropriate for 
+    the value based on its type.
+
+* Improve List handling.  We don't have any direct support for cardinality=list.  
+    We're thinking we could look for an AE that explicityl handles lists of the 
+    given type first, then fall back on the type-general AE.
+
+* Need to make some example AEs that are test cases for these topics:
+    - list of items
+    - edit-style control (e.g. checkbox)
+    - non-text control (e.g. combobox for Enums)
+
+* Move wx event binding into the AEs.  Currently the AEBlock binds event handlers,
+    but it would be better if the AE could decide what to bind with.  It looks like
+    the handler called when the bound event is triggered has access to the associated
+    control (widget) by calling GetEventObject.  That object is the Python widget
+    that was bound to the event, and it can have state inside it simply by adding
+    attributes to that widget.
+
+Issues
+------
+* Control Creation/Deletion.  Need to call Destroy() or DestroyChildren when we're
+    donw with the control, but it currently crashes, without any good diagnostics.
+
+* Item Location.  I had planned to use the "viewItem" attribute, but I'd rather use 
+    the "contents" attribute on Block to find the Item.  I'm currently using a Hack
+    that knows about how the Detail View finds the selected item.
+
+* Attribute Location.  Currently using  "viewAttribute" attribute.
+
+* Finalization.  We're relying on EVT_KILL_FOCUS to know when to end editing.  We 
+    know the Detail View doesn't always operate in ways that cause this to be reliable,
+    but I think these problems can be fixed there.
+
+* Do we want to add an EndControlEdit() method to AEs to go along with BeginControlEdit?
+    This seems like it will be needed if we want to support multi-controled AEs.
+
+* Validation.  During control manipulation, and when leaving the control, need to be able 
+    to validate, do autocompletion, etc.  EndControlEdit() is probably the place to do
+    the validation.
+
+Investigations
+--------------
+* Should we make a variant, based on style (?), that creates the control immediately,
+    so we can do control-look AEBlocks?  CheckBox wants to work this way, otherwise
+    your draw code needs to mimic drawing the whole check box.
+    - We'll need to Create the control right away, instead of on the first click.  
+    - Could be hard to make this be compatible with Grid!
+    - It will need storage, to remember the control
+    - Could storage be unified with Trees-of-blocks cache?
+    - Could the control itself provide the storage?  How can we find the control?
+
+* Visual Consistency.  Is there a good way to keep AE Draw() imaging visually 
+    consistent with the control's native draw behavior?
+
+* Internationalization.  Probably issues here... Could support _Yoni_attribute!
+
+* Need to add several methods to the AE.  Should list them here, then add them.
+    Validate() - check if the value is valid.
+    Text conversion.  TBD
+    KeyHit?  MouseClick?
+    SetAttribute()
+    EndControlEdit() - to let it know it should delete the control.
+
+* Can I implement the fisheye Date, by passing in some context to the AE?
+
+* I'd like to support an AE that uses a mixture of native drawing and controls
+    to implement itself.  Can we support a mix of Draw() and one or more 
+    controls (widgets)?
+
+"""
+
+class wxAEBlock(wxBoxContainer):
+    """
+      Widget that invokes an Attribute Editor for a Block.
+    """
+    def __init__(self, *arguments, **keywords):
+        super (wxAEBlock, self).__init__ (*arguments, **keywords)
+
+        # install event handlers
+        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+        # setup size hints
+        minW, minH = arguments[-1] # assumes minimum size passed as last arg
+        self.SetSizeHints(minW=minW, minH=minH)
+
+        # init python attributes
+        self.isSelected = False # remembers if currently selected (editing)
+        self.editor = None  # remembers the current attribute editor
+        self.control = None  # remembers the instantiated edit control widget
+
+    def wxSynchronizeWidget(self):
+        """
+           Synchronize the current value from the widget with the data model.
+        """
+        # I wish I could use super() here, but my widget isn't connected to
+        # any childrenBlocks, so BoxContainer won't do the right thing.
+
+        # sync isShown, from wxRectangularChild:
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
+
+        if not self.blockItem.isShown:
+            self.destroyControl()
+            return
+
+        # lookup the appropriate editor
+        # could do the lookup at init time, but then value-based lookups won't be right.
+        editor = self.blockItem.lookupEditor()
+        if editor is not self.editor:
+            self.destroyControl()
+        self.editor = editor
+
+        # sync sizer, adapted from wxBoxContainer:
+        self.syncSizer()
+
+        # redraw
+        self.redrawAEBlock()
+
+    def syncSizer(self):
+        sizer = self.GetSizer()
+        sizer.Clear()
+        if self.control is not None:
+            # control inherits stretch factor, flags, and border from this AEBlock
+            sizer.Add (self.control,
+                       self.blockItem.stretchFactor, 
+                       wxRectangularChild.CalculateWXFlag(self.blockItem), 
+                       wxRectangularChild.CalculateWXBorder(self.blockItem))
+        self.Layout()
+
+    def onClick(self, event):
+        """
+          A click has occured.  Prepare to edit the value, if editable.
+        """
+        # if already created a control, then return
+        if self.control is not None:
+            return
+
+        # consume the event
+        event.Skip()
+
+        # return if editing is not allowed
+        block = self.blockItem
+        if block.readOnly:  # the block could be readOnly
+            return
+        editor = self.editor
+        item = block.getItem()
+        attribute = block.viewAttribute
+        if editor.ReadOnly ((item, attribute)):  # The editor might not allow editing
+            return
+
+        # create the control to use for editing
+        self.createControl()
+
+        # begin editing
+        curValue = editor.GetAttributeValue(item, attribute)
+        editor.BeginControlEdit(self.control, curValue)
+
+        # remember we're in editable mode, and redraw
+        self.setEdit(True)
+
+    def OnPaint(self, paintEvent):
+        """
+          Need to update a portion of ourself.  Ask the control to draw in the update region.
+        """
+        paintDC = wx.PaintDC(self)
+        self.setBrushColor(paintDC)
+        if not self.isSelected:
+            self.drawAEBlock(paintDC)
+
+    def setBrushColor(self, dc):
+        # @@@DLD clean up along with style work.
+        if self.isSelected:
+            brush = wx.WHITE_BRUSH
+        else:
+            brush = wx.Brush (wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE), wx.SOLID)
+        dc.SetBrush (brush)
+
+    def setEdit(self, editable):
+        self.isSelected = editable
+        self.redrawAEBlock() # now draw the value
+
+    def redrawAEBlock(self):
+        """
+          Redraw the control.  
+
+        If editable, a control exists, and it will redraw itself.  
+        Otherwise we call the Attribute Editor to do the drawing.
+        """
+        if not self.isSelected:
+            clientDC = wx.ClientDC(self)
+            self.setBrushColor(clientDC)
+            self.drawAEBlock(clientDC)
+
+    def drawAEBlock(self, dc):
+        item = self.blockItem.getItem ()
+        if item is not None:
+            blockRect = self.GetRect() # use the rect of the AE Block
+            rect = wx.Rect(0, 0, blockRect.width, blockRect.height)
+            attributeName = self.blockItem.viewAttribute
+            isSelected = self.isSelected
+            self.ensureEditor()
+            self.editor.Draw(dc, rect, item, attributeName, isSelected)
+
+    def ensureEditor(self):
+        if self.editor is None:
+            self.editor = self.blockItem.lookupEditor()
+
+    def createControl(self):
+        # create the control to use for editing
+        control = self.editor.Create(self.blockItem.widget, -1)
+        control.Bind(wx.EVT_KEY_UP, self.onKeyPressedInControl)
+        control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromControl)
+        self.control = control # remember the widget created (aka the control)
+
+        # use AEBlock's rect for the control
+        myRect = self.GetRect()
+        control.SetSizeHints(minW=myRect.width, minH=myRect.height)
+
+        # resync the sizer.
+        self.syncSizer()
+
+    def destroyControl(self):
+        if self.control is None:
+            return
+        # @@@DLD create EndEdit method on AE to delete the control?
+        self.control.Show(False) #@@@DLD should Destroy() the control, but that crashes!
+        #self.DestroyChildren()
+        self.control = None
+
+    def setItemAttributeValue(self, value):
+        # set the value of the attribute on the item
+        item = self.blockItem.getItem()
+        if item is None:
+            return
+        attributeName = self.blockItem.viewAttribute
+        self.editor.SetAttributeValue(item, attributeName, value)
+
+
+    def onKeyPressedInControl(self, event):
+        """
+          Handle a Key pressed in the control.
+        """
+        # @@@DLD - only set the value when we finalize instead of each keystroke?
+        editor = self.editor
+        controlValue = self.control.GetValue()
+        self.setItemAttributeValue(controlValue)
+        event.Skip()
+
+    def onLoseFocusFromControl(self, event):
+        """
+          Handle a Key pressed in the control.
+        """
+        # return if there's no control
+        if self.control is None:
+            return
+
+        # update the item attribute value, from the latest control value.
+        editor = self.editor
+        controlValue = editor.GetControlValue(self.control)
+        # @@@DLD use SetAttributeValue
+        self.setItemAttributeValue(controlValue)
+
+        self.destroyControl()
+        self.setEdit(False)
+
+        self.wxSynchronizeWidget() #resync, so sizer knows we have no control anymore.
+        event.Skip()
+
+class AEBlock(BoxContainer):
+    """
+      Attribute Editor Block
+    
+      Instantiates an Attribute Editor that's appropriate for the
+    attribute specified in this block.
+    """
+
+    def instantiateWidget(self):
+        """
+          Create the Attribute Editor shell widget, that defines the
+        drawing world that the actual Attribute Editor will live within.
+        """
+
+        # much the same as BoxContainer
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
+        widget = wxAEBlock (self.parentBlock.widget,
+                            -1,
+                            wx.DefaultPosition,
+                            (self.minimumSize.width, self.minimumSize.height))
+        widget.SetSizer (sizer)
+
+        return widget
+
+    def lookupEditor(self):
+        # find the Attribute Editor for this Type
+        typeName = self.getItemAttributeTypeName()
+        map = Globals.repository.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+        for key in map.editorString.keys():
+            if key == typeName:
+                return AttributeEditor.GetAttributeEditor(key)
+        return AttributeEditor.GetAttributeEditor("_default")
+
+    def getItem(self):
+        # Get the Item connected to this block
+        try:
+            item = self.viewItem
+        except AttributeError:
+            try:
+                item = self.parentBlock.detailRoot().selectedItem() # @@@DLD fix Detail-View specific code
+            except AttributeError:
+                item = None
+        return item
+
+    def getItemAttributeTypeName(self):
+        # Get the type of the current attribute
+        item = self.getItem()
+        if item is None:
+            return None
+
+        # if the attribute has a value, use it's type's name
+        attributeName = self.viewAttribute
+        try:
+            attrValue = getattr(item, attributeName)
+            typeName = type(attrValue).__name__
+        except:
+
+            # if the attribute has no value, we must use the schema to determine type
+            try:
+                theType = item.getAttributeAspect(attributeName, "type")
+            except:
+                typeName = "_default"
+            else:
+                typeName = theType.itsName
+        return typeName
+

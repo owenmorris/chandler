@@ -68,21 +68,21 @@ class DetailRoot (ControlBlocks.SelectionContainer):
           @@@DLD - find a better way to broadcast inside my boundary.
         """
         def reNotifyInside(block, item):
-            notifyParent = False
+            notifySelf = len(block.childrenBlocks) == 0 # True if no children
             try:
                 # process from the children up
                 for child in block.childrenBlocks:
-                    notifyParent = reNotifyInside (child, item) or notifyParent
+                    notifySelf = reNotifyInside (child, item) or notifySelf
             except AttributeError:
                 pass
             try:
                 syncMethod = type(block).synchronizeItemDetail
             except AttributeError:
-                if notifyParent:
+                if notifySelf:
                     block.synchronizeWidget()
             else:
-                notifyParent = syncMethod(block, item) or notifyParent
-            return notifyParent
+                notifySelf = syncMethod(block, item) or notifySelf
+            return notifySelf
 
         children = self.childrenBlocks
         for child in children:
@@ -191,6 +191,8 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         """ 
           Need to finish any changes to the selected item
         that are in progress.
+        @@@DLD - find a better way to commit widget changes
+        Maybe trigger an EVT_KILL_FOCUS event?
         """
         focusBlock = self.getFocusBlock()
         try:
@@ -211,7 +213,15 @@ class DetailSynchronizer(object):
     """
     def detailRoot (self):
         # delegate to our parent until we get outside our event boundary
-        return self.parentBlock.detailRoot()
+        block = self
+        while True:
+            try:
+                return block.parentBlock.detailRoot()
+            except AttributeError:
+                block = block.parentBlock
+        else:
+            assert False, "Detail Synchronizer can't find the DetailRoot!"
+        
 
     def selectedItem (self):
         # return the selected item
@@ -224,13 +234,6 @@ class DetailSynchronizer(object):
     def finishSelectionChanges (self):
         # finish any changes in progress in editable text fields.
         self.detailRoot().finishSelectionChanges ()
-
-    def relayoutParents (self):
-        # relayout the parent block
-        block = self
-        while (not block.eventBoundary and block.parentBlock):
-            block = block.parentBlock
-            block.synchronizeWidget()
 
     def synchronizeItemDetail (self, item):
         # if there is an item, we should show ourself, else hide
@@ -266,6 +269,7 @@ class DetailSynchronizer(object):
           Parse the email addresses in addressesString and return
         a tuple with: (the processed string, a list of EmailAddress
         items created/found for those addresses).
+        @@@DLD - seems like the wrong place to parse Email Address list strings
         """
 
         # get the user's address strings into a list
@@ -996,6 +1000,16 @@ class StaticDurationAttribute (StaticTextLabel):
     def staticTextLabelValue (self, item):
         durationLabel = self.title + _(' ')
         return durationLabel
+
+class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
+    """
+    Example usage of an AEBlock, used for the duration edit field.
+    Only shows itself for a Calendar Event
+    """
+    def shouldShow (self, item):
+        # only shown for non-CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
 
 class EditDurationAttribute (EditRedirectAttribute):
     """

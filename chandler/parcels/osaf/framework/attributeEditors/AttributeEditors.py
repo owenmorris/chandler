@@ -9,7 +9,7 @@ import wx
 import mx.DateTime as DateTime
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
-
+import repository.schema.Types as Types
 
 class AttributeEditor (object):
 
@@ -104,24 +104,24 @@ class StringAttributeEditor (AttributeEditor):
 
     def GetAttributeValue (self, item, attributeName):
         try:
-            value = item.getAttributeValue (attributeName)
+            value = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
             value = ""
         else:
-            if item.getAttributeAspect (attributeName, "cardinality") == "list":
-                compoundValue = value
-                value = ''
-                for part in compoundValue:
-                    if value:
-                        value += ', '
-                    value += part.getItemDisplayName()
+            try:
+                cardinality = item.getAttributeAspect (attributeName, "cardinality")
+            except AttributeError:
+                pass
+            else:
+                if  cardinality == "list":
+                    value = ', '.join([part.getItemDisplayName() for part in value])
         return value
 
 
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
-            itemDate = item.getAttributeValue (attributeName)
+            itemDate = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
             value = "No date specified"
         else:
@@ -140,6 +140,78 @@ class DateTimeAttributeEditor (StringAttributeEditor):
                 value = itemDate.Format('%b %d, %Y')
         return value
 
+class RepositoryAttributeEditor (StringAttributeEditor):
+    """ Uses Repository Type conversion to provide String representation. """
+    def GetAttributeValue (self, item, attributeName):
+        # attempt to access as a Chandler attribute first
+        try:
+            attrType = item.getAttributeAspect (attributeName, "type")
+        except:
+            # attempt to access as a plain Python attribute
+            try:
+                value = getattr (item, attributeName)
+            except:
+                valueString = "no value"
+            else:
+                valueString = str (value)
+        else:
+            valueString = attrType.makeString (value)
+        return valueString
+
+    def SetAttributeValue (self, item, attributeName, valueString):
+        # attempt access as a Chandler attribute first
+        try:
+            attrType = item.getAttributeAspect (attributeName, "type")
+        except:
+            # attempt access as a plain Python attribute
+            # should work for properties, if it parses the string
+            setattr (item, attributeName, valueString)
+        else:
+            value = attrType.makeValue (valueString)
+            setattr (item, attributeName, value)
+
+class DateTimeDeltaAttributeEditor (StringAttributeEditor):
+    """ Knows that the data Type is DateTimeDelta. """
+    def ReadOnly (self, (item, attribute)):
+        return False
+
+    def GetAttributeValue (self, item, attributeName):
+        # attempt to access as a plain Python attribute
+        try:
+            value = getattr (item, attributeName)
+        except:
+            valueString = "HH:MM"
+        else:
+            valueString = self.format (value)
+        return valueString
+
+    def SetAttributeValue (self, item, attributeName, valueString):
+        # attempt access as a plain Python attribute
+        try:
+            value = self.parse(valueString)
+        except ValueError:
+            pass
+        else:
+            setattr (item, attributeName, value)
+
+    def parse(self, inputString):
+        """"
+          parse the durationString into a DateTimeDelta.
+        """
+        # convert to DateTimeDelta
+        theDuration = DateTime.Parser.DateTimeDeltaFromString (inputString)
+        return theDuration
+
+    durationFormatShort = '%H:%M'
+    durationFormatLong = '%d:%H:%M:%S'
+
+    def format(self, aDuration):
+        # if we got a value different from the default
+        if aDuration.day == 0 and aDuration.second == 0:
+            format = self.durationFormatShort
+        else:
+            format = self.durationFormatLong
+        return aDuration.strftime (format)
 
 class ContactNameAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
