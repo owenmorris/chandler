@@ -6,7 +6,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import application.Parcel
 import osaf.framework.webdav.Dav
+import osaf.mail.message
 from repository.util.UUID import UUID
+import application.dialogs.PublishCollection
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
@@ -51,10 +53,8 @@ def subscribeToWebDavCollection(url):
 def sendInvites(addresses, url):
     """ Tell the email subsystem to send a sharing invite to the given
         addresses. """
-    for address in addresses:
-        print address
-    # validate the addresses
-    # parcels.osaf.mail.sharing.<sendinvite>(address, url)
+    # osaf.mail.sharing.<sendinvite>(address, url)
+    pass
 
 def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
@@ -67,19 +67,8 @@ def manualSubscribeToCollection():
         subscribeToWebDavCollection(url)
 
 def manualPublishCollection(collection):
-    print 'Share collection "%s"' % collection.displayName
-    url = application.dialogs.Util.promptUser( \
-     Globals.wxApplication.mainFrame, "Publish Collection...",
-     "URL to publish collection to:",
-     "http://code-bear.com/dav/%s" % collection.itsUUID)
-    if url is not None:
-        addresses = application.dialogs.Util.promptUser( \
-         Globals.wxApplication.mainFrame, "Publish Collection...",
-         "Email address to send invites: (comma separated)", "")
-        osaf.framework.webdav.Dav.DAV(url).put(collection)
-        if addresses is not None:
-            addresses = addresses.split(",")
-            sendInvites(addresses, url)
+    application.dialogs.PublishCollection.ShowPublishCollectionsDialog( \
+     Globals.wxApplication.mainFrame, collection)
 
 def syncCollection(collection):
     if collection.hasAttributeValue('sharedURL'):
