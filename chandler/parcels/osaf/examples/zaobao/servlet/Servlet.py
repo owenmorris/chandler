@@ -85,10 +85,15 @@ def RenderChannelList(repoView, theItem):
             if not item.isRead:
                 channelData['items'].append(item)
                 channelData['unread'] += 1
-                if nextItem is None: # remember the very first item
-                    nextItem = item
-
+ 
         channelData['items'].sort(lambda x, y: cmp(y.date, x.date))
+
+        if nextItem is None:
+            try:
+                nextItem = channelData['items'][0]
+            except:
+                pass
+ 
         data.append(channelData)
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
