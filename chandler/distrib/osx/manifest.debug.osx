@@ -10,14 +10,14 @@
 
 # Grab the python modules 
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.3/lib
-dest=Contents/debug/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
 glob=*
 recursive=yes
 python2.3
 
 # Grab python Framework file
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.3
-dest=Contents/debug/Resources/Library/Frameworks/Python.framework/Versions/2.3
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3
 Python
 
 # Grab python executable file
@@ -27,18 +27,17 @@ python
 
 # Grab wx and db libs
 src=chandler/debug
-dest=Contents/debug/Resources
+dest=Contents/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=chandler/debug/db
 lib
 src=chandler/debug/dbxml
-ndler/debug/dbxml
 lib
 
 # Grab Chandler.py and others
 src=chandler
-dest=Contents/debug/Resources
+dest=Contents/Resources
 Chandler.py
 version.py
 HISTORY.txt
@@ -66,7 +65,7 @@ src=chandler/distrib/osx/bundle/debug
 dest=Contents
 Info.plist
 src=chandler/distrib/osx/bundle
-dest=Contents/debug/Resources
+dest=Contents/Resources
 Chandler.icns
 
 src=chandler/distrib/osx/bundle/debug

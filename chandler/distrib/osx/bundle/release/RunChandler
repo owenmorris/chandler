@@ -3,7 +3,7 @@
 execdir=$(dirname "${0}")
 parentdir=$(dirname ${execdir})
 executable="${execdir}/python"
-resdir=$(dirname "${parentdir}")/release/Resources
+resdir=$(dirname "${parentdir}")/Resources
 main="${resdir}/Chandler.py"
 DYLD_LIBRARY_PATH="$resdir/lib"
 export DYLD_LIBRARY_PATH
