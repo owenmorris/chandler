@@ -274,12 +274,12 @@ class wxApplication (wxApp):
             return getattr(__import__(moduleName, {}, {}, className),
                            className)
             
-        if '-xml' in self.argv:
-            cls = loadClass('model.persistence.XMLRepository',
-                            'XMLRepository')
-        else:
+        if '-file' in self.argv:
             cls = loadClass('model.persistence.FileRepository',
                             'FileRepository')
+        else:
+            cls = loadClass('model.persistence.XMLRepository',
+                            'XMLRepository')
         self.repository = cls(repositoryPath)
 
         # force create the repository if -create passed in, otherwise open it
