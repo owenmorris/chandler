@@ -616,7 +616,7 @@
     <columnHeadings></columnHeadings>
     <columnHeadings>URL</columnHeadings>
     
-    <columnWidths>80</columnWidths>
+    <columnWidths>135</columnWidths>
     <columnWidths>80</columnWidths>
     <columnWidths>80</columnWidths>
     <columnWidths>120</columnWidths>
@@ -636,7 +636,7 @@
 
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </HTML>
@@ -647,8 +647,8 @@
     <childrenBlocks itemref="doc:HTML"/>
     <open>True</open>
 
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
+    <size>517,564</size>
+    <minimumSize>50,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
@@ -663,14 +663,14 @@
     <childrenBlocks itemref="doc:TabBox"/>
     <open>True</open>
 
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
+    <size>912,512</size>
+    <minimumSize>50,50</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.5</splitPercentage>
+    <splitPercentage>0.63</splitPercentage>
   </SplitWindow>
 
   <View itemName="TopView">
@@ -691,9 +691,9 @@
 
     <childrenBlocks itemref="doc:Header"/>
     <childrenBlocks itemref="doc:ContentBox"/>
-     <open>True</open>
+    <open>True</open>
 
-    <size>640,480</size>
+    <size>912,512</size>
     <minimumSize>50,50</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>
     <alignmentEnum>grow</alignmentEnum>

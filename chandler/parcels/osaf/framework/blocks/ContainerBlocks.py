@@ -305,7 +305,7 @@ class SplitWindow(RectangularChild):
         splitWindow = wxSplitWindow(parentWindow,
                                     Block.getwxID(self), 
                                     wxDefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height),
+                                    (self.size.width, self.size.height),
                                     style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
         self.parentBlock.addToContainer(parent, splitWindow, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
@@ -451,6 +451,7 @@ class wxTreeList(wxTreeListCtrl):
     def __init__(self, *arguments, **keywords):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
+        EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
  
     def OnExpanding(self, event):
         """
@@ -462,6 +463,11 @@ class wxTreeList(wxTreeListCtrl):
         notification = Notification('chandler/GetTreeListData', None, None)
         notification.SetData(arguments)
         Globals.topView.dispatchEvent(notification)
+
+    def OnColumnDrag(self, event):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        columnIndex = event.GetColumn()
+        counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
 
 
 class TreeList(RectangularChild):
