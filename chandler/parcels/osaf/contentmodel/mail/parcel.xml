@@ -54,11 +54,27 @@
 
         <Attribute itsName="port">
             <displayName value="Port" />
-            <description value="The non-SSL port number to use" />
+            <description value="The port number to use" />
             <type itemref="Integer" />
         </Attribute>
 
-        <Attribute itsName="useSSL">
+        <Attribute itsName="connectionSecurity">
+            <displayName value="Connection Security" />
+            <description value="The security mechanism to leverage for a network connection" />
+
+            <Enumeration itsName="connectionSecurityEnum">
+                <displayName value="Connection Security Enumeration" />
+                <values>NONE</values>
+                <values>TLS</values>
+                <values>SSL</values>
+             </Enumeration>
+
+             <type itemref="mail:AccountBase/connectionSecurity/connectionSecurityEnum"/>
+             <initialValue type="mail:AccountBase/connectionSecurity/connectionSecurityEnum" value="NONE" />
+        </Attribute>
+
+
+         <Attribute itsName="useSSL">
             <displayName value="Use secure connection (SSL/TLS)" />
             <description value="Whether or not to use SSL/TLS" />
             <type itemref="Boolean" />
@@ -168,14 +184,6 @@
             <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
-
-        <Attribute itsName="useTLS">
-            <displayName value="Use TLS" />
-            <description value="Issue a STARTTLS Command" />
-            <type itemref="Boolean" />
-            <initialValue type="Boolean" value="False" />
-        </Attribute>
-
 
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
