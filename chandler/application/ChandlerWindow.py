@@ -116,8 +116,14 @@ class wxChandlerWindow(wxFrame):
         we've had a chance to set the windows size using the value in our model.
         """
         self.model = model
+
         self.CreateStatusBar ()
-        self.SetStatusText ("Welcome!")  
+        self.SetStatusText ("Welcome!")
+
+        applicationResources = application.Application.app.applicationResources
+        self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
+        self.SetMenuBar (self.menuBar)
+
         EVT_MOVE(self, self.OnMove)
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)

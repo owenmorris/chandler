@@ -66,8 +66,7 @@ file_list = ['Chandler.py',
              'parcels/cal/__init__.py',
              'parcels/colors/Colors.py',
              'parcels/colors/ColorsView.py',
-             'parcels/colors/__init__.py',
-             'test.py']
+             'parcels/colors/__init__.py']
 file_type = 'shared'
 main_debug_file = 'Chandler.py'
 version = '1.0'
