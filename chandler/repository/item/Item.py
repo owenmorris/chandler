@@ -651,6 +651,7 @@ class Item(object):
         """
 
         return ('_children' in self.__dict__ and
+                name is not None and
                 self._children.resolveAlias(name, load) is not None)
 
     def hasChildren(self):
@@ -1817,7 +1818,7 @@ class Item(object):
             else:
                 children = parent._roots
 
-            if name is not None and children.resolveAlias(name):
+            if name is not None and children.resolveAlias(name) is not None:
                 raise ValueError, "%s already has a child named '%s'" %(parent.itsPath, name)
                 
             self._name = name
@@ -1877,10 +1878,10 @@ class Item(object):
         name = item._name
         
         if '_children' in self.__dict__:
-
-            loading = self.getRepositoryView().isLoading()
-            if self._children.resolveAlias(name, not loading):
-                raise ValueError, "%s already has a child named '%s'" %(self.itsPath, item._name)
+            if name is not None:
+                loading = self.getRepositoryView().isLoading()
+                if self._children.resolveAlias(name, not loading) is not None:
+                    raise ValueError, "%s already has a child named '%s'" %(self.itsPath, item._name)
 
         else:
             self._children = self.getRepositoryView()._createChildren(self)
@@ -1912,7 +1913,7 @@ class Item(object):
             raise ValueError, "item is stale: %s" %(self)
 
         child = None
-        if '_children' in self.__dict__:
+        if name is not None and '_children' in self.__dict__:
             child = self._children.getByAlias(name, None, load)
 
         return child

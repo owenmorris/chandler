@@ -539,6 +539,9 @@ class NamesContainer(DBContainer):
 
     def writeName(self, version, key, name, uuid):
 
+        if name is None:
+            raise ValueError, 'name is None'
+        
         if isinstance(name, unicode):
             name = name.encode('utf-8')
             
@@ -550,6 +553,9 @@ class NamesContainer(DBContainer):
 
     def readName(self, version, key, name):
 
+        if name is None:
+            raise ValueError, 'name is None'
+        
         if isinstance(name, unicode):
             name = name.encode('utf-8')
 

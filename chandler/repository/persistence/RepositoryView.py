@@ -491,7 +491,8 @@ class RepositoryView(object):
         @return: C{True} or C{False}
         """
 
-        return self._roots.resolveAlias(name, load) is not None
+        return (name is not None and
+                self._roots.resolveAlias(name, load) is not None)
 
     def getRoot(self, name, load=True):
         """
@@ -583,7 +584,8 @@ class RepositoryView(object):
 
         name = item.itsName
 
-        if self._roots.resolveAlias(name, not self.isLoading()):
+        if (name is not None and
+            self._roots.resolveAlias(name, not self.isLoading()) is not None):
             raise ValueError, "A root named '%s' exists already" %(name)
 
         self._roots.__setitem__(item._uuid, item, alias=name)

@@ -428,7 +428,8 @@ class XMLChildren(Children):
                         
             elif op == 1:             # remove
                 self._deleteRef(key, version)
-                store.writeName(version, self._uuid, oldAlias, None)
+                if oldAlias is not None:
+                    store.writeName(version, self._uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op
