@@ -5,4 +5,13 @@
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:dav="http://osafoundation.org/parcels/osaf/framework/webdav">
 
+
+  <Kind itsName="Sharing">
+    <Attribute itsName="itemMap">
+      <cardinality value="dict"/>
+      <type itemref="UUID"/>
+      <initialValue/>
+    </Attribute>
+  </Kind>
+
 </Parcel>

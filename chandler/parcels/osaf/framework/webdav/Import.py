@@ -7,8 +7,6 @@ import DAVItem as DAVItem
 
 from repository.schema.Kind import Kind
 
-itemMap = {}
-
 def makeAndParse(xml):
     # given a chunk of text that is a flat xml tree like:
     # "<foo/><foo/><foo/>"
@@ -25,25 +23,36 @@ def makeAndParse(xml):
 
 def getItem(dav):
     from Dav import DAV
-    global itemMap
     repository = Globals.repository
 
     # fetch the item
     di = DAVItem.DAVItem(dav)
 
+    # ew...
+    sharing = repository.findPath('//parcels/osaf/framework/GlobalShare') 
+
     # pretend here we don't care if the item has changed..
     try:
         # get the exported item's UUID and see if we have already fetched it
         origUUID = di.itsUUID
-        return repository.findUUID(itemMap[origUUID])
+        newItem = repository.findUUID(sharing.itemMap[origUUID])
+        kind = newItem.itsKind
     except KeyError:
-        pass
+        kind = di.itsKind
+        newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
 
-    kind = di.itsKind
-    newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
+    oldEtag = newItem.getAttributeValue('etag', default=None)
+    if oldEtag == di.etag:
+        print 'no changes to item'
+        return newItem
+    else:
+        print oldEtag, di.etag
+
+    newItem.etag = di.etag
+    newItem.lastModified = di.lastModified
 
     # XXX hack...
-    itemMap[origUUID] = newItem.itsUUID
+    sharing.itemMap[origUUID] = newItem.itsUUID
 
     for (name, attr) in kind.iterAttributes(True):
 

@@ -5,6 +5,12 @@ from repository.util.URL import URL
 
 import Import, Export
 
+"""
+ * If I make ItemCollections use a refcollection under the hood as a real attribute
+   then I can get rid of most of the code in put/getCollection as it will just do
+   the right thing automatically.  Wouldn't that be nice.
+"""
+
 class DAV(object):
     def __init__(self, resourceURL):
         super(DAV, self).__init__()
@@ -26,6 +32,16 @@ class DAV(object):
 
     def getCollection(self):
         """ gives back a new ItemCollection """
+        collection = self.get()
+
+        # XXX i really don't like duplicating the code in Import.py
+        listXmlGoop = collection._getAttribute('http://www.osafoundation.org/', 'items')
+        nodes = Import.makeAndParse(listXmlGoop)
+
+        for node in nodes:
+            item = DAV(node.content).get()
+            collection.add(item)
+
         # figure out properties of the collection itself.. I should share code
         # with Import.py here..
         # get a listing of all items in the collection... propfind depth 1
@@ -46,21 +62,22 @@ class DAV(object):
         returns a url to a webdav collection containing
         all of the items in 'itemCollection'
         """
-        # XXX the following code probably belongs in Export.py
+        # just put the item collection as a normal item first
+        self.put(itemCollection)
 
-        # make new dir for the collection, get its base url
-        collectionURL = self.url.join(itemCollection.itsUUID.str16() + '/')
-
-        r = DAV(collectionURL).newConnection().mkcol(collectionURL.path)
-        print collectionURL, collectionURL.path
-        # XXX parse response..
-        # set attributes on the collection
+        # then attatch extra data to it
+        itemList = '<o:items xmlns:o="http://www.osafoundation.org/">'
 
         for item in itemCollection:
-            itemURL = collectionURL.join(item.itsUUID.str16())
+            itemURL = self.url.join(item.itsUUID.str16())
             DAV(itemURL).put(item)
+            itemList = itemList + '<itemref>' + unicode(itemURL) + '</itemref>'
 
-        return collectionURL
+        itemList = itemList + '</o:items>'
+
+        self.newConnection().setprops2(unicode(self.url), itemList)
+
+        return self.url
 
     def sync(self):
         raise NotImplementedError
@@ -72,4 +89,4 @@ class DAVConnection(davlib.DAV):
         port = url.port or 80
 
         davlib.DAV.__init__(self, host, port)
-        self.setauth('username', 'password')
+        self.setauth('test', 'test')

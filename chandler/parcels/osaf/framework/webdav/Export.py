@@ -3,6 +3,7 @@ import httplib
 import xml.sax.saxutils
 import libxml2
 
+import application.Globals as Globals
 from repository.item.Item import Item
 
 def parseResponse(response):
@@ -23,13 +24,34 @@ def putItem(dav, item):
     from Dav import DAV
 
     # hack to avoid infinite recursion
+    # instead of this, we should figure out a way to know if the item has changed since its last
+    # etag.. maybe watch for commits?  if it has, then we should see if the thing on the server
+    # has changed.. if-match? and then try again.  we gotta get rid of this hack....
     if hasattr(item, 'davified'):
         return
     item.davified = True
 
     url = unicode(dav.url)
 
-    r = dav.newConnection().put(url, item.itsKind.itsName, 'text/plain')
+    # need to put an If-Match header here with the item's etag if it exists
+    extraHeaders = {}
+
+    etag = item.getAttributeValue('etag', default=None)
+    if etag:
+        extraHeaders['If-Match'] = etag
+    r = dav.newConnection().put(url, item.itsKind.itsName, 'text/plain', None, extraHeaders)
+
+    # now we need to see if this request failed due to the etags being different
+    
+    # need to handle merging/conflicts here...
+
+    # set them here, even though we have to set them again later
+    item.etag = r.getheader('ETag', default='')
+    item.lastModified = r.getheader('Last-Modified', default='')
+
+    # ew...
+    sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 
+    sharing.itemMap[item.itsUUID] = item.itsUUID # add an entry here to say that we're already here
 
     kind = item.itsKind
 
@@ -82,6 +104,12 @@ def putItem(dav, item):
     r = dav.newConnection().setprops2(url, propstring)
     print url, r.status, r.reason
     print r.read()
+
+    # argh!! i hate this.. we have to get the etag again here since
+    # some servers *cough*xythos*cough* change the etag when you proppatch
+    r = dav.newConnection().head(url)
+    item.etag = r.getheader('ETag', default='')
+    item.lastModified = r.getheader('Last-Modified', default='')
 
     return url
     #print propstring

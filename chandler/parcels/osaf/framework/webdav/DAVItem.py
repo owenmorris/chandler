@@ -24,16 +24,26 @@ class DAVItem(object):
         super(DAVItem, self).__init__()
 
         self.dav = dav
-
         self.doc = self._allprop(unicode(dav.url))
 
     def _allprop(self, url, depth = 0):
         """ Fetch all the properties of a resource """
         body = davlib.XML_DOC_HEADER + \
                '<D:propfind xmlns:D="DAV:">' + \
-               '<D:allprop/>' + \
+               '<D:allprop/><D:getetag/><D:getlastmodified/>' + \
                '</D:propfind>'
 
+        # In order to get see if the etag matches something, we need
+        # to first fetch the item, get its uuid and getetag properties.
+        # At that point we can look it up in the itemMap and see if we
+        # already have it, and then match the etag associated with that.
+        #
+        # for now, lets just fetch all the properties and match the etag
+        # later.
+        #
+        # we could also make the get code smarter by allowing you to "get"
+        # an item that was already shared (and hence has a url and an etag
+        # already.  This might be the best solution.
         r = self.dav.newConnection().propfind(url, body, depth)
 
         xmlgoop = r.read()
@@ -58,6 +68,12 @@ class DAVItem(object):
 
         from repository.util.UUID import UUID
         return UUID(value)
+
+    def _getETag(self):
+        return self._getAttribute('getetag', 'DAV:')
+
+    def _getLastModified(self):
+        return self._getAttribute('getlastmodified', 'DAV:')
 
     def getAttribute(self, attr):
         """ takes an Attribute argument """
@@ -85,3 +101,5 @@ class DAVItem(object):
 
     itsKind = property(_getKind)
     itsUUID = property(_getUUID)
+    etag = property(_getETag)
+    lastModified = property(_getLastModified)
