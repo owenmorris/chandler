@@ -1,5 +1,6 @@
 # ChangeLog for application 
 
+
 2003-04-10 Morgen Sagen <morgen@osafoundation.org>
 
     * You can now set WXREDIRECT=0 if you don't want WX to redirect stdout
@@ -47,3 +48,6 @@
 2003-08-26 Morgen Sagen
     * Added a debugger window (PyCrust) that can be accessed via the special
       debug menu.
+
+2003-09-11 Kaitlin Duck Sherwood <ducky@osafoundation.org>
+   * Updated welcome.html for 0.2 release

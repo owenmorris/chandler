@@ -2,24 +2,41 @@
 <head>
 </head>
 <body>
-<H1>Welcome to Chandler Release 0.1!</H1>
+<H1>Welcome to Chandler Release 0.2!</H1>
+Welcome to the 0.2 release of Chandler!
 
-We at OSAF are delighted that you downloaded the 0.1 release of
-Chandler!  We hope that this release of Chandler will give you a flavor
-of Chandler's architecture and APIs, and a glimse of what Chandler will 
-do in the future.
+This release incorporates many improvements to Chandler's fundamental 
+architecture.
 <P>
-Please note that Chandler is still in its <I>extremely</I> early stages, with only
+<UL>
+<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerRepository">Repository</A></B>: We have converted most of Chandler code to use our
+own Item store.  See the Repository Viewer parcel for a window
+onto the Repository.
+Note that our underlying databases are still undergoing
+changes, so
+<FONT COLOR="red">you should not store important information in Chandler</FONT> yet.
+<P>
+<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/DataModel">Data Model</A></B>: Chandler now incorporates a very flexible 
+data model that allows a full spectrum of data representations, from loosely
+structured to highly structured. 
+<LI><B><A HREF="http://wiki.osafoundation.org/bin/view/Main/NotificationModel">Notification Manager</A></B>: The Notification Manager provides a richer 
+framework for what are usually called "events."  (We use "Events" for "Calendar
+Events", hence the different name.)
+<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/AgentFrameworkPoint2Status">Agent 
+Framework</A></B>: The underlying framework for Agents is in place,
+with three example agents.
+<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerPresentationAndInteractionArchitecture">Chandler Presentation and Interaction Architecture</A></B>: The 
+rudimentary beginnings of a novel presentation and interaction framework 
+are now in Chandler.  See the Document parcel for an example.
+</UL>
+
+<P>
+Please note that Chandler is still in its very early stages, with only
 a very limited set of capabilities.  <B>Please</B> read the 
-<A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerZeroPointOneREADME">
+<A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerZeroPointTwoREADME">
 README</A> -- 
 it has information on known bugs, our future plans, volunteering,
 and where to go for futher documentation.
-<P>
-Please also understand that our underlying database is undergoing
-massive changes at the moment.  What we're using now <I>will not be</I> 
-what we use in the future.  This means that 
-<FONT COLOR="red">you should not store important information in Chandler</FONT> yet.
 <P>
 <H3>
 To continue, <FONT COLOR="blue"><U>click here</U></FONT>.</H3>
