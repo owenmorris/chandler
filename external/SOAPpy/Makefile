@@ -11,22 +11,10 @@ BUILD=build_$(SNAP)
 apply: patches
 	patch -Nup0 < patches; echo ok
 
-ifeq ($(OS),Cygwin)
-
-build: apply
-	cd $(SRC); \
-	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)" \
-	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
-
-else
-
 build: apply
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
-
-endif
 
 expand: SOAPpy-$(VERSION).tar.gz
 	tar xvzf SOAPpy-$(VERSION).tar.gz
