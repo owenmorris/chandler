@@ -31,15 +31,19 @@ class DBContainer(object):
         if kwds.get('ramdb', False):
             self._flags = 0
             name = None
+            dbname = None
         else:
             self._flags = DB_DIRTY_READ
-            
+            dbname = kwds.get('dbname')
+
         if kwds.get('create', False):
-            self._db.open(filename = name, dbtype = DB_BTREE,
+            self._db.open(filename = name, dbname = dbname,
+                          dbtype = DB_BTREE,
                           flags = DB_CREATE | DB_THREAD | self._flags,
                           txn = txn)
         else:
-            self._db.open(filename = name, dbtype = DB_BTREE,
+            self._db.open(filename = name, dbname = dbname, 
+                          dbtype = DB_BTREE,
                           flags = DB_THREAD | self._flags,
                           txn = txn)
 
@@ -71,9 +75,12 @@ class DBContainer(object):
 
         return self._db.get(key, txn=self.store.txn, flags=self._flags)
 
-    def cursor(self):
+    def cursor(self, db=None):
 
-        return self._db.cursor(txn=self.store.txn, flags=self._flags)
+        if db is None:
+            db = self._db
+            
+        return db.cursor(txn=self.store.txn, flags=self._flags)
 
     def _logDL(self, n):
 
@@ -82,6 +89,42 @@ class DBContainer(object):
 
 class RefContainer(DBContainer):
         
+    def __init__(self, store, name, txn, **kwds):
+
+        super(RefContainer, self).__init__(store, name, txn,
+                                           dbname = 'data', **kwds)
+
+        if kwds.get('ramdb', False):
+            name = None
+            dbname = None
+        else:
+            dbname = 'history'
+
+        self._history = DB(store.env)
+
+        if kwds.get('create', False):
+            self._history.open(filename = name, dbname = dbname,
+                               dbtype = DB_BTREE,
+                               flags = DB_CREATE | DB_THREAD | self._flags,
+                               txn = txn)
+        else:
+            self._history.open(filename = name, dbname = dbname,
+                               dbtype = DB_BTREE,
+                               flags = DB_THREAD | self._flags,
+                               txn = txn)
+
+        self._db.associate(secondaryDB = self._history,
+                           callback = self._historyKey,
+                           flags = 0,
+                           txn = txn)
+
+    def close(self):
+
+        self._history.close()
+        self._history = None
+
+        super(RefContainer, self).close()
+
     def prepareKey(self, uItem, uuid):
 
         buffer = cStringIO.StringIO()
@@ -152,6 +195,36 @@ class RefContainer(DBContainer):
         self._writeValue(buffer, alias)
         self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
 
+    def _historyKey(self, key, value):
+
+        # uItem, uCol, uRef, ~version -> uItem, version, uCol, uRef
+        return pack('>16sl32s', key, ~unpack('>l', key[48:52])[0], key[16:48])
+
+    # has to run within the commit transaction or it may deadlock
+    def applyHistory(self, fn, uuid, oldVersion, newVersion):
+
+        try:
+            cursor = self.cursor(self._history)
+
+            try:
+                value = cursor.set_range(pack('>16sl', uuid._uuid,
+                                              oldVersion + 1),
+                                         flags=self._flags)
+            except DBNotFoundError:
+                return
+
+            while value is not None:
+                uItem, version, uCol, uRef = unpack('>16sl16s16s', value[0])
+                if version > newVersion or uItem != uuid._uuid:
+                    break
+
+                fn(version, (UUID(uCol), UUID(uRef)), self._readRef(value[1]))
+
+                value = cursor.next()
+
+        finally:
+            cursor.close()
+
     def deleteRef(self, keyBuffer, buffer, version, key):
 
         buffer.truncate(0)
@@ -163,6 +236,25 @@ class RefContainer(DBContainer):
     def eraseRef(self, buffer, key):
 
         self.delete(self._packKey(buffer, key))
+
+    def _readRef(self, value):
+
+        if len(value) == 1:   # deleted ref
+            return None
+
+        else:
+            offset = 0
+
+            l, previous = self._readValue(value, offset)
+            offset += l
+
+            l, next = self._readValue(value, offset)
+            offset += l
+
+            l, alias = self._readValue(value, offset)
+            offset += l
+
+            return (previous, next, alias)
 
     def loadRef(self, buffer, version, key):
 
@@ -192,25 +284,7 @@ class RefContainer(DBContainer):
                         refVer = ~unpack('>l', value[0][48:52])[0]
                 
                         if refVer <= version:
-                            value = value[1]
-
-                            if len(value) == 1:   # deleted ref
-                                return None
-
-                            else:
-                                offset = 0
-
-                                l, previous = self._readValue(value, offset)
-                                offset += l
-
-                                l, next = self._readValue(value, offset)
-                                offset += l
-
-                                l, alias = self._readValue(value, offset)
-                                offset += l
-
-                                return (previous, next, alias)
-
+                            return self._readRef(value[1])
                         else:
                             value = cursor.next()
 
@@ -229,7 +303,7 @@ class RefContainer(DBContainer):
                 if txnStarted:
                     self.store.abortTransaction()
 
-    # has to run within the commit() transaction
+    # has to run within the commit transaction or it may deadlock
     def deleteItem(self, item):
 
         cursor = None
@@ -414,7 +488,7 @@ class HistContainer(DBContainer):
             
         self.put(pack('>l16s', version, uuid._uuid), value)
 
-    # has to run within the commit transaction
+    # has to run within the commit transaction or it may deadlock
     def apply(self, fn, oldVersion, newVersion):
 
         class hashTuple(tuple):

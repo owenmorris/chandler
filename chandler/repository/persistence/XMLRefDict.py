@@ -9,6 +9,7 @@ from cStringIO import StringIO
 from repository.item.Item import Children
 from repository.item.ItemRef import RefDict
 from repository.item.Indexes import NumericIndex
+from repository.persistence.RepositoryError import MergeError
 from repository.util.UUID import UUID
 
 
@@ -411,15 +412,15 @@ class XMLChildren(Children):
     
             if op == 0:               # change
                 if link is not None:
-                    ref = link._value
                     previous = link._previousKey
                     next = link._nextKey
                     alias = link._alias
                     
                     self._writeRef(key, version, previous, next, alias)
-                    if oldAlias != alias:
+                    if oldAlias is not None and oldAlias != alias:
                         store.writeName(version, self._uuid, oldAlias, None)
-                    store.writeName(version, self._uuid, alias, key)
+                    if alias is not None:
+                        store.writeName(version, self._uuid, alias, key)
 
                 elif key is None:
                     self._writeRef(self._uuid, version,
@@ -432,6 +433,86 @@ class XMLChildren(Children):
             else:                     # error
                 raise ValueError, op
 
+        if '_patches' in self.__dict__:
+            for key, (previous, next, alias) in self._patches.iteritems():
+                self._writeRef(key, version, previous, next, alias)
+                if alias is not None:
+                    store.writeName(version, self._uuid, alias, key)
+
     def _clearDirties(self):
 
         self._changedRefs.clear()
+        try:
+            del self._patches
+        except AttributeError:
+            pass
+
+    def _mergeChanges(self, oldVersion, newVersion):
+
+        uuid = self._uuid
+        item = self._item
+        view = self.view
+
+        changes = self._changedRefs
+        history = {}
+        
+        def collect(version, (collection, child), ref):
+
+            if collection == uuid:     # the children collection
+                if ref is None:
+                    if child in changes:
+                        op, alias = changes[child]
+                        if op != 1:
+                            raise MergeError, ('merging children', item.itsPath,
+                                               '%s was removed in other view'
+                                               %(view[child].itsPath))
+                        else:
+                            del changes[child]
+                else:
+                    history[child] = (child, version, ref)
+                        
+        self._getRefs().applyHistory(collect, uuid, oldVersion, newVersion)
+        otherChanges = history.values()
+        otherChanges.sort(lambda c0, c1: c0[1] - c1[1])
+
+        self._patches = {}
+        
+        for child, version, (previous, next, alias) in otherChanges:
+
+            if child == uuid:          # means self._head
+                child = None
+                
+            if child in changes:
+
+                if child is None:
+                    link = self._head
+                else:
+                    link = self._get(child)
+
+                if next != link._nextKey:
+                    if child is None:
+                        next = uuid
+                        o, v, (p, n, a) = history[next]
+                    else:
+                        n = next
+                        while n in history:
+                            next = n
+                            o, v, (p, n, a) = history[next]
+
+                    patch = (p, link._nextKey, a)
+                    self._patches[next] = patch
+                    history[next] = (next, newVersion, patch)
+
+                    if child is not None:
+                        if link._nextKey is not None:
+                            link = self._get(link._nextKey)
+                            link._previousKey = next
+
+                    del changes[child]
+
+                elif previous != link._previousKey:
+                    raise MergeError, ('merging children', item.itsPath,
+                                       'merging prev not yet implemented')
+                        
+        view.logger.info('%s merged children of %s with newer versions',
+                         view, item.itsPath)

@@ -127,8 +127,7 @@ class MainView(View):
     def onNewEvent (self, notification):
         # create a new content item
         event = notification.event
-        itemName = 'Anonymous'+str(UUID.UUID())
-        newItem = event.kindParameter.newItem (itemName, self)
+        newItem = event.kindParameter.newItem (None, self)
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 

@@ -112,8 +112,7 @@ class ItemHandler(ContentHandler):
 
             if cardinality != 'single':
                 if cardinality == 'dict':
-                    self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead",
-                                                   name, self.name)
+                    self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead", name, self.name or self.uuid)
 
                 otherName = self.getOtherName(name, attribute, attrs)
                 refDict = self.repository._createRefDict(None, name, otherName,
@@ -213,7 +212,7 @@ class ItemHandler(ContentHandler):
                 if self.afterLoadHooks is not None:
                     self.afterLoadHooks.append(self._setKind)
             else:
-                raise ValueError, "While loading %s, kind %s not found" %(self.name, self.kindRef)
+                raise ValueError, "While loading %s, kind %s not found" %(self.name or self.uuid, self.kindRef)
 
     def _setKind(self):
 
@@ -389,7 +388,7 @@ class ItemHandler(ContentHandler):
                         value = typeHandler.eval(value)
             
         if self.delegates:
-            raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name, attrs['name'], self.delegates)
+            raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name or self.uuid, attrs['name'], self.delegates)
 
         self.values[attrs['name']] = value
 
@@ -484,7 +483,7 @@ class ItemHandler(ContentHandler):
             otherName = self.kind.getOtherName(name, default=None)
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.itsPath, self.name, name, self.kind.itsPath)
+            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.itsPath, self.name or self.uuid, name, self.kind.itsPath)
 
         return otherName
 

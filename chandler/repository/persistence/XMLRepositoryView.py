@@ -354,13 +354,20 @@ class XMLRepositoryView(OnDemandRepositoryView):
             item = items.get(uuid)
             if item is not None:
                 newDirty = item.getDirty()
-                oldDirty = status & item.DIRTY
+                oldDirty = status & Item.DIRTY
                 if newDirty & oldDirty:
-                    raise VersionConflictError, (item, newDirty, oldDirty)
-                else:
-                    if newDirty == item.VDIRTY or oldDirty == item.VDIRTY:
+                    if newDirty & oldDirty & Item.CDIRTY:
+                        item._children._mergeChanges(oldVersion, newVersion)
+                        oldDirty &= ~Item.CDIRTY
+                    else:
+                        raise VersionConflictError, (item, newDirty, oldDirty)
+
+                if newDirty & oldDirty:
+                    if newDirty == Item.VDIRTY or oldDirty == Item.VDIRTY:
                         items[uuid] = (docId, oldDirty, newDirty)
                     else:
                         raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)
+                else:
+                    del items[uuid]
 
         history.apply(check, oldVersion, newVersion)

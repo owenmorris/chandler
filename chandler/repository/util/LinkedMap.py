@@ -46,7 +46,7 @@ class LinkedMap(dict):
 
         super(LinkedMap, self).__init__()
 
-        self._firstKey = self._lastKey = None
+        self._head = self._makeLink(None)
         self._aliases = None
 
     def __repr__(self):
@@ -262,16 +262,49 @@ class LinkedMap(dict):
 
         return None
 
+    def setAlias(self, key, alias):
+        """
+        Set the alias for a key in this mapping.
+
+        The alias must not be set for another key already.
+        """
+
+        aliasedKey = self.resolveAlias(alias)
+
+        if aliasedKey != key:
+            if aliasedKey is not None:
+                raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
+
+            link = self._get(key)
+            self.linkChanged(link, key)
+
+            if link._alias is not None:
+                try:
+                    del self._aliases[link._alias]
+                except KeyError:
+                    pass
+
+            link._alias = alias
+            self._aliases[alias] = key
+
     def firstKey(self):
         "Return the first key of this mapping."
 
-        return self._firstKey
+        return self._head._previousKey
+
+    def __setFirstKey(self, key):
+
+        self._head._previousKey = key
 
     def lastKey(self):
         "Return the last key of this mapping."
 
-        return self._lastKey
+        return self._head._nextKey
         
+    def __setLastKey(self, key):
+
+        self._head._nextKey = key
+
     def nextKey(self, key):
         "Return the next key relative to key."
 
@@ -343,3 +376,7 @@ class LinkedMap(dict):
     def _items(self):
 
         return [(key, self._get(key)) for key in self._iterkeys()]
+
+
+    _firstKey = property(firstKey, __setFirstKey)
+    _lastKey = property(lastKey, __setLastKey)

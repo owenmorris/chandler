@@ -31,7 +31,7 @@ class Item(object):
         @param name: The name of the item. It must be unique among the names
         this item's siblings. C{name} be C{None} in which case the base64
         string representation of this item's C{UUID} becomes its name.
-        @type name: a string
+        @type name: a string or C{None} to create an anonymous item.
         @param parent: The parent of this item. All items require a parent
         unless they are a repository root in which case the parent argument
         is the repository.
@@ -52,7 +52,7 @@ class Item(object):
         self._values = Values(self)
         self._references = References(self)
         
-        self._name = name or self._uuid.str64()
+        self._name = name or None
         self._kind = kind
         self._root = None
 
@@ -71,7 +71,7 @@ class Item(object):
     def _fillItem(self, name, parent, kind, **kwds):
 
         self._uuid = kwds['uuid']
-        self._name = name or self._uuid.str64()
+        self._name = name or None
         self._kind = kind
         self._root = None
         self._status = 0
@@ -103,12 +103,12 @@ class Item(object):
 
         It follows the following format:
 
-        C{<classname (optional status): name uuid>}
+        C{<classname (status): name uuid>}
 
         where:
           - C{classname} is the name of the class implementing the item
-          - C{optional status} is displayed when the item is stale or deleted
-          - C{name} is the item's name
+          - C{status} is displayed when the item is stale or deleted
+          - C{name} is displayed if the item's name is not None
           - C{uuid} is the item's UUID
 
         @return: a string representation of an item.
@@ -118,14 +118,19 @@ class Item(object):
             return super(Item, self).__repr__()
 
         if self._status & Item.DELETED:
-            return "<%s (deleted): %s %s>" %(type(self).__name__, self._name,
-                                             self._uuid.str16())
-        if self._status & Item.STALE:
-            return "<%s (stale): %s %s>" %(type(self).__name__, self._name,
-                                           self._uuid.str16())
-        
-        return "<%s: %s %s>" %(type(self).__name__, self._name,
-                               self._uuid.str16())
+            status = ' (deleted)'
+        elif self._status & Item.STALE:
+            status = ' (stale)'
+        else:
+            status = ''
+
+        if self._name is None:
+            name = ''
+        else:
+            name = ' ' + self._name
+
+        return "<%s%s:%s %s>" %(type(self).__name__, status, name,
+                                self._uuid.str16())
 
     def __getattr__(self, name):
         """
@@ -655,7 +660,7 @@ class Item(object):
         @return: C{True} or C{False}
         """
 
-        return (self.__dict__.has_key('_children') and
+        return ('_children' in self.__dict__ and
                 self._children._firstKey is not None)
 
     def placeChild(self, child, after):
@@ -1517,7 +1522,8 @@ class Item(object):
             - the value of the C{displayName} attribute
             - the value of the attribute named by the item's kind
               C{displayAttribute} attribute
-            - or the item's intrinsic name
+            - the item's intrinsic name
+            - the item's base64 encoded UUID surrounded by {}
 
         @return: a string
         """
@@ -1531,7 +1537,7 @@ class Item(object):
                 if self.hasAttributeValue(displayAttribute):
                     return self.getAttributeValue(displayAttribute)
                 
-        return self._name
+        return self._name or '{%s}' %(self._uuid.str64())
 
     def refCount(self):
         """
@@ -1564,7 +1570,7 @@ class Item(object):
             path = Path()
             
         self.itsParent._getPath(path)
-        path.append(self._name)
+        path.append(self._name or self._uuid)
 
         return path
 
@@ -1795,24 +1801,27 @@ class Item(object):
         Rename this item.
 
         The name of an item needs to be unique among its siblings.
-        If C{name} is C{None}, the base64 representation of the item's
-        C{UUID} is used instead.
+        If C{name} is C{None}, the item becomes anonymous.
 
         @param name: the new name for the item or C{None}
         @type name: a string
         """
 
+        name = name or None
+            
         if name != self._name:
             parent = self.itsParent
 
             if parent._isItem():
-                link = parent._children._get(self._uuid)
+                children = parent._children
             else:
-                link = parent._roots._get(self._uuid)
+                children = parent._roots
 
-            parent._removeItem(self)
-            self._name = name or self._uuid.str64()
-            parent._addItem(self, link._previousKey, link._nextKey)
+            if name is not None and children.resolveAlias(name):
+                raise ValueError, "%s already has a child named '%s'" %(parent.itsPath, name)
+                
+            self._name = name
+            children.setAlias(self._uuid, name)
 
             self.setDirty(Item.NDIRTY, None)
                 
@@ -1871,7 +1880,7 @@ class Item(object):
 
             loading = self.getRepositoryView().isLoading()
             if self._children.resolveAlias(name, not loading):
-                raise ValueError, "A child '%s' exists already under %s" %(item._name, self.itsPath)
+                raise ValueError, "%s already has a child named '%s'" %(self.itsPath, item._name)
 
         else:
             self._children = self.getRepositoryView()._createChildren(self)
@@ -2027,7 +2036,13 @@ class Item(object):
                 child = children.getByAlias(path[_index], default=None,
                                             load=kwds.get('load', True))
         else:
-            child = self.getItemChild(path[_index], kwds.get('load', True))
+            name = path[_index]
+            if isinstance(name, UUID):
+                child = self.findUUID(name, kwds.get('load', True))
+                if child is not None and child.itsParent is not self:
+                    child = None
+            else:
+                child = self.getItemChild(name, kwds.get('load', True))
             
         child = callable(self, path[_index], child, **kwds)
         if child is not None:
@@ -2213,7 +2228,8 @@ class Item(object):
             attrs['version'] = str(version)
         generator.startElement('item', attrs)
 
-        xmlTag('name', {}, self._name, generator)
+        if self._name is not None:
+            xmlTag('name', {}, self._name, generator)
 
         if not isDeleted:
             kind = self._kind
@@ -2271,7 +2287,7 @@ class Item(object):
 
     def _unloadChild(self, child):
 
-        self._children._unload(child)
+        self._children._unloadChild(child)
 
     def _refDict(self, name, otherName=None, persist=None):
 
@@ -2428,10 +2444,11 @@ class Children(LinkedMap):
 
         self._item.setDirty(Item.CDIRTY, None)
 
-    def _unload(self, child):
+    def _unloadChild(self, child):
 
-        link = super(Children, self)._unload(child._uuid)
-        del self._aliases[child._name]
+        self._unload(child._uuid)
+        if child._name is not None:
+            del self._aliases[child._name]
     
     def __repr__(self):
 

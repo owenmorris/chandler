@@ -36,7 +36,7 @@ class RefCollectionDictionary(object):
         @type item: C{item}
         @return: a C{immutable} for the key into the collection
         """
-        return item.itsName
+        return item.itsName or item.itsUUID.str64()
     
     def collectionSpecifier(self):
         """
@@ -160,7 +160,7 @@ class RefCollectionDictionary(object):
         barList = []
         coll = self.getAttributeValue(self.collectionSpecifier())
         for entry in coll:
-            barList.append (entry.itsName)
+            barList.append (entry.itsName or entry.itsUUID.str64())
         return str (barList)
 
 class DynamicBlock (object):

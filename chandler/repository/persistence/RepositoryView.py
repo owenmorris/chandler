@@ -228,7 +228,14 @@ class RepositoryView(object):
         if _index >= l:
             return None
 
-        root = self.getRoot(path[_index], kwds.get('load', True))
+        name = path[_index]
+        if isinstance(name, UUID):
+            root = self.findUUID(name, kwds.get('load', True))
+            if root is not None and root.itsParent is not self:
+                root = None
+        else:
+            root = self.getRoot(name, kwds.get('load', True))
+            
         root = callable(self, path[_index], root, **kwds)
         if root is not None:
             if _index == l - 1:
@@ -389,7 +396,7 @@ class RepositoryView(object):
             if path is None:
                 path = item.itsPath
             else:
-                path.append(item.itsName)
+                path.append(item._name or item._uuid)
             print path
             for child in item:
                 self.dir(child, path)
@@ -589,7 +596,7 @@ class RepositoryView(object):
 
     def _unloadChild(self, child):
 
-        self._roots._unload(child)
+        self._roots._unloadChild(child)
 
     def _registerItem(self, item):
 

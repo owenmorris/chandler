@@ -123,7 +123,7 @@ class EditText(RectangularChild):
                                "",
                                wx.DefaultPosition,
                                (self.minimumSize.width, self.minimumSize.height),
-                               style=style, name=self._name)
+                               style=style, name=self.itsUUID.str64())
 
         editText.SetFont(Font (self.characterStyle))
         return editText
@@ -845,7 +845,7 @@ class wxTreeAndList(DraggableWidget):
         """
         child, cookie = self.GetFirstChild (parentId)
         if not child.IsOk():
-            
+
             parentUUID = self.GetItemData(parentId).GetData()
             for child in self.GetElementChildren (Globals.repository [parentUUID]):
                 cellValues = self.GetElementValues (child)

@@ -1,5 +1,5 @@
 """
-Text blocked read of appended storage compression unit tests
+Test moving of items
 """
 
 __revision__  = "$Revision$"
@@ -9,14 +9,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-from cStringIO import StringIO
-
-from repository.persistence.XMLRepository import XMLRepository
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 
 
 class TestMove(RepositoryTestCase):
-    """ Test Item moving """
+    """ Test item moving """
 
     def setUp(self):
 

@@ -4,6 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from repository.util.UUID import UUID
+
 
 class Path(object):
     """
@@ -33,7 +35,10 @@ class Path(object):
         for name in self._names:
             if i > 1 or i == 1 and path[0] != '/':
                 path += '/'
-            path += name
+            if isinstance(name, UUID):
+                path += '{%s}' %(name.str64())
+            else:
+                path += name
             i += 1
 
         return path
@@ -63,24 +68,38 @@ class Path(object):
         """
         
         self._names = []
+        first = True
+        
         for arg in args:
 
             if isinstance(arg, Path):
                 self._names.extend(arg._names)
 
+            elif isinstance(arg, UUID):
+                self._names.append(arg)
+
             elif arg:
+                
                 if arg.startswith('//'):
-                    self._names.append('//')
+                    if first:
+                        self._names.append('//')
                     arg = arg[2:]
-                elif arg[0] == '/':
-                    self._names.append('/')
+
+                elif arg.startswith('/'):
+                    if first:
+                        self._names.append('/')
                     arg = arg[1:]
 
                 if arg.endswith('/'):
                     arg = arg[:-1]
 
                 if arg:
-                    self._names.extend(arg.split('/'))
+                    for arg in arg.split('/'):
+                        if arg.startswith('{'):
+                            arg = UUID(arg[1:-1])
+                        self._names.append(arg)
+
+                first = False
 
     def append(self, name):
         """
@@ -91,7 +110,10 @@ class Path(object):
         @param name: the name to add
         @type name: a string
         """
-        
+
+        if not isinstance(name, UUID) and name.startswith('{'):
+            name = UUID(name[1:-1])
+            
         self._names.append(name)
 
     def extend(self, path):

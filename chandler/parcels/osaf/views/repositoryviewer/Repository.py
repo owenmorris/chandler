@@ -23,7 +23,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
             return Globals.repository.view
 
     def GetElementValues(self, element):
-        cellValues = [element.itsName]
+        cellValues = [element.itsName or '(anonymous)']
         if True or element != Globals.repository.view:
             try:
                 cellValues.append (str (element.getItemDisplayName()))
