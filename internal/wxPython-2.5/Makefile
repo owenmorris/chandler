@@ -3,6 +3,7 @@ include ../Makefile.inc
 
 RELVER=2.5.3.1-7
 SRC=$(INTERNAL)/wxPython-2.5
+SWIG_OPTION=1
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
@@ -41,7 +42,7 @@ wxPython:
 	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
 	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
-                           USE_SWIG=0 \
+                           USE_SWIG=$(SWIG_OPTION) \
                            SWIG=`cygpath -aw $(SWIG)` \
                            INSTALL_MULTIVERSION=0 \
                            MONOLITHIC=0 \
@@ -79,7 +80,7 @@ $(SRC)/$(BUILD)/Makefile:
 wxPython:
 	cd $(SRC)/wxPython; \
         MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
-                           USE_SWIG=0 \
+                           USE_SWIG=$(SWIG_OPTION) \
                            SWIG=$(SWIG) \
                            INSTALL_MULTIVERSION=0 \
                            BUILD_BASE=$(BUILD) \
@@ -116,7 +117,7 @@ $(SRC)/$(BUILD)/Makefile:
 wxPython:
 	cd $(SRC)/wxPython; \
         $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
-                           USE_SWIG=0 \
+                           USE_SWIG=$(SWIG_OPTION) \
                            SWIG=$(SWIG) \
                            INSTALL_MULTIVERSION=0 \
                            BUILD_BASE=$(BUILD) \
