@@ -7,18 +7,101 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 import time
 
+
+class wxCanvasDragImage(wxFrame):
+    """
+    A class similar to wxDragImage except that it uses a shaped frame
+    to display the image, and that it is always full screen.
+    """
+    def __init__(self, bitmap):
+        wxFrame.__init__(self, None, -1, "",
+                         style = wxFRAME_SHAPED
+                         | wxSIMPLE_BORDER
+                         | wxFRAME_NO_TASKBAR
+                         | wxSTAY_ON_TOP)
+        self.bmp = bitmap
+        w, h = self.bmp.GetWidth(), self.bmp.GetHeight()
+        self.SetClientSize( (w, h) )
+        self.hotspot = None
+        self.window = None
+
+        EVT_PAINT(self, self.OnPaint)
+
+        if wxPlatform == "__WXGTK__":
+            # wxGTK requires that the window be created before you can
+            # set its shape, so delay the call to SetWindowShape until
+            # this event.
+            EVT_WINDOW_CREATE(self, self.SetWindowShape)
+        else:
+            # On wxMSW and wxMac the window has already been created, so go for it.
+            self.SetWindowShape()
+
+
+
+    def SetWindowShape(self, evt=None, hotspot=None):
+        # Use the bitmap's mask to determine the region
+        rgn = wxRegionFromBitmap(self.bmp)
+        if hotspot is not None:
+            # punch a hole in the region at the hotspot to allow mouse events
+            # through to the window below
+            rect = wxRect(hotspot.x-1, hotspot.y-1, 3, 3)
+            rgn.SubtractRect(rect)
+        self.SetShape(rgn)
+
+
+    def BeginDrag(self, hotspot, window, *ignoreOthers):
+        self.hotspot = wxPoint(hotspot[0], hotspot[1])
+        if wxPlatform != "__WXGTK__":
+            self.SetWindowShape(hotspot = self.hotspot)
+        self.window = window
+        if self.window:
+            self.window.CaptureMouse()
+
+
+    def EndDrag(self, doDestroy=True):
+        if self.window and self.window.HasCapture():
+            self.window.ReleaseMouse()
+        self.Hide()
+        if doDestroy:
+            self.Destroy()
+
+
+    def Move(self, pt):
+        """
+        Move the image to a new location on screen.  The pt parameter
+        is a point in client coordinants relative to the window
+        specifed in BeginDrag.  (Only for compatibility with
+        wxDragImage, otherwise I would just use screen coordinants...)
+        """
+        pt2 = pt
+        if self.window:
+            pt2 = self.window.ClientToScreen(pt)
+        self.SetPosition(pt2 - self.hotspot)
+
+
+    def Show(self):
+        wxFrame.Show(self)
+        self.Update()
+
+
+    def OnPaint(self, evt):
+        dc = wxPaintDC(self)
+        dc.DrawBitmap(self.bmp, 0,0, True)
+
+
+
 class wxCanvasDropSource (wxDropSource):
     def __init__(self, drawableObject, dataObject):
         wxDropSource.__init__(self, drawableObject.canvas)
         self.drawableObject = drawableObject
         self.SetData (dataObject)
-        
+
     def GiveFeedback (self, effect):
         windowX, windowY = wxGetMousePosition()
         x, y = self.drawableObject.canvas.ScreenToClientXY (windowX, windowY)
         self.drawableObject.dragImage.Move((x, y))
-        return true
-        
+        return false
+
 
 class wxCanvasDropTarget (wxPyDropTarget):
     def __init__(self, canvas, dropTargetDataObject):
@@ -26,7 +109,7 @@ class wxCanvasDropTarget (wxPyDropTarget):
         self.canvas = canvas
         self.data = dropTargetDataObject
         self.SetDataObject (dropTargetDataObject)
-        
+
     def OnData (self, x, y, result):
         """
           Delegate functionality to the canvas
@@ -34,10 +117,10 @@ class wxCanvasDropTarget (wxPyDropTarget):
         if (self.GetData()):
             x, y = self.canvas.CalcUnscrolledPosition (x, y)
             result = self.canvas.OnData (self.data, x, y, result)
-            return true;
-        return false
+        return result
 
-    
+
+
 class wxSimpleDrawableObject (wxEvtHandler):
     def __init__(self, canvas):
         wxEvtHandler.__init__ (self)
@@ -45,6 +128,7 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.canvas = canvas
         self.visible = true
         self.selected = false
+        self.dragStartPos = None
         EVT_MOUSE_EVENTS (self, self.OnMouseEvent)
 
     def MoveTo (self, x, y):
@@ -61,16 +145,22 @@ class wxSimpleDrawableObject (wxEvtHandler):
 
     def OnMouseEvent (self, event):
         x, y = event.GetPositionTuple()
-        if event.ButtonDown() and self.SelectedHitTest (x, y) :
+        if event.ButtonDown(1) and self.SelectedHitTest (x, y) :
             self.canvas.DeSelectAll()
             self.SetSelected()
             self.canvas.Update()
-        if event.ButtonDown() and self.DragHitTest (x, y):
-            self.DoDrag(x, y)
-            return true
+            if self.DragHitTest (x, y):
+                self.dragStartPos = (x, y)
+        elif event.ButtonUp(1):
+            self.dragStartPos = None
+        elif event.Dragging() and event.LeftIsDown():
+            tolerance = 2
+            if abs(x - self.dragStartPos[0]) > tolerance or abs(y - self.dragStartPos[1]) > tolerance:
+                self.DoDrag(x, y)
+                return true
         event.Skip()
         return false
-    
+
     def SetBounds (self, bounds):
         self.canvas.RefreshScrolledRect (self.bounds);
         self.bounds = bounds
@@ -83,12 +173,12 @@ class wxSimpleDrawableObject (wxEvtHandler):
         """
         if show:
             show = true
-        
+
         if (show ^ self.visible):
             self.visible = show
             self.canvas.RefreshScrolledRect (self.bounds);
             self.canvas.Update()
-            
+
     def ConvertToCanvasDeviceCoordinates (self, x, y):
         return self.canvas.CalcScrolledPosition (self.bounds.GetLeft() + x,
                                                  self.bounds.GetTop() + y)
@@ -112,23 +202,31 @@ class wxSimpleDrawableObject (wxEvtHandler):
         memoryDC.SelectObject (maskBitmap)
 
         memoryDC.SetBackground (wxBLACK_BRUSH)
-        memoryDC.Clear()               
+        memoryDC.Clear()
 
         self.DrawMask (memoryDC)
         memoryDC.EndDrawing()
 
         memoryDC.SelectObject (wxNullBitmap)
-        
-        offscreenBuffer.SetMask (wxMask (maskBitmap))
+
+        if wxPlatform == "__WXMAC__":  # workaround for wxMac bug
+            offscreenBuffer.SetMask (wxMaskColour(maskBitmap, wxBLACK))
+        else:
+            offscreenBuffer.SetMask (wxMask(maskBitmap))
 
         """
           Create the dragImage and begin dragging
         """
-        self.dragImage = wxDragImage (offscreenBuffer)
+        if wxPlatform == "__WXGTK__":
+            # The "hole punching" trick dosen't work on wxGTK, move the hostspot
+            # to be just outside the image
+            x, y = -1, -1
+        self.dragImage = wxCanvasDragImage (offscreenBuffer)
 
-        self.dragImage.BeginDrag(wxPoint (x, y), self.canvas, true)
+        self.dragImage.BeginDrag(wxPoint (x,y), self.canvas, true)
         self.dragImage.Move (self.ConvertToCanvasDeviceCoordinates (x, y))
         self.dragImage.Show()
+
         """
           We need to keep a reference to the dataObject, rather than create
         it in the construction because wxCanvasDropSource doesn't own the
@@ -142,35 +240,37 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.canvas.internalDnDItem = None
         self.dragImage.Hide()
         self.dragImage.EndDrag()
+        del self.dragImage
+
 
     def DrawMask (self, dc):
         """
           optionally implement this routine to draw a mask
         """
         pass
-      
+
     def SizeDrag (self, dragRect, startDrag, endDrag):
         self.canvas.RefreshScrolledRect (self.bounds)
         self.bounds = dragRect
         self.canvas.RefreshScrolledRect (self.bounds)
-        
+
     """
       You must implement the following functions
     """
 
     def Draw (self, dc):
         """
-          You must implement this routine to do draw 
+          You must implement this routine to do draw
         """
         assert (false)
-      
+
     def DragHitTest (self, x, y):
         """
           You must implement this routine to do hit testing for dragable region
         of drawable object
         """
         assert (false)
-      
+
     def ConvertDrawableObjectToDataObject (self, x, y):
         """
           You must implement this routine to create data object for drag and drop
@@ -183,7 +283,7 @@ class wxSimpleDrawableObject (wxEvtHandler):
         for selecting the object.
         """
         assert (false)
-        
+
     def SetSelected(self, selected=true):
         """
         Sets the selected bit for this object. Does a canvas refresh on the object
@@ -192,12 +292,12 @@ class wxSimpleDrawableObject (wxEvtHandler):
         # Use the same trick as Show()
         if selected:
             selected = true
-        
+
         # Only do a refresh if we've changed state.
         if (selected ^ self.selected):
             self.selected = selected
             self.canvas.RefreshScrolledRect (self.bounds);
-    
+
 class wxSimpleCanvas (wxScrolledWindow):
 
     def __init__ (self, *_args, **_kwargs):
@@ -216,12 +316,12 @@ class wxSimpleCanvas (wxScrolledWindow):
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
         EVT_MOUSE_EVENTS (self, self.OnMouseEvent)
         self.SetDropTarget (wxCanvasDropTarget (self, dropTargetDataObject))
-        
+
     def RefreshScrolledRect (self, rect):
         position = rect.GetPosition()
         x, y = self.CalcScrolledPosition (position.x, position.y)
         self.RefreshRect (wxRect (x, y, rect.GetWidth(), rect.GetHeight()));
-        
+
     def OnPaint (self, event):
         """
           wxBufferedDC doesn't work here since it doesn't handle scrolled windows
@@ -271,7 +371,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                                     bufferY,
                                     wxSRC_INVERT)
 
-        
+
         memoryDC.BeginDrawing()
 
         self.DrawBackground (memoryDC)
@@ -286,7 +386,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                      bufferY)
 
         memoryDC.EndDrawing()
- 
+
     def Draw (self, dc):
         updateRegion = self.GetUpdateRegion()
         scrollWindowOriginX, scrollWindowOriginY = self.CalcUnscrolledPosition (0, 0)
@@ -309,7 +409,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                 drawableObject.Draw (dc)
                 dc.SetDeviceOrigin (dcOriginX, dcOriginY)
             index -= 1
-    
+
     def OnEraseBackground (self, event):
         """
           Override OnEraseBackground to avoid erasing background. Instead
@@ -347,17 +447,17 @@ class wxSimpleCanvas (wxScrolledWindow):
                         y = 0
                     if y > boundsY:
                         y = boundsY
-    
+
                     deltaX =  x - self.dragStart.x
                     deltaY =  y - self.dragStart.y
-    
+
                     if deltaX >= 0:
                         left = self.dragStart.x
                         width = deltaX
                     else:
                         left = x
                         width = -deltaX
-                        
+
                     if deltaY >= 0:
                         top = self.dragStart.y
                         height = deltaY
@@ -365,7 +465,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                         top = y
                         height = -deltaY
                     dragRect = wxRect (left, top, width, height)
-    
+
                     if not hasattr (self, 'dragCreateDrawableObject'):
                         if (deltaX * deltaX) + (deltaY * deltaY) > (self.autoCreateDistance * self.autoCreateDistance):
                             """
@@ -378,7 +478,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                             # if we weren't allowed to create one, give up
                             if self.dragCreateDrawableObject == None:
                                 return true
-                            
+
                             self.DeSelectAll()
                             self.dragCreateDrawableObject.selected = true
                             self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
@@ -389,7 +489,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                             self.dragCreateDrawableObject.SizeDrag (dragRect,
                                                                     self.dragStart,
                                                                     wxPoint (x, y))
-    
+
                 elif event.ButtonUp():
                     del self.dragStart
                     if hasattr (self, 'dragCreateDrawableObject'):
@@ -437,14 +537,14 @@ class wxSimpleCanvas (wxScrolledWindow):
         drag and drop into a drawable object.
         """
         assert (false)
-      
+
     def CreateNewDrawableObject (self, dragRect, startDrag, endDrag):
         """
           You must implement this routine to create new drawable objects by
         dragging on the blank canvas.
         """
         assert (false)
-        
+
     def DeSelectAll (self):
         """
         Mark all selected objects as not selected. Only Refresh the objects
@@ -454,4 +554,4 @@ class wxSimpleCanvas (wxScrolledWindow):
             if (drawableObject.selected):
                 drawableObject.selected = false
                 self.RefreshScrolledRect (drawableObject.bounds)
-                
+
