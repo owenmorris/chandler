@@ -156,9 +156,14 @@ class Button(RectangularChild):
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
-            button = wxToggleButton(parentWindow, id, self.title,
-                              wxDefaultPosition,
-                              (self.minimumSize.width, self.minimumSize.height))
+            if wxPlatform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
+                button = wxButton(parentWindow, id, self.title,
+                                  wxDefaultPosition,
+                                  (self.minimumSize.width, self.minimumSize.height))
+            else:
+                button = wxToggleButton(parentWindow, id, self.title,
+                                        wxDefaultPosition,
+                                        (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
             assert (False)
 
