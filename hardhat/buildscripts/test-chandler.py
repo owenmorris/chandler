@@ -126,8 +126,10 @@ def DoTests (hardhatScript, modeDir, mode, log):
             testStr = "-dt"
         else:
             testStr = "-rt"
-    
-        print "Testing " + mode
+
+        testDir = os.path.join(modeDir, "chandler")
+        os.chdir(testDir)
+        print "Testing " + mode + " from " + testDir
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Testing " + mode + "...\n")
         outputList = hardhatutil.executeCommandReturnOutput(
