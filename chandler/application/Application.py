@@ -277,6 +277,7 @@ class wxApplication (wxApp):
         result = dialog.ShowModal()
         if result == wxID_OK:
             dialog.SavePreferences()
+            self.LoginIfNecessary()
             
     def LoadParcels(self):       
         """
@@ -338,3 +339,10 @@ class wxApplication (wxApp):
                     activeParcel.GetEventHandler().ProcessEvent(event)
             self.InCommand = false
 
+    # LoginIfNecessary is called after the preferences have changed
+    # to login to the jabber server if necessary
+    def LoginIfNecessary(self):
+       if not self.jabberClient.IsConnected():
+           self.jabberClient.ReadAccountFromPreferences()
+           self.jabberClient.Login()
+           
