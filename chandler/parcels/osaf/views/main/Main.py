@@ -23,7 +23,6 @@ import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
 import repository.item.Query as ItemQuery
 import osaf.mail.sharing as MailSharing
-import osaf.framework.webdav.Dav as Dav
 
 
 
@@ -468,7 +467,7 @@ class MainView(View):
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
         try:
-            Dav.DAV(url).put(itemCollection)
+            Sharing.putCollection(itemCollection, url)
         except:
             # An error occurred during webdav; restore the collection's name
             itemCollection.displayName = originalName

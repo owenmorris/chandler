@@ -60,7 +60,14 @@ def subscribeToWebDavCollection(url):
         return
 
     # Fetch the collection
-    collection = osaf.framework.webdav.Dav.DAV(url).get( )
+    try:
+        collection = osaf.framework.webdav.Dav.DAV(url).get( )
+    except Exception, e:
+        application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+         "WebDAV Error",
+         "Couldn't get collection from:\n%s\n\nException %s: %s" % \
+         (url, repr(e), str(e)))
+        raise
 
     # Add the collection to the sidebar by...
     event = Globals.parcelManager.lookup(EVENTS,
@@ -91,7 +98,26 @@ def manualPublishCollection(collection):
 def syncCollection(collection):
     if isShared(collection):
         print "Synchronizing", collection.sharedURL
-        osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
+        try:
+            osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
+        except Exception, e:
+            application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+             "WebDAV Error",
+             "Couldn't sync collection '%s'\nto %s\n\nException %s: %s" % \
+             (collection.displayName, collection.sharedURL, repr(e), str(e)))
+            raise
+
+def putCollection(collection, url):
+    """ Putting a collection on the webdav server for the first time. """
+    try:
+        osaf.framework.webdav.Dav.DAV(url).put(collection)
+    except Exception, e:
+        application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+         "WebDAV Error",
+         "Couldn't publish collection '%s'\nto %s\n\nException %s: %s" % \
+         (collection.displayName, url, repr(e), str(e)))
+        collection.sharedURL = None # consider it not shared
+        raise
 
 def isShared(collection):
     # @@@ Temporary hack until there is a better way to test for isShared
