@@ -33,6 +33,7 @@
     <label>Location</label>
     <cardinality>single</cardinality>
     <type itemref="cal:Location"/>
+    <inverseAttribute itemref="cal:eventsAtLocation"/>
   </AttributeDefinition>
 
   <AttributeDefinition id="cal:calendar">
@@ -47,6 +48,13 @@
     <type itemref="types:String"/>
   </AttributeDefinition>
 
+  <AttributeDefinition id="cal:eventsAtLocation">
+    <label>Calendar Events</label>
+    <cardinality>dict</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:location"/>
+  </AttributeDefinition>
+
   <Kind id="cal:CalendarEvent">
     <label>Calendar Event</label>
     <attribute itemref="cal:headline"/>
@@ -59,6 +67,7 @@
   <Kind id="cal:Location">
     <label>Location</label>
     <attribute itemref="cal:name"/>
+    <attribute itemref="cal:eventsAtLocation"/>
     <pythonClass>OSAF.calendar.model.Location.Location</pythonClass>
   </Kind>
 
