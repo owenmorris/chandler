@@ -503,7 +503,8 @@ class wxTreeAndList:
                 return
 
             self.LoadChildren(id)
-            self.Expand(id)
+            if self.IsVisible(id):
+                self.Expand(id)
             child, cookie = self.GetFirstChild (id, 0)
             while child.IsOk():
                 ExpandContainer (self, openedContainers, child)
@@ -569,7 +570,8 @@ class wxTreeAndList:
             if parent:
                 id = ExpandTreeToItem (self, parent)
                 self.LoadChildren(id)
-                self.Expand (id)
+                if self.IsVisible(id):
+                    self.Expand(id)
                 itemUUID = item.getUUID()
                 child, cookie = self.GetFirstChild (id, 0)
                 while child.IsOk():

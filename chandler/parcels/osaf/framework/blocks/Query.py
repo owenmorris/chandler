@@ -24,11 +24,11 @@ class Query (Item):
 
         elif self.queryEnum == "Kind":
             self.results = []
-            for item in self:
+            for item in self.iterateResults():
                 self.results.append (item)
         self.resultsStale = False
 
-    def __iter__ (self):
+    def iterateResults (self):
         if self.queryEnum == "ContainerSearch":
             assert False, "This code isn't written"
 
@@ -54,7 +54,7 @@ class Query (Item):
         return self.results.index (item)
         """
         index = 0
-        for object in self:
+        for object in self.iterateResults():
             if object == item:
                 return index
             index = index + 1
