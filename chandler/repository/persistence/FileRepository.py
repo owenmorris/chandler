@@ -33,7 +33,7 @@ class FileRepository(Repository):
             super(FileRepository, self).create()
             self._isOpen = True
 
-    def open(self, verbose=False):
+    def open(self, verbose=False, create=False):
 
         if not self._isOpen:
             super(FileRepository, self).open()

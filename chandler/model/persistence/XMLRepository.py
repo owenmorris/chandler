@@ -14,6 +14,7 @@ from model.item.ItemRef import RefDict
 from model.persistence.Repository import Repository
 
 from bsddb.db import DBEnv, DB, DB_CREATE, DB_TRUNCATE, DB_INIT_MPOOL, DB_BTREE
+from bsddb.db import DBNoSuchFileError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
@@ -44,23 +45,38 @@ class XMLRepository(Repository):
         if self._env is None:
             super(XMLRepository, self).create()
             self._env = DBEnv()
-            self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
-            self._refs = XMLRepository.refContainer(self._env, "__refs__",
-                                                    True)
-            self._schema = XMLRepository.xmlContainer(self._env, "__schema__",
-                                                      True)
-            self._data = XMLRepository.xmlContainer(self._env, "__data__",
-                                                    True)
+            self._create()
 
-    def open(self, verbose=False):
+    def _create(self):
+
+        self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
+        self._refs = XMLRepository.refContainer(self._env, "__refs__",
+                                                    True)
+        self._schema = XMLRepository.xmlContainer(self._env, "__schema__",
+                                                  True)
+        self._data = XMLRepository.xmlContainer(self._env, "__data__",
+                                                True)
+
+    def open(self, verbose=False, create=False):
 
         if self._env is None:
             super(XMLRepository, self).open()
             self._env = DBEnv()
-            self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
-            self._refs = XMLRepository.refContainer(self._env, "__refs__")
-            self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
-            self._data = XMLRepository.xmlContainer(self._env, "__data__")
+
+            try:
+                self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
+                self._refs = XMLRepository.refContainer(self._env,
+                                                        "__refs__")
+                self._schema = XMLRepository.xmlContainer(self._env,
+                                                          "__schema__")
+                self._data = XMLRepository.xmlContainer(self._env,
+                                                        "__data__")
+            except DBNoSuchFileError:
+                if create:
+                    self._create()
+                else:
+                    raise
+
             self._load(verbose=verbose)
 
     def close(self, purge=False, verbose=False):

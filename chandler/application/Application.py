@@ -27,9 +27,6 @@ from zodb.storage.file import FileStorage
 from application.repository.Repository import Repository
 from application.ImportExport import ImportExport
 
-from model.persistence.FileRepository import FileRepository
-from model.persistence.XMLRepository import XMLRepository
-
 """
   The application module makes available the following global data to
 other parts of the program
@@ -268,12 +265,21 @@ class wxApplication (wxApp):
         the parcels are loaded. Only load packs if they have not yet been loaded.
         """
         repositoryPath = os.path.join(self.chandlerDirectory, "__database__")
-        if '-xml' in self.argv:
-            self.repository = XMLRepository(repositoryPath)
-        else:
-            self.repository = FileRepository(repositoryPath)
+
+        # because on OS X, importing dbxml is currently not working
+        def loadClass(moduleName, className):
+            return getattr(__import__(moduleName, {}, {}, className),
+                           className)
             
-        self.repository.open()
+        if '-xml' in self.argv:
+            cls = loadClass('model.persistence.XMLRepository',
+                            'XMLRepository')
+        else:
+            cls = loadClass('model.persistence.FileRepository',
+                            'FileRepository')
+        self.repository = cls(repositoryPath)
+            
+        self.repository.open(create=True)
         if not self.repository.find('//Schema'):
             self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
                                                   "packs", "schema.pack"))

@@ -25,7 +25,7 @@ class Repository(object):
 
         self._init()
         
-    def open(self, verbose=False):
+    def open(self, verbose=False, create=False):
 
         self._init()
         

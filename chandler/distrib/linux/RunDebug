@@ -1,3 +1,3 @@
 #!/bin/sh
 cd ../Chandler
-PYTHONPATH=. PYTHONHOME=../debug LD_LIBRARY_PATH=../debug/lib:../debug/db/lib:../debug/dbxml/lib ../debug/bin/python_d Chandler.py
+PYTHONPATH=. PYTHONHOME=../debug LD_LIBRARY_PATH=../debug/lib:../debug/db/lib:../debug/dbxml/lib ../debug/bin/python_d Chandler.py $*
