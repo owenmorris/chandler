@@ -290,7 +290,7 @@ class JabberClient:
         if xRequest != None:
             if xRequest == 'chandler:request-objects':
                 # the url is in the subject
-                self.HandleObjectRequest(fromAddress, subject)
+                self.HandleObjectRequest(fromAddress, toAddress, subject)
                 return
             elif xRequest == 'chandler:receive-objects':
                 # the url is in the subject
@@ -374,10 +374,10 @@ class JabberClient:
  
     # handle receiving a request for objects from a url 
     # ask the application for the objects, then send them back to the requestor
-    def HandleObjectRequest(self, fromAddress, url):
+    def HandleObjectRequest(self, fromAddress, toAddress, url):
         # make sure the request has permission to access this view
         if not self.application.HasPermission(fromAddress, url):
-            errorMessage = _("%s does not have permission to access %s") % (fromAddress, url)
+            errorMessage = _("%s does not have permission to access %s's %s") % (fromAddress, toAddress, url)
             self.SendErrorResponse(fromAddress, url, errorMessage)
             return
         
