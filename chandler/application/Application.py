@@ -28,7 +28,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 2
+    VERSION = 3
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -185,7 +185,7 @@ class wxApplication (wxApp):
                   Each parcel must have an attribute which is the displayName.
                 """
                 assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == 'Contacts':
+                if parcel.displayName == 'Calendar':
                     parcel.synchronizeView ()
                     return
         

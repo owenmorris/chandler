@@ -57,10 +57,12 @@ class ViewerParcel (Parcel):
             module with an .xrc extension
             """
             assert (os.path.exists (path))
-            self.resources = wxXmlResource(path)
+            resources = wxXmlResource(path)
             wxMainFrame = app.association[id(app.model.mainFrame)]
-            panel = self.resources.LoadObject(wxMainFrame, modulename, "wxPanel")
+            panel = resources.LoadObject(wxMainFrame, modulename, "wxPanel")
+            assert (panel != None)
             app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
             panel.model = self
+            panel.resources = resources
             panel.OnInit ()
             panel.Layout()

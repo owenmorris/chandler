@@ -41,6 +41,7 @@ class ChandlerWindow(Persistent):
         app = application.Application.app
         if not app.association.has_key(id(self)):
             wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
+            assert (wxWindow != None)
             wxWindow.SetToolBar (None)
             wxWindow.OnInit (self)
             app.association[id(self)] = wxWindow
@@ -84,6 +85,7 @@ class wxChandlerWindow(wxFrame):
 
         applicationResources = application.Application.app.applicationResources
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
+        assert (self.menuBar != None)
         self.SetMenuBar (self.menuBar)
         
         if __debug__:
