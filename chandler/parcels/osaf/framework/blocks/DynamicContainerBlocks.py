@@ -790,11 +790,10 @@ class ToolbarItem (Block.Block, DynamicChild):
               wxWidgets on Mac can only display ugly icons (e.g. one bit alpha) so
               we'll look up the ugly alternatives.
             """
-            if sys.platform == "darwin":
-                root, extension = os.path.splitext (path)
-                macAlternatePath = root + "-mac" + extension
-                if os.path.isfile (macAlternatePath):
-                    path = macAlternatePath
+            root, extension = os.path.splitext (path)
+            platformAlternatePath = root + "-" + sys.platform + extension
+            if os.path.isfile (platformAlternatePath):
+                path = platformAlternatePath
             return path
         
         # can't instantiate ourself without a toolbar
