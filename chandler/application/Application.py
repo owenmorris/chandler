@@ -372,14 +372,14 @@ class wxApplication (wxApp):
 		urlPieces = url.split('/')
 		return application.Application.app.model.URLTree.UriExists(urlPieces[0])
 		
-	def GetViewObjects(self, url):
+	def GetViewObjects(self, url, jabberID):
 		"""
 		  request a list of objects from the view specified by a url.
 		  Figure out the appropriate parcel, and let it do the work
 		"""
 		parcel = self.GetParcelFromURL(url)		
 		if parcel != None:
-			return parcel.GetViewObjects(url)
+			return parcel.GetViewObjects(url, jabberID)
 		
 		# FIXME: should return an error here
 		return []
