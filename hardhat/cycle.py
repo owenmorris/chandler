@@ -8,14 +8,14 @@ whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 homeDir = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 stopFile = os.path.join(buildDir, "stop")
+defaultDomain = "osafoundation.org"
 
 def main():
-    print "Test script 1"
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.0")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
-      default="buildreport@osafoundation.org", help="Where to mail script reports\n"
-      " [default] buildreport@osafoundation.org")
+      default="buildreport", help="Where to mail script reports\n"
+      " [default] buildreport (at) osafoundation.org")
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
       default="newchandler", help="Name of script to use (without .py extension)\n"
       "[default] newchandler")
@@ -23,11 +23,11 @@ def main():
       default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
-      default="buildman@osafoundation.org", help="E-mail to notify on build errors \n"
-      " [default] buildman@osafoundation.org")
+      default="buildman", help="E-mail to notify on build errors \n"
+      " [default] buildman (at) osafoundation.org")
     parser.add_option("-s", "--script", action="store", dest="doScript",
-      default="tindertest.py", help="Script to run for the build\n"
-      " [default] tindertest.py")
+      default="tinderbox.py", help="Script to run for the build\n"
+      " [default] tinderbox.py")
       
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -35,6 +35,13 @@ def main():
         parser.error("You must at least provide a name for your build")
 
     buildName = args[0]
+    mailtoAddr = options.toAddr
+    alertAddr = options.alertAddr
+    if mailtoAddr.find('@') == -1:
+        mailtoAddr += "@" + defaultDomain
+    if alertAddr.find('@') == -1:
+        alertAddr += "@" + defaultDomain
+
 #    print "options ", options 
 #     print " Build script ", options.doScript
 #     print "args ", args[0] 
@@ -83,7 +90,8 @@ def main():
             # launch the real build script
             outputList = hardhatutil.executeCommandReturnOutput(
              [os.path.join(curDir, options.doScript), "-o", options.outputDir, 
-             "-a", options.alertAddr, "-t", options.toAddr, 
+             "-a", alertAddr, 
+             "-t", mailtoAddr, 
              "-p", options.project, args[0] ])
             hardhatutil.dumpOutputList(outputList)
         except:
