@@ -7,7 +7,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
-from wx import py
 
 from model.schema.DomainSchemaLoader import DomainSchemaLoader
 
