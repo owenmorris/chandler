@@ -463,7 +463,10 @@ possible to define a bidirectional relationship without needing to use naming
 or import tricks to make the link.  Instead, we could maybe have something
 like::
 
-    inheritance = schema.Relationship("subclass","superclass")
+    inheritance = schema.Relationship(
+        """Subclass/superclass relationship""",
+        subclass=schema.TBD, superclass=schema.TBD
+    )
 
     class Kind(schema.Entity):
          subclasses = schema.Collection(inheritance.subclass)
@@ -476,6 +479,148 @@ participate in a given end of the relationship, this may reduce type safety.)
 Referencing a type instead of one end of a "relationship" would implicitly
 create a relationship with an unnamed reverse end; in this way the dynamic API
 always has a relationship object to use for looking things up.
+
+In principle, this would also allow creating standalone bidirectional
+relationships, e.g.::
+
+    likes = schema.Relationship(
+        """People a contact likes""",
+        liker = Contact, liked = Contact
+    )
+
+Then, one could iterate over liker/likes pairs, or use dynamic relationship
+navigation to go from a person to their liked people or vice versa.  This
+would allow parcels to create relationships between existing types without
+affecting those types' static API.
+
+
+Schema Evolution
+~~~~~~~~~~~~~~~~
+
+For schema evolution, every data aspect (class, relationship, role, attribute)
+needs a UUID.  Code with UUIDs written out inline is ugly, but safest.  Next
+safest is to define constant UUIDs, and include them near the top of the
+module -- but this is still ugly since there will be many of them, forcing you
+to scroll down to find the meat of the module.
+
+Putting the UUIDs at the end of the file is less safe, because checking comes
+later, or if it's done via assignment then some edits may result in the UUID
+staying with the old name, when it should go to the new name.
+
+In essence the problem is, "How can we have a visible token that stays with
+the schema element without being visible, and that is independent of the name
+yet doesn't have to be independently maintained?"
+
+Hm.  What if UUID's have to appear in an element's docstring somewhere?  It's
+not a perfect solution, but it puts it a little more out of the way.  The
+ugliness of the UUID would encourage the coder to put more text in the
+docstring to balance out the appearance.  A UUID generation tool could easily
+add them to a docstring by the user including a token like "UUID:???".
+
+The downside to this approach is that it's still quite verbose, and it forces
+you to bulk up docstrings for things that are often quite self-explanatory
+already.
+
+If I were doing this by hand, I'd probably use the approach of putting
+symbolic constants at the beginning of the file, or using some kind of
+"fingerprint" technique wherein each schema element used only a 16-bit or
+32-bit hex marker to identify the actual UUID, e.g.::
+
+    class Item:
+        displayName = schema.Attribute(String, 0x454E)
+        monitors = schema.Attribute(object, 0x43A9)
+        queries = schema.Collection(object, 0xAF0D)
+        issues = schema.Collection(String, 0xB941)
+        examples = schema.Collection(String, 0x8725)
+        description = schema.Attribute(String, 0x33C9)
+
+The actual UUIDs could then be looked up elsewhere.  This is is still ugly,
+but it beats putting 128-bit UUIDs in the code.
+
+On the other hand, maybe there's no need for UUIDs for anything but classes
+and standalone relationships.  It would be nice to be able to rename or
+otherwise mess around with individual attributes without affecting the actual
+schema, but in actual usage, wouldn't it be the case that you need to "upgrade"
+the physical schema anyway?  Maybe all you really need is a package revision
+identifier, and when syncing the Python schema definition to the repository
+schema definition, you can check whether the Python schema is different from
+the physical one, assuming that the version info is the same.  If the version
+info is the same, but the schema is different, you kick out a message to the
+programmer telling them to bump the version number and either write a schema
+upgrade, or else to uninstall and reinstall the parcel from that repository.
+
+Running with that theory for a moment, there are a couple of holes.  First,
+there needs to be some way to associate the parcel version with the schema
+item, but that could be as simple as requiring the module to include a parcel
+specifier of some kind (such as a UUID).  Second, the core schemas have lots
+of bidirectional relationships, so requiring a UUID for every Relationship
+would be like requiring UUIDs for half of all attributes.
+
+So, probably the simplest approach is:
+
+* Require one UUID to denote the parcel (possibly automatically determined
+  based on package name if no containing package has one)
+
+* Require specification of a parcel schema version (defaulting to 0)
+
+* For each schema element needing a UUID which does not have one explicitly
+  supplied, automatically generate a UUID using the parcel UUID as a namespace
+
+* Complain loudly when a match can't be found
+
+This will work very nicely without the user needing to care about UUIDs at all
+unless they rename/reorganize things without changing the schema, in which case
+the new autogenerated UUIDs won't match up with the old, and they'll be forced
+to write a meaningless upgrade script.  However, in that case they can always
+look up the old UUID and and put it on the moved class or whatever.  So in
+this model, renaming or reorganizing causes UUIDs to accumulate on the schema
+like barnacles, allowing you to tell the age of a piece of code by the number
+of UUIDs in it.  :)
+
+All of this just illustrates the basic idea that schema evolution inherently
+sucks, and that if you change your application, you are doomed to write upgrade
+scripts.  OTOH, that also indicates that the problem we *should* be solving is
+how to write upgrade scripts, as in this context UUIDs just dodge the need to
+write a certain subset of upgrade scripts.  (That is, those that involve moving
+or renaming parts of a schema.)  Also, in the context of guaranteed UUIDs, you
+can also be sure when something is just added, and thus eliminate another class
+of upgrade script (e.g., ones where a new field's default value is adequate).
+So the really interesting upgrades have to do with removal of information, and
+transformation of existing information.
+
+More interesting than the concept of schema equivalence is the concept of
+schema conformance.  For example, suppose a user installs version 23 of parcel
+Q, and then uninstalls it and reverts to version 15 of that package, because
+they prefer it.  Ideally, the system shouldn't disallow this if version 23 only
+added some new fields or renamed existing fields.
+
+But that feature is very hard to do without real UUIDs, so that seems to put
+me right back where I started.  Sigh.
+
+Okay, so I guess my first idea of putting the UUIDs in a separate file was the
+best way after all.  You have to edit it when you reorganize or rename, but
+if you forget then a UUID will be missing on some item.  The only tricky bit
+is to distinguish between the cases of "renamed item + new item w/old name" and
+"new item".  Oh, and distinguishing between "renamed item" and "1 item added,
+1 item deleted" is also tricky.  The thing we want to avoid here is somebody
+just rerunning the UUID generation tool and screwing something up, when they
+should be manually editing the file to change the relevant information.
+
+But, maybe the way we can deal with that is to also look at the repository to
+find orphaned UUIDs.  Then, the system can reverse-lookup these UUIDs in the
+config file, so as to determine the names of possibly removed or renamed items.
+Then, the error message can suggest editing the UUID file, and the generation
+tool can refuse to generate new UUIDs until all orphans have been reassigned
+or marked for deletion in some way.
+
+This scheme still requires some way to designate parcel and version, and still
+needs upgrade script support, but makes it easy to recognize what parts of
+a schema are the "same" even if they have different names or locations.  It
+also suggests that the system can force a new UUID to be used whenever a
+backward-incompatible change is made, and add an entry to the configuration
+file under the old UUID describing the upgrade/downgrade procedure for the
+changed item.  It would also allow the system to warn you when installing
+a new version of some parcel that you won't be able to reverse the procedure.
 
 
 Event Model
