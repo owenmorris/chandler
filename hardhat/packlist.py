@@ -13,7 +13,7 @@ class packlist(list, xml.sax.ContentHandler):
 
     def __init__(self, path):
 
-        super(list, self).__init__(self)
+        super(list, self).__init__()
         
         self.path = path
         self.cwd = [ os.path.dirname(path) ]
