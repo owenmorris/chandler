@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>RunChandler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Chandler Release 0.3 from the Open Source Applications Foundation</string>
+	<string>Chandler Milestone 0.3.16 from the Open Source Applications Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>Chandler.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
