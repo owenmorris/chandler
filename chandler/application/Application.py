@@ -28,6 +28,7 @@ from application.repository.Repository import Repository
 from application.ImportExport import ImportExport
 
 from model.persistence.FileRepository import FileRepository
+from model.persistence.XMLRepository import XMLRepository
 
 """
   The application module makes available the following global data to
@@ -143,13 +144,14 @@ class wxApplication (wxApp):
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
-    self.repository               the model.persistence.FileRepository instance
+    self.repository               the model.persistence.Repository instance
+    self.argv                     the command line arguments of the process
     
     In the future we may replace ZODB with another database that provides 
     similar functionality
     """
 
-    def __init__(self):
+    def __init__(self, argv=[]):
         """
           Overriding the __init__() method for wxApp so that we can check
         to see if the user wants stdio redirected to a window or left 
@@ -167,10 +169,12 @@ class wxApplication (wxApp):
         else:
             wxApp.__init__(self)
 
+        self.argv = argv
+
     def OnInit(self):       
         """
-          Main application initialization. Open the persistent object
-        tore, lookup of the application's persitent model counterpart, or
+        Main application initialization. Open the persistent object
+        store, lookup of the application's persistent model counterpart, or
         create it if it doesn't exist.
         """
         self.applicationResources=None
@@ -262,8 +266,12 @@ class wxApplication (wxApp):
         Load the Repository after the path has been altered, but before
         the parcels are loaded. Only load packs if they have not yet been loaded.
         """
-        self.repository = FileRepository(os.path.join(self.chandlerDirectory,
-         "__database__"))
+        repositoryPath = os.path.join(self.chandlerDirectory, "__database__")
+        if '-xml' in self.argv:
+            self.repository = XMLRepository(repositoryPath)
+        else:
+            self.repository = FileRepository(repositoryPath)
+            
         self.repository.open()
         if not self.repository.find('//Schema'):
             self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",

@@ -6,10 +6,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Application import wxApplication
 from transaction import get_transaction
+from sys import argv
 
 if __name__=="__main__":
         
-    application = wxApplication()
+    application = wxApplication(argv)
     application.MainLoop()
     """
       Since Chandler doesn't have a save command and commits typically happen
