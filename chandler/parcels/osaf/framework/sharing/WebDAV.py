@@ -8,23 +8,30 @@ import mimetypes
 import base64
 import libxml2
 import urlparse
+import crypto.ssl as ssl
+import M2Crypto.httpslib as httpslib
 
 XML_CONTENT_TYPE = 'text/xml; charset="utf-8"'
 
 class Client(object):
 
     def __init__(self, host, port=80, username=None, password=None,
-     useSSL=False):
+     useSSL=False, ctx=None):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
         self.useSSL = useSSL
+        self.ctx = ctx
         self.conn = None
 
     def connect(self):
         if self.useSSL:
-            self.conn = httplib.HTTPSConnection(self.host, self.port)
+            if self.ctx is None:
+                self.ctx = ssl.getSSLContext()
+            self.conn = httpslib.HTTPSConnection(self.host,
+                                                 self.port,
+                                                 ssl_context=self.ctx)
         else:
             self.conn = httplib.HTTPConnection(self.host, self.port)
 
