@@ -11,9 +11,11 @@ from wxPython.html import *
 
 class SplashScreen(wxFrame):
     """
-      A splash screen presented to the user when they first run Chandler.
+      This class implements an HTML informational screen presented to the user. 
+    Common uses are for splash screens or 'About' pages.
+    The page can be dismissed either by clicking on it or by a timer.
     """
-    def __init__(self, title = "", useTimer=true):
+    def __init__(self, title="", pageLocation="", useTimer=true, timerLength=10000):
         """
           Sets up the splash screen and starts its timer.
         """
@@ -21,12 +23,12 @@ class SplashScreen(wxFrame):
                          size = (700,450),
                          style=wxSTAY_ON_TOP|\
                          wxDEFAULT_FRAME_STYLE)
-        panel = HTMLPanel(self)
+        panel = HTMLPanel(self, pageLocation)
         self.CentreOnScreen()
         
         if useTimer:
             self.timer = SplashTimer(self)
-            self.timer.Start(10000)
+            self.timer.Start(timerLength)
         else:
             self.timer = None
             
@@ -44,13 +46,12 @@ class HTMLPanel(wxHtmlWindow):
     """
       Displays the html message.
     """
-    def __init__(self, parent):
+    def __init__(self, parent, pageLocation):
         """
           Sets up the wxHtmlWindow and loads the proper page to be displayed.
         """
         wxHtmlWindow.__init__(self, parent, style = wxHW_SCROLLBAR_NEVER)
         self.parent = parent
-        pageLocation = 'application' + os.sep + 'welcome.html'
         self.LoadPage(pageLocation)
         
     def OnCellClicked(self, cell, x, y, event):

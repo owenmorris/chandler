@@ -82,7 +82,9 @@ class Application(Persistent):
 		else:
 			self.splashWasShown = 0
 		if self.splashWasShown < 2:
-			splash = SplashScreen(_("Welcome to Chandler"), false)
+			pageLocation = 'application' + os.sep + 'welcome.html'		
+			splash = SplashScreen(_("Welcome to Chandler"), 
+					      pageLocation, false)
 			splash.Show(true)
 			
 	def __setstate__(self, dict):
@@ -271,7 +273,9 @@ class wxApplication (wxApp):
 		"""
 			Show the splash screen in response to the about command
 		"""
-		splash = SplashScreen(_("About Chandler"), useTimer=false)
+		pageLocation = 'application' + os.sep + 'welcome.html'		
+		splash = SplashScreen(_("About Chandler"), pageLocation,
+				      useTimer=false)
 		splash.Show(true)
 
 	# handle the preferences command by showing the preferences dialog
