@@ -88,7 +88,7 @@ if hardHatFile:
         curmodulepath = relpath
 
     print "Project path: ", projectRoot
-    print "Module path:  ", os.path.join(projectRoot, curmodulepath)
+    print "Module path:  ", os.path.abspath(os.path.join(projectRoot, curmodulepath))
     print "Module name:  ", curmodule.info['name']
     print "HardHat log:  ", os.path.join(projectRoot, "hardhat.log")
     print
