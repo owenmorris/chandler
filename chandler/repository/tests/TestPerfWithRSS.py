@@ -7,7 +7,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, os
+import posix, os, os.path, sys, unittest
 
 from bsddb.db import DBNoSuchFileError
 from repository.persistence.XMLRepository import XMLRepository
@@ -15,17 +15,18 @@ from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 import repository.parcel.LoadParcels as LoadParcels
 import application.Globals as Globals
 
-import sys
-
+# get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERDIR']
 sys.path.append(os.path.join(_chandlerDir,'parcels','OSAF','examples','zaobao'))
 import feedparser
-import posix
 
+# get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
+# You can obtain the files from http://aloha.osafoundation.org/~twl/rssfeeds.tar.gz
 RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
-
-# get all the RSS files in RSS_HOME
-_rssfiles = posix.listdir(RSS_HOME)
+if os.path.exists(RSS_HOME):
+    _rssfiles = posix.listdir(RSS_HOME)
+else:
+    _rssfiles = []
 
 # make them file URL's
 _defaultBlogs = [ "file://"+RSS_HOME+f for f in _rssfiles ]
@@ -37,7 +38,7 @@ class TestPerfWithRSS(unittest.TestCase):
 
     def setUp(self):
         self.rootdir = _chandlerDir
-        self.rep = XMLRepository('RSSPerfUnitTest-Repository')
+        self.rep = XMLRepository('__repository__')
         Globals.repository = self.rep # to keep indexer happy
         self.rep.create()
         schemaPack = os.path.join(self.rootdir, 'repository', 'packs', 'schema.pack')
@@ -75,7 +76,9 @@ class TestPerfWithRSS(unittest.TestCase):
             repository.commit()
         except Exception, e:
             self.rep.logger.error("Final commit:",e)
+            self.fail()
         self.rep.logger.info("Processed %d items" % itemCount)
+        self.assert_(True)
         
     def __getFeeds(self):
         """Return a list of channel items"""
