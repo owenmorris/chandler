@@ -211,9 +211,7 @@ class wxApplication (wxApp):
         EVT_UPDATE_UI(self, -1, self.OnCommand)
 
         self.InCommand = false          #used by OnCommand
-
-        if wxPlatform != '__WXGTK__':
-            self.OpenStartingUri()
+        self.OpenStartingUri()
 
         return true                     #indicates we succeeded with initialization
 
@@ -234,6 +232,8 @@ class wxApplication (wxApp):
         in the URLTree.  If we have persisted, then we use the last
         remembered uri.
         """
+        if not hasattr(self, 'wxMainFrame'):
+            self.wxMainFrame = app.association[id(self.model.mainFrame)]
         uri = self.wxMainFrame.navigationBar.model.GetCurrentUri()
         if uri != None:
             self.wxMainFrame.GoToUri(uri, false)

@@ -43,16 +43,18 @@ class ChandlerWindow(Persistent):
         if not app.association.has_key(id(self)):
             wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
             assert (wxWindow != None)
-            wxWindow.SetToolBar (None)
+            # FIXME:  Setting the toolbar to None does not work on Linux.
+            # However, removing this line on Windows causes an extra grey 
+            # box to be drawn.
+            if wxPlatform != '__WXGTK__':
+                wxWindow.SetToolBar (None)
             wxWindow.OnInit (self)
             app.association[id(self)] = wxWindow
         else:
             wxWindow = app.association[id(self)]
             
         wxWindow.sideBar.model.SynchronizeView()
-        # FIXME: The navigation bar is currently broken under Linux
-        if wxPlatform != '__WXGTK__':        
-            wxWindow.navigationBar.model.SynchronizeView()
+        wxWindow.navigationBar.model.SynchronizeView()
         wxWindow.MoveOntoScreen()
         
 class wxChandlerWindow(wxFrame):
@@ -99,10 +101,14 @@ class wxChandlerWindow(wxFrame):
 
         self.sideBar = self.FindWindowByName("SideBar")
         assert (self.sideBar != None)
-        # FIXME: The navigation bar is currently broken under Linux
-        if wxPlatform != '__WXGTK__':        
+        # FIXME:  See FIXME note above.  FindWindowByName does not work on
+        # Linux, but due to the SetToolBar(None) above on Windows, GetToolBar
+        # does not work.
+        if wxPlatform == '__WXGTK__':
+            self.navigationBar = self.GetToolBar()
+        else:
             self.navigationBar = self.FindWindowByName("NavigationBar")
-            assert (self.navigationBar != None)
+        assert (self.navigationBar != None)
 
         if __debug__:
             """
@@ -213,10 +219,8 @@ class wxChandlerWindow(wxFrame):
             if parcel.displayName == uri:
                 parcel.SynchronizeView ()
                 self.sideBar.model.SelectUri(uri)
-                # FIXME: The navigation bar is currently broken under Linux
-                if wxPlatform != '__WXGTK__':        
-                    if doAddToHistory:
-                        self.navigationBar.model.AddUriToHistory(uri)
-                    self.navigationBar.model.SynchronizeView()
+                if doAddToHistory:
+                    self.navigationBar.model.AddUriToHistory(uri)
+                self.navigationBar.model.SynchronizeView()
                 return true
         return false
