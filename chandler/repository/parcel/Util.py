@@ -19,11 +19,19 @@ def PrintItem(uri, rep, level=0):
     for i in range(level):
         print " ",
     item = rep.find(uri)
-    print "%s (Kind: %s)" % (uri, item.kind.getItemPath() )
+    if not item:
+        print "Error: %s was not found" % uri
+        return
+
+    if item.hasAttributeValue("kind"):
+        print "%s (Kind: %s)" % (uri, item.kind.getItemPath() )
+    else:
+        print "%s" % (uri)
 
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes:
-    if "//Schema/Core/Kind" == str(item.kind.getItemPath()):
+    if item.hasAttributeValue("kind") and \
+     "//Schema/Core/Kind" == str(item.kind.getItemPath()):
         for i in range(level+2):
             print " ",
         print "attributes:"
@@ -103,7 +111,7 @@ def PrintItem(uri, rep, level=0):
 
     print
 
-    for child in item:
-        childuri = child.getItemPath()
-        PrintItem(childuri, rep, level+1)
-
+    if item.hasChildren():
+        for child in item.iterChildren():
+            childuri = child.getItemPath()
+            PrintItem(childuri, rep, level+1)
