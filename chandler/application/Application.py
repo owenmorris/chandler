@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
 
-import os, sys, stat, gettext
+import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
@@ -133,6 +133,8 @@ class wxApplication (wxApp):
         #Setup internationalization
         os.environ['LANGUAGE'] = 'en'
         self.locale = wxLocale(wxLANGUAGE_ENGLISH)
+        locale.setlocale(locale.LC_ALL, 'en')
+        
         wxLocale_AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog('Chandler.mo')
         gettext.install('Chandler', self.chandlerDirectory + os.sep + 'locale')
