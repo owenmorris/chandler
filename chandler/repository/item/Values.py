@@ -114,7 +114,7 @@ class Values(dict):
                 persist = True
 
             if persist:
-                persist = self._getFlags('classes') & self.TRANSIENT == 0
+                persist = self._getFlags(key) & self.TRANSIENT == 0
 
             if persist:
                 if attribute is not None:
