@@ -29,10 +29,10 @@ nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=d
 			ConfigurationType="0">
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0"
-				ReBuildCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 clean
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0"
-				CleanCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 clean"/>
+				BuildCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0"
+				ReBuildCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0"
+				CleanCommandLine="nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 clean"/>
 		</Configuration>
 	</Configurations>
 	<References>
