@@ -38,22 +38,13 @@ class Kind(Item):
         The python class instantiated is taken from the Kind's classes
         attribute if it is set. The Item class is used otherwise."""
         
-        return self.getItemClass()(name, parent, self)
-
-    def newKind(self, name, parent, superKind=None):
-        """Create a new kind, programmatically.
-
-        The superKind of the kind created defaults to the Item kind at
-        //Schema/Core/Item."""
-
-        if superKind is None:
+        item = self.getItemClass()(name, parent, self)
+        if self._kind is self:
             superKind = self._kind.getItemParent().getItemChild('Item')
-        
-        kind = Kind(name, parent, self.kind)
-        kind.addValue('superKinds', superKind)
+            item.addValue('superKinds', superKind)
 
-        return kind
-
+        return item
+            
     def getItemClass(self):
         """Return the class used to create items of this Kind.
 
