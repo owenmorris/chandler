@@ -55,7 +55,6 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-
     distDir = buildenv['root'] + os.sep + 'distrib'
     buildenv['distdir'] = distDir
 
@@ -68,55 +67,18 @@ def distribute(buildenv):
 
         if buildenv['version'] == 'release':
             manifestFile = "distrib/linux/manifest.linux"
-            handleManifest(buildenv, manifestFile)
+            hardhatlib.handleManifest(buildenv, manifestFile)
 
     if buildenv['os'] == 'osx':
 
         if buildenv['version'] == 'release':
             manifestFile = "distrib/osx/manifest.osx"
-            handleManifest(buildenv, manifestFile)
+            hardhatlib.handleManifest(buildenv, manifestFile)
 
     if buildenv['os'] == 'win':
 
         if buildenv['version'] == 'release':
             manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.win"
-            handleManifest(buildenv, manifestFile)
+            hardhatlib.handleManifest(buildenv, manifestFile)
 
-
-
-
-def handleManifest(buildenv, filename):
-    import fileinput
-    import shutil
-
-    before = "xyzzy"
-    after = "plugh"
-
-    for line in fileinput.input(filename):
-        line = line[:-1]
-        if line[0:1] == "!":
-            line = line[1:]
-            (before,after) = line.split(",")
-            blen = len(before)
-            # print "before=", before
-        else:
-            # print line
-            if line[0:blen] == before:
-                line2 = after + line[blen:]
-                source = buildenv['root'] + os.sep + line
-                dest = buildenv['distdir'] + os.sep + line2
-                # print source, "->", dest
-                path = os.path.dirname(dest)
-                # print path
-                mkdirs(path)
-                shutil.copy(source, dest)
-
-
-def mkdirs(newdir, mode=0777):
-    try: 
-        os.makedirs(newdir, mode)
-    except OSError, err:
-        # Reraise the error unless it's about an already existing directory 
-        if err.errno != errno.EEXIST or not os.path.isdir(newdir): 
-            raise
 
