@@ -1232,21 +1232,23 @@ def buildRelease(buildenv):
         history = {}
         buildDependencies(buildenv, module, history)
         os.chdir(buildenv['root'])
-        
+
         compressedFile = compressDirectory(buildenv, "release", 
          compressedFileRoot)
-        
+
         distribute(buildenv, module)
         os.chdir(buildenv['root'])
         if os.path.isdir(distName):
             rmdir_recursive(distName)
-        os.rename("distrib", distName)
+        # os.rename("distrib", distName)
 
-        distCompressedFile = compressDirectory(buildenv, distName, 
-         distCompressedFileRoot)
+        installerFile = createInstaller(buildenv, "distrib", distName)
+
+        # distCompressedFile = compressDirectory(buildenv, distName, 
+        #  distCompressedFileRoot)
 
         log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Copying tarballs")
+         "Copying distributions")
 
         releasesDir = buildenv['workroot'] + os.sep + "releases"
         releaseDir = releasesDir + os.sep + releaseId
@@ -1258,12 +1260,12 @@ def buildRelease(buildenv):
         if os.path.exists(releaseDir + os.sep + compressedFile):
             os.remove(releaseDir + os.sep + compressedFile)
         os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-        if os.path.exists(releaseDir + os.sep + distCompressedFile):
-            os.remove(releaseDir + os.sep + distCompressedFile)
-        os.rename(distCompressedFile, releaseDir+os.sep+distCompressedFile)
+        if os.path.exists(releaseDir + os.sep + installerFile):
+            os.remove(releaseDir + os.sep + installerFile)
+        os.rename(distCompressedFile, releaseDir+os.sep+installerFile)
 
         log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Release tarballs are in " + releaseDir)
+         "Release distributions are in " + releaseDir)
 
     except Exception, e:
         print e
@@ -1323,6 +1325,20 @@ def compressDirectory(buildenv, directory, fileRoot):
         "Running gzip on " + fileRoot + ".tar")
         return fileRoot + ".tar.gz"
 
+def createInstaller(buildenv, directory, distName):
+    """ Runs external installation packaging script. """
+    if buildenv['os'] == 'osx':
+        # Turn the distrib directory into an application bundle
+        os.mkdir(distName)
+        os.rename(directory, distName + os.sep + distName + ".app")
+        makeDiskImage = buildenv['hardhatroot'] + os.sep + "makediskimage.sh"
+        executeCommand(buildenv, "HardHat", 
+         [makeDiskImage, distName], "Creating disk image from" + distName)
+        return distName + ".dmg"
+
+    else:
+        return compressDirectory(buildenv, directory,
+         buildenv['module'] + "_" + buildenv['oslabel'] + "_" + releaseId)
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
