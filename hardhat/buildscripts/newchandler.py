@@ -96,14 +96,30 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     else:
         os.chdir(chanDir)
     
+        print "Checking CVS for updates"
+        log.write("Checking CVS for updates\n")
+        buildVersionEscaped = "\'" + buildVersion + "\'"
+        buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
+        
+        if changesInCVS(testDir, workingDir, cvsVintage, log):
+            log.write("Changes in CVS, do an install\n")
+            changes = "-changes"
+        else:
+            log.write("No changes, install skipped\n")
+            changes = "-nochanges"
+
+        # do tests after checking CVS
         for releaseMode in ('debug', 'release'):
     
-        # do tests after checking CVS
+            if changes == "-changes":
+                doInstall(releaseMode, workingDir, log)
+                makeDistrib(hardhatScript, releaseMode, outputDir, buildVersion, log)
+    
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
 
-    return ret
+    return ret + changes 
 
 
 # These modules are the ones to check out of CVS
@@ -111,38 +127,9 @@ cvsModules = (
     'chandler',
 )
 
-# If any of these modules have changed, download and replace before testing
-tarballModules = {
-    'wxPython-':2.5-2,
-    'UUIDext-':0.3-1,
-    'PyLucene-':0.3-1,
-    'Launchers-':0.3-2,
-    '':0.3-3,   # the main module including "external" has no leading name
-}
-
-
 def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
-    print "Do " + mode
-    log.write("Performing " + mode + " install, version " + buildVersion + "\n")
-    buildVersionEscaped = "\'" + buildVersion + "\'"
-    buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-    
-    if changesInCVS(testDir, workingDir, cvsVintage, log):
-        log.write("Changes in CVS, do a " + mode + " install\n")
-        doInstall(mode, workingDir, log)
-        changes = "-changes"
-    else:
-        log.write("No changes, " + mode + " install skipped\n")
-        changes = "-nochanges"
-
-    testRet = doTests(hardhatScript, testDir, workingDir, mode, log)
-
-    return testRet + changes # end of Do( )
-
-def doTests(hardhatScript, testDir, workingDir, mode, log):
-
     os.chdir(testDir)
 
     if mode == "debug":
@@ -178,17 +165,28 @@ def doTests(hardhatScript, testDir, workingDir, mode, log):
 
     return "success"  # end of doTests( )
 
-def changesInModules(mode):
-# assume nothing changed
-# get the directory where the modules are fetched from/to
-    sourceURL = "http://builds.osafoundation.org/external" + environ['os']
-    return false
+#   Create end-user, developer distributions
+def makeDistrib(hardhatScript, mode, outputDir, buildVersion, log):
+
+    print "Making distribution files for " + mode
+    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write("Making distribution files for " + mode + "\n")
+    if mode == "debug":
+        distOption = "-dD"
+    else:
+        distOption = "-D"
+        
+    outputList = hardhatutil.executeCommandReturnOutput(
+     [hardhatScript, "-o", outputDir, distOption, buildVersionEscaped])
+    hardhatutil.dumpOutputList(outputList, log)
+    
+    return
 
 def changesInCVS(moduleDir, workingDir, cvsVintage, log):
 
     changesAtAll = False
-    print "Examining CVS"
-    log.write("Examining CVS\n")
+#     print "Examining CVS"
+#     log.write("Examining CVS\n")
     for module in cvsModules:
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
@@ -207,7 +205,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
             log.write("Getting changed sources\n")
             
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [cvsProgram, "-q", "update"])
+            [cvsProgram, "-q", "update", "-Ad"])
             hardhatutil.dumpOutputList(outputList, log)
         
         else:
@@ -217,10 +215,6 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
     return changesAtAll
-
-def getChangedModules(tarballModules):
-# dummy for now
-    return false
 
 def doInstall(buildmode, workingDir, log):
 # for our purposes, we do not really do a build
