@@ -83,7 +83,9 @@ class ContentItem(Item.Item):
         super (ContentItem, self).__init__(name, parent, kind)
 
         self.createdOn = DateTime.now()
-        self.creator = self.getCurrentMeContact(self.itsView)
+        if view is None:
+            view = self.itsView
+        self.creator = self.getCurrentMeContact(view)
 
     def getKind(cls, view):
         """ Look up a class's kind, based on its myKindPath attribute """
@@ -409,12 +411,12 @@ class ContentItem(Item.Item):
         import mail.Mail as Mail
         return Mail.EmailAddress.getCurrentMeEmailAddress (self.itsView)
 
-    def getCurrentMeContact(self, ignore=None):
+    def getCurrentMeContact(self, view):
         """
           Lookup the current "me" Contact.
         """
         import contacts.Contacts
-        return contacts.Contacts.Contact.getCurrentMeContact(self.itsView)
+        return contacts.Contacts.Contact.getCurrentMeContact(view)
 
     def setStatusMessage (cls, message, *args):
         Globals.views[0].setStatusMessage (message, *args)
