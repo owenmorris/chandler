@@ -55,7 +55,7 @@ def main():
 
         startInt = int(time.time())
 
-        if( (startInt - (5 * 60)) < prevStartInt):
+        if False and ( (startInt - (5 * 60)) < prevStartInt):
             print "Sleeping 5 minutes (" + buildName + ")"
             time.sleep(5 * 60)
             # re-fetch start time now that we've slept
@@ -104,7 +104,7 @@ def main():
                 print "newDir =", newDir
                 os.rename(os.path.join(buildDir, "output"), newDir)
                 log.write("Calling CreateIndex with " + newDir + "\n")
-                CreateIndex(newDir)
+                CreateIndex(outputDir, buildVersion)
                 RotateDirectories(outputDir)
             else:
                 print "There were no changes"
@@ -154,14 +154,15 @@ def RotateDirectories(dir):
     for subdir in dirs[:-3]:
         hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
-def CreateIndex(dir):
+def CreateIndex(outputDir, newDirName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
-    fileOut = file(dir+os.sep+"index.html", "w")
+    fileOut = file(outputDir+os.sep+"index.html.new", "w")
     for x in ["enduser", "developer", "release", "debug"]:
-        actual = _readFile(dir+os.sep+x)
-        fileOut.write("<p><a href=" + actual + ">" + x + "</a></p>\n")
+        actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
+        fileOut.write("<p><a href=newDirName/" + actual + ">" +x+ "</a></p>\n")
     fileOut.close()
+    os.rename(outputDir+os.sep+"index.html.new", outputDir+os.sep+"index.html")
 
 def _readFile(path):
     fileIn = open(path, "r")

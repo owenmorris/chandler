@@ -165,6 +165,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     mainModuleDir = os.path.join(modeDir, mainModule)
     print "Main module dir =", mainModuleDir
 
+    # temporary test:
+    changesAtAll = True
+    needToScrubAll = False
+
     if not changesAtAll:
         return False
 
