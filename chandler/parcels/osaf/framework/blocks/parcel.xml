@@ -658,12 +658,18 @@
       <defaultValue itemref="None"/>
     </Attribute>
     
+    <Attribute itsName="hideColumnHeadings">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
     <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
     <attributes itemref="docSchema:Table/selectedColumn"/>
+    <attributes itemref="docSchema:Table/hideColumnHeadings"/>
   </Kind>  
 
   <!--

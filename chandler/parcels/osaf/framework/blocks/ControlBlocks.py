@@ -208,7 +208,7 @@ class AttributeDelegate (ListDelegate):
         try:
             value = item.getAttributeValue (attributeName)
         except AttributeError:
-            value = ""
+            value = "Unnamed"
         else:
             if item.getAttributeAspect (attributeName, "cardinality") == "list":
                 compoundValue = value
@@ -352,6 +352,7 @@ class wxTableData(wx.grid.PyGridTableBase):
     def GetTypeName (self, row, column):
         return self.GetView().GetElementType (row, column)
 
+
 class wxTable(DropReceiveWidget, wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
@@ -445,6 +446,21 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         """
         #Trim/extend the control's rows and update all values
         self.BeginBatch()
+        """
+          Hack to work around Stuarts bug #1568 -- DJA
+        """
+        if len (self.blockItem.contents) == 0:
+            self.blockItem.contents._ItemCollection__refresh()
+
+        if self.blockItem.hideColumnHeadings:
+            self.SetColLabelSize (0)
+        else:
+            """
+              Should be using wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT, but
+            it hasn't been wrapped yet -- DJA
+            """
+            self.SetColLabelSize (32)
+
         gridTable = self.GetTable()
         newRows = gridTable.GetNumberRows()
         newColumns = gridTable.GetNumberCols()

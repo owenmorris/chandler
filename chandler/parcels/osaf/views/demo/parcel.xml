@@ -401,6 +401,8 @@
   </TabbedContainer>
   
   <BoxContainer itsName="TabBox">
+    <displayName>Block Demo</displayName>
+
     <!-- Menus -->
     <childrenBlocks itemref="doc:DemoMenu"/>
     <childrenBlocks itemref="doc:IntroMenuItem"/>    

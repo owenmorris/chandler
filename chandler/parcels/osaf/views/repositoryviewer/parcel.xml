@@ -74,6 +74,8 @@
   </ItemDetail>
 
   <BoxContainer itsName="RepositoryBox">
+    <displayName>Repository</displayName>
+
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositorySplit"/>
     <childrenBlocks itemref="doc:BlankItem"/>

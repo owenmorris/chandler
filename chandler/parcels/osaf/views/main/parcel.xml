@@ -14,7 +14,8 @@
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
-	     xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
+             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
 
   <core:version>0.3</core:version>
 
@@ -330,6 +331,7 @@
     About Chandler View 
   -->
   <HTML itsName="AboutChandlerHTML">
+    <displayName>About Chandler</displayName>
     <url>application/welcome.html</url>
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -454,14 +456,28 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <Tree itsName="SidebarTree">
-    <!-- Attributes -->
-    <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
-    <selection itemref="doc:InView"/>
+  <contentModel:NamedCollection itsName="sidebarItemCollection">
+    <inclusions uuidOf="content:InListView"/>
+    <inclusions uuidOf="content:OutListView"/>
+    <inclusions uuidOf="doc:AboutChandlerHTML"/>
+    <inclusions uuidOf="repository:RepositoryBox"/>
+    <inclusions uuidOf="demo:TabBox"/>
+    <inclusions uuidOf="content:NewCalendarListView"/>
+    <inclusions uuidOf="content:NewContactListView"/>
+    <inclusions uuidOf="content:NoteListView"/>
+    <inclusions uuidOf="content:JunkListView"/>
+    <inclusions uuidOf="content:TrashListView"/>
+    <inclusions uuidOf="content:MonthView"/>
+    <inclusions uuidOf="content:WeekView"/>    
+  </contentModel:NamedCollection>
 
-    <useButtons>False</useButtons>
-    <rootPath itemref="doc:URLRoot"/>
-  </Tree>
+  <Table itsName="SidebarTree">
+    <contents itemref="doc:sidebarItemCollection"/>
+    <selection itemref="content:InListView"/>
+    <columnData>displayName</columnData>
+    <columnWidths>150</columnWidths>
+    <hideColumnHeadings>True</hideColumnHeadings>
+  </Table>
  
   <BookmarksBar itsName="BookmarksBar">
     <!-- Attributes -->

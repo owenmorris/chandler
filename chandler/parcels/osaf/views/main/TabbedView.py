@@ -10,36 +10,32 @@ from osaf.framework.blocks.Block import Block as Block
 
 class TabbedView(ControlBlocks.TabbedContainer):
     def onSelectionChangedEvent(self, notification):
-        node = notification.data['item']
-        if node and isinstance(node, Node):
-            newItem = node.item
-            if isinstance(newItem, Block):
-                self.ChangeCurrentTab(node)
+        item = notification.data['item']
+        if isinstance(item, Block):
+            self.ChangeCurrentTab(item)
 
-    def ChangeCurrentTab(self, node):
+    def ChangeCurrentTab(self, item):
         if hasattr (self, 'widget'):
             # tabbed container hasn't been rendered yet
             activeTab = self.widget.GetSelection()
-            nodeName = node.getItemDisplayName()
+            itemName = item.getItemDisplayName()
             found = False
             for tabIndex in range(self.widget.GetPageCount()):
                 tabName = self.widget.GetPageText(tabIndex)
-                if tabName == nodeName:
+                if tabName == itemName:
                     found = True
-                    newItem = node.item
                     self.widget.SetSelection(tabIndex)
             if not found:
-                self.tabNames[activeTab] = nodeName
+                self.tabNames[activeTab] = itemName
                 page = self.widget.GetPage(activeTab)
                 previousChild = self.childrenBlocks.previous(page.blockItem)
                 page.blockItem.parentBlock = None
     
-                newItem = node.item
-                newItem.parentBlock = self 
-                self.childrenBlocks.placeItem(newItem, previousChild)
-                newItem.render()                
-                newItem.widget.SetSize (self.widget.GetClientSize())                
-            Globals.mainView.onSetActiveView(newItem)
+                item.parentBlock = self 
+                self.childrenBlocks.placeItem(item, previousChild)
+                item.render()                
+                item.widget.SetSize (self.widget.GetClientSize())                
+            Globals.mainView.onSetActiveView(item)
             self.synchronizeWidget()
 
     def onNewEvent (self, notification):
