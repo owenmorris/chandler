@@ -29,7 +29,7 @@ def syncItem(dav, item):
         localChanges = True
         serverChanges = False
 
-    print 'Syncing %s' % (unicode(dav.url))
+    print 'Syncing %s'          % (unicode(dav.url))
     print '-- needsPut      %s' % (needsPut)
     print '-- localChanges  %s' % (localChanges)
     print '-- serverChanges %s' % (serverChanges)
@@ -57,11 +57,16 @@ def syncItem(dav, item):
 
 def merge(dav, item, davItem, hasLocalChanges):
     # for now, just pull changes from the server and overwrite local changes...
-    print 'merge'
+    print 'Doing merge'
     syncFromServer(item, davItem)
 
 
 
+
+def makePropString(name, namespace, value):
+    header = '<o:%s xmlns:o="%s"><![CDATA[' % (name, namespace)
+    footer = ']]></o:%s>' % (name)
+    return header + unicode(value) + footer
 
 def syncToServer(dav, item):
     from Dav import DAV
@@ -73,41 +78,43 @@ def syncToServer(dav, item):
     kind = item.itsKind
 
     # build a giant property string and then do a PROPPATCH
-    props = '<osaf:kind xmlns:osaf="//core">%s</osaf:kind><osaf:uuid xmlns:osaf="//core">%s</osaf:uuid>' % (kind.itsPath, item.itsUUID.str16())
+    props = makePropString('kind', '//core', kind.itsPath) + \
+            makePropString('uuid', '//core', item.itsUUID.str16())
 
     for (name, value) in item.iterAttributeValues():
-        data = ''
-
         # the attribute's namespace is its path...
         namespace = kind.getAttribute(name).itsPath[0:-1]
 
         atype = item.getAttributeAspect(name, 'type')
         acard = item.getAttributeAspect(name, 'cardinality')
+
         if acard == 'list':
-            # mmm, recursion
-            data = '<osaf:%s xmlns:osaf="%s"><![CDATA[' % (name, namespace)
+            listData = ''
             for i in value:
                 if isinstance(i, Item):
+                    # mmm, recursion
                     durl = dav.url.join(i.itsUUID.str16())
                     DAV(durl).put(i)
-
-                    data += '<itemref>' + unicode(durl) + '</itemref>'
+                    listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
                     # XXX TODO add literal list stuff here
                     pass
-            data += ']]></osaf:%s>' % (name)
-        else:
+            props += makePropString(name, namespace, listData)
+
+        elif acard == 'single':
             if isinstance(value, Item):
                 durl = dav.url.join(value.itsUUID.str16())
                 DAV(durl).put(value)
-
-                data = '<osaf:%s xmlns:osaf="%s"><![CDATA[<itemref>%s</itemref>]]></osaf:%s>' % (name, namespace, unicode(durl), name)
+                props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
             else:
                 atypepath = "%s" % (atype.itsPath)
-                value = atype.makeString(value)
-                data = '<osaf:%s xmlns:osaf="%s"><![CDATA[%s]]></osaf:%s>' % (name, namespace, value, name)
+                props += makePropString(name, namespace, atype.makeString(value))
 
-        props += data
+        elif acard == 'dict':
+            # XXX implement me
+            pass
+        else:
+            raise Exception
 
     r = dav.newConnection().setprops2(url, props)
     print url, r.status, r.reason
@@ -147,15 +154,17 @@ def syncFromServer(item, davItem):
             nodes = doc.xpathEval('/doc/*')
 
             if attr.cardinality == 'list':
-                for node in nodes:
-                    otherItem = DAV(node.content).get()
-                    item.addValue(name, otherItem)
+                setfunc = item.addValue
             elif attr.cardinality == 'single':
-                node = nodes[0]
-                otherItem = DAV(node.content).get()
-                item.setAttributeValue(name, otherItem)
+                setfunc = item.setAttributeValue
+            elif attr.cardinality == 'dict':
+                # XXX implement me
+                pass
             else:
                 raise Exception
+            for node in nodes:
+                otherItem = DAV(node.content).get()
+                setfunc(name, otherItem)
 
         else:
             print 'Got.....: ', value
@@ -169,7 +178,6 @@ def syncFromServer(item, davItem):
 
 
 def getItem(dav):
-    from Dav import DAV
     repository = Globals.repository
 
     # fetch the item
@@ -181,18 +189,12 @@ def getItem(dav):
     origUUID = davItem.itsUUID
     newItem = repository.findUUID(sharing.itemMap[origUUID])
     if newItem:
-        return syncItem(dav, newItem)
+        syncItem(dav, newItem)
+        return newItem
 
     # otherwise, create a new item for the davItem
     kind = davItem.itsKind
     newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
-
-    oldEtag = newItem.getAttributeValue('etag', default=None)
-    if oldEtag == davItem.etag:
-        print 'no changes to item'
-        return newItem
-    else:
-        print oldEtag, davItem.etag
 
     # XXX i'd much rather just call syncItem() here... 
     syncFromServer(newItem, davItem)
