@@ -372,12 +372,15 @@ class XMLRepository(OnDemandRepository):
 
             return ~unpack('>l', self.get(view, Repository.ROOT_ID._uuid))[0]
 
-        def incrementVersion(self, view):
+        def nextVersion(self, view, noChanges):
 
             try:
                 self.lock.acquire()
-                version = self.getVersion(view) + 1
-                self.put(view, Repository.ROOT_ID._uuid, pack('>l', ~version))
+                version = self.getVersion(view)
+                if not noChanges:
+                    version += 1
+                    self.put(view, Repository.ROOT_ID._uuid,
+                             pack('>l', ~version))
             finally:
                 self.lock.release()
 
@@ -561,7 +564,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
             else:
                 self._txn = None
 
-            newVersion = versions.incrementVersion(self)
+            newVersion = versions.nextVersion(self, not self._log)
             
             if self._log:
                 count = len(self._log)
@@ -590,19 +593,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
             if verbose:
                 print 'refreshing view from version %d to %d' %(self.version,
                                                                 newVersion)
-            oldVersion = self.version
-            self.version = newVersion
 
-            for uuid in history.uuids(self, oldVersion, newVersion):
-                item = self._registry.get(uuid)
-                if item is not None:
-                    if verbose:
-                        print 'unloading version %d of %s' %(item._version,
-                                                             item.getItemPath())
-                    item._unloadItem()
+            if newVersion > self.version:
+                oldVersion = self.version
+                self.version = newVersion
+
+                for uuid in history.uuids(self, oldVersion, newVersion):
+                    item = self._registry.get(uuid)
+                    if item is not None:
+                        if verbose:
+                            print 'unloading version %d of %s' %(item._version,
+                                                                 item.getItemPath())
+                        item._unloadItem()
             
-            after = datetime.now()
-            print 'committed %d items in %s' %(count, after - before)
+            if count > 0:
+                print 'committed %d items in %s' %(count,
+                                                   datetime.now() - before)
 
     def cancel(self):
 
