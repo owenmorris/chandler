@@ -122,17 +122,13 @@
   <!-- 
   Trees of blocks
   -->
-  <!-- Content Item -->
-  <doc:DetailTrunkSubtree itsName="ContentItemSubtree">
-    <key itemref="content:ContentItem"/>
-    <rootBlocks itemref="doc:HeadlineArea"/>
-    <rootBlocks itemref="doc:NotesArea"/>
-  </doc:DetailTrunkSubtree>
   
   <!-- Note -->
   <doc:DetailTrunkSubtree itsName="NoteSubtree">
     <key itemref="content:Note"/>
     <rootBlocks itemref="doc:MarkupBar"/>
+     <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
 
   <!-- Calendar Event -->

@@ -71,8 +71,8 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         ourselves.
           When we get a SelectItem event, we jump across
         the event boundary and call synchronizeItemDetail on each
-        block to give it a chance to synchronize on the details of
-        the Item.  
+        block to give it a chance to update the widget with data
+        from the Item.
           Notify container blocks before their children.
           
           @@@DLD - find a better way to broadcast inside my boundary.
@@ -289,7 +289,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         # opted for clarity.)
         decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
         for subtree in self._getSubtrees():
-            if keyItem.isKindOf(subtree.key):
+            if keyItem.isKindOf(subtree.key) and subtree.hasAttributeValue('rootBlocks'):
                 for block in subtree.rootBlocks:
                     entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
                                        block.itsPath,
@@ -1070,3 +1070,11 @@ class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
 
 
 
+class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
+    def synchronizeItemDetail(self, item):
+        self.selection = item
+        # this ensures that getHTMLText() gets called appropriately on the derived class
+        self.synchronizeWidget()
+        
+    def getHTMLText(self, item):
+        return "<html><body>" + str(item) + "</body></html>"
