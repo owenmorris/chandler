@@ -3,7 +3,7 @@
 
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
@@ -143,12 +143,9 @@ class CanvasItem(object):
         # @@@ scaffolding: resize bounds is the lower 5 pixels
         self.bounds = bounds
         self.item = item
-        self.resizeBounds = wx.Rect(bounds.x, bounds.y + bounds.height - 5,
-                                    bounds.width, 5)
 
     def isHit(self, point):
-        """
-        Hit testing (used for selection and moving items).
+        """ Hit testing (used for selection and moving items).
 
         @param point: point in unscrolled coordinates
         @type point: wx.Point
@@ -158,15 +155,16 @@ class CanvasItem(object):
         return self.bounds.Inside(point)
 
     def isHitResize(self, point):
-        """
-        Hit testing of a resize region.
+        """ Hit testing of a resize region.
+
+        Subclasses can define to turn on resizing behavior.
         
         @param point: point in unscrolled coordinates
         @type point: wx.Point
         @return: True if the point hit the resize region
         @rtype: Boolean
         """
-        return self.resizeBounds.Inside(point)
+        return False
 
     def getItem(self):
         """

@@ -3,7 +3,7 @@
 
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
@@ -16,6 +16,48 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
 import application.Globals as Globals
+
+class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
+    def __init__(self, *arguments, **keywords):
+        super(ColumnarCanvasItem, self).__init__(*arguments, **keywords)
+        
+        self._resizeLowBounds = wx.Rect(self.bounds.x,
+                                        self.bounds.y + self.bounds.height - 5,
+                                        self.bounds.width, 5)
+        
+        self._resizeTopBounds = wx.Rect(self.bounds.x, self.bounds.y,
+                                        self.bounds.width, 5)
+
+    def isHitResize(self, point):
+        """ Hit testing of a resize region.
+        
+        @param point: point in unscrolled coordinates
+        @type point: wx.Point
+        @return: True if the point hit the resize region
+        @rtype: Boolean
+        """
+        return (self._resizeTopBounds.Inside(point) or
+                self._resizeLowBounds.Inside(point))
+
+    def getResizeMode(self, point):
+        """ Returns the mode of the resize, either 'TOP' or 'LOW'.
+
+        The resize mode is 'TOP' if dragging from the top of the event,
+        and 'LOW' if dragging from the bottom of the event. None indicates
+        that we are not resizing at all.
+
+        @param point: drag start position in uscrolled coordinates
+        @type point: wx.Point
+        @return: resize mode, 'TOP', 'LOW' or None
+        @rtype: string or None
+        """
+        
+        if self._resizeTopBounds.Inside(point):
+            return "TOP"
+        if self._resizeLowBounds.Inside(point):
+            return "LOW"
+        return None
+
 
 class CalendarEventHandler(object):
 
@@ -310,7 +352,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
                                rect.y + int(self.hourHeight * (time.hour + time.minute/float(60))),
                                rect.width - 1,
                                int(item.duration.hours * self.hourHeight) - 1)
-            self.canvasItemList.append(CollectionCanvas.CanvasItem(itemRect, item))
+            self.canvasItemList.append(ColumnarCanvasItem(itemRect, item))
 
             # Draw one event
             headline = time.Format('%I:%M %p ') + item.displayName
@@ -354,11 +396,13 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
     def OnResizingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         item = self._dragBox.getItem()
-        if ((newTime.absdate != item.endTime.absdate) or
-            (newTime.hour != item.endTime.hour) or
-            (newTime.minute != item.endTime.minute)):
+        resizeMode = self._dragBox.getResizeMode(self._dragStartUnscrolled)
+        delta = DateTime.DateTimeDelta(0, 0, 15)
+        if (resizeMode == "LOW" and newTime > (item.startTime + delta)):
             item.endTime = newTime
-            self.Refresh()
+        elif (resizeMode == "TOP" and newTime < (item.endTime - delta)):
+            item.startTime = newTime
+        self.Refresh()
     
     def OnDraggingItem(self, unscrolledPosition):
         dy = (self._dragStartUnscrolled.y - self._dragBox.bounds.y)
