@@ -4,7 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from datetime import datetime
+from datetime import timedelta
+from time import time
 from struct import pack
 from cStringIO import StringIO
 
@@ -185,13 +186,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                       newVersion, item)
                     self.find(item._uuid)
 
-            before = datetime.now()
+            before = time()
             count = len(histNotifications)
             histNotifications.dispatchHistory(self)
-            delta = datetime.now() - before
-            if delta.seconds > 1:
+            duration = time() - before
+            if duration > 1.0:
                 self.logger.warning('%s %d notifications ran in %s',
-                                    self, count, delta)
+                                    self, count, timedelta(seconds=duration))
 
         self.prune(10000)
 
@@ -205,7 +206,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
                 store = self.repository.store
                 history = store._history
-                before = datetime.now()
+                before = time()
 
                 size = 0L
                 txnStarted = False
@@ -273,12 +274,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         self._roots._clearDirties()
                         self.setDirty(0)
 
-                after = datetime.now()
+                after = time()
 
                 if count > 0:
-                    self.logger.info('%s committed %d items (%ld bytes) in %s',
-                                     self, count, size, after - before)
-
+                    duration = after - before
+                    try:
+                        speed = ", %d/s" % round(count / duration)
+                    except ZeroDivisionError:
+                        speed = ' (speed could not be measured)'
+                    self.logger.info('%s committed %d items (%ld bytes) in %s%s',
+                                     self, count, size,
+                                     timedelta(seconds=duration), speed)
 
                 if len(self._notifications) > 0:
                     histNotifications = RepositoryNotifications()
