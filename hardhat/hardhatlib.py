@@ -78,20 +78,14 @@ def init(root):
     buildenv['python_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
      'bin' + os.sep + 'python_d'
 
-    # TODO:  These paths need to be verified/customized at runtime!
-    buildenv['sh'] = "/bin/sh"
-    buildenv['make'] = "/usr/bin/make"
+    buildenv['sh']   = findInPath(buildenv['path'], "sh")
+    buildenv['make'] = findInPath(buildenv['path'], "make")
+    buildenv['cvs']  = findInPath(buildenv['path'], "cvs")
+    buildenv['scp']  = findInPath(buildenv['path'], "scp")
+    buildenv['tar']  = findInPath(buildenv['path'], "tar")
+    buildenv['gzip'] = findInPath(buildenv['path'], "gzip")
+    buildenv['zip']  = findInPath(buildenv['path'], "zip")
 
-    if os.environ.has_key('CVS'):
-	buildenv['cvs'] = os.environ['CVS']
-    if os.environ.has_key('SCP'):
-	buildenv['scp'] = os.environ['SCP']
-    if os.environ.has_key('TAR'):
-	buildenv['tar'] = os.environ['TAR']
-    if os.environ.has_key('GZIPEXE'):
-	buildenv['gzip'] = os.environ['GZIPEXE']
-    if os.environ.has_key('ZIP'):
-	buildenv['zip'] = os.environ['ZIP']
     
     # set OS-specific variables
     if buildenv['os'] == 'win':
@@ -1052,15 +1046,16 @@ def cvsClean(buildenv, dirs):
 # Nightly-build-handling methods
 
 def buildComplete(buildenv, releaseId, cvsModule, module):
-    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and \
-     os.environ.has_key('TAR') and \
-     (buildenv['os'] == 'win' and os.environ.has_key('ZIP') or \
-     buildenv['os'] != 'win' and os.environ.has_key('GZIPEXE') ):
+    if buildenv['cvs'] and buildenv['scp'] and \
+     buildenv['tar'] and \
+     (buildenv['os'] == 'win' and buildenv['zip'] or \
+     buildenv['os'] != 'win' and buildenv['gzip'] ):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Paths to tools found, proceeding")
+	 "All required tools found, proceeding")
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR, ZIP (win), GZIPEXE (unix)")
+	 "Coudln't find all necessary tools in your path \
+	  (cvs, scp, tar, zip, gzip)")
 	raise HardHatError
 
 
@@ -1208,6 +1203,16 @@ def compressDirectory(buildenv, directory, fileRoot):
 	"Running gzip on " + fileRoot + ".tar")
 	return fileRoot + ".tar.gz"
 
+
+def findInPath(path,fileName):
+    dirs = path.split(os.pathsep)
+    for dir in dirs:
+	if os.path.isfile(os.path.join(dir, fileName)):
+	    return os.path.join(dir, fileName)
+	if os.name == 'nt' or sys.platform == 'cygwin':
+	    if os.path.isfile(os.path.join(dir, fileName + ".exe")):
+		return os.path.join(dir, fileName + ".exe")
+    return None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes
