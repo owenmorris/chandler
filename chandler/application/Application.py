@@ -332,8 +332,9 @@ class wxApplication (wxApp):
         """
         if not self.InCommand:
             self.InCommand = true
-            activeParcel = self.wxMainFrame.activeParcel
-            if activeParcel != None:
-                activeParcel.GetEventHandler().ProcessEvent(event)
+            if hasattr(self.wxMainFrame, 'activeParcel'):
+                activeParcel = self.wxMainFrame.activeParcel
+                if activeParcel != None:
+                    activeParcel.GetEventHandler().ProcessEvent(event)
             self.InCommand = false
 
