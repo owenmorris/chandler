@@ -380,6 +380,9 @@
   </BoxContainer>
   
   <EditText itemName="ButtonText">
+    <childrenBlocks itemref="doc:RightMenu"/>
+    <childrenBlocks itemref="doc:RightMenuItem"/>
+
     <open>True</open>
 
     <size>100,100</size>
