@@ -94,7 +94,7 @@
     <childrenBlocks itemref="doc:QueuedFlag"/>
     <childrenBlocks itemref="doc:Spacer3"/>
     <childrenBlocks itemref="doc:PrivateButton"/>
-     <!-- Attributes -->
+    <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
