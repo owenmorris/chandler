@@ -8,25 +8,14 @@
 <Parcel describes="//parcels/OSAF/framework/notifications/schema"
         itemName="schema"
         xmlns="//Schema/Core"
-        xmlns:events="//parcels/OSAF/framework/notifications/schema"
-        xmlns:blah="//parcels/OSAF/framework/utils"
-        xmlns:indexes="//parcels/OSAF/framework/utils/indexer">
+        xmlns:events="//parcels/OSAF/framework/notifications/schema">
 
   <displayName>Notification Schema</displayName>
   <description>notification</description>
   <version>0.0</version>
 
-  <Attribute itemName="name">
-    <displayName>event name</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
-
   <Kind itemName="Event">
     <displayName>Chandler Event</displayName>
-    <attributes itemref="events:name"/>
-    <attributes itemref="indexes:indexedBy"/>
     <superKinds itemref="Item"/>
     <classes key="python">OSAF.framework.notifications.schema.Event.Event</classes>
   </Kind>
