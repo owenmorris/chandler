@@ -1,5 +1,5 @@
 
-VERSION=0.9.5
+VERSION=0.9.6
 RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -9,12 +9,11 @@ DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
 
-
 ifeq ($(OS),Cygwin)
 ifeq ($(DEBUG),1)
 SUFFIX=d
 _SUFFIX=_d
-PYDBG=-DPy_TRACE_REFS
+PYDBG=-DPy_DEBUG=1
 else
 SUFFIX=
 _SUFFIX=
