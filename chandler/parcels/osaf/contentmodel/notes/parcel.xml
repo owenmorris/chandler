@@ -26,9 +26,17 @@
 
   <Attribute itemName="body">
     <displayName>Body</displayName>
-    <issues>This attribute should be of type 'Text' or 'Blob', not 'String'.</issues>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <type itemref="Text"/>
+  </Attribute>
+
+  <Attribute itemName="attachedNotes">
+    <displayName>Contained Notes</displayName>
+    <description>Notes contained in this content item.</description>
+    <issues>deletePolicy should be cascade</issues>
+    <cardinality>list</cardinality>
+    <type itemref="notes:Note"/>
+    <inverseAttribute itemref="notes:attachedToItems"/>
   </Attribute>
 
   <Attribute itemName="attachedToItems">
@@ -37,7 +45,7 @@
     <cardinality>single</cardinality>
     <required>False</required>
     <type itemref="content:ContentItem"/>
-    <otherName>attachedNotes</otherName>
+    <inverseAttribute itemref="notes:attachedNotes"/>
   </Attribute>
 
   <Kind itemName="Note">
@@ -51,13 +59,22 @@
 
   <!-- Conversation -->
 
+  <Attribute itemName="conversations">
+    <displayName>Conversations</displayName>
+    <description>Conversations about this content item.</description>
+    <issues>deletePolicy should be cascade</issues>
+    <cardinality>list</cardinality>
+    <type itemref="notes:Conversation"/>
+    <inverseAttribute itemref="notes:subjectItem"/>
+  </Attribute>
+
   <Attribute itemName="subjectItem">
     <displayName>Subject Item</displayName>
     <description>If this Conversation is a free-standing independent item, then this attribute will be empty. If this Conversation is contained in some other item, then this attribute will point to that item.</description>
     <cardinality>single</cardinality>
     <required>False</required>
     <type itemref="content:ContentItem"/>
-    <otherName>conversations</otherName>
+    <inverseAttribute itemref="notes:conversations"/>
   </Attribute>
 
   <Kind itemName="Conversation">

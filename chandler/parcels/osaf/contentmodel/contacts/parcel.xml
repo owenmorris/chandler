@@ -10,6 +10,7 @@
         itemClass="OSAF.contentmodel.contacts.Contacts.ContactsParcel"
         xmlns="//Schema/Core"
         xmlns:content="//parcels/OSAF/contentmodel"
+	xmlns:mail="//parcels/OSAF/contentmodel/mail"
         xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
   <displayName>Contact Content Model</displayName>
@@ -90,22 +91,35 @@
     <type itemref="Boolean"/>
   </Attribute>
 
-  <!-- Attributes that might belong in other parcels -->
+  <Attribute itemName="creator">
+    <displayName>Created By</displayName>
+    <description>Link to the user who created the item.</description>
+    <cardinality>single</cardinality>
+    <type itemref="contact:Contact"/>
+    <inverseAttribute itemref="contact:itemsCreated"/>
+  </Attribute>
 
   <Attribute itemName="itemsCreated">
     <displayName>Items Created</displayName>
     <description>List of content items created by this user.</description>
     <cardinality>list</cardinality>
     <type itemref="content:ContentItem"/>
-    <otherName>creator</otherName>
+    <inverseAttribute itemref="contact:creator"/>
+  </Attribute>
+
+  <Attribute itemName="onceBelongedTo">
+    <displayName>Once Belonged To</displayName>
+    <description>We keep some old email addresses on file, just so we can still associate old email messages with the contacts who sent them.  If this email address is being kept for that reason, then this attribute will point to the contact that the email address used to belong to.</description>
+    <cardinality>single</cardinality>
+    <type itemref="contact:Contact"/>
+    <inverseAttribute itemref="contact:pastEmailAddresses"/>
   </Attribute>
 
   <Attribute itemName="pastEmailAddresses">
     <displayName>Past Email Addresses</displayName>
-    <issues>type should be EmailAddress, circularity problem</issues>
     <cardinality>list</cardinality>
-    <type itemref="content:ContentItem"/>
-    <otherName>onceBelongedTo</otherName>
+    <type itemref="mail:EmailAddress"/>
+    <inverseAttribute itemref="contact:onceBelongedTo"/>
   </Attribute>
 
   <Kind itemName="Contact">
@@ -122,6 +136,7 @@
     <attributes itemref="contact:gender"/>
     <attributes itemref="contact:isCompany"/>
     <attributes itemref="contact:itemsCreated"/>
+    <attributes itemref="contact:pastEmailAddresses"/>
     <classes key="python">OSAF.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 
@@ -137,9 +152,17 @@
   <Attribute itemName="emailAddresses">
     <displayName>Email Addresses</displayName>
     <cardinality>list</cardinality>
-    <issues>@@@ should be type EmailAddress</issues>
-    <type itemref="Item"/>
-    <otherName>emailAddressOwner</otherName>
+    <type itemref="mail:EmailAddress"/>
+    <inverseAttribute itemref="contact:emailAddressOwner"/>
+  </Attribute>
+
+  <Attribute itemName="emailAddressOwner">
+    <displayName>Email Address Owner</displayName>
+    <description>The Contact that this address is</description>
+    <issues>only one owner -- single cardinality implies that two contacts cannot have the same email address</issues>
+    <cardinality>single</cardinality>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:emailAddresses"/>
   </Attribute>
 
   <Attribute itemName="streetAddresses">

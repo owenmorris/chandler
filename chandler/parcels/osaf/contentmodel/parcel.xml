@@ -10,6 +10,8 @@
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
              xmlns:parcel="//Schema/Core/Parcel"
+	     xmlns:notes="//parcels/OSAF/contentmodel/notes"
+	     xmlns:contact="//parcels/OSAF/contentmodel/contacts"
              xmlns="//parcels/OSAF/contentmodel"
              itemClass="OSAF.contentmodel.ContentModel.ContentModel">
 
@@ -58,26 +60,6 @@
     <core:inverseAttribute itemref="itemsInGroup"/>
   </core:Attribute>
 
-  <core:Attribute itemName="attachedNotes">
-    <core:displayName>Contained Notes</core:displayName>
-    <core:description>Notes contained in this content item.</core:description>
-    <core:issues>Type should be "Note"</core:issues>
-    <core:deletePolicy>cascade</core:deletePolicy>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:otherName>attachedToItems</core:otherName>
-  </core:Attribute>
-
-  <core:Attribute itemName="conversations">
-    <core:displayName>Conversations</core:displayName>
-    <core:description>Conversations about this content item.</core:description>
-    <core:issues>Type should be "Conversation"</core:issues>
-    <core:deletePolicy>cascade</core:deletePolicy>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:otherName>subjectItem</core:otherName>
-  </core:Attribute>
-
   <core:Attribute itemName="fyiLinks">
     <core:displayName>References</core:displayName>
     <core:description>Items that the user wants to keep reference pointers to from this item.</core:description>
@@ -96,16 +78,6 @@
     <core:inverseAttribute itemref="fyiLinks"/>
   </core:Attribute>
 
-  <core:Attribute itemName="creator">
-    <core:displayName>Created By</core:displayName>
-    <core:description>Link to the user who created the item.</core:description>
-    <core:issues>The type should be Contact, but we have a circular dependency problem to fix. </core:issues>
-    <core:issues>Perhaps this attribute definition should live in the contacts parcel, and modify the ContentItem kind?</core:issues>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:otherName>itemsCreated</core:otherName>
-  </core:Attribute>
-
   <core:Kind itemName="ContentItem">
     <core:displayName>Content Item</core:displayName>
     <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
@@ -114,12 +86,13 @@
     <core:description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</core:description>
     <core:attributes itemref="projects"/>
     <core:attributes itemref="groups"/>
-    <core:attributes itemref="creator"/>
+    <core:attributes itemref="contact:creator"/>
     <core:attributes itemref="parcel:createdOn"/>
     <core:attributes itemref="parcel:modifiedOn"/>
     <core:attributes itemref="fyiLinks"/>
     <core:attributes itemref="fyiLinkedToItems"/>
-    <core:attributes itemref="attachedNotes"/>
+    <core:attributes itemref="notes:attachedNotes"/>
+    <core:attributes itemref="notes:conversations"/>
     <core:classes key="python">OSAF.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 

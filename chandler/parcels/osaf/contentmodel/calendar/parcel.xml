@@ -10,6 +10,8 @@
         itemClass="OSAF.contentmodel.calendar.Calendar.CalendarParcel"
         xmlns="//Schema/Core"
         xmlns:content="//parcels/OSAF/contentmodel"
+	xmlns:mail="//parcels/OSAF/contentmodel/mail"
+	xmlns:contact="//parcels/OSAF/contentmodel/contacts"
         xmlns:cal="//parcels/OSAF/contentmodel/calendar">
 
   <displayName>Calendar Content Model</displayName>
@@ -100,14 +102,14 @@
     <displayName>Depends On</displayName>
     <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
-    <otherName>blocks</otherName>
+    <inverseAttribute itemref="cal:blocks"/>
   </Attribute>
 
   <Attribute itemName="blocks">
     <displayName>Blocks</displayName>
     <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
-    <otherName>dependsOn</otherName>
+    <inverseAttribute itemref="cal:dependsOn"/>
   </Attribute>
 
   <Attribute itemName="status">
@@ -125,14 +127,6 @@
     <values>in_progress</values>
     <values>deferred</values>
   </Enumeration>
-
-  <Attribute itemName="mailMessage">
-    <displayName>Related Mail Message</displayName>
-    <description>Mail message from which this task was spawned</description>
-    <issues>type should be MailMessage</issues>
-    <cardinality>single</cardinality>
-    <type itemref="content:ContentItem"/>
-  </Attribute>
 
   <!-- Calendar Event Attributes -->
   <Enumeration itemName="TimeTransparency">
@@ -205,7 +199,7 @@
     <attributes itemref="cal:dependsOn"/>
     <attributes itemref="cal:blocks"/>
     <attributes itemref="cal:status"/>
-    <attributes itemref="cal:mailMessage"/>
+    <attributes itemref="mail:stronglyLinkedMail"/>
 
     <!-- calendar -->
     <attributes itemref="cal:endTime"/>

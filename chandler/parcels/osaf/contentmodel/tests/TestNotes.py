@@ -24,7 +24,11 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         def _verifyNote(note):
             self.assertEqual(note.title, "sample note")
-            self.assertEqual(note.body, "more elaborate sample note body")
+
+            reader = note.body.getReader()
+            self.assertEqual(reader.read(),
+                             "more elaborate sample note body")
+            reader.close()
 
         # Test the globals
         notesPath = '//parcels/OSAF/contentmodel/notes/%s'
@@ -40,7 +44,10 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         # Literal properties
         noteItem.title = "sample note"
-        noteItem.body = "more elaborate sample note body"
+
+        # Text property
+        textType = self.rep.find("//Schema/Core/Text")
+        noteItem.body = textType.makeValue("more elaborate sample note body")
 
         _verifyNote(noteItem)
 

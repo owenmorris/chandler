@@ -10,6 +10,8 @@
         itemClass="OSAF.contentmodel.mail.Mail.MailParcel"
         xmlns="//Schema/Core"
 	xmlns:content="//parcels/OSAF/contentmodel"
+	xmlns:contact="//parcels/OSAF/contentmodel/contacts"
+	xmlns:calendar="//parcels/OSAF/contentmodel/calendar"
 	xmlns:mail="//parcels/OSAF/contentmodel/mail">
 
   <displayName>Mail Content Model</displayName>
@@ -125,26 +127,7 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="onceBelongedTo">
-    <displayName>Once Belonged To</displayName>
-    <issues>type should be Contact</issues>
-    <description>We keep some old email addresses on file, just so we can still associate old email messages with the contacts who sent them.  If this email address is being kept for that reason, then this attribute will point to the contact that the email address used to belong to.</description>
-    <cardinality>single</cardinality>
-    <type itemref="content:ContentItem"/>
-    <otherName>pastEmailAddresses</otherName>
-  </Attribute>
-
   <!-- Attributes that might belong in other parcels -->  
-
-  <Attribute itemName="emailAddressOwner">
-    <displayName>Email Address Owner</displayName>
-    <description>The Contact that this address is </description>
-    <issues>only one owner -- single cardinality implies that two contacts cannot have the same email address</issues>
-    <issues>@@@ should be type ContactSection</issues>
-    <cardinality>single</cardinality>
-    <type itemref="Item"/>
-    <otherName>emailAddresses</otherName>
-  </Attribute>
 
   <Attribute itemName="participatingIn">
     <displayName>Participant in Events</displayName>
@@ -159,16 +142,15 @@
     <displayName>Email Address</displayName>
     <examples>"abe@osafoundation.org"</examples>
     <description>An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address.</description>
-    <issues>We need to add an attribute "onceBelongedTo" which has as an inverseAttribute the "pastEmailAddresses" attribute on a Contact.</issues>
     <issues>Someday we might want to have other attributes.  One example might be an 'is operational' flag that tells whether this address is still in service, or whether mail to this has been bouncing lately. Another example might be a 'superceded by' attribute, which would point to another Email Address item.</issues>
     <issues>Depending on how we end up using the 'emailAddress' attribute, we might want to break it into two attributes, one for the "Abe Lincoln" part, and one for the "abe@osafoundation.org" part. Alternatively, we might want to use one of Andi's compound types, with two fields.</issues>
     <displayAttribute itemref="mail:emailAddress"/>
-    <attributes itemref="mail:emailAddressOwner"/>
+    <attributes itemref="contact:emailAddressOwner"/>
     <attributes itemref="mail:participatingIn"/>
     <attributes itemref="mail:sentToInverse"/>
     <attributes itemref="mail:emailAddress"/>
     <attributes itemref="mail:vcardType"/>
-    <!--attributes itemref="mail:onceBelongedTo"/-->
+    <attributes itemref="contact:onceBelongedTo"/>
     <attributes itemref="mail:returnAddressInverse"/>
   </Kind>
 
@@ -267,10 +249,9 @@
   <Attribute itemName="messageBody">
     <displayName>Message Body</displayName>
     <description>a MIME-body, complete with content-type, content-encoding, character encoding, etc.</description>
-    <issues>This should be some sort of 'Text' or 'Blob' type, rather than a String.</issues>
     <issues>Ducky says: There are a whole bunch of things that need to be specified for the body (or attachment) of a message, including content-type (jpg, html, text, word), content-encoding (7-bit or 8-bit ASCII?), character encoding (Shift-JIS, Big 5?), length, etc. What you might want to do is declare an as-yet-unspecified MIME-body that holds all of the information and the body of the message part (body or attachment).</issues>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <type itemref="Text"/>
   </Attribute>
 
   <Attribute itemName="relatedMessages">
@@ -365,9 +346,16 @@
     <displayName>Related Task</displayName>
     <description>A task which was created when a user 'stamped' this mail message to indicate that some task needs to get done.</description>
     <cardinality>single</cardinality>
-    <issues>@@@ type should be Task</issues>
-    <type itemref="content:ContentItem"/>
-    <otherName>stronglyLinkedMail</otherName>
+    <type itemref="calendar:CalendarEvent"/>
+    <inverseAttribute itemref="mail:stronglyLinkedMail"/>
+  </Attribute>
+
+  <Attribute itemName="stronglyLinkedMail">
+    <displayName>Related Mail</displayName>
+    <description>This task was created when a user 'stamped' the linked mail message to indicate that some task needs to get done.</description>
+    <cardinality>single</cardinality>
+    <type itemref="mail:MailMessage"/>
+    <inverseAttribute itemref="mail:stronglyLinkedTask"/>
   </Attribute>
 
   <Attribute itemName="spamScore">
