@@ -248,6 +248,7 @@ class TabbedContainer(RectangularChild):
 class Toolbar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         toolbar = wxToolBar(Globals.wxApplication.mainFrame, -1)
+        toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
         Globals.wxApplication.mainFrame.SetToolBar(toolbar)
         return toolbar, None, None
 

@@ -211,7 +211,7 @@
   -->
   <NavigationBar itemName="NavigationBar">
     <!-- Attributes -->
-    <toolSize>16,16</toolSize>
+    <toolSize>13,13</toolSize>
   </NavigationBar>
 
   <!--

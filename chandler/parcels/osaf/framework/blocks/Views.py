@@ -20,11 +20,12 @@ class View(BoxContainer):
               Call method named methodName on block
             """
             try:
-                member = getattr (block, methodName)
-                member (notification)
-                return True
+                member = getattr (block, methodName)                
             except AttributeError:
                 return False
+            else:
+                member (notification)
+                return True                
         
         def broadcast (block, methodName, notification):
             """

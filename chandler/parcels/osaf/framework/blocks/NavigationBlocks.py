@@ -15,10 +15,8 @@ class NavigationBar(Toolbar):
     def renderOneBlock(self, parent, parentWindow):
         self.history = []
         self.future = []
-        toolbar = wxToolBar(Globals.wxApplication.mainFrame, -1)
-        Globals.wxApplication.mainFrame.SetToolBar(toolbar)
-        return toolbar, None, None
-                
+        return Toolbar.renderOneBlock(self, parent, parentWindow)
+        
     def toolPressed(self, event):
         tool = Block.wxIDToObject(event.GetId())
         if tool.getItemName() == 'BackButton':
@@ -33,6 +31,11 @@ class NavigationBar(Toolbar):
         if len(self.history) > 1:
             currentLocation = self.history.pop()
             self.future.append(currentLocation)
+            """
+              If a parcel takes the focus upon a SelectionChanged event, we must take the focus back
+            temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
+            """
+            Globals.wxApplication.mainFrame.SetFocus()
             self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
@@ -40,6 +43,11 @@ class NavigationBar(Toolbar):
         if len(self.future) > 0:
             newLocation = self.future.pop()
             self.history.append(newLocation)
+            """
+              If a parcel takes the focus upon a SelectionChanged event, we must take the focus back
+            temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
+            """
+            Globals.wxApplication.mainFrame.SetFocus()
             self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
