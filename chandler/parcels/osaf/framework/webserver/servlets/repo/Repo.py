@@ -7,6 +7,7 @@ import application
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
+from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.DBLob import DBLob
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
@@ -538,6 +539,7 @@ def RenderItem(item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
+            result += "<b>(ref coll)</b> "
             output = []
             for j in value:
                 output.append("<a href=%s>%s</a>" % \
@@ -588,11 +590,15 @@ def RenderItem(item):
             result += "%s" % name
             result += "</td><td valign=top>"
             try:
+                theType = TypeHandler.typeHandler(Globals.repository.view, value)
+                result += "<b>(%s)</b> " % theType.handlerName()
                 content = value.getInputStream().read()
                 result += clean(content)
 
-            except:
+            except Exception, e:
+                result += clean(str(e))
                 result += "(Couldn't read Lob content)"
+                raise
 
             result += "</td></tr>\n"
             count += 1
@@ -617,11 +623,16 @@ def RenderItem(item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
+            theType = TypeHandler.typeHandler(Globals.repository.view, value)
+            typeName = theType.handlerName()
+            if typeName is None:
+                typeName = type(value).__name__
+            result += "<b>(%s)</b> " % typeName
             try:
                 result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
                  value.getItemDisplayName())
             except:
-                result += "%s (%s)<br>" % (clean(value), clean(type(value)))
+                result += "%s<br>" % (clean(value))
 
             result += "</td></tr>\n"
             count += 1
