@@ -1,7 +1,7 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Milestone 0.3.22 (CVS tag CHANDLER_0_3_23) 2004-08-24
+Milestone 0.3.23 (CVS tag CHANDLER_0_3_23) 2004-08-24
     * Receive IMAP email over SSL
     * Send email with SMTP over SSL
     * Manual sharing via WebDAV server
