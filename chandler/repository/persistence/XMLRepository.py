@@ -115,6 +115,10 @@ class XMLRepository(OnDemandRepository):
         env.set_lk_max_locks(32767)
         env.set_lk_max_objects(32767)
 
+        # create a 64Mb cache on Windows
+        if os.name == 'nt':
+            env.set_cachesize(0, 67108864, 1)
+
         return env
 
     def delete(self):
@@ -149,10 +153,10 @@ class XMLRepository(OnDemandRepository):
             self._lockOpen()
             self._env = self._createEnv()
 
-            try:
-                recover = kwds.get('recover', False)
-                exclusive = kwds.get('exclusive', False)
+            recover = kwds.get('recover', False)
+            exclusive = kwds.get('exclusive', False)
 
+            try:
                 if recover or exclusive:
                     try:
                         locked = False
@@ -190,6 +194,7 @@ class XMLRepository(OnDemandRepository):
                 self.store.open(**kwds)
 
             except DBNoSuchFileError:
+                kwds['create'] = recover
                 if kwds.get('create', False):
                     self._create(**kwds)
                 else:
@@ -231,7 +236,7 @@ class XMLStore(Store):
         try:
             txnStatus = self.startTransaction()
             txn = self.txn
-                
+
             self._items = ItemContainer(self, "__items__", txn, **kwds)
             self._values = ValueContainer(self, "__values__", txn, **kwds)
             self._refs = RefContainer(self, "__refs__", txn, **kwds)
@@ -242,7 +247,9 @@ class XMLStore(Store):
             self._index = IndexContainer(self, "__index__", txn, **kwds)
             self._acls = ACLContainer(self, "__acls__", txn, **kwds)
             self._indexes = IndexesContainer(self, "__indexes__", txn, **kwds)
-        finally:
+        except DBNoSuchFileError:
+            raise
+        else:
             self.commitTransaction(txnStatus)
 
     def close(self):
@@ -381,6 +388,10 @@ class XMLStore(Store):
     def getDocVersion(self, doc):
 
         return doc.getVersion()
+
+    def getItemVersion(self, version, uuid):
+
+        return self._items.getItemVersion(version, uuid)
 
     def getVersion(self):
 
