@@ -14,6 +14,9 @@ class RdfRestriction(RdfResource):
 
     def isValid(self, value):
         # placeholder, can look more carefully at info
+        if (not self.isRequired) and (value == None):
+            return 1
+
         if self.isList:
             return (isinstance(value, list))
         else:
