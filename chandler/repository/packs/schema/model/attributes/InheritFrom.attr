@@ -4,6 +4,8 @@
     <name>InheritFrom</name>
     <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <ref name="Type" otherName="TypeFor" type="path">//Schema/Model/Types/String</ref>
+    <ref name="Type" otherName="TypeFor" 
+         type="path" otherCard="dict">/Model/Types/String</ref>
+
     <attribute name="Cardinality">single</attribute>
 </item>

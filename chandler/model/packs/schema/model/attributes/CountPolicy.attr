@@ -4,7 +4,9 @@
   <name>CountPolicy</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
-  <ref name="Type" otherName="TypeFor" type="path">/Model/Types/CountPolicy</ref>
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/CountPolicy</ref>
+
   <attribute name="Cardinality">single</attribute>
   <attribute name="Default">none</attribute>
 </item>

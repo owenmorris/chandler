@@ -3,9 +3,8 @@
 <item>
   <name>AttrDef</name>
   <kind type="path">//Schema/Model/Kind</kind>
-  <class module="model.schema.Kind">KindKind</class>
 
-  <ref name="AttrDefs" otherName="Kinds" cardinality="dict">>
+  <ref name="AttrDefs" otherName="Kinds" cardinality="dict" otherCard="dict">
     <ref name="Required" type="path">/Model/Attributes/Required</ref>
     <ref name="Persist" type="path">/Model/Attributes/Persist</ref>
     <ref name="Cardinality" type="path">/Model/Attributes/Cardinality</ref>
@@ -21,7 +20,8 @@
     <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list" otherName="SubKind">
+  <ref name="SuperKind" cardinality="list" 
+       otherName="SubKind" otherCard="dict">
     <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
          type="path">/Model/Item</ref>
   </ref>

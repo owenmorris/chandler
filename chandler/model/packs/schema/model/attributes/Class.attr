@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Class</name>
-    <kind type="path">//Schema/Model/AttrDef</kind>
+  <name>Class</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <ref name="Type" otherName="TypeFor" type="path">//Schema/Model/Types/Class</ref>
-    <attribute name="Cardinality">single</attribute>
-    <attribute name="Default" type="class">model.item.Item.Item</attribute>
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/Class</ref>
+
+  <attribute name="Cardinality">single</attribute>
+  <attribute name="Default" type="class">model.item.Item.Item</attribute>
 </item>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item>
-    <name>CopyPolicy</name>
-    <kind type="path">//Schema/Model/Enum</kind>
+  <name>CopyPolicy</name>
+  <kind type="path">//Schema/Model/Enum</kind>
 
-    <attribute name="Values" cardinality="list">
-        <value>remove</value>
-        <value>copy</value>
-        <value>cascade</value>
-    </attribute>
+  <attribute name="Values" cardinality="list">
+    <value>remove</value>
+    <value>copy</value>
+    <value>cascade</value>
+  </attribute>
 </item>

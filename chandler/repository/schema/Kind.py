@@ -6,7 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from model.item.Item import Item
 from model.item.ItemRef import RefDict
-from MetaKind import MetaKind
 
 
 class Kind(Item):
@@ -70,24 +69,12 @@ class Kind(Item):
 
 class KindKind(Kind):
 
-    def getAttrAspect(self, name, aspect, default=None):
+    def __init__(self, name, parent, kind, **_kwds):
 
-        kind = self._kind or self.Class.kind
+        super(KindKind, self).__init__(name, parent, kind, **_kwds)
 
-        if kind is not None:
-            attrDef = kind.getAttrDef(name)
-            if attrDef is not None:
-                return attrDef.getAspect(aspect, default)
-
-        return default
-
-    def _getAttrDef(self, name, inheriting):
-
-        attrDef = super(KindKind, self)._getAttrDef(name, inheriting)
-        if attrDef is None:
-            attrDef = self.Class.kind.getAttrDef(name, inheriting)
-
-        return attrDef
+        if kind is None:
+            self._kind = self
 
 
 class SchemaRoot(Item):
@@ -110,34 +97,3 @@ class SchemaRoot(Item):
                 cacheKind(child)
 
         cacheKind(self)
-    
-
-
-Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
-                                            'Cardinality': 'list',
-                                            'OtherName': 'SubKind' },
-                             'SubKind': { 'Required': False,
-                                          'Cardinality': 'dict',
-                                          'OtherName': 'SuperKind' },
-                             'Items': { 'Required': False,
-                                        'Cardinality': 'dict',
-                                        'OtherName': 'Kind' },
-                             'Kind': { 'Required': False,
-                                       'Cardinality': 'single',
-                                       'OtherName': 'Items' },
-                             'AttrDefs': { 'Required': True,
-                                           'Cardinality': 'dict',
-                                           'OtherName': 'Kinds' },
-                             'InheritedAttrDefs': { 'Required': False,
-                                                    'Cardinality': 'dict',
-                                                    'OtherName': 'InheritingKinds' },
-                             'NotFoundAttrDefs': { 'Required': True,
-                                                   'Cardinality': 'list',
-                                                   'Persist': False },
-                             'Class': { 'Required': False,
-                                        'Cardinality': 'single',
-                                        'Default': None } })
-
-Item.kind = MetaKind(Kind, { 'Kind': { 'Required': False,
-                                       'Cardinality': 'single',
-                                       'OtherName': 'Items' } })

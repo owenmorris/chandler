@@ -9,7 +9,6 @@ import mx.DateTime
 from model.item.Item import Item
 from model.item.Item import ItemHandler
 from model.item.ItemRef import RefDict
-from MetaKind import MetaKind
 from Kind import Kind
 
 
@@ -30,13 +29,6 @@ class Type(Item):
     def unserialize(self, data):
         raise NotImplementedError, "Type.unserialize()"
 
-    kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
-                                         'Cardinality': 'dict',
-                                         'OtherName': 'Type' },
-                            'Kind': { 'Required': False,
-                                      'Cardinality': 'single',
-                                      'OtherName': 'Items' } })
-    
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)    
@@ -149,14 +141,6 @@ class Class(Type):
 
 
 class Enum(Type):
-
-    kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
-                                         'Cardinality': 'dict',
-                                         'OtherName': 'Type' },
-                            'Kind': { 'Required': False,
-                                      'Cardinality': 'single',
-                                      'OtherName': 'Items' },
-                            'Values': { 'Cardinality': 'list' } })
 
     def makeValue(cls, data):
         return data

@@ -12,16 +12,15 @@ from model.util.Path import Path
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
-    def __init__(self, item, other, name):
+    def __init__(self, item, name, other, otherName, otherCard=None):
 
         super(ItemRef, self).__init__()
 
-        self._attach(item, other, name)
+        self._attach(item, name, other, otherName, otherCard)
 
     def __repr__(self):
 
-        return ("<ItemRef: " + str(self._item) + " <--> " +
-                str(self._other) + ">")
+        return "<ItemRef: %s>" %(str(self._other))
 
     def getItem(self):
         'Return the item this link was established from.'
@@ -33,7 +32,7 @@ class ItemRef(object):
 
         return self._other
 
-    def _attach(self, item, other, name):
+    def _attach(self, item, name, other, otherName, otherCard=None):
 
         if item is None:
             raise ValueError, "Originating endpoint is None"
@@ -42,39 +41,41 @@ class ItemRef(object):
         self._other = other
 
         if other is not None:
-            if other.hasAttribute(name):
-                old = other.getAttribute(name)
+            if other.hasAttribute(otherName):
+                old = other.getAttribute(otherName)
                 if isinstance(old, RefDict):
-                    old[item.refName(name)] = self
+                    old[item.refName(otherName)] = self
                     return
             else:
-                card = other.getAttrAspect(name, 'Cardinality', 'single')
-                if card == 'dict':
-                    old = RefDict(other, name, other._otherName(name))
-                    other._references[name] = old
-                    old[item.refName(name)] = self
+                if otherCard is None:
+                    otherCard = other.getAttrAspect(otherName, 'Cardinality',
+                                                    'single')
+                if otherCard == 'dict':
+                    old = RefDict(other, otherName, name)
+                    other._references[otherName] = old
+                    old[item.refName(otherName)] = self
                     return
-                elif card == 'list':
-                    old = RefList(other, name, other._otherName(name))
-                    other._references[name] = old
-                    old[item.refName(name)] = self
+                elif otherCard == 'list':
+                    old = RefList(other, otherName, name)
+                    other._references[otherName] = old
+                    old[item.refName(otherName)] = self
                     return
             
-            other.setAttribute(name, self)
+            other.setAttribute(otherName, self)
 
-    def _detach(self, item, other, name):
+    def _detach(self, item, name, other, otherName):
 
         if other is not None:
             old = other.getAttribute(name, _attrDict=other._references)
             if isinstance(old, RefDict):
-                old._removeRef(item.refName(name))
+                old._removeRef(item.refName(otherName))
             else:
-                other._removeRef(name)
+                other._removeRef(otherName)
 
-    def _reattach(self, item, old, new, name):
+    def _reattach(self, item, name, old, new, otherName):
 
-        self._detach(item, old, name)
-        self._attach(item, new, name)
+        self._detach(item, name, old, otherName)
+        self._attach(item, name, new, otherName)
 
     def other(self, item):
         'Return the other end of the ref relative to item.'
@@ -115,7 +116,10 @@ class ItemRef(object):
             attrs['name'] = name
 
         if withSchema:
-            attrs['otherName'] = item._otherName(name)
+            otherName = item._otherName(name)
+            attrs['otherName'] = otherName
+            attrs['otherCard'] = other.getAttrAspect(otherName, 'Cardinality',
+                                                     'single')
 
         generator.characters(indent)
         generator.startElement('ref', attrs)
@@ -147,6 +151,11 @@ class RefDict(dict):
         for key in self.keys():
             del self[key]
 
+    def dir(self):
+
+        for item in self:
+            print item
+
     def __getitem__(self, key):
 
         value = super(RefDict, self).__getitem__(key)
@@ -162,22 +171,23 @@ class RefDict(dict):
 
         if isinstance(old, ItemRef):
             if isItem:
-                old._reattach(self._item, old.other(self._item),
-                              value, self._otherName)
+                old._reattach(self._item, self._name,
+                              old.other(self._item), value, self._otherName)
             else:
-                old._detach(self._item, old.other(self._item),
-                            self._otherName)
+                old._detach(self._item, self._name,
+                            old.other(self._item), self._otherName)
         else:
             if isItem:
-                value = ItemRef(self._item, value, self._otherName)
+                value = ItemRef(self._item, self._name, value, self._otherName)
             
             super(RefDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
-        value = super(RefDict, self).__getitem__(key)
-        value._detach(self._item, value.other(self._item), self._otherName)
-        super(RefDict, self).__delitem__(key)
+        value = self._getRef(key)
+        value._detach(self._item, self._name,
+                      value.other(self._item), self._otherName)
+        self._removeRef(key)
 
     def _removeRef(self, key):
 
@@ -231,20 +241,30 @@ class RefDict(dict):
 
     def _xmlValue(self, name, item, indent, generator, withSchema):
 
-        attrs = { 'name': name }
-        if withSchema:
-            attrs['cardinality'] = self._getCard()
-            attrs['otherName'] = item._otherName(name)
+        if len(self) > 0:
 
-        generator.characters(indent)
-        generator.startElement('ref', attrs)
+            if withSchema:
+                for other in self:
+                    break
 
-        i = indent + '  '
-        for ref in self.iteritems():
-            ref[1]._xmlValue(ref[0], item, i, generator, False)
+            attrs = { 'name': name }
+            if withSchema:
+                otherName = item._otherName(name)
+                otherCard = other.getAttrAspect(otherName, 'Cardinality',
+                                                'single')
+                attrs['cardinality'] = self._getCard()
+                attrs['otherName'] = otherName
+                attrs['otherCard'] = otherCard
 
-        generator.characters(indent)
-        generator.endElement('ref')
+            generator.characters(indent)
+            generator.startElement('ref', attrs)
+
+            i = indent + '  '
+            for ref in self.iteritems():
+                ref[1]._xmlValue(ref[0], item, i, generator, False)
+
+            generator.characters(indent)
+            generator.endElement('ref')
 
 
 class RefList(RefDict):
@@ -266,6 +286,11 @@ class RefList(RefDict):
     def append(sef, value):
 
         self[value.refName(self._name)] = value
+
+    def dir(self):
+
+        for key in self._keys:
+            print self[key]
 
     def __getitem__(self, key):
 

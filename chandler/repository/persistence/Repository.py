@@ -267,23 +267,24 @@ class Repository(object):
 
         self._kindRefs.append(item)
 
-    def _appendRef(self, item, other, otherName, itemRef):
+    def _appendRef(self, item, name, other, otherName, otherCard, itemRef):
 
-        self._unresolvedRefs.append((item, other, otherName, itemRef))
+        self._unresolvedRefs.append((item, name, other, otherName, otherCard,
+                                     itemRef))
 
     def resolveRefs(self, verbose=True):
 
         i = 0
         for ref in self._unresolvedRefs[:]:
-            if ref[3]._other is None:
-                other = ref[0].find(ref[1])
+            if ref[5]._other is None:
+                other = ref[0].find(ref[2])
                 if other is None:
                     if verbose:
-                        print "%s -> %s is missing" %(ref[0], ref[1])
+                        print "%s -> %s is missing" %(ref[0], ref[2])
                     i += 1
                     continue
 
-                ref[3]._attach(ref[0], other, ref[2])
+                ref[5]._attach(ref[0], ref[1], other, ref[3], ref[4])
                     
             self._unresolvedRefs.pop(i)
 
@@ -317,8 +318,9 @@ class Repository(object):
         def _appendKindRef(self, item):
             self.repository._appendKindRef(item)
 
-        def _appendRef(self, item, other, otherName, itemRef):
-            self.repository._appendRef(item, other, otherName, itemRef)
+        def _appendRef(self, item, name, other, otherName, otherCard, itemRef):
+            self.repository._appendRef(item, name, other, otherName, otherCard,
+                                       itemRef)
 
         def resolveRefs(self, verbose=False):
             self.repository.resolveRefs(verbose)

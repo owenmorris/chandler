@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>AttrDefs</name>
-    <kind type="path">//Schema/Model/AttrDef</kind>
+  <name>AttrDefs</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <attribute name="Cardinality">dict</attribute>
-    <attribute name="OtherName">Kinds</attribute>
+  <attribute name="Cardinality">dict</attribute>
+  <attribute name="OtherName">Kinds</attribute>
 </item>

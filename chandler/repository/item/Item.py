@@ -152,7 +152,7 @@ class Item(object):
 
         if isItem:
             otherName = self._otherName(name)
-            value = ItemRef(self, value, otherName)
+            value = ItemRef(self, name, value, otherName)
             card = self.getAttrAspect(name, 'Cardinality', 'single')
 
             if card == 'dict':
@@ -531,7 +531,8 @@ class Item(object):
         self._kind = kind
 
         if self._kind is not None:
-            self._kind.attach('Items', self)
+            self._references['Kind'] = ItemRef(self, 'Kind',
+                                               self._kind, 'Items', 'dict')
 
     def getRepository(self):
         '''Return this item's repository.
@@ -786,14 +787,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def startDocument(self):
 
-        self.tagMethods = []
         self.tagAttrs = []
         self.tags = []
         
     def startElement(self, tag, attrs):
 
         self.data = ''
-        self.tagMethods.append(getattr(ItemHandler, tag + 'End', None))
         self.tagAttrs.append(attrs)
 
         method = getattr(ItemHandler, tag + 'Start', None)
@@ -804,12 +803,10 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def endElement(self, tag):
 
-        self.tags.pop()
-
         attrs = self.tagAttrs.pop()
-        method = self.tagMethods.pop()
 
-        if method:
+        method = getattr(ItemHandler, self.tags.pop() + 'End', None)        
+        if method is not None:
             method(self, attrs)
 
     def characters(self, data):
@@ -880,38 +877,48 @@ class ItemHandler(xml.sax.ContentHandler):
         for ref in self.refs:
             other = item.find(ref[1])
             
-            if len(ref) == 2:
-                name = ref[0][0]
+            if len(ref) == 3:
+                attrName = refName = ref[0][0]
                 otherName = ref[0][1]
                 valueDict = item._references
+                otherCard = ref[2]
             else:
-                name = ref[0]
-                if name is None:
+                attrName = ref[2]._name
+                refName = ref[0]
+                if refName is None:
                     if other is None:
                         raise ValueError, "refName to " + ref[1] + " is None, it should be loaded before " + item.getPath()
                     else:
-                        name = other.refName(ref[2]._name)
+                        refName = other.refName(attrName)
                 otherName = ref[2]._otherName
                 valueDict = ref[2]
-                valueDict._item = item
+                otherCard = ref[3]
 
             if other is not None:
                 value = other._references.get(otherName)
                 if value is None:
-                    valueDict[name] = ItemRef(item, other, otherName)
+                    valueDict[refName] = ItemRef(item, attrName,
+                                                 other, otherName, otherCard)
                 elif isinstance(value, ItemRef):
-                    value._other = item
-                elif isinstance(value, RefDict):
-                    refName = item.refName(otherName)
-                    if value.has_key(refName):
-                        value = value._getRef(refName)
+                    if value._other is None:
                         value._other = item
+                        valueDict[refName] = value
+                elif isinstance(value, RefDict):
+                    otherRefName = item.refName(otherName)
+                    if value.has_key(otherRefName):
+                        value = value._getRef(otherRefName)
+                        if value._other is None:
+                            value._other = item
+                            valueDict[refName] = value
                     else:
-                        value = ItemRef(item, other, otherName)
-                    valueDict[name] = value
+                        valueDict[refName] = ItemRef(item, attrName,
+                                                     other, otherName,
+                                                     otherCard)
             else:
-                valueDict[name] = value = ItemRef(item, other, otherName)
-                self.repository._appendRef(item, ref[1], otherName, value)
+                value = ItemRef(item, attrName, other, otherName, otherCard)
+                valueDict[refName] = value
+                self.repository._appendRef(item, attrName,
+                                           ref[1], otherName, otherCard, value)
 
     def kindEnd(self, attrs):
 
@@ -957,8 +964,10 @@ class ItemHandler(xml.sax.ContentHandler):
         if self.tags[-1] == 'item':
             attrDef = self.attrDefs.pop()
             cardinality = self.getCardinality(attrDef, attrs)
+            otherCard = attrs.get('otherCard', None)
         else:
             cardinality = 'single'
+            otherCard = self.tagAttrs[-1].get('otherCard', None)
 
         if cardinality == 'single':
             typeName = attrs.get('type', 'path')
@@ -974,12 +983,12 @@ class ItemHandler(xml.sax.ContentHandler):
                                           attrs['name'])
                 else:
                     name = None
-                self.refs.append((name, ref, self.collections[-1]))
+                self.refs.append((name, ref, self.collections[-1], otherCard))
             else:
                 name = attrs['name']
                 otherName = self.getOtherName(name, self.getAttrDef(name),
                                               attrs)
-                self.refs.append(((name, otherName), ref))
+                self.refs.append(((name, otherName), ref, otherCard))
 
         else:
             value = self.collections.pop()

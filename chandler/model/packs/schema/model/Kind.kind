@@ -4,9 +4,10 @@
   <name>Kind</name>
   <class module="model.schema.Kind">KindKind</class>
 
-  <ref name="Kind" otherName="Items" type="path">/Model/Kind</ref>
+  <ref name="Kind" otherName="Items" 
+       type="path" otherCard="dict">/Model/Kind</ref>
 
-  <ref name="AttrDefs" otherName="Kinds" cardinality="dict">
+  <ref name="AttrDefs" otherName="Kinds" cardinality="dict" otherCard="dict">
     <ref name="SuperKind" type="path">/Model/Attributes/SuperKind</ref>
     <ref name="SubKind" type="path">/Model/Attributes/SubKind</ref>
     <ref name="Items" type="path">/Model/Attributes/Items</ref>
@@ -16,7 +17,7 @@
     <ref name="Class" type="path">/Model/Attributes/Class</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list" otherName="SubKind">
+  <ref name="SuperKind" cardinality="list" otherName="SubKind" otherCard="dict">
     <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
          type="path">/Model/Item</ref>
   </ref>

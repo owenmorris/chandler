@@ -4,7 +4,9 @@
   <name>DeletePolicy</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
-  <ref name="Type" otherName="TypeFor" type="path">/Model/Types/DeletePolicy</ref>
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/DeletePolicy</ref>
+
   <attribute name="Cardinality">single</attribute>
   <attribute name="Default">remove</attribute>
 </item>

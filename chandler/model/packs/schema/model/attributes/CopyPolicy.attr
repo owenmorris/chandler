@@ -4,7 +4,9 @@
   <name>CopyPolicy</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
-  <ref name="Type" otherName="TypeFor" type="path">/Model/Types/CopyPolicy</ref>
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/CopyPolicy</ref>
+
   <attribute name="Cardinality">single</attribute>
   <attribute name="Default">remove</attribute>
 </item>

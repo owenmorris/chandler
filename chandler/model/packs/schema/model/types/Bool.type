@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item>
-    <name>Bool</name>
-    <kind type="path">//Schema/Model/Type</kind>
-    <class module="model.schema.Types">Bool</class>
+  <name>Bool</name>
+  <kind type="path">//Schema/Model/Type</kind>
+  <class module="model.schema.Types">Bool</class>
 </item>

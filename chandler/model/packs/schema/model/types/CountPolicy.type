@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item>
-    <name>CountPolicy</name>
-    <kind type="path">//Schema/Model/Enum</kind>
+  <name>CountPolicy</name>
+  <kind type="path">//Schema/Model/Enum</kind>
 
-    <attribute name="Values" cardinality="list">
-        <value>none</value>
-        <value>count</value>
-    </attribute>
+  <attribute name="Values" cardinality="list">
+    <value>none</value>
+    <value>count</value>
+  </attribute>
 </item>

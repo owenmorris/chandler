@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>SuperKind</name>
-    <kind type="path">//Schema/Model/AttrDef</kind>
+  <name>SuperKind</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <attribute name="Cardinality">list</attribute>
-    <attribute name="OtherName">SubKind</attribute>
+  <attribute name="Cardinality">list</attribute>
+  <attribute name="OtherName">SubKind</attribute>
 </item>

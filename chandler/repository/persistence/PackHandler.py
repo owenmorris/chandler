@@ -26,7 +26,6 @@ class PackHandler(xml.sax.ContentHandler):
 
     def startDocument(self):
 
-        self.tagMethods = []
         self.tagAttrs = []
 
     def endDocument(self):
@@ -40,7 +39,6 @@ class PackHandler(xml.sax.ContentHandler):
         if method is not None:
             method(self, attrs)
             
-        self.tagMethods.append(getattr(PackHandler, tag + 'End', None))
         self.tagAttrs.append(attrs)
 
     def characters(self, data):
@@ -49,9 +47,9 @@ class PackHandler(xml.sax.ContentHandler):
 
     def endElement(self, tag):
 
-        method = self.tagMethods.pop()
         attrs = self.tagAttrs.pop()
 
+        method = getattr(PackHandler, tag + 'End', None)
         if method is not None:
             method(self, attrs)
 
