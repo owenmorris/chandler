@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>AttrDef</name>
+    <class module="model.schema.Kind">Kind</class>
+
+    <attribute name="AttrDefs" type="refs">
+        <ref name="Required" type="path">//Schema/Model/Required</ref>
+        <ref name="Cardinality" type="path">//Schema/Model/Cardinality</ref>
+        <ref name="Type" type="path">//Schema/Model/Type</ref>
+        <ref name="Default" type="path">//Schema/Model/Default</ref>
+    </attribute>
+</item>

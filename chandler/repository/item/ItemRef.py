@@ -40,7 +40,7 @@ class ItemRef(object):
             if other.hasAttribute(name):
                 old = other.getAttribute(name)
                 if isinstance(old, RefDict):
-                    old[item.refName()] = self
+                    old[item.refName(name)] = self
                     return
             
             other.setAttribute(name, self)

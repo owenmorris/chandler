@@ -5,7 +5,8 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax
-import ItemRef
+from ItemRef import ItemRef
+from ItemRef import RefDict
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -66,10 +67,10 @@ class Item(object):
 
     def _otherName(self, name):
 
-        if name.endswith('_for'):
-            return name[:-4]
+        if name.endswith('__for'):
+            return name[:-5]
         else:
-            return name + '_for'
+            return name + '__for'
 
     def setAttribute(self, name, value=None):
         '''Create and/or set a Chandler attribute.
@@ -82,14 +83,14 @@ class Item(object):
         otherName = self._otherName(name)
         isItem = isinstance(value, Item)
             
-        if isinstance(old, ItemRef.ItemRef):
+        if isinstance(old, ItemRef):
             if isItem:
                 old._reattach(self, old.other(self), value, otherName)
             else:
                 old._detach(self, old.other(self), otherName)
         else:
             if isItem:
-                value = ItemRef.ItemRef(self, value, otherName)
+                value = ItemRef(self, value, otherName)
             
             self._attributes[name] = value
 
@@ -101,7 +102,7 @@ class Item(object):
 
         value = self._attributes[name]
 
-        if isinstance(value, ItemRef.ItemRef):
+        if isinstance(value, ItemRef):
             return value.other(self)
         else:
             return value
@@ -112,7 +113,7 @@ class Item(object):
         value = self._attributes[name]
         del self._attributes[name]
 
-        if isinstance(value, ItemRef.ItemRef):
+        if isinstance(value, ItemRef):
             value._detach(self, value.other(self), self._otherName(name))
 
     def _removeRef(self, name):
@@ -217,9 +218,10 @@ class Item(object):
     def move(self, parent):
         'Move this item under another container or make it a root.'
 
-        self._parent._removeItem(self)
-        self._setRoot(parent._addItem(self))
-        self._parent = parent
+        if self._parent is not parent:
+            self._parent._removeItem(self)
+            self._setRoot(parent._addItem(self))
+            self._parent = parent
     
     def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.
@@ -274,12 +276,12 @@ class Item(object):
                 return 'uuid'
             elif isinstance(value, Path):
                 return 'path'
-            elif isinstance(value, ItemRef.RefDict):
+            elif isinstance(value, RefDict):
                 return 'refs'
             else:
                 return type(value).__name__
             
-        if isinstance(value, ItemRef.ItemRef):
+        if isinstance(value, ItemRef):
             self._saveValue(name, value.other(self).getUUID(), 'ref', indent,
                             generator)
         else:
@@ -315,9 +317,10 @@ class Item(object):
 class ItemHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading items.'
     
-    def __init__(self, repository):
+    def __init__(self, repository, parent):
 
         self.repository = repository
+        self.parent = parent
 
     def startDocument(self):
 
@@ -329,6 +332,7 @@ class ItemHandler(xml.sax.ContentHandler):
         
     def startElement(self, tag, attrs):
 
+        self.data = ''
         self.tagMethods.append(getattr(ItemHandler, tag + 'Tag'))
         self.tagAttrs.append(attrs)
 
@@ -336,13 +340,13 @@ class ItemHandler(xml.sax.ContentHandler):
         if typeName == 'dict':
             self.collections.append({})
         elif typeName == 'refs':
-            self.collections.append(ItemRef.RefDict(None, attrs['name']))
+            self.collections.append(RefDict(None, attrs['name']))
         elif typeName == 'list':
             self.collections.append([])
                 
     def characters(self, data):
 
-        self.data = data
+        self.data += data
 
     def endElement(self, tag):
 
@@ -350,16 +354,18 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def itemTag(self, attrs):
 
-        item = self.cls(self.name, self.repository, None,
-                        _uuid = UUID(attrs.get('uuid')),
-                        _attributes = self.attributes)
+        self.item = item = self.cls(self.name, self.repository, None,
+                                    _uuid = UUID(attrs.get('uuid')),
+                                    _attributes = self.attributes)
 
         for value in item._attributes.itervalues():
-            if isinstance(value, ItemRef.RefDict):
+            if isinstance(value, RefDict):
                 value._item = item
 
-        if hasattr(self, 'parent'):
-            item._parentRef = self.parent
+        if hasattr(self, 'parentRef'):
+            item._parentRef = self.parentRef
+        elif self.parent is not None:
+            item.move(self.parent)
 
         for ref in self.refs:
             other = item.find(ref[1])
@@ -369,13 +375,23 @@ class ItemHandler(xml.sax.ContentHandler):
                 valueDict = item._attributes
             else:
                 otherName = item._otherName(ref[2]._name)
+                item._attributes[ref[2]._name] = ref[2]
                 valueDict = ref[2]
+                valueDict._item = item
                 
             if other is not None:
                 value = other._attributes[otherName]
-                value._other = item
+                if isinstance(value, ItemRef):
+                    value._other = item
+                elif isinstance(value, RefDict):
+                    refName = item.refName(ref[0])
+                    if value.has_key(refName):
+                        value = value[refName]
+                        value._other = item
+                    else:
+                        value = ItemRef(item, other, otherName)
             else:
-                value = ItemRef.ItemRef(item, None, otherName)
+                value = ItemRef(item, other, otherName)
 
             valueDict[ref[0]] = value
 
@@ -391,9 +407,9 @@ class ItemHandler(xml.sax.ContentHandler):
     def parentTag(self, attrs):
 
         if attrs['type'] == 'uuid':
-            self.parent = UUID(self.data)
+            self.parentRef = UUID(self.data)
         else:
-            self.parent = Path(self.data)
+            self.parentRef = Path(self.data)
 
     def attributeTag(self, attrs):
 
@@ -447,6 +463,9 @@ class ItemHandler(xml.sax.ContentHandler):
         
         if typeName == 'path':
             return Path(data)
+
+        if typeName == 'bool':
+            return data != 'False'
         
         return getattr(__import__('__builtin__', {}, {}, typeName),
                        typeName)(data)

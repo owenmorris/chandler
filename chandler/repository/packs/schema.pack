@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<pack name="Schema" cwd="schema">
+
+  <parent file="Schema.root">
+
+    <parent file="Types.container" cwd="types">
+      <item files="*.type" />
+    </parent>
+
+    <parent file="Model.domain" cwd="model">
+      <item files="*.attr" />
+      <item files="*.kind" />
+    </parent>
+
+  </parent>
+
+</pack>

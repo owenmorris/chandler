@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>Cardinality</name>
+    <class module="model.schema.AttrDef">AttrDef</class>
+
+    <ref name="Type" type="path">//Schema/Types/Cardinality</ref>
+    <attribute name="Cardinality">single</attribute>
+    <attribute name="Required" type="bool">False</attribute>
+    <attribute name="Default">single</attribute>
+</item>
