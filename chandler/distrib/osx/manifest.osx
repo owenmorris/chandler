@@ -30,7 +30,7 @@ Chandler.py
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
-glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
 
