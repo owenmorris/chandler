@@ -732,7 +732,7 @@
     <contents itemref="view:notesItemCollection"/>
 
     <childrenBlocks itemref="view:NoteTable"/>
-    <childrenBlocks itemref="detail:DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -768,7 +768,7 @@
     <contents itemref="view:mixedItemCollection"/>
 
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
