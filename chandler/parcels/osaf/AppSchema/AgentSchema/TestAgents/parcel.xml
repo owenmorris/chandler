@@ -42,7 +42,7 @@
   <Action itemName="PrintFoo">
     <core:description>print foo</core:description>
     <actionType>inline</actionType>
-    <actionScript>pass</actionScript>
+    <actionScript>print 'everyone is available'</actionScript>
   </Action>
 
   <Condition itemName="AvailableCondition" itemClass="application.agents.test_agents.AvailableCondition.AvailableCondition">
@@ -178,7 +178,6 @@
     <condition itemref="test:OccupationChanged"/>
     <actions itemref="test:TestMethod"/>
     <actions itemref="test:PostDentistDialog"/>
-    <actions itemref="test:PrintMessageBody"/>
   </Instruction>
 
   <AgentItem itemName="TestAgent">
@@ -189,5 +188,43 @@
     <instructions itemref="test:ProcessIM"/>
     <instructions itemref="test:ContactsOccupationChanged"/>
   </AgentItem>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <Schedule itemName="ZaoBaoSchedule">
+    <startTime>2003-11-11 12:56:00+0800</startTime>
+    <repeatFlag>True</repeatFlag>
+    <repeatDelay>00:10:00:00</repeatDelay>
+  </Schedule>
+
+<!--  <Action itemName="GetFeeds" itemClass="zaobao.ZaoBao.ZaoBao"> -->
+  <Action itemName="GetFeeds">
+    <core:description>gets zaobao feeds</core:description>
+  </Action>
+
+  <Instruction itemName="ZaoBaoInstruction">
+    <enabled>False</enabled>
+    <schedule itemref="test:ZaoBaoSchedule"/>
+    <actions itemref="test:GetFeeds"/>
+  </Instruction>
+
+  <AgentItem itemName="ZaoBaoAgent">
+    <core:displayName>The ZaoBao Agent</core:displayName>
+    <core:description>This agent does ZaoBao's work</core:description>
+    <instructions itemref="test:ZaoBaoInstruction"/>
+  </AgentItem>
+
+
 
 </core:Parcel>
