@@ -91,6 +91,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
 
     __calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
+    __taskPath = "//parcels/osaf/contentmodel/EventTask/"
     __lobPath = "//Schema/Core/Lob"
     
     def fileStyle(self):
@@ -134,9 +135,22 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         countNew = 0
         countUpdated = 0
         eventKind = self.itsView.findPath(self.__calendarEventPath)
+        taskKind  = self.itsView.findPath(self.__taskPath)
         textKind  = self.itsView.findPath(self.__lobPath)
         
-        for event in calendar.vevent:
+        eventlist = getattr(calendar, 'vevent', [])
+        todolist  = getattr(calendar, 'vtodo', [])
+        
+        # this is just a quick hack to get VTODO working, FIXME write
+        # more readable table driven code to process VEVENTs and VTODOs
+        for event in itertools.chain(eventlist, todolist):
+            vtype = event.name
+            if vtype == u'VEVENT':
+                logger.debug("got VEVENT")
+                pickKind = eventKind
+            elif vtype == u'VTODO':
+                logger.debug("got VTODO")
+                pickKind = taskKind
             # See if we have a corresponding item already, or create one
             uuid = UUID(event.uid[0].value[:36]) # @@@MOR, stripping "-RID"
             # FIXME Why are we stripping to 36 characters?
@@ -176,15 +190,24 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # throughout a recurrence set, 1 hour differences might happen
                 # around DST, but we'll ignore that corner case for now
                 try:
-                    duration = event.dtend[0].value  - dtstart
-                # FIXME no end time or duration, Chandler's UI doesn't seem to
+                    duration = event.dtend[0].value - dtstart
+                # FIXME no end time or duration, Calendar UI doesn't seem to
                 # like events with no duration, so for now we'll set a dummy
                 # duration of 1 hour
                 except AttributeError:
-                    duration = datetime.timedelta(hours=1)
+                    # FIXME Nesting try/excepts is ugly.  Also, we're assuming
+                    # DATE-TIMEs, not DATEs.
+                    try:
+                        duration = event.due[0].value - dtstart
+                    except AttributeError:
+                        if vtype == u'VEVENT':
+                            duration = datetime.timedelta(hours=1)
+                        elif vtype == u'VTODO':
+                            duration = None
             # Iterate through recurrence set.  Infinite recurrence sets are
             # common, something has to be done to avoid infinite loops.
             # We'll arbitrarily limit ourselves to MAXRECUR recurrences.
+
             first = True
             for dt in itertools.islice(event.rruleset, MAXRECUR):
                 # Hack to deal with recurrence set having a single UID but
@@ -192,6 +215,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # first item, use the right UUID (and the matching Item if it
                 # exists), for later items, create a new uuid.
                 if first and uuidMatchItem is not None:
+                    logger.debug("matched UUID")
                     eventItem = uuidMatchItem
                     countUpdated += 1
                 else:
@@ -200,12 +224,19 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     # @@@MOR This needs to use the new defaultParent framework
                     # to determine the parent
                     parent = self.findPath("//userdata")
-                    eventItem = eventKind.instantiateItem(None, parent, uuid)
+                    eventItem = pickKind.instantiateItem(None, parent, uuid)
                     countNew += 1
-                
+                    
+                logger.debug("eventItem is %s" % str(eventItem))
+                              
                 eventItem.displayName = displayName
                 eventItem.startTime   = convertToMX(dt)
-                eventItem.endTime     = convertToMX(dt + duration)
+                if vtype == u'VEVENT':
+                    eventItem.endTime = convertToMX(dt + duration)
+                elif vtype == u'VTODO':
+                    if duration is not None:
+                        eventItem.dueDate = convertToMX(dt + duration)
+                
                 
                 # I think Item.description describes a Kind, not userdata, so
                 # I'm using DESCRIPTION <-> body  
@@ -217,8 +248,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
                 item.add(eventItem)
                 first = False
-                logger.debug("Imported %s %s %s" % (eventItem.displayName,
-                 eventItem.startTime, eventItem.endTime))
+                logger.debug("Imported %s %s" % (eventItem.displayName,
+                 eventItem.startTime))
                  
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))
