@@ -216,9 +216,9 @@ def init(buildenv):
     # Determine the Python lib directory (the parent of site-packages)
     if buildenv['os'] == 'posix':
         lib_dir_release = os.path.join(CHANDLERBIN,
-                                       'release', 'lib', 'python2.3')
+                                       'release', 'lib', 'python2.4')
         lib_dir_debug = os.path.join(CHANDLERBIN,
-                                     'debug', 'lib', 'python2.3')
+                                     'debug', 'lib', 'python2.4')
 
     if buildenv['os'] == 'win':
         lib_dir_release = os.path.join(CHANDLERBIN, 'release', 'bin', 'Lib')
@@ -228,11 +228,11 @@ def init(buildenv):
         lib_dir_release = os.path.join(CHANDLERBIN, 'release', 'Library',
                                        'Frameworks', 'Python.framework',
                                        'Versions', 'Current', 'lib',
-                                       'python2.3')
+                                       'python2.4')
         lib_dir_debug = os.path.join(CHANDLERBIN, 'debug', 'Library',
                                      'Frameworks', 'Python.framework',
                                      'Versions', 'Current', 'lib',
-                                     'python2.3')
+                                     'python2.4')
 
     buildenv['pythonlibdir'] = lib_dir_release
     buildenv['pythonlibdir_d'] = lib_dir_debug
