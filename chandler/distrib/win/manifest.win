@@ -19,7 +19,8 @@ msvcr71.dll
 Pathan.dll
 python23.dll
 xerces-c_2_4_0.dll
-
+ssleay32.dll
+libeay32.dll
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=release/bin
