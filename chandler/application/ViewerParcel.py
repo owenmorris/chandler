@@ -47,6 +47,11 @@ class ViewerParcel (Parcel):
     Install = classmethod (Install)
 
     def synchronizeView (self):
+        wxMainFrame = app.association[id(app.model.mainFrame)]
+        """
+          If it isn't in the association we need to construct it and
+        put it in the association.
+        """
         if not app.association.has_key(id(self)):
             module = sys.modules[self.__class__.__module__]
             modulename = os.path.basename (module.__file__)
@@ -58,11 +63,32 @@ class ViewerParcel (Parcel):
             """
             assert (os.path.exists (path))
             resources = wxXmlResource(path)
-            wxMainFrame = app.association[id(app.model.mainFrame)]
             panel = resources.LoadObject(wxMainFrame, modulename, "wxPanel")
             assert (panel != None)
-            app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
+            
+            app.association[id(self)] = panel
+            """
+              Set up model and resources for the convience of the parcel.
+            OnInit gives the parcel a chance to wire up their events.
+            """
             panel.model = self
             panel.resources = resources
             panel.OnInit ()
-            panel.Layout()
+        else:
+            panel = app.association[id(self)]
+        """
+          We'll check to see if we've got a parcel installed in the view, and
+        if so we'll remove it from the association and destroy it. Shortcut
+        the case of setting the same window we've already set.
+        """
+        container = wxMainFrame.FindWindowByName("ViewerParcel_container")
+        children = container.GetChildren ()
+        assert (len (children) <= 1)
+        if len (children) == 0 or children[0] != panel:
+            for window in children:
+                del app.association[id(window.model)]
+            container.DestroyChildren ()
+            """
+              Attach the new parce to the view.
+            """
+            app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)

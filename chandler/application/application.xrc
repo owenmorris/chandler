@@ -155,6 +155,9 @@
         <object class="wxMenuItem" name="Test2">
             <label>Contacts</label>
         </object>
+        <object class="wxMenuItem" name="Test3">
+            <label>Test</label>
+        </object>
     </object>
 
 </resource>
