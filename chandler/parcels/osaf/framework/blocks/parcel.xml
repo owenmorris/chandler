@@ -411,6 +411,26 @@
   </Kind>
   
   <!--
+    Choice
+  -->
+  <Kind itemName="Choice">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Choice</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Attribute itemName="choices">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="itemSelected">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:Choice/choices"/>
+    <attributes itemref="docSchema:Choice/itemSelected"/>    
+  </Kind>
+
+  <!--
     ComboBox
   -->
   <Kind itemName="ComboBox">

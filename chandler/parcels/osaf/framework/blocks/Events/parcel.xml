@@ -54,6 +54,21 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>Controller</dispatchEnum>
   </BlockEvent>
 
+  <BlockEvent itemName="ButtonsMenu">
+    <name>chandler/ButtonsMenu</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="ControlsMenu">
+    <name>chandler/ControlsMenu</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="DataMenu">
+    <name>chandler/DataMenu</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+  
   <BlockEvent itemName="Right">
     <name>chandler/Right</name>
     <dispatchEnum>Controller</dispatchEnum>
@@ -63,5 +78,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <name>chandler/Left</name>
     <dispatchEnum>Controller</dispatchEnum>
   </BlockEvent>
+
 
 </core:Parcel>

@@ -2,6 +2,7 @@ import application.Globals as Globals
 from Block import Block
 from wxPython.wx import *
 from wxPython.gizmos import *
+from wxPython.html import *
 from OSAF.framework.notifications.Notification import Notification
 
 
@@ -57,7 +58,7 @@ class ContainerChild(Block):
             window.counterpartUUID = UUID
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
-
+        return window
 
 class RectContainer(ContainerChild):
     def Calculate_wxFlag (self):
@@ -116,33 +117,32 @@ class BoxContainer(RectContainer):
 
         sizer = wxBoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
+        panel = wxPanel(parentWindow, -1)
+        panel.SetSizer(sizer)
 
-        if isinstance (parent, wxWindowPtr):
-            parent.SetSizer (sizer)
-        else:
-#            assert isinstance (parent, wxSizerPtr)
-            parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return sizer, sizer, parentWindow
+#        if isinstance (parent, wxWindowPtr):
+#            parent.SetSizer (sizer)
+#        else:
+        if isinstance (parent, wxSizerPtr):
+            parent.Add(panel, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return panel, sizer, panel
 
  
-class TabbedContainer(RectContainer):
-    def renderOneBlock (self, parent, parentWindow):
-        return None, None, None
-
-
 class Button(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
         if self.hasAttributeValue ("clicked"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
+            id = self.clicked.getwxID()
 
         if self.buttonKind == "Text":
             button = wxButton(parentWindow, id, self.title,
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            button = wxBitmapButton(parentWindow, id, self.icon,
+            image = wxImage(self.icon, wxBITMAP_TYPE_PNG)
+            bitmap = image.ConvertToBitmap()
+            button = wxBitmapButton(parentWindow, id, bitmap,
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
@@ -151,12 +151,23 @@ class Button(RectContainer):
                               (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
             assert (False)
-                                
+
         if isinstance (parent, wxSizerPtr):
             parent.Add(button, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
     
+class Choice(RectContainer):
+    def renderOneBlock(self, parent, parentWindow):
+#        assert isinstance (parent, wxSizerPtr) #must be in a container
+        choice = wxChoice(parentWindow, -1, 
+                              wxDefaultPosition,
+                              (self.minimumSize.width, self.minimumSize.height),
+                              self.choices)
+        if isinstance (parent, wxSizerPtr):
+            parent.Add(choice, int(self.stretchFactor), 
+                       self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return choice, None, None
 
 class ComboBox(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
@@ -200,7 +211,7 @@ class EditText(RectContainer):
                                "",
                                wxDefaultPosition,
                                (self.minimumSize.width, self.minimumSize.height),
-                               style)
+                               style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
         if isinstance (parent, wxSizerPtr):
@@ -212,7 +223,7 @@ class HTML(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         id = 0
         if self.hasAttributeValue ("pageLoaded"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
+            id = self.pageLoaded.getwxID()
 
         htmlWindow = wxHtmlWindow(parentWindow, id, wxDefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
@@ -232,7 +243,7 @@ class RadioBox(RectContainer):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
         if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
+            id = self.selectionChanged.getwxID()
 
         if self.radioAlignEnum == "Across":
             dimension = wxRA_SPECIFY_COLS
@@ -244,7 +255,7 @@ class RadioBox(RectContainer):
         radioBox = wxRadioBox(parentWindow, -1, self.title,
                               wxDefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
-                              choices, self.itemsPerLine, dimension)        
+                              self.choices, self.itemsPerLine, dimension)        
         if isinstance (parent, wxSizerPtr):
             parent.Add(radioBox, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
@@ -275,16 +286,17 @@ class SplitterWindow(RectContainer):
                 child.render (parent, parentWindow)
 
         children = window.GetChildren()
-        if self.orientationEnum == "Vertical":
+        if self.orientationEnum == "Horizontal":
             window.SplitVertically(children[0], children[1])
         else:
             window.SplitHorizontally(children[0], children[1])
+        return window
 
     def renderOneBlock (self, parent, parentWindow):
  #       assert isinstance (parent, wxSizerPtr)
         id = 0
         if self.hasAttributeValue ("sashPosChanged"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
+            id = self.sashPosChanged.getwxID()
             
         splitter = wxSplitterWindow(parentWindow, id, 
                                     wxDefaultPosition,
@@ -317,6 +329,9 @@ class StaticText(RectContainer):
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return staticText, None, None
 
+    
+    
+    
 class TabbedContainer(RectContainer):
     # @@@ Right now this is unnecessary boiler plate that should be removed.  We
     #  need a better way to allow items to hook themselves into their parent
@@ -329,25 +344,26 @@ class TabbedContainer(RectContainer):
           Store the wxWindows version of the object in the association, so
         given the block we can find the associated wxWindows object.
         """
+        childList = []
         if window:
             UUID = self.getUUID()
             assert not Globals.association.has_key(UUID)
             Globals.association[UUID] = window
             window.counterpartUUID = UUID
             for child in self.childrenBlocks:
-                child.render (parent, parentWindow)
+                childList.append(child.render (parent, parentWindow))
 
-        children = window.GetChildren()
         i = 0
-        for child in children:
+        for child in childList:
             window.AddPage(child, self.tabNames[i])
             i = i + 1
+        return window
 
     def renderOneBlock (self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr)
         id = 0
         if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
+            id = self.selectionChanged.getwxID()
             
         if self.tabPosEnum == "Top":
             style = 0
@@ -444,8 +460,8 @@ class TreeList(RectContainer):
         notification.SetData(arguments)
         Globals.notificationManager.PostNotification(notification)
 
-
-        parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        if isinstance (parent, wxSizerPtr):
+            parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None
 
 

@@ -9,6 +9,15 @@ class Controller(Block):
 
     def on_chandler_Quit (self, notification):
         Globals.wxApplication.OnQuit ()
+        
+    def on_chandler_ButtonsMenu (self, notification):
+        pass
+
+    def on_chandler_ControlsMenu (self, notification):
+        pass
+    
+    def on_chandler_DataMenu (self, notification):
+        pass    
 
     def on_chandler_Undo_UpdateUI (self, notification):
         notification.data ['Text'] = 'Undo Command\tCtrl+Z'
