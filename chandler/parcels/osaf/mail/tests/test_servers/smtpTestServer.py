@@ -315,9 +315,6 @@ def processArgs():
 
     elif arg.lower() == '--help':
         print usage
-
-    elif arg.lower() == '--help':
-        print usage
         sys.exit()
 
     else:
