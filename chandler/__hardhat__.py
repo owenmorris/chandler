@@ -520,17 +520,17 @@ def generateDocs(buildenv):
     fileList = _findFiles(".", "parcel.xml")
 
     _transformFilesXslt(buildenv, 
-     os.path.join(buildenv['root'],"Chandler","distrib","transforms","Kinds.xsl"),
-     os.path.join(buildenv['root'],"Chandler"),
-     os.path.join(buildenv['root'],buildenv['version'],"docs"),
+     os.path.join("distrib","transforms","Kinds.xsl"),
+     os.path.join("."),
+     os.path.join("..",buildenv['version'],"docs"),
      "Kinds.html",
      fileList
     )
 
     _transformFilesXslt(buildenv, 
-     os.path.join(buildenv['root'],"Chandler","distrib","transforms","Attributes.xsl"),
-     os.path.join(buildenv['root'],"Chandler"),
-     os.path.join(buildenv['root'],buildenv['version'],"docs"),
+     os.path.join("distrib","transforms","Attributes.xsl"),
+     os.path.join("."),
+     os.path.join("..",buildenv['version'],"docs"),
      "Attributes.html",
      fileList
     )
