@@ -46,7 +46,7 @@ def init(root):
     buildenv['root'] = os.path.join(root, "osaf", "chandler")
     buildenv['verbosity'] = 1
     buildenv['showenv'] = 0
-    buildenv['logfile'] = os.path.join(buildenv['osafroot'], "build.log")
+    buildenv['logfile'] = os.path.join(buildenv['osafroot'], "hardhat.log")
 
     # normalize what python thinks the OS is to a string that we like:
     buildenv['os'] = 'unknown'
@@ -1044,10 +1044,7 @@ def cvsClean(buildenv, dirs):
 
 # workdir is /home/builder/nightly
 def buildComplete(buildenv, releaseId, workDir):
-    return
-    """
-    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and
-     os.environ.has_key('TAR'):
+    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and os.environ.has_key('TAR'):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Paths to tools found, proceeding")
     else:
@@ -1055,8 +1052,7 @@ def buildComplete(buildenv, releaseId, workDir):
 	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR")
 	raise HardHatError
 
-    buildGetSource(buildenv, releaseId, workDir)
-    """	
+    # buildGetSource(buildenv, releaseId, workDir)
 
 def buildGetSource(buildenv, releaseId, workDir):
 
