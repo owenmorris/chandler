@@ -1079,6 +1079,26 @@ class CloudXMLFormat(ImportExportFormat):
                 'lastName'
             ),
         },
+        'EventTask' : {
+            'kind' : '//parcels/osaf/contentmodel/EventTask',
+            'fingerprint' : (),
+        },
+        'ItemCollection' : {
+            'kind' : '//parcels/osaf/contentmodel/ItemCollection',
+            'fingerprint' : (),
+        },
+        'MailedEvent' : {
+            'kind' : '//parcels/osaf/contentmodel/MailedEvent',
+            'fingerprint' : (),
+        },
+        'MailedEventTask' : {
+            'kind' : '//parcels/osaf/contentmodel/MailedEventTask',
+            'fingerprint' : (),
+        },
+        'MailMessage' : {
+            'kind' : '//parcels/osaf/contentmodel/mail/MailMessage',
+            'fingerprint' : (),
+        },
         'Note' : {
             'kind' : '//parcels/osaf/contentmodel/Note',
             'fingerprint' : (),
@@ -1089,10 +1109,6 @@ class CloudXMLFormat(ImportExportFormat):
         },
         'Share' : {
             'kind' : '//parcels/osaf/framework/sharing/Share',
-            'fingerprint' : (),
-        },
-        'ItemCollection' : {
-            'kind' : '//parcels/osaf/contentmodel/ItemCollection',
             'fingerprint' : (),
         },
     }
@@ -1192,6 +1208,7 @@ class CloudXMLFormat(ImportExportFormat):
         result += indent * depth
         result += "</%s>\n" % item.itsKind.itsName
         return result
+
 
     def __collectAttributes(self, item):
         attributes = {}
