@@ -36,12 +36,12 @@ class UUID(object):
 
         if uuid is None:
             self._uuid = _uuid.make()
+        elif len(uuid) == 16:
+            self._uuid = str(uuid)
         else:
             self._uuid = _uuid.make(str(uuid))
             if not self._uuid:
                 raise MalformedUUIDException, uuid
-
-        self._hash = _uuid.hash(self._uuid)
 
     def __repr__(self):
 
@@ -59,7 +59,11 @@ class UUID(object):
 
     def __hash__(self):
 
-        return self._hash
+        try:
+            return self._hash
+        except AttributeError:
+            self._hash = _uuid.hash(self._uuid)
+            return self._hash
 
     def __getstate__(self):
 
@@ -68,7 +72,6 @@ class UUID(object):
     def __setstate__(self, state):
 
         self._uuid = state
-        self._hash = _uuid.hash(state)
 
     def __eq__(self, other):
 

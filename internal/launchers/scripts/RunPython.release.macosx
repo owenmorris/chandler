@@ -24,4 +24,4 @@ else
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/dbxml/lib:$CHANDLERBIN/release/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/release/Library/Frameworks exec $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python $*
+PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERBIN/release/lib:$CHANDLERBIN/release/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/release/Library/Frameworks exec $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python $*
