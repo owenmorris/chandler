@@ -394,7 +394,6 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
             # Use any existing EmailAddress, but don't update them
             #  because that will cause the item to go stale in the UI thread.
             ea = Mail.EmailAddress.getEmailAddress(addr[1], 
-                                                   updateExisting=False,
                                                    **keyArgs)
 
             setattr(kindVar, attr, ea)
@@ -409,7 +408,6 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
                 # Use any existing EmailAddress, but don't update them
                 #  because that will cause the item to go stale in the UI thread.
                 ea = Mail.EmailAddress.getEmailAddress(addr[1], 
-                                                       updateExisting=False,
                                                        **keyArgs)
                 kindVar.append(ea)
     else:
