@@ -205,7 +205,7 @@
             <description value="The Mail Delivery that cause this error" />
             <type ref="mail:MailDeliveryBase" />
             <initialValue ref="None" />
-            <inverseAttribute ref="mail:MailDeliveryBase/deliveryError" />
+            <inverseAttribute ref="mail:MailDeliveryBase/deliveryErrors" />
         </Attribute>
     </Kind>
 
@@ -236,14 +236,14 @@
             <inverseAttribute ref="mail:MailMessageMixin/deliveryExtension" />
         </Attribute>
 
-        <Attribute itsName="deliveryError">
-            <displayName value="Mail Delivery Error" />
-            <description value="The Mail Delivery Error" />
+        <Attribute itsName="deliveryErrors">
+            <displayName value="Mail Delivery Errors" />
+            <description value="Mail Delivery Errors associated with this transport" />
+            <cardinality value="list" />
             <type ref="mail:MailDeliveryError" />
-            <initialValue ref="None" />
             <inverseAttribute ref="mail:MailDeliveryError/mailDelivery" />
+            <initialValue />
         </Attribute>
-
     </Kind>
 
 
