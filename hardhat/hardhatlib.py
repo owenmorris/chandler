@@ -37,7 +37,7 @@ defaults = {
 }
 
 
-def getCHANDLERvars():
+def getCHANDLERvars(buildenv):
 
     CHANDLERHOME = os.getenv('CHANDLERHOME')
     if not CHANDLERHOME:
@@ -122,7 +122,7 @@ def init(buildenv):
     else:
         raise HardHatUnknownPlatformError
 
-    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
 
     buildenv['sh']   = findInPath(buildenv['path'], "sh")
     buildenv['make'] = findInPath(buildenv['path'], "make")
@@ -604,7 +604,7 @@ def runTest(buildenv, testFile, fullPath):
         
 def recursiveTest(buildenv, path):
 
-    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
 
     path = os.path.abspath(path)
     os.chdir(path)
@@ -939,7 +939,7 @@ def mirrorDirSymlinks(src, dest):
 
 def setupEnvironment(buildenv):
 
-    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     os.putenv('CHANDLERHOME', CHANDLERHOME)
     os.putenv('CHANDLERBIN', CHANDLERBIN)
 
