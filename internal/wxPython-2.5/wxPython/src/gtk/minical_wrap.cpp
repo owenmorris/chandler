@@ -266,28 +266,28 @@ static swig_type_info *swig_types[13];
 #endif /* __cplusplus */
 
 
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_signed_SS_char PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_char PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_short PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_unsigned_SS_short PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_int PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_long PyInt_FromLong
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_float PyFloat_FromDouble
 /*@@*/
-/*@/home/builder/heikki/external/release/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
+/*@/home/builder/davids/ChandRoot/external/debug/share/swig/1.3.22/python/pymacros.swg,63,SWIG_define@*/
 #define SWIG_From_double PyFloat_FromDouble
 /*@@*/
 

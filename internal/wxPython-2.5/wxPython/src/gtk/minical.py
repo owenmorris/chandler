@@ -47,7 +47,7 @@ class wxMiniCalendarDateAttrPtr(wxMiniCalendarDateAttr):
         self.__class__ = wxMiniCalendarDateAttr
 _minical.wxMiniCalendarDateAttr_swigregister(wxMiniCalendarDateAttrPtr)
 
-class wxMiniCalendarEvent(_core.CommandEvent):
+class wxMiniCalendarEvent(_core.wxCommandEvent):
     def __repr__(self):
         return "<%s.%s; proxy of C++ wxMiniCalendarEvent instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args, **kwargs):
@@ -57,11 +57,11 @@ class wxMiniCalendarEvent(_core.CommandEvent):
         self.thisown = 1
         del newobj.thisown
     def GetDate(*args, **kwargs):
-        """GetDate(self) -> DateTime"""
+        """GetDate(self) -> wxDateTime"""
         return _minical.wxMiniCalendarEvent_GetDate(*args, **kwargs)
 
     def SetDate(*args, **kwargs):
-        """SetDate(self, DateTime date)"""
+        """SetDate(self, wxDateTime date)"""
         return _minical.wxMiniCalendarEvent_SetDate(*args, **kwargs)
 
     def SetWeekDay(*args, **kwargs):
@@ -93,20 +93,20 @@ wxEVT_MINI_CALENDAR_SEL_CHANGED = _minical.wxEVT_MINI_CALENDAR_SEL_CHANGED
 wxEVT_MINI_CALENDAR_DAY_CHANGED = _minical.wxEVT_MINI_CALENDAR_DAY_CHANGED
 wxEVT_MINI_CALENDAR_MONTH_CHANGED = _minical.wxEVT_MINI_CALENDAR_MONTH_CHANGED
 wxEVT_MINI_CALENDAR_YEAR_CHANGED = _minical.wxEVT_MINI_CALENDAR_YEAR_CHANGED
-EVT_MINI_CALENDAR =                 wx.PyEventBinder( wxEVT_MINI_CALENDAR_DOUBLECLICKED, 1)
+EVT_MINI_CALENDAR_DOUBLECLICKED =   wx.PyEventBinder( wxEVT_MINI_CALENDAR_DOUBLECLICKED, 1)
 EVT_MINI_CALENDAR_SEL_CHANGED =     wx.PyEventBinder( wxEVT_MINI_CALENDAR_SEL_CHANGED, 1)
 EVT_MINI_CALENDAR_DAY =             wx.PyEventBinder( wxEVT_MINI_CALENDAR_DAY_CHANGED, 1)
 EVT_MINI_CALENDAR_MONTH =           wx.PyEventBinder( wxEVT_MINI_CALENDAR_MONTH_CHANGED, 1)
 EVT_MINI_CALENDAR_YEAR =            wx.PyEventBinder( wxEVT_MINI_CALENDAR_YEAR_CHANGED, 1)
 
-class wxMiniCalendar(_core.Control):
+class wxMiniCalendar(_core.wxControl):
     def __repr__(self):
         return "<%s.%s; proxy of C++ wxMiniCalendar instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
     def __init__(self, *args):
         """
-        __init__(self, Window parent, int id=-1, DateTime date=DefaultDateTime, 
-            Point pos=DefaultPosition, Size size=DefaultSize, 
-            long style=0, String name=wxCalendarNameStr) -> wxMiniCalendar
+        __init__(self, wxWindow parent, int id=-1, wxDateTime date=wxDefaultDateTime, 
+            wxPoint pos=wxDefaultPosition, wxSize size=wxDefaultSize, 
+            long style=0, wxString name=wxCalendarNameStr) -> wxMiniCalendar
         __init__(self) -> wxMiniCalendar
         """
         newobj = _minical.new_wxMiniCalendar(*args)
@@ -114,55 +114,55 @@ class wxMiniCalendar(_core.Control):
         self.thisown = 1
         del newobj.thisown
     def SetDate(*args, **kwargs):
-        """SetDate(self, DateTime date)"""
+        """SetDate(self, wxDateTime date)"""
         return _minical.wxMiniCalendar_SetDate(*args, **kwargs)
 
     def GetDate(*args, **kwargs):
-        """GetDate(self) -> DateTime"""
+        """GetDate(self) -> wxDateTime"""
         return _minical.wxMiniCalendar_GetDate(*args, **kwargs)
 
     def SetLowerDateLimit(*args, **kwargs):
-        """SetLowerDateLimit(self, DateTime date=DefaultDateTime) -> bool"""
+        """SetLowerDateLimit(self, wxDateTime date=wxDefaultDateTime) -> bool"""
         return _minical.wxMiniCalendar_SetLowerDateLimit(*args, **kwargs)
 
     def SetUpperDateLimit(*args, **kwargs):
-        """SetUpperDateLimit(self, DateTime date=DefaultDateTime) -> bool"""
+        """SetUpperDateLimit(self, wxDateTime date=wxDefaultDateTime) -> bool"""
         return _minical.wxMiniCalendar_SetUpperDateLimit(*args, **kwargs)
 
     def GetLowerDateLimit(*args, **kwargs):
-        """GetLowerDateLimit(self) -> DateTime"""
+        """GetLowerDateLimit(self) -> wxDateTime"""
         return _minical.wxMiniCalendar_GetLowerDateLimit(*args, **kwargs)
 
     def GetUpperDateLimit(*args, **kwargs):
-        """GetUpperDateLimit(self) -> DateTime"""
+        """GetUpperDateLimit(self) -> wxDateTime"""
         return _minical.wxMiniCalendar_GetUpperDateLimit(*args, **kwargs)
 
     def SetDateRange(*args, **kwargs):
-        """SetDateRange(self, DateTime lowerdate=DefaultDateTime, DateTime upperdate=DefaultDateTime) -> bool"""
+        """SetDateRange(self, wxDateTime lowerdate=wxDefaultDateTime, wxDateTime upperdate=wxDefaultDateTime) -> bool"""
         return _minical.wxMiniCalendar_SetDateRange(*args, **kwargs)
 
     def SetHeaderColours(*args, **kwargs):
-        """SetHeaderColours(self, Colour colFg, Colour colBg)"""
+        """SetHeaderColours(self, wxColour colFg, wxColour colBg)"""
         return _minical.wxMiniCalendar_SetHeaderColours(*args, **kwargs)
 
     def GetHeaderColourFg(*args, **kwargs):
-        """GetHeaderColourFg(self) -> Colour"""
+        """GetHeaderColourFg(self) -> wxColour"""
         return _minical.wxMiniCalendar_GetHeaderColourFg(*args, **kwargs)
 
     def GetHeaderColourBg(*args, **kwargs):
-        """GetHeaderColourBg(self) -> Colour"""
+        """GetHeaderColourBg(self) -> wxColour"""
         return _minical.wxMiniCalendar_GetHeaderColourBg(*args, **kwargs)
 
     def SetHighlightColours(*args, **kwargs):
-        """SetHighlightColours(self, Colour colFg, Colour colBg)"""
+        """SetHighlightColours(self, wxColour colFg, wxColour colBg)"""
         return _minical.wxMiniCalendar_SetHighlightColours(*args, **kwargs)
 
     def GetHighlightColourFg(*args, **kwargs):
-        """GetHighlightColourFg(self) -> Colour"""
+        """GetHighlightColourFg(self) -> wxColour"""
         return _minical.wxMiniCalendar_GetHighlightColourFg(*args, **kwargs)
 
     def GetHighlightColourBg(*args, **kwargs):
-        """GetHighlightColourBg(self) -> Colour"""
+        """GetHighlightColourBg(self) -> wxColour"""
         return _minical.wxMiniCalendar_GetHighlightColourBg(*args, **kwargs)
 
     def GetAttr(*args, **kwargs):
