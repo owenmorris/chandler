@@ -750,6 +750,8 @@ def executeScript(buildenv, args):
 
 def epydoc(buildenv, name, message, *args):
 
+    setupEnvironment(buildenv)
+
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
     elif buildenv['version'] == 'release':
