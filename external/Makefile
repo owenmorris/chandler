@@ -44,7 +44,11 @@ binaries: env
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG)
 
-all: env sources $(SYSTEMS)
+all: env sources
+	@for system in $(SYSTEMS); \
+	do \
+	    $(MAKE) -C $$system DEBUG=$(DEBUG) ; \
+	done
 
 world: all binaries install
 	make -C ../internal DEBUG=$(DEBUG) world
