@@ -169,7 +169,7 @@ class WeekBlock(Block.RectangularChild):
 
     def instantiateWidget(self, parent, parentWindow):
         canvas = wxWeekBlock(parentWindow,
-                             Block.Block.getwxID(self))
+                             Block.Block.getWidgetID(self))
         self.parentBlock.addToContainer(parent, canvas,
                                         self.stretchFactor,
                                         self.Calculate_wxFlag(),
@@ -351,7 +351,7 @@ class MonthBlock(Block.RectangularChild):
 
     def instantiateWidget(self, parent, parentWindow):
         canvas = wxMonthBlock(parentWindow,
-                              Block.Block.getwxID(self))
+                              Block.Block.getWidgetID(self))
         self.parentBlock.addToContainer(parent, canvas,
                                         self.stretchFactor,
                                         self.Calculate_wxFlag(),

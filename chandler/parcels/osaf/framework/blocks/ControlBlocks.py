@@ -20,7 +20,7 @@ import webbrowser # for opening external links
 class Button(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
         try:
-            id = Block.getwxID(self)
+            id = Block.getWidgetID(self)
         except AttributeError:
             id = 0
 
@@ -139,7 +139,7 @@ class wxHTML(wx.html.HtmlWindow):
 class HTML(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         htmlWindow = wxHTML(parentWindow,
-                            Block.getwxID(self),
+                            Block.getWidgetID(self),
                             wx.DefaultPosition,
                             (self.minimumSize.width,
                              self.minimumSize.height))
@@ -284,7 +284,7 @@ class List(RectangularChild):
 
     def instantiateWidget (self, parent, parentWindow):
         list = wxListBlock(parentWindow,
-                           Block.getwxID(self),
+                           Block.getWidgetID(self),
                            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
         self.parentBlock.addToContainer(parent,
                                         list,
@@ -490,7 +490,7 @@ class Summary(RectangularChild):
 
     def instantiateWidget (self, parent, parentWindow):
         list = wxSummary(parentWindow,
-                         Block.getwxID(self))
+                         Block.getWidgetID(self))
         self.parentBlock.addToContainer(parent,
                                         list,
                                         self.stretchFactor,
@@ -575,7 +575,7 @@ class ToolbarItem(RectangularChild):
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
         toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
-        id = Block.getwxID(self)
+        id = Block.getWidgetID(self)
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (os.path.join(Globals.chandlerDirectory, self.bitmap), 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
@@ -829,9 +829,9 @@ class Tree(RectangularChild):
             try:
                 self.columnHeadings
             except AttributeError:
-                tree = wxTree (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
+                tree = wxTree (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
             else:
-                tree = wxTreeList (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
+                tree = wxTreeList (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
@@ -880,7 +880,7 @@ class ItemDetail(RectangularChild):
 
     def instantiateWidget (self, parent, parentWindow):
         htmlWindow = wxItemDetail(parentWindow,
-                                  Block.getwxID(self),
+                                  Block.getWidgetID(self),
                                   wx.DefaultPosition,
                                   (self.minimumSize.width,
                                    self.minimumSize.height))

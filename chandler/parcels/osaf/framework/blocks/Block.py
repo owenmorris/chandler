@@ -67,7 +67,7 @@ class Block(Item):
  
     widgetIDToBlock = classmethod (widgetIDToBlock)
 
-    def getwxID (theClass, object):
+    def getWidgetID (theClass, object):
         """
           wxWindows needs a integer for a id. Commands between
         wxID_LOWEST and wxID_HIGHEST are reserved. wxPython doesn't export
@@ -89,7 +89,7 @@ class Block(Item):
             assert not Block.UUIDtoIds.has_key (UUID)
             Block.UUIDtoIds [UUID] = id
         return id
-    getwxID = classmethod (getwxID)
+    getWidgetID = classmethod (getWidgetID)
 
     def update (self):
         try:

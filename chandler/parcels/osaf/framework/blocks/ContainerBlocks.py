@@ -244,7 +244,7 @@ class wxSplitWindow(wx.SplitterWindow):
 class SplitWindow(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         splitWindow = wxSplitWindow(parentWindow,
-                                    Block.getwxID(self), 
+                                    Block.getWidgetID(self), 
                                     wx.DefaultPosition,
                                     (self.size.width, self.size.height),
                                     style=self.Calculate_wxStyle(parentWindow))
@@ -270,7 +270,7 @@ class TabbedContainer(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         self.tabIndex = 0
         try:
-            id = Block.getwxID(self.selectionChanged)
+            id = Block.getWidgetID(self.selectionChanged)
         except AttributeError:
             id = 0
             
