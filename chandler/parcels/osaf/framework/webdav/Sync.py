@@ -102,7 +102,8 @@ def syncToServer(dav, item):
             for i in value:
                 if isinstance(i, Item):
                     # mmm, recursion
-                    durl = dav.url.join(i.itsUUID.str16())
+                    defaultURL = dav.url.join(i.itsUUID.str16())
+                    durl = i.getAttributeValue('sharedURL', default=defaultURL)
                     DAV(durl).put(i)
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
@@ -112,7 +113,8 @@ def syncToServer(dav, item):
 
         elif acard == 'single':
             if isinstance(value, Item):
-                durl = dav.url.join(value.itsUUID.str16())
+                defaultURL = dav.url.join(i.itsUUID.str16())
+                durl = i.getAttributeValue('sharedURL', default=defaultURL)
                 DAV(durl).put(value)
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
             else:
