@@ -2,6 +2,18 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
+   * Added Principal kind and type
+   * Added ACL and ACE types
+   * Added URL type to data model and core schema
+   * Remote access over Jabber is working again
+   * Implemented ACL store
+   * Added ACL access APIs to Item, with epydoc
+   * PyLucene Makefile.dev conditionally compiles with or without DbDirectory
+   * PyLucene conditionally compiles DbDirectory on Linux, Windows and OS X
+   * Added IndexReader, Term, TermEnum, TermDocs and TermPositions to PyLucene
+   * Added patch for delete methods on IndexReader
+
 Milestone 0.3.16 (CVS tag CHANDLER_0_3_16) 2004-05-18
     * Upgraded to wxWidgets 2.5.
     * Adoption of new build structure, isolating external/internal library 
