@@ -40,11 +40,15 @@ class RepositoryTestCase(TestCase):
 
         if os.path.exists(preloadedRepositoryPath):
             self.ramdb = False
-            self.rep.open(ramdb=False, fromPath=preloadedRepositoryPath,
-                          stderr=True)
+            self.rep.open(ramdb=False,
+                          fromPath=preloadedRepositoryPath,
+                          stderr=True,
+                          refcounted=True)
             self.rep.logger.info('Using preloaded repository')
         else:
-            self.rep.create(ramdb=self.ramdb, stderr=True)
+            self.rep.create(ramdb=self.ramdb,
+                            stderr=True,
+                            refcounted=True)
 
             self.rep.loadPack(self.schemaPack)
             self.rep.loadPack(self.chandlerPack)
