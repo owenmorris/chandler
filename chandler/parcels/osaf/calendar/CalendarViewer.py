@@ -261,6 +261,8 @@ class wxCalendarViewer(wxViewerParcel):
                                                  selectedDate.GetDay())
             
             self.currentView.ChangeDateRange(selectedDateTime)
+            
+        dialog.Destroy()
 
     def OnAboutCalendar(self, event):
         pageLocation = "parcels" + os.sep + "calendar" + os.sep + "AboutCalendar.html"

@@ -43,8 +43,7 @@ class ColumnarItem(wxSimpleDrawableObject):
 
             if self.item.IsRemote():
                 message = _("Sorry, but you don't have permission to edit a remote item.  Would you like to copy it to your local repository?")
-                dialog = wxMessageDialog(app.wxMainFrame, message, _("Can't Edit Remote Item"), wxYES_NO | wxICON_QUESTION)
-                result = dialog.ShowModal()
+                result = wxMessageBox(message, _("Can't Edit Remote Item"), wxYES_NO | wxICON_QUESTION)
         
                 # turn the item into a local item by zeroing the remote address and adding it
                 # to the repository

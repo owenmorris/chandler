@@ -136,7 +136,7 @@ class wxTableViewer(wxPanel):
         return rangeString
     
     def getRangeDate(self):
-        self = self.model.rangeStart
+        start = self.model.rangeStart
         wx_start = wxDateTimeFromDMY(start.day, start.month - 1, start.year)
         return wx_start
     

@@ -1,10 +1,14 @@
 # ChangeLog for Calendar Parcel
 
+2003-07-14 capps@osafoundation.org
+
+   * Fixes for Bug#789 (call Destroy or use wxMessageBox for dialogs)
+
 2003-07-10 john@osafoundation.org
 
    * Moved from parcels directory to parcels/OSAF.
 
-2003-06-20
+2003-06-20 capps@osafoundation.org
 
    * Added very simple TableViewer (using wxGrid).
 
