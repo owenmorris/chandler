@@ -64,9 +64,6 @@ build: $(SRC)/$(BUILD)/Makefile.defs
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE); \
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE) install
 
-expand: libpathan-$(VERSION)-2-src.tar.gz
-	tar xvzf libpathan-$(VERSION)-2-src.tar.gz
-
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PATHAN)/$(SNAP).tar.gz $(SNAP)/lib/libpathan*
@@ -75,4 +72,7 @@ clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 endif
+
+expand: libpathan-$(VERSION)-2-src.tar.gz
+	tar xvzf libpathan-$(VERSION)-2-src.tar.gz
 
