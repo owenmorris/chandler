@@ -34,3 +34,7 @@
 2003-07-17 Jed Burgess <jed@osafoundation.org>
     * Fixed SplashScreen to be able to handle longer html pages that require
       scrolling.
+
+2003-07-18 Morgen Sagen <morgen@osafoundation.org>
+    * Parcels can now get loaded from an external directory using the PARCELDIR
+      directory
