@@ -7,11 +7,11 @@ MANIFEST=$(SNAP)/$(SITE)/vobject
 BUILD=build_$(SNAP)
 SRC=vobject-$(VERSION)
 
-$(SRC).tar.bz2:
+$(SRC).tar.gz:
 	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz
 	$(CURL) http://builds.o11n.org/external/$(SRC).tar.gz.md5
 
-sources: python-vobject-$(VERSION).tar.gz
+sources: vobject-$(VERSION).tar.gz
 
 $(SRC)-expanded: $(SRC).tar.gz
 	tar xzf $(SRC).tar.gz
