@@ -210,7 +210,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building debug..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-d"+bigBLittleB+"g", 
+             [hardhatScript, "-o", outputDir, "-d"+bigBLittleB, 
              "-D", buildVersionEscaped])
 
         if mode == "release":
@@ -218,7 +218,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building release..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-r"+bigBLittleB+"g", 
+             [hardhatScript, "-o", outputDir, "-r"+bigBLittleB, 
              "-D", buildVersionEscaped])
 
     except Exception, e:
