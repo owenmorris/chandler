@@ -64,9 +64,9 @@ def GenerateNotes(count):
     for index in range(count):
         GenerateNote()
 
-DOMAIN_LIST = ['aol.com', 'earthlink.net', 'mac.com', 'yahoo.com',
-               'hotmail.com', 'mailblocks.com', 'pacbell.net',
-               'osafoundation.org']
+DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
+               'electricbagpipes.com', 'facelessentity.com', 'example.com',
+               'example.org', 'example.net', 'hangarhonchos.org']
 
 FIRSTNAMES = ['Aleks', 'Alexis', 'Amy', 'Andi', 'Andy', 'Aparna',
               'Bart', 'Blue', 'Brian', 'Caroline', 'Cedric', 'Chao', 'Chris',
@@ -107,7 +107,7 @@ def GeneratePhoneNumbers():
 def GenerateEmailAddress(name):
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice([name.firstName, name.lastName])
-    return "%s@%s" % (handle, domainName)
+    return "%s@%s" % (handle.lower(), domainName)
 
 def GenerateEmailAddresses(name):
     list = []
