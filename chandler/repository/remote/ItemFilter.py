@@ -41,6 +41,11 @@ class ItemFilter(XMLOffFilter):
         self.data += data
         XMLOffFilter.characters(self, data)
 
+    def cdataBlock(self, data):
+
+        self.data += data
+        XMLOffFilter.cdataBlock(self, data)
+
     def endElement(self, tag):
 
         if not self.errorOccurred():

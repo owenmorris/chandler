@@ -9,6 +9,7 @@ import cStringIO
 from repository.util.SAX import XMLFilter, XMLGenerator
 from repository.util.UUID import UUID
 from repository.util.Streams import StringReader
+from repository.util.Streams import BZ2OutputStream, ZlibOutputStream
 
 
 class RemoteFilter(XMLFilter):
@@ -64,6 +65,11 @@ class RemoteFilter(XMLFilter):
 
         self.data += data
         XMLFilter.characters(self, data)
+
+    def cdataBlock(self, data):
+
+        self.data += data
+        XMLFilter.cdataBlock(self, data)
 
     def endElement(self, tag):
 
@@ -224,7 +230,7 @@ class RemoteFilter(XMLFilter):
     def textStart(self, attrs):
 
         if not self._isSkipping:
-            self.isOn = False
+            self._isOn = False
 
     def textEnd(self, attrs):
 
@@ -234,6 +240,7 @@ class RemoteFilter(XMLFilter):
         uuid = UUID(attrs['uuid'])
         version = long(attrs['version'])
         encoding = attrs['encoding']
+        compression = attrs.get('compression', None)
         store = self.store
 
         if encoding != 'utf-8':
@@ -242,8 +249,12 @@ class RemoteFilter(XMLFilter):
         else:
             unicodeText = None
             text = self.data
-            
+
         out = store._text.createFile(store.lobName(uuid, version))
+        if compression == 'bz2':
+            out = BZ2OutputStream(out)
+        elif compression == 'zlib':
+            out = ZlibOutputStream(out)
         out.write(text)
         out.close()
 

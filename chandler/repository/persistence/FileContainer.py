@@ -330,10 +330,6 @@ class OutputStream(object):
         if self.position > self.length:
             self.length = self.position
 
-    def length(self):
-
-        return self.length
-
     def seek(self, pos):
 
         if pos > self.length:
@@ -345,6 +341,12 @@ class OutputStream(object):
 
         self._block.seek(pos, True)
         self.position = pos
+
+    def length(self):
+        return self.length
+
+    def flush(self):
+        pass
 
 
 class InputStream(object):
