@@ -7,11 +7,18 @@ include $(BUILD_ROOT)/Makefile.inc
 
 
 ifeq ($(OS),Cygwin)
+ifeq ($(DEBUG),1)
+SUFFIX=d
+_SUFFIX=_d
+else
+SUFFIX=
+_SUFFIX=
+endif
 PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-4.2.52
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
-         $(SRC)/$(SNAP)/libdb_java42$(SUFFIX).dll
+         $(SNAP)/bin/libdb_java42$(SUFFIX).dll
 else
 
 ifeq ($(OS),Darwin)
