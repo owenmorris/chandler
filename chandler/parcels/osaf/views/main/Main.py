@@ -232,11 +232,14 @@ class MainView(View):
         if len (itemCollection.invitees) == 0:
             self.setStatusMessage (_("No invitees!"))
             return
+        inviteeList = []
         inviteeStringsList = []
+
         for invitee in itemCollection.invitees:
-            inviteeEmailAddress = invitee.emailAddress
-            inviteeStringsList.append(inviteeEmailAddress)
-            inviteeContact = Contacts.Contact.getContactForEmailAddress(self.itsView, inviteeEmailAddress)
+            inviteeList.append(invitee)
+            inviteeStringsList.append(invitee.emailAddress)
+            inviteeContact = Contacts.Contact.getContactForEmailAddress(self.itsView, invitee.emailAddress)
+
             if not inviteeContact in share.sharees:
                 share.sharees.append(inviteeContact)
 
@@ -259,9 +262,9 @@ class MainView(View):
             raise
 
         # Send out sharing invites
-        self.setStatusMessage (_("inviting %s") % inviteeStringsList)
+        self.setStatusMessage (_("inviting %s") % ", ".join(inviteeStringsList))
         MailSharing.sendInvitation(itemCollection.itsView.repository, share.conduit.getLocation(), 
-                                   itemCollection.displayName, inviteeStringsList)
+                                   itemCollection, inviteeList)
         
         # Forget the invitees, now that we've successfully invited them
         # @@@ BJS: Move this to the success callback
