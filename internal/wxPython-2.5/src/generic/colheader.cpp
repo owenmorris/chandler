@@ -1733,7 +1733,7 @@ const wxCoord		h = boundsR->height;
 	{
 	wxRect		iconBoundsR;
 
-		GetBitmapBounds( &iconBoundsR );
+		GetBitmapBounds( boundsR, m_TextJust, &iconBoundsR );
 		dc->DrawBitmap( imageRef, iconBoundsR.x, iconBoundsR.y, false );
 	}
 
