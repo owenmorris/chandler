@@ -33,7 +33,6 @@ class Query(Item.Item):
         super(Query, self).__init__(name, parent, kind)
 
         self._queryString = queryString
-        self.args = {}
         self._logical_plan = None
         self.__init()
         
@@ -65,8 +64,21 @@ class Query(Item.Item):
         return self._queryString
 
     def setQueryString(self, queryString):
+        if queryString == self._queryString: 
+            return
         self._queryString = queryString
         self._queryStringIsStale = True
+
+    def getArgs (self):
+        return self._args
+
+    def setArgs (self, value):
+        if self._args == value:
+            return
+        self._args = value
+        self.stale = True
+
+    args = property (getArgs, setArgs)
 
     queryString = property(getQueryString, setQueryString)
 
@@ -153,8 +165,20 @@ class Query(Item.Item):
             self.itsView.removeNotificationCallback(self.queryCallback)
         return len (self._otherViewSubscribeCallbacks)
 
-    def __queryHasChanged(self):
-        return self._queryStringIsStale and self.queryString
+    def _ensureQueryIsCurrent(self):
+        """
+        This routine makes sure that the compiled version of the
+        query is consistent with the actual query string
+        
+        It is necessary because of the use of lazy evaluation in
+        the implementation
+        
+        Call this method on code paths which will require access
+        to the _logical_plan (e.g. generating query results, or 
+        processing incremental changes"
+        """
+        if self._queryStringIsStale and self.queryString:
+            self._compile()
 
     def queryCallback(self, view, changes, notification, **kwds):
         """
@@ -178,8 +202,8 @@ class Query(Item.Item):
         #@@@ This should be an error, I think
         if not self.queryString or self.queryString == "":
             return
-        elif self.__queryHasChanged():
-            self._compile()
+        else:
+            self._ensureQueryIsCurrent()
         changed = False
 
         #@@@ change this to batch notifications
@@ -205,7 +229,7 @@ class Query(Item.Item):
                         elif i in self._removedSinceCommit:
                             removed.append(i.itsUUID)
             elif notification == 'changeonly':
-                if i.itsUUID in self._resultSet:
+                if i is not None and i.itsUUID in self._resultSet:
                     changed = True
                     changed_uuids.append(i.itsUUID)
                 
@@ -255,8 +279,7 @@ class Query(Item.Item):
     resultSet = property(getResultSet)
 
     def __resultsAreStale(self):
-        if self.__queryHasChanged():
-            self._compile()
+        self._ensureQueryIsCurrent()
         if self.queryString == "":
             try:
                 self._resultSet.clear()
@@ -277,7 +300,7 @@ class Query(Item.Item):
         queryArgs = ast[1:]
 
         if queryType == 'for':
-            plan = ForPlan(self, queryArgs, self.args)
+            plan = ForPlan(self, queryArgs, self._args)
         elif queryType == 'union':
             childPlans = [ self.__analyze(i) for i in queryArgs[0] ]
             plan = UnionPlan(self, childPlans)
@@ -297,21 +320,7 @@ class Query(Item.Item):
         if not self.itsView.name in self._sameViewNames:
             return
 
-        try:
-            assert self._logical_plan != None, "debugging check"
-        except AttributeError:
-            print "=== BEGIN TEMP DEBUG INFO for BUG 2535 ==="
-            try:
-                print "QueryName = ", self.itsName
-                print "Query String = ", self._queryString
-                print "_queryStringIsStale = ", self._queryStringIsStale
-                print "stale = ", self.stale
-            except:
-                pass
-            import traceback
-            traceback.print_stack()
-            print "=== END TEMP DEBUG INFO for BUG 2535 ==="
-            
+        self._ensureQueryIsCurrent()
         flag = self._logical_plan.monitored(op, item, attribute, *args, **kwds)
         if flag is not None:
             if flag:
@@ -354,7 +363,7 @@ class ForPlan(LogicalPlan):
         """
         self.__item = item # need an item for Monitors.attach
         assert self.__item is not None, "For plan's query item not set"
-        self.args = args #@@@ AUAUGUGUGH
+        self._args = args #@@@ AUAUGUGUGH
         self._pathKinds = {}
         self.affectedAttributes = [] # attributes that we need to watch
         self.analyze(ast)
@@ -381,7 +390,7 @@ class ForPlan(LogicalPlan):
 
         # $argument
         if name.startswith('$'): 
-            itemUUID, attribute = self.args[name]
+            itemUUID, attribute = self._args[name]
             if isinstance (itemUUID, UUID):
                 return ('argsrc', itemUUID, attribute)
             else:
@@ -498,7 +507,7 @@ class ForPlan(LogicalPlan):
             #@@@ check that ast != iteration variable, or parameter
             if ast.startswith('$'):
                 key = ast
-                arg = self.args[key][0]
+                arg = self._args[key][0]
                 if arg.isdigit():
                     return arg
                 else:

@@ -49,6 +49,7 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">queries</attribute>
+    <attribute name="initialValue" type="list" />
   </item>
 
   <item>
@@ -67,7 +68,7 @@
   </item>
 
   <item>
-    <name>args</name>
+    <name>_args</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Query</parent>
@@ -78,6 +79,7 @@
 
     <ref name="type" type="path">//Schema/Core/Tuple</ref>
     <attribute name="cardinality">dict</attribute>
+    <attribute name="initialValue" type="dict"/>
   </item>
 
 </items>
