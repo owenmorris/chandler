@@ -575,14 +575,6 @@ def test(buildenv, module_name):
     under the folder "module_name" that live in any folder called "tests"
     and that has a file named "Test*.py"
     """
-    pathList = []
-    if module_name != "Chandler":
-        pathList.append(os.path.join(buildenv['root'], modulename))
-    pathList.append(os.path.join(buildenv['root'], "Chandler", "parcels"))
-    paths = os.pathsep.join(pathList)
-
-    buildenv['pythonpath'] = paths
-    print paths
 
     os.chdir(buildenv['root'])
     buildenv['test_failures'] = 0
@@ -815,26 +807,32 @@ def setupEnvironment(buildenv):
     prevPath = os.getenv('PYTHONPATH')
     if prevPath:
         pythonpaths.append(prevPath)
-    if buildenv.has_key('pythonpath') and buildenv['pythonpath']:
-        pythonpaths.append(buildenv['pythonpath'])
-    pythonpaths.append(os.path.join(buildenv['root'], "Chandler"))
 
-    os.putenv('PYTHONPATH', os.pathsep.join(pythonpaths))
-    os.putenv('CHANDLERDIR', buildenv['root']+os.sep+"Chandler")
-    os.putenv('CHANDLERHOME', buildenv['root'])
+    # need to add Chandler and Chandler/parcels to PYTHONPATH
+    pythonpaths.append(os.path.join(buildenv['root'], "Chandler"))
+    pythonpaths.append(os.path.join(buildenv['root'], "Chandler", "parcels"))
+    pythonpath = os.pathsep.join(pythonpaths)
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
-    if (sys.platform == 'cygwin' and
-        '.'.join(map(str, sys.version_info[:3])) < '2.3.0'):
+    if (sys.platform == 'cygwin'):
         # Even though we're under cygwin, we're going to be launching 
         # external programs that expect PATH to be in DOS format, so
         # convert it
         try:
-            cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
-            path = cygpath.readline()
-            path = path[:-1]
+            if('.'.join(map(str, sys.version_info[:3])) < '2.3.0'):
+                # we only need to fix the path on versions before 2.3
+                cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
+                path = cygpath.readline()
+                path = path[:-1]
+                cygpath.close()
+
+            # also convert PYTHONPATH to DOS format
+            cygpath = os.popen("/bin/cygpath -wp \"" + pythonpath + "\"", "r")
+            pythonpath = cygpath.readline()
+            pythonpath = pythonpath[:-1]
             cygpath.close()
+
         except Exception, e:
             print e
             print "Unable to call 'cygpath' to determine DOS-equivalent for PATH"
@@ -843,6 +841,16 @@ def setupEnvironment(buildenv):
             raise HardHatError
 
     os.putenv('PATH', path)
+    os.putenv('PYTHONPATH', pythonpath)
+
+    if buildenv['os'] == 'win':
+        # Use DOS format paths under windows
+        os.putenv('CHANDLERDIR', buildenv['root_dos']+"\\Chandler")
+        os.putenv('CHANDLERHOME', buildenv['root_dos'])
+    else:
+        os.putenv('CHANDLERDIR', buildenv['root']+os.sep+"Chandler")
+        os.putenv('CHANDLERHOME', buildenv['root'])
+
 
     if buildenv['os'] == 'posix':
         ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
