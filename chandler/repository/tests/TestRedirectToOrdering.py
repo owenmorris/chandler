@@ -62,6 +62,22 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         self.taskMixin = taskMixin.itsUUID
         self.taskKind = taskKind.itsUUID
 
+    def reloadRepositoryItems (self, itemList):
+        # remember the set of items given, reload the repository,
+        #  and bring the items back to life.
+        itemUUIDs = []
+        for item in itemList:
+            itemUUIDs.append(item.itsUUID)
+
+        self.rep.commit()
+        self._reopenRepository()
+        
+        # reincarnate the items
+        newList = []
+        for uuid in itemUUIDs:
+            newList.append(self.rep.find(uuid))
+        return newList
+        
     def testRedirectTo(self):
 
         noteKind = self.rep.find(self.noteKind)
@@ -89,15 +105,8 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         self.rep.commit()
         print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
 
-        aNoteUUID = aNote.itsUUID
-        aTaskMixinUUID = aTaskMixin.itsUUID
-        aTaskUUID = aTask.itsUUID
-
-        self._reopenRepository()
-        
-        aNote = self.rep.find(aNoteUUID)
-        aTaskMixin = self.rep.find(aTaskMixinUUID)
-        aTask = self.rep.find(aTaskUUID)
+        items = (aNote, aTaskMixin, aTask)
+        aNote, aTaskMixin, aTask = self.reloadRepositoryItems(items)
 
         self.assert_(aNote.who == noteWho)
         self.assert_(aNote.creator == noteWho)
