@@ -57,8 +57,8 @@ $(SRC)/$(BUILD)/Makefile:
 bzip2-$(BZIP2VERSION)/libbz2.a:
 	cd bzip2-$(BZIP2VERSION); \
         make libbz2.a; \
-        install libbz2.a $(PREFIX)/lib/libbz2.a; \
-        install bzlib.h $(PREFIX)/include/bzlib.h
+        install -D libbz2.a $(PREFIX)/lib/libbz2.a; \
+        install -D bzlib.h $(PREFIX)/include/bzlib.h
 
 build: bzip2-$(BZIP2VERSION)/libbz2.a apply
 	cd $(SRC)/$(BUILD); \
