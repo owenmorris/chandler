@@ -87,12 +87,13 @@ def ca():
 
 if __name__ == '__main__':
     Rand.load_file('../randpool.dat', -1)
-    key = generateRSAKey()
-    pkey = makePKey(key)
+    rsa = generateRSAKey()
+    pkey = makePKey(rsa)
     req = makeRequest(pkey)
     print req.as_text()
     cert = makeCert(req, pkey)
     print cert.as_text()
     print cert.as_pem()
     cert.save_pem('my_ca_cert.pem')
+    rsa.save_key('my_key.pem', 'aes_256_cbc')
     Rand.save_file('../randpool.dat')
