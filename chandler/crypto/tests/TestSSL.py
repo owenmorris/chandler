@@ -19,6 +19,8 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         if not self.isOnline():
             return
 
+        # Should have a list of these and randomly select to avoid
+        # hitting the same sites over and over.
         #site = 'www.verisign.com'
         #fp   = '0FA5B0527BA98FC66276CA166BA22E44A73636C9'
         site = 'www.thawte.com'
