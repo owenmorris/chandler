@@ -22,8 +22,9 @@ def usage():
     print "-c CVS-MODULE   which cvs module to checkout"
     print "-h              display this help message"
     print "-i RELEASE-ID   what to call this release"
-    print "-m MODULE   	   build module to build"
-    print "-w DIR   	   which directory to work in"
+    print "-m MODULE  	   module to build (path relative to project path)"
+    print "-p PROJECT  	   project path (relative to workdir)"
+    print "-w DIR   	   work directory (top level where source gets checked out)"
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
@@ -33,13 +34,14 @@ False = 0
 
 # defaults:
 cvsModule = "chandler-source"
+project = "osaf/chandler"
 module = "Chandler"
 releaseId = None
 
 workRoot = None
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "c:h:i:m:w:")
+    opts, args = getopt.getopt(sys.argv[1:], "c:h:i:m:p:w:")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -59,6 +61,9 @@ for opt, arg in opts:
 
     if opt == "-m":
 	module = arg
+
+    if opt == "-p":
+	project = arg
 
     if opt == "-w":
 	workRoot = arg
@@ -87,7 +92,12 @@ import hardhatlib
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 
 try:
-    buildenv = hardhatlib.init(workRoot)
+    buildenv = hardhatlib.defaults
+    buildenv['hardhatroot'] = whereAmI
+    buildenv['workroot'] = workRoot
+    buildenv['logfile'] = os.path.join(workRoot, "nightly.log")
+    buildenv['root'] = os.path.join(workRoot, project)
+    hardhatlib.init(buildenv)
 
 except hardhatlib.HardHatMissingCompilerError:
     print "Could not locate compiler.  Exiting."
@@ -114,10 +124,6 @@ except Exception, e:
     raise e
     sys.exit(1)
     
-buildenv['hardhatroot'] = whereAmI
-buildenv['version'] = 'release'
-buildenv['showlog'] = False
-buildenv['interactive'] = False
 hardhatlib.log_rotate(buildenv)
 
 
@@ -129,7 +135,7 @@ except hardhatlib.HardHatExternalCommandError:
     print 
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
     print " A program that HardHat spawned exited with a non-zero exit code."
-    print "          Please view the file 'build.log' for details."
+    print "          Please view the file 'hardhat.log' for details."
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 
 except hardhatlib.HardHatMissingFileError, e:
@@ -153,5 +159,5 @@ except Exception, e:
 
 
 if buildenv['showlog']:
-    print "Build Log:"
+    print "HardHat Log:"
     hardhatlib.log_dump(buildenv)

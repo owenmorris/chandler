@@ -21,8 +21,16 @@ True = 1
 False = 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+defaults = {
+    'verbosity'		: 1,
+    'showenv'		: 1,
+    'version'		: 'release',
+    'showlog'		: False,
+    'interactive'	: True,
+}
  
-def init(root):
+def init(buildenv):
     """
     Initialize the build environment, which is a dictionary containing
     various values for OS type, PATH, compiler, debug/release setting, etc.
@@ -41,12 +49,18 @@ def init(root):
             - version: 'debug' or 'release'
     """
 
-    buildenv = {}
-    buildenv['osafroot'] = root
-    buildenv['root'] = os.path.join(root, "osaf", "chandler")
-    buildenv['verbosity'] = 1
-    buildenv['showenv'] = 0
-    buildenv['logfile'] = os.path.join(buildenv['osafroot'], "hardhat.log")
+    if not buildenv.has_key('root'):
+        raise HardHatBuildEnvError, "Missing 'root'"
+
+    if not buildenv.has_key('hardhatroot'):
+        raise HardHatBuildEnvError, "Missing 'hardhatroot'"
+
+    for key in defaults.keys():
+	if not buildenv.has_key(key):
+	    buildenv[key] = defaults[key]
+
+    if not buildenv.has_key('logfile'):
+	buildenv['logfile'] = os.path.join(buildenv['root'], "hardhat.log")
 
     # normalize what python thinks the OS is to a string that we like:
     buildenv['os'] = 'unknown'
@@ -76,7 +90,7 @@ def init(root):
 		cygpath.close()
 	    except Exception, e:
 		print e
-		print "Unable to call 'cygpath' to determine DOS-equivalent for OSAFROOT"
+		print "Unable to call 'cygpath' to determine DOS-equivalent for project path."
 		print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
 		print "of Python from http://python.org/, rather than the Cygwin Python"
 		raise HardHatError
@@ -264,8 +278,8 @@ def log_dump(buildenv):
 
 def log_rotate(buildenv):
     """
-    Rotates log files by renaming build.log --> build.log.1 --> build.log.2
-    and so on up to build.log.5
+    Rotates log files by renaming hardhat.log --> hardhat.log.1
+    and so on up to hardhat.log.5
     """
     logfiles = [buildenv['logfile']]
     for i in range(1,6):
@@ -597,7 +611,9 @@ def module_from_file(buildenv, module_path, module_name):
 	module = import_code(module_file, module_name)
         return module
     else:
-        log(buildenv, HARDHAT_ERROR, 'hardhat', module_path + "doesn't exist")
+	if buildenv:
+	    log(buildenv, HARDHAT_ERROR, 'hardhat', module_path + \
+	     "doesn't exist")
         raise HardHatMissingFileError, "Missing " + module_path
 # end module_from_file()
 
@@ -795,7 +811,7 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
         # The program just executed put its output to an external log file
         # (specifically this is for Visual Studio, which apparently doesn't
         # want to send output to stdout).  Read the external log file and
-        # inject it into our build log.
+        # inject it into our hardhat log.
         try:
             extlogfile = file(extlog, 'r')
             lines = extlogfile.readlines()
@@ -1046,7 +1062,7 @@ def cvsClean(buildenv, dirs):
     allRemovables = []
     for dir in dirs:
 	dir = os.path.abspath(dir)
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Examining local files within " + dir + "...")
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Examining " + dir + "...")
 	removables = cvsFindRemovables(dir)
 	allRemovables += removables
     allRemovables.sort()
@@ -1105,11 +1121,11 @@ def buildPrepareSource(buildenv, releaseId, module, cvsModule, doCheckout=True):
 
     sourceName = module + "_src_" + releaseId
 
-    os.chdir(buildenv['osafroot'])
+    os.chdir(buildenv['workroot'])
 
     if os.path.exists("osaf"):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Removing existing osaf under " + buildenv['osafroot'])
+	 "Removing existing osaf under " + buildenv['workroot'])
 	rmdir_recursive("osaf")
 
     if os.path.exists("latest.tar"):
@@ -1171,7 +1187,7 @@ def buildRelease(buildenv, releaseId, module):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Copying tarballs")
 
-	releasesDir = buildenv['osafroot'] + os.sep + "releases"
+	releasesDir = buildenv['workroot'] + os.sep + "releases"
 	releaseDir = releasesDir + os.sep + releaseId
 
 	if not os.path.exists(releasesDir):
@@ -1210,7 +1226,7 @@ def buildDebug(buildenv, releaseId, module):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Copying tarball")
 
-	releasesDir = buildenv['osafroot'] + os.sep + "releases"
+	releasesDir = buildenv['workroot'] + os.sep + "releases"
 	releaseDir = releasesDir + os.sep + releaseId
 
 	if not os.path.exists(releasesDir):
@@ -1271,7 +1287,7 @@ def toDosPath(path):
         return path
     except Exception, e:
         print e
-        print "Unable to call 'cygpath' to determine DOS-equivalent for OSAFROOT"
+        print "Unable to call 'cygpath' to determine DOS-equivalent for paths."
         print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
         print "of Python from http://python.org/, rather than the Cygwin Python"
         raise HardHatError
@@ -1282,6 +1298,12 @@ def toDosPath(path):
 class HardHatError(Exception):
     """ General HardHat exception; more specific errors subclass this. """
     pass
+
+class HardHatBuildEnvError(Exception):
+    """ Exception thrown when the buildenv has invalid or missing values. """
+    
+    def __init__(self,args=None):
+        self.args = args
 
 class HardHatInspectionError(HardHatError):
     """ Exception thrown when the system fails inspection. """

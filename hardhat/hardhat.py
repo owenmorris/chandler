@@ -9,6 +9,13 @@ Command-line frontend to hardhatlib.py (see description there)
 
 import os, sys, traceback, getopt, string
 
+# Initialize hardhatlib
+import hardhatlib
+
+# Here is a trick to figure out what directory hardhat lives in, even if
+# we were called found by the user's PATH
+whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
+
 def usage():
     print "python hardhat.py [OPTION]..."
     print "Hardhat builds an application and its dependencies."
@@ -20,12 +27,11 @@ def usage():
     print "-C MODULE   clean MODULE and its dependencies"
     print "-d          use debug version" 
     print "-D          create a distribution" 
-    print "-e          show environment variables in build.log"
+    print "-e          show environment variables in hardhat.log"
     print "-h          display this help" 
     print "-i          inspect system (not implemented)" 
     print "-n          non-interactive (won't prompt during scrubbing)" 
     print "-r          use release version (this is the default)" 
-    print "-R DIR      directory to use for OSAFROOT (overrides env var)" 
     # print "-s          spawn an interactive shell" 
     print "-s          scrub MODULE (remove all local files not in CVS)" 
     print "-S          scrub MODULE and its dependencies"
@@ -37,14 +43,37 @@ def usage():
 True = 1
 False = 0
 
+# look in current directory for a __hardhat__.py file
+if os.path.isfile("__hardhat__.py"):
+    curmodule = hardhatlib.module_from_file(None, "__hardhat__.py", "curmodule")
+    if not curmodule.info.has_key('root'):
+	print "no value for 'root' in __hardhat__.py; please add one"
+	sys.exit(1)
+    projectRoot = os.path.abspath(curmodule.info['root'])
+    if curmodule.info.has_key('path'):
+	curmodulepath = curmodule.info['path']
+    else:
+	# determine our path relative to project root:    
+	curdir = os.path.abspath(".")
+	relpath = curdir[len(projectRoot)+1:]
+	curmodulepath = relpath
 
-osafRoot = None
-osafRootArg = None
-if os.environ.has_key('OSAFROOT'):
-    osafRoot = os.environ['OSAFROOT']
+    print "Project path: ", projectRoot
+    print "Module path:  ", curmodulepath
+    print "Module name:  ", curmodule.info['name']
+    print "HardHat log:  ", os.path.join(projectRoot, "hardhat.log")
+    print
+else:
+    print "No __hardhat__.py in current directory"
+    sys.exit(1)
+
+if string.find(projectRoot, ' ') >= 0:
+    print "ERROR: Path to project ("+projectRoot+") cannot contain a space.  Exiting."
+    sys.exit(1)
+
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "a:b:B:c:C:dD:ehilnrR:s:S:t:vx:")
+    opts, args = getopt.getopt(sys.argv[1:], "abBcCdDehilnrsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -68,37 +97,12 @@ for opt, arg in opts:
 	usage()
 	sys.exit(0)
 
-    if opt == "-R":
-	osafRootArg = arg
 
-
-if osafRootArg:
-    if os.path.isdir(osafRootArg):
-	osafRoot = osafRootArg
-    else:
-	print "Error,", osafRootArg, "is not a directory"
-	sys.exit(1)
-
-if osafRoot:
-    osafRoot = os.path.abspath(osafRoot)
-    if string.find(osafRoot, ' ') >= 0:
-	print "ERROR: OSAFROOT("+osafRoot+") cannot contain a space.  Exiting."
-	sys.exit(1)
-    print "OSAFROOT is set to", osafRoot
-else:
-    print "No OSAFROOT directory provided; please set via environment variable or -R"
-    sys.exit(1)
-
-
-
-# Initialize hardhatlib
-import hardhatlib
-
-# Here is a trick to figure out what directory hardhat lives in, even if
-# we were called found by the user's PATH
-whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 try:
-    buildenv = hardhatlib.init(osafRoot)
+    buildenv = hardhatlib.defaults
+    buildenv['root'] = projectRoot
+    buildenv['hardhatroot'] = whereAmI
+    hardhatlib.init(buildenv)
 
 except hardhatlib.HardHatMissingCompilerError:
     print "Could not locate compiler.  Exiting."
@@ -125,10 +129,6 @@ except Exception, e:
     raise e
     sys.exit(1)
     
-buildenv['hardhatroot'] = whereAmI
-buildenv['version'] = 'release'
-buildenv['showlog'] = False
-buildenv['interactive'] = True
 hardhatlib.log_rotate(buildenv)
 
 
@@ -136,22 +136,22 @@ hardhatlib.log_rotate(buildenv)
 try:
     for opt, arg in opts:
         if opt == "-a":
-            hardhatlib.removeRuntimeDir(buildenv, arg)
+            hardhatlib.removeRuntimeDir(buildenv, curmodulepath)
 
         if opt == "-b":
-            hardhatlib.build(buildenv, arg)
+            hardhatlib.build(buildenv, curmodulepath)
 
         if opt == "-B":
 	    history = {}
-            hardhatlib.buildDependencies(buildenv, arg, history)
+            hardhatlib.buildDependencies(buildenv, curmodulepath, history)
 
         if opt == "-c":
-            if hardhatlib.clean(buildenv, arg) == hardhatlib.HARDHAT_ERROR:
+            if hardhatlib.clean(buildenv, curmodulepath) == hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
         if opt == "-C":
 	    history = {}
-            if hardhatlib.cleanDependencies(buildenv, arg, history) == \
+            if hardhatlib.cleanDependencies(buildenv, curmodulepath, history) == \
              hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
@@ -159,7 +159,7 @@ try:
             buildenv['version'] = 'debug'
 
         if opt == "-D":
-            hardhatlib.distribute(buildenv, arg)
+            hardhatlib.distribute(buildenv, curmodulepath)
 
         if opt == "-e":
             buildenv['showenv'] = 1
@@ -177,19 +177,19 @@ try:
             buildenv['version'] = 'release'
 
         if opt == "-s":
-            hardhatlib.scrub(buildenv, arg)
+            hardhatlib.scrub(buildenv, curmodulepath)
 
         if opt == "-S":
-            hardhatlib.scrubDependencies(buildenv, arg)
+            hardhatlib.scrubDependencies(buildenv, curmodulepath)
 
         if opt == "-t":
-            hardhatlib.test(buildenv, arg)
+            hardhatlib.test(buildenv, curmodulepath)
 
         if opt == "-v":
             buildenv['verbosity'] = buildenv['verbosity'] + 1
 
         if opt == "-x":
-            hardhatlib.run(buildenv, arg)
+            hardhatlib.run(buildenv, curmodulepath)
 
     if len(args) > 0:
 	hardhatlib.executeScript(buildenv, args)
@@ -198,7 +198,7 @@ except hardhatlib.HardHatExternalCommandError:
     print 
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
     print " A program that HardHat spawned exited with a non-zero exit code."
-    print "          Please view the file 'build.log' for details."
+    print "          Please view the file 'hardhat.log' for details."
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 
 except hardhatlib.HardHatMissingFileError, e:
@@ -222,5 +222,5 @@ except Exception, e:
 
 
 if buildenv['showlog']:
-    print "Build Log:"
+    print "HardHat Log:"
     hardhatlib.log_dump(buildenv)
