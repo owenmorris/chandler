@@ -84,6 +84,8 @@ class wxEditText(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
+        minW, minH = arguments[-1] # assumes minimum size passed as last arg
+        self.SetSizeHints(minW=minW, minH=minH)
 
     def OnEnterPressed(self, event):
         self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
