@@ -80,11 +80,13 @@ class ReferenceAttributesTest(unittest.TestCase):
         employeesAttribute = Attribute('employees',managerKind, attrKind)
         employeesAttribute.setAttributeValue('cardinality','list')
         employeesAttribute.setAttributeValue('otherName', 'manager')
-        managerKind.addValue('employees', employeesAttribute,alias='employees')
+        managerKind.addValue('attributes',
+                             employeesAttribute,alias='employees')
         employeeKind = kind.newItem('employee', self.rep)
         managerAttribute = Attribute('manager',employeeKind, attrKind)
         managerAttribute.setAttributeValue('otherName', 'employees')
-        employeeKind.addValue('manager', managerAttribute,alias='manager')
+        employeeKind.addValue('attributes',
+                              managerAttribute,alias='manager')
 
         manager = managerKind.newItem('boss', self.rep)
 
@@ -94,11 +96,11 @@ class ReferenceAttributesTest(unittest.TestCase):
         emp4 = employeeKind.newItem('employee4', self.rep)
 
         manager.setValue('employees', emp1)
-        print manager
-        print managerKind.getAttribute('employees')
-        print manager.getAttributeAspect('employees','cardinality')
-        print manager.employees
-        print manager.getValue('employees',0)
+        print 'manager', manager
+        print 'managerKind', managerKind.getAttribute('employees')
+        print 'card', manager.getAttributeAspect('employees','cardinality')
+        print 'employees', manager.employees
+        print 'first', manager.employees.first()
         self.assert_(manager.hasValue('employees',emp1))
         self.assertEquals(emp1.manager, manager)
         self.assert_(manager.hasValue('employees',emp1))

@@ -1212,9 +1212,12 @@ class Item(object):
 
         return item
 
-
     __new__   = classmethod(__new__)
-    Nil       = object()
+
+    class nil(object):
+        def __nonzero__(self):
+            return False
+    Nil       = nil()
     
     DELETED   = 0x0001
     ADIRTY    = 0x0002
