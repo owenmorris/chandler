@@ -97,7 +97,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
     print "Do " + mode
-    modeDir = os.path.join(workingDir, mode)
+    modeDir = workingDir
 
     if os.name == 'nt':
         osName = 'win'
