@@ -118,14 +118,18 @@ wxWindowBase::wxWindowBase()
     // no constraints on the minimal window size
     m_minWidth =
     m_minHeight =
-    m_maxWidth =
-    m_maxHeight = -1;
+	m_maxWidth =
+	m_maxHeight = -1;
 
-    // window is created enabled but it's not visible yet
-    m_isShown = false;
-    m_isEnabled = true;
+#ifdef __WXMSW__
+    m_isShown = true;
+#else
+	// window is created enabled but it's not visible yet
+	m_isShown = false;
+#endif
+	m_isEnabled = true;
 
-    // the default event handler is just this window
+	// the default event handler is just this window
     m_eventHandler = this;
 
 #if wxUSE_VALIDATORS
