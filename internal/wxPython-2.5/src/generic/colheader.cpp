@@ -28,13 +28,6 @@
 	#pragma hdrstop
 #endif
 
-#if !defined(WX_PRECOMP)
-	#include "wx/settings.h"
-	#include "wx/listbox.h"
-	#include "wx/dcclient.h"
-	#include "wx/brush.h"
-#endif // WX_PRECOMP
-
 //#if wxUSE_COLUMNHEADER
 
 #if defined(__WXMSW__)
@@ -44,6 +37,14 @@
 	#include <TextEdit.h>
 #endif
 
+#if !defined(WX_PRECOMP)
+	#include "wx/settings.h"
+	#include "wx/listbox.h"
+	#include "wx/dcclient.h"
+//	#include "wx/brush.h"
+#endif // WX_PRECOMP
+
+#include "wx/renderer.h"
 #include "wx/colheader.h"
 
 
@@ -911,12 +912,12 @@ long		errStatus;
 #elif defined(__WXMAC__)
 	// no DC needed for Mac (yet)
 	for (long i=0; i<m_ItemCount; i++)
-		errStatus |= m_ItemList[i]->DrawSelf( NULL, &m_NativeBoundsR );
+		errStatus |= m_ItemList[i]->DrawItem( this, NULL, &m_NativeBoundsR );
 #else
 wxClientDC	dc( this );
 
 	for (long i=0; i<m_ItemCount; i++)
-		errStatus |= m_ItemList[i]->DrawSelf( &dc, &m_NativeBoundsR );
+		errStatus |= m_ItemList[i]->DrawItem( this, &dc, &m_NativeBoundsR );
 #endif
 
 	return errStatus;
@@ -1373,7 +1374,8 @@ long		targetX, resultV;
 	return resultV;
 }
 
-long wxColumnHeaderItem::DrawSelf(
+long wxColumnHeaderItem::DrawItem(
+	wxWindow		*parentW,
 	wxClientDC		*dc,
 	const wxRect		*boundsR )
 {
@@ -1393,7 +1395,7 @@ OSStatus				errStatus;
 	// is this item beyond the right edge?
 	if (m_OriginX >= boundsR->width)
 	{
-		//wxLogDebug( _T("wxColumnHeaderItem::DrawSelf - bailout!") );
+		//wxLogDebug( _T("wxColumnHeaderItem::DrawItem - bailout!") );
 		return (-1L);
 	}
 
@@ -1406,7 +1408,7 @@ OSStatus				errStatus;
 	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
 	if (qdBoundsR.right > boundsR->width)
 		qdBoundsR.right = boundsR->width;
-	qdBoundsR.bottom = qdBoundsR.top +  boundsR->height;
+	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -1467,8 +1469,8 @@ OSStatus				errStatus;
 	}
 
 #if 0
-	// FIX-ME: need implementation
-	// TO-DO: can label text and an bitmap (icon) be shown simultaneously?
+	// FIXME: need implementation
+	// TODO: can label text and a bitmap (icon) be shown simultaneously?
 	if (m_ImageID != (-1))
 	{
 //	IconSuiteRef	iconRef;
@@ -1491,39 +1493,84 @@ OSStatus				errStatus;
 	return (long)errStatus;
 #else
 
-#if 0		// copied from generic wxRenderer
-
-const int			kCorner = 1;
-const wxCoord		x =  boundsR->x;
-const wxCoord		y =  boundsR->y;
-const wxCoord		w =  boundsR->width;
-const wxCoord		h =  boundsR->height;
-
-	if (dc == NULL)
+	if ((parentW == NULL) || (dc == NULL))
 		return (-1L);
+
+	// draw column header background
+#if 1
+wxRect			localBoundsR;
+wxPoint			labelTextSize;
+long				originX, insetX;
+
+	// leverage native (GTK) wxRenderer
+	localBoundsR.x = boundsR->x + m_OriginX;
+	localBoundsR.y = boundsR->y;
+	localBoundsR.width = m_ExtentX;
+	localBoundsR.height = boundsR->height;
+	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
+
+#else
+
+	// old way - copied from generic wxRenderer
+const int			kCorner = 1;
+const wxCoord		x = boundsR->x;
+const wxCoord		y = boundsR->y;
+const wxCoord		w = boundsR->width;
+const wxCoord		h = boundsR->height;
 
 	dc->SetBrush( *wxTRANSPARENT_BRUSH );
 
 	// (outer) right and bottom
-	dc->SetPen( m_penBlack );
+	dc->SetPen( *wxBLACK_PEN );
 	dc->DrawLine( x + w + 1 - kCorner, y, x + w, y + h );
 	dc->DrawRectangle( x, y+h, w+1, 1 );
 
 	// (inner) right and bottom
-	dc->SetPen( m_penDarkGrey );
+	dc->SetPen( wxPen( *wxDARK_GREY, 1, wxSOLID ) );
 	dc->DrawLine( x + w - kCorner, y, x + w - 1, y + h );
 	dc->DrawRectangle( x + 1, y + h - 1, w - 2, 1 );
 
 	// (outer) top and left
-	dc->SetPen( m_penHighlight );
+	dc->SetBrush( wxBrush( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ), wxSOLID ) );
 	dc->DrawRectangle( x, y, w + 1 - kCorner, 1 );
 	dc->DrawRectangle( x, y, 1, h );
 	dc->DrawLine( x, y + h - 1, x + 1, y + h - 1 );
 	dc->DrawLine( x + w - 1, y, x + w - 1, y + 1 );
 #endif
 
-	// FIXME: GTK - need implementation
-	return (-1);
+	// draw text label, with justification
+	insetX = 4;
+	originX = localBoundsR.x + insetX;
+
+	switch (m_TextJust)
+	{
+	case wxCOLUMNHEADER_JUST_Right:
+	case wxCOLUMNHEADER_JUST_Center:
+		// NB: consider caching these values
+		dc->GetTextExtent( m_LabelTextRef, &(labelTextSize.x), &(labelTextSize.y) );
+		if (m_ExtentX > labelTextSize.x)
+		{
+			if (m_TextJust == wxCOLUMNHEADER_JUST_Center)
+				originX += ((m_ExtentX - labelTextSize.x) - insetX) / 2;
+			else
+				originX += (m_ExtentX - labelTextSize.x) - insetX;
+		}
+		break;
+
+	case wxCOLUMNHEADER_JUST_Left:
+	default:
+		break;
+	}
+
+	// FIXME: need to clip long text items
+	dc->DrawText( m_LabelTextRef, originX, localBoundsR.y + 1 );
+
+	// FIXME: need to draw sort direction arrows (if specified)
+	if (m_BSelected && m_BSortEnabled)
+	{
+	}
+
+	return 0;
 #endif
 }
 
@@ -1581,7 +1628,7 @@ static AnonLongPair	sMap[] =
 	, { wxCOLUMNHEADER_JUST_Center, teJustCenter }
 	, { wxCOLUMNHEADER_JUST_Right, teJustRight }
 #else
-	// FIX-ME: GTK - wild guess
+	// FIXME: GTK - wild guess
 	{ wxCOLUMNHEADER_JUST_Left, 0 }
 	, { wxCOLUMNHEADER_JUST_Center, 1 }
 	, { wxCOLUMNHEADER_JUST_Right, 2 }
