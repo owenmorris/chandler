@@ -183,6 +183,10 @@ class RepositoryView(object):
         self._stubs = []
         self._status = 0
 
+    def __str__(self):
+
+        return "<%s for %s>" %(type(self).__name__, self._thread.getName())
+
     def _isRepository(self):
         return False
 

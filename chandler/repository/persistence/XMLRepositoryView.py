@@ -187,8 +187,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     env.lock_put(lock)
 
                 if count > 0:
-                    self.logger.info('committed %d items in %s',
-                                     count, datetime.now() - before)
+                    self.logger.info('%s committed %d items in %s',
+                                     self, count, datetime.now() - before)
                 return
 
     def _saveItem(self, item, newVersion, data, versions, history):
