@@ -394,6 +394,7 @@
  
   <!-- CoreArea -->
   <ContentItemDetail itsName="CoreArea">
+    <childrenBlocks itemref="doc:KindLabel"/>
     <childrenBlocks itemref="doc:Headline"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <!-- Attributes -->
@@ -401,6 +402,14 @@
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
  
+  <StaticText itsName="KindLabel"
+              itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
+    <title>Kind</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>
+  
   <StaticText itsName="Headline"
               itemClass="osaf.framework.blocks.detail.Detail.Headline">
     <title>Core</title>

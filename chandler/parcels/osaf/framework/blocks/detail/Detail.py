@@ -126,6 +126,14 @@ class Headline (StaticTextLabel):
         """
         self.widget.SetLabel (item.about)
         
+class KindLabel (StaticTextLabel):
+    """Shows the Kind of the Item as static text"""
+    def synchronizeItemDetail (self, item):
+        """
+          Display the item's Kind in the wxWidget.
+        """
+        self.widget.SetLabel (item.itsKind.displayName)
+        
 class StaticTextAttribute(StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
@@ -172,37 +180,40 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         return self.parentBlock.selectedItem()
 
     def onButtonPressed (self, notification):
-        # Rekind the item by adding or removing the associated aspect
+        # Rekind the item by adding or removing the associated Mixin Kind
         tool = notification.data['sender']
         # DLDTBD - use self instead of bar here, once block copy problem is fixed.
         bar = tool.dynamicParent
         item = bar.selectedItem()
         if item is not None:
-            aspectKind = tool.stampAspectKind()
+            mixinKind = tool.stampMixinKind()
             if bar.widget.GetToolState(tool.toolID):
                 operation = 'add'
             else:
                 operation = 'remove'
-            item.StampKind(operation, aspectKind)
-            # DLDTBD - notify the world that the item has a new kind.
-            self.relayoutParents()        
+            item.StampKind(operation, mixinKind)
+            # notify the world that the item has a new kind.
+            block = bar
+            while block.eventBoundary == False:
+                block = block.parentBlock
+            block.parentBlock.synchronizeWidget()
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
       Common base class for the stamping buttons in the Markup Bar
     """
-    def stampAspectClass(self):
-        # return the class of this stamp's aspect (bag of kind-specific attributes)
-        raise NotImplementedError, "%s.stampAspectClass()" % (type(self))
+    def stampMixinClass(self):
+        # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
+        raise NotImplementedError, "%s.stampMixinClass()" % (type(self))
     
-    def stampAspectKind(self):
-        # return the kind of this stamp's aspect (bag of kind-specific attributes)
-        raise NotImplementedError, "%s.stampAspectKind()" % (type(self))
+    def stampMixinKind(self):
+        # return the Mixin Kind of this stamp
+        raise NotImplementedError, "%s.stampMixinKind()" % (type(self))
     
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the kind of the selected item
-        shouldToggleBasedOnClass = isinstance(item, self.stampAspectClass())
-        shouldToggleBasedOnKind = item.itsKind.isKindOf(self.stampAspectKind())
+        shouldToggleBasedOnClass = isinstance(item, self.stampMixinClass())
+        shouldToggleBasedOnKind = item.itsKind.isKindOf(self.stampMixinKind())
         assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
                "Class/Kind mismatch for class %s, kind %s" % (item.__class__, item.itsKind)
         self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
@@ -215,36 +226,36 @@ class SharingButton (DetailStampButton):
     """
       Sharing button in the Markup Bar
     """
-    def stampAspectClass(self):
-        return Mail.MailMessageAspect
+    def stampMixinClass(self):
+        return Mail.MailMessageMixin
     
-    def stampAspectKind(self):
-        return Mail.MailParcel.getMailMessageAspectKind()
+    def stampMixinKind(self):
+        return Mail.MailParcel.getMailMessageMixinKind()
     
 class CalendarStamp (DetailStampButton):
     """
       Calendar button in the Markup Bar
     """
-    def stampAspectClass(self):
-        return Calendar.CalendarEventAspect
+    def stampMixinClass(self):
+        return Calendar.CalendarEventMixin
 
-    def stampAspectKind(self):
-        return Calendar.CalendarParcel.getCalendarEventAspectKind()
+    def stampMixinKind(self):
+        return Calendar.CalendarParcel.getCalendarEventMixinKind()
 
 class TaskStamp (DetailStampButton):
     """
       Task button in the Markup Bar
     """
-    def stampAspectClass(self):
-        return Task.TaskAspect
+    def stampMixinClass(self):
+        return Task.TaskMixin
 
-    def stampAspectKind(self):
-        return Task.TaskParcel.getTaskAspectKind()
+    def stampMixinKind(self):
+        return Task.TaskParcel.getTaskMixinKind()
         
 class FromAndToArea (DetailSynchronizer, ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail (self, item):
-        # if the item's not a Note, then we should show ourself
-        shouldShow = not isinstance (item, Notes.Note)
+        # if there is an item, we should show the From and To Area
+        shouldShow = item is not None
         self.show(shouldShow)
         # relayout the parent block if it's safe to do so
         

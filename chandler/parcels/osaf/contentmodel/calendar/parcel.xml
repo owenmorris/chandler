@@ -134,8 +134,8 @@
     <redirectTo>startTime</redirectTo>
   </Attribute>  
 
-  <Kind itsName="CalendarEventAspect">
-    <displayName>Calendar Event Aspect</displayName>
+  <Kind itsName="CalendarEventMixin">
+    <displayName>Calendar Event Mixin Kind</displayName>
     <description>This is the set of CalendarEvent-specific attributes.</description>
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
 
@@ -157,7 +157,7 @@
     <attributes itemref="cal:about"/>
     <attributes itemref="cal:date"/>
 
-    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventAspect</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
   </Kind>
 
   <Kind itsName="CalendarEvent">
@@ -165,8 +165,8 @@
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
     <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
-    <superKinds itemref="content:ContentItem"/>
-    <superKinds itemref="cal:CalendarEventAspect"/>
+    <superKinds itemref="content:Note"/>
+    <superKinds itemref="cal:CalendarEventMixin"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 

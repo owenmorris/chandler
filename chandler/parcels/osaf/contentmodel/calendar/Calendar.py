@@ -11,6 +11,7 @@ import application
 import repository.item.Item as Item
 
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.Notes as Notes
 
 import mx.DateTime as DateTime
 
@@ -33,8 +34,8 @@ class CalendarParcel(application.Parcel.Parcel):
         reminderKind = self['Reminder']
         CalendarParcel.reminderKindID = reminderKind.itsUUID
 
-        calendarEventAspectKind = self['CalendarEventAspect']
-        CalendarParcel.calendarEventAspectKindID = calendarEventAspectKind.itsUUID
+        calendarEventMixinKind = self['CalendarEventMixin']
+        CalendarParcel.calendarEventMixinKindID = calendarEventMixinKind.itsUUID
 
     def onItemLoad(self):
         super(CalendarParcel, self).onItemLoad()
@@ -50,11 +51,11 @@ class CalendarParcel(application.Parcel.Parcel):
 
     getCalendarEventKind = classmethod(getCalendarEventKind)
 
-    def getCalendarEventAspectKind(cls):
-        assert cls.calendarEventAspectKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.calendarEventAspectKindID]
+    def getCalendarEventMixinKind(cls):
+        assert cls.calendarEventMixinKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.calendarEventMixinKindID]
 
-    getCalendarEventAspectKind = classmethod(getCalendarEventAspectKind)
+    getCalendarEventMixinKind = classmethod(getCalendarEventMixinKind)
 
     def getLocationKind(cls):
         assert cls.locationKindID, "CalendarParcel not yet loaded"
@@ -83,21 +84,21 @@ class CalendarParcel(application.Parcel.Parcel):
 
     # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
     calendarEventKindID = None
-    calendarEventAspectKindID = None
+    calendarEventMixinKindID = None
     locationKindID = None
     calendarKindID = None
     recurrencePatternKindID = None
     reminderKindID = None
 
-class CalendarEventAspect(Item.Item):
+class CalendarEventMixin(Item.Item):
     """
-      Calendar Event Aspect is the bag of Event-specific attributes.
+      Calendar Event Mixin is the bag of Event-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
     pass
 
-class CalendarEvent(ContentModel.ContentItem, CalendarEventAspect):
+class CalendarEvent(Notes.Note, CalendarEventMixin):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:

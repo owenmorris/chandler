@@ -23,7 +23,7 @@
 
   <!-- Queries -->
   <contentModel:Query itsName="calendarQuery">
-     <data itemref="calendarModel:CalendarEventAspect"/>
+     <data itemref="calendarModel:CalendarEventMixin"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="calendarItemCollection">
@@ -41,7 +41,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="taskQuery">
-    <data itemref="taskModel:TaskAspect"/>
+    <data itemref="taskModel:TaskMixin"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="taskItemCollection">
@@ -50,7 +50,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="mailQuery">
-    <data itemref="mailModel:MailMessageAspect"/>
+    <data itemref="mailModel:MailMessageMixin"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="mailItemCollection">

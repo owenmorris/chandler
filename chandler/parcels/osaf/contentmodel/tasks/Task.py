@@ -11,6 +11,7 @@ import application
 import repository.item.Item as Item
 import mx.DateTime as DateTime
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.Notes as Notes
 import application.Globals as Globals
 
 
@@ -26,7 +27,7 @@ class TaskParcel(application.Parcel.Parcel):
     def _setUUIDs(self):
         taskKind = self['Task']
         TaskParcel.taskKindID = taskKind.itsUUID
-        TaskParcel.taskAspectKindID = self['TaskAspect'].itsUUID
+        TaskParcel.taskMixinKindID = self['TaskMixin'].itsUUID
 
     def getTaskKind(cls):
         assert cls.taskKindID, "Task parcel not yet loaded"
@@ -34,32 +35,26 @@ class TaskParcel(application.Parcel.Parcel):
 
     getTaskKind = classmethod(getTaskKind)
 
-    def getTaskAspectKind(cls):
-        assert cls.taskAspectKindID, "Task parcel not yet loaded"
-        return Globals.repository[cls.taskAspectKindID]
+    def getTaskMixinKind(cls):
+        assert cls.taskMixinKindID, "Task parcel not yet loaded"
+        return Globals.repository[cls.taskMixinKindID]
     
-    getTaskAspectKind = classmethod(getTaskAspectKind)
+    getTaskMixinKind = classmethod(getTaskMixinKind)
 
     taskKindID = None
-    taskAspectKindID = None
+    taskMixinKindID = None
 
-class TaskAspect(Item.Item):
+class TaskMixin(Item.Item):
     """
-      Task Aspect is the bag of Task-specific attributes.
+      Task Mixin is the bag of Task-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
     pass
 
-class Task(ContentModel.ContentItem, TaskAspect):
-
+class Task(Notes.Note, TaskMixin):
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/tasks/Task")
         super(Task, self).__init__(name, parent, kind)
-
-        self.whoAttribute = "requestor"
-        self.dateAttribute = "dueDate"
 

@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.Notes as Notes
 import application.Globals as Globals
 
 class MailParcel(application.Parcel.Parcel):
@@ -33,8 +34,8 @@ class MailParcel(application.Parcel.Parcel):
         mailMessageKind = self['MailMessage']
         MailParcel.mailMessageKindID = mailMessageKind.itsUUID
 
-        mailMessageAspectKind = self['MailMessageAspect']
-        MailParcel.mailMessageAspectKindID = mailMessageAspectKind.itsUUID
+        mailMessageMixinKind = self['MailMessageMixin']
+        MailParcel.mailMessageMixinKindID = mailMessageMixinKind.itsUUID
 
     def getAttachmentKind(cls):
         assert cls.attachmentKindID, "Mail parcel not yet loaded"
@@ -60,27 +61,27 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailMessageKind = classmethod(getMailMessageKind)
 
-    def getMailMessageAspectKind(cls):
-        assert cls.mailMessageAspectKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mailMessageAspectKindID]
+    def getMailMessageMixinKind(cls):
+        assert cls.mailMessageMixinKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.mailMessageMixinKindID]
     
-    getMailMessageAspectKind = classmethod(getMailMessageAspectKind)
+    getMailMessageMixinKind = classmethod(getMailMessageMixinKind)
 
     attachmentKindID = None
     emailAccountKindID = None
     emailAddressKindID = None
     mailMessageKindID = None
-    mailMessageAspectKindID = None
+    mailMessageMixinKindID = None
 
-class MailMessageAspect(Item.Item):
+class MailMessageMixin(Item.Item):
     """
-      Mail Message Aspect is the bag of Message-specific attributes.
+      Mail Message Mixin is the bag of Message-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
     pass
 
-class MailMessage(ContentModel.ContentItem, MailMessageAspect):
+class MailMessage(Notes.Note, MailMessageMixin):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()

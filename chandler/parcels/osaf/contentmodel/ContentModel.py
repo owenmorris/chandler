@@ -88,8 +88,43 @@ class ContentModel(Parcel):
     getConversationKind = classmethod(getConversationKind)
 
 class StampError(ValueError):
-    "Can't stamp Item with the requested Kind Aspect"
+    "Can't stamp Item with the requested Mixin Kind"
 
+class KindList(list):
+    def appendUnique(self, item):
+        if not item in self:
+            self.append(item)
+
+    def properSubsetOf(self, sequence):
+        """
+        return True if self is a proper subset of sequence
+        meaning all items in self are in sequence
+        """
+        for item in self:
+            if not item in sequence:
+                return False
+        return True
+
+    def allLeafSuperKinds(cls, aKind):
+        """
+        Return all the leaf node SuperKinds of a Kind in a list.
+        """
+        def leafNode(kind):
+            supers = kind.getAttributeValue('superKinds', default = None)
+            return supers is None
+        def appendSuperkinds(aKind, supersList):
+            supers = aKind.getAttributeValue('superKinds', default = [])
+            for kind in supers:
+                # all Kinds have Item as their superKind, so the
+                # kinds we want are ones just below the leaf. 
+                if leafNode(kind):
+                    supersList.appendUnique(aKind)
+                appendSuperkinds(kind, supersList)
+        supersList = KindList()
+        appendSuperkinds(aKind, supersList)
+        return supersList
+    allLeafSuperKinds = classmethod(allLeafSuperKinds)
+    
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -98,62 +133,66 @@ class ContentItem(Item.Item):
             kind = ContentModel.getContentItemKind()
         super (ContentItem, self).__init__(name, parent, kind)
 
-    def StampKind(self, operation, aspectKind):
+    def StampKind(self, operation, mixinKind):
         """
           Stamp ourself into the new kind defined by the
-        Aspect passed in newKind.
-        * Take the current kind, the operation and the Aspect,
+        Mixin Kind passed in mixinKind.
+        * Take the current kind, the operation and the Mixin,
         and compute the future Kind.
         * Prepare to become the future Kind, which may mean creating
-        one or more Aspects, or saving off Aspects.
+        one or more Mixins, or saving off Mixins.
         * Stamp ourself to the new Kind.
-        * Move the attributes from the Aspects.
+        * Move the attributes from the Mixin.
         """
-        futureKind = self.NewStampedKind(operation, aspectKind)
+        futureKind = self.FindStampedKind(operation, mixinKind)
         dataCarryOver = self.StampPreProcess(futureKind)
         if futureKind is not None:
             self.itsKind = futureKind
         else:
-            self.mixinKinds((operation, aspectKind))
+            self.mixinKinds((operation, mixinKind))
         # make sure the respository knows about the item's new Kind
-        Globals.repository.commit()
         self.StampPostProcess(futureKind, dataCarryOver)
+        Globals.repository.commit()
 
-    def NewStampedKind(self, operation, aspectKind):
+    def FindStampedKind(self, operation, mixinKind):
         """
            Return the new Kind that results from self being
-        stamped with the Aspect specified.
+        stamped with the Mixin Kind specified.
         @param self: an Item that will be stamped
         @type self: C{Item}
-        @param operation: 'add' to add the aspect, 'remove' to remove
+        @param operation: 'add' to add the Mixin, 'remove' to remove
         @type operation: C{String}
-        @param aspectKind: the Aspect to be added or removed
-        @type aspectKind: C{Kind} of the Aspect
+        @param mixinKind: the Mixin Kind to be added or removed
+        @type mixinKind: C{Kind} of the Mixin
         @return: a C{Kind}
         """
         myKind = self.itsKind
-        currentAspects = myKind.getAttributeValue('superKinds', default = [])
-        # work with a copy of the superKinds list
-        soughtAspects = []
-        for aspect in currentAspects:
-            soughtAspects.append(aspect)
+        soughtMixins = KindList.allLeafSuperKinds(myKind)
         if operation == 'add':
-            soughtAspects.append(aspectKind)
+            assert not mixinKind in soughtMixins, "Trying to stamp with a Mixin Kind already present"
+            soughtMixins.append(mixinKind)
+            extrasAllowed = 1
         else:
             assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
-            soughtAspects.remove(aspectKind)
+            if not mixinKind in soughtMixins:
+                return None
+            soughtMixins.remove(mixinKind)
+            extrasAllowed = -1
+
         qualified = []
         kindKind = Globals.repository.findPath('//Schema/Core/Kind')
-        for candidate in Query.KindQuery().run([kindKind]):
-            superKinds = candidate.getAttributeValue('superKinds', default = [])
-            extras = abs(len(soughtAspects) - len(superKinds))
-            if extras > 1:
+        allKinds = Query.KindQuery().run([kindKind])
+        for candidate in allKinds:
+            superKinds = KindList.allLeafSuperKinds(candidate)
+            extras = len(superKinds) - len(soughtMixins)
+            if extras != 0 and (extras - extrasAllowed) != 0:
                 continue
-            for aKind in soughtAspects:
-                if not aKind in superKinds:
-                    # aKind not found, continue with the next candidate
-                    break
-            else:
+            shortList = soughtMixins
+            longList = superKinds
+            if extras < 0:
+                shortList = superKinds
+                longList = soughtMixins
+            if shortList.properSubsetOf(longList):
                 # found a potential match
                 if extras == 0:
                     # exact match
@@ -161,10 +200,11 @@ class ContentItem(Item.Item):
                 else:
                     # close match - keep searching for a better match
                     qualified.append(candidate)
+
         # finished search with no exact matches.  Better have only one candidate.
         if len(qualified) == 1:
             return qualified[0]
-        # couldn't find a match, just ReKind with the Aspect
+        # couldn't find a match, just ReKind with the Mixin Kind
         return None
         
 
@@ -183,7 +223,7 @@ class ContentItem(Item.Item):
             assert len(myKinds) > len(futureKinds)
             longList = myKinds
             shortList = futureKinds
-            aspects = removedKinds
+            kinds = removedKinds
         for aKind in longList:
             if not aKind in shortList:
                 kinds.append(aKind)
@@ -221,10 +261,10 @@ class ContentItem(Item.Item):
             return carryOver
         else:
             addedKinds, removedKinds = self.AddedRemovedKinds(futureKind)
-            addedAspects = []
-            removedAspects = []
+            addedMixins = []
+            removedMixins = []
             # DLDTBD - flesh out
-            return (addedAspects, removedAspects)
+            return (addedMixins, removedMixins)
     
     def StampPostProcess(self, futureKind, carryOver):
         """

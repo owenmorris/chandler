@@ -104,8 +104,8 @@
     <redirectTo>dueDate</redirectTo>
   </Attribute>  
 
-  <Kind itsName="TaskAspect">
-    <displayName>Task Aspect</displayName>
+  <Kind itsName="TaskMixin">
+    <displayName>Task Mixin Kind</displayName>
     <description>This is the set of Task-specific attributes.</description>
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
 
@@ -126,15 +126,15 @@
     <attributes itemref="tasks:about"/>
     <attributes itemref="tasks:date"/>
     
-    <classes key="python">osaf.contentmodel.tasks.Task.TaskAspect</classes>
+    <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
   </Kind>
 
   <Kind itsName="Task">
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Task should maybe have a 'Timezone' attribute.</issues>
-    <superKinds itemref="content:ContentItem"/>
-    <superKinds itemref="tasks:TaskAspect"/>
+    <superKinds itemref="content:Note"/>
+    <superKinds itemref="tasks:TaskMixin"/>
     
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
     

@@ -94,11 +94,37 @@
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 
+  <!-- Processing Item -->
+  <core:Enumeration itemName="processingStatusEnum">
+    <core:displayName>Processing Status Enum</core:displayName>
+    <core:values>processing</core:values>
+    <core:values>defered</core:values>
+    <core:values>done</core:values>
+    <core:values>junk</core:values>
+    <core:values>trash</core:values>
+  </core:Enumeration>
+
+  <core:Attribute itsName="processingStatus">
+    <core:type itemref="processingStatusEnum"/>
+    <core:defaultValue type="processingStatusEnum">processing</core:defaultValue>
+  </core:Attribute>
+
+  <core:Kind itsName="ProcessingItem">
+    <core:displayName>Processing Item</core:displayName>
+    <core:description>Mixin kind to give an item Processing Status.</core:description>
+    <core:issues>This could be just an attribute of Note, but we</core:issues>
+    <core:issues> need to wrap it with a mixinKind to give Note a unique</core:issues>
+    <core:issues> mixinKind signature for FindStampedKind(), or</core:issues>
+    <core:issues> else we can't distinguish it from other plain ContentItems.</core:issues>
+    <attributes itemref="processingStatus"/>
+  </core:Kind>
+
   <!-- Note -->
 
   <core:Kind itsName="Note">
     <core:displayName>Note</core:displayName>
     <core:superKinds itemref="ContentItem"/>
+    <core:superKinds itemref="ProcessingItem"/>
     <core:classes key="python">osaf.contentmodel.Notes.Note</core:classes>
     
     <!-- redirections -->
@@ -196,49 +222,42 @@
     <type itemref="calendar:Reminder"/>
   </core:Attribute>
 
-  <core:Kind itsName="TaskEventExtraAspect">
-    <core:displayName>Task Event Extra Aspect</core:displayName>
+  <core:Kind itsName="TaskEventExtraMixin">
+    <core:displayName>Task Event Extra Mixin Kind</core:displayName>
     <core:description>The attributes specific to an item that is both </core:description>
     <core:description>a task and an event.  This is additional 'due by' information. </core:description>
     <attributes itemref="dueByDate"/>
     <attributes itemref="dueByRecurrence"/>
     <attributes itemref="dueByTickler"/>
-    <core:classes key="python">osaf.contentmodel.StampedItem.TaskEventExtraAspect</core:classes>
   </core:Kind>
 
   <core:Kind itsName="MailedTask">
+    <core:displayName>Mailed Task</core:displayName>
     <core:description>A Task stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="ContentItem"/>
-    <core:superKinds itemref="mail:MailMessageAspect"/>
-    <core:superKinds itemref="tasks:TaskAspect"/>
-    <core:classes key="python">osaf.contentmodel.StampedItem.MailedTask</core:classes>
+    <core:superKinds itemref="mail:MailMessage"/>
+    <core:superKinds itemref="tasks:TaskMixin"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEvent">
+    <core:displayName>Mailed Event</core:displayName>
     <core:description>An Event stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="ContentItem"/>
-    <core:superKinds itemref="mail:MailMessageAspect"/>
-    <core:superKinds itemref="calendar:CalendarEventAspect"/>
-    <core:classes key="python">osaf.contentmodel.StampedItem.MailedEvent</core:classes>
+    <core:superKinds itemref="mail:MailMessage"/>
+    <core:superKinds itemref="calendar:CalendarEventMixin"/>
   </core:Kind>
 
   <core:Kind itsName="EventTask">
+    <core:displayName>Event Task</core:displayName>
     <core:description>A Task stamped as an Event, or vica versa</core:description>
-    <core:superKinds itemref="ContentItem"/>
-    <core:superKinds itemref="calendar:CalendarEventAspect"/>
-    <core:superKinds itemref="tasks:TaskAspect"/>
-    <core:superKinds itemref="TaskEventExtraAspect"/>
-    <core:classes key="python">osaf.contentmodel.StampedItem.EventTask</core:classes>
+    <core:superKinds itemref="calendar:CalendarEvent"/>
+    <core:superKinds itemref="tasks:TaskMixin"/>
+    <core:superKinds itemref="TaskEventExtraMixin"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEventTask">
+    <core:displayName>Mailed Event Task</core:displayName>
     <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
-    <core:superKinds itemref="ContentItem"/>
-    <core:superKinds itemref="mail:MailMessageAspect"/>
-    <core:superKinds itemref="calendar:CalendarEventAspect"/>
-    <core:superKinds itemref="tasks:TaskAspect"/>
-    <core:superKinds itemref="TaskEventExtraAspect"/>
-    <core:classes key="python">osaf.contentmodel.StampedItem.MailedEventTask</core:classes>
+    <core:superKinds itemref="mail:MailMessageMixin"/>
+    <core:superKinds itemref="EventTask"/>
   </core:Kind>
 
 <!-- Project -->
