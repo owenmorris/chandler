@@ -1,9 +1,11 @@
 include ../../Makefile.inc
 
+DLLS_DIR=libs
+
 ifeq ($(SNAP),debug)
-DLLS=win/msvcp71d.dll win/msvcr71d.dll win/msvcrtd.dll
+DLLS=$(DLLS_DIR)/msvcp71d.dll $(DLLS_DIR)/msvcr71d.dll $(DLLS_DIR)/msvcrtd.dll
 else
-DLLS=win/msvcp71.dll win/msvcr71.dll
+DLLS=$(DLLS_DIR)/msvcp71.dll $(DLLS_DIR)/msvcr71.dll
 endif
 
 build:	chandler.exe
