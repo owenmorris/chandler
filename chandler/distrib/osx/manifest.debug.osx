@@ -31,6 +31,7 @@ dest=Contents/Resources/lib
 libwx_macd-2.4.0.dylib
 libwx_macd-2.4.0.r
 libwx_macd-2.4.0.rsrc
+libxml2.2.dylib
 
 # Grab DB libraries
 src=debug/db/lib
