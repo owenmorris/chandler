@@ -14,7 +14,7 @@ Instructions for use are in the TWiki at "MakingARelease"
 True = 1
 False = 0
 
-import os, sys, shutil, re, time, string
+import os, sys, shutil, re, time, string, hardhatutil
 from optparse import OptionParser
 
 path = os.environ.get('PATH', os.environ.get('path'))
