@@ -7,8 +7,20 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, unittest
 import repository.query.tests.QueryTestCase as QueryTestCase
 import tools.timing
+import osaf.contentmodel.mail.Mail as Mail
 
 class TestSimpleQueries(QueryTestCase.QueryTestCase):
+
+    """
+    def testOutBoxQueryWithMail(self):
+        # create an outbound Mail item
+        aMessage = Mail.MailMessage()
+        # now run the query
+        print "testing with a Mail item"
+        qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where contains(i.isInbound,True)"
+        results = self._executeQuery(qString)
+        self._checkQuery(lambda i: False, results)
+    """
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
