@@ -8,6 +8,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import wx.calendar
+import wx.minical
 import cPickle
 from mx import DateTime
 
@@ -564,16 +565,15 @@ class MonthBlock(CalendarBlock):
         return (x, y)
 
 
-class wxMiniCalendar(wx.calendar.CalendarCtrl):
+class wxMiniCalendar(wx.minical.wxMiniCalendar):
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
-        self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED,
+        self.Bind(wx.minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
 
     def wxSynchronizeWidget(self):
-        self.SetWindowStyle(wx.calendar.CAL_SUNDAY_FIRST |
-                            wx.calendar.CAL_SHOW_SURROUNDING_WEEKS |
-                            wx.calendar.CAL_SHOW_HOLIDAYS)
+        self.SetWindowStyle(wx.minical.wxCAL_SUNDAY_FIRST |
+                            wx.minical.wxCAL_SHOW_SURROUNDING_WEEKS)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
