@@ -53,7 +53,7 @@ def NewChannelFromURL(view, url, update = True):
 
 class RSSChannel(ItemCollection):
     myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
+    myKindPath = "//parcels/osaf/examples/zaobao/schema/RSSChannel"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSChannel, self).__init__(name, parent, kind, view)
@@ -142,7 +142,7 @@ class RSSChannel(ItemCollection):
 ##
 class RSSItem(ContentItem):
     myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/RSSItem"
+    myKindPath = "//parcels/osaf/examples/zaobao/schema/RSSItem"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSItem, self).__init__(name, parent, kind, view)
