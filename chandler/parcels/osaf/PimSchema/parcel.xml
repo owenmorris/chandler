@@ -1,6 +1,7 @@
-<Parcel parcelName="PimSchema"
+<Parcel parcelName="base:PimSchema"
         xmlns="/Core"
         xmlns:core="/Core"
+	xmlns:base="/OSAF"
         xmlns:common="/OSAF/PimSchema">
 
   <displayName>Pim Schema</displayName>
