@@ -98,7 +98,7 @@ class Repository(object):
         
         return self._roots.get(name)
 
-    def getRoots(self, name):
+    def getRoots(self):
         'Return a list of the roots in the repository.'
 
         return self._roots.values()
