@@ -154,6 +154,7 @@ def CreateIndex(dir):
     fileOut = file(dir+os.sep+"index.html", "w")
     fileOut.write("hey!\n")
     for x in ["enduser", "developer", "release", "debug"]:
+        print "XYZZY", x
         actual = _readFile(dir+os.sep+x)
         fileOut.write(x + "=" + actual)
     fileOut.close()
