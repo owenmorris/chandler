@@ -1,9 +1,10 @@
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 _license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging
 from M2Crypto import RSA, X509, EVP, m2, Rand, Err, threading, BIO
 import application.Globals as Globals
+import Password
 
 class Crypto(object):
     """
@@ -14,7 +15,7 @@ class Crypto(object):
 
     def _passphrase_callback(self, v):
         # XXX Need to ask from user
-        return 'passw0rd'
+        return str(Password.Password('passw0rd'))
 
     def init(self):
         """
