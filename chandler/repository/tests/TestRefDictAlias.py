@@ -42,7 +42,6 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
 
     def NewXMLRefDict(self, view, item, name, otherName, readOnly):
         # Create an XMLRefDict to initialize the attribute.
-        # IS THERE A BETTER WAY TO DO THIS?
         return XMLRefDict(view, item, name, otherName, readOnly)
 
     def reloadRepositoryItems (self, itemList):
@@ -73,12 +72,8 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(aBlock.blocks.getByAlias('eggs') is eggsBlock)
         self.assert_(aBlock is eggsBlock.blockParent)
 
-        # change this to True and we fail, unless the bug is fixed
-        testWithReload = True
-
         # reload the repository
-        if testWithReload:
-            aBlock, eggsBlock = self.reloadRepositoryItems((aBlock, eggsBlock))
+        aBlock, eggsBlock = self.reloadRepositoryItems((aBlock, eggsBlock))
 
         self.assert_(aBlock.blocks.getByAlias('eggs') is eggsBlock)
         self.assert_(aBlock is eggsBlock.blockParent)
@@ -86,7 +81,6 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
         # now remove them all, and see that they are gone
         aBlock.blocks.clear()
         mightBeEggs = aBlock.blocks.getByAlias('eggs')
-        print "might-be-eggs is %s, type %s" % (mightBeEggs, type(mightBeEggs))
         # OOPS!  When we reload the repository, we end up
         #  returning True instead of the Item or None!
         self.assert_(aBlock.blocks.getByAlias('eggs') is not True)
