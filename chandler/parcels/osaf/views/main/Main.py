@@ -181,9 +181,15 @@ class MainView(View):
         """
           Show the splash screen in response to the about command
         """
+        import version
         pageLocation = os.path.join ('application', 'welcome.html')
+        html = ''
+        for line in open(pageLocation):
+            if line.find('@@buildid@@') >= 0:
+                line = "<p>Build identifier: '%s'</p>" % version.build
+            html += line
         splash = SplashScreen(None, _("About Chandler"), 
-                              pageLocation, False, False)
+                              None, html, False, False)
         splash.Show(True)
 
     def getSidebarSelectedCollection (self):

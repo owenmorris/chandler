@@ -15,7 +15,7 @@ class SplashScreen(wx.Dialog):
     Common uses are for splash screens or 'About' pages.
     The page can be dismissed either by clicking on it or by a timer.
     """
-    def __init__(self, parent, title="", pageLocation="",
+    def __init__(self, parent, title="", pageLocation="", html="",
                  isModal=False, useTimer=True, timerLength=10000):
         """
           Sets up the splash screen and starts its timer.
@@ -28,7 +28,8 @@ class SplashScreen(wx.Dialog):
         defaultWindowWidth = 700
         maxWindowHeight = 600
         self.isModal = isModal
-        panel = HTMLPanel(self, pageLocation, size=(defaultWindowWidth, -1))
+        panel = HTMLPanel(self, pageLocation, html,
+                          size=(defaultWindowWidth, -1))
         internalRep = panel.GetInternalRepresentation()
         width = internalRep.GetWidth()
         height = internalRep.GetHeight()
@@ -62,7 +63,7 @@ class HTMLPanel(wx.html.HtmlWindow):
     """
       Displays the html message.
     """
-    def __init__(self, parent, pageLocation, size):
+    def __init__(self, parent, pageLocation, html, size):
         """
           Sets up the wx.html.HtmlWindow and loads the proper page to be displayed.
         """
@@ -70,7 +71,10 @@ class HTMLPanel(wx.html.HtmlWindow):
                                           size=size,
                                           style=wx.html.HW_SCROLLBAR_AUTO)
         self.parent = parent
-        self.LoadPage(pageLocation)
+        if pageLocation:
+            self.LoadPage(pageLocation)
+        else:
+            self.SetPage(html)
         
     def OnCellClicked(self, cell, x, y, event):
         """
