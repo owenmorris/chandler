@@ -106,7 +106,6 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
         if value:
             serverList.append(value)
 
-
     try:
         log.info('Merging List: %s in %s' % (attrName, str(item)))
         # for now, just sync with whatever the server gave us
@@ -114,10 +113,11 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
             if i not in list:
                 item.addValue(attrName, i)
                 log.info('adding %s to list %s' % (i, item))
-        for i in list:
-            if i not in serverList:
-                item.removeValue(attrName, i)
-                log.info('removing %s from list %s' % (i, item))
+        # XXX this should work but has some issues.. fixme!
+        # for i in list:
+        # if i not in serverList:
+        #     item.removeValue(attrName, i)
+        #     log.info('removing %s from list %s' % (i, item))
     except Exception, e:
         log.exception(e)
             
@@ -313,10 +313,12 @@ def syncFromServer(item, davItem):
             if i not in item:
                 item.add(i)
                 log.debug('adding %s to collection %s' % (i, item))
-        for i in item:
-            if i not in serverCollectionResults:
-                item.remove(i)
-                log.debug('removing %s from collection %s' % (i, item))
+
+        # XXX this should work but has some issues.. fixme!
+        #        for i in item:
+        #            if i not in serverCollectionResults:
+        #                item.remove(i)
+        #                log.debug('removing %s from collection %s' % (i, item))
 
     #
     # End refactor
