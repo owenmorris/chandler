@@ -95,6 +95,7 @@
     <childrenBlocks itemref="doc:HeadlineArea"/>
     <childrenBlocks itemref="doc:EmailAddressArea"/>
     <childrenBlocks itemref="doc:DateKindArea"/>
+    <childrenBlocks itemref="doc:CalendarLocation"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
     <childrenBlocks itemref="doc:CalendarDuration"/>
     <childrenBlocks itemref="doc:NotesArea"/>
@@ -467,6 +468,38 @@
   <EditText itsName="EditCalendarDuration"
             itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
     <blockName value="EditCalendarDuration"/>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>300, 24</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="CalendarLocation"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarLocation"/>
+    <childrenBlocks itemref="doc:StaticCalendarLocation"/>
+    <childrenBlocks itemref="doc:EditCalendarLocation"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <minimumSize>300, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="StaticCalendarLocation"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticLocationAttribute">
+    <blockName value="StaticCalendarLocation"/>
+    <title>location</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>100, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="EditCalendarLocation"
+            itemClass="osaf.framework.blocks.detail.Detail.EditLocationAttribute">
+    <blockName value="EditCalendarLocation"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>

@@ -471,11 +471,6 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             tool = notification.data['sender']
             item.isPrivate = self.widget.GetToolState(tool.toolID)
 
-    """
-    def onTogglePrivateEventUpdateUI(self, notification):
-        notification.data ['Enable'] = True
-    """
-
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
       Common base class for the stamping buttons in the Markup Bar
@@ -1070,3 +1065,51 @@ class EditDurationAttribute (EditRedirectAttribute):
             # show that we didn't understand the input
             return originalString + '?'
 
+class StaticLocationAttribute (StaticTextLabel):
+    """
+      Static Text that displays the name of the selected item's Attribute
+    """
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def staticTextLabelValue (self, item):
+        durationLabel = self.title + _(' ')
+        return durationLabel
+
+class EditLocationAttribute (EditRedirectAttribute):
+    """
+    An edit field for Location Values
+    """
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def saveAttributeFromWidget(self, item, widget, validate):
+        """"
+          Update the attribute from the user edited string in the widget.
+        """
+        if validate:
+            locationName = widget.GetValue()
+            if locationName:
+                item.location = Calendar.Location.getLocation(locationName)
+            else:
+                item.location = None;
+    
+
+    def loadAttributeIntoWidget(self, item, widget):
+        """"
+          Update the widget display based on the value in the attribute.
+        """
+        try:
+            theLocation = item.location
+        except AttributeError:
+            value = ''
+        else:
+            if theLocation is not None:
+                value = str(theLocation)
+            else:
+                value = ''
+        widget.SetValue (value)
