@@ -14,6 +14,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
+from repository.util.Lob import Lob
 import repository.query.Query as Query
 import repository
 import logging
@@ -1198,7 +1199,9 @@ class CloudXMLFormat(ImportExportFormat):
 
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
-                    result += str(value)
+                    if isinstance(value, Lob):
+                        value = value.getInputStream().read()
+                    result += "<![CDATA[" + str(value) + "]]>"
 
                 elif cardinality == 'list':
                     depth += 1

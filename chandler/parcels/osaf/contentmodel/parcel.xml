@@ -86,6 +86,10 @@
             <attribute value="displayName"/>
           </Endpoint>
           <endpoints itemref="cm:ChandlerItem/SharingCloud/displayName"/>
+          <Endpoint itsName="body">
+            <attribute value="body"/>
+          </Endpoint>
+          <endpoints itemref="cm:ChandlerItem/SharingCloud/body"/>
         </Cloud>
         <clouds alias="sharing" itemref="cm:ChandlerItem/SharingCloud"/>
     </Kind>
