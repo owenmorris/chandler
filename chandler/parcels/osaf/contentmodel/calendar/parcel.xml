@@ -19,21 +19,10 @@
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
-  <Enumeration itemName="TimeTransparency">
-    <displayName>Time Transparency</displayName>
-    <values>busy</values>
-    <values>free</values>
-    <values>tentative</values>
-  </Enumeration>
 
+  <!-- Common Attributes -->
   <Attribute itemName="startTime">
     <displayName>Start Time</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="DateTime"/>
-  </Attribute>
-
-  <Attribute itemName="endTime">
-    <displayName>End Time</displayName>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
@@ -44,11 +33,52 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="body">
+    <displayName>Body</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
   <Attribute itemName="location">
     <displayName>Location</displayName>
     <cardinality>single</cardinality>
     <type itemref="cal:Location"/>
     <inverseAttribute itemref="cal:eventsAtLocation"/>
+  </Attribute>
+
+  <Attribute itemName="eventsAtLocation">
+    <displayName>Calendar Events</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:location"/>
+  </Attribute>
+
+  <Attribute itemName="recurrence">
+    <displayName>Recurrence Patterns</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:RecurrencePattern"/>
+  </Attribute>
+
+  <Attribute itemName="reminders">
+    <displayName>Reminder</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:Reminder"/>
+  </Attribute>
+
+
+
+  <!-- Calendar Event Attributes -->
+  <Enumeration itemName="TimeTransparency">
+    <displayName>Time Transparency</displayName>
+    <values>busy</values>
+    <values>free</values>
+    <values>tentative</values>
+  </Enumeration>
+
+  <Attribute itemName="endTime">
+    <displayName>End Time</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="calendar">
@@ -75,18 +105,6 @@
     <cardinality>list</cardinality>
   </Attribute>
 
-  <Attribute itemName="recurrence">
-    <displayName>Recurrence Patterns</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:RecurrencePattern"/>
-  </Attribute>
-
-  <Attribute itemName="reminders">
-    <displayName>Reminder</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:Reminder"/>
-  </Attribute>
-
   <Attribute itemName="transparency">
     <displayName>Time Transparency</displayName>
     <cardinality>single</cardinality>
@@ -97,20 +115,6 @@
     <displayName>Priority</displayName>
     <cardinality>single</cardinality>
     <type itemref="Integer"/>
-  </Attribute>
-
-  <Attribute itemName="name">
-    <displayName>Name</displayName>
-    <issues>Temporary attribute, something for location and calendar</issues>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itemName="eventsAtLocation">
-    <displayName>Calendar Events</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:location"/>
   </Attribute>
 
   <Kind itemName="CalendarEvent">
@@ -135,16 +139,16 @@
   <Kind itemName="Location">
     <displayName>Location</displayName>
     <issues>Location may not be calendar specific</issues>
-    <attributes itemref="cal:name"/>
+    <attributes itemref="content:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
-    <displayAttribute itemref="cal:name"/>
+    <displayAttribute itemref="content:name"/>
     <classes key="python">OSAF.contentmodel.calendar.Location.Location</classes>
   </Kind>
 
   <Kind itemName="Calendar">
     <displayName>Calendar</displayName>
-    <attributes itemref="cal:name"/>
-    <displayAttribute itemref="cal:name"/>
+    <attributes itemref="content:name"/>
+    <displayAttribute itemref="content:name"/>
     <classes key="python">OSAF.contentmodel.calendar.Calendar.Calendar</classes>
   </Kind>
 
