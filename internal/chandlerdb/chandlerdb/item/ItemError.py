@@ -53,13 +53,6 @@ class AnonymousRootError(ValueError, ItemError):
         return self.__doc__ %(self.getItem()._repr_())
 
 
-class NoParentError(ValueError, ItemError):
-    'While creating %s, parent is None'
-    
-    def __str__(self):
-        return self.__doc__ %(self.getItem()._repr_())
-
-
 class OwnedValueError(ValueError, ItemError):
     "Value %s is already owned by item %s on attribute '%s'"
 
@@ -165,6 +158,14 @@ class DanglingRefError(BadRefError):
                               self.str(self.args[2]))
 
 
+class ViewMismatchError(BadRefError):
+    "Error establishing bidirectional ref, item views don't match: %s is in %s but %s is in %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0]._repr_(), self.args[0].itsView,
+                              self.args[1]._repr_(), self.args[1].itsView)
+
+
 class IndexError(ItemError):
 
     def getCollection(self):
@@ -196,13 +197,3 @@ class SchemaError(TypeError, ItemError):
 
     def __str__(self):
         return self.args[0] % self.args[1:]
-
-
-class NoSuchDefaultParentError(SchemaError):
-    'While creating %s, defaultParent %s, specified on kind %s, was not found'
-
-    def __str__(self):
-        kind = self.args[1]
-        return self.__doc__ %(self.str(self.getItem()), 
-                              kind._values['defaultParent'],
-                              kind.itsPath)

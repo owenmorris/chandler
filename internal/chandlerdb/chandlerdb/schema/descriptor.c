@@ -24,7 +24,6 @@ typedef struct {
 } t_descriptor;
 
 
-
 static void t_descriptor_dealloc(t_descriptor *self);
 static PyObject *t_descriptor_new(PyTypeObject *type,
                                   PyObject *args, PyObject *kwds);
@@ -46,6 +45,7 @@ static PyObject *countAccess(PyObject *self, t_item *item);
 
 static long _lastAccess = 0L;
 static PyObject *PyExc_StaleItemError;
+
 static PyObject *_getRef_NAME;
 static PyObject *getAttributeValue_NAME;
 static PyObject *setAttributeValue_NAME;
@@ -106,7 +106,7 @@ static PyTypeObject DescriptorType = {
     0,                                          /* tp_getattro */
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
     "attribute descriptor",                     /* tp_doc */
     0,                                          /* tp_traverse */
     0,                                          /* tp_clear */
@@ -290,8 +290,12 @@ static int t_descriptor___set__(t_descriptor *self,
                         return 0;
                 }
 
-                PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict, attrID, Py_True, Py_False, NULL);
+                value = PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict, attrID, Py_True, Py_False, NULL);
 
+                if (!value)
+                    return -1;
+                    
+                Py_DECREF(value);
                 return 0;
             }
         }
@@ -321,9 +325,12 @@ static int t_descriptor___delete__(t_descriptor *self, PyObject *obj)
             PyObject *attrID = PyTuple_GET_ITEM(tuple, 0);
             int flags = PyInt_AS_LONG(PyTuple_GET_ITEM(tuple, 1));
             PyObject *attrDict = get_attrdict(obj, flags);
+            PyObject *value = PyObject_CallMethodObjArgs(obj, removeAttributeValue_NAME, self->name, attrDict, attrID, NULL);
 
-            PyObject_CallMethodObjArgs(obj, removeAttributeValue_NAME, self->name, attrDict, attrID, NULL);
+            if (!value)
+                return -1;
 
+            Py_DECREF(value);
             return 0;
         }
     }
@@ -384,11 +391,9 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
     else
     {
         PyObject *values = ((t_item *) attribute)->values;
-        PyObject *isRequired;
         int flags = 0;
 
-        isRequired = PyDict_GetItem(values, required_NAME);
-        if (isRequired == Py_True)
+        if (PyDict_GetItem(values, required_NAME) == Py_True)
             flags |= REQUIRED;
 
         if (PyDict_Contains(values, otherName_NAME))
@@ -418,6 +423,8 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
                 if (type != Py_None)
                 {
                     PyObject *isSimple = PyObject_CallMethodObjArgs(type, isSimple_NAME, NULL);
+
+                    Py_DECREF(type);
                     if (isSimple == NULL)
                         return NULL;
                     if (isSimple == Py_True)
@@ -425,8 +432,8 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
 
                     Py_DECREF(isSimple);
                 }
-
-                Py_DECREF(type);
+                else
+                    Py_DECREF(type);
             }
 
             flags |= VALUE;
