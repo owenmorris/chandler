@@ -80,17 +80,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     for releaseMode in ('debug', 'release'):
 
-        if releaseMode == "debug":
-            dbgStr = "DEBUG=1"
-        else:
-            dbgStr = ""
-            
-        print "Doing make " + dbgStr + "install"
-        log.write("Doing make " + dbgStr + "install with " + cvsVintage + "\n")
-
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [buildenv['make'], dbgStr, "install" ])
-        hardhatutil.dumpOutputList(outputList, log)
+        doInstall(releaseMode, log)
 
     # do tests
         ret = Do(hardhatScript, releaseMode, workingDir, outputDir, cvsVintage, 
@@ -125,9 +115,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
     
-    if changesInCVS(testDir):
+    if changesInCVS(testDir, log):
         log.write("Changes in CVS, do a " + mode + " install\n")
-        doInstall(mode)
+        doInstall(mode, log)
 #     elif changesInModules(mode):
 #         log.write("Changes in module tarballs, updating modules\n")
 #         getChangedModules(mode)
@@ -179,7 +169,7 @@ def changesInModules(mode):
     sourceURL = "http://builds.osafoundation.org/external" + environ['os']
     return false
 
-def changesInCVS(moduleDir):
+def changesInCVS(moduleDir, log):
 
     changesAtAll = False
     print "Examining CVS"
@@ -217,7 +207,7 @@ def getChangedModules(tarballModules):
 # dummy for now
     return false
 
-def doInstall(buildmode):
+def doInstall(buildmode, log):
 # for our purposes, we do not really do a build
 # we will update chandler from CVS, and grab new tarballs when they appear
     if buildmode == "debug":
@@ -229,8 +219,8 @@ def doInstall(buildmode):
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr 
-    log.write("Doing make " + dbgStr + "\n")
+    print "Doing make " + dbgStr + "install\n"
+    log.write("Doing make " + dbgStr + "install\n")
 
     outputList = hardhatutil.executeCommandReturnOutput(
      [buildenv['make'], dbgStr, "install" ])
