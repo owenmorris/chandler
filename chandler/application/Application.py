@@ -154,10 +154,6 @@ class wxApplication (wxApp):
 
         self.argv = argv
 
-        # Send stdout/stderr to our custom handler
-        self.outputHandler = StandardOutputHandler("stdout.log")
-        sys.stdout = sys.stderr = self.outputHandler
-
         # Install a custom displayhook to keep Python from setting the global
         # _ (underscore) to the value of the last evaluated expression.  If 
         # we don't do this, our mapping of _ to gettext can get overwritten.
@@ -715,38 +711,3 @@ class wxApplication (wxApp):
 
         def onCloseDebuggerWindow(self, event):
             self.crustFrame.Destroy()
-    
-
-class StandardOutputHandler(wxPyOnDemandOutputWindow):
-    """ 
-        Send all text passed to the write() method to:
-        - the real sys.stdout
-        - a logfile
-        - a popup window
-    """
-
-    def __init__(self, logFileName):
-        """
-        Override the super's __init__ so we can store the log file name,
-        put a visual separator into the log file to mark the start of this 
-        session, and save away the real stdout object.
-        """
-        wxPyOnDemandOutputWindow.__init__(self, 
-         "stdout/stderr also logged to " + logFileName)
-        self._logFileName = logFileName
-        self._realStdOut = sys.stdout
-        logFile = open(self._logFileName, "a")
-        logFile.write("\n------------------------------------------------\n")
-        logFile.close()
-    
-    def write(self, str):
-        """
-        Someone is trying to write to stdout or stderr; pass the text on to
-        the real stdout, to our logfile, and let the wxPy stdout popup window
-        display the text as well.
-        """
-        self._realStdOut.write(str)
-        logFile = open(self._logFileName, "a")
-        logFile.write(str)
-        logFile.close()
-        wxPyOnDemandOutputWindow.write(self, str)
