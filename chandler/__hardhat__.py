@@ -13,16 +13,6 @@ dependencies = (
                 'zodb',
                 'jabber-py',
                )
-if sys.platform != 'darwin':
-    dependencies = (
-                    'python',
-                    'distutils',
-                    'wxpython',
-                    'egenix-mx',
-                    'zodb',
-                    'jabber-py',
-                    'net/rap',
-                   )
 
 
 def build(buildenv):
