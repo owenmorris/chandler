@@ -744,6 +744,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 
     def EndEdit (self, row, column, grid):
         value = self.delegate.GetControlValue (self.control)
+        item, attributeName = grid.GetElementValue (row, column)
         if value == self.initialValue:
             changed = False
         # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
@@ -758,7 +759,6 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
             except AttributeError:
                 grid.SetElementValue (row, column, value)
             else:
-                item, attributeName = grid.GetElementValue (row, column)
                 attributeSetter (item, attributeName, value)
         self.delegate.EndControlEdit (item, attributeName, self.control)
         return changed
