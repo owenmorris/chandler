@@ -54,12 +54,11 @@ class ViewerParcel (Parcel):
     Install = classmethod (Install)
 
     def SynchronizeView (self):
-        wxMainFrame = app.association[id(app.model.mainFrame)]
         """
           If it isn't in the association we need to construct it and
         put it in the association.
         """
-        container = wxMainFrame.FindWindowByName("ViewerParcel_container")
+        container = app.wxMainFrame.FindWindowByName("ViewerParcel_container")
         if not app.association.has_key(id(self)):
             module = sys.modules[self.__class__.__module__]
             modulename = os.path.basename (module.__file__)
@@ -69,20 +68,20 @@ class ViewerParcel (Parcel):
 
             """
               ViewerParcels must have a resource file with the same name as the
-            module with an .xrc extension. We'll freeze the wxMainFrame
-            while adding the panel, since it's temporarily owned by wxMainFrame
+            module with an .xrc extension. We'll freeze the app.wxMainFrame
+            while adding the panel, since it's temporarily owned by app.wxMainFrame
             and would otherwise cause it to be temporarily displayed on the screen
             """
             assert (os.path.exists (path))
             resources = wxXmlResource(path)
-            wxMainFrame.Freeze ()
-            panel = resources.LoadObject(wxMainFrame, modulename, "wxPanel")
+            app.wxMainFrame.Freeze ()
+            panel = resources.LoadObject(app.wxMainFrame, modulename, "wxPanel")
             panel.Show (FALSE)
-            wxMainFrame.Thaw ()
+            app.wxMainFrame.Thaw ()
             assert (panel != None)
             
             app.association[id(self)] = panel
-            panel.setup(self, resources)
+            panel.Setup(self, resources)
 
         else:
             panel = app.association[id(self)]
@@ -93,12 +92,12 @@ class ViewerParcel (Parcel):
         Mac there are some extra scrollbars added below the viewer parcel
         container. Shortcut the case of setting the same window we've already set.
         """
-        container = wxMainFrame.FindWindowByName("ViewerParcel_container")
+        container = app.wxMainFrame.FindWindowByName("ViewerParcel_container")
         children = container.GetChildren ()
         if len (children) == 0 or children[0] != panel:
             for window in children:
                 if hasattr (window, "model"):
-                    app.association[id(window.model)].deactivate()
+                    app.association[id(window.model)].Deactivate()
                     del app.association[id(window.model)]
             container.DestroyChildren ()
             """
@@ -106,7 +105,7 @@ class ViewerParcel (Parcel):
             which was temporarily hidden
             """
             app.applicationResources.AttachUnknownControl("ViewerParcel", panel)
-            panel.activate()
+            panel.Activate()
             panel.Show ()
 
 class wxViewerParcel(wxPanel):
@@ -123,7 +122,7 @@ class wxViewerParcel(wxPanel):
         self.this = value.this
         self._setOORInfo(self)
 
-    def setup(self, model, resources):
+    def Setup(self, model, resources):
         """
           Set up model and resources for the convience of the parcel.
         OnInit gives the parcel a chance to wire up their events.
@@ -132,34 +131,40 @@ class wxViewerParcel(wxPanel):
         self.resources = resources
         self.OnInit()
 
-    def activate(self):
+    def Activate(self):
         """
           Override to do tasks that need to happen just before your parcel is
         displayed.
         """
         self.addViewParcelMenu ()
     
-    def deactivate(self):
+    def Deactivate(self):
         """
           Override to do tasks that need to happen just before your parcel is
         replaced with anoter.
         """
-        self.removeViewParcelMenu ()
+        self.RemoveViewParcelMenu ()
     
-    def getMenuName(self):
+    def GetMenuName(self):
         """
           Override to customize your parcel menu name.
         """
         return (self.model.displayName)
 
-    def removeViewParcelMenu(self):
+    def RemoveViewParcelMenu(self):
+        """
+          Override to customize your parcel menu.
+        """
         menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
-        index = menuBar.FindMenu (self.getMenuName())
+        index = menuBar.FindMenu (self.GetMenuName())
         if index != wxNOT_FOUND:
             oldMenu = menuBar.Remove (index)
             del oldMenu
 
     def addViewParcelMenu(self):
+        """
+          Override to customize your parcel menu.
+        """
         ignoreErrors = wxLogNull ()
         viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
         del ignoreErrors
@@ -167,5 +172,5 @@ class wxViewerParcel(wxPanel):
             menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
             index = menuBar.FindMenu (_('View'))
             assert (index != wxNOT_FOUND)
-            menuBar.Insert (index + 1, viewerParcelMenu, self.getMenuName())
+            menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
             

@@ -70,7 +70,9 @@ class wxChandlerWindow(wxFrame):
            The Application keeps a copy of the last persistent window openn
         so that the next time we run the application we can open the same window
         """
-        application.Application.app.model.mainFrame = self.model
+        app = application.Application.app
+        app.wxMainFrame = self
+        app.model.mainFrame = self.model
         event.Skip()
 
     def OnInit(self, model):

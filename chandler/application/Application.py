@@ -28,7 +28,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 6
+    VERSION = 7
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -99,6 +99,7 @@ class wxApplication (wxApp):
     self.connection                connection to ZODB
     self.dbroot                    ZODB root object tree
     self.homeDirectory             path to a folder in the user's home directory
+    self.wxMainFrame               active wxChandlerWindow
 
     In the future we may replace ZODB with another database that provides similar
     functionality
