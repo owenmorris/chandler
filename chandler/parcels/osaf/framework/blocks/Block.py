@@ -83,8 +83,7 @@ class Block(Item):
 
             if widget:
                 Globals.wxApplication.needsUpdateUI = True
-                if not self.itsView.isRefCounted():
-                    self.setPinned()
+                assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
                 self.widget = widget
                 widget.blockItem = self
                 """
@@ -208,8 +207,7 @@ class Block(Item):
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 
         delattr (self, 'widget')
-        if not self.itsView.isRefCounted():
-            self.setPinned (False)
+        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
             
         Globals.wxApplication.needsUpdateUI = True
 

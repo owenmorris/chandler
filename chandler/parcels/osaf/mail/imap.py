@@ -514,8 +514,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         NotifyUIAsync(self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
 
-        if not self.account.itsView.isRefCounted():
-            self.account.setPinned(False)
+        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
         self.account = None
 
     def _expunge(self, result):
@@ -546,9 +545,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
     def __getAccount(self):
 
         self.account = getIMAPAccount(self.accountUUID)
-        if not self.account.itsView.isRefCounted():
-            self.account.setPinned()
-
+        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
 
     def __printInfo(self, info):
 
