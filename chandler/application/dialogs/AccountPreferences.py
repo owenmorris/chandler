@@ -202,6 +202,7 @@ def ShowAccountPreferencesDialog(parent):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
          'application', 'dialogs', 'AccountPreferences_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
-        frame = AccountPreferencesDialog(parent, resources)
-        val = frame.ShowModal()
-        frame.Destroy()
+        win = AccountPreferencesDialog(parent, resources)
+        win.CenterOnScreen()
+        val = win.ShowModal()
+        win.Destroy()

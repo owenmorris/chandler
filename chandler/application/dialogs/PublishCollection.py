@@ -77,6 +77,7 @@ def ShowPublishCollectionsDialog(parent, collection):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
          'application', 'dialogs', 'PublishCollection_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
-        frame = PublishCollectionDialog(parent, resources, collection)
-        val = frame.ShowModal()
-        frame.Destroy()
+        win = PublishCollectionDialog(parent, resources, collection)
+        win.CenterOnScreen()
+        val = win.ShowModal()
+        win.Destroy()
