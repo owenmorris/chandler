@@ -7,9 +7,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
+.PHONY: patches-$(VERSION)
 
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION); echo ok
+	if [ -f patches-$(VERSION) ]; then \
+            patch -Nup0 < patches-$(VERSION); echo ok; \
+        fi
 
 build: apply
 	cd $(SRC); \
