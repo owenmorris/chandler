@@ -1,5 +1,8 @@
 # ChangeLog for Calendar Parcel
 
+2003-08-07 Katie Capps Parlante <capps@osafoundation.org>
+   * Basic unit test for calendar data parcel, works with framework
+
 2003-07-24 Katie Capps Parlante <capps@osafoundation.org>
    * Created calendar data parcel as sub parcel of calendar parcel
    * Moved calendar viewer parcel code on to new repository
