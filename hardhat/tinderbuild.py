@@ -100,7 +100,7 @@ def main():
                 print "There were changes, and the build was successful"
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
-                newDir = os.path.join(outputDir, buildVersion)
+                newDir = os.path.join(outputDir, nowString)
                 os.rename(os.path.join(buildDir, "output"), newDir)
                 log.write("Calling CreateIndex with " + newDir + "\n")
                 CreateIndex(newDir)
