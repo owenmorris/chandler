@@ -106,8 +106,6 @@ cvsModules = (
     'chandler',
 )
 
-    moduleData = {}
-
 # If any of these modules have changed, download and replace before testing
 tarballModules = {
     'wxPython-':2.5-2,
@@ -189,7 +187,6 @@ def changesInCVS(moduleDir):
     for module in cvsModules:
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
-        moduleData[module] = {}
         moduleDir = os.path.join(workingDir, module)
         os.chdir(moduleDir)
         # print "seeing if we need to update", module
@@ -200,7 +197,6 @@ def changesInCVS(moduleDir):
         if NeedsUpdate(outputList):
             print "" + module + " needs updating"
             changesAtAll = True
-            moduleData[module]["changed"] = 1
             # update it
             print "Getting changed sources"
             log.write("Getting changed sources\n")
@@ -212,7 +208,6 @@ def changesInCVS(moduleDir):
         else:
             # print "NO, unchanged"
             log.write("Module unchanged" + "\n")
-            moduleData[module]["changed"] = 0
 
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
