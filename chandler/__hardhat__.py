@@ -1,6 +1,5 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
-
 info = {
         'name':'Chandler',
         'root':'..',
@@ -19,10 +18,9 @@ dependencies = (
                 'jabber-py',
                 'SOAPpy',
                 'pychecker',
-                #'m2crypto',
+                # 'm2crypto',
                 'Chandler/repository'
                )
-
 
 
 def build(buildenv):
@@ -59,7 +57,7 @@ def build(buildenv):
 
 
     # Build the windows launcher program
-    if buildenv['os'] == 'win':
+    elif buildenv['os'] == 'win':
         version = buildenv['version']
 
         try:
