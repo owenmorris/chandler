@@ -21,7 +21,8 @@ class ItemCollection(ContentModel.ContentItem):
         may be more than one subscriber.
         """
         if not self._isInitialized():
-            assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+            if not self.itsView.isRefCounted():
+                self.setPinned()
             self._setInitialized()
             query = self.createRepositoryQuery()
             query.subscribe (self, "onItemCollectionChanged")
@@ -63,7 +64,8 @@ class ItemCollection(ContentModel.ContentItem):
                 del self._query
                 del self._callbacks
                 self._setInitialized(False)
-                assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+                if not self.itsView.isRefCounted():
+                    self.setPinned(False)
     
     def onItemCollectionChanged (self, action):
         self.resultsStale = True
