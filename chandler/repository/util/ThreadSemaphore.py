@@ -10,14 +10,14 @@ from threading import currentThread, Semaphore
 
 class ThreadSemaphore(object):
 
-    def __init__(self, n=1):
+    def __init__(self):
 
-        self._semaphore = Semaphore()
+        self._semaphore = Semaphore(1)
         self._thread = None
 
     def acquire(self, wait=True):
 
-        if not self._thread is currentThread():
+        if self._thread is not currentThread():
             #print currentThread(), 'acquiring'
             result = self._semaphore.acquire(wait)
             if result:

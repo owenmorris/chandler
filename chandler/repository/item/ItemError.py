@@ -10,12 +10,13 @@ class ItemError:
     def getItem(self):
         return self.args[0]
 
-    def repr(self, arg):
+    def str(self, arg):
         from repository.item.Item import Item
         if isinstance(arg, Item):
-            return repr(arg.itsPath)
+            return arg._repr_()
         else:
-            return repr(arg)
+            return str(arg)
+
 
 class StaleItemError(ValueError, ItemError):
     "Item is stale"
@@ -59,7 +60,7 @@ class NoSuchItemInCollectionError(ValueError, ItemError):
 
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
-                              self.repr(self.args[2]),
+                              self.str(self.args[2]),
                               self.getAttribute())
 
 
@@ -123,8 +124,8 @@ class BadRefError(ValueError, ItemError):
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
                               self.args[1],
-                              self.repr(self.args[2]),
-                              self.repr(args[3]))
+                              self.str(self.args[2]),
+                              self.str(self.args[3]))
 
 
 class DanglingRefError(BadRefError):
@@ -133,7 +134,7 @@ class DanglingRefError(BadRefError):
     def __str__(self):
         return self.__doc__ %(self.getItem().itsPath,
                               self.args[1],
-                              self.repr(self.args[2]))
+                              self.str(self.args[2]))
 
 
 class IndexError(ItemError):
