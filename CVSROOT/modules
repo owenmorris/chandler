@@ -40,7 +40,6 @@ chandler-system -a \
     osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
     osaf/chandler/swig \
-    osaf/chandler/persistence \
     osaf/chandler/pkgconfig \
     osaf/chandler/net/expat \
     osaf/chandler/net/gettext \
@@ -86,7 +85,6 @@ chandler-source -a \
     osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
     osaf/chandler/swig \
-    osaf/chandler/persistence \
     osaf/chandler/pkgconfig \
     osaf/chandler/net/expat \
     osaf/chandler/net/gettext \
