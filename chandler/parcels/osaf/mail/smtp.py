@@ -216,13 +216,18 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        """Perform error checking to make sure To and From have values"""
+        """Perform error checking to make sure To, From, and retries have values"""
         if len(to_addrs) == 0:
             self.__fatalError("To Address")
             return
 
         if from_addr is None or len(from_addr.strip()) == 0:
             self.__fatalError("From Address")
+            return
+
+        """Basic retry logic check. Will refine as GUI support for retries is added"""
+        if not isinstance(retries, (int, long)) or (retries < 0 or retries > 5):
+            self.__fatalError("valid retry number between 0 and 5")
             return
 
         self.factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
@@ -460,10 +465,10 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
     def __fatalError(self, str):
         """If a fatal error occurred before sending the message i.e. no To Address
-           then record the error, log it, and commit the mailMessage containing the 
+           then record the error, log it, and commit the mailMessage containing the
            error info"""
 
-        e = SMTPException("A '%s' is required to send an SMTP Mail Message" % str)
+        e = SMTPException("A %s is required to send an SMTP Mail Message." % str)
         self.__recordError(e)
         self.mailMessage.deliveryExtension.sendFailed()
 
