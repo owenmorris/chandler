@@ -1464,3 +1464,4 @@ Chandler/parcels/test/Test.xrc
 Chandler/parcels/test/__init__.py
 !Chandler/distrib/linux,
 Chandler/distrib/linux/Chandler.sh
+Chandler/distrib/linux/README.linux
