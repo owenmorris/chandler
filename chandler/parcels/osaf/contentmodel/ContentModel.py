@@ -46,16 +46,33 @@ class ContentModel(Parcel.Parcel):
         assert GroupKind
 
 class ContentItem(Item.Item):
-    def __init__(self, name=None, parent=ContentItemParent,
-                 kind=ContentItemKind):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentItemParent
+        if not kind:
+            kind = ContentItemKind
         Item.Item.__init__(self, name, parent, kind)
+        self.projects = []
+        self.groups = []
 
 class Project(Item.Item):
-    def __init__(self, name=None, parent=ContentItemParent, kind=ProjectKind):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentItemParent
+        if not kind:
+            kind = ProjectKind
         Item.Item.__init__(self, name, parent, kind)
+        self.itemsInProject = []
+        self.name = ''
 
 class Group(ContentItem):
-    def __init__(self, name=None, parent=ContentItemParent, kind=GroupKind):
-        Item.Item.__init__(self, name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentItemParent
+        if not kind:
+            kind = GroupKind
+        ContentItem.__init__(self, name, parent, kind)
+        self.itemsInGroup = []
+        self.name = ''
     
     

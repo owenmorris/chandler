@@ -50,6 +50,46 @@ class ContentItemTest(unittest.TestCase):
         self.assert_(genericProject)
         self.assert_(genericGroup)
 
+        self.assertEqual(genericContentItem.getItemParent(),
+                         ContentModel.ContentItemParent)
+        self.assertEqual(genericProject.getItemParent(),
+                         ContentModel.ContentItemParent)
+        self.assertEqual(genericGroup.getItemParent(),
+                         ContentModel.ContentItemParent)
+        
+        self.assert_(genericContentItem.getItemPath())
+        self.assert_(genericProject.getItemPath())
+        self.assert_(genericGroup.getItemPath())
+
+        genericContentItem.displayName = "Test Content Item"
+        genericProject.name = "Test Project"
+        genericGroup.name = "Test Group"
+
+        self.assertEqual(genericProject.name, "Test Project")
+        self.assertEqual(genericGroup.name, "Test Group")
+        self.assertEqual(genericContentItem.displayName, "Test Content Item")
+
+        genericContentItem.addValue('projects', genericProject)
+        genericGroup.addValue('itemsInGroup', genericContentItem)
+
+        self.assertEqual(len(genericProject.itemsInProject), 1)
+        for item in genericProject.itemsInProject:
+            self.assertEqual(item, genericContentItem)
+
+        self.assertEqual(len(genericContentItem.projects), 1)
+        for item in genericContentItem.projects:
+            self.assertEqual(item, genericProject)
+
+        self.assertEqual(len(genericContentItem.groups), 1)
+        for item in genericContentItem.groups:
+            self.assertEqual(item, genericGroup)
+
+        self.assertEqual(len(genericGroup.itemsInGroup), 1)
+        for item in genericGroup.itemsInGroup:
+            self.assertEqual(item, genericContentItem)
+
+        self.rep.commit()
+
     def tearDown(self):
         self.rep.close()
         self.rep.delete()
