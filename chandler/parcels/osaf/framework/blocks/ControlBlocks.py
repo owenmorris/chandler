@@ -334,6 +334,9 @@ class wxTableData(wx.grid.PyGridTableBase):
         self.defaultAttribute = wx.grid.GridCellAttr()
         self.defaultAttribute.SetReadOnly (True)
 
+    def __del__ (self):
+        self.defaultAttribute.DecRef()
+        
     def GetNumberRows (self):
         """
           We've got the usual chicken & egg problems: wxWidgets calls GetNumberRows &
