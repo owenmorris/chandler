@@ -20,10 +20,7 @@ class Action(Item):
         """
           return True if the action should be executed asynchronously
         """
-        try:
-            return self.asyncFlag
-        except:
-            return False
+        return self.asyncFlag
         
     def UseWxThread(self):
         """
@@ -32,20 +29,14 @@ class Action(Item):
            they can safely make wxWindows calls, but they shouldn't be
            time consuming
         """
-        try:
-            return self.wxThreadFlag
-        except:
-            return False
+        return self.wxThreadFlag
 
     def NeedsConfirmation(self):
         """
           if the confirmFlag is True, we require that the user confirms
           the action
         """
-        try:
-            return self.confirmFlag
-        except:
-            return False
+        return self.confirmFlag
     
     def GetName(self):
         return self.getItemName()
