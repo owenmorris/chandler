@@ -270,7 +270,7 @@ class JabberClient:
     def SendErrorResponse(self, jabberID, url, errorMessage):
         responseMessage = Message(jabberID, errorMessage)
         responseMessage.setX('chandler:receive-error')
-        responseMessage.setSubject('Error ' + url)
+        responseMessage.setSubject(url)
         self.connection.send(responseMessage)
          
     # handle responses to requests for accessible views
@@ -301,7 +301,7 @@ class JabberClient:
                 self.HandleObjectResponse(fromAddress, subject, body, true)
                 return
             elif xRequest == 'chandler:receive-error':
-                self.HandleErrorResponse(fromAddress, body)
+                self.HandleErrorResponse(fromAddress, subject, body)
                 return
             elif xRequest == 'chandler:request-views':
                 self.HandleViewRequest(fromAddress)
@@ -414,8 +414,8 @@ class JabberClient:
         self.application.AddObjectsToView(url, objectList, lastFlag)
                         
     # handle receiving notification of an error to an object request
-    def HandleErrorResponse(self, fromAddress, body):
-        wxMessageBox(body)
+    def HandleErrorResponse(self, fromAddress, url, body):
+       self.application.HandleErrorResponse(fromAddress, url, body)
          
     # encode a Python object into a text string, using cPickle and base64 encoding
     def EncodePythonObject(self, objectToEncode):

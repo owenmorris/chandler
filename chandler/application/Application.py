@@ -407,9 +407,21 @@ class wxApplication (wxApp):
 		else:
 			# FIXME: should return an error here
 			pass
-			
-	# handler for the Show/Hide Presence Window command
+
+	def HandleErrorResponse(self, jabberID, url, errorMessage):
+		"""
+		  handle error responses by passing them to the parcel
+		"""
+		parcel = self.GetParcelFromURL(url)
+		if parcel != None:
+			parcel.HandleErrorResponse(jabberID, url, errorMessage)
+		else:
+			wxMessageBox(errorMessage)
+		
 	def TogglePresenceWindow(self, event):
+		"""
+		  handler for the Show/Hide Presence Window command
+		"""
 		if self.presenceWindow == None:
 			title = _("Presence Panel")
 			self.presenceWindow = PresencePanel.PresenceWindow(title, self.jabberClient)

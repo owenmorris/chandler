@@ -146,6 +146,14 @@ class ViewerParcel (Parcel):
         """
         pass
 
+    def HandleErrorResponse(self, jabberID, url, errorMessage):
+        """
+          handle an error reponse.  Here in the base class, just
+          display the error message in a dialog, but parcels
+          can override if they need notification
+        """
+        wxMessageBox(errorMessage)
+
     def HasPermission(self, jabberID, url):
         """
           determinine if the passed-in jabberID has permission to access the passed-in url
