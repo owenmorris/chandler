@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<Parcel describes="//parcels/osaf/framework/wakeup"
+        itsName="wakeup"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:wake="http://osafoundation.org/parcels/osaf/framework/wakeup">
+
+  <Kind itsName="WakeupCall">
+    <superKinds itemref="Item" />
+
+    <displayName>Wakeup Call</displayName>
+    <Attribute itsName="callOnStartup">
+      <displayName>Call on Start Time</displayName>
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean" value="False" />
+    </Attribute>
+
+    <Attribute itsName="repeat">
+      <displayName>Repeat Wakeup Call</displayName>
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean" value="False" />
+    </Attribute>
+
+    <Attribute itsName="enabled">
+      <displayName>Is The Wakeup Call Enabled</displayName>
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean" value="True" />
+    </Attribute>
+
+    <Attribute itsName="delay">
+      <displayName>Delay Between Calls</displayName>
+      <type itemref="DateTimeDelta"/>
+      <initialValue type="DateTimeDelta" value="00:00:00:00" />
+    </Attribute>
+    <classes key="python">osaf.framework.wakeup.WakeupCall.WakeupCall</classes>
+    </Kind>
+</Parcel>
