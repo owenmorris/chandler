@@ -10,6 +10,18 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import wx
 
 
+class SidebarAttributeDelegate (ControlBlocks.AttributeDelegate):
+    def ReadOnly (self, row, column):
+        """
+          Second argument should be True if all cells have the first value
+        """
+        (item, attribute) = self.GetElementValue (row, column)
+        try:
+            readOnly = getattr (item, 'outOfTheBoxCollection')
+        except AttributeError:
+            readOnly = False
+        return readOnly, False
+
 class wxSidebar(ControlBlocks.wxTable):
     def OnRequestDrop(self, x, y):
         self.dropRow = self.YToRow(y)
