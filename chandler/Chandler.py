@@ -12,46 +12,39 @@ import sys
 if '-wing' in sys.argv:
     import wingdbstub
 
+import logging
 from application.Application import wxApplication
 
 def main():
 
     """
-    So that developers can easily see the details of unhandled exceptions,
-    a dialog box is displayed.  The exception is then re-raised so that the
-    default exception handler takes over.
+    The details of unhandled exceptions are now handled by the logger.
+    wxApplication is responsible for configuring the logger with the
+    appropriate handlers.
+
+    We are currently reraising the exception, so that wing can notice
+    in the default exception handler.
     """
+
+    logging.basicConfig()
+
     try:
         application = wxApplication(sys.argv)
-    except:
-        ShowExceptionDialog("Unhandled Exception", "During initialization, "+\
-         "the following exception occurred:")
-        raise 
-        
-    try:
         application.MainLoop()
+        application.OnTerminate()
     except:
-        ShowExceptionDialog("Unhandled Exception", "During MainLoop(), "+\
-         "the following exception occurred:")
+        logging.exception("Unhandled exception in Chandler")
+        ShowExceptionDialog("Chandler", "Chandler encountered an unexpected problem and had to shut down.")
         raise
 
-    application.OnTerminate()
-
+        
 def ShowExceptionDialog(title, message):
     """
-    Show the details of the current exception, in a modal dialog box.
+    A note to the user that Chandler has crashed.
     """
     from wxPython.wx import wxMessageDialog, wxOK, wxICON_INFORMATION
-    import traceback
-    (excType, excValue, excTraceback) = sys.exc_info()
-    messageLines = [message + "\n\n"]
-    messageLines.append("Exception type: " + excType.__name__ + "\n")
-    messageLines.append("Exception value: " + excValue.__str__() + "\n")
-    messageLines.append("\nTraceback:\n")
-    messageLines += traceback.format_tb(excTraceback)
-    completeMessage = "".join(messageLines)
-    dlg = wxMessageDialog(None, completeMessage, title, 
-     wxOK | wxICON_INFORMATION)
+    dlg = wxMessageDialog(None, message, title,
+                          wxOK | wxICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
 

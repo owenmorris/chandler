@@ -5,7 +5,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, string
+import os, string, logging
 
 from repository.schema.ParcelLoader import ParcelLoader
 from repository.schema.Parcel import Parcel
@@ -17,9 +17,8 @@ def LoadDependency(repository, uri, searchPath):
 
     # Look for the parcel anywhere on the path
     file = FindParcelFile(uri, searchPath)
-    if file:
-        loader = ParcelLoader(repository, LoadDependency, searchPath)
-        loader.load(file, uri)
+    loader = ParcelLoader(repository, LoadDependency, searchPath)
+    loader.load(file, uri)
 
 def FindParcelFile(uri, searchPath):
     path = ""
@@ -35,7 +34,14 @@ def SearchFile(filePath, searchPath):
         candidate = os.path.join(path, filePath)
         if os.path.exists(candidate):
             return os.path.abspath(candidate)
-    return None
+    raise IOException, "File not found %s" % filePath
+
+def WalkParcels(parcel):
+    yield parcel
+    for part in parcel:
+        if isinstance(part, Parcel):
+            for subparcel in WalkParcels(part):
+                yield subparcel
 
 def LoadParcels(searchPath, repository):
 
@@ -52,8 +58,12 @@ def LoadParcels(searchPath, repository):
                     try:
                         path = os.path.join(root, 'parcel.xml')
                         loader.load(path, uri)
-                    except Exception, e:
+                    except:
                         repository.cancel()
-                        print "Failed to load parcel %s with %s" %(path, e)
+                        logging.exception("Failed to load parcel %s" % path)
                     else:
                         repository.commit()
+
+    root = repository.find("//Parcels")
+    for parcel in WalkParcels(root):
+        parcel.startupParcel()

@@ -7,15 +7,15 @@ import logging
 import threading
 from AgentThread import AgentThread
 
-def MakeLog():
-    log = logging.getLogger('Agent')
-    hdlr = logging.FileHandler('agent.log')
-    hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-    log.addHandler(hdlr)
-    log.setLevel(logging.DEBUG)
-    return log
-
 class Agent:
+
+    # We only need to add the handler/formatter to the 'Agent' logger once
+    _log = logging.getLogger('Agent')
+    _hdlr = logging.FileHandler('agent.log')
+    _formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    _hdlr.setFormatter(_formatter)
+    _log.addHandler(_hdlr)
+    _log.setLevel(logging.DEBUG)
 
     def __init__(self, agentID):
         """ initialize the dynamic state of the agent """
@@ -24,7 +24,7 @@ class Agent:
         self.isRunning = False
         self.thread = AgentThread(self)
 
-        self.log = MakeLog()
+        self.log = logging.getLogger('Agent')
         self.__lock = threading.Lock()
 
     def Idle(self):

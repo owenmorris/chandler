@@ -145,7 +145,8 @@ class wxApplication (wxApp):
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the repository instance
     self.argv                     the command line arguments of the process
-        """
+    self.log                      the logger for the application
+    """
 
     def __init__(self, argv=[]):
         """
@@ -156,6 +157,7 @@ class wxApplication (wxApp):
         """
 
         self.argv = argv
+        self.log = logging.getLogger("application")
 
         # Install a custom displayhook to keep Python from setting the global
         # _ (underscore) to the value of the last evaluated expression.  If 
@@ -383,7 +385,6 @@ class wxApplication (wxApp):
         self.repository.commit(purge=True)
         self.repository.close()
         del self.applicationResources
-
         logging.shutdown()
 
     def OpenStartingURL(self):

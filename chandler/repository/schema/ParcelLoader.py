@@ -3,6 +3,7 @@
     @@@ Known Issues (most require resolving data model and repository issues)
     (1) Special case for attributes (set the alias)
     (2) Special case for inverseAttribute and displayAttribute
+    (3) Empty list, None types not handled properly
 """
 
 __revision__  = "$Revision$"
@@ -12,6 +13,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax
 import xml.sax.handler
+import logging
 
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
