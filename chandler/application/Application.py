@@ -93,8 +93,8 @@ class Application(Persistent):
             pageLocation = 'application' + os.sep + 'welcome.html'
             splash = SplashScreen(None, _("Welcome to Chandler"),
                                   pageLocation, false)
-            if splash.ShowModal():
-                splash.Destroy()
+            splash.ShowModal()
+            splash.Destroy()
             
     def __setstate__(self, dict):
         """
@@ -366,8 +366,8 @@ class wxApplication (wxApp):
         pageLocation = 'application' + os.sep + 'welcome.html'
         splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
                               pageLocation, useTimer=false)
-        if splash.ShowModal():
-            splash.Destroy()
+        splash.ShowModal()
+        splash.Destroy()
 
     def OnPreferences(self, event):
         """
@@ -380,6 +380,7 @@ class wxApplication (wxApp):
         if result == wxID_OK:
             dialog.SavePreferences()
             self.HandleSystemPreferences()
+        dialog.Destroy()
 
     def LoadParcelsInDirectory (self, baseDir, relDir=""):
         """
@@ -490,11 +491,13 @@ class wxApplication (wxApp):
             except:
                 message = _("Couldn't export repository to %s") % (filePath)
                 wxMessageBox(message)
+        fileDialog.Destroy()
 
     def OnImportItems(self, event):
         fileDialog = wxFileDialog(self.wxMainFrame, _("Select file to import from:"), "", "", "*.*", wxOPEN)
         if fileDialog.ShowModal() == wxID_OK:
             filePath = fileDialog.GetPath()
+        fileDialog.Destroy()
         try:
             ImportExport().Import(filepath=filePath)
             # tell the current view to redraw

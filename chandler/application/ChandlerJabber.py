@@ -555,7 +555,8 @@ class JabberClient:
                 self.connection.send(Presence(to=who, type='unsubscribe'))
             
             self.NotifyPresenceChanged(who)
-                
+        
+        self.confirmDialog.Destroy()
         self.confirmDialog = None
         
                         

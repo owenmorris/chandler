@@ -307,6 +307,7 @@ class ContactsSingleContactView(wxScrolledWindow):
                         
                 self.contactAttributeList.RenderWidgets()
          
+        dialog.Destroy()
         self.ResizeWidgets()        
 
     # scroll to the bottom of the display area if necessary

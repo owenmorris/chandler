@@ -372,6 +372,8 @@ class TemplateDialog(ContactsDialog):
             self.templatesListBox.SetSelection(index, true)
             self.SetSelectIndex(index)
             
+        dialog.Destroy()
+            
     def DeleteSelectedTemplate(self, event):
         templateName = self.templateList[self.templateSelectIndex]
         del self.templateList[self.templateSelectIndex]

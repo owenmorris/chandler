@@ -260,9 +260,8 @@ class wxCalendarViewer(wxViewerParcel):
     def OnAboutCalendar(self, event):
         pageLocation = self.model.path + os.sep + "AboutCalendar.html"
         infoPage = SplashScreen(self, _("About Calendar"), pageLocation, false)
-        if infoPage.ShowModal():
-            infoPage.Destroy()
-
+        infoPage.ShowModal()
+        infoPage.Destroy()
 
     # Navigation event handlers
 

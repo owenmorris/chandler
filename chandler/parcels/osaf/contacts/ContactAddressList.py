@@ -406,6 +406,8 @@ class ContactAddressList(wxPanel):
         if result == wxID_OK:
             addressLabel = dialog.GetSelection()
             self.AddNewAddress(addressLabel, true)
+        
+        dialog.ShowModal()
     
     # test if the first part of an address item has its default value
     def HasDefaultValue(self, contactItem):

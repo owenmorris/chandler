@@ -390,7 +390,9 @@ class wxRosterViewer(wxViewerParcel):
                 contactsParcel.AddContactWithMethod(name, 'jabberID', 'Jabber ID', jabberID)
             
             app.jabberClient.RequestSubscription(jabberID, true)
-    
+
+        dialog.Destroy()
+            
     # delete the subscription of the current entry
     def DeleteSubscription(self, event):
         app.jabberClient.RequestSubscription(self.jabberID, false)

@@ -620,6 +620,7 @@ class wxContactsViewer(wxViewerParcel):
             contact.remoteAddress = None
             repository = Repository()
             repository.AddThing(contact)
+        dialog.Destroy()
         
     # menu command handlers       
     
@@ -651,6 +652,7 @@ class wxContactsViewer(wxViewerParcel):
             contactType = dialog.GetSelection()
             self.AddNewContact(contactType)
             self.model.lastContactType = contactType
+        dialog.Destroy()
          
     # add a new address to the current contact, by telling the content view about it        
     def AddNewAddress(self, event):
@@ -672,6 +674,7 @@ class wxContactsViewer(wxViewerParcel):
         result = dialog.ShowModal()
         if result == wxID_OK:
             dialog.UpdateTemplate()
+        dialog.Destroy()
 
     # add a new view by bringing up the edit view dialog
     def AddNewViewCommand(self, event):
@@ -707,6 +710,7 @@ class wxContactsViewer(wxViewerParcel):
 
             # finally, go to the new view
             app.wxMainFrame.GoToURL(url, true)
+        dialog.Destroy()
             
    # edit the current ciew by bringing up the edit view dialog
     def EditViewCommand(self, event):
@@ -738,6 +742,8 @@ class wxContactsViewer(wxViewerParcel):
             if originalViewInfo == self.currentViewInfo:
                 self.currentViewInfo = None
                 app.wxMainFrame.GoToURL(url)
+        
+        dialog.Destroy()
                 
     # delete the current view
     def DeleteViewCommand(self, event):
@@ -750,8 +756,8 @@ class wxContactsViewer(wxViewerParcel):
     def AboutContactsCommand(self, event):
         pageLocation = pageLocation = self.model.path + os.sep + "AboutContacts.html"
         infoPage = SplashScreen(self, "About Contacts", pageLocation, false)
-        if infoPage.ShowModal():
-            infoPage.Destroy()
+        infoPage.ShowModal()
+        infoPage.Destroy()
 
     # command to change the image associated with a contact
     def ChangeContactImage(self, event):
