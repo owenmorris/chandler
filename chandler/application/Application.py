@@ -9,6 +9,8 @@ from wxPython.wx import *
 from wxPython.xrc import *
 from wx import py
 
+from model.schema.DomainSchemaLoader import DomainSchemaLoader
+
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
@@ -286,18 +288,32 @@ class wxApplication (wxApp):
             self.repository.create()
         else:
             self.repository.open(create=True)
-            
+
+        # Load the repository foundations
+        # @@@ This repository loading code should not be embedded in the
+        #     application.
         if not self.repository.find('//Schema'):
-            self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
-                                                  "packs", "schema.pack"))
+            self.repository.loadPack(os.path.join(self.chandlerDirectory,
+                                                  "model", "packs",
+                                                  "schema.pack"))
+
+        # Load individual data parcels
+        # @@@ This should not be hardcoded, but part of a larger
+        #     parcel loading framework.
+        loader = DomainSchemaLoader(self.repository)
+
+        # Load the calendar parcel
         if not self.repository.find('//Calendar'):
-            self.repository.loadPack(os.path.join(self.chandlerDirectory, "parcels", 
-                                                  "OSAF", "calendar", "model", 
-                                                  "calendar.pack"))
-       
+            calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
+                                        'OSAF', 'calendar', 'model',
+                                        'calendar.xml')
+            loader.load(calendarPath)
+
+        # Load the contacts parcel
         if not self.repository.find('//Contacts'):
-            self.repository.loadPack(os.path.join(self.chandlerDirectory, "parcels", 
-                                                  "OSAF", "contacts", "model", 
+            self.repository.loadPack(os.path.join(self.chandlerDirectory,
+                                                  "parcels", "OSAF",
+                                                  "contacts", "model", 
                                                   "contacts.pack"))
 
         """ Load the parcels """
