@@ -321,11 +321,6 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         self.view.refresh()
 
         totalDownloaded = 0
-        foundInvitation = False
-        sharingInvitations = {}
-        sharingHeader = sharing.getChandlerSharingHeader()
-        div = constants.SHARING_DIVIDER
-
         for msg in msgs:
             messageText = msgs[msg]['RFC822']
             uid  = long(msgs[msg]['UID'])
@@ -336,13 +331,6 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
                 flags = []
 
             messageObject = email.message_from_string(messageText)
-
-            if messageObject[sharingHeader] is not None:
-                url, collectionName = messageObject[sharingHeader].split(div)
-                fromAddress = messageObject['From']
-                sharingInvitations[uid] = (url, collectionName, fromAddress)
-                foundInvitation = True
-                continue
 
             repMessage = message.messageObjectToKind(self.getCurrentView(),
                                                      messageObject, messageText)
@@ -363,17 +351,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.downloadedStr = _("%d messages downloaded to Chandler") % (totalDownloaded)
 
-        if foundInvitation:
-            uids = ','.join(map(str, sharingInvitations.keys()))
-
-            return self.proto.setFlags(uids, ['\\Deleted'], uid=True
-                              ).addCallback(self.__expunge
-                              ).addCallback(self.__disconnect
-                              ).addCallback(self.__processSharingRequests,
-                                            sharingInvitations.values()
-                              ).addErrback(self.catchErrors)
-        else:
-            self.__disconnect()
+        self.__disconnect()
 
     def _viewCommitSuccess(self):
         """
@@ -392,20 +370,6 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
             self.printCurrentView("_expunge")
 
         return self.proto.expunge()
-
-    def __processSharingRequests(self, result, invites):
-        if __debug__:
-            self.printCurrentView("_processSharingRequests")
-
-        for invite in invites:
-            url, collectionName, fromAddress = invite
-
-            if __debug__:
-                s = "url: %s collectionName: %s fromAddress: %s" % (url, collectionName, fromAddress)
-                self.log.info(s)
-
-            sharing.receivedInvitation(self.getCurrentView(),
-                                       url, collectionName, fromAddress)
 
     def __getLastUID(self):
         return self.account.messageDownloadSequence

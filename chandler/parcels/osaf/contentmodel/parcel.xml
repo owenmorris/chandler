@@ -368,6 +368,14 @@
       <initialValue />
     </Attribute>
 
+    <Attribute itsName="invitees">
+        <description value="The people who are being invited to share in this item; filled in when the user types in the DV's 'invite' box, then cleared on send (entries copied to the share object)." />
+        <issues value="Bad that we have just one of these per item collection, though an item collection could have multiple shares post-0.5" />
+        <type itemref="mail:EmailAddress" />
+        <cardinality value="list" />
+        <initialValue />
+        <inverseAttribute itemref="mail:EmailAddress/inviteeOf" />
+    </Attribute>
     <!-- redirections -->
 
     <Attribute itsName="about">
@@ -401,6 +409,11 @@
         <includePolicy value="byCloud"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/contentsOwner"/>
+      <Endpoint itsName="invitees">
+        <attribute value="invitees"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/invitees"/>
     </Cloud>
     <clouds alias="default" itemref="cm:ItemCollection/DefaultCloud"/>
 

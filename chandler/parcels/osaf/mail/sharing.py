@@ -28,31 +28,11 @@ TO DO:
  1. Need to encode Chandler Sharing Header for Transport to account from i18n collection names
 """
 
-
-def receivedInvitation(view, url, collectionName, fromAddress):
-    """
-       Calls osaf.framework.sharing.anounceSharingUrl.
-
-       @param url: The url to share
-       @type url: C{str}
-
-       @param collectionName: The name of the collection
-       @type collectionName: C{str}
-
-       @param fromAddress: The email address of the person sending the invite
-       @type: C{str}
-    """
-    #XXX: Theses values will be unicode decoded from base64
-    assert isinstance(url, str), "URL must be a String"
-    assert isinstance(collectionName, str), "collectionName must be a String"
-    assert isinstance(fromAddress, str), "fromAddress  must be a String"
-
-    chandlerSharing.Sharing.announceSharingInvitation(view, url.strip(), \
-                                                      collectionName.strip(), \
-                                                      fromAddress.strip())
-
-def sendInvitation(url, collectionName, sendToList):
+def sendInvitation(repository, url, collectionName, sendToList):
     """Sends a sharing invitation via SMTP to a list of recipients
+
+       @param repository: The repository we're using
+       @type repository: C{Repository}
 
        @param url: The url to share
        @type url: C{str}
@@ -63,7 +43,7 @@ def sendInvitation(url, collectionName, sendToList):
        @param sendToList: List of email addresses to invite
        @type: C{list}
     """
-    SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
+    SMTPInvitationSender(repository, url, collectionName, sendToList).sendInvitation()
 
 
 class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
@@ -73,7 +53,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
     def __init__(self, repository, url, collectionName, sendToList, account=None):
 
         #XXX: Do not assume a str should be unicode
-        assert isinstance(url, str), "URL must be a String"
+        assert isinstance(url, basestring), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
 

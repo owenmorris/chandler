@@ -75,6 +75,11 @@
     <destinationBlockReference itemref="doc:EditAllDay"/>
   </BlockEvent>
   
+  <BlockEvent itsName="ToggleSharingActive">
+    <blockName>ToggleSharingActive</blockName>
+    <destinationBlockReference itemref="doc:EditSharingActive"/>
+  </BlockEvent>
+  
   <BlockEvent itsName="ReminderChanged">
     <blockName>ReminderChanged</blockName>
     <destinationBlockReference itemref="doc:EditReminder"/>
@@ -84,7 +89,12 @@
     <blockName>TransparencyChanged</blockName>
     <destinationBlockReference itemref="doc:EditTransparency"/>
   </BlockEvent>
-  
+
+  <BlockEvent itsName="AcceptShare">
+    <blockName>AcceptShare</blockName>
+    <destinationBlockReference itemref="doc:AcceptShareButton"/>
+  </BlockEvent>
+
   <!--
     Layout blocks
   -->
@@ -127,7 +137,7 @@
   <doc:DetailTrunkSubtree itsName="NoteSubtree">
     <key itemref="content:Note"/>
     <rootBlocks itemref="doc:MarkupBar"/>
-     <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:HeadlineArea"/>
     <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
 
@@ -141,14 +151,18 @@
   <doc:DetailTrunkSubtree itsName="MailSubtree">
     <key itemref="mail:MailMessage"/>
     <rootBlocks itemref="doc:ToMailArea"/>
-    <rootBlocks itemref="doc:FromArea"/><!-- Shared with Item Collection-->
+    <rootBlocks itemref="doc:FromArea"/>
+    <rootBlocks itemref="doc:AcceptShareButton"/>
   </doc:DetailTrunkSubtree>
 
   <!-- Item Collection -->
   <doc:DetailTrunkSubtree itsName="ItemCollectionSubtree">
     <key itemref="content:ItemCollection"/>
-    <rootBlocks itemref="doc:ToCollectionArea"/>
-    <rootBlocks itemref="doc:FromArea"/><!-- Shared with Mail -->
+    <rootBlocks itemref="doc:ParticipantsArea"/>
+    <rootBlocks itemref="doc:InviteArea"/>
+    <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:SharingActiveArea"/>
+    <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
 
   <!-- Contact -->
@@ -266,6 +280,39 @@
     <minimumSize>100, 24</minimumSize>
   </EditText>
 
+  <Button itsName="AcceptShareButton"
+                     itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
+    <blockName value="AcceptShareButton"/>
+    <title>Accept this sharing invitation</title>
+    <buttonKind>Text</buttonKind>
+    <position>0.88</position>
+    <stretchFactor>0.0</stretchFactor>
+    <size>80,30</size>
+    <minimumSize>220,24</minimumSize>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <event itemref="doc:AcceptShare"/>
+  </Button>
+
+  <StaticText itsName="FromString">
+    <blockName value="FromString"/>
+    <title>from</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="FromEditField"
+            itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
+    <blockName value="FromEditField"/>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <readOnly>True</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>100, 24</minimumSize>
+  </EditText>
+
   <ContentItemDetail itsName="ContactFullNameArea"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ContactFullNameArea"/>
@@ -328,20 +375,20 @@
     <minimumSize>100, 24</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="ToCollectionArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName value="ToArea"/>
-    <childrenBlocks itemref="doc:ToString2"/>
-    <childrenBlocks itemref="doc:ToCollectionEditField"/>
+  <ContentItemDetail itsName="ParticipantsArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.SharingArea">
+    <blockName value="ParticipantsArea"/>
+    <childrenBlocks itemref="doc:ParticipantsString"/>
+    <childrenBlocks itemref="doc:ParticipantsTextField"/>
     <!-- Attributes -->
     <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itsName="ToString2">
-    <blockName value="ToString2"/>
-    <title>to</title>
+  <StaticText itsName="ParticipantsString">
+    <blockName value="ParticipantsString"/>
+    <title>sharers</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -349,15 +396,80 @@
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
-  <EditText itsName="ToCollectionEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.ToCollectionEditField">
-    <blockName value="ToCollectionEditField"/>
+  <EditText itsName="ParticipantsTextField"
+            itemClass="osaf.framework.blocks.detail.Detail.ParticipantsTextField">
+    <blockName value="ParticipantsTextField"/>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>MultiLine</lineStyleEnum>
+    <readOnly>True</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>100, 48</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="InviteArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+    <blockName value="FromArea"/>
+    <childrenBlocks itemref="doc:InviteString"/>
+    <childrenBlocks itemref="doc:InviteEditField"/>
+    <!-- Attributes -->
+    <position>0.3</position>
+    <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+
+  <StaticText itsName="InviteString">
+    <blockName value="InviteString"/>
+    <title>invite</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="InviteEditField"
+            itemClass="osaf.framework.blocks.detail.Detail.InviteEditField">
+    <blockName value="InviteEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
   </EditText>
+
+
+  <ContentItemDetail itsName="SharingActiveArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.SharingArea">
+    <blockName value="FromArea"/>
+    <childrenBlocks itemref="doc:SharingActiveString"/>
+    <childrenBlocks itemref="doc:EditSharingActive"/>
+    <!-- Attributes -->
+    <position>0.6</position>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+
+  <StaticText itsName="SharingActiveString">
+    <blockName value="SharingActiveString"/>
+    <title>active</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <CheckBox itsName="EditSharingActive"
+            itemClass="osaf.framework.blocks.detail.Detail.EditSharingActive">
+    <blockName value="EditSharingActive"/>
+    <!-- Attributes -->
+    <title></title>
+    <size>70,24</size>
+    <minimumSize>70,24</minimumSize>
+    <border>0.0, 10.0, 0.0, 0.0</border>
+    <event itemref="doc:ToggleSharingActive"/>
+    <alignmentEnum>alignMiddleLeft</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </CheckBox>
 
   <ContentItemDetail itsName="HeadlineArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">

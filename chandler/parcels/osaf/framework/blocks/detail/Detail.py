@@ -19,11 +19,14 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.Notes as Notes
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
+import osaf.mail.constants as MailConstants
+import osaf.mail.sharing as MailSharing
 from repository.item.Item import Item
 from repository.item.Query import KindQuery
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import wx
+import sets
 
 """
 Detail.py
@@ -157,7 +160,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         if item is not None:            
             if isinstance(item, ItemCollection.ItemCollection):
                 # It's a collection: label should read "Send", or "Send to new" if it's already shared.
-                enabled = True
+                enabled = len(item.invitees) > 0
                 try:
                     renotify = Sharing.isShared (item)
                 except AttributeError:
@@ -174,7 +177,8 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                 if dateSent is not None:
                     label = _("Sent")
                 else:
-                    enabled = True
+                    # Not sent yet - do we have valid addressees?
+                    enabled = len(item.toAddress) > 0
         
         event.arguments['Enable'] = enabled    
 
@@ -208,7 +212,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         message = None
         if isinstance (item, ItemCollection.ItemCollection):
             try:
-                whoTo = item.sharees
+                whoTo = item.invitees
             except AttributeError:
                 whoTo = []
             if len (whoTo) == 0:
@@ -695,7 +699,8 @@ class EditToAddressTextAttribute (EditTextAttribute):
     """
     def saveAttributeFromWidget(self, item, widget, validate):
         if validate:
-            toFieldString = widget.GetValue()
+            toFieldString = widget.GetValue().strip('?')
+
     
             # parse the addresses and get/create/validate
             processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
@@ -745,13 +750,52 @@ class ToMailEditField (EditToAddressTextAttribute):
         # define the attribute to be used
         return 'toAddress'
 
-class ToCollectionEditField (EditToAddressTextAttribute):
+class SharingArea (DetailSynchronizedLabeledTextAttributeBlock):
+    """ an area visible only when the item (a collection) is shared """
+    def shouldShow (self, item):
+        return item is not None and Sharing.isShared(item)
+                
+class ParticipantsTextField (EditTextAttribute):
     """
-    'To' attribute of an ItemCollection, e.g. who it's shared with
+    'participants' attribute of an ItemCollection, e.g. who it's already been shared with.
+    Read only, at least for now.
+    """
+    def loadAttributeIntoWidget (self, item, widget):
+        share = Sharing.getShare(item)
+        if share is not None:
+            sharees = sets.Set(share.sharees)
+            sharees.add(share.sharer)
+            value = ", ".join([ str(sharee) for sharee in list(sharees) ])
+            widget.SetValue(value)
+
+    def saveAttributeFromWidget (self, item, widget, validate):  
+        # It's read-only, but we have to override this method.
+        pass
+    
+class InviteEditField (EditToAddressTextAttribute):
+    """
+    'invitees' attribute of an ItemCollection, e.g. who we're inviting to share it.
     """
     def whichAttribute(self):
         # define the attribute to be used
-        return 'who'
+        return 'invitees'
+
+class EditSharingActive (DetailSynchronizer, ControlBlocks.CheckBox):
+    """
+      "Sharing Active" checkbox on item collections
+    """
+    def loadAttributeIntoWidget(self, item, widget):
+        if item is not None:
+            share = Sharing.getShare(item)
+            if share is not None:
+                widget.SetValue(share.active)
+    
+    def onToggleSharingActiveEvent (self, event):
+        item = self.selectedItem()
+        if item is not None:
+            share = Sharing.getShare(item)
+            if share is not None:
+                share.active = self.widget.GetValue() == wx.CHK_CHECKED
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
@@ -905,6 +949,48 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
         whoString = ', '.join(whoNames)
         widget.SetValue(whoString)
 
+def _getSharingHeaderInfo(mailItem):
+    """ Return the Chandler sharing header's values, split into a handy list. Throws if not present. """
+    sharingHeader = MailSharing.getChandlerSharingHeader()
+    divider = MailConstants.SHARING_DIVIDER
+    urlAndCollectionName = mailItem.chandlerHeaders[sharingHeader].split(divider)            
+    return urlAndCollectionName 
+
+class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
+    def shouldShow (self, item):
+        showIt = False
+        if item is not None:
+            try:
+                _getSharingHeaderInfo(item)
+            except:       
+                pass
+            else:
+                showIt = True
+        # print "AcceptShareButton.shouldShow = %s" % showIt
+        return showIt
+    
+    def onAcceptShareEvent(self, event):
+        url, collectionName = _getSharingHeaderInfo(self.selectedItem())
+        wx.Yield()
+        share = Sharing.newInboundShare(self.itsView, url)
+        share.get()
+        itemCollection = share.contents
+        # @@@ select the new collection?
+    
+    def onAcceptShareEventUpdateUI(self, event):
+        # If we're already sharing it, we should disable the button and change the text.
+        enabled = True
+        try:
+            url, collectionName = _getSharingHeaderInfo(item)
+            existingSharedCollection = Sharing.findMatchingShare(self.itsView, url)
+        except:
+            enabled = True
+        else:
+            if existingSharedCollection is not None:
+                self.widget.SetValue(_("(Already sharing this collection)"))
+                enabled = False
+        event.arguments['Enable'] = enabled
+
 """
 Classes to support CalendarEvent details
 """
@@ -1046,7 +1132,6 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
             else:
                 # @@@BJS Assumes the menu item is of the form "nn Minutes"
                 item.reminderDelta = DateTime.DateTimeDeltaFrom(minutes=int(reminderChoice.split(' ', 2)[0]))
-
 
 class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
     """

@@ -729,6 +729,13 @@
             <initialValue />
         </Attribute>
 
+        <Attribute itsName="inviteeOf">
+            <displayName>Invitee Of</displayName>
+            <description>List of collections that the user is about to be invited to share with.</description>
+            <cardinality>list</cardinality>
+            <type itemref="content:ItemCollection"/>
+            <inverseAttribute itemref="content:ItemCollection/invitees"/>
+        </Attribute>
 
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="emailAddress">

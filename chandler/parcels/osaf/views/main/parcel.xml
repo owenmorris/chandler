@@ -351,12 +351,6 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
-  <BlockEvent itsName="ResendSharingInvitations">
-    <blockName>ResendSharingInvitations</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-  
   <BlockEvent itsName="ShareCollection">
     <blockName>ShareCollection</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -489,7 +483,6 @@
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
-    <childrenBlocks itemref="doc:ResendSharingInvitationsItem"/>
     <childrenBlocks itemref="doc:ShareToolItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:MimeTestItem"/>
@@ -1060,13 +1053,6 @@
     <title>Subscribe to Collection...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="ResendSharingInvitationsItem">
-    <blockName>ResendSharingInvitationsItem</blockName>
-    <title>Resend Sharing Invitations</title>
-    <event itemref="doc:ResendSharingInvitations"/>
-    <helpString>Resend the invitations to share this collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">
@@ -1652,7 +1638,8 @@
 
   <BlockEvent itsName="ReminderTime">
     <blockName>ReminderTime</blockName>
-    <destinationBlockReference itemref="doc:ReminderTimer"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>ReminderTimer</dispatchToBlockName>
   </BlockEvent>
 
   <contentModel:ItemCollection itsName="ReminderItems">
@@ -1662,6 +1649,7 @@
 
   <Timer itsName="ReminderTimer"
          itemClass="osaf.views.main.Main.ReminderTimer">
+    <blockName>ReminderTimer</blockName>
     <event itemref="doc:ReminderTime"/>
     <contents itemref="doc:ReminderItems"/>
   </Timer> 

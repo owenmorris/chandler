@@ -171,13 +171,13 @@ class ReminderDialog(wx.Dialog):
         dismissSelection = event.GetEventObject() is self.reminderControls['dismiss']
         for reminder in self.getListItems(dismissSelection):
             del reminder.reminderTime
-        wx.getApp().repository.view.commit()
+        wx.GetApp().repository.view.commit()
 
     def onSnooze(self, event):
         """ Snooze the selected reminders for five minutes """
         for reminder in self.getListItems(True):
             reminder.reminderTime = mx.DateTime.now() + mx.DateTime.RelativeDateTime(minutes=5)
-        wx.getApp().repository.view.commit()
+        wx.GetApp().repository.view.commit()
     
     def getListItems(self, selectedOnly):
         """ Provide iteration over ListCtrl items """

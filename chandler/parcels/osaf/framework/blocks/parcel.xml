@@ -1379,6 +1379,16 @@
       <description>The event we'll send when we go off</description>
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Timer/DefaultCloud/event"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:Timer/DefaultCloud"/>
   </Kind>
 
   <!-- Presentation Style Kind, used by Attribute Editor blocks -->

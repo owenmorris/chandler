@@ -211,55 +211,66 @@ class MainView(View):
         """
         itemCollection = event.arguments ['item']
 
+        # Make sure we've got a webdav account
+        while not Sharing.isWebDAVSetUp(self.itsView):
+            if Util.okCancel(wx.GetApp().mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not AccountPreferences.ShowAccountPreferencesDialog( \
+                 wx.GetApp().mainFrame, view=self.itsView):
+                    return
+            else:
+                return
+        webdavAccount = Sharing.getWebDAVAccount(self.itsView)
+
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
 
         # show status
         self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
-    
-        # check that it's not already shared, and we have the sharing account set up.
-        url = self.SharingURL (itemCollection)
-
-        # build list of invitees.
-        if len (self.SharingInvitees (itemCollection)) == 0:
-            self.setStatusMessage (_("No sharees!"))
+                
+        # Get or make a share for this item collection
+        share = Sharing.getShare(itemCollection) or Sharing.newOutboundShare(self.itsView, itemCollection, account=webdavAccount)
+        
+        # Copy the invitee list into the share's list. As we go, collect the addresses we'll notify.
+        if len (itemCollection.invitees) == 0:
+            self.setStatusMessage (_("No invitees!"))
             return
-
+        inviteeStringsList = []
+        for invitee in itemCollection.invitees:
+            inviteeEmailAddress = invitee.emailAddress
+            inviteeStringsList.append(inviteeEmailAddress)
+            inviteeContact = Contacts.Contact.getContactForEmailAddress(self.itsView, inviteeEmailAddress)
+            if not inviteeContact in share.sharees:
+                share.sharees.append(inviteeContact)
 
         # change the name to include "Shared", but first record the
         # original name in case webdav publishing fails and we need to
         # restore it
         originalName = itemCollection.displayName
-        if not "Shared" in itemCollection.displayName:
+        if not itemCollection.displayName.endswith(_(" (Shared)")):
             itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
 
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
         try:
-            Sharing.putCollection(itemCollection, url)
+            share.create()
+            share.put()
         except:
             # An error occurred during webdav; restore the collection's name
             itemCollection.displayName = originalName
             raise
 
         # Send out sharing invites
-        inviteeStringsList = self.SharingInvitees (itemCollection)
         self.setStatusMessage (_("inviting %s") % inviteeStringsList)
-        self.SendSharingInvitations (itemCollection, url)
+        MailSharing.sendInvitation(itemCollection.itsView.repository, share.conduit.getLocation(), 
+                                   itemCollection.displayName, inviteeStringsList)
+        
+        # Forget the invitees, now that we've successfully invited them
+        itemCollection.invitees = []
 
         # Done
         self.setStatusMessage (_("Sharing initiated."))
-
-    def SharingInvitees (self, itemCollection):
-        # return the list of sharing invitees
-        inviteeStringsList = []
-        try:
-            invitees = itemCollection.sharees
-        except AttributeError:
-            invitees = []
-        for entity in invitees:
-            inviteeStringsList.append (entity.emailAddress)
-        return inviteeStringsList
 
     # Test Methods
 
@@ -430,23 +441,6 @@ class MainView(View):
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
 
-    def onResendSharingInvitationsEvent (self, event):
-        """
-          Resend the sharing invitations for the selected collection.
-        The "Test | Resend Sharing Invitations" menu item
-        """
-        itemCollection = self.getSidebarSelectedCollection ()
-        url = self.SharingURL (itemCollection)
-        self.SendSharingInvitations (itemCollection, url)
-
-    def onResendSharingInvitationsEventUpdateUI (self, event):
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            isShared = Sharing.isShared (collection)
-            event.arguments ['Enable'] = isShared
-        else:
-            event.arguments ['Enable'] = False
-
     def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Tests | Subscribe to collection..."
         Sharing.manualSubscribeToCollection()
@@ -470,7 +464,7 @@ class MainView(View):
         Update the menu to reflect the selected collection name
         """
         # Only enable if user has set their webdav account up
-        if not self.webDAVAccountIsSetup ():
+        if not Sharing.isWebDAVSetUp(self.itsView):
             event.arguments ['Enable'] = False
             return
 
@@ -498,7 +492,7 @@ class MainView(View):
         changed to the entire summary view's collection.
         The "Collection | Share collection " menu item
         """
-        if not self.webDAVAccountIsSetup():
+        if not Sharing.isWebDAVSetUp(self.itsView):
             # The user hasn't set up webdav, so let's bring up the accounts
             # dialog, with the webdav account selected
             """ @@@MOR: This needs to change...
@@ -508,9 +502,15 @@ class MainView(View):
 
             return
 
+        # @@@ BJS For 0.5, simplify sharing: if the Kind filter isn't All, switch it to All now.
+        """ This doesn't work:
+        navigationBarWidget = Block.findBlockByName('NavigationBar').widget
+        if not navigationBarWidget.GetToolState(0):
+            navigationBarWidget.ToggleTool(0, True)
+        """
+        
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
-
         self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
         
@@ -587,7 +587,7 @@ class MainView(View):
         self.setStatusMessage (_("Sharing synchronized."))
 
     def onSyncWebDAVEventUpdateUI (self, event):
-        accountOK = self.webDAVAccountIsSetup ()
+        accountOK = Sharing.isWebDAVSetUp(self.itsView)
         sharedCollections = self.sharedWebDAVCollections ()
         enable = accountOK and len (sharedCollections) > 0
         event.arguments ['Enable'] = enable
@@ -616,28 +616,6 @@ class MainView(View):
         self.setStatusMessage (_("Getting new Mail"))
         self.onGetNewMailEvent (event)
 
-    def SendSharingInvitations (self, itemCollection, url):
-        """
-          Send Sharing invitations to all invitees.
-        """
-        inviteeStringsList = self.SharingInvitees (itemCollection)
-        MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
-
-    def SharingURL (self, itemCollection):
-        # Return the url used to share the itemCollection.
-        if Sharing.isShared (itemCollection):
-            url = str (itemCollection.sharedURL)
-        else:
-            path = Sharing.getWebDAVPath()
-            if path:
-                url = "%s/%s" % (path, itemCollection.itsUUID)
-            else:
-                self.setStatusMessage (_("You need to set up the server and path in the account dialog!"),
-                                       alert=True)
-                return
-            url = url.encode ('utf-8')
-        return url
-
     def sharedWebDAVCollections (self):
         # return the list of all the shared collections
         # @@@DLD - use new query, once it can handle method calls, or when our item.isShared
@@ -658,10 +636,6 @@ class MainView(View):
                 if Sharing.isShared (collection):
                     collections.append (collection)
         return collections
-
-    def webDAVAccountIsSetup (self):
-        # return True iff the webDAV account is set up
-        return Sharing.isWebDAVSetUp(self.itsView)
         
 class ReminderTimer(Timer):
     def synchronizeWidget (self):
