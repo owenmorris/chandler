@@ -39,6 +39,7 @@ cvsModules = (
     'osaf/chandler/egenix-mx',
     'osaf/chandler/wxpython',
     'osaf/chandler/jabber-py',
+    'osaf/chandler/pychecker',
 )
 
 # If any of these modules have changed, scrub everything before building
@@ -49,6 +50,7 @@ scrubAllModules = {
     'osaf/chandler/egenix-mx':1,
     'osaf/chandler/wxpython':1,
     'osaf/chandler/jabber-py':1,
+    'osaf/chandler/pychecker':1,
 }
 
 mainModule = 'osaf/chandler/Chandler'
