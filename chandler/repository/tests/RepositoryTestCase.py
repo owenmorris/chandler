@@ -7,7 +7,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from unittest import TestCase
-import os, sys
+import logging, os, sys
 
 from repository.persistence.XMLRepository import XMLRepository
 from repository.util.Path import Path
@@ -15,8 +15,14 @@ from repository.util.Path import Path
 class RepositoryTestCase(TestCase):
 
     def setUp(self, ramdb=True):
-        self.ramdb = ramdb
         self.rootdir = os.environ['CHANDLERHOME']
+        handler = logging.FileHandler(os.path.join(self.rootdir,'chandler','chandler.log'))
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        handler.setFormatter(formatter)
+        root = logging.getLogger()
+        root.addHandler(handler)
+
+        self.ramdb = ramdb
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
