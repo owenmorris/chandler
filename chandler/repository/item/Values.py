@@ -423,7 +423,9 @@ class References(Values):
         
     def _unloadValue(self, name, other, otherName):
 
-        if not (other is None or other._isUUID()):
+        if other is not None:
+            if other._isUUID():
+                other = self._getRef(name, other)
             self._unloadRef(name, other, otherName)
             other._references._unloadRef(otherName, self._item, name)
 
