@@ -803,7 +803,10 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
             processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
             section.setAttributeValue('emailAddresses', validAddresses)
             for address in validAddresses:
-                address.fullName = section.fullName
+                try:
+                    address.fullName = section.fullName
+                except AttributeError:
+                    pass
             widget.SetValue (processedAddresses)
 
     def loadAttributeIntoWidget(self, item, widget):
