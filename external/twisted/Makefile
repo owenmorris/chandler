@@ -7,6 +7,11 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
+# Temporary, use to test Twisted with M2Crypto
+applym2:
+	cd $(SRC); \
+	patch -p0<../m2-patches
+
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
