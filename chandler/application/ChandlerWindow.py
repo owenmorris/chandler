@@ -399,6 +399,9 @@ class wxChandlerWindow(wxFrame):
         toggles the display state of the StatusBar.
         """
         self.model.buildMode = not self.model.buildMode
+        activeParcel = application.Application.app.wxMainFrame.activeParcel
+        activeParcel.UpdateProxies()
+        activeParcel.Refresh()
 
     def OnSplitterSashChanged(self, event):
         self.model.sashSize = event.GetSashPosition ()

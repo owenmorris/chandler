@@ -37,10 +37,6 @@ class WindowProxy (wxEvtHandler):
             EVT_POST_PAINT (self, self.OnPostPaint)
         self.children = []
     
-    def __del__ (self):
-        if isinstance(self.sizerItem, wxSizerItemPtr) and self.sizerItem.IsWindow():
-            self.sizerItem.GetWindow().PopEventHandler()
-        
     def CreateWindowProxies (self):
         if self.sizerItem:
             for child in self.sizerItem.GetChildren ():
@@ -51,11 +47,12 @@ class WindowProxy (wxEvtHandler):
                 else:
                     self.children.append (WindowProxy (child))
         
-    def DeleteChildren (self):
+    def DeepDelete (self):
         for child in self.children:
-            if isinstance(child.sizerItem, wxSizerPtr):
-                child.DeleteChildren()
-            del child
+            child.DeepDelete()
+        if isinstance(self.sizerItem, wxSizerItemPtr) and self.sizerItem.IsWindow():
+            self.sizerItem.GetWindow().PopEventHandler()
+        del self
         
     def OnLeftDown (self, event):
         self.sizerItem.GetWindow().CaptureMouse()
@@ -379,28 +376,34 @@ class wxViewerParcel(wxPanel):
           Override to do tasks that need to happen just before your parcel is
         displayed.
         """
+        app.wxMainFrame.activeParcel = self
         self.ReplaceViewParcelMenu()
         self.UpdateParcelMenus()
         self.UpdateActionsBar()
-        app.wxMainFrame.activeParcel = self
-        if app.wxMainFrame.model.buildMode:
-            self.proxyWindows = WindowProxy (self.GetSizer())
-            self.proxyWindows.CreateWindowProxies()
-    
-        self.model._SubscribeToNotifications(True)
+        self.UpdateProxies()
         
     def Deactivate(self):
         """
           Override to do tasks that need to happen just before your parcel is
         replaced with another.
         """
-        if hasattr (self, 'proxyWindow'):
-            self.proxyWindows.DeleteChildren()
-            del self.proxyWindows
+        self.DeleteProxies()
         self.model._SubscribeToNotifications(False)
         app.wxMainFrame.activeParcel = None
-         
-     
+
+    def UpdateProxies(self):
+        if app.wxMainFrame.model.buildMode:
+           if not hasattr (self, 'proxyWindow'):
+               self.proxyWindows = WindowProxy (self.GetSizer())
+               self.proxyWindows.CreateWindowProxies()
+        else:
+            self.DeleteProxies()
+
+    def DeleteProxies(self):
+        if hasattr (self, 'proxyWindows'):
+            self.proxyWindows.DeepDelete()
+            del self.proxyWindows
+
     def UpdateParcelMenus(self):
         """
           Updates menus to reflect parcel menu items other than the viewerParcelMenu.
