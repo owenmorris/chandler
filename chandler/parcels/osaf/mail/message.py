@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.contentmodel.mail.Mail as Mail
+import repository.util.UUID as UUID
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
 import email as email
@@ -347,6 +348,13 @@ def textToStr(text):
 
     return string
 
+def getMailMessage(UUID):
+    if not isinstance(UUID, UUID.UUID):
+        return None
+
+    mailMessageKind = Mail.MailParcel.getMailMessageKind()
+    return Mail.mailMessageKind.findUUID(UUID)
+
 
 def __populateParam(messageObject, param, var, type='String'):
 
@@ -377,7 +385,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
             keyArgs = {}
             if hasValue(addr[0]):
                 keyArgs['fullName'] = addr[0]
-                
+
             ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
 
             setattr(kindVar, attr, ea)
@@ -405,3 +413,4 @@ def __isString(var):
         return True
 
     return False
+
