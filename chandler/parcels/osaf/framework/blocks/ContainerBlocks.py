@@ -276,9 +276,9 @@ class wxTabbedContainer(wx.Notebook):
         event.Skip()
           
     def wxSynchronizeWidget(self):
-        counterpart = Globals.repository.find (self.blockUUID)
-        assert(len(counterpart.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
-        assert(len(counterpart.childrenBlocks) == len(counterpart.tabNames)), "Improper number of tabs"
+        block = Globals.repository.find (self.blockUUID)
+        assert(len(block.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
+        assert(len(block.childrenBlocks) == len(block.tabNames)), "Improper number of tabs"
         self.Freeze()
         for pageNum in range (self.GetPageCount()):
             page = self.GetPage(0)
@@ -288,14 +288,14 @@ class wxTabbedContainer(wx.Notebook):
             else:
                 self.RemovePage(0)
         index = 0
-        for child in counterpart.childrenBlocks:
+        for child in block.childrenBlocks:
             window = Globals.association[child.itsUUID]
-            self.AddPage(window, counterpart.tabNames[index])
+            self.AddPage(window, block.tabNames[index])
             if index == self.selectedTab:
-                counterpart.RegisterEvents(child)
+                block.RegisterEvents(child)
             else:
                 try:
-                    counterpart.UnregisterEvents(child)
+                    block.UnregisterEvents(child)
                 except NotSubscribed:
                     pass
             index += 1
@@ -303,7 +303,7 @@ class wxTabbedContainer(wx.Notebook):
         self.Thaw()
 
     def __del__(self):
-        del Globals.association [self.counterpartUUID]
+        del Globals.association [self.blockUUID]
         
 
 class TabbedContainer(RectangularChild):
