@@ -1,0 +1,351 @@
+---------------------------------
+An Overview of Chandler and Spike
+---------------------------------
+
+Five Layers
+===========
+
+My current vision of Spike's architecture consists of five layers, each of
+which should be independently testable.  Modules in higher layers may import
+from modules in lower layers, but not the other way around.
+
+Information flow between layers is always "commands down, events up".  This
+means that a given layer may send commands to objects from lower layers,
+and may send event notifications to objects in higher layers -- assuming that
+an object in the higher layer requested the notification.  (Because that's
+the only way an object in a lower layer can know that a given higher-layer
+object exists.)
+
+In general, it is desirable to have as little knowledge as possible flow from
+one layer to another, in either direction, and it's also desirable to have
+commands and events only travel between *adjacent* layers whenever possible,
+minimizing interdependencies that make testing more complicated and don't
+adequately protect code in one layer from changes in another.
+
+In order from "highest to lowest", Spike's (planned) five layers are the
+presentation, interaction, storage/system, domain model, and modelling layers:
+
+Presentation Layer
+    This layer is responsible for making connections between the interaction
+    model and the GUI (wxPython).  For a given interaction model or domain
+    model object, the presentation layer knows what widgets should represent
+    them, and how to map GUI events into interaction commands, and how to
+    map interaction and domain-level events into GUI operations.
+
+    In Chandler today, this layer does not exist; its responsibilities are
+    folded into the interaction model layer, which makes it impossible to test
+    interaction-level operations without involving wxPython.  Ideally in Spike
+    both this layer and the interaction layer should be unit-testable without
+    involving wxPython to a significant degree.
+
+Interaction Model
+    This layer is responsible for managing end-user "commands", i.e.,
+    operations to be performed on the domain model, and the "selections" (i.e.
+    the currently visible, focused, or selected items in the user interface)
+    that the commands are to be performed upon.  Effectively this includes
+    the *logical* form of GUI widgets and windows and dialogs, but it only
+    represents the information being manipulated, not its visual form.  (Which
+    is the presentation layer's responsibility.)
+
+    In Chandler today, this function is handled by CPIA, but there is no
+    explicit notion of selections, and commands are called "CPIA Events".
+    There is a hardwired connection between blocks and their visual
+    representation, and if I understand it correctly, skinning is handled by
+    selecting different sets of blocks, as opposed to keeping the interaction
+    objects the same and having the presentation layer select different
+    representations.
+
+Storage/System
+    This layer deals with persistence of objects, and other non-GUI system
+    interactions.  In Chandler today, this is the repository, Twisted, and
+    perhaps some other items.  Spike will largely just wrap these things to
+    present a narrower API to its higher layers, so that higher layers don't
+    have to know as much about these subsystems as they currently do.  Also,
+    in today's Chandler, the repository is the lowest layer in terms of
+    command/event flow.
+
+    In Spike, however, it is considered "higher layer" because it will send
+    commands to (and receive events from), the domain model, rather than the
+    other way around.  On the one hand, this frees the domain model from having
+    to be part of the repository, and on the other, it liberates the repository
+    from having to support many degrees of flexibility in operation that it
+    currently is required to have.  For example, the current repository
+    implementation tries to be non-Python-specific and non-Chandler-specific
+    in various ways that would be unnecessary if its configuration and
+    requirements were driven by the application definition, rather than the
+    other way around.    
+
+Domain Model
+    This layer is the heart of the application's functionality.  A domain model
+    consists of all of the "problem domain" classes that represent application
+    content such as Contacts, Tasks, Notes, etc.  These domain objects are
+    responsible for implementing their own information validation and behavior,
+    including interactions with related domain objects.  But domain objects do
+    not contain any user interface code, nor do they know anything about their
+    storage mechanism(s), if any.
+
+    In Chandler today, domain model objects are implemented as repository-based
+    Kinds, whose data model is defined by parcel.xml files.  These objects are
+    not only based on repository-provided classes, they also access the
+    repository as part of their normal functioning.  
+
+    In Spike, the majority of the reasons why an object would directly use the
+    repository will be eliminated, because the domain model will be represented
+    by Python classes that are not dependent on the repository for obtaining
+    metadata.  For most of the remaining use cases, repository access will
+    occur in Spike's interaction layer instead.
+
+Modelling Layer
+    The modelling layer provides implementation support for the domain model,
+    in the form of base classes, attribute descriptors, and metadata APIs for
+    defining and introspecting the domain model.  The idea here is that domain
+    layer code should simply declare things about its methods and attributes,
+    and the modelling layer takes care of implementing those command and event
+    interfaces that are needed by the storage, interaction, and presentation
+    layers.  The modelling layer also provides typechecking and other
+    constraint enforcement tools, including maintenance of bidirectional
+    references.
+
+    In Chandler today, much of this code exists within the repository, slaved
+    to other aspects of the repository, and is not readily accessible for use
+    by domain model code.  It also doesn't provide much support for a "static
+    world" API, as will be discussed below in the `Two Worlds`_ section.
+
+    The modelling layer, however, is at the very center of Spike, and will be
+    the first part built.  It will be entirely independent of storage concerns,
+    except insofar as it will accept commands and produce events that relate
+    to storage requirements.  For example, if you define an attribute with
+    the modelling layer, the modelling layer will handle event subscriptions
+    requested by the storage layer, for finding out when objects of that class
+    have been modified, and therefore need to be saved at next commit.  And it
+    will also allow the storage layer to request notification when a not-yet-
+    loaded attribute is accessed, so the storage layer can retrieve the value
+    on behalf of the modelling layer.
+    
+This is my general reference model for constructing reusable application
+architectures, so it's possible that this model will need further refinement
+for Chandler.  For example, I haven't done much with end user-programmable
+applications, so my notion of separating the presentation and interaction
+layers may not be as good of an idea as I think it is in this context.  That
+is, if a user is dragging and dropping blocks to create a UI, it may be
+overkill in that context to distinguish between blocks' interaction and
+presentation models.  On the other hand, the distinction would make automated
+testing without wxPython possible, which might be more than enough reason to
+justify the distinction even if there ends up being a 1:1 mapping between a
+given interaction object and its corresponding presentation.
+
+
+Inter-Layer Communication
+-------------------------
+
+Each of Spike's layers communicates by sending commands to the same or a lower
+layer, and by sending requested event notifications to the same or a higher
+layer.  (Requesting a notification is itself a command, so of course it goes
+the opposite direction.)
+
+Logically, both commands and events are function or method invocations, whose
+signature is defined statically.  That is, it is known at coding time what
+the inputs and outputs of these functions and methods are.  Each layer defines
+what its own command and event interfaces are, and is responsible for knowing
+how to call the command interfaces (and respond to the event interfaces) of the
+layer(s) below it.  Of course, a layer can't just make up whatever interfaces
+it likes; its interfaces are driven by the requirements of its superior layers.
+
+Spike's event model will be based on the loosely-coupled observation framework
+of the PyDispatcher package (see http://pydispatcher.sf.net/ ), which handles
+weak references and garbage collection of event subscriptions when they
+are no longer needed.  The PyDispatcher model also eliminates the need for
+individual objects to keep track of their own subscriptions, which makes it
+very easy to add event support to an object.
+
+Spike may not actually use PyDispatcher itself, however, as there may be some
+areas where a slightly different mechanism or policy is needed.  For example,
+Spike may need to be able to mark events as "consumed", which is something
+PyDispatcher doesn't natively provide.  Also, PyDispatcher offers some
+convenience features that Spike may not need and which could be detrimental for
+performance, given Spike's high event volume.  So, a simpler implementation may
+be preferable.
+
+
+Two Worlds
+==========
+
+Within these four layers, there are two fundamentally different kinds of APIs
+at work: the static world API, and the dynamic world API.
+
+Within the domain model and parts of the interaction model, code is written to
+static APIs.  You know at the time you write the code what kinds of objects
+you're working with, or at least what their interfaces are, and you therefore
+are using domain-specific methods and attributes.  For example, you might ask a
+Contact for its name or ask an Event to reschedule itself.
+
+Within the rest of the layers, however, one is writing general-purpose code
+that doesn't really "understand" the application.  In this "dynamic world", the
+code is metadata-driven.  A field editor in the interaction model doesn't
+really "know" what a Contact or Event is, and it doesn't really care!  It has
+an interface it expects to work with, that allows getting or setting values and
+subscribing to change notifications (e.g. for when a field is calculated in
+terms of other fields.)
+
+This effectively means that the domain model needs to be able to live in both
+the static and dynamic worlds.  It should be possible for static-world code
+to access domain objects, and it should be possible for other layers' code to
+deal with domain objects on a dynamic basis.  This means that a key requirement
+for the domain model is that it must include metadata describing its structure,
+so that other layers do not have to "understand" a specific application.
+
+In addition, one of Chandler's goals is to allow end-users to define new
+attributes and treat them in the application largely as if they were Chandler-
+defined attributes.  Logically, these user-defined attributes cannot be part
+of the "static world", because they cannot be known at the time Chandler's code
+is written.  They must, therefore, live strictly in the dynamic world.  And
+conversely, users cannot modify Chandler's "static world" attributes, since it
+would by definition break Chandler's static-world code.
+
+In Chandler's current model, the static model is underpowered, and it is
+subordinate to the dynamic model.  For example, the repository controls the
+metadata that describes the domain model, so the domain model can't even access
+its own metadata without using the repository, which first has to be loaded
+with schema information contained in separate files.  This makes static API
+programming (the development of domain objects and services) harder to unit
+test, because it is therefore always dependent upon the repository.
+
+In Spike, this state of things is turned around, so that the domain model and
+its modelling-layer metadata are at the conceptual center of the architecture.
+While it's well-understood that Chandler's current architecture was intended to
+support dynamic, user-defined attributes, this does not need to be the
+architecture's focus.  It's more than sufficient to treat user-defined
+attributes as data that can be associated with any content item, without
+needing them to be part of the static API as well.  Non-static layers will see
+such attributes as if they were any other attribute, but static layers will
+only see them through a dynamic API -- which only makes sense, because by
+definition, user-defined attributes can't be known ahead of time.
+
+For example, if part of the domain model's dynamic API is a method to get the
+value of a specified attribute, it can also function for both static and
+user-defined attributes.  However, for statically-defined attributes, code can
+also use ``someObject.someAttribute`` to get the attribute value.
+
+Such code *cannot* reference user-defined attributes in such a way, but not
+only because that code doesn't know what user-defined attributes will exist
+ahead of time.  Spike's architecture must actually make a stronger guarantee:
+it must *never* be possible to access a user-defined attribute (UDA) via normal
+Python attribute access directly from a content item, because it would
+otherwise be more difficult to evolve Chandler's schema safely.
+
+Right now, if a user were to add an attribute to a Chandler-defined "kind",
+and a future version of Chandler added an attribute to that kind with the
+same name as the one the user added, Chandler would be forced to rename
+the user's existing attribute in order to avoid conflict.  However, if UDA's
+always exist only in a dynamic namespace with no direct mapping to Python
+object attribute names, then there is never any possibility of conflict.
+
+
+Information Modelling
+=====================
+
+Spike's modelling layer will use a metamodel similar to the one already used
+in Chandler, but with some important simplifications, and with some terminology
+revisions to better align with existing metamodel standards and terminology.
+
+There will be two fundamentally different kinds of objects in Spike, just as
+there are in Chandler today.  Chandler's repository calls them Kinds and Types,
+but in Spike they will be known as Entities and Values.  An entity is a
+mutable persistent object with potentially bidirectional references, and a
+value is an immutable object that has unidirectional references only to other
+values, and which may be persisted only as an attribute of an entity.
+
+(This terminology is chosen to reflect the different roles these objects play
+in representing real-life objects, and is common industry terminology, as used
+in e.g. the "Value Object" pattern.  Entities are used to model real-world
+things, and values are used to represent facts regarding those things.)
+
+Chandler currently requires that all references be bidirectional in both the
+static and dynamic APIs, but this places a challenge on extenders of Chandler,
+who may need to have their new content kinds refer to items of an existing
+kind.  This means they need to be able to modify the existing kind, which can
+lead to naming conflicts if multiple extenders end up using the same attribute
+name on the existing kind.  And of course this all assumes that they are
+allowed to modify the existing kind at all!
+
+Spike will therefore need to allow defining relationships without modifying
+an existing kind in a way that's represented in that kind's static API, and
+provide a mechanism for navigating from an instance of an existing kind, via
+a dynamically-selected relationship.  Thus, even though the association is
+bidirectional, it need not be symmetrical as to the API required for access.
+
+So, if NewKind has an attribute ``foo`` that refers to instances of OldKind,
+it does not mean that OldKind must have an attribute that refers to NewKind.
+However, it does mean that at runtime it will be possible to take an instance
+of OldKind, and request the collection of NewKind items that reference the
+OldKind instance in their ``foo`` attribute.
+
+Also, Chandler currently deals in three kinds of relationship cardinality:
+"single", "list", and "dict".  Spike will be trying to replace "list" with
+"set", although it may not be possible to do so in 100% of existing uses of
+"list".  However, "set" will be preferred to "list", because manually-ordered
+collections place additional burdens on the underlying storage mechanism, and
+make event notifications more complex (because order changes and insert/delete
+locations have to be tracked).
+
+Also lists potentially allow an object to be referenced more than once in the
+same collection, which adds further complexity. So, in Spike, it will be easier
+to define a "set" relationship than a "list" one; the option or API will be
+more verbose in order to discourage casual use.  The only places that lists
+are needed instead of sets are in applications where the user is allowed to
+manually order items in the collection, rather than being displayed in some
+sort order, or where there is data imported from an external source that must
+remain in a particular sequence.
+
+The Z-order and tabbing-order of GUI widgets, and the attachments of an e-mail
+message are good examples of these use cases.  However, such ordering is
+unlikely to be manipulated fromdomain-model code directly; it's more likely to
+be established in some external format or via the UI itself.  So, it may be
+that simply including sort fields and manipulating them via the UI or during
+the import process may be more than sufficient.  An imported sequence is
+unlikely to need changing, so simply assigning sequence numbers suffices.  A
+manually-assigned ordering is likely to be over a relatively small number of
+items, such that renumbering them to change sequence could be cheap.
+
+However, there may be use cases I haven't anticipated here, so I leave open the
+possibility that Spike will support the "list" cardinality.  On the other hand,
+that support may be simply by making it very easy to iterate over a set in
+a particular sort order, or to renumber items to match a specified sequence.
+
+
+Event Model
+-----------
+
+XXX to be continued
+
+Entity events:
+
+* Get attribute (autoload)
+* Get attribute (setup/default)
+* Get association (autoload)
+* Set attribute (override/convert value)
+* Set attribute (validation)
+* Set attribute (validation failure)
+* Set attribute (post-change success notification)
+* Object loaded w/outdated schema (?)
+
+Set/Dict events:
+
+* Add item (override/convert value)
+* Add item (validation)
+* Add item (validation failure)
+* Add item (post-change success notification)
+* Remove item (validation)
+* Remove item (validation failure)
+* Remove item (post-change success notification)
+* Collection autoload
+* Collection proxy?
+
+Misc.:
+
+* workspace loaded event (monitor object states to roll back upon error?)
+* inverse links
+* atomic operations (rollback current operation on error)
+* undo log via event listeners?
+
+
