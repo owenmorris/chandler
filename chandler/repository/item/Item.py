@@ -354,8 +354,6 @@ class Item(object):
                                 isinstance(value, RefDict))
         old = None
 
-        self.setDirty(attribute=name)
-        
         if _attrDict is self._references:
             if value is None:
                 value = NoneRef
@@ -369,6 +367,7 @@ class Item(object):
                             # reattaching on original endpoint
                             old.reattach(self, name, old.other(self), value,
                                          self._kind.getOtherName(name))
+                            self.setDirty(attribute=name)
                             return value
                     elif isRef:
                         # reattaching on other endpoint,
@@ -384,6 +383,8 @@ class Item(object):
                 else:
                     raise TypeError, type(old)
 
+        self.setDirty(attribute=name)
+        
         if isItem:
             otherName = self._kind.getOtherName(name, default=None)
             card = self.getAttributeAspect(name, 'cardinality',
@@ -885,8 +886,11 @@ class Item(object):
                                            default='single')
 
             if card == 'dict':
-                if isItem and _attrDict is self._references:
-                    attrValue = self._refDict(attribute)
+                if _attrDict is self._references:
+                    if isItem:
+                        attrValue = self._refDict(attribute)
+                    else:
+                        raise TypeError, type(value)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
@@ -896,8 +900,11 @@ class Item(object):
                     return attrValue
 
             elif card == 'list':
-                if isItem and _attrDict is self._references:
-                    attrValue = self._refDict(attribute)
+                if _attrDict is self._references:
+                    if isItem:
+                        attrValue = self._refDict(attribute)
+                    else:
+                        raise TypeError, type(value)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
@@ -912,8 +919,11 @@ class Item(object):
 
             _attrDict[attribute] = attrValue
 
-        if isItem:
-            attrValue.append(value, alias)
+        if _attrDict is self._references:
+            if isItem:
+                attrValue.append(value, alias)
+            else:
+                raise TypeError, type(value)
         else:
             attrValue[key] = value
 
@@ -965,20 +975,20 @@ class Item(object):
                 else:
                     _attrDict = self._values
 
-        isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
-
         if attrValue is Item.Nil:
             return self.setValue(attribute, value, key, alias, _attrDict)
 
         else:
             self.setDirty(attribute=attribute)
 
-            if isinstance(attrValue, dict):
-                if isItem and _attrDict is self._references:
+            if isinstance(attrValue, RefDict):
+                if isinstance(value, Item):
                     attrValue.append(value, alias)
                 else:
-                    attrValue[key] = value
+                    raise TypeError, type(value)
+            elif isinstance(attrValue, dict):
+                attrValue[key] = value
             elif isinstance(attrValue, list):
                 attrValue.append(value)
             else:
@@ -1344,14 +1354,15 @@ class Item(object):
             if policy == 'copy':
                 return other
             elif policy == 'cascade':
-                copyOther = copies.get(other.itsUUID, None)
-                if copyOther is None:
+                otherCopy = copies.get(other.itsUUID, None)
+                if otherCopy is None:
                     if self.itsParent is copy.itsParent:
                         parent = other.itsParent
                     else:
                         parent = copy.itsParent
-                    copyOther = other.copy(None, parent, copies, copyPolicy)
-                return copyOther
+                    otherCopy = other.copy(None, parent, copies, copyPolicy,
+                                           None, copyOther)
+                return otherCopy
             else:
                 return None
 

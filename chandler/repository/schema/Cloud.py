@@ -79,7 +79,7 @@ class Cloud(Item):
         else:
             results = []
 
-        for alias, endpoint, cloud in self.iterEndpoints(cloudAlias):
+        for alias, endpoint, inCloud in self.iterEndpoints(cloudAlias):
             for other in endpoint.iterValues(item):
                 if other is not None and other._uuid not in items:
                     results.extend(endpoint.getItems(other, items, references,
@@ -115,7 +115,10 @@ class Cloud(Item):
         list.
         
         @param item: the entry point of the cloud.
-        @type item: an C{Item} instance
+        @type item: an C{Item<repository.item.Item.Item>} instance
+        @param parent: the optional parent of the copies; by default, each
+        copy gets the same parent as the original
+        @type parent: an C{Item<repository.item.Item.Item>} instance 
         @param copies: an optional dictionary keyed on the original item
         UUIDs that also received all items copies.
         @type items: dict
@@ -161,7 +164,7 @@ class Cloud(Item):
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 
         endpoints = []
-        for alias, endpoint, cloud in self.iterEndpoints(cloudAlias):
+        for alias, endpoint, inCloud in self.iterEndpoints(cloudAlias):
             names = endpoint.attribute
             if index < len(names) and names[index] == attrName:
                 endpoints.append(endpoint)
@@ -195,6 +198,16 @@ class Cloud(Item):
         by going up the cloud kind's superKind chain and horizontally by
         iterating over the cloud kind's superKinds.
 
+        The iterator yields C{(alias, endpoint, inCloud)} tuples, where:
+
+            - C{alias} is the alias of the endpoint in {cloud}'s
+              C{endpoints} ref collection.
+
+            - C{endpoint} is an C{Endpoint<repository.schema.Cloud.Endpoint>}
+              instance.
+
+            - C{inCloud} is the cloud C{endpoint} is defined on.
+
         If an endpoint is aliased in a cloud's endpoints collection,
         endpoints by the same alias are not inherited.
         """
@@ -207,8 +220,8 @@ class Cloud(Item):
         if cloudAlias is not None:
             for superKind in self.kind._getSuperKinds():
                 for cloud in superKind.getClouds(cloudAlias):
-                    for alias, endpoint, inCloud in \
-                     cloud.iterEndpoints(cloudAlias):
+                    for (alias, endpoint,
+                         inCloud) in cloud.iterEndpoints(cloudAlias):
                         if (alias is None or
                             endpoints is None or
                             endpoints.resolveAlias(alias) is None):
