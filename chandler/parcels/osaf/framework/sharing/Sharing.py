@@ -203,9 +203,11 @@ class ShareConduit(ContentModel.ChandlerItem):
                 self.__addToManifest(item, data, -1)
                 logger.info("...imported '%s' %s, data: %s" % \
                  (item.getItemDisplayName(), item, data))
-            else:
-                logger.info("...NOT able to import '%s'" % itemPath)
-            return item
+                return item
+
+            logger.info("...NOT able to import '%s'" % itemPath)
+            msg = "Not able to import '%s'" % itemPath
+            raise SharingError(message=msg)
         else:
             pass
             # logger.info("...skipping")
@@ -228,10 +230,6 @@ class ShareConduit(ContentModel.ChandlerItem):
 
         itemPath = self._getItemPath(self.share)
         item = self.__conditionalGetItem(itemPath, into=self.share)
-        if item is None:
-            logger.info("...NOT able to import share")
-            msg = "Not able to sync '%s'\nBad Format" % location
-            raise SharingError(message=msg)
 
         if item is not None:
             retrievedItems.append(item)
@@ -902,6 +900,12 @@ class SharingError(Exception):
     """ Generic Sharing exception. """
     def __init__(self, message=None):
         self.message = message
+
+    def __str__(self):
+        try:
+            return "Sharing error '%s'" % self.message
+        except:
+            return "Sharing error"
 
 class AlreadyExists(SharingError):
     """ Exception raised if a share already exists. """
