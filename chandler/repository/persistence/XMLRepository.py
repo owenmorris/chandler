@@ -487,18 +487,19 @@ class XMLStore(Store):
         
     def open(self, create=False):
 
-        txn = None
+        txnStarted = False
         
         try:
-            txn = self.env.txn_begin(None, DB_DIRTY_READ)
+            txnStarted = self._startTransaction()
+            txn = self.txn
                 
             self._data = XMLContainer(self, "__data__", txn, create)
             self._refs = RefContainer(self, "__refs__", txn, create)
             self._versions = VerContainer(self, "__versions__", txn, create)
             self._history = HistContainer(self, "__history__", txn, create)
         finally:
-            if txn:
-                txn.commit()
+            if txnStarted:
+                self._commitTransaction()
 
     def close(self):
 
@@ -537,27 +538,26 @@ class XMLStore(Store):
 
     def _startTransaction(self):
 
-        if self._threaded.txn is None:
-            self._threaded.txn = self.repository._env.txn_begin(None,
-                                                                DB_DIRTY_READ)
+        if self.txn is None:
+            self.txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
             return True
 
         return False
 
     def _commitTransaction(self):
 
-        if self._threaded.txn is not None:
-            self._threaded.txn.commit()
-            self._threaded.txn = None
+        if self.txn is not None:
+            self.txn.commit()
+            self.txn = None
             return True
 
         return False
 
     def _abortTransaction(self):
 
-        if self._threaded.txn is not None:
-            self._threaded.txn.abort()
-            self._threaded.txn = None
+        if self.txn is not None:
+            self.txn.abort()
+            self.txn = None
             return True
 
         return False
@@ -569,6 +569,11 @@ class XMLStore(Store):
         except AttributeError:
             self._threaded.txn = None
             return None
+
+    def _setTxn(self, txn):
+
+        self._threaded.txn = txn
+        return txn
 
     def _getEnv(self):
 
@@ -615,4 +620,4 @@ class XMLStore(Store):
     ctx = property(_getCtx)
     updateCtx = property(_getUpdateCtx)
     containerExpr = property(_getContainerExpr)
-    txn = property(_getTxn)
+    txn = property(_getTxn, _setTxn)
