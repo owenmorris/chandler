@@ -259,6 +259,13 @@ class AccountPreferencesDialog(wx.Dialog):
         self.outerSizer.Fit(self)
         self.accountsList.SetFocus()
 
+        # When a text field receives focus, call the handler.
+        for field in PANELS[self.currentPanelType]['fields'].keys():
+            control = wx.xrc.XRCCTRL(self.currentPanel, field)
+            if isinstance(control, wx.TextCtrl):
+                wx.EVT_SET_FOCUS(control, self.OnFocusGained)
+
+
 
     def __StoreFormData(self, panelType, panel, data):
         for field in PANELS[panelType]['fields'].keys():
@@ -297,6 +304,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
         sel = evt.GetSelection()
         self.__SwapDetailPane(sel)
+
+    def OnFocusGained(self, evt):
+        """ Select entire text field contents when focus is gained. """
+        control = evt.GetEventObject()
+        wx.CallAfter(control.SetSelection, -1, -1)
 
 def ShowAccountPreferencesDialog(parent, account=None):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
