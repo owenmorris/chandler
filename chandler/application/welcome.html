@@ -2,44 +2,295 @@
 <head>
 </head>
 <body>
-<H1>Welcome to Chandler Release 0.2!</H1>
-Welcome to the 0.2 release of Chandler!
-
-The .2 release focuses on underlying infrastructure and is not useful for 
-ordinary users.  There has been little if any work on the user interface 
-since the previous release.
-<P>
-<UL>
-<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerRepository">Repository</A></B>: We have converted most of Chandler code to use our
-own Item store.  See the Repository Viewer parcel for a window
-onto the Repository.
-Note that our underlying databases are still undergoing
-changes, so
-<FONT COLOR="red">you should not store important information in Chandler</FONT> yet.
-<P>
-<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/DataModel">Data Model</A></B>: Chandler now incorporates a very flexible 
-data model that allows a full spectrum of data representations, from loosely
-structured to highly structured. 
-<LI><B><A HREF="http://wiki.osafoundation.org/bin/view/Main/NotificationModel">Notification Manager</A></B>: The notification manager provides a publish and subscribe mechanism for various parts of Chandler to communicate high level events.
-<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/AgentFrameworkPoint2Status">Agent 
-Framework</A></B>: The Agent Framework is partially implemented in the .2 release.  The underlying machinery for defining agents that automatically respond to conditions as they arise is present, but there's no user interface yet.  There are two test agents that don't do much yet.
-<LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerPresentationAndInteractionArchitecture">Chandler Presentation and Interaction Architecture</A></B>: The 
-rudimentary beginnings of a novel presentation and interaction framework 
-are now in Chandler.  See the Document parcel for an example.
-</UL>
-
-<P>
-Please note that Chandler is still in its very early stages, with only
-a very limited set of capabilities.  <B>Please</B> read the 
-<A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerZeroPointTwoREADME">
-README</A> -- 
-it has information on known bugs, our future plans, volunteering,
-and where to go for futher documentation.
-<P>
-<H3>
-To continue, <FONT COLOR="blue"><U>click here</U></FONT>.</H3>
-<P>
-
-</body>
+<h2><a name="INTRODUCTION_A_"> </a> INTRODUCTION</A> </h2>
+<p />
+<p />
+<h3><a name="What_is_0_3_"> What is 0.3? </a></h3>
+0.3 is the last of our architecture-focused releases as described in our <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ProductRoadmap">ProductRoadmap</a>. It is not intended for end-users but rather targets developers who want an early preview into our architecture as we are developing it. Our architecture will continue to evolve, but starting with 0.3, we are finally able to start developing end-user features.
+<p />
+The two biggest architecture advancements in this release are the <B>Chandler Presentation and Interaction Architecture (CPIA)</B> and the <B>Repository</B>. This release marks the debut of CPIA, which is a UI layer in our architecture that is uniquely adapted for item-centric applications based on our repository. Not only does it abstract away implementation-specific UI widgets, but CPIA elements have direct access to our repository via data-driven queries.  In 0.3, our repository now implements a transaction and threading model, and is a lot more robust and scalable. 
+<p />
+You can find a comprehensive (but terse) listing of all the changes in 0.3 in <a href="http://cvs.osafoundation.org/index.cgi/osaf/chandler/Chandler/HISTORY.txt?rev=1.13&amp;content-type=text/vnd.viewcvs-markup" target="_top">HISTORY.txt</a>.
+<p />
+<h3><a name="0_3_High_level_Deliverables"> 0.3 High-level Deliverables </a></h3>
+<p />
+<ul>
+<li> Base architecture framework in place:
+<ul>
+<li> Chandler Presentation and Interaction Architecture
+</li>
+<li> Repository enhancements and maturity
+</li>
+<li> Content Model 
+</li>
+<li> Parcel loading
+</li>
+<li> Demonstration of the Notification Framework and Agent Framework
+</li>
+<li> Unit Tests Framework with many real tests 
+</li>
+</ul>
+</li>
+<li> Our initial "Caterpillar" UI
+</li>
+</ul>
+<p />
+Also, please see <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointThreeMapOfChandler">ZeroPointThreeMapOfChandler</a> for a general architectural overview of Chandler in 0.3.
+<a name="CpIa"></a>
+<h3><a name="Chandler_Presentation_and_Intera"> </a> Chandler Presentation and Interaction Architecture (CPIA) </h3>
+The broad goals for CPIA are:
+<ol>
+<li> Easy creation of both simple and sophisticated view layouts, particularly those anticipated in PIM applications (such as an email inbox view or a calendar view). These views come bundled with a rich set of standard behaviors and interactions.   
+</li>
+<li> The contents of a view can be specified by a repository query that is stored within the view.  Views are thus well integrated with the Chandler repository.  CPIA objects also know how to load, display and save themselves and their contents.  
+</li>
+<li> CPIA UI objects (called "Blocks") themselves are stored as Chandler items in the repository. As with all Chandler items, CPIA Blocks are fully introspectable. This approach provides an abstraction, allowing us, architecturally, to more easily create versions of Chandler (post-Canoga) for other platforms like web browser interfaces and PDAs.  It also provides the basis for the Chandler UI editing tools that we plan to create after the Canoga release.
+</li>
+</ol>
+<p />
+In 0.3, a large amount of work was spent developing and implementing CPIA and then converting and re-writing the UI portion of our entire application.  Now almost all the views and high level events are described by CPIA blocks, with the CPIA blocks and views persisting in our repository.
+<p />
+Work in CPIA is by no means complete. The architecture will continue to evolve, so it's premature to write long-lived applications in CPIA at this point. However, we would very much like comment, feedback and issues about the architecture itself and our approach.
+<p />
+See <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/CpiaZeroPointThreeStatus">CPIA status</a>  for more details on CPIA.
+<p />
+<a name="RepEnhancements"></a>
+<h3><a name="Chandler_Repository"> Chandler Repository  </a></h3>
+Please read <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/RepositoryBusyDevelopersGuide">RepositoryBusyDevelopersGuide</a> for more details on the repository.
+<p />
+After introducing the Repository in 0.2, we have made significant improvements in 0.3 including:
+<ul>
+<li> Multi-threading support
+</li>
+<li> Transaction and roll-back support
+</li>
+<li> Limited query support
+</li>
+<li> Notification support
+</li>
+<li> Large object (text and binary) support
+</li>
+<li> Full-text search and integration with <a href="http://jakarta.apache.org/lucene/docs/index.html" target="_top">Lucene</a>
+</li>
+<li> Experimental repository sharing using SOAP as a transport
+</li>
+<li> <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/RepositoryUnitTests">Unit Test Suite</a> including load and performance testing (we can use more help here)
+</li>
+</ul>
+<p />
+We are excited that the repository has reached a level of maturity and are eager for community validation and feedback:
+<ul>
+<li> Is our <a href="http://osafoundation.org/docs/current/api/" target="_top">API</a> usable and comprehensible?
+</li>
+<li> Can you write <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/HelpUs#repositoryTests">performance or load tests/patches</a> to pound on the repository?
+</li>
+<li> Would you like to use our repository in <em>your</em> next application?
+</li>
+</ul>
+<p />
+We would love to hear from you. Please send your comments, questions, and suggestions to the development mailing list, <I>dev@osafoundation.org</I>.
+<p />
+<a name="CatUI"></a>
+<h3><a name="Caterpillar_UI"> Caterpillar UI </a></h3>
+Caterpillar UI is our code name for an initial, premature UI. It is a first step in designing our UI, but definitely not representative of what will be in Canoga. The main elements are the <b>side bar</b>, <b>navigation bar</b>, a very crude <b>bookmark bar</b> and the <b>summary</b> and <b>detail views</b>. It is described in screenshots by Mimi in <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointThreeUI">ZeroPointThreeUI</a>. (Not all of the screenshots are implemented as of the 0.3 release on 24 February 2004.)
+<p />
+The 0.3 UI is very skeletal. It is mainly intended to test visual and information design ideas. It's the bare scafolding we will use to build the final UI and as such contains many "placeholder" pieces. Our 0.4 release will contain a much more complete UI "landscape". Feedback on the UI is less helpful at this point and not encouraged.  You are welcome to follow our progress as <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointFourPlanning">0.4</a> develops.
+<p />
+<h3><a name="Other_Improvements"> Other Improvements </a></h3>
+<ul>
+<li> We have a reasonably comprehensive initial version of our <a href="http://wiki.osafoundation.org/twiki/bin/view/Glossary/ContentModel">ContentModel</a> in a nicely <a href="http://www.osafoundation.org/docs/current/model/" target="_top">auto-generated human-readable format</a>.
+</li>
+<li> A "parcel" is our unit of software package or plug-in. We have our parcel loading architecture in place in 0.3.
+</li>
+<li> CPIA objects are well-integrated and exercise the <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/NotificationFramework">Notification Framework</a>. 
+</li>
+<li> ZaoBao uses the agent framework to poll for fresh RSS feeds.
+</li>
+<li> We have refined our build system and run a much larger suite of unit tests.
+</li>
+<li> Finally, and perhaps most important, we are gaining developer momentum through a <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/DevelopmentProcess">DevelopmentProcess</a> that is increasingly working well for us.
+</li>
+</ul>
+<p />
+<h3><a name="What_should_you_expect_when_you_"> What should you expect when you run 0.3? </a></h3>
+<ul>
+<li> Starting up 0.3 is known to be very slow (30 secs to over a minute, depending on platform and machine) the first time you run the app. It's a little faster on subsequent launches.
+</li>
+<li> Clicking on the Repository View in the side bar gives you a list of all Chandler items. It's a good diagnostic tool and also gives a good technical sense of what we mean by Chandler content items being item-centric. This is currently our most polished view.
+</li>
+<li> The <B>Demo</B> view is a simple demonstration of CPIA. It is best viewed in conjuction with its associated source code, and is intended to show how easy it is to create CPIA views and elements. 
+</li>
+<li> ZaoBao (Chandler's RSS aggregator) has not only been CPIA-ized, but also exercises the Chandler Agent Framework to poll for fresh RSS feeds. You cannot add or delete feeds at this time.
+</li>
+<li> The Mixed view is intended to test out ideas on how we can show items of various types in the same table. <a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1207">Bug#1207</a> describes some problems we are trying to fix on this view
+</li>
+<li> <b>Calendar</B>, <B>Contacts</B> and <B>Notes</B> contain exactly those items. You will only see a calendar item initially. Under the "Test" menu, you can choose to generate different Items with completely fake data. When Items are generated, a Notification is broadcast via our Notification Framework to the views, causing an update of all relevant views.
+</li>
+<li> Things you <strong>cannot</strong> do in 0.3:
+<ul>
+<li> Create any items (except by "auto-generating" fake items)
+</li>
+<li> Edit or delete items
+</li>
+<li> Any form of drag and drop
+</li>
+</ul>
+</li>
+<li> Our Bugzilla component list needs work. For now, most end-user bugs can probably be filed under "CPIA". If you're not sure what component to assign a bug. just leave it as "to be assigned". 
+</li>
+<li> We have a number of <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointThreeKnownMajorBugs">known bugs</a>.
+</li>
+</ul>
+<p />
+<h3><a name="0_4_Release"> 0.4 Release </a></h3>
+For a preview to what we're planning for 0.4, see <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointFourPlanning">ZeroPointFourPlanning</a>.
+<p />
+<p />
+<p />
+<hr />
+<p />
+<A NAME="requirements"></A>
+<h2><a name="REQUIREMENTS"> </a> REQUIREMENTS </h2>
+<p />
+Chandler uses a number of components (e.g. Python), but all the software you should need to
+run Chandler is shipped with Chandler.  In general, OSAF develops on Windows XP, Linux Red Hat 9, and Mac OS 10.3 ("Panther").  
+<p />
+<p />
+We keep <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ChandlerPlatforms">a list of platforms that Chandler is known to build and run on</a>.  We have no reason to believe that it wouldn't work on other reasonably current versions of operating systems, but in general, haven't tested them.
+<p />
+One occasional difficulty is libraries on Unix machines.  
+If you are running with something other than a standard Red Hat 8 or Red Hat 9 release, you
+might need to either install a few modules or rebuild the binaries.
+<p />
+<p />
+<hr />
+<A NAME="howToGetInvolved"></A>
+<h2><a name="HOW_TO_GET_INVOLVED"> </a> HOW TO GET INVOLVED </h2>
+There are several ways that you can get involved.
+<p />
+The first is to <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/GettingChandler">download Chandler</a> and try it out.  If you find a bug, please check the <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointThreeKnownMajorBugs">list of known bugs in 0.3</a>, and if it isn't listed, <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ReportingBugs">report it</a>.  We expect the visual design of the user interface of the 1.0 version of Chandler to be compellingly gorgeous as well as functionally elegant. The 0.3 release is neither; we already know that, so you don't need to bother reminding us.
+<p />
+If you have an idea for a feature request, the best thing to do is to post it to our <a href="http://www.osafoundation.org/mailing_lists.htm" target="_top">mailing lists</a>.
+<p />
+We also have a <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/HelpUs">list of small, self-contained projects</a> -- not necessarily technical -- that
+we could use some help with.
+<p />
+<hr />
+<A NAME="more"></A>
+<h2><a name="FURTHER_INFORMATION"> </a> FURTHER INFORMATION </h2>
+For more information, please see documentation on our wiki at:
+<ul>
+<li> <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/GettingChandler">GettingChandler</a>
+</li>
+<li> <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/EndUserDocumentation">Chandler End User Documentation</a>
+</li>
+<li> <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/DeveloperDocumentation">Chandler Developer Documentation</a>
+</li>
+<li> <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ChandlerLicensingDocumentation">Chandler Licensing Documention</a>
+</li>
+</ul>
+<hr />
+<A NAME="bugs"></A>
+<h2><a name="KNOWN_MAJOR_BUGS"> </a> KNOWN MAJOR BUGS </h2>
+<p />
+These are the known bugs in the 0.3 release as of the release date.
+<p />
+<p />
+<ul>
+<li> There are a few bugs in 0.3 related to hangs.  These might all be different manifestations of the same bug:
+<ul>
+<li> Quitting on the Mac is problematic.  You might need to force-quit. (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1278" target="_top">Bug#1278</a>)
+</li>
+<li> Chandler can hang if you quit very quickly after you launch Chandler.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1296" target="_top">Bug#1296</a>)
+</li>
+<li> Clicking wildly right after startup can cause a crash.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1297" target="_top">Bug#1297</a>)
+</li>
+</ul>
+</li>
+</ul>
+<p />
+Less serious errors include:
+<ul>
+<li> If you click on the sidebar, you can get an error.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1290" target="_top">Bug#1290</a>)
+</li>
+<li> Running Check Repository can show some errors. (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1311" target="_top">Bug#1311</a>)
+</li>
+<li> You can't click on the Back button to take you all the way back to the starting view.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1275" target="_top">Bug#1275</a>)
+</li>
+<li> Clicking on some links causes an error.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1280" target="_top">Bug#1280</a>)
+</li>
+<li> You can't click on a column header to sort the column by that header.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1230" target="_top">Bug#1230</a>)
+</li>
+<li> The unit test TestText:testAppend fails for release versions of Chandler (but not debug versions).  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1169" target="_top">Bug#1169</a>)
+</li>
+<li> A clean build of libxml2 can fail. (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1116" target="_top">Bug#1116</a>)
+</li>
+</ul>
+<p />
+<p />
+<h3><a name="Mac_OS_X_specific_problems"> Mac OS X-specific problems </a></h3>
+<ul>
+<li> In OS X, some of the buttons in the Demo are ugly.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1213" target="_top">Bug#1213</a>)
+</li>
+<li> On startup under OS X, you can sometimes get side-by-side windows. (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1288" target="_top">Bug#1288</a>)
+</li>
+<li> On Mac OS, Chandler takes a lot of processing power, even when doing nothing.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1279" target="_top">Bug#1279</a>)
+</li>
+<li> Locale can't be set on Mac and Linux (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=251" target="_top">Bug#251</a>)
+</li>
+<li> If you switch from one sidebar item to another, you might see some flashing under Mas OS.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1212" target="_top">Bug#1212</a>)
+</li>
+<li> The splitter bar and the column-header width are not always synched.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1323" target="_top">Bug#1323</a>)
+</li>
+<li> The popup menu at the bottom of the Controls pane of the Demo view is empty.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1237" target="_top">Bug#1237</a>)
+</li>
+</ul>
+<p />
+<p />
+<p />
+<h3><a name="Linux_specific_problems"> Linux-specific problems </a></h3>
+<ul>
+<li> The Linux version requires GLIBC 2.3.2, which does not come with Red Hat 8. (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1156" target="_top">Bug#1156</a>)
+</li>
+<li> Under Linux, there can be poor refresh of Chandler windows that are obscured by other windows.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1273" target="_top">Bug#1273</a>)
+</li>
+<li> Locale can't be set on Mac and Linux (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=251" target="_top">Bug#251</a>)
+</li>
+<li> Unit tests fail on Linux when DISPLAY isn't set to an X server.  (<a href="http://bugzilla.osafoundation.org/show_bug.cgi?id=1117" target="_top">Bug#1117</a>)
+</li>
+</ul>
+<p />
+<p />
+For the most up-to-date list, see <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ZeroPointThreeKnownMajorBugs">ZeroPointThreeKnownMajorBugs</a>.
+<p />
+<p />
+<hr />
+<A NAME="license"></A>
+<h2><a name="LICENSE"> </a> LICENSE </h2>
+<p />
+Chandler 0.3 Copyright (c) 2002-2004 Open Source Applications Foundation
+<p />
+The 0.3 version of Chandler is available under the GNU General Public License,
+version 2, as described in
+<ul>
+<li> <a href="http://cvs.osafoundation.org/index.cgi/osaf/chandler/Chandler/LICENSE.txt?rev=1.1&amp;content-type=text/vnd.viewcvs-markup" target="_top">LICENSE.txt</a>
+</li>
+</ul>
+<p />
+You can also see the authoritative version of the <a href="http://www.fsf.org/licenses/" target="_top">GNU GPL</a>.
+<p />
+We expect that subsequent versions of Chandler will also be
+available under one or more additional licenses. For more detail on our
+licensing plans, see the <a href="http://osafoundation.org/Chandler_licensing_plan_4-2003.htm" target="_top">Chandler Licensing Plan</a>.
+<p />
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option) any
+later version.
+<p />
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+<hr />
+<body>
 </html>
-
