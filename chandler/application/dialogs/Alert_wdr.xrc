@@ -13,7 +13,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
                 <size>450,120</size>
-                <label></label>
+                <label>Here is some text which for some reason needs to be here in order for the dialog to get rendered correctly.\n\n\n</label>
             </object>
         </object>
         <object class="sizeritem">
