@@ -351,7 +351,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                     else:
                         top = y
                         height = -deltaY
-                    dragRect = wxRect (top, left, width, height)
+                    dragRect = wxRect (left, top, width, height)
                     self.dragCreateDrawableObject.SizeDrag (dragRect,
                                                             self.dragStart,
                                                             wxPoint (x, y))
