@@ -59,9 +59,6 @@ class RefCollectionDictionary(object):
         """
         coll = self.getAttributeValue(self.collectionSpecifier())
         i = coll.getByAlias(key)
-        # DLDTBD - fix or remove!
-        if i is True:
-            i = None
         return (i, coll)
         
     def index(self, key):
@@ -308,7 +305,11 @@ class DynamicContainer(RefCollectionDictionary):
             Can't call synchronizeWidget because IgnoreSynchronizeWidget
             is true because we're in Tab's synchronizeWidget.
             """
-            if hasattr(bar, 'widget'):
+            try:
+                barWidget = bar.widget
+            except AttributeError:
+                pass
+            else:
                 bar.widget.wxSynchronizeWidget()
     synchronizeDynamicBlocks=classmethod(synchronizeDynamicBlocks)
 
