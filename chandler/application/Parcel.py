@@ -162,7 +162,9 @@ class Manager(Item):
 
         # Initialize any attributes that aren't persisted:
         self.repo = repository
-        self.lastError = None
+        self.currentXMLFile = None
+        self.currentXMLLine = None
+        self.currentExplanation = None
         self.kindUUID = repository.findPath("//Schema/Core/Kind").itsUUID
         self.itemUUID = repository.findPath("//Schema/Core/Item").itsUUID
         self.attrUUID = repository.findPath("//Schema/Core/Attribute").itsUUID
@@ -316,9 +318,6 @@ class Manager(Item):
                             value = attrs.getValue((None, 'value'))
                             self.aliases[key] = value
 
-        # Reset any stored error
-        self.lastError = None
-
         # Dictionaries used for quick lookup of mappings between namespace,
         # repository path, and parcel file name.  Populated first by looking
         # at existing parcel items, then overriden by newer parcel.xml files
@@ -433,8 +432,8 @@ class Manager(Item):
                      (alias, pDesc["aliases"][alias]) )
 
         except xml.sax._exceptions.SAXParseException, e:
-            self.saveErrorState(e.getMessage(), e.getSystemId(), 
-             e.getLineNumber())
+            self.saveState(file=e.getSystemId(), line=e.getLineNumber())
+            self.saveExplanation(e.getMessage())
             raise
 
         if timing: tools.timing.end("Scan XML for namespaces")
@@ -554,23 +553,32 @@ class Manager(Item):
 
     def __displayError(self):
         """
-        Print out the error information that was tucked away in lastError
+        Print out the error information that was tucked away
         """
 
         print "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-        print "Error during parcel loading..."
+        msg =  "Error during parcel loading..."
+        print msg
+        self.log.error(msg)
         print
-        if self.lastError:
-            print "   %s" % self.lastError["message"]
-            print "   File %s" % self.lastError["file"]
-            print "   Line %d" % self.lastError["line"]
-            self.log.error("Exception '%s' loading %s:%s" % \
-             (self.lastError["message"], self.lastError["file"], \
-             self.lastError["line"]))
+        if self.currentXMLFile:
+            msg = "   File %s" % self.currentXMLFile
+            print msg
+            self.log.error(msg)
+        if self.currentXMLLine:
+            msg = "   Line %d" % self.currentXMLLine
+            print msg
+            self.log.error(msg)
+        if self.currentExplanation:
+            msg = "   Reason: %s" % self.currentExplanation
+            print msg
+            self.log.error(msg)
         else:
-            print "  [state of the error wasn't captured]"
-            self.log.error("An error occurred but state wasn't captured")
+            msg = "   Reason not recorded"
+            print msg
+            self.log.error(msg)
         print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
+
 
 
     def loadParcels(self, namespaces=None):
@@ -589,9 +597,11 @@ class Manager(Item):
         global globalDepth
         globalDepth = 0
 
+
         if timing: tools.timing.begin("Load parcels")
 
         try:
+            self.resetState()
             print "Scanning parcels..."
             self.__scanParcels()
             print "...done"
@@ -599,6 +609,7 @@ class Manager(Item):
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
 
+            self.resetState()
             if namespaces:
                 print "Loading parcels..."
                 for namespace in namespaces:
@@ -606,26 +617,32 @@ class Manager(Item):
                     parcel.modifiedOn = DateTime.now()
                 print "...done"
 
+            self.resetState()
             print "Starting parcels..."
             root = self.repo.findPath("//parcels")
             for parcel in self.__walkParcels(root):
                 parcel.startupParcel()
             print "...done"
+            self.resetState()
 
-        except Exception, e:
+        except:
             self.__displayError()
             raise
 
         if timing: tools.timing.end("Load parcels")
 
+    def resetState(self):
+        self.currentXMLFile = None
+        self.currentXMLLine = None
+        self.currentExplanation = None
 
-    def saveErrorState(self, message, file, line):
-        self.lastError = {
-            "message"   : message,
-            "file"      : file,
-            "line"      : line,
-        }
-        return ParcelException("%s at %s:%s" % (message, file, line))
+    def saveState(self, file=None, line=None):
+        self.currentXMLFile = file
+        self.currentXMLLine = line
+
+    def saveExplanation(self, explanation):
+        self.currentExplanation = explanation
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -747,12 +764,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     _DELAYED_UUIDOF    = 2
     _DELAYED_RESET     = 3
 
-    def saveErrorState(self, message, file=None, line=None):
+    def saveState(self, file=None, line=None):
         if not file:
             file = self.locator.getSystemId()
         if not line:
             line = self.locator.getLineNumber()
-        return self.manager.saveErrorState(message, file, line)
+        self.manager.saveState(file, line)
+
+    def saveExplanation(self, explanation):
+        self.manager.saveExplanation(explanation)
+        return explanation
 
     def setDocumentLocator(self, locator):
         """SAX2 callback to set the locator, useful for error handling"""
@@ -806,6 +827,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     def characters(self, content):
         """SAX2 callback for character content within the tag"""
 
+        self.saveState()
+
         (uri, local, element, item, references, reloading) = self.tags[-1]
 
         if element == 'Attribute' or element == 'Dictionary':
@@ -814,9 +837,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     def startElementNS(self, (uri, local), qname, attrs):
         """SAX2 callback for the beginning of a tag"""
 
+        self.saveState()
+
         if not uri:
-            raise self.saveErrorState("Element not properly prefixed (%s)" % \
-             local)
+            explanation = "Element not properly prefixed (%s)" % local
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
 
         uri = self.manager._convertOldUris(uri)
 
@@ -839,8 +865,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             # parser has already mapped the prefix to the namespace (uri).
             kind = self.findItem(uri, local, self.locator.getLineNumber())
             if kind is None:
-                raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
-                 (uri, local))
+                explanation = "Kind doesn't exist: %s:%s" % (uri, local)
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
 
             # If we have the document root, use the parcel parent.
             # Otherwise, the currentItem is the parent.
@@ -898,8 +925,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
                 if typeItem is None:
-                    raise self.saveErrorState("Type doesn't exist: "\
-                     "%s:%s" % (typeNamespace, typeName))
+                    explanation = \
+                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
                 # instead of converting to string and back, just store item
                 # reference ?
@@ -919,8 +948,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
                 if typeItem is None:
-                    raise self.saveErrorState("Type doesn't exist: "\
-                     "%s:%s" % (typeNamespace, typeName))
+                    explanation = \
+                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
                 # instead of converting to string and back, just store item
                 # reference ?
@@ -939,6 +970,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
+
+        self.saveState()
 
         uri = self.manager._convertOldUris(uri)
 
@@ -966,9 +999,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             # We are deprecating defaultValue:
             if local == "defaultValue":
-                raise self.saveErrorState(
-                 "The 'defaultValue' attribute has been deprecated",
-                 self.locator.getSystemId(), self.locator.getLineNumber())
+                explanation = \
+                 "The 'defaultValue' attribute has been deprecated"
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
 
             # Initialize the assignment with values shared by all types:
             assignment = {
@@ -1053,35 +1087,42 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         # child is an attribute
                         item.addValue("attributes", child)
 
-    def makeValue(self, item, attributeName, attributeTypePath, value, line):
+    def makeValue(self, item, attributeName, attributeTypePath, value):
         """ Creates a value from a string, based on the type
             of the attribute.
         """
         if attributeTypePath:
             attributeType = self.repository.findPath(attributeTypePath)
             if attributeType is None:
-                raise self.saveErrorState("Attribute type doesn't exist '%s'" \
-                 % attributeTypePath, None, line)
+                explanation = \
+                 "Attribute type doesn't exist '%s'" % attributeTypePath
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
             value = attributeType.makeValue(value)
         else:
             if item is None:
-                raise self.saveErrorState("Neither attribute type or item " \
-                 "specified", None, line)
+                explanation = \
+                 "Neither attribute type or item specified"
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
 
             kindItem = item.itsKind
             attributeItem = kindItem.getAttribute(attributeName)
 
             if attributeItem is None:
-                raise self.saveErrorState( \
-                 "Kind %s does not have the attribute '%s'" % \
-                 (kindItem.itsPath, attributeName), None, line )
+                explanation = \
+                 "Kind %s does not have the attribute '%s'" \
+                  % (kindItem.itsPath, attributeName)
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
 
             try:
                 value = attributeItem.type.makeValue(value)
             except Exception, e:
-                self.saveErrorState( \
+                exception = \
                  "'%s' for item '%s', attribute '%s', value '%s'" % \
-                 ( e, item.itsPath, attributeName, value ), None, line )
+                 ( e, item.itsPath, attributeName, value )
+                self.saveExplanation(explanation)
                 raise
 
         return value
@@ -1114,7 +1155,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         hasPrefix = nameString.count(':')
 
         if not (0 <= hasPrefix <= 1):
-            raise self.saveErrorState("Bad itemref: %s" % nameString)
+            explanation = "Bad itemref: %s" % nameString
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
 
         # If there's no prefix, then use the default set by xmlns=
         if hasPrefix == 0:
@@ -1126,7 +1169,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         namespace = self.mapping.get(prefix, None)
 
         if not namespace:
-            raise self.saveErrorState("No namespace: '%s'" % prefix)
+            explanation = "No namespace: '%s'" % prefix
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
 
         return (namespace, name)
 
@@ -1147,13 +1192,15 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 # The kind knows how to instantiate an instance of the item
                 item = kind.newItem(name, parent)
         except Exception, e:
-            self.saveErrorState(str(e))
+            self.saveExplanation(str(e))
             raise
 
         if timing: tools.timing.end("Creating items")
 
         if item is None:
-            raise self.saveErrorState("Item not created")
+            explanation = "Item not created"
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
 
         return item
 
@@ -1173,6 +1220,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 key = None
 
+            self.saveState(line=line, file=file)
 
             if timing: tools.timing.begin("Attribute assignments")
 
@@ -1193,8 +1241,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 else:
                     reference = self.findItem(namespace, name, line)
                     if reference is None:
-                        raise self.saveErrorState("Referenced item doesn't " \
-                         "exist: %s:%s" % (namespace, name), file, line)
+                        explanation = "Referenced item doesn't exist: %s:%s" \
+                         % (namespace, name)
+                        self.saveExplanation(explanation)
+                        raise ParcelException(explanation)
                     assignmentTuple = \
                      (attributeName, reference, None)
 
@@ -1242,8 +1292,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                 reference = self.findItem(namespace, name, line)
                 if reference is None:
-                    raise self.saveErrorState("Referenced item doesn't " \
-                     "exist: %s:%s" % (namespace, name), file, line)
+                    explanation = \
+                     "Referenced item doesn't exist: %s:%s" % (namespace, name)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
 
                 assignmentTuple = \
                  (attributeName, reference.itsUUID, None)
@@ -1296,16 +1348,17 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             value = []
                         else:
                             value = self.makeValue(item, attributeName,
-                             attributeTypePath, value, line)
+                             attributeTypePath, value)
                     else:
                         value = self.makeValue(item, attributeName,
-                         attributeTypePath, value, line)
+                         attributeTypePath, value)
 
                     try:
                         if key is not None:
                             item.setValue(attributeName, value, key)
                             if reloading:
-                                print "Reload: item %s, assigning %s[%s] = '%s'" % \
+                                print "Reload: item %s, assigning %s[%s] = " \
+                                 "'%s'" % \
                                  (item.itsPath, attributeName, key, value)
                         else:
                             item.addValue(attributeName, value)
@@ -1314,8 +1367,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                                  (item.itsPath, attributeName, value)
 
                     except:
-                        raise self.saveErrorState("Couldn't add value to item ",
-                         file, line)
+                        explanation = "Couldn't add value to item"
+                        self.saveExplanation(explanation)
+                        raise ParcelException(explanation)
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1593,8 +1647,7 @@ def PrintItem(path, rep, recursive=False, level=0):
 def __prepareRepo():
     from repository.persistence.XMLRepository import XMLRepository
 
-    Globals.chandlerDirectory = os.path.join(os.environ['CHANDLERHOME'],
-     "chandler")
+    Globals.chandlerDirectory = os.path.join(os.environ['CHANDLERHOME'])
     repoDir = os.path.join(Globals.chandlerDirectory, '__repository__')
     rep = XMLRepository(repoDir)
     rep.open(create=True)
