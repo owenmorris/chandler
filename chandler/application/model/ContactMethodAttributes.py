@@ -3,7 +3,6 @@
 """Model objects for various types of contact method addresses
 """
 
-__author__ = "Andy Hertzfeld"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"

@@ -3,7 +3,6 @@
 """EntityItem, common subclass for PersonItem, OrganizationItem, GroupItem
 """
 
-__author__ = "Andy Hertzfeld"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
