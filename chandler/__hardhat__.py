@@ -158,9 +158,37 @@ def distribute(buildenv):
 
         if buildenv['os'] == 'osx':
 
+            distName = 'Chandler_osx_debug_' + buildVersionShort
+            # when we make an osx distribution, we actually need to put it
+            # in a subdirectory (which has a .app extension).  So we set
+            # 'distdir' temporarily to that .app dir so that handleManifest()
+            # puts things in the right place.  Then we set 'distdir' to its
+            # parent so that it gets cleaned up further down.
+            distDirParent = buildenv['root'] + os.sep + distName
+            distDir = distDirParent + os.sep + distName + ".app"
+            buildenv['distdir'] = distDir
+            if os.access(distDirParent, os.F_OK):
+                hardhatlib.rmdir_recursive(distDirParent)
+            os.mkdir(distDirParent)
+            os.mkdir(distDir)
+
+            manifestFile = "distrib/osx/manifest.debug.osx"
+            hardhatlib.handleManifest(buildenv, manifestFile)
+            makeDiskImage = buildenv['hardhatroot'] + os.sep + \
+             "makediskimage.sh"
             os.chdir(buildenv['root'])
-            compFile = hardhatlib.compressDirectory(buildenv, 
-            ["debug", "Chandler"],
+            hardhatlib.executeCommand(buildenv, "HardHat",
+             [makeDiskImage, distName],
+             "Creating disk image from " + distName)
+            compFile1 = distName + ".dmg"
+
+            # reset 'distdir' up a level so that it gets removed below.
+            buildenv['distdir'] = distDirParent
+            distDir = distDirParent
+
+            os.chdir(buildenv['root'])
+            compFile2 = hardhatlib.compressDirectory(buildenv, 
+             ["debug","Chandler"],
              "Chandler_osx_dev_debug_" + buildVersionShort)
 
         if buildenv['os'] == 'win':
