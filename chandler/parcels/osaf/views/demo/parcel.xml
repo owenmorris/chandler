@@ -30,40 +30,36 @@
     Events
   -->
   <ChoiceEvent itsName="ChooseIntroTab">
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Intro</choice>
   </ChoiceEvent>  
   
   <ChoiceEvent itsName="ChooseButtonsTab">
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
   <ChoiceEvent itsName="ChooseControlsTab">
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
   
   <ChoiceEvent itsName="ChooseHTMLTab">
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>HTML</choice>
   </ChoiceEvent>
 
   <BlockEvent itsName="ReloadText">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ReloadText</eventName>
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
   <BlockEvent itsName="AddText">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ReloadText</eventName>
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
@@ -319,10 +315,10 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <childrenBlocks itemref="doc:Tabs"/>
 
     <!-- Block Events -->
-    <subscribeWhenVisibleEvents itemref="doc:ChooseIntroTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ChooseButtonsTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ChooseControlsTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ChooseHTMLTab"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChooseIntroTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ReloadText"/>
     <subscribeWhenVisibleEvents itemref="doc:AddText"/>
 

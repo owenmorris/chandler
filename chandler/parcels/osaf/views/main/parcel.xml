@@ -28,55 +28,27 @@
     Block Events
   -->
 
-  <BlockEvent itsName="ShowHideSidebar">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onShowHideEvent</methodName>
-    <dispatchToBlock itemref="doc:SidebarBoxContainer"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="ShowHideNavigationBar">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onShowHideEvent</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="ShowHideStatusBar">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onShowHideEvent</methodName>
-    <dispatchToBlock itemref="doc:StatusBar"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="SyncAll">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="SyncWebDAV">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </BlockEvent>
-
-  <BlockEvent itsName="ShareOrManage">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+  <BlockEvent itsName="EditAccountPreferences">
+    <eventName>EditAccountPreferences</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <KindParameterizedEvent itsName="NewCalendar">
+    <eventName>NewCalendar</eventName>
     <kindParameter itemref="calendarModel:CalendarEvent"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewContact">
+    <eventName>NewContact</eventName>
     <kindParameter itemref="contacts:Contact"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
   <ModifyContentsEvent itsName="NewItemCollection">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>NewItemCollection</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:UntitledView"/>
@@ -84,40 +56,73 @@
   </ModifyContentsEvent>
 
   <KindParameterizedEvent itsName="NewMailMessage">
+    <eventName>NewMailMessage</eventName>
     <kindParameter itemref="mail:MailMessage"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewNote">
+    <eventName>NewNote</eventName>
     <kindParameter itemref="contentModel:Note"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewTask">
+    <eventName>NewTask</eventName>
     <kindParameter itemref="tasks:Task"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <BlockEvent itsName="EditAccountPreferences">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+  <BlockEvent itsName="RequestSelectSidebarItem">
+    <eventName>RequestSelectSidebarItem</eventName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShareOrManage">
+    <eventName>ShareOrManage</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="ShowColumn">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ShowColumn</eventName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowHideNavigationBar">
+    <eventName>ShowHideNavigationBar</eventName>
+    <methodName>onShowHideEvent</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowHideSidebar">
+    <eventName>ShowHideSidebar</eventName>
+    <methodName>onShowHideEvent</methodName>
+    <dispatchToBlock itemref="doc:SidebarBoxContainer"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowHideStatusBar">
+    <eventName>ShowHideStatusBar</eventName>
+    <methodName>onShowHideEvent</methodName>
+    <dispatchToBlock itemref="doc:StatusBar"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="SyncAll">
+    <eventName>SyncAll</eventName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="SyncWebDAV">
+    <eventName>SyncWebDAV</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <!-- Test Block Events -->
 
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddAllAdditionalViews</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
@@ -130,21 +135,21 @@
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddContactsView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddContactsView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:ContactsView"/>
   </ModifyContentsEvent>
 
   <ModifyContentsEvent itsName="AddDemoView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddDemoView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddKindViews</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NotesView"/>
@@ -153,112 +158,112 @@
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMailView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddMailView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddMixedView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MixedView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNotesView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddNotesView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NotesView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddRepositoryView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddRepositoryView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddTasksView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>AddTasksView</eventName>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:TasksView"/>
   </ModifyContentsEvent>
   
   <BlockEvent itsName="CheckRepository">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>CheckRepository</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="CommitRepository">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>CommitRepository</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateCalendarEventItems">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>GenerateCalendarEventItems</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateContacts">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>GenerateContacts</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateContentItems">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>GenerateContentItems</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateNotes">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>GenerateNotes</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="GetNewMail">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>GetNewMail</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="LogRepositoryHistory">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>LogRepositoryHistory</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="LogViewChanges">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>LogViewChanges</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="ReloadParcels">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ReloadParcels</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="ResendSharingInvitations">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ResendSharingInvitations</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
   
   <BlockEvent itsName="ShareCollection">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ShareCollection</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
   
   <BlockEvent itsName="SharingSubscribeToCollection">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>SharingSubscribeToCollection</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="ShowPyCrust">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>ShowPyCrust</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="SyncCollection">
-    <dispatchEnum>SendToBlock</dispatchEnum>
+    <eventName>SyncCollection</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
   
@@ -1115,6 +1120,12 @@
     <childrenBlocks itemref="doc:KindFilterEventItem"/>
     <childrenBlocks itemref="doc:KindFilterTaskItem"/>
     
+    <!-- Block Events -->
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterTask"/>
+
     <!-- Attributes -->
     <toolSize>20,20</toolSize>
     <separatorWidth>20</separatorWidth>
@@ -1134,8 +1145,8 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterAll">
+    <eventName>KindFilterAll</eventName>
     <kindParameter itemref="core:None" />
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
@@ -1150,8 +1161,8 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterMessage">
+    <eventName>KindFilterMessage</eventName>
     <kindParameter itemref="mail:MailMessageMixin"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
@@ -1166,8 +1177,8 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterEvent">
+    <eventName>KindFilterEvent</eventName>
     <kindParameter itemref="calendarModel:CalendarEventMixin"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
@@ -1182,8 +1193,8 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterTask">
+    <eventName>KindFilterTask</eventName>
     <kindParameter itemref="tasks:TaskMixin"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
@@ -1209,7 +1220,7 @@
   </Toolbar>
 
   <BlockEvent itsName="ChangeLayout">
-    <methodName>onChangeLayoutEvent</methodName>
+    <eventName>ChangeLayout</eventName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
@@ -1308,6 +1319,7 @@
 
   <Table itsName="Sidebar"
          itemClass="osaf.views.main.SideBar.Sidebar">
+    <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
@@ -1353,16 +1365,13 @@
     
     <!-- Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:EditAccountPreferences"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterAll"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterMessage"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterTask"/>
     <subscribeWhenVisibleEvents itemref="doc:NewCalendar"/>
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
     <subscribeWhenVisibleEvents itemref="doc:NewItemCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
     <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
     <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:RequestSelectSidebarItem"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowColumn"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>

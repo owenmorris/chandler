@@ -195,6 +195,10 @@
     <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="events:Event"/>
 
+    <Attribute itsName="eventName">
+      <type itemref="String"/>
+    </Attribute>
+    
     <Enumeration itsName="dispatchEnumType">
       <values>BroadcastInsideMyEventBoundary</values>
       <values>BroadcastInsideActiveViewEventBoundary</values>
@@ -206,7 +210,7 @@
 
     <Attribute itsName="dispatchEnum">
       <type itemref="docSchema:BlockEvent/dispatchEnumType"/>
-      <required>True</required>
+      <initialValue type="docSchema:BlockEvent/dispatchEnumType">SendToBlock</initialValue>
     </Attribute>
 
     <Attribute itsName="dispatchToBlock">

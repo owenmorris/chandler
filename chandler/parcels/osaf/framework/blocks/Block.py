@@ -23,12 +23,45 @@ class Block(Item):
         args['sender'] = self
         event.Post (args)
 
-    def PostGlobalEvent (self, eventName, args):
-        self.Post (Globals.repository.findPath (
-                    '//parcels/osaf/framework/blocks/Events/' + eventName),
-                    args)
+    def PostEventByName (self, eventName, args):
+        assert self.eventNameToItemUUID.has_key (eventName), "Block Event name " + eventName + " not subscribed"
+        list = self.eventNameToItemUUID [eventName]
+        self.Post (Globals.repository.find (list [0]), args)
 
     subscribedBlocks = {}              # A dictionary mapping block UUIDS to event subscription clientIDs
+    eventNameToItemUUID = {}           # A dictionary mapping subscribed block event names to block event UUIDS
+
+    def addEventsToEventNameToItemUUID (theClass, eventList):
+        for event in eventList:
+            try:
+                eventName = event.eventName
+            except AttributeError:
+                pass
+            else:
+                try:
+                    list = theClass.eventNameToItemUUID [eventName]
+                except KeyError:
+                    theClass.eventNameToItemUUID [eventName] = [event.itsUUID, 1]
+                else:
+                    list [1] = list [1] + 1 #increment the reference count
+    addEventsToEventNameToItemUUID = classmethod (addEventsToEventNameToItemUUID)
+
+    def removeEventsToEventNameToItemUUID (theClass, eventList):
+        for event in eventList:
+            try:
+                eventName = event.eventName
+            except AttributeError:
+                pass
+            else:
+                try:
+                    list = theClass.eventNameToItemUUID [eventName]
+                except Exception, e:
+                    print eventName
+                if list [0] == event.itsUUID:
+                    list [1] = list [1] - 1 #decrement the reference count
+                    if list [1] == 0:
+                        del theClass.eventNameToItemUUID [eventName]
+    removeEventsToEventNameToItemUUID = classmethod (removeEventsToEventNameToItemUUID)
 
     def render (self):
         try:
@@ -88,6 +121,7 @@ class Block(Item):
                         Globals.notificationManager.Subscribe (subscribeWhenVisibleEvents,
                                                                widget.subscribeWhenVisibleEventsUUID,
                                                                Globals.mainView.dispatchEvent)
+                    self.addEventsToEventNameToItemUUID (subscribeWhenVisibleEvents)
 
                 try:
                     subscribeAlwaysEvents = self.subscribeAlwaysEvents
@@ -99,6 +133,8 @@ class Block(Item):
                         Globals.notificationManager.Subscribe (subscribeAlwaysEvents,
                                                                self.subscribedBlocks [self.itsUUID],
                                                                Globals.mainView.dispatchEvent)
+
+                    self.addEventsToEventNameToItemUUID (subscribeAlwaysEnts)
 
                 doFreeze = isinstance (widget, wx.Window)
                 if doFreeze:
@@ -167,12 +203,14 @@ class Block(Item):
         except AttributeError:
             pass
         else:
+            self.removeEventsToEventNameToItemUUID (self.subscribeWhenVisibleEvents)
             Globals.notificationManager.Unsubscribe (self.widget.subscribeWhenVisibleEventsUUID)
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 
         delattr (self, 'widget')
         if not self.itsView.isRefCounted():
             self.setPinned (False)
+            
         Globals.wxApplication.needsUpdateUI = True
 
     def widgetIDToBlock (theClass, wxID):
@@ -206,7 +244,7 @@ class Block(Item):
         return id
     getWidgetID = classmethod (getWidgetID)
 
-    def getFocusBlock (self):
+    def getFocusBlock (theClass):
         focusWindow = wx.Window_FindFocus()
         while (focusWindow):
             try:
@@ -214,6 +252,7 @@ class Block(Item):
             except AttributeError:
                 focusWindow = focusWindow.GetParent()
         return Globals.mainView
+    getFocusBlock = classmethod (getFocusBlock)
 
     def onShowHideEvent(self, notification):
         self.isShown = not self.isShown
@@ -317,7 +356,7 @@ class wxRectangularChild (wx.Panel):
         return int (border)
     CalculateWXBorder = classmethod(CalculateWXBorder)
 
-    def CalculateWXFlag(self, block):
+    def CalculateWXFlag (theClass, block):
         if block.alignmentEnum == 'grow':
             flag = wx.GROW
         elif block.alignmentEnum == 'growConstrainAspectRatio':

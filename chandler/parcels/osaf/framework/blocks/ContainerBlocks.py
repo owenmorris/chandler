@@ -360,7 +360,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
                 self.selectedTab = selection
                 page = self.GetPage(self.selectedTab)
                 Globals.mainView.onSetActiveView(page.blockItem)
-                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':page.blockItem})
+                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':page.blockItem})
         event.Skip()
         
     def OnRequestDrop(self, x, y):

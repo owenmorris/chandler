@@ -101,10 +101,10 @@ class MainView(View):
             itemName = 'ContactsView'
         else:
             itemName = 'AllView'
-        self.PostGlobalEvent ('RequestSelectSidebarItem', {'itemName':itemName})
+        self.PostEventByName ('RequestSelectSidebarItem', {'itemName':itemName})
 
         # Tell the ActiveView to select our new item
-        self.PostGlobalEvent ('SelectItemBroadcastInsideActiveView', {'item':newItem})
+        self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
 
     def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
@@ -144,12 +144,12 @@ class MainView(View):
         """
 
         # Tell the sidebar we want to select this view
-        self.PostGlobalEvent('RequestSelectSidebarItem', {'item':view})
+        self.PostEventByName('RequestSelectSidebarItem', {'item':view})
 
         if showInDetailView is not False:
             # Tell the ActiveView to select the item (usually a collection)
             # It will pass the item on to the Detail View.
-            self.PostGlobalEvent ('SelectItemBroadcastInsideActiveView', {'item':showInDetailView})
+            self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':showInDetailView})
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
         """
@@ -400,7 +400,7 @@ class MainView(View):
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
 
-        self.PostGlobalEvent ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
+        self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
     def onShareOrManageEventUpdateUI (self, notification):
         """

@@ -50,7 +50,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         newItem.render()
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.PostGlobalEvent ('SelectItemBroadcast', {'item':newItem})
+        self.PostEventByName ('SelectItemBroadcast', {'item':newItem})
 
     def onCloseEvent (self, notification):
         """
@@ -82,7 +82,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         self.parentBlock.widget.Freeze()        
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.PostGlobalEvent ('SelectItemBroadcast',
+        self.PostEventByName ('SelectItemBroadcast',
                               {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
 
     def onOpenEvent (self, notification):
@@ -102,7 +102,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             item.widget.SetSize (self.widget.GetClientSize())
             self.synchronizeWidget()
             self.parentBlock.widget.Thaw()
-            self.PostGlobalEvent ('SelectItemBroadcast', {'item':item})
+            self.PostEventByName ('SelectItemBroadcast', {'item':item})
         
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (self.widget.GetPageCount() > 1)

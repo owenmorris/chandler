@@ -10,8 +10,7 @@
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/views/main">
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content">
 
   <description>Events need to be defined in a different parcel than the schema because of a
 limitation of the XML format. Applicaiton specific events should not be located here. 
@@ -37,79 +36,88 @@ application specific parcels here</description>
     <subscribeAlwaysEvents itemref="events:SelectItemBroadcastInsideActiveView"/>
     <subscribeAlwaysEvents itemref="events:Undo"/>
 
-    <subscribeAlwaysEvents itemref="events:RequestSelectSidebarItem"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
   </EventList>
 
   <BlockEvent itsName="About">
+    <eventName>About</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Close">
+    <eventName>Close</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Copy">
+    <eventName>Copy</eventName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Cut">
+    <eventName>Cut</eventName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Delete">
+    <eventName>Delete</eventName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="New">
+    <eventName>New</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Open">
+    <eventName>Open</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Paste">
+    <eventName>Paste</eventName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Preferences">
+    <eventName>Preferences</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Quit">
+    <eventName>Quit</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Redo">
+    <eventName>Redo</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectedDateChanged">
+    <eventName>SelectedDateChanged</eventName>
     <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectItemBroadcast">
+    <eventName>SelectItemBroadcast</eventName>
     <methodName>onSelectItemEvent</methodName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectItemBroadcastInsideActiveView">
+    <eventName>SelectItemBroadcastInsideActiveView</eventName>
     <methodName>onSelectItemEvent</methodName>
     <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Undo">
+    <eventName>Undo</eventName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-
-  <BlockEvent itsName="RequestSelectSidebarItem">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-  </BlockEvent>
-
   <BlockEvent itsName="EnterPressed">
+    <eventName>EnterPressed</eventName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 

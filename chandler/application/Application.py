@@ -273,6 +273,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
 
         from osaf.framework.blocks.Views import View
+        from osaf.framework.blocks.Block import Block
         """
           Load and display the main chandler view.
         """
@@ -295,6 +296,8 @@ class wxApplication (wx.App):
             Globals.notificationManager.Subscribe (GlobalEvents.subscribeAlwaysEvents,
                                                    UUID(),
                                                    Globals.mainView.dispatchEvent)
+            Block.addEventsToEventNameToItemUUID (GlobalEvents.subscribeAlwaysEvents)
+
             Globals.mainView.onSetActiveView(mainView)
 
             self.ignoreSynchronizeWidget = False

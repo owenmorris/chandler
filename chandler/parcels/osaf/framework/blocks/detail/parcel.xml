@@ -58,14 +58,12 @@
   -->
   
   <BlockEvent itsName="ButtonPressed">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onButtonPressedEvent</methodName>
+    <eventName>ButtonPressed</eventName>
     <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
 
   <BlockEvent itsName="SendShareItem">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onSendShareItemEvent</methodName>
+    <eventName>SendShareItem</eventName>
     <dispatchToBlock itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 

@@ -110,7 +110,7 @@ class wxEditText(wx.TextCtrl):
             self.Show (self.blockItem.isShown)
 
     def OnEnterPressed(self, event):
-        self.blockItem.PostGlobalEvent ('EnterPressed', {'text':self.GetValue()})
+        self.blockItem.PostEventByName ('EnterPressed', {'text':self.GetValue()})
         event.Skip()
 
 class EditText(RectangularChild):
@@ -304,7 +304,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
+            self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -512,7 +512,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
+                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnSize(self, event):
@@ -616,7 +616,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.blockItem.selection = []
             self.blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
+        self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
 
     def DeleteSelection (self):
         self.blockItem.contents.beginUpdate()
@@ -641,7 +641,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.selectedItemToView = None
         Globals.repository.commit()
         self.blockItem.contents.endUpdate()
-        self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':None})
+        self.blockItem.PostEventByName("SelectItemBroadcast", {'item':None})
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -781,7 +781,7 @@ class Table (RectangularChild):
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
-            self.PostGlobalEvent("SelectItemBroadcast", {'item':item})
+            self.PostEventByName("SelectItemBroadcast", {'item':item})
 
     def onDeleteEvent (self, notification):
         self.widget.DeleteSelection()
@@ -977,7 +977,7 @@ class wxTreeAndList(DraggableWidget):
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':selection})
+                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':selection})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -1108,7 +1108,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
+            self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection:

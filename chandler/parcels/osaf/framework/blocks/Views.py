@@ -57,7 +57,7 @@ class View(BoxContainer):
         try:
             methodName = event.methodName
         except AttributeError:
-                methodName = 'on' + event.itsName + 'Event'
+                methodName = 'on' + event.eventName + 'Event'
 
         try:
             updateUI = notification.data['UpdateUI']
@@ -66,10 +66,11 @@ class View(BoxContainer):
         else:
             methodName += 'UpdateUI'
 
-        if event.dispatchEnum == 'SendToBlock':
+        dispatchEnum = event.dispatchEnum
+        if dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)
 
-        elif event.dispatchEnum == 'BroadcastInsideMyEventBoundary':
+        elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = notification.data['sender']
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
@@ -81,7 +82,7 @@ class View(BoxContainer):
                                       child.isShown and 
                                       not child.eventBoundary))
 
-        elif event.dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
+        elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
             block = Globals.activeView
                 
             broadcast (block,
@@ -91,17 +92,17 @@ class View(BoxContainer):
                                       child.isShown and 
                                       not child.eventBoundary))
 
-        elif event.dispatchEnum == 'BroadcastEverywhere':
+        elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.mainView,
                        methodName,
                        notification,
                        lambda child: (child is not None and child.isShown))
 
-        elif event.dispatchEnum == 'FocusBubbleUp':
+        elif dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
             bubbleUpCallMethod (block, methodName, notification)
 
-        elif event.dispatchEnum == 'ActiveViewBubbleUp':
+        elif dispatchEnum == 'ActiveViewBubbleUp':
             block = Globals.activeView
             bubbleUpCallMethod (block, methodName, notification)
 

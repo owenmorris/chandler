@@ -569,5 +569,5 @@ class CollectionBlock(Block.RectangularChild):
         """
         Convenience method for posting a selection changed event.
         """
-        self.PostGlobalEvent('SelectItemBroadcast', {'item':self.selection})
+        self.PostEventByName('SelectItemBroadcast', {'item':self.selection})
 
