@@ -9,19 +9,28 @@ __author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "Python"
+__license__ = "OSAF"
 
 
 from wxPython.wx import *
 from wxPython.xrc import *
 
+VIEWS_MENU_ID = 3000
 COMPONENT_MENU_POS = 3
+RESOURCE_FILE_LOCATION = "application/resources/menu.xrc"
+MENU_BAR_NAME = "MainMenuBar"
 
 class MenuBar:
     def __init__(self, parent, components):
+        """Sets up the MenuBar.  The majority of the menubar's information
+        is stored in a resource file which this reads to load.  It also
+        gets some of its menus from the individual components.  __init__
+        queries each of the available to components to get the necessary
+        information.  It also sets up default values for menu items (i.e
+        whether or not they are checked/greyed/etc."""
         self.parent = parent
-        self.resources = wxXmlResource ("application/resources/menu.xrc")
-        self.menuBar = self.resources.LoadMenuBar("MainMenuBar")
+        self.resources = wxXmlResource (RESOURCE_FILE_LOCATION)
+        self.menuBar = self.resources.LoadMenuBar(MENU_BAR_NAME)
         self.parent.SetMenuBar(self.menuBar)
         
         self.__AddComponentsMenus(components)
@@ -30,16 +39,20 @@ class MenuBar:
         self.__CreateEvents()
         
     def __SetDefaults(self):
-        """Initialize the state of the menus.  This includes setting whether or not
-        certain items are checked, visible, etc."""
+        """Initialize the state of the menus.  This includes setting whether
+        or not certain items are checked, visible, etc."""
         self.showLocationBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Location Bar"), self.showLocationBar)
+        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Location Bar"),
+                           self.showLocationBar)
         self.showActionsBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Actions Bar"), self.showActionsBar)        
+        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Actions Bar"), 
+                           self.showActionsBar)        
         self.showStatusBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Status Bar"), self.showStatusBar)                
+        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Status Bar"), 
+                           self.showStatusBar)                
         self.showSideBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Side Bar"), self.showSideBar)
+        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Side Bar"), 
+                           self.showSideBar)
        
         self.tableViewID = self.menuBar.FindMenuItem("View", "View as Table")
         self.iconViewID = self.menuBar.FindMenuItem("View", "View as Icons")
@@ -47,7 +60,8 @@ class MenuBar:
         self.menuBar.Check(self.tableViewID, self.useTableView)
         
         self.doAutoresize = true
-        self.autoresizeID = self.menuBar.FindMenuItem("View", "Auto-resize columns")
+        self.autoresizeID = self.menuBar.FindMenuItem("View", 
+                                                      "Auto-resize columns")
         self.menuBar.Check(self.autoresizeID, self.doAutoresize)
           
     def __CreateEvents(self):
@@ -68,13 +82,18 @@ class MenuBar:
         EVT_MENU(self.parent, XRCID ("menu_setup"), self.OnSetup)
 
         # View menu
-        EVT_MENU(self.parent, XRCID ("menu_show_location"), self.OnShowLocationBar)
-        EVT_MENU(self.parent, XRCID ("menu_show_actions"), self.OnShowActionsBar)
+        EVT_MENU(self.parent, XRCID ("menu_show_location"), 
+                 self.OnShowLocationBar)
+        EVT_MENU(self.parent, XRCID ("menu_show_actions"), 
+                 self.OnShowActionsBar)
         EVT_MENU(self.parent, XRCID ("menu_show_tabs"), self.OnShowTabs)
-        EVT_MENU(self.parent, XRCID ("menu_show_sidebar"), self.OnShowSidebar)
+        EVT_MENU(self.parent, XRCID ("menu_show_sidebar"), 
+                 self.OnShowSidebar)
         EVT_MENU(self.parent, XRCID ("menu_show_status"), self.OnShowStatus)
-        EVT_MENU(self.parent, XRCID ("menu_display_index"), self.OnDisplayIndex)
-        EVT_MENU(self.parent, XRCID ("menu_display_contact"), self.OnDisplayContact)
+        EVT_MENU(self.parent, XRCID ("menu_display_index"), 
+                 self.OnDisplayIndex)
+        EVT_MENU(self.parent, XRCID ("menu_display_contact"), 
+                 self.OnDisplayContact)
         EVT_MENU(self.parent, XRCID ("menu_table_view"), self.OnTableView)
         EVT_MENU(self.parent, XRCID ("menu_icon_view"), self.OnIconView)
         EVT_MENU(self.parent, XRCID ("menu_autoresize"), self.OnAutoresize)
@@ -88,33 +107,37 @@ class MenuBar:
         displayed.  As the current view switches, the menus will be switched
         accordingly."""
         self.componentsMenus = {}
-        if len(components) < 1: return
-        for component in components:
-            self.componentsMenus[component.GetName()] = component
-        defaultComponent = components[0].GetName()
-        self.menuBar.Insert(COMPONENT_MENU_POS, 
-                            self.componentsMenus[defaultComponent].GetMenu(), defaultComponent)
+        if len(components) > 0:
+            for component in components:
+                self.componentsMenus[component.GetComponentName()] = component
+            defaultComponent = components[0].GetComponentName()
+            self.menuBar.Insert(COMPONENT_MENU_POS, 
+                  self.componentsMenus[defaultComponent].GetComponentMenu(),
+                  defaultComponent)
 
     def __AddComponentViewMenus(self, components):
-        """Creates the view menus that allow the user to navigate among the different
-        components and their views.  The specifics of each component's view menu is 
-        generated by the component's ComponentLoader."""
-        if len(components) < 1: return
-        viewMenu = self.menuBar.GetMenu(self.menuBar.FindMenu("View"))
-        viewMenu.AppendSeparator()
-        for component in components:
-            # No good reason for choosing 99.  -1 Causes the menu to appear as
-            # a separator.  Suggestions for choosing a number are much welcomed.
-            viewMenu.AppendMenu(99, component.GetName() + ' Views', component.GetViewMenu())
+        """Creates the view menus that allow the user to navigate among the
+        different components and their views.  The specifics of each 
+        component's view menu is generated by the component's 
+        ComponentLoader."""
+        if len(components) > 0:
+            viewMenu = self.menuBar.GetMenu(self.menuBar.FindMenu("View"))
+            viewMenu.AppendSeparator()
+            for component in components:
+                viewMenu.AppendMenu(VIEWS_MENU_ID, 
+                                    component.GetComponentName() + ' Views', 
+                                    component.GetViewsMenu())
         
     def SelectComponent(self, name):
-        """Called when the active component changes.  This method causes the """
-        self.menuBar.Replace(3, self.componentsMenus[name].GetMenu(), name)
+        """Called when the active component changes.  This method causes the 
+        menu which is specific to the component to change."""
+        newMenu = self.componentsMenus[name].GetComponentMenu()
+        if self.menuBar.GetMenu(COMPONENT_MENU_POS) != newMenu:
+            self.menuBar.Replace(COMPONENT_MENU_POS, newMenu, name)
                 
     # File menu methods
     def OnNewViewer(self, event):
-        pass
-#        self.parent.NewViewer()
+        self.parent.NewViewer()
 
     def OnImportSpool(self, event):
         pass

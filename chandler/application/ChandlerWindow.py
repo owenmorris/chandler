@@ -8,7 +8,7 @@ __author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "Python"
+__license__ = "OSAF"
 
 
 from wxPython.wx import *
@@ -22,15 +22,27 @@ from LocationBar import LocationBar
 from ActionsBar import ActionsBar
 from SideBar import SideBar
 
+DEFAULT_WINDOW_WIDTH = 1000
+DEFAULT_WINDOW_HEIGHT = 800
+STATUS_WELCOME_MESSAGE = "Welcome!"
+
 class ChandlerWindow(wxFrame):
-    def __init__(self, parent, app, id=-1, title="Chandler", 
-                 pos=wxPyDefaultPosition, size=(1000,800), style=wxDEFAULT_FRAME_STYLE):
+    def __init__(self, parent, app, componentStrings, id = -1, 
+                 title = "Chandler", pos = wxPyDefaultPosition, 
+                 size = (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT),
+                 style = wxDEFAULT_FRAME_STYLE):
+        """Sets up the Chandler Window.  Each window has a location bar, an
+        actions bar, a status bar, and a menu bar that must be allocated and
+        setup.  There is also a panel where the components get to display 
+        themselves (self.displayPanel).  In order to get that display panel 
+        setup, we must load each of the components, select a default one, and
+        display it."""
 
         wxFrame.__init__(self, parent, id, title, pos, size, style)
         
         self.app = app
-        self.CreateStatusBar(1)
-        self.SetStatusText("Welcome!")  
+        self.CreateStatusBar()
+        self.SetStatusText(STATUS_WELCOME_MESSAGE)  
         
         self.locationBar = LocationBar(self)
 
@@ -45,13 +57,9 @@ class ChandlerWindow(wxFrame):
         self.bodyPanelSizer = wxBoxSizer(wxHORIZONTAL)
         self.sideBar = SideBar(self.bodyPanel, self)
         
-        self.components = self.__LoadComponents(self.bodyPanel)
-        # Should use a better huristic for which component to select
-        try:
-            self.displayPanel = self.components[0].GetCurrentView()
-            self.locationBar.AddLocationHistory(self.components[0], "Calendar")
-        except:
-            self.displayPanel = wxPanel(self, -1)
+        self.components = self.__LoadComponents(componentStrings, self.bodyPanel)
+        
+        self.displayPanel = wxPanel(self, -1)
         self.bodyPanelSizer.Add(self.sideBar, 0, wxEXPAND)
         self.bodyPanelSizer.Add(self.displayPanel, 1, wxEXPAND)
         
@@ -65,71 +73,78 @@ class ChandlerWindow(wxFrame):
         self.SetAutoLayout(true)
         self.SetSizer(self.actionsBarSizer)
         
+        if len(self.components) > 0:
+            defaultComponent = self.components[0]
+            self.GoToUri(defaultComponent, defaultComponent.GetDefaultUri())
+        
         EVT_CLOSE(self, self.OnCloseWindow)
 
-    def __LoadComponents(self, parent):
-        """Load each of the components for Chandler.  Among other things, this will
-        include the email, calendar, and contacts components.  In order for a component
-        to be successfully loaded, it must have it's own folder in the components directory
-        of Chandler, that folder must contain an __init__.py file, and it must have a file
-        that subclasses ComponentLoader and is named 'Foldername'Loader.py."""
-        sys.path.append('./components')
-        componentDirectory = os.listdir('./components')
-
+    def __LoadComponents(self, componentStrings, parent):
+        """This method takes the list of components that was supplied by the
+        application and one-by-one, imports each of them and allocates their
+        corresponding loader.  The loaders are then returned as a list so
+        that the window can access them when needed to switch among
+        components."""
         components = []
-        for package in componentDirectory:
+        for componentString in componentStrings:
             try:
-                loaderName = string.capwords(package) + 'Loader'
-                path = package + '.' + loaderName
+                loaderName, path = componentString
                 exec('from ' + path + ' import *')
                 exec('loader = ' + loaderName + '(parent, self)')
                 components.append(loader)
             except:
-                # Could output some sort of warning that a module failed to load
-                # In the development release, this exception will happen at least
-                # once when the CVS directory is encountered.
-                pass
+                print "Failed to load component"
         return components
  
-    # Must optimize this method
-    def SelectComponent(self, component, viewName):
-        """Select the view (indicated by viewName) from the supplied component.
-        This method first retrieves the proper view, then replaces the current view
-        within the display panel of the window with this new view.  It also updates the 
-        menubar (if the component being selected is different from the current one - since
-        it will have it's own menu) and selects the proper item in the sidebar."""
-        newView = component.GetViewNamed(viewName)
-        if newView != self.displayPanel:        
+    def GoToUri(self, component, uri, doAddToHistory = true):
+        """Select the view (indicated by the uri) from the supplied
+        component.  This method first retrieves the proper view, then replaces
+        the current view within the display panel of the window with this new
+        view.  It also updates the menubar (if the component being selected is
+        different from the current one - since it will have it's own menu) and
+        selects the proper item in the sidebar."""
+        if doAddToHistory:
+            self.locationBar.AddLocationHistory(component, uri)
+        self.locationBar.SetUri(uri) #displays the uri in the location bar
+        newView = component.GetViewFromUri(uri)
+        # Actually display the view
+        if newView != self.displayPanel:
             self.bodyPanelSizer.Remove(self.displayPanel)
             self.displayPanel.Hide()
-            self.displayPanel = component.GetViewNamed(viewName)
+            self.displayPanel = component.GetViewFromUri(uri)
             self.bodyPanelSizer.Add(self.displayPanel, 1, wxEXPAND)
             self.displayPanel.Show()
             self.bodyPanelSizer.Layout()
-            self.menuBar.SelectComponent(component.GetName())
+            self.menuBar.SelectComponent(component.GetComponentName())
         else:
             self.displayPanel.Hide()
             self.displayPanel.Show()
             self.bodyPanelSizer.Layout()
-        self.sideBar.navPanel.SelectItem(viewName)
+        # Make sure that the proper item is selected in the sidebar
+        self.sideBar.navPanel.SelectItem(uri)
 
-#    def NewViewer(self):
-#        self.app.OpenNewViewer(self.GetPosition())
+    def NewViewer(self):
+        """Create a new Chandler window.  We notify the application that
+        a request for a new window as been made."""
+        self.app.OpenNewViewer(self.GetPosition())
         
     def Quit(self):
+        """Tells the application that the quit menu was selected."""
         self.app.QuitApp()
         
     def ShowLocationBar(self, doShow):
-        """Show or hide the location toolbar.  This will only have an effect if doShow does not
-        match the current state of the location toolbar."""
-        if self.locationBar.locationBar.IsShown() == doShow: return
+        """Show or hide the location toolbar.  This will only have an effect
+        if doShow does not match the current state of the location toolbar."""
+        if self.locationBar.locationBar.IsShown() == doShow: 
+            return
         self.locationBar.locationBar.Show(doShow)
         self.Layout()
         
     def ShowActionsBar(self, doShow):
-        """Show or hide the actions toolbar.  This will only have an effect if doShow does not
-        match the current state of the actions toolbar."""
-        if self.actionsBar.IsShown() == doShow: return
+        """Show or hide the actions toolbar.  This will only have an effect
+        if doShow does not match the current state of the actions toolbar."""
+        if self.actionsBar.IsShown() == doShow: 
+            return
         self.actionsBar.actionsBar.Show(doShow)
         if doShow:
             self.actionsBarSizer.Remove(self.bodyPanel)
@@ -141,9 +156,10 @@ class ChandlerWindow(wxFrame):
         self.Layout()
  
     def ShowSideBar(self, doShow):
-        """Show or hide the sidebar.  This will only have an effect if doShow does not
-        match the current state of the sidebar."""
-        if self.sideBar.IsShown() == doShow: return
+        """Show or hide the sidebar.  This will only have an effect if
+        doShow does not match the current state of the sidebar."""
+        if self.sideBar.IsShown() == doShow: 
+            return
         self.sideBar.Show(doShow)
         if doShow:
             self.bodyPanelSizer.Remove(self.displayPanel)
@@ -155,13 +171,16 @@ class ChandlerWindow(wxFrame):
         self.Layout()
     
     def ShowStatus(self, doShow):
-        """Show or hide the statusbar.  This will only have an effect if doShow does not
-        match the current state of the statusbar."""
+        """Show or hide the statusbar.  This will only have an effect if 
+        doShow does not match the current state of the statusbar."""
         statusBar = self.GetStatusBar()
-        if statusBar.IsShown() == doShow: return
-        statusBar.Show(doShow)
-        self.Layout()
+        if statusBar.IsShown() != doShow: 
+            statusBar.Show(doShow)
+            self.Layout()
     
     def OnCloseWindow(self, event):
-#        self.app.RemoveWindow(self) # Remove it from the app's list of windows
+        """Closing a window requires that the window notify the application
+        that it is going away.  Once that is done, we may destroy the 
+        window."""
+        self.app.RemoveWindow(self) # Remove it from the app's list of windows
         self.Destroy()

@@ -8,19 +8,31 @@ __author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "Python"
+__license__ = "OSAF"
 
 
 from wxPython.wx import *
 from wxPython.xrc import *
     
+RESOURCE_FILE_LOCATION = "application/resources/location.xrc"
+LOCATION_BAR_NAME = "LocationBar"
+
 class LocationBar:
     def __init__(self, parent):
+        """The information for the location bar is stored in a resource
+        file.  To create the location bar we must just load it from the
+        resource."""
         self.parent = parent
-        self.resources = wxXmlResource ("application/resources/location.xrc")
-        self.locationBar = self.resources.LoadToolBar(self.parent, "LocationBar")
+        self.resources = wxXmlResource(RESOURCE_FILE_LOCATION)
+        self.locationBar = self.resources.LoadToolBar(self.parent, 
+                                                      LOCATION_BAR_NAME)
         self.parent.SetToolBar(self.locationBar)
-
+        id = XRCID("uriBox")
+        # For some reason the line below causes asserts to be raised.
+        # It seems as though each toolbar item is being queried, and
+        # for every one that isn't a control (the buttons?) an assert
+        # is raised.
+        self.uriBox = self.locationBar.FindWindowById(id)
         self.history = []
         self.future = []
         
@@ -30,29 +42,53 @@ class LocationBar:
         EVT_TOOL(self.parent, XRCID("reload"), self.DoReload)
         EVT_TOOL(self.parent, XRCID("home"), self.GoHome)
         
-    def AddLocationHistory(self, component, viewName):
-        """Add the given view to the toolbar's history list.  Adding a view to
-        the history will clear the future list (used by the Next button).  The
-        view that has been most recently added to history will be the one used
-        by the Prev button."""
-#        self.future = []
-#        tuple = (component, viewName)
-#        self.history.append(tuple)
-        pass
+        EVT_TEXT_ENTER(self.parent, XRCID("uriBox"), self.GoToUri)
+        
+    def AddLocationHistory(self, component, uri):
+        """Add the given view to the toolbar's history list.  The history
+        contains the past views that have been visited as well as the view
+        that is currently active (in the last position).  Adding a view to
+        the history will clear the future list (used by the Next button)."""
+        self.future = []
+        tuple = (component, uri)
+        self.history.append(tuple)
+        
+    def SetUri(self, uri):
+        """Sets the text of the uri text field in the location bar to reflect
+        the current view."""
+        self.uriBox.SetValue(uri)
+        
+    def GoToUri(self, event):
+        uri = self.uriBox.GetValue()
+#        self.parent.GoToUri(component, uri)
 
     def GoPrev(self, event):
-#        if len(self.history) < 1: return
-#        newLocation = self.history.pop()
-#        self.future.append(newLocation)
-#        self.parent.SelectComponent(newLocation[0], newLocation[1], false)
-        pass
+        """Change to the most recent past view.  This moves you back one
+        in the history of views that you have visited.  It causes the view
+        that you are currently on to be added to the future list (for use
+        with the Next button) and moves you to the last remembered view.
+        This new view that you move to will now be the last element in the
+        history list."""
+        # The current view will always be in the history, so we need more
+        # than 1 to be able to pop off a new view to visit.
+        if len(self.history) > 1:
+            currentLocation = self.history.pop()
+            self.future.append(currentLocation)
+            newLocationIndex = len(self.history) - 1
+            newComponent, newUri = self.history[newLocationIndex]
+            self.parent.GoToUri(newComponent, newUri, false)
 
     def GoNext(self, event):
-#        if len(self.future) < 1: return
-#        newLocation = self.future.pop()
-#        self.history.append(newLocation)
-#        self.parent.SelectComponent(newLocation[0], newLocation[1], false)
-        pass
+        """Change to the next view in your future list.  The Next button
+        will only have an effect if the last navigation you did was to 
+        use the Prev button.  If so, then the last item added to the future
+        list will be popped off, added to the history list, and you will
+        navigate to that view."""
+        if len(self.future) > 0:
+            newLocation = self.future.pop()
+            self.history.append(newLocation)
+            newComponent, newUri = newLocation
+            self.parent.GoToUri(newComponent, newUri, false)
 
     def DoStop(self, event):
         pass

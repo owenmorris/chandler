@@ -12,7 +12,7 @@ __author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "Python"
+__license__ = "OSAF"
 
 
 from wxPython.wx import *
@@ -22,22 +22,20 @@ class ComponentLoader:
     def __init__(self, parent, frame):
         pass
     
-    def GetName(self):
+    def GetComponentName(self):
+        """The name of the component"""
         return None
     
-    def GetCurrentView(self):
-        """Must be overridden by a subclass so that the
-        application can locate the default view that should
-        be shown when this component is loaded."""
+    def GetDefaultUri(self):
         return None
     
-    def GetViewNamed(self, viewName):
+    def GetViewFromUri(self, uri):
         return None
 
-    def GetViewMenu(self):
+    def GetViewsMenu(self):
         return None
-
-    def GetMenu(self):
+    
+    def GetComponentMenu(self):
         return None
     
     def GetNavTree(self):
