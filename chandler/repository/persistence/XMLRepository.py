@@ -62,11 +62,22 @@ class XMLRepository(OnDemandRepository):
 
     def _create(self, **kwds):
 
+        if self._env is not None:
+            try:
+                self._env.close()
+                self._env = None
+            except:
+                self._env = None
+        if self._openLock is not None:
+            try:
+                self._lockClose()
+            except:
+                self._openLock = None
+
         if kwds.get('ramdb', False):
             flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
             self._env = self._createEnv()
             self._env.open(self.dbHome, DB_CREATE | flags, 0)
-            self._lockEnv = None
             
         else:
             if not os.path.exists(self.dbHome):
@@ -248,6 +259,7 @@ class XMLStore(Store):
             self._acls = ACLContainer(self, "__acls__", txn, **kwds)
             self._indexes = IndexesContainer(self, "__indexes__", txn, **kwds)
         except DBNoSuchFileError:
+            self.abortTransaction(txnStatus)
             raise
         else:
             self.commitTransaction(txnStatus)
