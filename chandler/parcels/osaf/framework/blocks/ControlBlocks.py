@@ -718,8 +718,9 @@ class wxTreeAndList:
                 pass
             else:
                 self.LoadChildren(id)
-    
-                self.Expand(id)
+
+                if self.IsVisible (id):
+                    self.Expand(id)
 
                 child, cookie = self.GetFirstChild (id)
                 while child.IsOk():
