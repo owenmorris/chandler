@@ -90,12 +90,8 @@ def main():
 
         except Exception, e:
             print e
-            eStr = e.__repr__()
-            print eStr
-            print "something failed"
-            log.write("Failed:\n")
-            log.write(eStr)
-            log.write("\n")
+            print "Build failed"
+            log.write("Build failed\n")
             status = "build_failed"
         else:
             if ret:
