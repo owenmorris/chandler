@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, sha, md5
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
@@ -186,3 +186,22 @@ def RemovePunctuation(str):
     s = s.replace(":", "")
     return s
 
+
+def _checksum(hashobj, filename):
+    fileobj = open(filename)
+    filedata = fileobj.read()
+    fileobj.close()
+    hashobj.update(filedata)
+    return hashobj.hexdigest()
+    
+
+def MD5sum(filename):
+    """Compute MD5 checksum for the file
+    """
+    return _checksum(md5.new(), filename)
+
+
+def SHAsum(filename):
+    """Compute SHA-1 checksum for the file
+    """
+    return _checksum(sha.new(), filename)

@@ -6,7 +6,7 @@
 # The cycle.py script does the hardhat updates, so any changes
 # to the main script can be picked up
 
-import hardhatutil, time, smtplib, os, sys, md5, sha
+import hardhatutil, time, smtplib, os, sys
 from optparse import OptionParser
 
 whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
@@ -270,26 +270,6 @@ _descriptions = {
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href='http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading'>Parcel Loading</a> for details on loading your own parcels)."],
 }
 
-def MD5sum(filename):
-    """Compute MD5 checksum for the file
-    """
-    m = md5.new()
-    fileobj = open(filename)
-    filedata = fileobj.read()
-    fileobj.close()
-    m.update(filedata)
-    return m.hexdigest()
-
-def SHAsum(filename):
-    """Compute SHA-1 checksum for the file
-    """
-    s = sha.new()
-    fileobj = open(filename)
-    filedata = fileobj.read()
-    fileobj.close()
-    s.update(filedata)
-    return s.hexdigest()
-
 
 def CreateIndex(outputDir, newDirName, nowString, buildName):
     """
@@ -319,10 +299,12 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
         index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
                  _descriptions[distro][0] + '</a>: <br>\n' +\
-                 ' MD5 checksum: ' + MD5sum(outputDir + os.sep + newDirName +\
+                 ' MD5 checksum: ' + hardhatutil.MD5sum(outputDir + os.sep +\
+                                                        newDirName +\
                                             os.sep + actualDistroFile) +\
                  '<br>\n' +\
-                 ' SHA checksum: ' + SHAsum(outputDir + os.sep + newDirName +\
+                 ' SHA checksum: ' + hardhatutil.SHAsum(outputDir + os.sep +\
+                                                        newDirName +\
                                             os.sep + actualDistroFile) +\
                  '<br>\n<p> ' + _descriptions[distro][1] + '</p>\n' +\
                  '</body></html>\n'
@@ -346,7 +328,8 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     fileOut = file(outputDir+os.sep+"time.js", "w")
     fileOut.write("document.write('" + nowString + "');\n")
     fileOut.close()
-    
+
+
 def _readFile(path):
     fileIn = open(path, "r")
     line = fileIn.readline()

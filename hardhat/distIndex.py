@@ -14,7 +14,7 @@ Instructions for use are in the TWiki at "MakingARelease"
 True = 1
 False = 0
 
-import os, sys, shutil, re, time, string, sha, md5
+import os, sys, shutil, re, time, string
 from optparse import OptionParser
 
 path = os.environ.get('PATH', os.environ.get('path'))
@@ -48,26 +48,6 @@ _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href='http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading'>Parcel Loading</a> for details on loading your own parcels)."],
 }
-
-def MD5sum(filename):
-    """Compute MD5 checksum for the file
-    """
-    m = md5.new()
-    fileobj = open(filename)
-    filedata = fileobj.read()
-    fileobj.close()
-    m.update(filedata)
-    return m.hexdigest()
-
-def SHAsum(filename):
-    """Compute SHA-1 checksum for the file
-    """
-    s = sha.new()
-    fileobj = open(filename)
-    filedata = fileobj.read()
-    fileobj.close()
-    s.update(filedata)
-    return s.hexdigest()
 
 def MakeJS(buildName, buildType):
     """
@@ -122,8 +102,10 @@ def CreateIndex(buildName):
             fileOut.write("<tr><td>\n")
             fileOut.write("<h3><a href=http://builds.osafoundation.org" + fileName + ">" + thisFile + "</a></h3>\n</td></tr>\n")
             fileOut.write("<tr><td>\n")
-            fileOut.write(" MD5 checksum: " + MD5sum(fileName) + "<br>")
-            fileOut.write(" SHA checksum: " + SHAsum(fileName) + "<br>")
+            fileOut.write(" MD5 checksum: " + hardhatutil.MD5sum(fileName) +\
+                          "<br>")
+            fileOut.write(" SHA checksum: " + hardhatutil.SHAsum(fileName) +\
+                          "<br>")
             fileOut.write("</td></tr>\n<tr><td><hr></td></tr>\n")
         elif fileName.find("Chan") > 0:
             print "Generating data for ", thisFile
@@ -136,8 +118,10 @@ def CreateIndex(buildName):
             else:
                 fileOut.write( _descriptions['enduser'][1])
             fileOut.write("<tr><td>\n")
-            fileOut.write(" MD5 checksum: " + MD5sum(fileName) + "<br>")
-            fileOut.write(" SHA checksum: " + SHAsum(fileName) + "<br>")
+            fileOut.write(" MD5 checksum: " + hardhatutil.MD5sum(fileName) +\
+                          "<br>")
+            fileOut.write(" SHA checksum: " + hardhatutil.SHAsum(fileName) +\
+                          "<br>")
             fileOut.write("</td></tr>\n<tr><td><hr></td></tr>\n")
         else:
             print "skipping ", thisFile
