@@ -221,27 +221,6 @@
     <title>Repository Viewer</title>
   </StaticText>
   
-  <TreeList itemName="TreeList">
-    <columnHeadings>Item Name</columnHeadings>
-    <columnHeadings>Display Name</columnHeadings>
-    <columnHeadings>Kind</columnHeadings>
-    <columnHeadings>UUID</columnHeadings>
-    <columnHeadings></columnHeadings>
-    <columnHeadings>URL</columnHeadings>
-    
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>120</columnWidths>
-    <columnWidths>10</columnWidths>
-    <columnWidths>120</columnWidths>
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-  </TreeList>
- 
   <CharacterStyle itemName="TextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>10.0</fontSize>
@@ -294,23 +273,6 @@
     <event itemref="events:Right"/>
     <helpString></helpString>
   </MenuItem>
-  
-  <EditText itemName="RightText">
-    <childrenBlocks itemref="doc:RightMenu"/>
-    <childrenBlocks itemref="doc:RightMenuItem"/>
-    <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-  </EditText>
   
   <CharacterStyle itemName="OneStyle">
     <fontFamily>DefaultUIFont</fontFamily>
@@ -646,23 +608,58 @@
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
     
-  <BoxContainer itemName="LeftBox">
+  <TreeList itemName="TreeList">
+    <columnHeadings>Item Name</columnHeadings>
+    <columnHeadings>Display Name</columnHeadings>
+    <columnHeadings>Kind</columnHeadings>
+    <columnHeadings>UUID</columnHeadings>
+    <columnHeadings></columnHeadings>
+    <columnHeadings>URL</columnHeadings>
+    
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>120</columnWidths>
+    <columnWidths>10</columnWidths>
+    <columnWidths>120</columnWidths>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TreeList>
+ 
+  <HTML itemName="HTML">
+    <url></url>
     <content-spec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:LeftText"/>
     <open>True</open>
 
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </HTML>
+
+  <SplitWindow itemName="RepositoryBox">
+    <content-spec itemref="doc:myQuery"/>
+    <childrenBlocks itemref="doc:TreeList"/>
+    <childrenBlocks itemref="doc:HTML"/>
+    <open>True</open>
+
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
     <orientationEnum>Horizontal</orientationEnum>
-  </BoxContainer>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
-  <SplitterWindow itemName="ContentBox">
+  <SplitWindow itemName="ContentBox">
     <content-spec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:TreeList"/>
+    <childrenBlocks itemref="doc:RepositoryBox"/>
     <childrenBlocks itemref="doc:TabBox"/>
     <open>True</open>
 
@@ -672,8 +669,9 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
-  </SplitterWindow>
+    <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
   <View itemName="TopView">
     <content-spec itemref="doc:myQuery"/>
@@ -695,8 +693,8 @@
     <childrenBlocks itemref="doc:ContentBox"/>
      <open>True</open>
 
-    <size>400,200</size>
-    <minimumSize>400,200</minimumSize>
+    <size>640,480</size>
+    <minimumSize>50,50</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>

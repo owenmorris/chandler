@@ -27,16 +27,22 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.args = args
         self.lock = threading.Lock()
 
-
 class MainFrame(wxFrame):
-    def __init__(self):
-        wxFrame.__init__(self, None, -1, "TestPane", size=(640,480))
+    def __init__(self, *arguments, **keywords):
+        wxFrame.__init__ (self, *arguments, **keywords)
         self.SetBackgroundColour (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_3DFACE))
         EVT_CLOSE(self, self.OnClose)
 
     def OnClose(self, event):
         Globals.wxApplication.mainFrame = None
         self.Destroy()
+
+    def OnSize(self, event):
+        event.Skip()
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart.size.width = self.GetSize().x
+        counterpart.size.height = self.GetSize().y
+        counterpart.setDirty()
 
 
 class wxApplicationNew (wxApp):
@@ -156,7 +162,12 @@ class wxApplicationNew (wxApp):
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
-        Globals.agentManager.Startup()
+        """
+          Temporarily disable agents to avoid repository bug that prevents
+        objects from changing in other threads. This allows me to continue
+        working -- DJA
+        """
+        #Globals.agentManager.Startup()
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
@@ -173,11 +184,16 @@ class wxApplicationNew (wxApp):
         topView = Globals.repository.find('//parcels/OSAF/templates/top/TopView')
 
         if topView:
-            self.mainFrame = MainFrame()
             assert isinstance (topView, View)
+            self.mainFrame = MainFrame(None,
+                                       -1,
+                                       "Chandler",
+                                       size=(topView.size.width, topView.size.height),
+                                       style=wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE)
             Globals.topView = topView
             self.menuParent = None
             self.mainFrame.counterpartUUID = topView.getUUID()
+            EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
 
             events = Globals.repository.find('//parcels/OSAF/framework/blocks/Events')
             names = []

@@ -61,7 +61,7 @@ class ContainerChild(Block):
         return window
 
 
-class RectContainer(ContainerChild):
+class RectangularChild(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
             flag = wxGROW
@@ -109,7 +109,7 @@ class RectContainer(ContainerChild):
         return int (border)
 
 
-class BoxContainer(RectContainer):
+class BoxContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wxHORIZONTAL
@@ -129,7 +129,7 @@ class BoxContainer(RectContainer):
         return panel, sizer, panel
 
  
-class Button(RectContainer):
+class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
@@ -159,7 +159,7 @@ class Button(RectContainer):
         return button, None, None
 
 
-class Choice(RectContainer):
+class Choice(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         choice = wxChoice(parentWindow, -1, 
@@ -172,7 +172,7 @@ class Choice(RectContainer):
         return choice, None, None
 
 
-class ComboBox(RectContainer):
+class ComboBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         comboBox = wxComboBox(parentWindow, -1, self.selection, 
@@ -185,7 +185,7 @@ class ComboBox(RectContainer):
         return comboBox, None, None
 
     
-class EditText(RectContainer):
+class EditText(RectangularChild):
     def __init__(self, *arguments, **keywords):
         super (EditText, self).__init__ (*arguments, **keywords)
 
@@ -223,7 +223,7 @@ class EditText(RectContainer):
         return editText, None, None
 
 
-class HTML(RectContainer):
+class HTML(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         id = 0
         if self.hasAttributeValue ("pageLoaded"):  # Repository bug/feature -- DJA
@@ -231,7 +231,8 @@ class HTML(RectContainer):
 
         htmlWindow = wxHtmlWindow(parentWindow, id, wxDefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
-        htmlWindow.LoadPage(self.url)
+        if self.url:
+            htmlWindow.LoadPage(self.url)
         
         if isinstance (parent, wxSizerPtr):
             parent.Add(htmlWindow, int(self.stretchFactor),
@@ -239,12 +240,12 @@ class HTML(RectContainer):
         return htmlWindow, None, None
 
 
-class List(RectContainer):
+class List(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
 
-class RadioBox(RectContainer):
+class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         id = 0
@@ -268,17 +269,46 @@ class RadioBox(RectContainer):
         return radioBox, None, None
 
 
-class ScrolledWindow(RectContainer):
+class ScrolledWindow(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
 
-class SplitterWindow(RectContainer):
+class wxSplitWindow(wxSplitterWindow):
+
+    def __init__(self, *arguments, **keywords):
+        wxSplitterWindow.__init__ (self, *arguments, **keywords)
+        EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(), self.OnSplitChanged)
+ 
+    def OnSplitChanged(self, event):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        width, height = self.GetSizeTuple()
+        position = float (event.GetSashPosition())
+        splitMode = self.GetSplitMode()
+        if splitMode == wxSPLIT_HORIZONTAL:
+            counterpart.splitPercentage = position / height
+        elif splitMode == wxSPLIT_VERTICAL:
+            counterpart.splitPercentage = position / width
+
+    def OnSize(self, event):
+        """
+          Calling Skip causes wxWindows to continue processing the event, which
+        will cause the parent class to get a crack at the event.
+        """
+        event.Skip()
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart.size.width = self.GetSize().x
+        counterpart.size.height = self.GetSize().y
+        counterpart.setDirty()
+
+
+class SplitWindow(RectangularChild):
     # @@@ Right now this is unnecessary boiler plate that should be removed.  We
     #  need a better way to allow items to hook themselves into their parent
     #  if that parent is not a sizer.  One possible solution is to have a method
     #  on that parent (AddChild) which the child can call when it is created and
     #  which does the correct hooking up.
+
     def render (self, parent, parentWindow):
         (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
         """
@@ -293,29 +323,36 @@ class SplitterWindow(RectContainer):
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
 
+        """
+          Jed, what happens if window is None?
+        """
         children = window.GetChildren()
+        width, height = window.GetSizeTuple()
+        assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
         if self.orientationEnum == "Horizontal":
-            window.SplitVertically(children[0], children[1])
+            window.SplitHorizontally(children[0], children[1], height * self.splitPercentage)
         else:
-            window.SplitHorizontally(children[0], children[1])
+            window.SplitVertically(children[0], children[1], width * self.splitPercentage)
         return window
 
     def renderOneBlock (self, parent, parentWindow):
- #       assert isinstance (parent, wxSizerPtr)
-        id = 0
-        if self.hasAttributeValue ("sashPosChanged"):  # Repository bug/feature -- DJA
-            id = self.sashPosChanged.getwxID()
-            
-        splitter = wxSplitterWindow(parentWindow, id, 
+        splitWindow = wxSplitWindow(parentWindow,
+                                    Block.getwxID(self), 
                                     wxDefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height))
+                                    (self.minimumSize.width, self.minimumSize.height),
+                                    style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
         if isinstance (parent, wxSizerPtr):
-            parent.Add(splitter, int(self.stretchFactor), 
+            parent.Add(splitWindow, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return splitter, splitter, splitter
+        """
+          Wire up onSize after __init__ has been called, otherwise it will
+        call onSize
+        """
+        EVT_SIZE(splitWindow, splitWindow.OnSize)
+        return splitWindow, splitWindow, splitWindow
 
 
-class StaticText(RectContainer):
+class StaticText(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         if self.textAlignmentEnum == "Left":
@@ -339,7 +376,7 @@ class StaticText(RectContainer):
         return staticText, None, None
 
 
-class TabbedContainer(RectContainer):
+class TabbedContainer(RectangularChild):
     # @@@ Right now this is unnecessary boiler plate that should be removed.  We
     #  need a better way to allow items to hook themselves into their parent
     #  if that parent is not a sizer.  One possible solution is to have a method
@@ -401,17 +438,17 @@ class TabbedContainer(RectContainer):
                 break
 
 
-class Toolbar(RectContainer):
+class Toolbar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
 
-class ToolbarItem(RectContainer):
+class ToolbarItem(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
 
-class Tree(RectContainer):
+class Tree(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
@@ -449,7 +486,6 @@ class wxTreeList(wxTreeListCtrl):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
  
-
     def OnExpanding(self, event):
         """
           Load the items in the tree only when they are visible.
@@ -462,7 +498,7 @@ class wxTreeList(wxTreeListCtrl):
         Globals.topView.dispatchEvent(notification)
 
 
-class TreeList(RectContainer):
+class TreeList(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         treeList = wxTreeList(parentWindow, Block.getwxID(self))
         info = wxTreeListColumnInfo()

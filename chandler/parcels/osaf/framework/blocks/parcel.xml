@@ -224,7 +224,7 @@
   </Kind>
 
   <!--
-    ContainerChild is the most generic container
+    ContainerChild is the most generic child of a container
   -->
   <Kind itemName="ContainerChild">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
@@ -232,10 +232,10 @@
   </Kind>
 
   <!--
-    RectContainer is a rectangular container
+    RectangularChild is a rectangular child of a container
   -->
-  <Kind itemName="RectContainer">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RectContainer</classes>
+  <Kind itemName="RectangularChild">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RectangularChild</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="size">
@@ -265,18 +265,18 @@
     </Enumeration>
 
     <Attribute itemName="alignmentEnum">
-      <type itemref="docSchema:RectContainer/alignmentEnumType"/>
+      <type itemref="docSchema:RectangularChild/alignmentEnumType"/>
     </Attribute>
 
     <Attribute itemName="stretchFactor">
       <type itemref="Float"/>
     </Attribute>
 
-    <attributes itemref="docSchema:RectContainer/size"/>
-    <attributes itemref="docSchema:RectContainer/minimumSize"/>
-    <attributes itemref="docSchema:RectContainer/border"/>
-    <attributes itemref="docSchema:RectContainer/alignmentEnum"/>
-    <attributes itemref="docSchema:RectContainer/stretchFactor"/>
+    <attributes itemref="docSchema:RectangularChild/size"/>
+    <attributes itemref="docSchema:RectangularChild/minimumSize"/>
+    <attributes itemref="docSchema:RectangularChild/border"/>
+    <attributes itemref="docSchema:RectangularChild/alignmentEnum"/>
+    <attributes itemref="docSchema:RectangularChild/stretchFactor"/>
   </Kind>
 
   <!--
@@ -284,7 +284,7 @@
   -->
   <Kind itemName="BoxContainer">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.BoxContainer</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="orientationEnumType">
       <values>Horizontal</values>
@@ -383,7 +383,7 @@
   -->
   <Kind itemName="Button">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.Button</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
       <type itemref="String"/>
@@ -424,7 +424,7 @@
   -->
   <Kind itemName="Choice">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.Choice</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="choices">
       <type itemref="String"/>
@@ -444,7 +444,7 @@
   -->
   <Kind itemName="ComboBox">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ComboBox</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="selection">
       <type itemref="String"/>
@@ -469,7 +469,7 @@
   -->
   <Kind itemName="EditText">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.EditText</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="lineStyleEnumType">
       <values>SingleLine</values>
@@ -505,7 +505,7 @@
   -->
   <Kind itemName="HTML">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.HTML</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="url">
       <type itemref="String"/>
@@ -524,7 +524,7 @@
   -->
   <Kind itemName="List">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.List</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
   </Kind>  
 
@@ -533,7 +533,7 @@
   -->
   <Kind itemName="RadioBox">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.RadioBox</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
       <type itemref="String"/>
@@ -573,16 +573,16 @@
   -->
   <Kind itemName="ScrolledWindow">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ScrolledWindow</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
   </Kind>    
 
   <!--
-    SplitterWindow
+    SplitWindow
   -->
-  <Kind itemName="SplitterWindow">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitterWindow</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+  <Kind itemName="SplitWindow">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitWindow</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
     
     <Enumeration itemName="orientationEnumType">
       <values>Horizontal</values>
@@ -593,12 +593,12 @@
       <type itemref="docSchema:BoxContainer/orientationEnumType"/>
     </Attribute>
 
-    <Attribute itemName="sashPosChanged">
-      <type itemref="docSchema:BlockEvent"/>
+    <Attribute itemName="splitPercentage">
+      <type itemref="Float"/>
     </Attribute>
 
-    <attributes itemref="docSchema:SplitterWindow/orientationEnum"/>
-    <attributes itemref="docSchema:SplitterWindow/sashPosChanged"/>
+    <attributes itemref="docSchema:SplitWindow/orientationEnum"/>
+    <attributes itemref="docSchema:SplitWindow/splitPercentage"/>
   </Kind>  
 
   <!--
@@ -606,7 +606,7 @@
   -->
   <Kind itemName="StaticText">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="title">
       <type itemref="String"/>
@@ -622,7 +622,7 @@
   -->
   <Kind itemName="TabbedContainer">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.TabbedContainer</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="tabPosEnumType">
       <values>Top</values>
@@ -714,7 +714,7 @@
   -->
   <Kind itemName="Tree">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.Tree</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
   </Kind>  
 
@@ -723,7 +723,7 @@
   -->
   <Kind itemName="TreeList">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="columnHeadings">
       <type itemref="String"/>
