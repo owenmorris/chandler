@@ -125,9 +125,19 @@ class DBRepository(OnDemandRepository):
         env.set_lk_max_locks(32767)
         env.set_lk_max_objects(32767)
 
-        # create a 64Mb cache on Windows
+        #
+        # create a 64Mb cache on Windows and Linux
+        #
+
         if os.name == 'nt':
-            env.set_cachesize(0, 67108864, 1)
+            env.set_cachesize(0, 0x4000000, 1)
+
+        elif os.name == 'posix':
+            from commands import getstatusoutput
+
+            status, name = getstatusoutput('uname')
+            if status == 0 and name == 'Linux':
+                env.set_cachesize(0, 0x4000000, 1)
 
         return env
 
