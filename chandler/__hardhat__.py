@@ -279,20 +279,6 @@ def distribute(buildenv):
              ["debug"],
              "Chandler_win_dev_debug_" + buildVersionShort)
 
-        # put the compressed file in the right place if specified 'outputdir'
-        if buildenv['outputdir']:
-            if not os.path.exists(buildenv['outputdir']):
-                os.mkdir(buildenv['outputdir'])
-            if os.path.exists(buildenv['outputdir']+os.sep+compFile1):
-                os.remove(buildenv['outputdir']+os.sep+compFile1)
-                os.rename(compFile1, buildenv['outputdir']+os.sep+compFile1)
-            if os.path.exists(buildenv['outputdir']+os.sep+compFile2):
-                os.remove(buildenv['outputdir']+os.sep+compFile2)
-                os.rename(compFile2, buildenv['outputdir']+os.sep+compFile2)
-
-        # remove the distribution directory, since we have a tarball/zip
-        if os.access(distDir, os.F_OK):
-            hardhatlib.rmdir_recursive(distDir)
 
     if buildenv['version'] == 'release':
 
@@ -376,17 +362,32 @@ def distribute(buildenv):
     if buildenv['outputdir']:
         if not os.path.exists(buildenv['outputdir']):
             os.mkdir(buildenv['outputdir'])
+        # The end-user distro
         if os.path.exists(buildenv['outputdir'] + os.sep + compFile1):
             os.remove(buildenv['outputdir'] + os.sep + compFile1)
-        os.rename( compFile1, buildenv['outputdir'] + os.sep + compFile1)
+        os.rename(compFile1, buildenv['outputdir'] + os.sep + compFile1)
+        if buildenv['version'] == 'release':
+            _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
+        else:
+            _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
+
+        # The release tarball
         if os.path.exists(buildenv['outputdir'] + os.sep + compFile2):
             os.remove(buildenv['outputdir'] + os.sep + compFile2)
         os.rename( compFile2, buildenv['outputdir'] + os.sep + compFile2)
+        if buildenv['version'] == 'release':
+            _outputLine(buildenv['outputdir']+os.sep+"release", compFile2)
+        else:
+            _outputLine(buildenv['outputdir']+os.sep+"debug", compFile2)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
         hardhatlib.rmdir_recursive(distDir)
 
+def _outputLine(path, text):
+    output = open(path, 'w', 0)
+    output.write(text + "\n")
+    output.close()
 
 def _createVersionFile(buildenv):
     versionFile = "version.py"
