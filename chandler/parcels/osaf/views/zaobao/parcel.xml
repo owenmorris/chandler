@@ -22,6 +22,18 @@
   <zb:RSSChannel itemName="ted">
     <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
   </zb:RSSChannel>
+  <zb:RSSChannel itemName="zaobao">
+    <zb:url>http://blogs.osafoundation.org/zaobao/index.rdf</zb:url>
+  </zb:RSSChannel>
+  <zb:RSSChannel itemName="chao">
+    <zb:url>http://blogs.osafoundation.org/chao/index.rdf</zb:url>
+  </zb:RSSChannel>
+  <zb:RSSChannel itemName="lessig">
+    <zb:url>http://lessig.org/blog/index.xml</zb:url>
+  </zb:RSSChannel>
+  <zb:RSSChannel itemName="diveintomark">
+    <zb:url>http://diveintomark.org/xml/rss.xml</zb:url>
+  </zb:RSSChannel>
 
   <!-- Queries -->
   <Query itemName="myQuery">
@@ -155,7 +167,6 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-
   <SplitWindow itemName="ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
@@ -172,4 +183,241 @@
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
   </SplitWindow>
   
+
+
+
+
+
+  <Tree itemName="ted_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:ted"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="ted_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="ted_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:ted_ChannelList"/>
+    <childrenBlocks itemref="doc:ted_ChannelItemDetail"/>
+  </SplitWindow>
+  
+
+
+  <Tree itemName="zaobao_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:zaobao"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="zaobao_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="zaobao_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:zaobao_ChannelList"/>
+    <childrenBlocks itemref="doc:zaobao_ChannelItemDetail"/>
+  </SplitWindow>
+  
+
+
+
+  <Tree itemName="chao_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:chao"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="chao_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="chao_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:chao_ChannelList"/>
+    <childrenBlocks itemref="doc:chao_ChannelItemDetail"/>
+  </SplitWindow>
+  
+
+
+
+  <Tree itemName="lessig_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:lessig"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="lessig_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="lessig_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:lessig_ChannelList"/>
+    <childrenBlocks itemref="doc:lessig_ChannelItemDetail"/>
+  </SplitWindow>
+  
+
+
+
+  <Tree itemName="mark_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:diveintomark"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="mark_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="mark_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:mark_ChannelList"/>
+    <childrenBlocks itemref="doc:mark_ChannelItemDetail"/>
+  </SplitWindow>
+
+
 </core:Parcel>
