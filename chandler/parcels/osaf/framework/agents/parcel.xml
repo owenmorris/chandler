@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itemName="agents"
+        xmlns="//Schema/Core">
+
+  <displayName>The Agent Parcel</displayName>
+  <description>All of the core agent stuff lives here</description>
+  <version>0.0</version>
+</Parcel>
