@@ -17,6 +17,21 @@ import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
 
+class wxButton(wx.Button):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+        
+class wxBitmapButton(wx.BitmapButton):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+        
+class wxToggleButton(wx.ToggleButton):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+        
 class Button(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
         try:
@@ -25,23 +40,23 @@ class Button(RectangularChild):
             id = 0
 
         if self.buttonKind == "Text":
-            button = wx.Button(parentWindow, id, self.title,
+            button = wxButton(parentWindow, id, self.title,
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
             image = wx.Image(self.icon, 
                              wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
-            button = wx.BitmapButton(parentWindow, id, bitmap,
-                              wx.DefaultPosition,
-                              (self.minimumSize.width, self.minimumSize.height))
+            button = wxBitmapButton(parentWindow, id, bitmap,
+                                    wx.DefaultPosition,
+                                    (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
             if wx.Platform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
-                button = wx.Button(parentWindow, id, self.title,
+                button = wxButton(parentWindow, id, self.title,
                                   wx.DefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
             else:
-                button = wx.ToggleButton(parentWindow, id, self.title,
+                button = wxToggleButton(parentWindow, id, self.title,
                                         wx.DefaultPosition,
                                         (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
@@ -59,18 +74,26 @@ class Button(RectangularChild):
             self.Post(event, {'item':self})
 
                               
+class wxChoice(wx.Choice):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
 class Choice(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
-        choice = wx.Choice(parentWindow, -1, 
-                              wx.DefaultPosition,
-                              (self.minimumSize.width, self.minimumSize.height),
-                              self.choices)
+        choice = wxChoice(parentWindow, -1, 
+                          wx.DefaultPosition,
+                          (self.minimumSize.width, self.minimumSize.height),
+                          self.choices)
         return choice, None, None
 
 
+class wxComboBox(wx.ComboBox):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
 class ComboBox(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
-        comboBox = wx.ComboBox(parentWindow, -1, self.selection, 
+        comboBox = wxComboBox(parentWindow, -1, self.selection, 
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
@@ -462,8 +485,7 @@ class Summary(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self, parent, parentWindow):
-        list = wxSummary(parentWindow,
-                         Block.getWidgetID(self))
+        list = wxSummary(parentWindow, Block.getWidgetID(self))
         return list, None, None
 
     def NeedsUpdate(self):
@@ -478,6 +500,11 @@ class Summary(RectangularChild):
         self.GoToItem (self.selection)
 
 
+class wxRadioBox(wx.RadioBox):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+
 class RadioBox(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
         if self.radioAlignEnum == "Across":
@@ -487,17 +514,16 @@ class RadioBox(RectangularChild):
         elif __debug__:
             assert False, "unknown radioAlignEnum"
                                     
-        radioBox = wx.RadioBox(parentWindow, -1, self.title,
+        radioBox = wxRadioBox(parentWindow, -1, self.title,
                               wx.DefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
         return radioBox, None, None
 
 
-class ScrolledWindow(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
-        return None, None, None
-
+class wxStaticText(wx.StaticText):
+    def __del__(self):
+        del Globals.association [self.blockUUID]
 
 class StaticText(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
@@ -508,7 +534,7 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
 
-        staticText = wx.StaticText (parentWindow,
+        staticText = wxStaticText (parentWindow,
                                    -1,
                                    self.title,
                                    wx.DefaultPosition,

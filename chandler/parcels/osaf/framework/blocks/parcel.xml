@@ -693,15 +693,6 @@
   </Kind>
 
   <!--
-    ScrolledWindow
-  -->
-  <Kind itemName="ScrolledWindow">
-    <classes key="python">osaf.framework.blocks.ControlBlocks.ScrolledWindow</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
-
-  </Kind>    
-
-  <!--
     SplitterWindow
   -->
   <Kind itemName="SplitterWindow">
