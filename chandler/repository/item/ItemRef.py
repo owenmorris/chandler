@@ -589,8 +589,16 @@ class RefDict(LinkedMap):
 
         To verify if there is a value for an alias, use the
         L{resolveAlias} method instead.
+
+        @param obj: the item or uuid sought
+        @type obj: an C{Item} instance, C{UUID} instance or C{None}
+        @return: C{False} if C{obj} is C{None} or is not this collection,
+        C{True} otherwise.
         """
 
+        if obj is None:
+            return False
+        
         load = not self._item.isNew()
         if isinstance(obj, ItemPackage.Item.Item):
             return self.has_key(obj._uuid, load)
@@ -977,12 +985,15 @@ class RefDict(LinkedMap):
 
         Raises C{NoSuchItemError} if the item is not in this collection.
 
-        @return the 0-based position of the item in the index.
+        @param indexName: the name of the index to search
+        @type indexName: a string
+        @param item: the item sought
+        @type item: an C{Item} instance
+        @return: the 0-based position of the item in the index.
         """
 
-        uuid = item._uuid
-        if uuid in self:
-            return self._index(indexName).getPosition(uuid)
+        if item in self:
+            return self._index(indexName).getPosition(item._uuid)
         else:
             raise NoSuchItemError, (self, item)
 
