@@ -179,7 +179,7 @@ class wxApplication (wxApp):
         # Load Parcels
         parcelSearchPath = parcelDir
         if __debug__ and debugParcelDir:
-            parcelSearchPath = os.path.join(parcelSearchPath, debugParcelDir)
+            parcelSearchPath = parcelSearchPath + os.pathsep + debugParcelDir
 
         LoadParcels.LoadParcels(parcelSearchPath, Globals.repository)
 
