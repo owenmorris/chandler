@@ -83,8 +83,6 @@
   <!-- Action Item Definition -->
   <Kind itemName="Action">
     <displayName>Action</displayName>
-    <attributes itemref="displayName"/>
-    <attributes itemref="description"/>
     <attributes itemref="agents:actionType"/>
     <attributes itemref="agents:actionScript"/>
     <attributes itemref="agents:actionValue"/>
@@ -155,8 +153,6 @@
   
   <Kind itemName="Condition">
     <displayName>Condition</displayName>
-    <attributes itemref="displayName"/>
-    <attributes itemref="description"/>
     <attributes itemref="agents:conditionType"/>
     <attributes itemref="agents:conditionFilterMode"/>
     <attributes itemref="agents:conditionValue"/>
@@ -199,7 +195,6 @@
   <!-- Instruction Item Definition -->
   <Kind itemName="Instruction">
     <displayName>Instruction</displayName>
-    <attributes itemref="displayName"/>
     <attributes itemref="agents:enabled"/>
     <attributes itemref="agents:condition"/>
     <attributes itemref="agents:actions"/>
@@ -233,8 +228,6 @@
   <!-- Repertoire Item Definition -->
   <Kind itemName="Repertoire">
     <displayName>Repertoire</displayName>
-    <attributes itemref="displayName"/>
-    <attributes itemref="description"/>
     <attributes itemref="agents:possibleActions"/>
     <attributes itemref="agents:possibleConditions"/>
     <attributes itemref="agents:repertoireOwner"/>
@@ -296,8 +289,6 @@
   
   <Kind itemName="AgentItem">
     <displayName>The Agent</displayName>
-    <attributes itemref="displayName"/>
-    <attributes itemref="description"/>
     <attributes itemref="agents:agentOwner"/>
     <attributes itemref="agents:roles"/>
     <attributes itemref="agents:repertoire"/>
