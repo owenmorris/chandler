@@ -1,0 +1,28 @@
+
+
+To experiment with different python versions
+--------------------------------------------
+
+ make _realclean
+ change VERSION in external/python/Makefile
+ set PYTHON_VER in external/Makefile.inc to 2.3 or 2.4
+ rebuild all binaries since they all depend on python (except for db)
+
+
+Upgrading python build
+----------------------
+
+ create patches-$(VERSION) from the previous version and re-evaluate patches
+
+ On Windows:
+   - upgrade the vc++ project files to 7.1
+   - copy them into win32/$(VERSION)
+   - edit _bsddb.vcproj to point header include path at ..\..\..\release\db
+   - edit _bsddb.vcproj to point lib path at ..\..\..\release\lib
+   - edit _bsddb.vcproj to use libdb43.lib and reset IgnoreDefaultLibraryNames
+   - edit zlib.vcproj to point at zlib 1.2.1 instead of zlib 1.1.4
+   - edit zlib.vcproj to remove the VCPreLinkEventTool checking for zlib
+   - make
+
+ On other OS:
+   - make
