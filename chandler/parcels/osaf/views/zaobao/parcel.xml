@@ -87,8 +87,7 @@
     <characterStyle itemref="doc:HeaderCharacterStyle"/>
   </EditText>
 
-  <BoxContainer itemName="ZaoBaoView">
-    <eventBoundary>True</eventBoundary>
+  <BoxContainer itemName="ItemViewBox">
     <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
@@ -97,11 +96,26 @@
     <stretchFactor>1.0</stretchFactor>
     <orientationEnum>Vertical</orientationEnum>
 
-    <childrenBlocks itemref="doc:ZaoBaoTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>
     <childrenBlocks itemref="doc:NewChannel"/>
 
   </BoxContainer>
+
+  <SplitWindow itemName="ZaoBaoView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:ZaoBaoTree"/>
+    <childrenBlocks itemref="doc:ItemViewBox"/>
+  </SplitWindow>
 
 
 
@@ -141,20 +155,21 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <BoxContainer itemName="ZaoBaoChannelView">
+
+  <SplitWindow itemName="ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
     <eventBoundary>True</eventBoundary>
     <open>True</open>
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-    <orientationEnum>Vertical</orientationEnum>
 
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
-
-  </BoxContainer>
-
-
+  </SplitWindow>
+  
 </core:Parcel>

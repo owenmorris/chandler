@@ -3,14 +3,17 @@ from repository.item.Query import KindQuery
 from OSAF.framework.blocks.ControlBlocks import Tree
 from OSAF.framework.blocks.RepositoryBlocks import wxItemDetail, ItemDetail
 from OSAF.framework.notifications.Notification import Notification
-from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
+import OSAF.examples.zaobao.RSSData as RSSData
+
+import webbrowser # for opening external links
 
 class ZaoBaoList(Tree):
     def _addChildNode(self, node, child, hasKids):
         displayName = child.getAttributeValue('displayName',
                                               default='<Untitled>')
         date = child.getAttributeValue('date', default='')
-
+        if date != '':
+            date = date.Format('%B %d, %Y    %I:%M %p')
         names = [displayName, str(date)]
         node.AddChildNode(child, names, hasKids)
 
@@ -35,25 +38,9 @@ class ZaoBaoList(Tree):
         for item in items:
             self._addChildNode(node, item, False)
 
-
     def OnGoToURI(self, notification):
         wxTreeWindow = Globals.association[self.getUUID()]
         wxTreeWindow.GoToURI(notification.data['URI'])
-
-    def OnEnterPressedEvent(self, notification):
-        from OSAF.examples.zaobao.RSSData import RSSChannel
-        Globals.repository.commit()
-
-        url = notification.GetData()['text']
-        if len(url) == 0:
-            return
-
-        chan = RSSChannel()        
-        chan.url = url
-
-        import ZaoBaoAgent
-        ZaoBaoAgent.UpdateChannel(chan)
-        Globals.repository.commit()
 
 
 class ZaoBaoTree(Tree):
@@ -61,14 +48,15 @@ class ZaoBaoTree(Tree):
         displayName = child.getAttributeValue('displayName',
                                               default='<Untitled>')
         date = child.getAttributeValue('date', default='')
-
+        if date != '':
+            date = date.Format('%B %d, %Y    %I:%M %p')
         names = [displayName, str(date)]
         node.AddChildNode(child, names, hasKids)
 
     def GetTreeData(self, node):
         item = node.GetData()
         if item:
-            chanKind = ZaoBaoParcel.getRSSChannelKind()
+            chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
 
             if item.getUUID() == Globals.repository.getUUID():
                 for child in KindQuery().run([chanKind]):
@@ -86,28 +74,22 @@ class ZaoBaoTree(Tree):
         wxTreeWindow.GoToURI(notification.data['URI'])
 
     def OnEnterPressedEvent(self, notification):
-        from OSAF.examples.zaobao.RSSData import RSSChannel
-        Globals.repository.commit()
-
         url = notification.GetData()['text']
-        if len(url) == 0:
+        if len(url) < 5:
             return
 
-        chan = RSSChannel()        
-        chan.url = url
-
-        import ZaoBaoAgent
-        ZaoBaoAgent.UpdateChannel(chan)
+        Globals.repository.commit()
+        chan = RSSData.NewChannelFromURL(url, True)
         Globals.repository.commit()
 
-        
+
 class wxZaoBaoItemDetail(wxItemDetail):
     def OnLinkClicked(self, wx_linkinfo):
         itemURL = wx_linkinfo.GetHref()
         item = Globals.repository.find(itemURL)
 
         if not item:
-            self.LoadPage(itemURL)
+            webbrowser.open(itemURL)
             return
 
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')

@@ -10,6 +10,8 @@ from repository.parcel.Parcel import Parcel
 from OSAF.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import types
+import feedparser
+
 
 ##
 # ZaoBaoParcel
@@ -68,13 +70,39 @@ def SetAttributes(self, data, attributes, encoding=None):
 ##
 # RSSChannel
 ##
+def NewChannelFromURL(url, update = True):
+    data = feedparser.parse(url)
+
+    if data['channel'] == {} or data['status'] == 404:
+        return None
+
+    channel = RSSChannel()
+    channel.url = url
+
+    if update:
+        try:
+            channel.Update(data)
+        except:
+            channel.delete()
+            channel = None
+
+    return channel
+
 class RSSChannel(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = ZaoBaoParcel.getRSSChannelKind()
         super(RSSChannel, self).__init__(name, parent, kind)
 
-    def Update(self, data):
+    def Update(self):
+        etag = self.getAttributeValue('etag', default=None)
+        lastModified = self.getAttributeValue('lastModified', default=None)
+        if lastModified:
+            lastModified = lastModified.tuple()
+
+        # fetch the data
+        data = feedparser.parse(self.url, etag, lastModified)
+
         # get the encoding
         encoding = data.get('encoding', 'latin_1')
 
