@@ -34,6 +34,7 @@ class CalendarTest:
 
         # Choose random minutes
         event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))
+        print event.duration
 
     def generateEvents(self, count, days):
         """ Generate _count_ events over the next _days_ number of days """

@@ -7,7 +7,7 @@
   <version>0.1</version>
 
   <itemPathMapping prefix="types" 
-                   path="//Schema/Model/Types/"/>
+                   path="//Schema/Model/"/>
   <itemPathMapping prefix="cal" 
                    path="//Schema/CalendarSchema/"/>
   <itemPathMapping prefix="contacts"
