@@ -1309,7 +1309,7 @@ class TransientRefDict(RefDict):
 class DanglingRefError(ValueError):
     pass
 
-class IndexError(KeyError):
+class IndexError:
 
     def getCollection(self):
         return self.args[0]
@@ -1320,11 +1320,11 @@ class IndexError(KeyError):
     def __str__(self):
         return self.__doc__ %(self.getIndexName(), self.getCollection())
     
-class NoSuchIndexError(IndexError):
+class NoSuchIndexError(IndexError, KeyError):
     "No index named '%s' on %s"
 
-class IndexAlreadyExists(IndexError):
+class IndexAlreadyExists(IndexError, KeyError):
     "An index named '%s' already exists on %s"
 
-class NoSuchItemError(IndexError):
+class NoSuchItemError(IndexError, ValueError):
     "No item %s in %s"
