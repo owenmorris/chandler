@@ -733,3 +733,24 @@ diff -u -r SWIG-20Feb04/Source/Swig/swig.h SWIG-20Feb04-patched/Source/Swig/swig
  
  /* -----------------------------------------------------------------------------
   * Swig_overload_dispatch()
+--- SWIG-20Feb04/configure	Mon Aug 16 16:08:40 2004
++++ SWIG-20Feb04-patched/configure	Mon Nov  1 16:07:52 2004
+@@ -741,17 +741,17 @@
+     verbose=yes ;;
+ 
+   -version | --version | --versio | --versi | --vers | -V)
+     ac_init_version=: ;;
+ 
+   -with-* | --with-*)
+     ac_package=`expr "x$ac_option" : 'x-*with-\([^=]*\)'`
+     # Reject names that are not valid shell variable names.
+-    expr "x$ac_package" : ".*[^-_$as_cr_alnum]" >/dev/null &&
++    expr "x$ac_package" : ".*[^-$as_cr_alnum]" >/dev/null &&
+       { echo "$as_me: error: invalid package name: $ac_package" >&2
+    { (exit 1); exit 1; }; }
+     ac_package=`echo $ac_package| sed 's/-/_/g'`
+     case $ac_option in
+       *=*) ac_optarg=`echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"`;;
+       *) ac_optarg=yes ;;
+     esac
+     eval "with_$ac_package='$ac_optarg'" ;;
