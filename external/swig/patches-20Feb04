@@ -701,3 +701,14 @@ diff -u -r SWIG-20Feb04/Source/Swig/swig.h SWIG-20Feb04-patched/Source/Swig/swig
  
  typedef struct {
 
+--- SWIG-20Feb04/Source/Modules/main.cxx	Fri Aug 20 15:45:52 2004
++++ SWIG-20Feb04-patched/Source/Modules/main.cxx	Fri Aug 20 15:44:39 2004
+@@ -288,7 +288,7 @@
+   // Check for SWIG_LIB environment variable
+ 
+   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
+-#if defined(_WIN32)
++#if defined(_WIN32) && !defined(__GNUC__)
+       char buf[MAX_PATH];
+       char *p;
+       if (GetModuleFileName(0, buf, MAX_PATH) == 0

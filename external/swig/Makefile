@@ -11,7 +11,7 @@ DIST_OPT=--debug
 FINAL=0
 SUFFIX=d
 else
-CONF_OPT=--enable-optimized
+CONF_OPT=
 DIST_OPT=
 FINAL=1
 SUFFIX=
@@ -22,61 +22,39 @@ BUILD=build_$(SNAP)
 
 .PHONY: swig
 
-
 ifeq ($(OS),Cygwin)
 
-EXECUTABLE=.exe
-
-swig:  $(SRC)/$(BUILD)/Makefile
+$(SRC)/$(BUILD)/Makefile:
+	mkdir -p $(SRC)/$(BUILD); \
 	cd $(SRC)/$(BUILD); \
-	$(MAKE) ; \
-	$(MAKE) install
+	PATH=$(GCJ_HOME)/bin:$(PATH); \
+	../configure --prefix=`cygpath -am $(PREFIX)` $(CONF_OPT) \
+                     --with-python=`cygpath -am $(PYTHON)`
 
-$(SRC)/$(BUILD)/Makefile: apply
-	cd $(SRC); \
-	mkdir -p $(BUILD); \
-	cd $(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_OPT) \
-	--build=i386-pc-cygwin \
-	--with-python=$(PYTHON) \
-	--without-ruby \
-	--without-php4 \
-	--without-chicken \
-	--without-pike \
-	--without-guile \
-	--without-ocaml
+swig: $(SRC)/$(BUILD)/Makefile
+	PATH=$(GCJ_HOME)/bin:$(PATH); $(MAKE) -C $(SRC)/$(BUILD)
+	$(MAKE) -C $(SRC)/$(BUILD) install
 
 else
 
-EXECUTABLE=
-
-$(SRC)/$(BUILD)/Makefile: apply
-	cd $(SRC); \
-	mkdir -p $(BUILD); \
-	cd $(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_OPT) \
-                 --enable-shared \
-                 --with-python=$(PYTHON) \
-                 --without-ruby \
-                 --without-php4 \
-                 --without-chicken \
-                 --without-pike \
-                 --without-guile \
-                 --without-ocaml
-
-swig:   $(SRC)/$(BUILD)/Makefile
+$(SRC)/$(BUILD)/Makefile:
+	mkdir -p $(SRC)/$(BUILD); \
 	cd $(SRC)/$(BUILD); \
-        $(MAKE) ; \
-        $(MAKE) install 
+	../configure --prefix=$(PREFIX) $(CONF_OPT) \
+                     --with-python=$(PYTHON)
+
+swig: $(SRC)/$(BUILD)/Makefile
+	$(MAKE) -C $(SRC)/$(BUILD)
+	$(MAKE) -C $(SRC)/$(BUILD) install
 
 endif
+
 
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-# snap target can be empty since we don't actually need swig when
-# running Chandler
-snap: 
+snap:
+	tar -cvzf $(SNAP).tar.gz . --no-recursion
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
@@ -84,5 +62,5 @@ clean:
 expand: SWIG-$(VERSION).tar.gz 
 	tar xvzf SWIG-$(VERSION).tar.gz
 
-build: swig
+build: apply swig
 
