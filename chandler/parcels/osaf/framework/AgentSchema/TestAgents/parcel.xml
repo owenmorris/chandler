@@ -10,6 +10,8 @@
 <core:Parcel describes="//parcels/OSAF/framework/AgentSchema/TestAgents"
              itemName="TestAgents"
              xmlns:core="//Schema/Core"
+             xmlns:lala="//parcels/OSAF/framework/notifications"
+             xmlns:events="//parcels/OSAF/framework/notifications/schema"
              xmlns:foo="//parcels/OSAF/framework"
              xmlns:bar="//parcels/OSAF/framework/agents"
              xmlns="//parcels/OSAF/framework/agents/schema"
@@ -19,9 +21,17 @@
   <core:description>Sample agents</core:description>
   <core:version>0.3</core:version>
 
+  <events:Event itemName="mrmenus_changed"/>
+  <events:Event itemName="im_presencerequest"/>
+  <events:Event itemName="im_presencechanged"/>
+  <events:Event itemName="im_messagearrived"/>
+  <events:Event itemName="im_messagesent"/>
+  <events:Event itemName="contacts_changed"/>
+
+
   <Condition itemName="MrMenusChanged">
     <core:description>looks for mrmenus changes</core:description>
-    <conditionNotification>mrmenus/changed</conditionNotification>
+    <conditionNotification itemref="test:mrmenus_changed"/>
   </Condition>
 
   <Action itemName="PrintSelection">
@@ -74,7 +84,7 @@
 
   <Condition itemName="PresenceChangedNotification">
     <core:description>watches for presence requests</core:description>
-    <conditionNotification>chandler/im/presence-changed</conditionNotification>
+    <conditionNotification itemref="test:im_presencechanged"/>
   </Condition>
   <Action itemName="PrintWho">
     <core:description>prints who</core:description>
@@ -89,7 +99,7 @@
 
   <Condition itemName="PresenceRequestNotification">
     <core:description>watches for presence requests</core:description>
-    <conditionNotification>chandler/im/presence-request</conditionNotification>
+    <conditionNotification itemref="test:im_presencerequest"/>
   </Condition>
 
   <Action itemName="ApproveIfOnWhitelist" itemClass="application.agents.test_agents.JabberAgent.ApproveAction">
@@ -125,7 +135,7 @@
 
   <Condition itemName="IMArrived">
     <core:description>This condition is invoked when an instant message arrives and filters on the fromAddress field</core:description>
-    <conditionNotification>chandler/im/message-arrived</conditionNotification>
+    <conditionNotification itemref="test:im_messagearrived"/>
     <conditionFilterMode>matches</conditionFilterMode>
     <conditionAttribute>fromAddress</conditionAttribute>
     <conditionValue>.*pavlov.*</conditionValue>
@@ -159,7 +169,7 @@
 
   <Condition itemName="OccupationChanged">
     <core:description>This condition is invoked when the occupation field of a contact is changed to a specific value</core:description>
-    <conditionNotification>chandler/parcels/OSAF/contacts/contact-changed</conditionNotification>
+    <conditionNotification itemref="test:contacts_changed"/>
     <conditionFilterMode>listequals</conditionFilterMode>
     <conditionAttribute>attribute,value</conditionAttribute>
     <conditionValue>occupation,Dentist</conditionValue>

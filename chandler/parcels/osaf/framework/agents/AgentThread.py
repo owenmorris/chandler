@@ -26,9 +26,9 @@ class AgentThread(threading.Thread):
         self.scheduler.schedule(0, False, 0, self._HandleNotification, notification)
 
     def _HandleNotification(self, notification):
-        self.log.debug('got notification %s', notification.GetName())
+        self.log.debug('got notification %s', notification.event)
         agentItem = Globals.repository[self.agentID]
-        instructions = self._GetInstructionsByName(agentItem, notification.name)
+        instructions = self._GetInstructionsByEvent(agentItem, notification.event)
         result = _ExecuteInstructions(agentItem, instructions, notification)
         self.log.debug(result)
         return result
@@ -58,17 +58,14 @@ class AgentThread(threading.Thread):
     def stop(self):
         self.scheduler.stop()
 
-    def _GetInstructionsByName(self, agentItem, notificationName):
+    def _GetInstructionsByEvent(self, agentItem, event):
         """
           return a list of active instructions associated with the passed-in
           notification if the notification name is 'all',
           return all the instructions
         """
         instructions = []
-        if notificationName == 'all':
-            matchingInstructions = agentItem.GetInstructions()
-        else:
-            matchingInstructions = self.instructionMap[notificationName]
+        matchingInstructions = self.instructionMap[event.getUUID()]
 
         for instruction in matchingInstructions:
             if instruction.IsEnabled():
@@ -120,10 +117,11 @@ def _BuildInstructionMap(agentItem):
     for instruction in instructions:
         notifications = instruction.GetNotifications()
         for notification in notifications:
-            if instructionMap.has_key(notification):
-                instructionMap[notification].append(instruction)
+            nID = notification.getUUID()
+            if instructionMap.has_key(nID):
+                instructionMap[nID].append(instruction)
             else:
-                instructionMap[notification] = [instruction]
+                instructionMap[nID] = [instruction]
 
     return instructionMap
 

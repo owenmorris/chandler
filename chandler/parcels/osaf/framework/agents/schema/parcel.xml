@@ -162,12 +162,13 @@
   
     <Attribute itemName="conditionAttribute">
       <displayName>Attribute of data to compare with</displayName>
-      <type itemref="String"/>    <cardinality>single</cardinality>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
     </Attribute>
   
     <Attribute itemName="conditionNotification">
       <displayName>Condition Notification</displayName>
-      <type itemref="String"/>
+      <type itemref="Item"/>
       <cardinality>single</cardinality>
     </Attribute>
   

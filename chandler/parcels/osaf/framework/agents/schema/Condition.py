@@ -16,10 +16,7 @@ class Condition(Item):
         """
           return a list of notifications used by this condition
         """
-        try:
-            return self.conditionNotification.split(',')
-        except AttributeError:
-            return []
+        return [self.conditionNotification]
          
     def IsSatisfied(self, notification):
         """
@@ -28,15 +25,6 @@ class Condition(Item):
            For now, we only handle notification type conditions, but that will change soon
         """
 
-        # we know that the condition fired, but check to make sure it's in our list
-        # as a redundancy check
-        notificationList = self.GetNotifications()
-   
-        try:
-            index = notificationList.index(notification.GetName())
-        except ValueError:
-            return False
-        
         # if there's no filter mode, we're done, so return True
         if not self.hasAttributeValue('conditionFilterMode'):
             return True
