@@ -176,14 +176,36 @@ class ItemCollection(ContentModel.ContentItem):
             query = self._query
         except AttributeError:
             query = self.createRepositoryQuery()
-            
+
         if self.queryStringStale:
             query.queryString, query.args = self.calculateQueryStringAndArgs()
             query.execute ()
             self.queryStringStale = False
             self.resultsStale = True
         if self.resultsStale or not self._isInitialized():
-            self._results = [index for index in query]
+            # self._results = [index for index in query]
+            current = None  # current is the "insertion point" for _results
+            # make _results look like query:
+            for item in query:
+                if item in self._results:
+                    self._results.placeItem(item, current)
+                else:
+                    self._results.insertItem(item, current)
+                if current is None:
+                    current = self._results.first()
+                else:
+                    current = self._results.next(current)
+
+            # remove all remaining items in _results that weren't in query:
+            if current is None:
+                current = self._results.first()
+            else:
+                current = self._results.next(current)
+            while current is not None:
+                next = self._results.next(current)
+                self._results.remove(current)
+                current = next
+
             self.resultsStale = False
 
     def calculateQueryStringAndArgs (self):

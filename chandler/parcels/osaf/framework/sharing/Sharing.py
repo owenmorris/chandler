@@ -352,7 +352,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         elif style == ImportExportFormat.STYLE_SINGLE:
             pass # @@@MOR
 
-        self.itsView.commit()
+        # self.itsView.commit()
 
         # print "BOTTOM OF PUT, before commit"
         # self._dumpState()
