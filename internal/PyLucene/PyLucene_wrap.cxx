@@ -1597,6 +1597,58 @@ static PyObject *_wrap_Field_UnStored(PyObject *self, PyObject *args) {
 }
 
 
+static PyObject *_wrap_Field_Keyword(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jstring arg2 ;
+    org::apache::lucene::document::Field *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:Field_Keyword",&obj0,&obj1)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        if (obj1 == Py_None)
+        arg2 = NULL;
+        else
+        arg2 = JvNewStringUTF(PyString_AsString(obj1));
+    }
+    {
+        try {
+            result = (org::apache::lucene::document::Field *)org::apache::lucene::document::Field::Keyword(arg1,arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__document__Field, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
 static PyObject *_wrap_delete_Field(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     org::apache::lucene::document::Field *arg1 = (org::apache::lucene::document::Field *) 0 ;
@@ -5275,6 +5327,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Field_Text", _wrap_Field_Text, METH_VARARGS },
 	 { (char *)"Field_UnIndexed", _wrap_Field_UnIndexed, METH_VARARGS },
 	 { (char *)"Field_UnStored", _wrap_Field_UnStored, METH_VARARGS },
+	 { (char *)"Field_Keyword", _wrap_Field_Keyword, METH_VARARGS },
 	 { (char *)"delete_Field", _wrap_delete_Field, METH_VARARGS },
 	 { (char *)"Field_swigregister", Field_swigregister, METH_VARARGS },
 	 { (char *)"new_Document", _wrap_new_Document, METH_VARARGS },

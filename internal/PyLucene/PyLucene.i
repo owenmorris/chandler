@@ -306,6 +306,7 @@ namespace org {
                     static Field *Text(jstring, jreader);
                     static Field *UnIndexed(jstring, jstring);
                     static Field *UnStored(jstring, jstring);
+                    static Field *Keyword(jstring, jstring);
                 };
                 class Document : public ::java::lang::Object {
                 public:

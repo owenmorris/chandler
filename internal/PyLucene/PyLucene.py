@@ -144,6 +144,7 @@ class Field(Object):
     Text = staticmethod(_PyLucene.Field_Text)
     UnIndexed = staticmethod(_PyLucene.Field_UnIndexed)
     UnStored = staticmethod(_PyLucene.Field_UnStored)
+    Keyword = staticmethod(_PyLucene.Field_Keyword)
     def __del__(self, destroy=_PyLucene.delete_Field):
         try:
             if self.thisown: destroy(self)
@@ -161,6 +162,8 @@ Field_Text = _PyLucene.Field_Text
 Field_UnIndexed = _PyLucene.Field_UnIndexed
 
 Field_UnStored = _PyLucene.Field_UnStored
+
+Field_Keyword = _PyLucene.Field_Keyword
 
 class Document(Object):
     def __repr__(self):
