@@ -548,7 +548,7 @@ class Item(object):
         """
 
         if self._status & Item.STALE:
-            raise ValueError, "item is stale: %s" %(self)
+            raise StaleItemError, self
 
         self._lastAccess = Item._countAccess()
 
@@ -733,7 +733,7 @@ class Item(object):
         """
         
         if self._status & Item.STALE:
-            raise ValueError, "item is stale: %s" %(self)
+            raise StaleItemError, self
 
         if not load:
             if self._children is not None:
@@ -1481,7 +1481,7 @@ class Item(object):
         if not self._status & (Item.DELETED | Item.DELETING):
 
             if self._status & Item.STALE:
-                raise ValueError, "item is stale: %s" %(self)
+                raise StaleItemError, self
 
             if not recursive and self.hasChildren():
                 raise ValueError, 'item %s has children, delete must be recursive' %(self)
@@ -1920,7 +1920,7 @@ class Item(object):
         """
 
         if self._status & Item.STALE:
-            raise ValueError, "item is stale: %s" %(self)
+            raise StaleItemError, self
 
         child = None
         if name is not None and self._children is not None:
@@ -2495,3 +2495,17 @@ class Children(LinkedMap):
     def _saveValues(self, version):
 
         pass
+
+
+class ItemError(ValueError):
+    "All item related exceptions go here"
+
+    def getItem(self):
+        return self.args[0]
+
+
+class StaleItemError(ItemError):
+    "Item is stale"
+
+    def __str__(self):
+        return Item.__repr__(self.getItem())

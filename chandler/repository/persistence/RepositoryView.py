@@ -91,7 +91,6 @@ class RepositoryView(object):
         """
 
         self._roots = self._createChildren(self)
-        self._dirty = 0
         self._registry = {}
         self._deletedRegistry = {}
         self._childrenRegistry = {}
@@ -102,7 +101,14 @@ class RepositoryView(object):
 
     def setDirty(self, dirty, attribute):
 
-        self._dirty = dirty
+        if dirty:
+            self._status |= RepositoryView.CDIRTY
+        else:
+            self._status &= ~RepositoryView.CDIRTY
+
+    def isDirty(self):
+
+        return self._status & RepositoryView.CDIRTY != 0
 
     def closeView(self):
         """
@@ -123,11 +129,10 @@ class RepositoryView(object):
 
         self._registry.clear()
         self._roots = None
-        self._dirty = 0
         self._deletedRegistry.clear()
         self._childrenRegistry.clear()
         del self._stubs[:]
-        self._status &= ~RepositoryView.OPEN
+        self._status &= ~(RepositoryView.OPEN | RepositoryView.CDIRTY)
 
         self.repository.store.detachView(self)
 
@@ -621,29 +626,42 @@ class RepositoryView(object):
         if item.isDeleting():
             self._deletedRegistry[uuid] = uuid
 
-    def commit(self):
+    def refresh(self):
         """
-        Commit all the changes made to items in this view.
+        Refresh this view to the changes made in other views.
 
-        Committing a view causes the following to happen, in this order:
+        Refreshing a view causes the following to happen, in this order:
         
             1. Version conflicts are detected. If an item in this view was
                changed in another view and it committed its changes first,
                there is a chance that these changes would conflict with the
                ones about to be committed by this view. A
                C{VersionConflictError} is raised in that situation.
-            2. All changes made to items in this view are saved to
-               persistent storage.
-            3. Change and history notifications are dispatched after the
-               persistent store transaction was successfully committed.
-            4. This view is refreshed to the latest version in persistent
+            2. The view is refreshed to the latest version in persistent
                store. Pointers to items that changed in other views that are
                also in this view are marked C{STALE} unless they're pinned
                in memory in which case they're refreshed in place.
-            5. If the view's cache has reached a threshhold item count - at
+            3. Change and history notifications from changes in other views
+               are dispatched after the merges succeeded.
+            4. If the view's cache has reached a threshhold item count - at
                the moment 10,000 - the least-used items are removed from
                cache and pointers to them are marked C{STALE} such that the
                size of the cache drops below 90% of this threshhold.
+        """
+        
+        raise NotImplementedError, "%s.commit" %(type(self))
+
+    def commit(self):
+        """
+        Commit all the changes made to items in this view.
+
+        Committing a view causes the following to happen, in this order:
+        
+            1. L{refresh} is called.
+            2. All changes made to items in the view are saved to
+               persistent storage.
+            3. Change and history notifications from the items committed
+               are dispatched after the transactions commits.
         """
         
         raise NotImplementedError, "%s.commit" %(type(self))
@@ -732,8 +750,10 @@ class RepositoryView(object):
     debug = property(isDebug)
     store = property(_getStore)
 
-    OPEN = 0x1
-    LOADING = 0x2
+    OPEN       = 0x0001
+    LOADING    = 0x0002
+    COMMITTING = 0x0004
+    CDIRTY     = 0x0008
     
 
 class OnDemandRepositoryView(RepositoryView):

@@ -163,6 +163,20 @@ class Repository(object):
 
         self.view.commit()
 
+    def refresh(self):
+        """
+        Refresh the current repository view to the changes made in other views.
+
+        See L{RepositoryView.refresh
+        <repository.persistence.RepositoryView.RepositoryView.refresh>}
+        for more details.
+        """
+        
+        if not self.isOpen():
+            raise RepositoryError, "Repository is not open"
+
+        self.view.refresh()
+
     def cancel(self):
         """
         Cancel changes in the current repository view.

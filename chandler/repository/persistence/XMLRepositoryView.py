@@ -14,6 +14,7 @@ from repository.item.Item import Item
 from repository.item.ItemRef import TransientRefDict
 from repository.persistence.RepositoryError import RepositoryError, MergeError
 from repository.persistence.RepositoryError import VersionConflictError
+from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
@@ -70,9 +71,9 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._loadItem(item._uuid, instance=item)
 
         del self._log[:]
-        if self._dirty:
+        if self.isDirty():
             self._roots._clearDirties()
-            self._dirty = 0
+            self.setDirty(0, None)
 
         self.prune(10000)
 
@@ -155,108 +156,21 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return self._indexWriter
 
-    def commit(self):
+    def refresh(self):
 
-        if timing: tools.timing.begin("Repository commit")
-
-        repository = self.repository
-        store = repository.store
-        history = store._history
-
-        self._notifications.clear()
-        histNotifications = None
-        
-        before = datetime.now()
-        count = len(self._log)
-        size = 0L
-        txnStarted = False
-        lock = None
-        
-        while True:
-            try:
-                txnStarted = self._startTransaction()
-                unloads = {}
-
-                newVersion = history.getVersion()
-                if count > 0:
-                    lock = store.acquireLock()
-                    newVersion += 1
-                    history.setVersion(newVersion)
-
-                    if newVersion >= self._version + 1:
-                        self._mergeItems(self._version, newVersion - 1, history)
-                
-                    for item in self._log:
-                        size += self._saveItem(item, newVersion, store, {})
-                    if self._dirty:
-                        self._roots._saveValues(newVersion)
-
-                if newVersion > self._version:
-                    histNotifications = RepositoryNotifications()
-                    
-                    def unload(uuid, version, docId, status, parent, dirties):
-
-                        if status & Item.DELETED:
-                            histNotifications.history(uuid, 'deleted',
-                                                      parent=parent)
-                        elif status & Item.NEW:
-                            histNotifications.history(uuid, 'added',
-                                                      dirties=dirties)
-                        else:
-                            histNotifications.history(uuid, 'changed',
-                                                      dirties=dirties)
-
-                        item = self._registry.get(uuid)
-                        if (item is not None and
-                            not item._status & Item.SAVED and
-                            item._version < newVersion):
-                            unloads[item._uuid] = item
-
-                    history.apply(unload, self._version, newVersion)
-                    
-                if txnStarted:
-                    self._commitTransaction()
-
-                if lock:
-                    lock = store.releaseLock(lock)
-
-                break
-
-            except DBLockDeadlockError:
-                self.logger.info('restarting commit aborted by deadlock')
-                if txnStarted:
-                    self._abortTransaction()
-                if lock:
-                    lock = store.releaseLock(lock)
-
-                continue
-            
-            except:
-                self.logger.exception('aborting transaction (%ld bytes)', size)
-                if txnStarted:
-                    self._abortTransaction()
-                if lock:
-                    lock = store.releaseLock(lock)
-
-                raise
-
-        if self._log:
-
-            for item in self._log:
-                if not item._status & Item.MERGED:
-                    item._version = newVersion
-                item.setDirty(0, None)
-                item._status &= ~(Item.NEW | Item.MERGED | Item.SAVED)
-            del self._log[:]
-
-            if self._dirty:
-                self._roots._clearDirties()
-                self._dirty = 0
+        history = self.repository.store._history
+        newVersion = history.getVersion()
 
         if newVersion > self._version:
+            histNotifications = RepositoryNotifications()
+            unloads = {}
+            self._mergeItems(history, self._version, newVersion,
+                             histNotifications, unloads)
+                    
             self.logger.debug('refreshing view from version %d to %d',
                               self._version, newVersion)
             self._version = newVersion
+
             for item in unloads.itervalues():
                 self.logger.debug('unloading version %d of %s',
                                   item._version, item)
@@ -266,25 +180,111 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     self.logger.debug('reloading version %d of %s',
                                       newVersion, item)
                     self._loadItem(item._uuid, instance=item)
-                    
-        after = datetime.now()
-        if count > 0:
-            self.logger.info('%s committed %d items (%ld bytes) in %s',
-                             self, count, size, after - before)
 
-        if histNotifications is not None:
+            before = datetime.now()
             count = len(histNotifications)
             histNotifications.dispatchHistory(self)
-            delta = datetime.now() - after
+            delta = datetime.now() - before
             if delta.seconds > 1:
                 self.logger.warning('%s %d notifications ran in %s',
                                     self, count, delta)
 
         self.prune(10000)
 
-        if timing: tools.timing.end("Repository commit")
+    def commit(self):
 
-    def _saveItem(self, item, newVersion, store, ood):
+        if self._status & RepositoryView.COMMITTING == 0:
+            if timing: tools.timing.begin("Repository commit")
+            
+            try:
+                self._status |= RepositoryView.COMMITTING
+
+                store = self.repository.store
+                history = store._history
+                before = datetime.now()
+
+                size = 0L
+                txnStarted = False
+                lock = None
+
+                def finish(lock, txnStarted, commit):
+                    if txnStarted:
+                        if commit:
+                            self._commitTransaction()
+                        else:
+                            self._abortTransaction()
+                    if lock:
+                        lock = store.releaseLock(lock)
+                    return lock, False
+        
+                self._notifications.clear()
+        
+                while True:
+                    try:
+                        while True:
+                            self.refresh()
+                            lock = store.acquireLock()
+                            newVersion = history.getVersion()
+                            if newVersion > self._version:
+                                lock = store.releaseLock(lock)
+                            else:
+                                break
+                    
+                        count = len(self._log)
+                        txnStarted = self._startTransaction()
+
+                        if count > 0:
+                            newVersion += 1
+                            history.setVersion(newVersion)
+
+                            for item in self._log:
+                                size += self._saveItem(item, newVersion, store)
+                            if self.isDirty():
+                                self._roots._saveValues(newVersion)
+
+                        lock, txnStarted = finish(lock, txnStarted, True)
+                        break
+
+                    except DBLockDeadlockError:
+                        self.logger.info('retrying commit aborted by deadlock')
+                        lock, txnStarted = finish(lock, txnStarted, False)
+                        continue
+            
+                    except:
+                        self.logger.exception('aborting transaction (%ld bytes)', size)
+                        lock, txnStarted = finish(lock, txnStarted, False)
+                        raise
+
+                self._version = newVersion
+                
+                if len(self._notifications) > 0:
+                    histNotifications = RepositoryNotifications()
+                    for uuid, changes in self._notifications.iteritems():
+                        histNotifications[uuid] = changes[-1]
+                    histNotifications.dispatchHistory(self)
+
+                if self._log:
+                    for item in self._log:
+                        item._version = newVersion
+                        item.setDirty(0, None)
+                        item._status &= ~(Item.NEW | Item.SAVED)
+                    del self._log[:]
+
+                    if self.isDirty():
+                        self._roots._clearDirties()
+                        self.setDirty(0, None)
+
+                after = datetime.now()
+                if count > 0:
+                    self.logger.info('%s committed %d items (%ld bytes) in %s',
+                                     self, count, size, after - before)
+
+            finally:
+                self._status &= ~RepositoryView.COMMITTING
+
+            if timing: tools.timing.end("Repository commit")
+
+    def _saveItem(self, item, newVersion, store):
 
         uuid = item._uuid
         isNew = item.isNew()
@@ -300,20 +300,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
             self.logger.debug('saving version %d of %s',
                               newVersion, item.itsPath)
 
-        if uuid in ood:
-            docId, oldDirty, newDirty = ood[uuid]
-            mergeWith = (store._data.getDocument(docId).getContent(),
-                         oldDirty, newDirty)
-            if isDebug:
-                self.logger.debug('merging %s (%0.4x:%0.4x) with newest version',
-                                  item.itsPath, oldDirty, newDirty)
-        else:
-            mergeWith = None
-            
         out = StringIO()
         generator = XMLGenerator(out, 'utf-8')
         generator.startDocument()
-        item._saveItem(generator, newVersion, mergeWith)
+        item._saveItem(generator, newVersion, None)
         generator.endDocument()
         xml = out.getvalue()
         out.close()
@@ -337,28 +327,37 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     
         return len(xml)
 
-    def _mergeItems(self, oldVersion, toVersion, history):
+    def _mergeItems(self, history, oldVersion, toVersion,
+                    histNotifications, unloads):
 
         merges = {}
 
         def check(uuid, version, docId, status, parentId, dirties):
-
             item = self.find(uuid, False)
 
-            if item is not None and item.isDirty():
-                oldDirty = status & Item.DIRTY
-                if uuid in merges:
-                    merges[uuid] = (merges[uuid][0] | oldDirty, parentId)
+            if item is not None:
+                if item.isDirty():
+                    oldDirty = status & Item.DIRTY
+                    if uuid in merges:
+                        merges[uuid] = (merges[uuid][0] | oldDirty, parentId)
+                    else:
+                        merges[uuid] = (oldDirty, parentId)
                 else:
-                    merges[uuid] = (oldDirty, parentId)
+                    if item._version < toVersion:
+                        unloads[uuid] = item
                     
+            if status & Item.DELETED:
+                histNotifications.history(uuid, 'deleted', parent=parent)
+            else:
+                histNotifications.history(uuid, 'changed', dirties=dirties)
+
         history.apply(check, oldVersion, toVersion)
 
         for uuid, (oldDirty, parentId) in merges.iteritems():
             
             item = self.find(uuid, False)
             newDirty = item.getDirty()
-            
+
             if newDirty & oldDirty & Item.NDIRTY:
                 self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
                 oldDirty &= ~Item.NDIRTY

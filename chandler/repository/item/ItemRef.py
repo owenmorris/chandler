@@ -1164,6 +1164,40 @@ class RefDict(LinkedMap):
 
         return None
 
+    def iterkeys(self, indexName=None):
+
+        if indexName is None:
+            for key in super(RefDict, self).iterkeys():
+                yield key
+
+        else:
+            index = self._indexes[indexName]
+            nextKey = index.getFirstKey()
+            while nextKey is not None:
+                key = nextKey
+                nextKey = index.getNextKey(nextKey)
+                yield key
+
+    def itervalues(self, indexName=None):
+
+        if indexName is None:
+            for value in super(RefDict, self).itervalues():
+                yield value
+
+        else:
+            for key in self.iterkeys(indexName):
+                yield self[key]
+
+    def iteritems(self, indexName=None):
+
+        for key in self.iterkeys(indexName):
+            yield (key, self[key])
+
+    def setDescending(self, indexName, descending=True):
+
+        self._indexes[indexName].setDescending(descending)
+        self._setDirty(noMonitors=True)
+
     def check(self, item, name):
         """
         Debugging: verify this ref collection for consistency.

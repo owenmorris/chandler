@@ -162,6 +162,16 @@ class DelegatingIndex(object):
 
 class SortedIndex(DelegatingIndex):
 
+    def __init__(self, index, **kwds):
+        
+        if 'descending' in kwds:
+            self._descending = str(kwds['descending']) == 'True'
+            del kwds['descending']
+        else:
+            self._descending = False
+
+        super(SortedIndex, self).__init__(index, **kwds)
+
     def compare(self, k0, k1):
 
         raise NotImplementedError, '%s is abstract' % type(self)
@@ -174,7 +184,7 @@ class SortedIndex(DelegatingIndex):
         
         while lo <= hi:
             pos = (lo + hi) >> 1
-            afterKey = self.getKey(pos)
+            afterKey = self._index.getKey(pos)
             diff = self.compare(key, afterKey)
 
             if diff == 0:
@@ -189,7 +199,7 @@ class SortedIndex(DelegatingIndex):
         if pos == 0:
             return None
 
-        return self.getKey(pos - 1)
+        return self._index.getKey(pos - 1)
 
     def insertKey(self, key, afterKey):
 
@@ -203,6 +213,51 @@ class SortedIndex(DelegatingIndex):
 
         self._index.removeKey(key)
         self._index.insertKey(key, self.afterKey(key))
+
+    def setDescending(self, descending=True):
+
+        self._descending = descending
+
+    def getKey(self, n):
+
+        if self._descending:
+            return self._index.getKey(-n)
+        else:
+            return self._index.getKey(n)
+
+    def getFirstKey(self):
+
+        if self._descending:
+            return self._index.getLastKey()
+        else:
+            return self._index.getFirstKey()
+
+    def getNextKey(self, key):
+
+        if self._descending:
+            return self._index.getPreviousKey(key)
+        else:
+            return self._index.getNextKey(key)
+
+    def getPreviousKey(self, key):
+
+        if self._descending:
+            return self._index.getNextKey(key)
+        else:
+            return self._index.getPreviousKey(key)
+
+    def getLastKey(self):
+
+        if self._descending:
+            return self._index.getFirstKey()
+        else:
+            return self._index.getLastKey()
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        if self._descending:
+            attrs['descending'] = 'True'
+        self._index._xmlValues(generator, version, attrs, mode)
 
 
 class AttributeIndex(SortedIndex):
@@ -244,7 +299,7 @@ class AttributeIndex(SortedIndex):
     def _xmlValues(self, generator, version, attrs, mode):
 
         attrs['attribute'] = self._attribute
-        self._index._xmlValues(generator, version, attrs, mode)
+        super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
 
 class CompareIndex(SortedIndex):
@@ -268,4 +323,4 @@ class CompareIndex(SortedIndex):
     def _xmlValues(self, generator, version, attrs, mode):
 
         attrs['compare'] = self._compare
-        self._index._xmlValues(generator, version, attrs, mode)
+        super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
