@@ -519,19 +519,12 @@ def generateDocs(buildenv):
 
     fileList = _findFiles(".", "parcel.xml")
 
-    _transformFilesXslt(buildenv, 
-     os.path.join("distrib","transforms","Kinds.xsl"),
-     os.path.join("."),
-     os.path.join("..",buildenv['version'],"docs"),
-     "Kinds.html",
-     fileList
-    )
-
-    _transformFilesXslt(buildenv, 
-     os.path.join("distrib","transforms","Attributes.xsl"),
-     os.path.join("."),
-     os.path.join("..",buildenv['version'],"docs"),
-     "Attributes.html",
-     fileList
-    )
+    for xsl in ["Kinds", "Attributes", "Aliass", "Enumerations", "index", "Types"]:
+        _transformFilesXslt(buildenv, 
+         os.path.join("distrib","transforms",xsl+".xsl"),
+         os.path.join("."),
+         os.path.join("..",buildenv['version'],"docs"),
+         xsl+".html",
+         fileList
+        )
 
