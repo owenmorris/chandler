@@ -1094,6 +1094,8 @@ def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Renaming latest-temp.tar latest.tar")
+	if os.path.exists("latest.tar"):
+	    os.remove("latest.tar")
 	os.rename("latest-temp.tar", "latest.tar")
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
