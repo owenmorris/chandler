@@ -190,13 +190,15 @@ bool wxColumnHeader::GetFlagUnicode( void )
 	return m_BUseUnicode;
 }
 
+// NB: this routine shouldn't really exist
+//
 void wxColumnHeader::SetFlagUnicode(
 	bool			bFlagValue )
 {
 	if (m_BUseUnicode == bFlagValue)
 		return;
 
-	m_BUseUnicode = bFlagValue;
+	// m_BUseUnicode = bFlagValue;
 }
 
 bool wxColumnHeader::Create(
@@ -759,8 +761,10 @@ bool				bIsSelected;
 
 #if defined(__WXMSW__)
 		Win32ItemInsert(
-			targetIndex, m_ItemList[targetIndex]->m_ExtentX,
-			m_ItemList[targetIndex]->m_LabelTextRef, m_ItemList[targetIndex]->m_TextJust,
+			targetIndex,
+			m_ItemList[targetIndex]->m_ExtentX,
+			m_ItemList[targetIndex]->m_LabelTextRef.c_str(),
+			m_ItemList[targetIndex]->m_TextJust,
 			m_BUseUnicode,
 			bIsSelected,
 			m_ItemList[targetIndex]->m_BSortEnabled,
@@ -1627,12 +1631,12 @@ long wxColumnHeaderItem::DrawItem(
 		return (-1L);
 
 #if defined(__WXMSW__)
-	// WXUNUSED(parentW, dc, bVisibleSelection)
 	wxUnusedVar( parentW );
 	wxUnusedVar( dc );
 	wxUnusedVar( bVisibleSelection );
 
-	// NB: implementation not needed ??
+	// NB: implementation not needed
+	// - parent renders all items as a single control
 	return 0;
 
 #elif defined(__WXMAC__)
@@ -1702,12 +1706,19 @@ OSStatus				errStatus;
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
 	CFStringRef			cfLabelText;
-	TextEncoding		targetEncoding;
 	bool				bUseUnicode;
 
+#if wxUSE_UNICODE
+		bUseUnicode = TRUE;
+#else
 		bUseUnicode = FALSE;
-		targetEncoding = (bUseUnicode ? kCFStringEncodingUnicode : kCFStringEncodingMacRoman);
-		cfLabelText = CFStringCreateWithCString( NULL, (const char*)m_LabelTextRef, targetEncoding );
+#endif
+
+		cfLabelText =
+			(bUseUnicode
+			? CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.mb_str()), kCFStringEncodingUnicode )
+			: CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.c_str()), kCFStringEncodingMacRoman ));
+
 		if (cfLabelText != NULL)
 		{
 			errStatus =
@@ -1762,7 +1773,7 @@ bool					bSelected, bHasIcon;
 	case wxCOLUMNHEADER_JUST_Right:
 	case wxCOLUMNHEADER_JUST_Center:
 		// NB: consider caching these values
-		dc->GetTextExtent( m_LabelTextRef, &(labelTextSize.x), &(labelTextSize.y) );
+		dc->GetTextExtent( m_LabelTextRef.c_str(), &(labelTextSize.x), &(labelTextSize.y) );
 		if (m_ExtentX > labelTextSize.x)
 		{
 			if (m_TextJust == wxCOLUMNHEADER_JUST_Center)
@@ -1779,7 +1790,7 @@ bool					bSelected, bHasIcon;
 
 	// FIXME: need to clip long text items
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
-		dc->DrawText( m_LabelTextRef, originX, localBoundsR.y + 1 );
+		dc->DrawText( m_LabelTextRef.c_str(), originX, localBoundsR.y + 1 );
 
 	// draw sort direction arrows (if specified)
 	// NB: what if icon avail? mut. ex.?
@@ -1842,8 +1853,8 @@ COLORREF		targetColor;
 	targetBrush = ::CreateSolidBrush( targetColor );
 	::FrameRect( targetHDC, &gdiBoundsR, targetBrush );
 	::DeleteObject( targetBrush );
+	//(void)::SelectObject( prevPen );
 	//::DeleteObject( targetPen );
-	// (void)::SelectObject( prevPen );
 }
 #endif
 

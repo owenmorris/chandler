@@ -4,6 +4,7 @@ include ../Makefile.inc
 RELVER=2.5.3.1-12
 SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
+WXMAJORVERSIONCOMPACT=253
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
@@ -33,7 +34,7 @@ wxWidgets:
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*253$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -69,10 +70,11 @@ $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_OPT) \
                      --enable-monolithic \
+                     --disable-unicode \
                      --enable-geometry \
                      --enable-sound \
-                     --with-sdl \
                      --enable-display \
+                     --with-sdl \
                      --with-libpng \
                      --with-mac \
                      --with-opengl
@@ -105,10 +107,11 @@ $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
                      --enable-monolithic \
+                     --disable-unicode \
                      --enable-geometry \
                      --enable-sound \
-                     --with-sdl \
                      --enable-display \
+                     --with-sdl \
                      --with-libpng \
                      --with-gtk \
                      --enable-gtk2

@@ -44,7 +44,7 @@ class TestPanel( wx.Panel ):
 
         # FIXME: charset - conditionalize the high ASCII value
         ch2 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 100), (270, self.colHeight), 0 )
-        coffeeNames = [ "Juan", "Valdéz", "coffee guy" ]
+        coffeeNames = [ "Juan", "Valdez", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
             ch2.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Left + i, 90, 0, 1, 1 )
         ch2.SetSelectedItem( 0 )
@@ -58,6 +58,10 @@ class TestPanel( wx.Panel ):
         l0O = wx.StaticText( self, -1, "Last Action", (10, miscControlsY), (150, 20) )
         l0 = wx.StaticText( self, -1, "[result]", (10, miscControlsY + 20), (150, 20) )
         self.l0 = l0
+
+        prompt = "[Unicode build: %d]" %(ch1.GetFlagUnicode())
+        hasUnicode = ch1.GetFlagUnicode()
+        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 50), (150, 20) )
 
         cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
