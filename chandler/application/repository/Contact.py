@@ -144,7 +144,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.range : [],
                  chandler.cardinality : None,
                  chandler.required : False,
-                 chandler.displayName : _('Interests'),
+                 chandler.displayName : _('Interest'),
                  chandler.default : [] }
                ]
 
