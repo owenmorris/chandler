@@ -58,6 +58,7 @@ cvsModules = (
     'osaf/chandler/pychecker',
     'osaf/chandler/persistence',
     'osaf/chandler/pyxml',
+    'osaf/chandler/SOAPpy',
     'osaf/chandler/4suite',
 )
 
@@ -71,6 +72,7 @@ scrubAllModules = {
     'osaf/chandler/pychecker':1,
     'osaf/chandler/persistence':1,
     'osaf/chandler/pyxml':1,
+    'osaf/chandler/SOAPpy':1,
     'osaf/chandler/4suite':1,
 }
 
