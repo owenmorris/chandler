@@ -700,3 +700,97 @@ Misc. issues:
   have a single subscriber for a given sender at any one time, and perhaps
   ``Callback`` for hook events that should only be called once.
 
+
+Event Granularity and Latency
+-----------------------------
+
+One of the consequences of a "push" notification system (like Spike's event
+system) is that additional notifications get generated in response to
+notifications already generated.  However, these additional notifications
+may be part of the same "logical operation", and are therefore noise from the
+point of view of some observers.  For example, joining two objects in a
+bidirectional link is a single logical operation, yet involves changes to
+two objects, and (at least) two events.
+
+Currently, Chandler batches many kinds of notifications for distribution during
+the ``OnIdle()`` operation, which is only called when no operations are in
+progress or when GUI input events are occurring.  Spike, however, will use a
+concept of a "current action" to control batching and support multi-level undo.
+
+The basic idea is that there's a function you can call to wrap an operation as
+an atomic action.  If the operation completes without error, the action's
+history would be saved to an undo log, if applicable.  If the operation fails,
+any changes made during the operation are rolled back, and no notifications
+occur.  Actions should be nestable within actions, each capable of being
+rolled back to its start point without rolling back any changes made in an
+enclosing action.  However, notifications are only sent when there are no
+enclosing actions; i.e. when the system is "idle" with respect to there being
+a "current action".
+
+Or, perhaps a better way to look at it is not so much that there's no current
+action, but that rather the current action is able to decide what happens to
+notifications published to it by a nested action.  Thus, an "undo manager"
+action would record the events and send them, whereas a "command" action would
+just accumulate the events until it was committed or rolled back.  So, an
+application needing "undo" can simply add a suitable undo manager into the
+action stack, replacing a default "just notify everybody" action at the bottom.
+
+So, in the initial state for Spike event management, post-change notifications
+are sent to the "current action", and the default current action is an object
+that just immediately publishes the events it receives, to their intended
+recipients.  However, when you push other actions onto the action stack, these
+actions become the recipient of initial notifications, and they hold onto them
+until the action is complete, at which time they forward them to the previous
+action.  An "atomic" action would also request mementos or other rollback
+information from the changed objects, so that if the action is aborted, all of
+the changes can be undone, and the pending notifications discarded.
+
+One minor drawback to this approach is that it relies on coupling via a global
+(actually, thread-local) variable, because it would otherwise require every
+change operation to include a parameter to indicate what action it was a part
+of!  Thread-local variables aren't really a big deal in current Python
+versions, however.  They do present an issue for working with Twisted and other
+co-operative multitasking schemes, however, since more than one logical action
+may be occurring on the same thread.
+
+I don't expect this to be an issue in practice, however, because Spike's event
+API will be structured such that an action has to be completed within a single
+function call, and that ensures that in the case of Twisted, an operation can't
+be inadvertently split across multiple reactor callbacks.  In a case where an
+operation *must* be split across callbacks, a special API could be used to
+explicitly create an indepdendent action, and to save and restore its version
+of the thread's action stack.
+
+Anyway, this ultimately means a total of three kinds of change events:
+validation events (before a change), "immediate" events (enact the consequences
+of a change), and "batch" events (after the current command completes).  Batch
+events can potentially be condensed, since a given object could change multiple
+times during an action, and batch observers (like the UI) really only want to
+know the final score, not everything that happened during the game.
+
+Queries, however, may force another event type to be introduced, or alter the
+model in some other ways.  It can be expensive to always update a query's
+internal state to reflect an up-to-the-moment view of the data the query was
+run against.  Yet, if an action wants to use a query, it should always see the
+data in an up-to-date state.
+
+So, a possible way to deal with this is by having a queriable event log as part
+of the "action" mechanism.  Then, when a query is used, it can simply check for
+changes that affect it, and then generate a normal change event to reflect the
+effects on the query.  In a way, you could say that this allows a query to
+"peek ahead" at the events it would ordinarily not see until the batch
+completed.
+
+In effect, this calls for queries to poll for changes rather than push them
+to observers, which will complicate the event model since all event sources
+will now need a way to support being polled.
+
+On the other hand, supporting undo/redo and rollback of nested actions
+effectively requires that capability anyway.  That is, to know what the state
+was at a particular time, and determine the difference between that state and
+the current one.  
+
+
+
+
+
