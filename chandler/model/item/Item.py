@@ -230,7 +230,7 @@ class Item(object):
             del _attrDict[name]
 
             if isinstance(value, ItemRef):
-                value._detach(self, value.other(self), self._otherName(name))
+                value._detach(self, name, value.other(self), self._otherName(name))
             elif isinstance(value, RefDict):
                 value.clear()
 
