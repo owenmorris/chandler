@@ -143,8 +143,8 @@ class ChoiceContainer(BoxContainer):
         # radio buttons.
         if '__WXMAC__' in wx.PlatformInfo:
             itemId = notification.data['sender'].widget.GetId()
-            pos = self.widget.getIdPost(itemId)
-            self.widget.SetSelectedChoice(pos)
+            pos = self.widget.getIdPos(itemId)
+            self.widget.setSelectedChoice(pos)
         self.synchronizeWidget()
 
 class EmbeddedContainer(RectangularChild):
