@@ -377,7 +377,7 @@ class JabberClient:
     def HandleObjectRequest(self, fromAddress, toAddress, url):
         # make sure the request has permission to access this view
         if not self.application.HasPermission(fromAddress, url):
-            errorMessage = _("%s does not have permission to access %s's %s") % (fromAddress, toAddress, url)
+            errorMessage = _("%s does not have permission \nto access %s's %s") % (fromAddress, toAddress, url)
             self.SendErrorResponse(fromAddress, url, errorMessage)
             return
         
