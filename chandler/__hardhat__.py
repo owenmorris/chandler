@@ -206,13 +206,15 @@ def distribute(buildenv):
 
         # The end-user installer
         if installSourceFile:
-            installTargetFile = os.path.join(buildenv['outputdir'], ('%s.exe' % installTargetFile))
+            installTargetFile = '%s.exe' % installTargetFile
+            installTarget     = os.path.join(buildenv['outputdir'], installTargetFile)
 
-            if os.path.exists(installTargetFile):
-                os.remove(installTargetFile)
+            if os.path.exists(installTarget):
+                os.remove(installTarget)
 
-            os.rename(installSourceFile, installTargetFile)
+            os.rename(installSourceFile, installTarget)
             
+            # write out the file name so it can be inserted into the various html files built later
             if buildenv['version'] == 'release':
                 _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
             else:
@@ -220,12 +222,12 @@ def distribute(buildenv):
     else:
         # we move the install file here so that it doesn't "pollute" the internal/installers/win tree
         if installSourceFile:
-            installTargetFile = os.path.join(buildenv['root'], ('%s.exe' % installTargetFile))
+            installTarget = os.path.join(buildenv['root'], ('%s.exe' % installTargetFile))
 
-            if os.path.exists(installTargetFile):
-                os.remove(installTargetFile)
+            if os.path.exists(installTarget):
+                os.remove(installTarget)
 
-            os.rename(installSourceFile, installTargetFile)
+            os.rename(installSourceFile, installTarget)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
