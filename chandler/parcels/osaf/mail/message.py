@@ -532,23 +532,28 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
 
             for part in payload:
                 if part.get_content_type() == "text/plain":
-                    __handleText(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level)
+                    __handleText(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
                     foundText = True
-                    break
 
-                if firstPart is None and not part.is_multipart():
+                elif firstPart is None and not foundText and not part.is_multipart():
                     """A multipart/alternative container should have
                        at least one part that is not multipart and
                        is text based (plain, html, rtf) for display
                     """
                     firstPart = part
 
+                elif part.is_multipart():
+                    """If we find a multipart sub-part with in the alternative part handle
+                       it"""
+                    __handleMultipart(view, part, parentMIMEContainer, bodyBuffer, \
+                                      counter, buf, level+1)
+
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
                     __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, \
-                                 counter, buf, level)
+                                 counter, buf, level+1)
                 else:
-                    __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level)
+                    __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1)
         else:
             logging.warn("******WARNING****** multipart/alternative has no payload")
 
