@@ -17,7 +17,6 @@
 // #if wxUSE_COLUMNHEADER
 
 #include "wx/control.h"			// the base class
-#include "wx/font.h"
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader flags and constants
@@ -28,6 +27,7 @@
 
 typedef enum
 {
+	// NB: wxID_JUSTIFY_ values enum as: center, fill, right, left
 	wxCOLUMNHEADER_JUST_Left,
 	wxCOLUMNHEADER_JUST_Center,
 	wxCOLUMNHEADER_JUST_Right

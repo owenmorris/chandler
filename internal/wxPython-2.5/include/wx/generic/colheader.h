@@ -30,6 +30,17 @@
 // wxColumnHeader: a control that provides a native-appearance column header
 // ----------------------------------------------------------------------------
 
+typedef enum
+{
+	wxCHI_kMetricInsetX			= 4,
+	wxCHI_kMetricInsetY			= 4,
+	wxCHI_kMetricArrowSizeX		= 12,
+	wxCHI_kMetricArrowSizeY		= 12,
+	wxCHI_kMetricBitmapSizeX		= 12,
+	wxCHI_kMetricBitmapSizeY		= 12
+}
+wxColumnHeaderMetric;
+
 class wxColumnHeaderItem
 {
 public:
@@ -102,7 +113,7 @@ public:
 		bool				bSelected );
 #endif
 
-	static bool HasValidBitmapRef( 
+	static bool HasValidBitmapRef(
 		const wxBitmap	*bitmapRef );
 	static void GetBitmapItemBounds(
 		const wxRect		*itemBoundsR,

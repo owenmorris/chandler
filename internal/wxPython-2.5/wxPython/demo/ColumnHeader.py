@@ -13,13 +13,13 @@ class TestPanel( wx.Panel ):
         wx.Panel.__init__( self, parent, -1, style=wx.NO_FULL_REPAINT_ON_RESIZE )
         self.log = log
 
-        # should be 17 for Mac; 20 for all other platforms
+        # NB: should be 17 for Mac; 20 for all other platforms
         # wxColumnHeader can handle it
         colHeight = 20
 
         # "no" to sort arrows for this list
         cntlID = 1001
-        prompt = "wx.ColumnHeader (%d)" %(cntlID)
+        prompt = "ColumnHeader (%d)" %(cntlID)
         l1 = wx.StaticText( self, -1, prompt, (20, 20), (200, 20) )
 
         ch1 = wx.colheader.ColumnHeader( self, cntlID, (20, 40), (350, colHeight), 0 )
@@ -29,13 +29,14 @@ class TestPanel( wx.Panel ):
         ch1.SetSelectedItemIndex( 0 )
         self.ch1 = ch1
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch1 )
-        #ch1.SetToolTipString( "Column header (%d)" %(cntlID) )
+        #ch1.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # "yes" to sort arrows for this list
         cntlID = 1002
-        prompt = "wx.ColumnHeader (%d)" %(cntlID)
+        prompt = "ColumnHeader (%d)" %(cntlID)
         l2 = wx.StaticText( self, -1, prompt, (80, 70), (200, 20) )
 
+        # FIXME: charset - conditionalize the high ASCII value
         ch2 = wx.colheader.ColumnHeader( self, cntlID, (80, 90), (270, colHeight), 0 )
         coffeeNames = [ "Juan", "ValdŽz", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
@@ -45,7 +46,7 @@ class TestPanel( wx.Panel ):
        # add demo UI controls
         self.ch2 = ch2
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch2 )
-        #ch2.SetToolTipString( "Column header (%d)" %(cntlID) )
+        #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         l0 = wx.StaticText( self, -1, "[result]", (10, 150), (150, 20) )
         self.l0 = l0
@@ -67,7 +68,7 @@ class TestPanel( wx.Panel ):
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
 
     def OnTestResizeButton(self, event):
-        curWidth =  self.ch1.GetTotalUIExtent()
+        curWidth = self.ch1.GetTotalUIExtent()
         if (self.stepSize == 1):
             self.stepDir = (-1)
         else:
@@ -76,7 +77,7 @@ class TestPanel( wx.Panel ):
         self.stepSize = self.stepSize + self.stepDir
         self.ch1.DoSetSize( 20, 40, curWidth + 40 * self.stepSize, 20, 0 )
 
-    def OnAddBitmapItemButton(self, event):
+    def OnAddBitmapItemButton( self, event ):
         ch = self.ch2
         itemCount = ch.GetItemCount()
         ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
@@ -86,7 +87,7 @@ class TestPanel( wx.Panel ):
         ch.ResizeToFit()
         self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
 
-    def OnTestDeleteButton(self, event):
+    def OnTestDeleteButton( self, event ):
         ch = self.ch1
         itemIndex = ch.GetSelectedItemIndex()
         if (itemIndex >= 0):
@@ -97,8 +98,8 @@ class TestPanel( wx.Panel ):
 
 #----------------------------------------------------------------------
 
-def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
+def runTest( frame, nb, log ):
+    win = TestPanel( nb, log )
     return win
 
 #----------------------------------------------------------------------
@@ -109,21 +110,18 @@ overview = """<html><body>
 
 <p>A ColumnHeader control displays a set of joined, native-appearance button-ish things.</p>
 
-<p>Native column headers can be found in many views, most notably in a folder Details view</p>
+<p>Native column headers can be found in many views, most notably in a folder Details view.</p>
 
-<p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot:</p>
+<p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot.</p>
 
-<p>Limitation 1: text and bitmaps are mutually exclusive</p>
+<p>A limitation: text and bitmaps are mutually exclusive.</p>
 
-<p>Addition 1: MSW will have a persistant selection indicator</p>
+<p>The MSW version of this control will have a persistant selection indicator. The native MSW control has no canonical selection UI, instead using a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator.</p>
 
-<p>MSW has no canonical UI for selection - uses a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator</p>
-
-<p>GTK lacks, or appears to lack, a native control: a simple bevel button shall suffice for the theme background.</p>
+<p>The GTK framework lacks, or appears to lack, a native control: a simple bevel button shall suffice for the theme background.</p>
 
 </body></html>
 """
-
 
 
 if __name__ == '__main__':

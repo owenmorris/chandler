@@ -47,7 +47,6 @@
 #include "wx/renderer.h"
 #include "wx/colheader.h"
 
-
 // ----------------------------------------------------------------------------
 // wxWin macros
 // ----------------------------------------------------------------------------
@@ -1646,8 +1645,8 @@ OSStatus				errStatus;
 
 	// exclude button adornment areas from further drawing consideration
 	qdBoundsR.top += 1;
-	qdBoundsR.left += 4;
-	qdBoundsR.right -= (m_BSortEnabled ? 16 : 4);
+	qdBoundsR.left += wxCHI_kMetricInsetX;
+	qdBoundsR.right -= (m_BSortEnabled ? wxCHI_kMetricArrowSizeX + wxCHI_kMetricInsetX : wxCHI_kMetricInsetX);
 
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
@@ -1705,7 +1704,7 @@ bool					bHasIcon;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 	// draw text label, with justification
-	insetX = 4;
+	insetX = wxCHI_kMetricInsetX;
 	originX = localBoundsR.x + insetX;
 
 	switch (m_TextJust)
@@ -1852,9 +1851,9 @@ int		sizeX, sizeY, insetX;
 
 	if (itemBoundsR != NULL)
 	{
-		sizeX =
-		sizeY = 12;
-		insetX = 8;
+		sizeX = wxCHI_kMetricArrowSizeX;
+		sizeY = wxCHI_kMetricArrowSizeY;
+		insetX = wxCHI_kMetricInsetX;
 
 		targetBoundsR->x = itemBoundsR->x - (sizeX + insetX);
 		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
@@ -1917,9 +1916,9 @@ int		sizeX, sizeY, insetX;
 
 	if (itemBoundsR != NULL)
 	{
-		sizeX =
-		sizeY = 12;
-		insetX = 8;
+		sizeX = wxCHI_kMetricBitmapSizeX;
+		sizeY = wxCHI_kMetricBitmapSizeY;
+		insetX = wxCHI_kMetricInsetX;
 
 		targetBoundsR->x = itemBoundsR->x;
 		targetBoundsR->y = (itemBoundsR->height - sizeY) / 2;
