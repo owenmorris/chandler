@@ -94,6 +94,9 @@ hardhat.py -B
 - Run Chandler:
 hardhat.py -x
 
+If there are problems during the build, look in the osaf/chandler/hardhat.log
+file for more details.
+
 
 In addition, you can:
 
