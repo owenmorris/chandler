@@ -755,26 +755,26 @@ class RepositoryNotifications(dict):
         super(RepositoryNotifications, self).__init__()
         self.repository = repository
 
-    def changed(self, item, reason):
+    def changed(self, item, reason, **kwds):
 
         uuid = item.getUUID()
         value = self.get(uuid, Item.Nil)
 
         if value is not Item.Nil:
-            value.append(reason)
+            value.append((reason, kwds))
         else:
-            self[uuid] = [ reason ]
+            self[uuid] = [ (reason, kwds) ]
 
     def dispatch(self):
 
         callbacks = self.repository._notifications
         if callbacks:
             for uuid, reasons in self.iteritems():
-                reason = reasons.pop()
+                (reason, kwds) = reasons.pop()
                 for callback in callbacks:
-                    callback(uuid, 'ItemChanged', reason)
-                for reason in reasons:
+                    callback(uuid, 'ItemChanged', reason, **kwds)
+                for (reason, kwds) in reasons:
                     for callback in callbacks:
-                        callback(uuid, 'CollectionChanged', reason)
+                        callback(uuid, 'CollectionChanged', reason, **kwds)
 
         self.clear()

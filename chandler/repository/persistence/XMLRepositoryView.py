@@ -292,7 +292,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         if isDeleted:
             versions.setDocVersion(uuid, newVersion, 0)
             history.writeVersion(uuid, newVersion, 0, item.getDirty())
-            self._notifications.changed(item, 'deleted')
+            self._notifications.changed(item, 'deleted',
+                                        parent=item.getItemParent().getUUID())
 
         else:
             versions.setDocVersion(uuid, newVersion, docId)
