@@ -21,9 +21,9 @@
       <task:repeatFlag>True</task:repeatFlag>
       <task:repeatDelay>00:00:00:30</task:repeatDelay>
     </task:Schedule>
-    <task:Action itsName="GetMail" itemClass="osaf.mail.MailTasks.IMAPDownloadAction"/>
+    <!--task:Action itsName="GetMail" itemClass="osaf.mail.MailTasks.IMAPDownloadAction"/>
     <task:schedule itemref="mail:IMAPMailClient/MailSchedule"/>
-    <task:actions itemref="mail:IMAPMailClient/GetMail"/>
+    <task:actions itemref="mail:IMAPMailClient/GetMail"/-->
   </task:Task>
 
 
@@ -31,11 +31,11 @@
     <task:Schedule itsName="MailSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
       <task:repeatFlag>False</task:repeatFlag>
+      <task:repeatDelay>00:00:00:30</task:repeatDelay>
     </task:Schedule>
-    <task:Action itsName="sendmail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
+    <!--task:Action itsName="sendmail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
     <task:schedule itemref="mail:SMTPClient/MailSchedule"/>
-    <task:actions itemref="mail:SMTPClient/sendmail"/>
+    <task:actions itemref="mail:SMTPClient/sendmail"/-->
   </task:Task>
-
 
 </core:Parcel>
