@@ -189,7 +189,7 @@
 
 
     <Kind itsName="WebDAVAccount">
-        <superKinds itemref="Item" />
+        <superKinds itemref="cm:ChandlerItem" />
         <displayName value="WebDAV Account" />
         <description value="A WebDAV 'Account'" />
         <issues value="Long term we're probably not going to treat WebDAV as an account, but rather how a web browser maintains URL-to-ACL mappings." />
@@ -238,12 +238,6 @@
         <Attribute itsName="accountType">
             <displayName value="Account Type" />
             <initialValue type="String" value="WebDAV" />
-        </Attribute>
-
-        <Attribute itsName="isDefault">
-            <issues value="This is a temporary attribute that will be removed once we rethink which item represents the notion of 'Me'." />
-            <type itemref="Boolean" />
-            <initialValue type="Boolean" value="False"/>
         </Attribute>
 
         <Attribute itsName="conduits">

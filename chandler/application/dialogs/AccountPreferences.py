@@ -7,6 +7,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
 import osaf.framework.sharing.WebDAV as WebDAV
 import application.Parcel
+import osaf.current.Current as Current
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
@@ -44,7 +45,11 @@ def IMAPSaveHandler(item, fields, values):
 
     # process as normal:
     for (field, desc) in fields.iteritems():
-        item.setAttributeValue(desc['attr'], values[field])
+        if desc['type'] == 'currentPointer':
+            if values[field]:
+                Current.Current.set(item.itsView, desc['pointer'], item)
+        else:
+            item.setAttributeValue(desc['attr'], values[field])
 
 
 # Used to map form fields to item attributes:
@@ -153,8 +158,8 @@ PANELS = {
                 "type" : "boolean",
             },
             "WEBDAV_DEFAULT" : {
-                "attr" : "isDefault",
-                "type" : "boolean",
+                "type" : "currentPointer",
+                "pointer" : "WebDAVAccount",
                 "exclusive" : True,
             },
         },
@@ -272,13 +277,22 @@ class AccountPreferencesDialog(wx.Dialog):
             values = { }
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
-                try:
-                    setting = item.getAttributeValue(desc['attr'])
-                except AttributeError:
+
+                if desc['type'] == 'currentPointer':
+
+                    # See if this item is the current item for the given
+                    # pointer name.
+                    setting = Current.Current.isCurrent(self.view,
+                                                        desc['pointer'], item)
+                else:
                     try:
-                        setting = desc['default']
-                    except KeyError:
-                        setting = DEFAULTS[desc['type']]
+                        setting = item.getAttributeValue(desc['attr'])
+                    except AttributeError:
+                        try:
+                            setting = desc['default']
+                        except KeyError:
+                            setting = DEFAULTS[desc['type']]
+
                 values[field] = setting
             self.data.append( { "item" : item.itsUUID, "values" : values,
                                 "type" : item.accountType } )
@@ -304,9 +318,15 @@ class AccountPreferencesDialog(wx.Dialog):
             if panel.has_key("saveHandler"):
                 panel["saveHandler"](item, panel['fields'], values)
             else:
-                for (field, desc) in \
-                 panel['fields'].iteritems():
-                    item.setAttributeValue(desc['attr'], values[field])
+                for (field, desc) in panel['fields'].iteritems():
+
+                    if desc['type'] == 'currentPointer':
+
+                        if values[field]:
+                            Current.Current.set(self.view, desc['pointer'],
+                                                item)
+                    else:
+                        item.setAttributeValue(desc['attr'], values[field])
 
     def __Validate(self):
 
@@ -386,6 +406,8 @@ class AccountPreferencesDialog(wx.Dialog):
                 val = control.GetValue().strip()
             elif valueType == "boolean":
                 val = (control.GetValue() == True)
+            elif valueType == "currentPointer":
+                val = (control.GetValue() == True)
             elif valueType == "integer":
                 val = int(control.GetValue().strip())
             data[field] = val
@@ -397,6 +419,8 @@ class AccountPreferencesDialog(wx.Dialog):
             if valueType == "string":
                 control.SetValue(data[field])
             elif valueType == "boolean":
+                control.SetValue(data[field])
+            elif valueType == "currentPointer":
                 control.SetValue(data[field])
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
@@ -457,7 +481,7 @@ class AccountPreferencesDialog(wx.Dialog):
         wx.CallAfter(control.SetSelection, -1, -1)
 
     def OnExclusiveRadioButton(self, evt):
-        """ When an exclusive attribute (like isDefault) is set on one account,
+        """ When an exclusive attribute (like default) is set on one account,
             set that attribute to False on all other accounts of the same kind.
         """
         control = evt.GetEventObject()

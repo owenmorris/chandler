@@ -8,10 +8,12 @@
 <Parcel itsName="accounts"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
+    xmlns:current="http://osafoundation.org/parcels/osaf/current"
     >
 
     <share:WebDAVAccount itsName="WebDAVAccount">
         <displayName value="WebDAV Account"/>
+        <currentItemOf itemref="current:WebDAVAccount"/>
     </share:WebDAVAccount>
 
 </Parcel>

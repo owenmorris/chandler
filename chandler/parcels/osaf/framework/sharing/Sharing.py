@@ -11,6 +11,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
+import osaf.current.Current as Current
 from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
@@ -1406,7 +1407,7 @@ def newInboundShare(view, url):
             account.path = parentPath
             account.username = username
             account.password = password
-            account.isDefault = False
+            # account.isDefault = False
             account.useSSL = useSSL
             account.port = port
 
@@ -1424,24 +1425,11 @@ def newInboundShare(view, url):
 def getWebDAVAccount(view):
     """ Return the current default WebDAV account item.
 
-    The default account is that which has its' isDefault set to True.  In the
-    case there are multiple accounts which has this set (this shouldn't happen
-    normally), the first of those returned by the kindquery will be returned.
-
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
     @return: An account item, or None if no WebDAV account could be found.
     """
-
-    webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
-
-    account = None
-    for item in KindQuery().run([webDAVAccountKind]):
-        account = item
-        if item.isDefault:
-            break
-
-    return account
+    return Current.Current.get(view, "WebDAVAccount")
 
 
 def findMatchingWebDAVAccount(view, url):

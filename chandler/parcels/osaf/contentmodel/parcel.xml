@@ -76,6 +76,12 @@
             <type itemref="DateTime"/>
         </Attribute>
 
+        <Attribute itsName="currentItemOf">
+            <type itemref="cm:CurrentPointer"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:CurrentPointer/item"/>
+        </Attribute>
+
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="displayName">
@@ -418,5 +424,14 @@
     <clouds alias="default" itemref="cm:ItemCollection/DefaultCloud"/>
 
   </Kind>
+
+    <Kind itsName="CurrentPointer">
+        <Attribute itsName="item">
+            <type itemref="cm:ChandlerItem"/>
+            <cardinality>single</cardinality>
+            <initialValue itemref="None"/>
+            <inverseAttribute itemref="cm:ChandlerItem/currentItemOf"/>
+        </Attribute>
+    </Kind>
 
 </Parcel>
