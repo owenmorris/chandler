@@ -1161,10 +1161,70 @@ def buildComplete(buildenv):
         raise HardHatError
 
 
-    buildPrepareSource(buildenv, True)
-    buildRelease(buildenv)
-    buildPrepareSource(buildenv, False)
-    buildDebug(buildenv)
+    # buildPrepareSource(buildenv, True)
+
+    if buildenv['skipBinaries']:
+        if os.path.isdir(os.path.join(buildenv['workroot'],"release")) and \
+            os.path.isdir(os.path.join(buildenv['workroot'],"debug")):
+            # we have previous binary directories
+
+            os.chdir(buildenv['root'])
+
+            os.rename(os.path.join(buildenv['workroot'], "release"),
+             os.path.join(buildenv['workroot'], "osaf", "chandler", "release"))
+
+            build(buildenv, buildenv['module'])
+            distribute(buildenv, buildenv['module'])
+            os.chdir(buildenv['root'])
+
+            # put the release directory back
+            os.rename(os.path.join(buildenv['workroot'], "osaf", "chandler",
+             "release"), os.path.join(buildenv['workroot'], "release"))
+
+            releaseId = buildenv['releaseId']
+            module = buildenv['module']
+            distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
+
+            installerFile = createInstaller(buildenv, "distrib", distName)
+            log(buildenv, HARDHAT_MESSAGE, "HardHat",
+             "End-user installer is in " + installerFile)
+
+            log(buildenv, HARDHAT_MESSAGE, "HardHat",
+             "Copying distributions")
+
+            releasesDir = buildenv['workroot'] + os.sep + "releases"
+            releaseDir = releasesDir + os.sep + releaseId
+
+            if not os.path.exists(releasesDir):
+                os.mkdir(releasesDir)
+            if not os.path.exists(releaseDir):
+                os.mkdir(releaseDir)
+            if os.path.exists(releaseDir + os.sep + installerFile):
+                os.remove(releaseDir + os.sep + installerFile)
+            os.rename(installerFile, releaseDir+os.sep+installerFile)
+
+            os.chdir(buildenv['workroot'])
+
+            compressedFile = compressDirectory(buildenv, "release",
+             module + "_" + buildenv['oslabel'] + "_dev_release_" + releaseId)
+            if os.path.exists(releaseDir + os.sep + compressedFile):
+                os.remove(releaseDir + os.sep + compressedFile)
+            os.rename(compressedFile, releaseDir+os.sep+compressedFile)
+
+            compressedFile = compressDirectory(buildenv, "debug",
+             module + "_" + buildenv['oslabel'] + "_dev_debug_" + releaseId)
+            if os.path.exists(releaseDir + os.sep + compressedFile):
+                os.remove(releaseDir + os.sep + compressedFile)
+            os.rename(compressedFile, releaseDir+os.sep+compressedFile)
+
+            log(buildenv, HARDHAT_MESSAGE, "HardHat",
+             "Distributions are in " + releaseDir)
+
+
+    else:
+        buildRelease(buildenv)
+        buildPrepareSource(buildenv, False)
+        buildDebug(buildenv)
 
 def buildPrepareSource(buildenv, doCheckout=True):
     releaseId = buildenv['releaseId']
@@ -1219,7 +1279,7 @@ def buildRelease(buildenv):
     module = buildenv['module']
 
     compressedFileRoot = module + "_" + buildenv['oslabel'] + \
-     "_dev_release_" + releaseId 
+     "_dev_release_" + releaseId
     distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
     distCompressedFileRoot = module + "_" + buildenv['oslabel'] + "_" + \
      releaseId
@@ -1233,8 +1293,10 @@ def buildRelease(buildenv):
         buildDependencies(buildenv, module, history)
         os.chdir(buildenv['root'])
 
-        compressedFile = compressDirectory(buildenv, "release", 
+        compressedFile = compressDirectory(buildenv, "release",
          compressedFileRoot)
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
+         "Pre-built libraries are in " + compressedFile)
 
         distribute(buildenv, module)
         os.chdir(buildenv['root'])
@@ -1243,11 +1305,13 @@ def buildRelease(buildenv):
         # os.rename("distrib", distName)
 
         installerFile = createInstaller(buildenv, "distrib", distName)
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
+         "End-user installer is in " + installerFile)
 
-        # distCompressedFile = compressDirectory(buildenv, distName, 
+        # distCompressedFile = compressDirectory(buildenv, distName,
         #  distCompressedFileRoot)
 
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
          "Copying distributions")
 
         releasesDir = buildenv['workroot'] + os.sep + "releases"
@@ -1262,20 +1326,25 @@ def buildRelease(buildenv):
         os.rename(compressedFile, releaseDir+os.sep+compressedFile)
         if os.path.exists(releaseDir + os.sep + installerFile):
             os.remove(releaseDir + os.sep + installerFile)
-        os.rename(distCompressedFile, releaseDir+os.sep+installerFile)
+        os.rename(installerFile, releaseDir+os.sep+installerFile)
 
         log(buildenv, HARDHAT_MESSAGE, "HardHat", 
          "Release distributions are in " + releaseDir)
 
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Moving release directory")
+        if os.path.isdir(buildenv['workroot'] + os.sep + "release"):
+            rmdir_recursive(buildenv['workroot'] + os.sep + "release")
+        os.rename("release", buildenv['workroot'] + os.sep + "release")
+
     except Exception, e:
         print e
-        
+
 def buildDebug(buildenv):
     releaseId = buildenv['releaseId']
     module = buildenv['module']
 
     compressedFileRoot = module + "_" + buildenv['oslabel'] + \
-     "_dev_debug_" + releaseId 
+     "_dev_debug_" + releaseId
 
     try:
         os.chdir(buildenv['root'])
@@ -1285,11 +1354,11 @@ def buildDebug(buildenv):
         history = {}
         buildDependencies(buildenv, module, history)
         os.chdir(buildenv['root'])
-        
-        compressedFile = compressDirectory(buildenv, "debug", 
+
+        compressedFile = compressDirectory(buildenv, "debug",
          compressedFileRoot)
-        
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
          "Copying tarball")
 
         releasesDir = buildenv['workroot'] + os.sep + "releases"
@@ -1306,18 +1375,23 @@ def buildDebug(buildenv):
         log(buildenv, HARDHAT_MESSAGE, "HardHat", 
          "Debug tarballs are in " + releaseDir)
 
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Moving debug directory")
+        if os.path.isdir(buildenv['workroot'] + os.sep + "debug"):
+            rmdir_recursive(buildenv['workroot'] + os.sep + "debug")
+        os.rename("debug", buildenv['workroot'] + os.sep + "debug")
+
     except Exception, e:
         print e
-        
+
 def compressDirectory(buildenv, directory, fileRoot):
     """This assumes that directory is an immediate child of the current dir"""
     if buildenv['os'] == 'win':
-        executeCommand(buildenv, "HardHat", 
+        executeCommand(buildenv, "HardHat",
          [buildenv['zip'], "-r", fileRoot + ".zip", directory],
         "Zipping up " + os.path.abspath(directory) + " to " + fileRoot + ".zip")
         return fileRoot + ".zip"
     else:
-        executeCommand(buildenv, "HardHat", 
+        executeCommand(buildenv, "HardHat",
          [buildenv['tar'], "cvf", fileRoot+".tar", directory],
         "Tarring " + os.path.abspath(directory) + " as " + fileRoot + ".tar")
         executeCommand(buildenv, "HardHat", 
@@ -1329,6 +1403,8 @@ def createInstaller(buildenv, directory, distName):
     """ Runs external installation packaging script. """
     if buildenv['os'] == 'osx':
         # Turn the distrib directory into an application bundle
+        if os.path.isdir(distName):
+            rmdir_recursive(distName)
         os.mkdir(distName)
         os.rename(directory, distName + os.sep + distName + ".app")
         makeDiskImage = buildenv['hardhatroot'] + os.sep + "makediskimage.sh"
