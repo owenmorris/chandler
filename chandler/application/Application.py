@@ -203,6 +203,12 @@ class wxApplication (wx.App):
                  'create': True,
                  'recover': True }
 
+        if '-repo' in sys.argv:
+            for i in range(0, len(sys.argv)):
+                if sys.argv[i] == '-repo':
+                    path = sys.argv[i+1]
+                    kwds['fromPath'] = path
+
         if '-create' in sys.argv:
             Globals.repository.create(**kwds)
         else:
