@@ -126,29 +126,31 @@ class Kind(Item):
         @type globalOnly: boolean
         """
 
-        if inherited:
-            inheritedAttributes = self.inheritedAttributes
-            for superKind in self._getSuperKinds():
-                for name, attribute in superKind.iterAttributes(inherited,
-                                                                localOnly,
-                                                                globalOnly):
-                    if not attribute.itsUUID in inheritedAttributes:
-                        inheritedAttributes.append(attribute, alias=name)
-                    yield (name, attribute)
-
         attributes = self.getAttributeValue('attributes', default=None)
         if attributes is not None:
 
-            if not localOnly:
-                aliases = attributes._aliases
-                if aliases:
-                    for (alias, uuid) in aliases.iteritems():
-                        yield (alias, attributes[uuid])
-    
             if not globalOnly:
                 for attribute in self.iterChildren():
                     if attribute._uuid in attributes:
                         yield (attribute._name, attribute)
+
+            if not localOnly:
+                for attribute in attributes:
+                    if attribute.itsParent is not self:
+                        yield (attributes._get(attribute._uuid)._alias,
+                               attribute)
+
+        if inherited:
+            inheritedAttributes = self.inheritedAttributes
+            for superKind in self._getSuperKinds():
+                for name, attribute in superKind.iterAttributes():
+                    if not attribute._uuid in inheritedAttributes:
+                        inheritedAttributes.append(attribute, alias=name)
+            for uuid, link in inheritedAttributes._iteritems():
+                name = link._alias
+                if (not self.hasChild(name) and
+                    attributes and not attributes.resolveAlias(name)):
+                    yield (name, link._value.other(self))
 
     def _inheritAttribute(self, name):
 
@@ -189,7 +191,10 @@ class Kind(Item):
 
         return False
 
-    def isSubKindOf(self, superKind):
+    def isKindOf(self, superKind):
+
+        if self is superKind:
+            return True
 
         superKinds = self._getSuperKinds()
 
@@ -199,7 +204,7 @@ class Kind(Item):
                     return True
 
             for kind in superKinds:
-                if kind.isSubKindOf(superKind):
+                if kind.isKindOf(superKind):
                     return True
 
         return False

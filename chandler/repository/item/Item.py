@@ -1529,7 +1529,7 @@ class Item(object):
             return True
 
         if self._kind is not None:
-            return self._kind.isSubKindOf(kind)
+            return self._kind.isKindOf(kind)
 
         return False
 

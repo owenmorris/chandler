@@ -598,7 +598,7 @@ class RefDict(LinkedMap):
                          value.other(self._item), self._otherName)
 
         link = super(RefDict, self).__delitem__(key)
-        if link._alias:
+        if link._alias is not None:
             del self._aliases[link._alias]
             
         self._count -= 1

@@ -80,12 +80,12 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         """ A kind is not an alias """
         self.assert_(not self.kind1.isAlias())
     
-    def testIsSubKindOf(self):
-        """ Test IsSubKindOf on multiple super kinds """
+    def testIsKindOf(self):
+        """ Test IsKindOf on multiple super kinds """
         # make kind2 a subkind of kind1
         self.kind2.addValue('superKinds', self.kind1)
-        self.assert_(self.kind2.isSubKindOf(self.itemKind))
-        self.assert_(self.kind2.isSubKindOf(self.kind1))
+        self.assert_(self.kind2.isKindOf(self.itemKind))
+        self.assert_(self.kind2.isKindOf(self.kind1))
 
 
     def testToXML(self):
