@@ -22,9 +22,10 @@ from repository.persistence.Repository import OnDemandRepositoryView
 
 from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_LOCK_WRITE, DB_THREAD
-from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_LOCK_YOUNGEST
+from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_LOCK_MINLOCKS
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
+from bsddb.db import DBLockDeadlockError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
@@ -68,7 +69,7 @@ class XMLRepository(OnDemandRepository):
     def _createEnv(self):
 
         env = DBEnv()
-        env.set_lk_detect(DB_LOCK_YOUNGEST)
+        env.set_lk_detect(DB_LOCK_MINLOCKS)
 
         return env
 
@@ -124,7 +125,7 @@ class XMLRepository(OnDemandRepository):
             self._store = XMLRepository.xmlContainer(self, "__data__",
                                                      txn, create)
         finally:
-            if txn is not None:
+            if txn:
                 txn.commit()
 
     def close(self, purge=False):
@@ -599,70 +600,84 @@ class XMLRepositoryView(OnDemandRepositoryView):
         before = datetime.now()
         count = len(self._log)
         lock = None
-        
-        try:
-            self._txn = repository._env.txn_begin(None, DB_DIRTY_READ)
 
-            newVersion = versions.getVersion(self)
-            if count > 0:
-                lock = env.lock_get(env.lock_id(), Repository.ROOT_ID._uuid,
-                                    DB_LOCK_WRITE)
-                newVersion += 1
-                versions.put(self, Repository.ROOT_ID._uuid,
-                             pack('>l', ~newVersion))
+        while True:
+            try:
+                self._txn = repository._env.txn_begin(None, DB_DIRTY_READ)
+
+                newVersion = versions.getVersion(self)
+                if count > 0:
+                    lock = env.lock_get(env.lock_id(),
+                                        Repository.ROOT_ID._uuid,
+                                        DB_LOCK_WRITE)
+                    newVersion += 1
+                    versions.put(self, Repository.ROOT_ID._uuid,
+                                 pack('>l', ~newVersion))
+                
+                    store = repository._store
+                    for item in self._log:
+                        self._saveItem(item, newVersion,
+                                       store, versions, history, verbose)
+
+            except DBLockDeadlockError:
+                print 'Restarting transaction aborted by deadlock'
+                if self._txn:
+                    self._txn.abort()
+                    self._txn = None
+                if lock:
+                    env.lock_put(lock)
+                    lock = None
+
+                continue
             
-                store = repository._store
-                for item in self._log:
-                    self._saveItem(item, newVersion, store, versions, history,
-                                   verbose)
+            except:
+                if self._txn:
+                    self._txn.abort()
+                    self._txn = None
+                if lock:
+                    env.lock_put(lock)
 
-        except:
-            if self._txn:
-                self._txn.abort()
-                self._txn = None
-            if lock:
-                env.lock_put(lock)
+                raise
 
-            raise
+            else:
+                if self._log:
+                    for item in self._log:
+                        item._setSaved(newVersion)
+                    del self._log[:]
 
-        else:
-            if self._log:
-                for item in self._log:
-                    item._setSaved(newVersion)
-                del self._log[:]
-
-            if verbose:
-                print 'refreshing view from version %d to %d' %(self.version,
+                if verbose:
+                    print 'refreshing view from version %d to %d' %(self.version,
                                                                 newVersion)
 
-            if newVersion > self.version:
-                try:
-                    oldVersion = self.version
-                    self.version = newVersion
+                if newVersion > self.version:
+                    try:
+                        oldVersion = self.version
+                        self.version = newVersion
 
-                    for uuid in history.uuids(self, oldVersion, newVersion):
-                        item = self._registry.get(uuid)
-                        if item is not None and item._version < newVersion:
-                            if verbose:
-                                print 'unloading version %d of %s' %(item._version,
-                                                                     item.getItemPath())
-                            item._unloadItem()
-                except:
-                    if self._txn:
-                        self._txn.abort()
-                        self._txn = None
-                    raise
+                        for uuid in history.uuids(self, oldVersion, newVersion):
+                            item = self._registry.get(uuid)
+                            if item is not None and item._version < newVersion:
+                                if verbose:
+                                    print 'unloading version %d of %s' %(item._version,
+                                                                         item.getItemPath())
+                                item._unloadItem()
+                    except:
+                        if self._txn:
+                            self._txn.abort()
+                            self._txn = None
+                        raise
             
-            if self._txn:
-                self._txn.commit()
-                self._txn = None
+                if self._txn:
+                    self._txn.commit()
+                    self._txn = None
 
-            if lock:
-                env.lock_put(lock)
+                if lock:
+                    env.lock_put(lock)
 
-            if count > 0:
-                print 'committed %d items in %s' %(count,
-                                                   datetime.now() - before)
+                if count > 0:
+                    print 'committed %d items in %s' %(count,
+                                                       datetime.now() - before)
+                return
 
     def cancel(self):
 
