@@ -221,13 +221,13 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
         // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
 
-#if 0
+#if 1
 		// take advantage of WinXP native window double-buffering
 		if (wxApp::GetComCtl32Version() >= 500)
-			if (GetKeyState( VK_CAPITAL ) == 0)
+//			if (GetKeyState( VK_CAPITAL ) == 0)
 			{
 				*exflags |= 0x02000000;	// WS_EX_COMPOSITED
-				MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
+//				MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
 			}
 #endif
 
@@ -439,7 +439,7 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
-#if 0
+#if 1
 	// cannot let this flag go through...
 	if (! IsTopLevel())
 		exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
