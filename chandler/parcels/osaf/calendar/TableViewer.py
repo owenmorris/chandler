@@ -74,6 +74,18 @@ class wxTableViewer(wxPanel):
         
         EVT_SIZE(self, self.OnSize)
         EVT_CALENDAR_DATE(self, self.OnCalendarDate)
+
+    def OnDelete(self, event):
+        selected = self.list.GetFirstSelected()
+        if selected == -1: return
+
+        self.list.items[selected].delete()
+
+        del self.list.items[selected]
+        self.list.DeleteItem(selected)
+
+        app.repository.commit()
+        self.Refresh()
         
     def _columnSorter(self, key1, key2):
         return key1 > key2
@@ -85,6 +97,7 @@ class wxTableViewer(wxPanel):
         
     def _displayEvents(self):
         self.list.DeleteAllItems()
+        self.list.items = []
         index = 0;
         for item in self.eventList:
             if (self.model.isDateInRange(item.startTime)):
@@ -99,6 +112,7 @@ class wxTableViewer(wxPanel):
                 self.list.SetStringItem(index, 1, startString)
                 self.list.SetStringItem(index, 2, hourString)
                 self.list.SetItemData(index, item.startTime)
+                self.list.items.append(item)
                 index = index + 1
         self.list.SortItems(self._columnSorter)
         

@@ -105,6 +105,8 @@ class wxCalendarViewer(wxViewerParcel):
         EVT_MENU(self, XRCID("MenuSharingPolicy"), self.OnSharingPolicy)
         EVT_MENU(self, XRCID("MenuAboutCalendar"), self.OnAboutCalendar)
         EVT_MENU(self, XRCID("MenuGenerateEvents"), self.OnGenerateEvents)
+        EVT_MENU(self, XRCID("MenuDeleteCalendar"), self.OnDelete)
+        EVT_MENU(self, wxID_CLEAR, self.OnDelete)
         
         self._initCalendarTitle()
         self._initViewTypeList()
@@ -295,6 +297,9 @@ class wxCalendarViewer(wxViewerParcel):
         """
         selectedDate = self.monthNavigator.GetSelectedDate()
         self.currentView.ChangeDateRange(selectedDate)
+
+    def OnDelete(self, event):
+        self.currentView.OnDelete(event)
 
     def OnChangeView(self, event):
         self.model.currentViewType = event.GetSelection()

@@ -98,6 +98,10 @@ class wxMonthViewer(wxSimpleCanvas):
         
         EVT_SIZE(self, self.OnSize)
         EVT_CALENDAR_DATE(self, self.OnCalendarDate)
+
+    def OnDelete(self, event):
+        # delete not implemented for month view
+        pass
         
     def _loadEvents(self):
         remoteAddress = self.model.calendarViewer.remoteAddress

@@ -125,9 +125,6 @@ class wxColumnarTimeView(wxColumnarSubView):
         self._loadEvents()
         self._displayEvents()
         
-        EVT_MENU(self, wxID_CLEAR, self.OnDelete)
-        EVT_MENU(self.GetParent().GetParent(), XRCID("MenuDeleteCalendar"), self.OnDelete)
-
         EVT_SIZE(self, self.OnSize)
 
     def OnDelete(self, event):

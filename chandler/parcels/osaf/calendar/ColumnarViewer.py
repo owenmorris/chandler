@@ -121,6 +121,10 @@ class wxColumnarViewer(wxPanel):
         
     def OnEraseBackground(self, event):
         pass
+
+    def OnDelete(self, event):
+        # pass event to the timeView
+        self.timeView.OnDelete(event)
     
     def OnCalendarDate(self, event):
         """ In response to a date change event, all sub-views
