@@ -1121,7 +1121,7 @@
     <blockName>SyncButton</blockName>
     <title>Sync</title>
     <label>Sync All</label>
-    <bitmap>application/images/toolbar_sync.png</bitmap>
+    <bitmap>application/images/toolbar_sync.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Get new Mail and synchronize with other Chandler users</helpString>
     <event itemref="doc:SyncAll"/>
@@ -1131,7 +1131,7 @@
     <blockName>NewButton</blockName>
     <title>New</title>
     <label>New</label>
-    <bitmap>application/images/toolbar_new.png</bitmap>
+    <bitmap>application/images/toolbar_new.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
     <event itemref="doc:NewNote"/>
@@ -1141,7 +1141,7 @@
     <blockName>SendButton</blockName>
     <title>Send</title>
     <label>Send</label>
-    <bitmap>application/images/toolbar_send.png</bitmap>
+    <bitmap>application/images/toolbar_send.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Send the selected Item</helpString>
     <event itemref="events:SendShareItem"/>
