@@ -27,15 +27,35 @@ class ZaoBaoTreeList(TreeList):
         else:
             node.AddRootNode(Globals.repository, ['//'], True)
 
-    def OnGoToURI (self, notification):
+    def OnGoToURI(self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
         wxTreeListWindow.GoToURI(notification.data['URI'])
 
+    def OnEnterPressedEvent(self, notification):
+        from OSAF.examples.zaobao.RSSData import RSSChannel
+        Globals.repository.commit()
 
+        url = notification.GetData()['text']
+        if len(url) == 0:
+            return
+
+        chan = RSSChannel()        
+        chan.url = url
+
+        import ZaoBaoAgent
+        ZaoBaoAgent.UpdateChannel(chan)
+        Globals.repository.commit()
+
+        
 class wxZaoBaoItemView(wxItemView):
     def OnLinkClicked(self, wx_linkinfo):
         itemURL = wx_linkinfo.GetHref()
         item = Globals.repository.find(itemURL)
+
+        if not item:
+            self.LoadPage(itemURL)
+            return
+
         self.OnSelectionChangedEvent (item)
 
         arguments = {'URI':item, 'type':'Normal'}
@@ -64,12 +84,7 @@ class wxZaoBaoItemView(wxItemView):
 
             HTMLText = HTMLText + '</body></html>\n'
 
-            #print HTMLText
-        else:
-            HTMLText = "<html><body><h5>Select an Item</h5></body></html>"
-
-        self.SetPage(HTMLText)
-
+            self.SetPage(HTMLText)
 
 class ZaoBaoItemView(ItemView):
     def renderOneBlock (self, parent, parentWindow):
