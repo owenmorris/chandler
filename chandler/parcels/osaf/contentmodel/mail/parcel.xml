@@ -22,6 +22,7 @@
 
     <Kind itsName="AccountBase">
         <superKinds ref="Item" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.AccountBase" />
         <displayName value="Account base kind" />
         <description value="The base kind for various account kinds, such as IMAP, SMTP, WebDav" />
 
@@ -102,6 +103,7 @@
 
     <Kind itsName="IMAPAccount">
         <superKinds ref="mail:AccountBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPAccount" />
         <displayName value="IMAP Account" />
         <description value="An IMAP Account" />
 
@@ -150,10 +152,22 @@
             <initialValue ref="None" />
             <inverseAttribute ref="mail:EmailAddress/accounts" />
         </Attribute>
+
+        <Attribute itsName="emailAddress">
+            <displayName value="Reply-To Address (Redirect)" />
+            <redirectTo value="replyToAddress.emailAddress" />
+        </Attribute>
+
+        <Attribute itsName="fullName">
+            <displayName value="Full Name (Redirect)" />
+            <redirectTo value="replyToAddress.fullName" />
+        </Attribute>
+
     </Kind>
 
     <Kind itsName="SMTPAccount">
         <superKinds ref="mail:AccountBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.SMTPAccount" />
         <displayName value="SMTP Account" />
         <description value="An SMTP Account" />
 
@@ -201,6 +215,7 @@
 
     <Kind itsName="MailDeliveryBase">
         <superKinds ref="Item" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryBase" />
         <displayName value="Mail Delivery base kind" />
         <description value="Parent kind for delivery-specific attributes of a MailMessage" />
 
@@ -228,6 +243,7 @@
 
     <Kind itsName="SMTPDelivery">
         <superKinds ref="mail:MailDeliveryBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.SMTPDelivery" />
         <displayName value="SMTP Delivery" />
         <description value="Tracks the status of an outgoing message" />
         <issues value="Currently the parcel loader can't set a default value for the state attribute" />
@@ -272,6 +288,7 @@
 
     <Kind itsName="IMAPDelivery">
         <superKinds ref="mail:MailDeliveryBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPDelivery" />
         <displayName value="IMAP Delivery" />
         <description value="Tracks the state of an inbound message" />
 
@@ -306,6 +323,7 @@
 
     <Kind itsName="MIMEBase">
         <superKinds ref="Item" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBase" />
         <displayName value="MIME Base Kind" />
         <description value="Super kind for MailMessage and the various MIME kinds" />
 
@@ -390,6 +408,7 @@
     <Kind itsName="MIMENote">
         <superKinds ref="mail:MIMEBase" />
         <superKinds ref="content:Note" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMENote" />
         <displayName value="MIME Note" />
         <description value="MIMEBase and Note, rolled into one" />
     </Kind>
@@ -397,6 +416,7 @@
     <Kind itsName="MailMessage">
         <superKinds ref="mail:MailMessageMixin" />
         <superKinds ref="content:Note" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessage" />
         <displayName value="Mail Message" />
         <description value="MailMessageMixin, and Note, all rolled up into one" />
     </Kind>
@@ -596,6 +616,7 @@
 
     <Kind itsName="MIMEBinary">
         <superKinds ref="mail:MIMENote" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBinary" />
         <displayName value="MIME Binary Kind" />
 
         <Attribute itsName="filename">
@@ -608,6 +629,7 @@
 
     <Kind itsName="MIMEText">
         <superKinds ref="mail:MIMENote" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEText" />
         <displayName value="MIME Text Kind" />
 
         <Attribute itsName="charset">
@@ -620,6 +642,7 @@
 
     <Kind itsName="MIMEContainer">
         <superKinds ref="mail:MIMEBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEContainer" />
         <displayName value="MIME Container Kind" />
 
         <Attribute itsName="hasMimeParts">
@@ -638,6 +661,7 @@
 
     <Kind itsName="MIMESecurity">
         <superKinds ref="mail:MIMEBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMESecurity" />
         <displayName value="MIME Security Kind" />
     </Kind>
 
