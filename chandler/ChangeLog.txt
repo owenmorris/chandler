@@ -1,5 +1,8 @@
 # ChangeLog for Chandler 
 
+2004-05-14 Mark Jaffe <markie@osafoundation.org>
+   * Just noticed this file has not been updated since last August
+
 2003-08-04 Morgen Sagen <morgen@osafoundation.org>
    * The build now generates a debugging version of the "end-user" distro 
      that parcel developers can use.
