@@ -1,6 +1,18 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.19 (CVS tag CHANDLER_0_3_19) 2004-06-29
+    * Sharing with WebDAV starting to be implemented
+    * The parcel loader now uses libxml2, and modified SAX layer (drv_libxml2.py)
+    * Certificate & Private key created on Repository creation
+    * Crypto services added
+    * Enable test cases to startup from a preloaded repository
+    * New parcel manager; see ParcelFrameworkChanges on the wiki for details.
+    * Cleanup and simplification of the content model in preparation for stamping.
+    * Table code refactored
+    * You can now copy item hierarchies in your XML
+    * Twisted added to the build
+
 Milestone 0.3.18 (CVS tag CHANDLER_0_3_18) 2004-06-15
     * Details to be provided soon
 
