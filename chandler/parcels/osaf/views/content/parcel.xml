@@ -243,12 +243,6 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <BoxContainer itsName="ContactSummary">
-    <childrenBlocks itemref="view:LayoutSelector4"/>
-    <childrenBlocks itemref="view:ContactTable"/>
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
   <!-- Contact Table -->
   <Table itsName="ContactTable">
     <contents itemref="view:contactItemCollection"/>
@@ -468,26 +462,6 @@
     <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
   </Toolbar>
 
-  <!-- LayoutSelector4 -->
-  <Toolbar itemName="LayoutSelector4">
-    <blockName>LayoutSelector4</blockName>
-    <childrenBlocks itemref="view:ListViewButton4"/>
-    <childrenBlocks itemref="view:MonthViewButton4"/>
-    <childrenBlocks itemref="view:WeekViewButton4"/>
-    <childrenBlocks itemref="view:DayViewButton4"/>
-    <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton4"/>
-    <dynamicChildren itemref="view:MonthViewButton4"/>
-    <dynamicChildren itemref="view:WeekViewButton4"/>
-    <dynamicChildren itemref="view:DayViewButton4"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
-  </Toolbar>
-
   <!-- LayoutSelector5 -->
   <Toolbar itemName="LayoutSelector5">
     <blockName>LayoutSelector5</blockName>
@@ -681,54 +655,6 @@
     <event itemref="view:ButtonPressed"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="ListViewButton4">
-    <blockName>ListViewButton4</blockName>
-    <location>LayoutSelector4</location>
-    <dynamicParent itemref="view:LayoutSelector4"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton4">
-    <blockName>MonthViewButton4</blockName>
-    <location>LayoutSelector4</location>
-    <dynamicParent itemref="view:LayoutSelector4"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton4">
-    <blockName>WeekViewButton4</blockName>
-    <location>LayoutSelector4</location>
-    <dynamicParent itemref="view:LayoutSelector4"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton4">
-    <blockName>DayViewButton4</blockName>
-    <location>LayoutSelector4</location>
-    <dynamicParent itemref="view:LayoutSelector4"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
-  </ToolbarItem>
-
   <ToolbarItem itsName="ListViewButton5">
     <blockName>ListViewButton5</blockName>
     <location>LayoutSelector5</location>
@@ -912,7 +838,7 @@
   <SplitterWindow itsName="ContactTableView">
     <contents itemref="view:contactItemCollection"/>
 
-    <childrenBlocks itemref="view:ContactSummary"/>
+    <childrenBlocks itemref="view:ContactTable"/>
     <childrenBlocks itemref="view:ContactItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
