@@ -22,7 +22,7 @@
   <Attribute itsName="action">
     <displayName>Notification callback</displayName>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <type itemref="Tuple"/>
   </Attribute>
 
   <Kind itsName="NotificationItem">

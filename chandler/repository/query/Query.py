@@ -145,6 +145,8 @@ class Query(Item.Item):
         changed = False
 
         #@@@ change this to batch notifications
+        added = []
+        removed = []
         for uuid, reason, kwds in changes:
             i = None # kill this
             i = view.findUUID(uuid)
@@ -157,17 +159,19 @@ class Query(Item.Item):
                     if flag:
                         action = "entered"
                         self._resultSet.append(i)
+                        added.append(i.itsUUID)
                     else:
                         action = "exited"
                         if i in self._resultSet: # should we need this?
                             self._resultSet.remove(i)
+                            removed.append(i.itsUUID)
 
         if changed:
             log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
             for callbackUUID in self._callbacks:
                 item = view.find (callbackUUID)
                 method = getattr (type(item), self._callbacks [callbackUUID])
-                method (item, action)
+                method (item, (added,removed))
         log.debug("queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __iter__(self):
@@ -264,9 +268,9 @@ class Query(Item.Item):
         flag = self._logical_plan.monitored(op, item, attribute, *args, **kwds)
         if flag is not None:
             if flag:
-                action = "entered"
+                action = ([item], [])
             else:
-                action = "exited"
+                action = ([], [item])
         for callbackUUID in self.monitorCallbacks:
             i = self.itsView.find(callbackUUID)
             method = getattr(type(i), self.monitorCallbacks[callbackUUID])

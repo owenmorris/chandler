@@ -13,6 +13,7 @@ class NotificationItem(Item.Item):
     """
     def __init__(self, name=None, parent=None, kind=None):
         super(NotificationItem, self).__init__(name, parent, kind)
+        self.action = ([],[])
 
     def handle(self, action):
         """

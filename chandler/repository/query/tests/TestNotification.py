@@ -38,7 +38,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
-#        notify_client = self.rep.findPath('//parcels/notification/testNotifier')      
         k = self.rep.findPath('//parcels/notification/NotificationItem')
         notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
         item = notify_client
@@ -53,19 +52,22 @@ class TestNotification(QueryTestCase.QueryTestCase):
         # now make c leave the query
         c.firstName = 'Harry'
         self.rep.commit()
-        self.assert_(notify_client.action == 'exited')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
         self.assert_(c.firstName == 'Harry')
 
         # now make c come back into the query
         c.firstName = 'Michael'
         self.rep.commit()
-        #import wingdbstub
+
         self.assert_('i' in c.firstName)
-        self.assert_(notify_client.action == 'entered')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
 
     def testMonitorFor(self):
         """ Test query notification via monitors """
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import wingdbstub
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
@@ -86,44 +88,64 @@ class TestNotification(QueryTestCase.QueryTestCase):
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
-#        notify_client = self.rep.findPath('//parcels/notification/testNotifier')      
+
+        # create an item to handle monitor notifications
         k = self.rep.findPath('//parcels/notification/NotificationItem')
         monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', self.rep, k)
-#        item = monitor_client
-        
-        monitor_client.action = ""
+
+        # create an item to handle reguler commit notifications
         notify_client = NotificationItem.NotificationItem('testNotifier',self.rep, k)
-#        item = notify_client
-        notify_client.action = ""
+        # save Notification items and query
         self.rep.commit()
 
+        # subscribe via commit
         q.subscribe(notify_client, 'handle')
-#        print "monitor item: %s %s" % (monitor_client, monitor_client.itsUUID)
+        # subscribe via monitors
         q.monitor(monitor_client, 'handle')
+
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
+
+        # get an item from the query
         c = q.resultSet.next()
         self.assert_('i' in c.firstName)
         self.rep.commit()
 
-        # now make c leave the query
-        c.firstName = 'Tom'
-#        print "monitor_action %s" % monitor_client.action
-        c.firstName = 'Dick'
-#        print "monitor_action %s" % monitor_client.action
-        c.firstName = 'Harry'
-#        print "monitor_action %s" % monitor_client.action
-        self.rep.commit()
-#        print "notify_action %s" % notify_client.action
+        #
+        # Test monitor notifications
+        #
 
-        self.assert_(notify_client.action == 'exited')
+        # make c leave the query
+        c.firstName = 'Tom'
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
+
+        # make c re-enter the query
+        c.firstName = 'Dick'
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
+
+        # make c re-enter the query
+        c.firstName = 'Harry'
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
+
+        #
+        # Test commit notifications
+        #
+
+        self.rep.commit()
+
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
         self.assert_(c.firstName == 'Harry')
 
         # now make c come back into the query
         c.firstName = 'Michael'
         self.rep.commit()
-        #import wingdbstub
+
         self.assert_('i' in c.firstName)
-        self.assert_(notify_client.action == 'entered')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
 
     def testNotifyUnion(self):
         """ Test notification of union query """
@@ -171,25 +193,29 @@ class TestNotification(QueryTestCase.QueryTestCase):
         one.displayName = "Lunch"
 
         self.rep.commit()
-        self.assert_(notify_client.action == 'exited')
-        one.displayName = "Meeting"
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
 
+        one.displayName = "Meeting"
         self.rep.commit()
-        self.assert_(notify_client.action == 'entered')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
         
         # test second query in union
         for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea")')
         two = for2_query.resultSet.next()
         self.rep.commit()
+
         origName = two.displayName
         two.displayName = "Foo"
-
         self.rep.commit()
-        self.assert_(notify_client.action == 'exited')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
+
         two.displayName = origName
-
         self.rep.commit()
-        self.assert_(notify_client.action == 'entered')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
 
         # test third query in Union -- has an item traversal
         for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i")')
@@ -200,11 +226,15 @@ class TestNotification(QueryTestCase.QueryTestCase):
         three.contactName.firstName = "Harry"
 
         self.rep.commit()
-        self.assert_(notify_client.action == 'exited')
+        (added, removed) = notify_client.action
+        self.assert_(len(added) == 0 and len(removed) == 1)
         three.contactName.firstName = origName
 
         self.rep.commit()
-        self.assert_(notify_client.action == 'entered')
+        (added, removed) = notify_client.action
+
+        #The contact and it's name get changed
+        self.assert_(len(added) == 2 and len(removed) == 0)
 
     def tstRefCollectionQuery(self):
         """ Test notification on a query over ref collections """
