@@ -350,14 +350,14 @@ class wxViewerParcel(wxPanel):
                                 menu.InsertItem (insertAtIndex, parcelMenuItems [menuItemIndex])
                                 menuItemIndex += 1
                             menuItemNode = menuItemNode.GetNext()
-
                     """
                       Update the menu with the new menu and delete the old menu
                     """
                     oldMenu = menuBar.Replace (menuBarIndex, menu,  _(label))
-                    del oldMenu
-
+                    oldMenu.Destroy()
+                    
                 menuNode = menuNode.GetNext()
+            mainMenuBar.Destroy()
 
     def ReplaceViewParcelMenu(self):
         """
@@ -384,11 +384,11 @@ class wxViewerParcel(wxPanel):
                     oldMenu = menuBar.Replace (menuIndex,
                                                viewerParcelMenu, 
                                                self.GetMenuName())
-                    del oldMenu
+                    oldMenu.Destroy()
             else:
                 if not noParcelMenu:
                     oldMenu = menuBar.Remove (menuIndex)
-                    del oldMenu
+                    oldMenu.Destroy()
             
             return viewerParcelMenu     
         
