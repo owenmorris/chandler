@@ -1050,19 +1050,21 @@ def cvsClean(buildenv, dirs):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Nightly-build-handling methods
 
-# workdir is /home/builder/nightly
 def buildComplete(buildenv, releaseId, cvsModule, module):
-    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and os.environ.has_key('TAR') and os.environ.has_key('GZIPEXE'):
+    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and \
+     os.environ.has_key('TAR') and \
+     (buildenv['os'] == 'win' and os.environ.has_key('ZIP') or \
+     buildenv['os'] != 'win' and os.environ.has_key('GZIPEXE') ):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Paths to tools found, proceeding")
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR, GZIPEXE")
+	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR, ZIP (win), GZIPEXE (unix)")
 	raise HardHatError
 
 
-    # buildPrepareSource(buildenv, releaseId, cvsModule)
-    # buildRelease(buildenv, releaseId, module)
+    buildPrepareSource(buildenv, releaseId, cvsModule)
+    buildRelease(buildenv, releaseId, module)
     buildPrepareSource(buildenv, releaseId, cvsModule, False)
     buildDebug(buildenv, releaseId, module)
 
@@ -1101,35 +1103,28 @@ def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
 
 
 def buildRelease(buildenv, releaseId, module):
-    tarballName = module + "_" + buildenv['oslabel'] + "_dev_release_" + \
-     releaseId + ".tar"
+    compressedFileRoot = module + "_" + buildenv['oslabel'] + \
+     "_dev_release_" + releaseId 
     distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
-    distTarballName = module + "_" + buildenv['oslabel'] + "_" + \
-     releaseId + ".tar"
+    distCompressedFileRoot = module + "_" + buildenv['oslabel'] + "_" + \
+     releaseId
 
     try:
 	buildenv['version'] = 'release'
 	buildDependencies(buildenv, module)
 	os.chdir(buildenv['root'])
 	
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", tarballName, "release"],
-	"Tarring developers' release")
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['gzip'], "-f", tarballName],
-	"Running gzip on " + tarballName)
+	compressedFile = compressDirectory(buildenv, "release", 
+	 compressedFileRoot)
 	
 	distribute(buildenv, module)
 	os.chdir(buildenv['root'])
 	if os.path.isdir(distName):
 	    rmdir_recursive(distName)
 	os.rename("distrib", distName)
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", distTarballName, distName],
-	"Tarring end-user distribution")
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['gzip'], "-f", distTarballName],
-	"Running gzip on " + distTarballName)
+
+	distCompressedFile = compressDirectory(buildenv, distName, 
+	 distCompressedFileRoot)
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Copying tarballs")
@@ -1141,13 +1136,12 @@ def buildRelease(buildenv, releaseId, module):
 	    os.mkdir(releasesDir)
 	if not os.path.exists(releaseDir):
 	    os.mkdir(releaseDir)
-	if os.path.exists(releaseDir + os.sep + tarballName + ".gz"):
-	    os.remove(releaseDir + os.sep + tarballName + ".gz")
-	os.rename(tarballName+".gz", releaseDir+os.sep+tarballName+".gz")
-	if os.path.exists(releaseDir + os.sep + distTarballName + ".gz"):
-	    os.remove(releaseDir + os.sep + distTarballName + ".gz")
-	os.rename(distTarballName+".gz", 
-	 releaseDir+os.sep+distTarballName+".gz")
+	if os.path.exists(releaseDir + os.sep + compressedFile):
+	    os.remove(releaseDir + os.sep + compressedFile)
+	os.rename(compressedFile, releaseDir+os.sep+compressedFile)
+	if os.path.exists(releaseDir + os.sep + distCompressedFile):
+	    os.remove(releaseDir + os.sep + distCompressedFile)
+	os.rename(distCompressedFile, releaseDir+os.sep+distCompressedFile)
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Release tarballs are in " + releaseDir)
@@ -1156,23 +1150,17 @@ def buildRelease(buildenv, releaseId, module):
 	print e
 	
 def buildDebug(buildenv, releaseId, module):
-    tarballName = module + "_" + buildenv['oslabel'] + "_dev_debug_" + \
-     releaseId + ".tar"
+    compressedFileRoot = module + "_" + buildenv['oslabel'] + \
+     "_dev_debug_" + releaseId 
 
     try:
 	buildenv['version'] = 'debug'
 	buildDependencies(buildenv, module)
 	os.chdir(buildenv['root'])
 	
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", tarballName, "debug"],
-	"Tarring developers' debug")
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['gzip'], "-f", tarballName],
-	"Running gzip on " + tarballName)
+	compressedFile = compressDirectory(buildenv, "debug", 
+	 compressedFileRoot)
 	
-	os.chdir(buildenv['root'])
-
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Copying tarball")
 
@@ -1183,9 +1171,9 @@ def buildDebug(buildenv, releaseId, module):
 	    os.mkdir(releasesDir)
 	if not os.path.exists(releaseDir):
 	    os.mkdir(releaseDir)
-	if os.path.exists(releaseDir + os.sep + tarballName + ".gz"):
-	    os.remove(releaseDir + os.sep + tarballName + ".gz")
-	os.rename(tarballName+".gz", releaseDir+os.sep+tarballName+".gz")
+	if os.path.exists(releaseDir + os.sep + compressedFile):
+	    os.remove(releaseDir + os.sep + compressedFile)
+	os.rename(compressedFile, releaseDir+os.sep+compressedFile)
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Debug tarballs are in " + releaseDir)
@@ -1193,6 +1181,21 @@ def buildDebug(buildenv, releaseId, module):
     except Exception, e:
 	print e
 	
+def compressDirectory(buildenv, directory, fileRoot):
+    """This assumes that directory is an immediate child of the current dir"""
+    if buildenv['os'] == 'win':
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['zip'], "-r", fileRoot + ".zip", directory],
+	"Zipping up " + directory + " to " + fileRoot + ".zip")
+	return fileRoot + ".zip"
+    else:
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['tar'], "cvf", fileRoot+".tar", directory],
+	"Tarring " + directory + " as " + fileRoot + ".tar")
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['gzip'], "-f", fileRoot+".tar"],
+	"Running gzip on " + fileRoot + ".tar")
+	return fileRoot + ".tar.gz"
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
