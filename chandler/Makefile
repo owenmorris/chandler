@@ -51,5 +51,11 @@ $(ARCHIVES):
 $(notdir $(ARCHIVES)):
 	tar -C .. -xvzf ../$@
 
+checkout:
+	cd ..; \
+	rm -f cvsco.log;\
+	cvs co chandler-python 2>&1 | tee -a cvsco.log; \
+	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
+
 install: $(ARCHIVES) $(notdir $(ARCHIVES))
 
