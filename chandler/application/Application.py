@@ -248,6 +248,7 @@ class wxApplication (wxApp):
 
 		# allocate the Jabber client, logging in if possible
 		self.jabberClient = ChandlerJabber.JabberClient(self)
+		self.jabberClient.Login()
 		
 		self.InCommand = false          #used by OnCommand
 		self.OpenStartingUri()
@@ -488,6 +489,9 @@ class wxApplication (wxApp):
 		
 	# LoginIfNecessary logs in to the jabber server if necessary
 	def LoginIfNecessary(self):
+		if self.jabberClient.IsConnected() and self.jabberClient.HasLoginInfo():
+			self.jabberClient.Logout()
+			
 		if not self.jabberClient.IsConnected():
 			self.jabberClient.ReadAccountFromPreferences()
 			self.jabberClient.Login()

@@ -65,7 +65,6 @@ class JabberClient:
         self.rosterNotified = false
         
         self.ReadAccountFromPreferences()
-        self.Login()
  
     # reset the presence state
     def ResetState(self):
@@ -159,7 +158,7 @@ class JabberClient:
         
             # request the roster to gather initial presence state
             self.roster = self.connection.requestRoster()
-            
+            self.NotifyPresenceChanged(None)
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             self.Logout()
@@ -276,7 +275,9 @@ class JabberClient:
         if self.timer != None:
             self.timer.Stop()
             self.timer = None
-    
+            
+        self.NotifyPresenceChanged(None)
+        
     # manage the accessible views
     def GetAccessibleViews(self, jabberID):
         strippedID = jabberID.getStripped()
