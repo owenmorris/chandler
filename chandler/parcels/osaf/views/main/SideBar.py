@@ -16,12 +16,12 @@ class SideBar(ControlBlocks.Tree):
     
     def OnViewSideBarEvent(self, notification):
         self.open = not self.open
-        self.showOrHideSideBar(Globals.association[self.getUUID()])
+        self.showOrHideSideBar(Globals.association[self.itsUUID])
 
     def showOrHideSideBar(self, sidebar):
         if sidebar.IsShown() != self.open:
             sidebar.Show(self.open)
-            parentWindow = Globals.association[self.parentBlock.getUUID()]
+            parentWindow = Globals.association[self.parentBlock.itsUUID]
             if self.open:
                 self.parentBlock.addToContainer(parentWindow, sidebar, None, None, None)
             else:
@@ -53,9 +53,9 @@ class SideBarDelegate:
         to get their parent.
         """
         itemUUID = notification.data['uuid']
-        if notification.event.getItemName() == "item_changed":
+        if notification.event.itsName == "item_changed":
             item = Globals.repository.find (itemUUID)
-            itemUUID = item.getItemParent().getUUID()
+            itemUUID = item.itsParent.itsUUID
         counterpart = Globals.repository.find (self.counterpartUUID)
         if counterpart.openedContainers.has_key (itemUUID):
             self.scheduleUpdate = True

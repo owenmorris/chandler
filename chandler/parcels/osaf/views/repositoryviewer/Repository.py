@@ -15,7 +15,7 @@ class RepositoryDelegate:
     
     def ElementParent(self, element):
         try:
-            return element.getItemParent()
+            return element.itsParent
         except AttributeError:
             return None
 
@@ -30,14 +30,14 @@ class RepositoryDelegate:
         if element == Globals.repository.view:
             cellValues.append ("//")
         else:
-            cellValues.append (element.getItemName())
+            cellValues.append (element.itsName)
             cellValues.append (str (element.getItemDisplayName()))
             try:
-                cellValues.append (element.kind.getItemName())
+                cellValues.append (element.itsKind.itsName)
             except AttributeError:
                 cellValues.append ('(kindless)')
-            cellValues.append (str (element.getUUID()))
-            cellValues.append (str (element.getItemPath()))
+            cellValues.append (str (element.itsUUID))
+            cellValues.append (str (element.itsPath))
         return cellValues
 
     def ElementHasChildren(self, element):
@@ -58,7 +58,7 @@ class RepositoryDelegate:
             parentUUID = notification.data['parent']
         except KeyError:
             item = Globals.repository.find (notification.data['uuid'])
-            parentUUID = item.getItemParent().getUUID()
+            parentUUID = item.itsParent.itsUUID
         counterpart = Globals.repository.find (self.counterpartUUID)
         if counterpart.openedContainers.has_key (parentUUID):
             self.scheduleUpdate = True
@@ -75,9 +75,10 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             if reference == None:
                 return "(None)"
 
-            url = reference.getItemPath()
-            if reference.hasAttributeValue('kind'):
-                kind = reference.kind.getItemName()
+            url = reference.itsPath
+            kind = reference.itsKind
+            if kind is not None:
+                kind = kind.itsName
             else:
                 kind = "(kindless)"
                 
@@ -92,13 +93,13 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
         try:
             displayName = item.getItemDisplayName()
             try:
-                kind = item.kind.getItemName()
+                kind = item.itsKind.itsName
             except AttributeError:
                 kind = "(kindless)"
             
             HTMLText = "<html><body><h5>%s: %s</h5><ul>" % (kind, displayName)
-            HTMLText = HTMLText + "<li><b>Path:</b> %s" % item.getItemPath()
-            HTMLText = HTMLText + "<li><b>UUID:</b> %s" % item.getUUID()
+            HTMLText = HTMLText + "<li><b>Path:</b> %s" % item.itsPath
+            HTMLText = HTMLText + "<li><b>UUID:</b> %s" % item.itsUUID
             HTMLText = HTMLText + "</ul><h5>Attributes</h5><ul>"
     
             # We build tuples (name, formatted) for all value-only, then

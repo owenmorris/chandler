@@ -73,7 +73,7 @@ class PersistentCollection(object):
             value = PersistentDict(self._item, self._attribute,
                                    self._companion, **value)
         elif isinstance(value, repository.item.Item.Item):
-            value = SingleRef(value.getUUID())
+            value = SingleRef(value._uuid)
         elif isinstance(value, repository.item.Item.ItemValue):
             value._setItem(self._item, self._attribute)
 
@@ -82,7 +82,7 @@ class PersistentCollection(object):
     def _restoreValue(self, value):
 
         if isinstance(value, SingleRef):
-            uuid = value.getUUID()
+            uuid = value.itsUUID
             if self._companion is None:
                 return self._item.find(uuid)
             else:

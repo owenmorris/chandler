@@ -52,7 +52,7 @@ class MenuEntry(Block):
                     else:
                         menu = data['mainMenu']
                     
-                    name = child.getItemName()
+                    name = child.itsName
                     if child.operation == 'InsertBefore':
                         try:
                             index = menu.index (child.itemLocation)

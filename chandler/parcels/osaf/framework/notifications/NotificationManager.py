@@ -44,7 +44,7 @@ class NotificationManager(object):
             from repository.item.Query import KindQuery
             eventKind = Globals.repository.find('//parcels/OSAF/framework/notifications/schema/Event')
             for item in KindQuery().run([eventKind]):
-                self.declarations[item.getUUID()] = Declaration(item)
+                self.declarations[item.itsUUID] = Declaration(item)
         finally:
             self.declarations.release()
 
@@ -76,7 +76,7 @@ class NotificationManager(object):
         try:
             decls = []
             for e in events:
-                decls.append(self.declarations[e.getUUID()])
+                decls.append(self.declarations[e.itsUUID])
 
             #print decls
 
@@ -136,7 +136,7 @@ class NotificationManager(object):
         # future version should check notification for validity
         self.declarations.acquire()
         try:
-            eventID = notification.event.getUUID()
+            eventID = notification.event.itsUUID
 
             decl = self.declarations[eventID]
 
@@ -152,7 +152,7 @@ class Declaration(object):
     __slots__ = [ 'subscribers', '__uuid' ]
     def __init__(self, event):
         self.subscribers = {}
-        self.__uuid = event.getUUID()
+        self.__uuid = event.itsUUID
     def __repr__(self):
         return '<Declaration> ' +  self.event.name
     def __getEvent(self):

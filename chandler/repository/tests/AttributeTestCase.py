@@ -18,7 +18,7 @@ class AttributeTestCase(RepositoryTestCase.RepositoryTestCase):
     def _createManagerAndEmployeeKinds(self, type):
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
-        attrKind = itemKind.getAttribute('kind').kind
+        attrKind = itemKind.itsParent['Attribute']
 
         managerKind = kind.newItem('manager', self.rep)
         employeesAttribute = Attribute('employees',managerKind, attrKind)

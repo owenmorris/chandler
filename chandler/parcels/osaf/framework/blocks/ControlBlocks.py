@@ -289,7 +289,7 @@ class List(RectangularChild):
         return style
 
     def NeedsUpdate(self):
-        wxWindow = Globals.association[self.getUUID()]
+        wxWindow = Globals.association[self.itsUUID]
         wxWndow.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
@@ -452,7 +452,7 @@ class wxTreeAndList:
                                                cellValues.pop(0),
                                                -1,
                                                -1,
-                                               wxTreeItemData (child.getUUID()))
+                                               wxTreeItemData (child.itsUUID))
                 index = 1
                 for value in cellValues:
                     self.SetItemText (childNodeId, value, index)
@@ -536,7 +536,7 @@ class wxTreeAndList:
         rootNodeId = self.AddRoot (cellValues.pop(0),
                                    -1,
                                    -1,
-                                   wxTreeItemData (root.getUUID()))
+                                   wxTreeItemData (root.itsUUID))
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
         self.LoadChildren(rootNodeId)
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
@@ -572,7 +572,7 @@ class wxTreeAndList:
                 self.LoadChildren(id)
                 if self.IsVisible(id):
                     self.Expand(id)
-                itemUUID = item.getUUID()
+                itemUUID = item.itsUUID
                 child, cookie = self.GetFirstChild (id, 0)
                 while child.IsOk():
                     if self.GetPyData(child) == itemUUID:
@@ -625,7 +625,7 @@ class Tree(RectangularChild):
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
-        wxCounterpart = Globals.association[self.getUUID()]
+        wxCounterpart = Globals.association[self.itsUUID]
         wxCounterpart.GoToItem (notification.GetData()['item'])
 
     def Calculate_wxStyle (self):

@@ -50,7 +50,7 @@ class Kind(Item):
         
         item = self.getItemClass()(name, parent, self)
         if self._kind is self:
-            superKind = self._kind.getItemParent().getItemChild('Item')
+            superKind = self._kind.itsParent.getItemChild('Item')
             item.addValue('superKinds', superKind)
 
         return item
@@ -66,7 +66,7 @@ class Kind(Item):
 
         child = self.getItemChild(name)
         if child:
-            return child.getUUID()
+            return child.itsUUID
         
         if self.hasAttributeValue('attributes', _attrDict=self._references):
             return self.attributes.resolveAlias(name)
@@ -173,7 +173,7 @@ class Kind(Item):
             return self.getAttributeValue('superKinds',
                                           _attrDict=self._references)
         except AttributeError:
-            raise ValueError, 'No superKind for %s' %(self.getItemPath())
+            raise ValueError, 'No superKind for %s' %(self.itsPath)
 
     def _xmlRefs(self, generator, withSchema, version, mode):
 
@@ -232,7 +232,7 @@ class Kind(Item):
         if value is None:
             data = Kind.NoneString
         else:
-            data = value.getUUID().str64()
+            data = value.itsUUID.str64()
             
         generator.characters(data)
 
@@ -246,7 +246,7 @@ class Kind(Item):
             return True
 
         if isinstance(value, SingleRef):
-            return self.getRepository()[value.getUUID()].isItemOf(self)
+            return self.getRepository()[value.itsUUID].isItemOf(self)
 
         if isinstance(value, Item):
             return value.isItemOf(self)

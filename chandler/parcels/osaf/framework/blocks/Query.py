@@ -78,7 +78,7 @@ class Query (Item):
             item = Globals.repository.find(notification.data['uuid'])
             # Repository limitation: list doesn't implement index
             for kind in self.data:
-                if kind is item.kind:
+                if kind is item.itsKind:
                     for block in self.usedInBlocks:
                         self.resultsStale = True
                         block.update()

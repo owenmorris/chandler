@@ -65,7 +65,7 @@ class AgentThread(threading.Thread):
           return all the instructions
         """
         instructions = []
-        matchingInstructions = self.instructionMap[event.getUUID()]
+        matchingInstructions = self.instructionMap[event.itsUUID]
 
         for instruction in matchingInstructions:
             if instruction.IsEnabled():
@@ -117,7 +117,7 @@ def _BuildInstructionMap(agentItem):
     for instruction in instructions:
         notifications = instruction.GetNotifications()
         for notification in notifications:
-            nID = notification.getUUID()
+            nID = notification.itsUUID
             if instructionMap.has_key(nID):
                 instructionMap[nID].append(instruction)
             else:

@@ -25,16 +25,16 @@ class MailParcel(Parcel.Parcel):
 
     def _setUUIDs(self):
         attachmentKind = self.find('Attachment')
-        MailParcel.attachmentKindID = attachmentKind.getUUID()
+        MailParcel.attachmentKindID = attachmentKind.itsUUID
         
         emailAccountKind = self.find('EmailAccount')
-        MailParcel.emailAccountKindID = emailAccountKind.getUUID()
+        MailParcel.emailAccountKindID = emailAccountKind.itsUUID
         
         emailAddressKind = self.find('EmailAddress')
-        MailParcel.emailAddressKindID = emailAddressKind.getUUID()
+        MailParcel.emailAddressKindID = emailAddressKind.itsUUID
         
         mailMessageKind = self.find('MailMessage')
-        MailParcel.mailMessageKindID = mailMessageKind.getUUID()
+        MailParcel.mailMessageKindID = mailMessageKind.itsUUID
 
     def getAttachmentKind(cls):
         assert cls.attachmentKindID, "Mail parcel not yet loaded"

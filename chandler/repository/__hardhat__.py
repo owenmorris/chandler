@@ -35,9 +35,7 @@ def build(buildenv):
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o api -v -n chandlerdb',
-                          '--inheritance listed',
-                          '--no-private',
-                          'item', 'schema', 'util')
+                          '--no-private', 'item', 'schema', 'util')
 
 
 def clean(buildenv):

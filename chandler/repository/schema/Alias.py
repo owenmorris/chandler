@@ -45,4 +45,4 @@ class Alias(Type):
                 t.typeXML(value, generator)
                 return
 
-        raise ValueError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.getItemPath())
+        raise ValueError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)

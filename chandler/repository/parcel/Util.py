@@ -24,20 +24,20 @@ def PrintItem(uri, rep, level=0):
         return
 
     if item.hasAttributeValue("kind"):
-        print "%s (Kind: %s)" % (uri, item.kind.getItemPath() )
+        print "%s (Kind: %s)" % (uri, item.itsKind.itsPath )
     else:
         print "%s" % (uri)
 
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes:
     if item.hasAttributeValue("kind") and \
-     "//Schema/Core/Kind" == str(item.kind.getItemPath()):
+     "//Schema/Core/Kind" == str(item.itsKind.itsPath):
         for i in range(level+2):
             print " ",
         print "attributes:"
 
         displayedAttrs = { }
-        for (name,attr) in item.kind.iterAttributes():
+        for (name,attr) in item.itsKind.iterAttributes():
             if name == "attributes" or \
                name == "notFoundAttributes" or \
                name == "inheritedAttributes":
@@ -49,7 +49,7 @@ def PrintItem(uri, rep, level=0):
         for key in keys:
             for k in range(level+4):
                 print " ",
-            print "%s %s" % ( key, displayedAttrs[key].getItemPath() )
+            print "%s %s" % ( key, displayedAttrs[key].itsPath )
 
     displayedAttrs = { }
     for (name, value) in item.iterAttributeValues():
@@ -97,7 +97,7 @@ def PrintItem(uri, rep, level=0):
             for j in value:
                 for k in range(level+4):
                     print " ",
-                print j.getItemPath()
+                print j.itsPath
 
         else:
             for i in range(level+2):
@@ -105,7 +105,7 @@ def PrintItem(uri, rep, level=0):
 
             print "%s:" % name,
             try:
-                print value.getItemPath()
+                print value.itsPath
             except:
                 print value, type(value)
 
@@ -113,5 +113,5 @@ def PrintItem(uri, rep, level=0):
 
     if item.hasChildren():
         for child in item.iterChildren():
-            childuri = child.getItemPath()
+            childuri = child.itsPath
             PrintItem(childuri, rep, level+1)

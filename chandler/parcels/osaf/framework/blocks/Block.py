@@ -73,7 +73,7 @@ class Block(Item):
         wxApplication keeps a list, named commandIDs with allows us to
         look up the UUID of a block given it's Id -- DJA
         """
-        UUID = object.getUUID()
+        UUID = object.itsUUID
         try:
             id = Block.UUIDtoIds [UUID]
         except KeyError:
@@ -88,7 +88,7 @@ class Block(Item):
 
     def update (self):
         try:
-            theWindow = Globals.association[self.getUUID()]
+            theWindow = Globals.association[self.itsUUID]
         except KeyError:
             pass
         else:
@@ -112,7 +112,7 @@ class Block(Item):
         counterparts.
         """
         try:
-            theWindow = Globals.association[self.getUUID()]
+            theWindow = Globals.association[self.itsUUID]
             method = getattr (theWindow, 'wxSynchronizeFramework')
         except AttributeError:
             pass
@@ -133,7 +133,7 @@ class ContainerChild(Block):
         given the block we can find the associated wxWindows object.
         """
         if window:
-            UUID = self.getUUID()
+            UUID = self.itsUUID
             """
               Currently not all wxWindows counterpart objects have a __del__
             funcation to removed themselves from the association when they
@@ -143,9 +143,9 @@ class ContainerChild(Block):
             assert not Globals.association.has_key(UUID)
             """
             if __debug__ and Globals.association.has_key(UUID):
-                Globals.repository.find (UUID).getItemPath()
+                Globals.repository.find (UUID).itsPath
                 logging.warn("Bug #1177: item %s doesn't remove it's counterpart from the association",
-                             str (Globals.repository.find (UUID).getItemPath()))
+                             str (Globals.repository.find (UUID).itsPath))
             Globals.association[UUID] = window
             window.counterpartUUID = UUID
             """

@@ -122,7 +122,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("OSAF/contentmodel/calendar")
 
         item = Calendar.CalendarEvent()
-        path = item.getItemPath()
+        path = item.itsPath
         item.delete()
         del item
         itemShouldBeGone = self.rep.find(path)

@@ -65,7 +65,7 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         empNames = ['employee1','employee2','employee3','employee4']
         for e in empNames:
             emp = employeeKind.newItem(e, self.rep)
-            emps[str(emp.getUUID())] = emp
+            emps[str(emp.itsUUID)] = emp
 
         manager.employees = emps
         self._checkManagerAndEmployeesDict(manager, emps)
@@ -75,7 +75,7 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         emps = {}
         for e in empNames:
             emp = self._find(Path('//', e))
-            emps[str(emp.getUUID())] = emp
+            emps[str(emp.itsUUID)] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
 
     def testPersistingPythonDictByUpdate(self):
@@ -88,7 +88,7 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         empNames = ['employee1','employee2','employee3','employee4']
         for e in empNames:
             emp = employeeKind.newItem(e, self.rep)
-            emps[str(emp.getUUID())] = emp
+            emps[str(emp.itsUUID)] = emp
 
         for k, v in emps.items():
             print k,v
@@ -103,7 +103,7 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         emps = {}
         for e in empNames:
             emp = self._find((Path('//', e)))
-            emps[str(emp.getUUID())] = emp
+            emps[str(emp.itsUUID)] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
        
                   

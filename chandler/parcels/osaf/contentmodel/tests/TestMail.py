@@ -44,13 +44,13 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mailMessageItem = Mail.MailMessage("mailMessageItem")
 
         # Double check kinds
-        self.assertEqual(attachmentItem.kind,
+        self.assertEqual(attachmentItem.itsKind,
                          Mail.MailParcel.getAttachmentKind())
-        self.assertEqual(emailAccountItem.kind,
+        self.assertEqual(emailAccountItem.itsKind,
                          Mail.MailParcel.getEmailAccountKind())
-        self.assertEqual(emailAddressItem.kind,
+        self.assertEqual(emailAddressItem.itsKind,
                          Mail.MailParcel.getEmailAddressKind())
-        self.assertEqual(mailMessageItem.kind,
+        self.assertEqual(mailMessageItem.itsKind,
                          Mail.MailParcel.getMailMessageKind())
 
         # Literal properties

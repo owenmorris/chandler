@@ -41,7 +41,7 @@ class AgentManager:
 
     def _BuildMap(self):
         for item in self.agentIndex.items:
-            agentID = item.getUUID()
+            agentID = item.itsUUID
             if not self.agentMap.has_key(agentID):
                 self.agentMap[agentID] = Agent.Agent(agentID)
 
@@ -56,7 +56,7 @@ class AgentManager:
         self.agentIndex.append(agentItem)
         agentItem.getRepository().commit()
 
-        agentID = agentItem.getUUID()
+        agentID = agentItem.itsUUID
         self.agentMap[agentID] = Agent.Agent(agentID)
 
     def Unregister(self, agentItem):
@@ -67,7 +67,7 @@ class AgentManager:
         self.agentIndex.removeValue('items', agentItem)
         agentItem.getRepository().commit()
 
-        agentID = agentItem.getUUID()
+        agentID = agentItem.itsUUID
         del self.agentMap[agentID]
 
     def AgentMatches(self, agent, name, role, owner):

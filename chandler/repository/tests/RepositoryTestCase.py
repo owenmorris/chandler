@@ -44,4 +44,4 @@ class RepositoryTestCase(unittest.TestCase):
         self.assert_(item in self.rep.getRoots())
 
     def assertItemPathEqual(self, item, string):
-        self.assertEqual(str(item.getItemPath()), string)
+        self.assertEqual(str(item.itsPath), string)

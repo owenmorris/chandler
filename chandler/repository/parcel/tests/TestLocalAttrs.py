@@ -31,7 +31,7 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(attr)
         found = False
         for (name, attr) in kind.iterAttributes():
-            if str(attr.getItemPath()) == \
+            if str(attr.itsPath) == \
              "//parcels/localattrs/TestKind/TestAttribute":
                 found = True
         self.assert_(found, "Local TestAttribute not found")

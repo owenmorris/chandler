@@ -262,7 +262,7 @@ class wxApplication (wxApp):
                                        style=wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE)
             Globals.mainView = mainView
             self.menuParent = None
-            self.mainFrame.counterpartUUID = mainView.getUUID()
+            self.mainFrame.counterpartUUID = mainView.itsUUID
             EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')

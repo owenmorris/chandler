@@ -26,19 +26,19 @@ class ContactsParcel(Parcel.Parcel):
 
     def _setUUIDs(self):
         contactKind = self.find('Contact')
-        ContactsParcel.contactKindID = contactKind.getUUID()
+        ContactsParcel.contactKindID = contactKind.itsUUID
         
         contactSectionKind = self.find('ContactSection')
-        ContactsParcel.contactSectionKindID = contactSectionKind.getUUID()
+        ContactsParcel.contactSectionKindID = contactSectionKind.itsUUID
 
         contactNameKind = self.find('ContactName')
-        ContactsParcel.contactNameKindID = contactNameKind.getUUID()
+        ContactsParcel.contactNameKindID = contactNameKind.itsUUID
         
         streetAddressKind = self.find('StreetAddress')
-        ContactsParcel.streetAddressKindID = streetAddressKind.getUUID()
+        ContactsParcel.streetAddressKindID = streetAddressKind.itsUUID
         
         phoneNumberKind = self.find('PhoneNumber')
-        ContactsParcel.phoneNumberKindID = phoneNumberKind.getUUID()
+        ContactsParcel.phoneNumberKindID = phoneNumberKind.itsUUID
 
     def getContactKind(cls):
         assert cls.contactKindID, "Contacts parcel not yet loaded"

@@ -123,7 +123,7 @@ class TestPerfWithRSS(unittest.TestCase):
             if not item:
                 item = chanKind.newItem(urlhash, parent)
                 item.url = url
-            feeds.append(item.getUUID())
+            feeds.append(item.itsUUID)
 
         return feeds
 
@@ -136,7 +136,7 @@ class TestPerfWithRSS(unittest.TestCase):
     def _readItems(self, kind):
         items = KindQuery().run([kind]) 
         for i in items:
-            assert(i.getItemName() is not None)
+            assert(i.itsName is not None)
 
 #    def testReadBackRSS(self):
 #        self._stressTest()
@@ -144,9 +144,9 @@ class TestPerfWithRSS(unittest.TestCase):
 #        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
 #        self.rep.open()
 #        RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
-#        self._readItems(RSSItem.kind)
+#        self._readItems(RSSItem.itsKind)
 #        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
-#        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.kind)
+#        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.itsKind)
 #        profiler.close()
 
     def tearDown(self):

@@ -99,9 +99,9 @@ class Instruction(Item):
                 # agent.MakeTask(action, notification)
                 pass
             elif action.UseWxThread() or action.NeedsConfirmation():
-                actionProxy = DeferredAction(action.getUUID())
+                actionProxy = DeferredAction(action.itsUUID)
 
-                lock = Globals.wxApplication.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
+                lock = Globals.wxApplication.PostAsyncEvent(actionProxy.Execute, agent.itsUUID, notification)
                 #while lock.locked():
                 #    yield 'wait', 1.0
                 #yield 'go', 0
@@ -112,7 +112,7 @@ class Instruction(Item):
                 result = action.Execute(agent, notification)
 
             end = time.clock() - start
-            actionID = action.getUUID()
+            actionID = action.itsUUID
             """
             if not self.hasAttributeValue('timers'):
                 self.timers = {}

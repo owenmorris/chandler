@@ -42,16 +42,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
         
         return False
 
+    def _newItems(self):
+
+        for item in self._log:
+            if item.isNew():
+                yield item
+
     def dirlog(self):
 
         for item in self._log:
-            print item.getItemPath()
+            print item.itsPath
 
     def cancel(self):
 
         for item in self._log:
             if item.isDeleted():
-                del self._deletedRegistry[item.getUUID()]
+                del self._deletedRegistry[item.itsUUID]
                 item._status &= ~Item.DELETED
             else:
                 item.setDirty(0)
@@ -172,10 +178,10 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 newVersion = versions.getVersion()
                 if count > 0:
-                    lock = env.lock_get(self._lock_id, self.ROOT_ID._uuid,
+                    lock = env.lock_get(self._lock_id, self.itsUUID._uuid,
                                         DB_LOCK_WRITE)
                     newVersion += 1
-                    versions.put(self.ROOT_ID._uuid, pack('>l', ~newVersion))
+                    versions.put(self.itsUUID._uuid, pack('>l', ~newVersion))
 
                     ood = {}
                     for item in self._log:
@@ -287,7 +293,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         if isDebug:
             self.logger.debug('saving version %d of %s',
-                              newVersion, item.getItemPath())
+                              newVersion, item.itsPath)
 
         if uuid in ood:
             docId, oldDirty, newDirty = ood[uuid]
@@ -295,7 +301,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                          oldDirty, newDirty)
             if isDebug:
                 self.logger.debug('merging %s (%0.4x:%0.4x) with newest version',
-                                  item.getItemPath(), oldDirty, newDirty)
+                                  item.itsPath, oldDirty, newDirty)
         else:
             mergeWith = None
             
@@ -321,7 +327,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             raise
 
         if isDeleted:
-            parent=item.getItemParent().getUUID()
+            parent=item.itsParent.itsUUID
             versions.setDocVersion(uuid, newVersion, 0)
             history.writeVersion(uuid, newVersion, 0, item._status, parent)
             self._notifications.changed(uuid, 'deleted', parent=parent)
@@ -352,7 +358,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                         newDirty == item.VRDIRTY or oldDirty == item.VRDIRTY):
                         items[uuid] = (docId, oldDirty, newDirty)
                     else:
-                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.getItemPath(), newDirty, oldDirty)    
+                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)    
 
         history.apply(check, oldVersion, newVersion)
 
@@ -510,7 +516,7 @@ class XMLRefDict(RefDict):
                         next = value._nextKey
                         alias = value._alias
     
-                        uuid = ref.other(self._item).getUUID()
+                        uuid = ref.other(self._item).itsUUID
                         self._writeRef(entry[1], version,
                                        uuid, previous, next, alias)
                         
@@ -589,8 +595,8 @@ class XMLText(Text, ItemValue):
             if self._indexed:
                 store._index.indexDocument(self._view._getIndexWriter(),
                                            self.getReader(),
-                                           self.getUUID(),
-                                           self._getItem().getUUID(),
+                                           uuid,
+                                           self._getItem().itsUUID,
                                            self._getAttribute(),
                                            self.getVersion())
             self._dirty = False

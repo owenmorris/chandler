@@ -43,11 +43,11 @@ class KindQuery(Query):
     def run(self, kinds):
 
         for kind in kinds:
-            for item in kind.getAttributeValue('items', default=[]):
-                if item.isNew():
+            for item in kind.getRepository()._newItems():
+                if item.itsKind is kind:
                     yield item
 
-            query = "/item[kind='%s']" %(kind.getUUID().str64())
+            query = "/item[kind='%s']" %(kind.itsUUID.str64())
             for item in kind.getRepository().queryItems(query):
                 yield item
 

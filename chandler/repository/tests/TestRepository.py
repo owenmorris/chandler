@@ -33,21 +33,21 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 
         root = self.rep.getRoot('Packs')
         #TODO these should use UUID's
-        self.assert_(root.getItemName() == 'Packs')
+        self.assert_(root.itsName == 'Packs')
     
         root = self.rep['Packs']
-        self.assert_(root.getItemName() == 'Packs')
+        self.assert_(root.itsName == 'Packs')
     
     def testGetRoots(self):
         """ Make sure the roots of the repository are correct"""
 
         for root in self.rep.getRoots():
-            self.assert_(root.getItemName() in ['Schema', 'Packs'])
+            self.assert_(root.itsName in ['Schema', 'Packs'])
 
     def testWalk(self):
         def callme(self, path, x):
             print path
-            print x.getItemName()
+            print x.itsName
 
         self.rep.walk('//Schema/Core/Parcel', callme)
 #TODO what's a resonable test here?
@@ -69,7 +69,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 
     def testGetUUID(self):
         #TODO -- can't rely on UUID to be the same
-        self.assert_(self.rep.getUUID() is not None)
+        self.assert_(self.rep.itsUUID is not None)
 
 if __name__ == "__main__":
     unittest.main()

@@ -25,10 +25,10 @@ class NotesParcel(Parcel.Parcel):
 
     def _setUUIDs(self):
         noteKind = self.find('Note')
-        NotesParcel.noteKindID = noteKind.getUUID()
+        NotesParcel.noteKindID = noteKind.itsUUID
 
         conversationKind = self.find('Conversation')
-        NotesParcel.conversationKindID = conversationKind.getUUID()
+        NotesParcel.conversationKindID = conversationKind.itsUUID
 
     def getNoteKind(cls):
         assert cls.noteKindID, "Note parcel not yet loaded"

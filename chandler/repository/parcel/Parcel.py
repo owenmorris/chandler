@@ -63,7 +63,7 @@ class Parcel(Item):
         # item. To set a special handler on a logger, do so once in the
         # relevant class or module.
         
-        itemPath = repr(self.getItemPath())
+        itemPath = repr(self.itsPath)
         loggerPath = itemPath[2:].replace("/", ".")
         
         self.log = logging.getLogger(loggerPath)

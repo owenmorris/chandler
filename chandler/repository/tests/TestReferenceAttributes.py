@@ -28,16 +28,16 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self.assert_(item1 is not None)
 
         # check kind
-        self.assert_(kind1.kind is kind)
+        self.assert_(kind1.itsKind is kind)
         self.assert_(kind1 in kind.items)
 
         # check kind and otherName
-        self.assert_(item1.kind is itemKind)
+        self.assert_(item1.itsKind is itemKind)
         self.assert_(item1 in itemKind.items)
 
         # set kind Attribute (update bidirectional ref)
-        item1.kind = kind1
-        self.assert_(item1.kind is kind1)
+        item1.itsKind = kind1
+        self.assert_(item1.itsKind is kind1)
 
         # now test that  otherName side of kind now = items of kind1
         self.assert_(item1 in kind1.items)
@@ -47,10 +47,10 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         # create a third item and switch kind using __setattr__
         item2 = Item('item2', self.rep, itemKind)
         self.assert_(item2 is not None)
-        item2.kind = kind1
+        item2.itsKind = kind1
 
         # again, verify kind
-        self.assert_(item2.kind is kind1)
+        self.assert_(item2.itsKind is kind1)
 
         # now verify that otherName side of kind is list cardinality
         self.assertEquals(len(kind1.items), 2)
@@ -66,35 +66,29 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         item2 = self._find('//item2')
 
         # check kind
-        self.assert_(kind1.kind is kind)
+        self.assert_(kind1.itsKind is kind)
         self.assert_(kind1 in kind.items)
 
         # set kind Attribute (update bidirectional ref)
-        self.assert_(item1.kind is kind1)
+        self.assert_(item1.itsKind is kind1)
 
         # now test that otherName side of kind now = items of kind1
         self.assert_(item1 in kind1.items)
         # and verify item1 no longer in kind.items (old otherName)
         self.assert_(item1 not in kind.items)
         # again, verify kind
-        self.assert_(item2.kind is kind1)
+        self.assert_(item2.itsKind is kind1)
 
         # now verify that otherName side of kind is list cardinality
         self.assertEquals(len(kind1.items), 2)
         self.assert_(item1 in kind1.items)
         self.assert_(item2 in kind1.items)
 
-        # test removeAttributeValue
-        item2.removeAttributeValue('kind')
-        self.failUnlessRaises(AttributeError, lambda: item2.kind)
-        self.assertEquals(len(kind1.items), 1)
-        self.failIf(item2 in kind1.items)
-
         # now write what we've done and read it back
         self._reopenRepository()
         kind1 = self._find('//kind1')
         item2 = self._find('//item2')
-        self.failUnlessRaises(AttributeError, lambda: item2.kind)
+        self.failUnlessRaises(AttributeError, lambda: item2.itsKind)
         self.assertEquals(len(kind1.items), 1)
         self.failIf(item2 in kind1.items)
 
@@ -235,7 +229,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self.assert_(itemKind is not None)
 
         item = Item('item1', self.rep, itemKind)
-        attrKind = itemKind.getAttribute('kind').kind
+        attrKind = itemKind.itsParent['Attribute']
 
         # subattributes are created by assigning the "parent" attribute
         # to the superAttribute attribute of the "child" attribute
@@ -261,12 +255,12 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         # now write what we've done and read it back
         self._reopenRepository()
         item = self._find('//item1')
-        itemKind = item.kind
+        itemKind = item.itsKind
         issuesAttr = itemKind.getAttribute('issues')
 
         attMap = {}
         for i in issuesAttr.subAttributes:
-            attMap[i.getItemName()] = i 
+            attMap[i.itsName] = i 
             
         criticalSubAttr = attMap['critical']
         normalSubAttr = attMap['normal']

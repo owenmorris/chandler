@@ -14,32 +14,11 @@
       <ref alias="description" type="path">/Core/description</ref>
       <ref alias="issues" type="path">/Core/issues</ref>
       <ref alias="examples" type="path">/Core/examples</ref>
-
-      <!-- 
-         - plus local attributes below:
-         -     kind
-        -->
     </ref>
 
     <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.item.Item.Item</value>
     </attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>kind</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Item</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
-    </ref>
-
-    <attribute name="cardinality">single</attribute>
-    <attribute name="otherName">items</attribute>
-    <attribute name="persist" type="bool">False</attribute>
   </item>
 
 </items>

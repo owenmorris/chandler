@@ -69,12 +69,12 @@ class BookmarksBar(RectangularChild):
         
     def OnViewBookmarksBarEvent(self, notification):
         self.open = not self.open
-        self.showOrHideBookmarksBar(Globals.association[self.getUUID()])
+        self.showOrHideBookmarksBar(Globals.association[self.itsUUID])
         
     def showOrHideBookmarksBar(self, bookmarksBar):
         if bookmarksBar.IsShown() != self.open:
             bookmarksBar.Show(self.open)
-            parentWindow = Globals.association[self.parentBlock.getUUID()]
+            parentWindow = Globals.association[self.parentBlock.itsUUID]
             if self.open:
                 self.parentBlock.addToContainer(parentWindow.GetSizer(), bookmarksBar, 
                                                 self.stretchFactor,
@@ -103,9 +103,9 @@ class NavigationBar(Toolbar):
     
     def toolPressed(self, event):
         tool = Block.wxIDToObject(event.GetId())
-        if tool.getItemName() == 'BackButton':
+        if tool.itsName == 'BackButton':
             self.GoBack()
-        elif tool.getItemName() == 'ForwardButton':
+        elif tool.itsName == 'ForwardButton':
             self.GoForward()
 
     def toolEnterPressed(self, event):
@@ -170,7 +170,7 @@ class NavigationBar(Toolbar):
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
         urlBox = Globals.repository.find ('//parcels/OSAF/views/main/URLBox')
-        wxURLBox = Globals.association[urlBox.getUUID()]
+        wxURLBox = Globals.association[urlBox.itsUUID]
         wxURLBox.SetValue(path)
         
         

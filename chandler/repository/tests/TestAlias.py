@@ -27,7 +27,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
 
         self.kind = self._find(self._KIND_KIND)
         self.itemKind = self._find(self._ITEM_KIND)
-        self.attrKind = self.itemKind.getAttribute('kind').kind
+        self.attrKind = self.itemKind.itsParent['Attribute']
         self.newKind = self.kind.newItem('newKind', self.rep)
         self.typeKind = self._find('//Schema/Core/Type')
 
@@ -54,7 +54,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(self.alias.type(1.43) is None)
         self.assert_(self.alias.type(2.4+8j) is None)
         self.assert_(self.alias.type(True) is None)
-        self.assert_(self.alias.type(self.alias.getUUID()) is None)
+        self.assert_(self.alias.type(self.alias.itsUUID) is None)
 
         self.assert_(self.alias.type(12) is not None)
         self.assert_(self.alias.type(self.dateTime) is not None)
@@ -64,7 +64,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(not self.alias.recognizes(1.43))
         self.assert_(not self.alias.recognizes(2.4+8j))
         self.assert_(not self.alias.recognizes(True))
-        self.assert_(not self.alias.recognizes(self.alias.getUUID()))
+        self.assert_(not self.alias.recognizes(self.alias.itsUUID))
 
         self.assert_(self.alias.recognizes(12))
         self.assert_(self.alias.recognizes(self.dateTime))

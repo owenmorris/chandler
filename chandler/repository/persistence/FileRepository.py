@@ -140,7 +140,7 @@ class FileRepositoryView(RepositoryView):
             contents.write('\n')
         
         for root in self._roots.itervalues():
-            name = root.getItemName()
+            name = root.itsName
             if name != 'Schema':
                 count += self._saveItems(root)
                 contents.write(name)
@@ -161,7 +161,7 @@ class FileRepositoryView(RepositoryView):
                 count += 1
                 item.setDirty(0)
 
-            contents.write(item.getUUID().str16())
+            contents.write(item.itsUUID.str16())
             contents.write('\n')
                 
             for child in item:
@@ -169,7 +169,7 @@ class FileRepositoryView(RepositoryView):
 
             return count
 
-        name = root.getItemName()
+        name = root.itsName
         dir = os.path.join(self.repository.dbHome, name)
 
         if not os.path.exists(dir):
@@ -185,11 +185,11 @@ class FileRepositoryView(RepositoryView):
 
     def _saveItem(self, item, **args):
 
-        self.logger.debug(item.getItemPath())
+        self.logger.debug(item.itsPath)
             
-        uuid = item.getUUID().str16()
+        uuid = item.itsUUID.str16()
         filename = os.path.join(self.repository.dbHome,
-                                item.getRoot().getItemName(),
+                                item.itsRoot.itsName,
                                 uuid + '.item')
         out = file(filename, 'w')
         generator = XMLGenerator(out, 'utf-8')

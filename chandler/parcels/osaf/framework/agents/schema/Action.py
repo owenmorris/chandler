@@ -37,7 +37,7 @@ class Action(Item):
         return self.confirmFlag
     
     def GetName(self):
-        return self.getItemName()
+        return self.itsName
 
     def _ImportClasses(self, importPaths):
         '''
@@ -88,7 +88,7 @@ class Action(Item):
                 result = methodObject(instance)
             else:
                 # FIXME: should probably throw an exception here
-                print "unknown action type", agent.getItemName(), self.GetName(), self.actionType
+                print "unknown action type", agent.itsName, self.GetName(), self.actionType
         except:
             print "failed to execute action", self.GetName()
 
@@ -122,7 +122,7 @@ class DeferredAction:
         else:
             message = _('Agent [agentname] needs your permission.  Do you grant it?')
 
-        message = message.replace('[agentname]', agent.getItemName())
+        message = message.replace('[agentname]', agent.itsName)
         return message
 
     def Execute(self, agentID, notification):

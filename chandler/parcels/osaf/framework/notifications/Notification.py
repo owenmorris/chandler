@@ -26,7 +26,7 @@ class Notification(object):
         @type event: L{Event}
         """
         super(Notification, self).__init__()
-        self.__eventUUID = event.getUUID()
+        self.__eventUUID = event.itsUUID
         self.data = None
         self.threadid = None
 
@@ -41,4 +41,4 @@ class Notification(object):
         self.data = data
 
     def __repr__(self):
-        return '<Notification> ' +  str(self.event.getItemPath())
+        return '<Notification> ' +  str(self.event.itsPath)

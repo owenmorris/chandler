@@ -114,10 +114,10 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
         def onItemChanged(note):
             uuid = note.GetData()['uuid']
-            print 'Changed:', Globals.repository[uuid].getItemPath()
+            print 'Changed:', Globals.repository[uuid].itsPath
         def onItemAdded(note):
             uuid = note.GetData()['uuid']
-            print 'Added:', Globals.repository[uuid].getItemPath()
+            print 'Added:', Globals.repository[uuid].itsPath
         def onItemDeleted(note):
             uuid = note.GetData()['uuid']
             print 'Deleted:', uuid

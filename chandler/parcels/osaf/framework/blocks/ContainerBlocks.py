@@ -88,14 +88,14 @@ class EmbeddedContainer(RectangularChild):
             newChild = node.item
             if isinstance(newChild, Block):
                 try:
-                    embeddedPanel = Globals.association [self.getUUID()]
+                    embeddedPanel = Globals.association [self.itsUUID]
                 except KeyError:
                     return  # embedded container hasn't been rendered yet
                 embeddedSizer = embeddedPanel.GetSizer ()
 
                 assert self.contentSpec.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
                 oldChild = self.contentSpec.data[0]
-                wxOldChild = Globals.association [oldChild.getUUID()]
+                wxOldChild = Globals.association [oldChild.itsUUID]
                 self.UnregisterEvents(oldChild)
                 self.removeFromContainer (embeddedPanel, wxOldChild)
                 oldChild.parentBlock = None
@@ -275,7 +275,7 @@ class TabbedContainer(RectangularChild):
         self.childrenToAdd = []
 
     def OnChooseTabEvent (self, notification):
-        tabbedContainer = Globals.association[self.getUUID()]
+        tabbedContainer = Globals.association[self.itsUUID]
         choice = notification.event.choice
         for index in xrange (tabbedContainer.GetPageCount()):
             if tabbedContainer.GetPageText(index) == choice:

@@ -25,8 +25,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         # Test getItemDisplayName
         self.assertEquals(kind.getItemDisplayName(), 'Item')
 
-        # Test getItemPath()
-        self.assertEquals(str(kind.getItemPath()), '//Schema/Core/Item')
+        # Test itsPath
+        self.assertEquals(str(kind.itsPath), '//Schema/Core/Item')
 
         # Test simple item construction
         item = Item('test', self.rep, kind)
@@ -78,8 +78,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         self.assertEqual(item.getItemChild('child1'), child1)
         self.assertEqual(item.getItemChild('child2'), child2)
-        self.assertEqual(child1.getItemParent(), item)
-        self.assertEqual(child2.getItemParent(), item)
+        self.assertEqual(child1.itsParent, item)
+        self.assertEqual(child2.itsParent, item)
 
         # Test iterating over child items
         iter = item.iterChildren()
@@ -98,13 +98,14 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.hasChild('child1'))
         self.assert_(item.hasChild('child2'))
 
-        # Test item renaming, getItemName
+        # Test item renaming, itsName
+        kind = self._find('//Schema/Core/Item')
         child3 = Item('busted', item, kind)
-        self.assertEqual(child3.getItemName(), 'busted')
-        child3.rename('busted')
-        self.assertEqual(child3.getItemName(), 'busted')
-        child3.rename('child3')
-        self.assertEqual(child3.getItemName(), 'child3')
+        self.assertEqual(child3.itsName, 'busted')
+        child3.itsName = 'busted'
+        self.assertEqual(child3.itsName, 'busted')
+        child3.itsName = 'child3'
+        self.assertEqual(child3.itsName, 'child3')
 
         # Test that placing affects iteration order
         item.placeChild(child3, child1)
@@ -112,20 +113,20 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         iter.next()
         self.assertEqual(child3, iter.next())
         self.assertItemPathEqual(child3, '//test/child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
 
         # Test item movement to same parent
-        oldParent = child3.getItemParent()
-        child3.move(child3.getItemParent())
-        self.assertEqual(oldParent, child3.getItemParent())
+        oldParent = child3.itsParent
+        child3.itsParent = child3.itsParent
+        self.assertEqual(oldParent, child3.itsParent)
         self.assertItemPathEqual(child3, '//test/child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
         
         # Test item movement to leaf item
-        child3.move(child2)
-        self.assertEqual(child2, child3.getItemParent())
+        child3.itsParent = child2
+        self.assertEqual(child2, child3.itsParent)
         self.assertItemPathEqual(child3, '//test/child2/child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
 
         # now write what we've done and read it back
         self._reopenRepository()
@@ -134,15 +135,15 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         child2 = item['child2']
         child3 = child2['child3']
 
-        self.assertEqual(child2, child3.getItemParent())
+        self.assertEqual(child2, child3.itsParent)
         self.assertItemPathEqual(child3, '//test/child2/child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
 
         # Test item movement to root
-        child3.move(self.rep)
+        child3.itsParent = self.rep
         self.assertIsRoot(child3)
         self.assertItemPathEqual(child3, '//child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
         
         # now write what we've done and read it back
         self._reopenRepository()
@@ -153,7 +154,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         self.assert_(child3 in self.rep.getRoots())
         self.assertItemPathEqual(child3, '//child3')
-        self.assertIsRoot(child3.getRoot())
+        self.assertIsRoot(child3.itsRoot)
 
     def testAttributeIteration(self):
         """Test iteration over attributes"""
@@ -170,8 +171,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
             self.failUnless(kind.hasAttributeValue(i))
 
         # Test iterating over reference attributes
-        referenceAttributeNames = ['superKinds', 'attributes', 'kind',
-                                   'inheritedAttributes', 'items']
+        referenceAttributeNames = ['superKinds', 'attributes',
+                                   'inheritedAttributes']
         for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames)
             self.failUnless(isinstance(i[1], RefDict) or

@@ -21,7 +21,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
 
         self.kind = self._find("//Schema/Core/Kind")
         self.itemKind = self._find("//Schema/Core/Item")
-        self.attrKind = self.itemKind.getAttribute('kind').kind
+        self.attrKind = self.itemKind.itsParent['Attribute']
 
         self.kind1 = self.kind.newItem('kind1',self.rep)
         self.kind1Attr1 = Attribute('k1a1', self.rep, self.attrKind)
@@ -52,10 +52,10 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(self.kind1.resolve('bogus') is None)
 
         # resolve a child non attribute
-        self.assertEquals(self.kind1.resolve('kind2'), self.kind2.getUUID())
+        self.assertEquals(self.kind1.resolve('kind2'), self.kind2.itsUUID)
 
         # resolve an attribute (alias)
-        self.assert_(self.kind1.resolve('k1a1') is self.kind1Attr1.getUUID())
+        self.assert_(self.kind1.resolve('k1a1') is self.kind1Attr1.itsUUID)
 
     def testGetAttribute(self):
         """ Test getAttribute and has Attribute """
@@ -106,7 +106,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
 #         self.assertEquals(len(item.k1a1),1)
 
 #         newKind = self.kind.newItem('newKind', self.rep)
-#         item.kind = newKind
+#         item.itsKind = newKind
 #         self.assert_('value' in item.k1a1)
 
 #         newSuperKind = self.kind.newItem('newSuperKind', self.rep)

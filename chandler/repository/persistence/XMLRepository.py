@@ -238,7 +238,7 @@ class XMLContainer(object):
         ctx = XmlQueryContext()
         ctx.setReturnType(XmlQueryContext.ResultDocuments)
         ctx.setEvaluationType(XmlQueryContext.Lazy)
-        ctx.setVariableValue("uuid", XmlValue(Repository.ROOT_ID.str64()))
+        ctx.setVariableValue("uuid", XmlValue(Repository.itsUUID.str64()))
         ctx.setVariableValue("version", XmlValue(float(version)))
         nameExp = re.compile("<name>(.*)</name>")
         roots = {}

@@ -74,15 +74,15 @@ class ContentItemTest(ContentModelTestCase):
 
         # Check each item's parent, make sure it has a path
         contentItemParent = ContentModel.ContentModel.getContentItemParent()
-        self.assertEqual(genericContentItem.getItemParent(), contentItemParent)
-        self.assertEqual(genericProject.getItemParent(), contentItemParent)
-        self.assertEqual(genericGroup.getItemParent(), contentItemParent)
+        self.assertEqual(genericContentItem.itsParent, contentItemParent)
+        self.assertEqual(genericProject.itsParent, contentItemParent)
+        self.assertEqual(genericGroup.itsParent, contentItemParent)
         
-        self.assertEqual(repr(genericContentItem.getItemPath()),
+        self.assertEqual(repr(genericContentItem.itsPath),
                          '//userdata/contentitems/genericContentItem')
-        self.assertEqual(repr(genericProject.getItemPath()),
+        self.assertEqual(repr(genericProject.itsPath),
                          '//userdata/contentitems/genericProject')
-        self.assertEqual(repr(genericGroup.getItemPath()),
+        self.assertEqual(repr(genericGroup.itsPath),
                          '//userdata/contentitems/genericGroup')
 
         # These attributes should be empty, but should not be missing

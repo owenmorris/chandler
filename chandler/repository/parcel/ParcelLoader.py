@@ -157,7 +157,7 @@ class ItemHandler(xml.sax.ContentHandler):
         (uri, local, element, currentItem, currentReferences) = self.tags[-1]
 
         # Is the current item part of the core schema?
-        isSchemaItem = (currentItem.kind.getRoot().getItemName() == 'Schema')
+        isSchemaItem = (currentItem.itsKind.itsRoot.itsName == 'Schema')
 
         # If we have a reference, delay loading
         if element == 'Reference':
@@ -232,7 +232,7 @@ class ItemHandler(xml.sax.ContentHandler):
                    "No parent item at %s:%s" % (self.locator.getSystemId(),
                                                line)
 
-            kindItem = item.kind
+            kindItem = item.itsKind
             attributeItem = kindItem.getAttribute(attributeName)
 
             assert attributeItem, \
@@ -312,7 +312,7 @@ class ItemHandler(xml.sax.ContentHandler):
         # If the item already exists, use the existing item
         item = parent.getItemChild(name)
         if item:
-            self.log.debug("Reloading item %s" % item.getItemPath()) 
+            self.log.debug("Reloading item %s" % item.itsPath) 
             return item
 
         # Find the kind represented by the tag (uri, local). The
@@ -348,12 +348,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
                 # @@@ Special cases to resolve
                 if attributeName == 'inverseAttribute':
-                    item.addValue('otherName', reference.getItemName())
+                    item.addValue('otherName', reference.itsName)
                 elif attributeName == 'displayAttribute':
-                    item.addValue('displayAttribute', reference.getItemName())
+                    item.addValue('displayAttribute', reference.itsName)
                 elif attributeName == 'attributes':
                     item.addValue('attributes', reference,
-                                  alias=reference.getItemName())
+                                  alias=reference.itsName)
                 else:
                     item.addValue(attributeName, reference)
 

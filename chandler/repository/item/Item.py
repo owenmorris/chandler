@@ -55,17 +55,16 @@ class Item(object):
         self._references = References(self)
         
         self._name = name or self._uuid.str64()
-        self._kind = None
+        self._kind = kind
         self._root = None
 
         self._setParent(parent)
-        self._setKind(kind)
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         self._uuid = kwds['uuid']
         self._name = name or self._uuid.str64()
-        self._kind = None
+        self._kind = kind
         self._root = None
         self._status = 0
         self._version = kwds['version']
@@ -78,7 +77,6 @@ class Item(object):
         self._references = kwds['references']
 
         self._setParent(parent, kwds.get('previous'), kwds.get('next'))
-        self._setKind(kind)
 
     def __iter__(self):
         """
@@ -180,7 +178,7 @@ class Item(object):
                 otherName = attribute.getAspect('otherName')
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
+            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.itsPath, name)
 
         return otherName
 
@@ -351,7 +349,7 @@ class Item(object):
                 raise ValueError, 'cardinality %s of %s.%s requires collection' %(self, name, card)
 
             if otherName is None:
-                self._values[name] = value = SingleRef(value.getUUID())
+                self._values[name] = value = SingleRef(value.itsUUID)
 
             else:
                 value = ItemRef(self, name, value, otherName)
@@ -443,7 +441,7 @@ class Item(object):
                 _attrDict is None and name in self._values):
                 value = self._values[name]
                 if isinstance(value, SingleRef):
-                    value = self.getRepository().find(value.getUUID())
+                    value = self.getRepository().find(value.itsUUID)
                 return value
 
             elif (_attrDict is self._references or
@@ -478,7 +476,7 @@ class Item(object):
                 value.setReadOnly(True)
             return value
 
-        raise AttributeError, "%s has no value for '%s'" %(self.getItemPath(),
+        raise AttributeError, "%s has no value for '%s'" %(self.itsPath,
                                                            name)
 
     def removeAttributeValue(self, name, _attrDict=None):
@@ -561,16 +559,16 @@ class Item(object):
         @return: C{None}
         """
 
-        if not (child.getItemParent() is self):
+        if not (child.itsParent is self):
             raise ValueError, '%s not a child of %s' %(child, self)
-        if not (after is None or after.getItemParent() is self):
+        if not (after is None or after.itsParent is self):
             raise ValueError, '%s not a child of %s' %(after, self)
         
-        key = child.getItemName()
+        key = child._name
         if after is None:
             afterKey = None
         else:
-            afterKey = after.getItemName()
+            afterKey = after._name
 
         self._children.place(key, afterKey)
 
@@ -586,7 +584,7 @@ class Item(object):
         """
         
         for child in self.iterChildren():
-            print child.getItemPath()
+            print child.itsPath
             if recursive:
                 child.dir(True)
 
@@ -666,7 +664,7 @@ class Item(object):
         def checkValue(name, value, attrType):
 
             if not attrType.recognizes(value):
-                logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self.getItemPath(), attrType.getItemPath())
+                logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self.itsPath, attrType.itsPath)
 
                 return False
 
@@ -675,16 +673,16 @@ class Item(object):
         def checkCardinality(name, value, cardType, attrCard):
 
             if not isinstance(value, cardType):
-                logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self.getItemPath(), cardType, attrCard)
+                logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self.itsPath, cardType, attrCard)
 
                 return False
 
             return True
 
         for key, value in self._values.iteritems():
-            attribute = self.kind.getAttribute(key)
+            attribute = self._kind.getAttribute(key)
             if attribute is None:
-                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', self.getItemPath(), key, self.kind.getItemPath())
+                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', self.itsPath, key, self._kind.itsPath)
                 result = False
             else:
                 attrType = self.getAttributeAspect(key, 'type', default=None)
@@ -1053,8 +1051,8 @@ class Item(object):
         A stale item pointer is defined as an item pointer that is no longer
         valid. When an item is unloaded, the item pointer is marked
         stale. The item pointer can be refreshed by reloading the item via the
-        L{find} method, passing it the item's C{uuid} obtained with the
-        L{getUUID} method.
+        L{find} method, passing it the item's C{uuid} obtained via the
+        L{itsUUID} property.
         
         Stale items are encountered when item pointers are kept across
         transaction boundaries. It is recommended to keep the item's
@@ -1126,7 +1124,7 @@ class Item(object):
                         self._status |= dirty
                         return True
                     elif self._status & Item.NEW:
-                        repository.logger.error('logging of new item %s failed', self.getItemPath())
+                        repository.logger.error('logging of new item %s failed', self.itsPath)
             else:
                 self._status |= dirty
         else:
@@ -1180,7 +1178,7 @@ class Item(object):
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
-            self.getItemParent()._removeItem(self)
+            self.itsParent._removeItem(self)
             self._setRoot(None)
 
             self._status |= Item.DELETED | Item.STALE
@@ -1190,16 +1188,7 @@ class Item(object):
                 if other.refCount() == 0:
                     other.delete()
         
-    def getItemName(self):
-        """
-        Return this item's name.
-
-        The item name is used to lookup an item in its parent container and
-        construct the item's path in the repository.
-        To rename an item use L{rename}.
-
-        The name of an item must be unique among all its siblings.
-        """
+    def __getName(self):
 
         return self._name
 
@@ -1211,7 +1200,7 @@ class Item(object):
             - the value of the C{displayName} attribute
             - the value of the attribute named by the item's kind
               C{displayAttribute} attribute
-            - or the item's intrinsic name (see L{getItemName}).
+            - or the item's intrinsic name
 
         @return: a string
         """
@@ -1252,49 +1241,21 @@ class Item(object):
 
         return count
 
-    def getUUID(self):
-        """
-        Return the Universally Unique ID for this item.
-
-        The UUID for an item is generated when the item is first created and
-        never changes. This UUID is valid for the life of the item.
-
-        The UUID is a 128 bit number intended to be unique in the entire
-        universe and is implemented as specified in the IETF's U{UUID draft <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>} spec.
-        """
+    def __getUUID(self):
         
         return self._uuid
 
-    def getItemPath(self, path=None):
-        """
-        Return the path to this item relative to its repository.
-
-        A path is a C{/} separated sequence of item names.
-
-        @param path: use this path instead of allocating a new Path object
-        for the result
-        @type path: a Path instance
-        @return: a Path instance
-        """
+    def _getPath(self, path=None):
 
         if path is None:
             path = Path()
             
-        self.getItemParent().getItemPath(path)
+        self.itsParent._getPath(path)
         path.append(self._name)
 
         return path
 
-    def getRoot(self):
-        """
-        Return this item's repository root.
-
-        A repository root is a direct child of the repository.
-        All single-slash rooted paths are expressed relative to this root
-        when used with this item.
-        
-        @return: an item
-        """
+    def _getRoot(self):
 
         if self._root.isStale():
             self._root = self.getRepository()[self._root._uuid]
@@ -1325,30 +1286,16 @@ class Item(object):
             for child in self.iterChildren(load=False):
                 child._setRoot(root)
 
-    def getItemParent(self):
-        """
-        Return this item's parent.
-
-        To change the parent, use L{move}.
-
-        @return: an item
-        """
+    def __getParent(self):
 
         if self._parent.isStale():
             self._parent = self.getRepository()[self._parent._uuid]
             
         return self._parent
 
-    def _setKind(self, kind):
+    def __getKind(self):
 
-        if self._kind is not None:
-            self._kind.removeValue('items', value=self)
-
-        self._kind = kind
-
-        if self._kind is not None:
-            ref = ItemRef(self, 'kind', self._kind, 'items', 'list', False)
-            self._references['kind'] = ref
+        return self._kind
 
     def getRepository(self):
         """
@@ -1375,7 +1322,7 @@ class Item(object):
         @type name: a string
         """
 
-        parent = self.getItemParent()
+        parent = self.itsParent
         link = parent._children._get(self._name)
         parent._removeItem(self)
         self._name = name or self._uuid.str64()
@@ -1405,7 +1352,7 @@ class Item(object):
         if newParent is None:
             raise ValueError, 'newParent cannot be None'
             
-        parent = self.getItemParent()
+        parent = self.itsParent
         if parent is not newParent:
             parent._removeItem(self)
             self._setParent(newParent, previous, next)
@@ -1437,7 +1384,7 @@ class Item(object):
             current = self.getItemChild(name, not loading)
                 
             if current is not None:
-                raise ValueError, "A child '%s' exists already under %s" %(item._name, self.getItemPath())
+                raise ValueError, "A child '%s' exists already under %s" %(item._name, self.itsPath)
 
         else:
             self._children = Children(self)
@@ -1447,11 +1394,11 @@ class Item(object):
         if '_notChildren' in self.__dict__ and name in self._notChildren:
             del self._notChildren[name]
             
-        return self.getRoot()
+        return self.itsRoot
 
     def _removeItem(self, item):
 
-        name = item.getItemName()
+        name = item._name
         del self._children[name]
 
         if '_notChildren' in self.__dict__:
@@ -1571,7 +1518,7 @@ class Item(object):
                 return self.getRepository().walk(path, callable, 1, **kwds)
 
             elif path[0] == '/':
-                return self.getRoot().walk(path, callable, 1, **kwds)
+                return self.itsRoot.walk(path, callable, 1, **kwds)
 
         if path[_index] == '.':
             if _index == l - 1:
@@ -1580,9 +1527,8 @@ class Item(object):
 
         if path[_index] == '..':
             if _index == l - 1:
-                return self.getItemParent()
-            return self.getItemParent().walk(path, callable,
-                                             _index + 1, **kwds)
+                return self.itsParent
+            return self.itsParent.walk(path, callable, _index + 1, **kwds)
 
         child = self.getItemChild(path[_index], kwds.get('load', True))
         child = callable(self, path[_index], child, **kwds)
@@ -1743,7 +1689,7 @@ class Item(object):
             kind = self._kind
             if kind is not None:
                 xmlTag('kind', { 'type': 'uuid' },
-                       kind.getUUID().str64(), generator)
+                       kind.itsUUID.str64(), generator)
 
             if (withSchema or kind is None or
                 kind.getItemClass() is not type(self)):
@@ -1751,8 +1697,8 @@ class Item(object):
                        type(self).__name__, generator)
 
         attrs = {}
-        parent = self.getItemParent()
-        parentID = parent.getUUID().str64()
+        parent = self.itsParent
+        parentID = parent.itsUUID.str64()
 
         if not isDeleted:
             if parent._isItem():
@@ -1786,7 +1732,7 @@ class Item(object):
     def _unloadItem(self):
 
         if self._status & Item.DIRTY:
-            raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.getItemPath())
+            raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.itsPath)
 
         if hasattr(type(self), 'onItemUnload'):
             self.onItemUnload()
@@ -1795,8 +1741,6 @@ class Item(object):
             repository = self.getRepository()
 
             self._status |= Item.DIRTY
-            if self.hasAttributeValue('kind'):
-                del self.kind
 
             if self._values:
                 self._values._unload()
@@ -1834,7 +1778,7 @@ class Item(object):
                     attrType = attribute.getAspect('type')
                     attrCard = attribute.getAspect('cardinality',
                                                    default='single')
-                    attrId = attribute.getUUID()
+                    attrId = attribute.itsUUID
                 else:
                     attrType = None
                     attrCard = 'single'
@@ -1845,7 +1789,7 @@ class Item(object):
                                          attrType, attrCard, attrId, generator,
                                          withSchema)
                 except Exception, e:
-                    e.args = ("while saving attribute '%s' of item %s, %s" %(key, self.getItemPath(), e.args[0]),)
+                    e.args = ("while saving attribute '%s' of item %s, %s" %(key, self.itsPath, e.args[0]),)
                     raise
 
     def _xmlRefs(self, generator, withSchema, version, mode):
@@ -1904,6 +1848,70 @@ class Item(object):
     DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY
 
     __access__ = 0L
+
+    itsName = property(fget = __getName,
+                       fset = rename,
+                       doc =
+                       """
+                       Return this item's name.
+
+                       The item name is used to lookup an item in its parent
+                       container and construct the item's path in the
+                       repository. 
+                       An item may be renamed by setting this property.
+
+                       The name of an item must be unique among all its
+                       siblings. 
+                       """)
+
+    itsUUID = property(fget = __getUUID,
+                       doc =
+                       """
+                       Return the Universally Unique ID for this item.
+
+                       The UUID for an item is generated when the item is
+                       first created and never changes. This UUID is valid
+                       for the life of the item.
+
+                       The UUID is a 128 bit number intended to be unique in
+                       the entire universe and is implemented as specified
+                       in the IETF's U{UUID draft
+                       <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}
+                       spec. 
+                       """)
+
+    itsPath = property(fget = _getPath,
+                       doc = 
+                       """
+                       Return the path to this item relative to its repository.
+
+                       A path is a C{/} separated sequence of item names.
+                       """)
+
+    itsParent = property(fget = __getParent,
+                         fset = move,
+                         doc = 
+                         """
+                         Return this item's parent.
+
+                         An item may be moved by setting this property.
+                         """)
+
+    itsRoot = property(fget = _getRoot,
+                       doc = 
+                       """
+                       Return this item's repository root.
+
+                       A repository root is a direct child of the repository.
+                       All single-slash rooted paths are expressed relative
+                       to this root when used with this item.
+                       """)
+
+    itsKind = property(fget = __getKind,
+                       doc = 
+                       """
+                       Return this item's kind.
+                       """)
 
 
 class Children(LinkedMap):

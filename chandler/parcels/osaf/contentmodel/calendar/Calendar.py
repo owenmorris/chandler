@@ -24,19 +24,19 @@ class CalendarParcel(Parcel.Parcel):
 
     def _setUUIDs(self):
         calendarEventKind = self.find('CalendarEvent')
-        CalendarParcel.calendarEventKindID = calendarEventKind.getUUID()
+        CalendarParcel.calendarEventKindID = calendarEventKind.itsUUID
 
         locationKind = self.find('Location')
-        CalendarParcel.locationKindID = locationKind.getUUID()
+        CalendarParcel.locationKindID = locationKind.itsUUID
         
         calendarKind = self.find('Calendar')
-        CalendarParcel.calendarKindID = calendarKind.getUUID()
+        CalendarParcel.calendarKindID = calendarKind.itsUUID
         
         recurrenceKind = self.find('RecurrencePattern')
-        CalendarParcel.recurrencePatternKindID = recurrenceKind.getUUID()
+        CalendarParcel.recurrencePatternKindID = recurrenceKind.itsUUID
         
         reminderKind = self.find('Reminder')
-        CalendarParcel.reminderKindID = reminderKind.getUUID()
+        CalendarParcel.reminderKindID = reminderKind.itsUUID
 
     def onItemLoad(self):
         super(CalendarParcel, self).onItemLoad()

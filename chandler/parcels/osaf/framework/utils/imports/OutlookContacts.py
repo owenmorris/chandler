@@ -210,18 +210,18 @@ TRANSLATIONMAP_OLD=\
 
 currently ignored fields:
 
-"Title" "Suffix"	"Department"
-"Other Street"	"Other Street 2"  "Other Street 3"	"Other City" "Other State"
+"Title" "Suffix"        "Department"
+"Other Street"        "Other Street 2"  "Other Street 3"        "Other City" "Other State"
 "Other Postal Code"   "Other Country"   "Assistant's Phone"   "Assistant's Name"
-"Telex"   "TTY/TDD Phone"   "Radio Phone" "Callback"					
-"Account" "Billing Information" "Categories"	"Directory Server"
-"E-mail Type"	"E-mail Display Name"	"E-mail 2 Type"	
-"E-mail 2 Display Name"	"E-mail 3 Type"	"E-mail 3 Display Name"
-"Government ID Number"	"Hobby"	"Initials"	"Internet Free Busy"
-"Keywords"	"Language"	"Location"	"Manager's Name"	"Mileage"
-"Office Location"	"Organizational ID Number"    "Priority"	"Private"
-"Profession"	"Referred By"	"Sensitivity"	"User 1"	"User 2"
-"User 3"	"User 4"
+"Telex"   "TTY/TDD Phone"   "Radio Phone" "Callback"                                        
+"Account" "Billing Information" "Categories"        "Directory Server"
+"E-mail Type"        "E-mail Display Name"        "E-mail 2 Type"        
+"E-mail 2 Display Name"        "E-mail 3 Type"        "E-mail 3 Display Name"
+"Government ID Number"        "Hobby"        "Initials"        "Internet Free Busy"
+"Keywords"        "Language"        "Location"        "Manager's Name"        "Mileage"
+"Office Location"        "Organizational ID Number"    "Priority"        "Private"
+"Profession"        "Referred By"        "Sensitivity"        "User 1"        "User 2"
+"User 3"        "User 4"
 """
 
 class OutlookContacts(CSVImporter.CSVImporter):
@@ -299,7 +299,7 @@ class OutlookContacts(CSVImporter.CSVImporter):
         returnList = []
         try:
             #String and DateTime Kinds don't offer a newItem method
-            item=kind.newItem(None, parent.getItemParent())
+            item=kind.newItem(None, parent.itsParent)
         except AttributeError:
             item=None
         for branch in tree:
@@ -307,7 +307,7 @@ class OutlookContacts(CSVImporter.CSVImporter):
             if value is not None:
                 returnList.append(value)
                 if item is not None:
-                    item=kind.newItem(None, parent.getItemParent())
+                    item=kind.newItem(None, parent.itsParent)
         if item is not None:
             #if item was ever set, we'll have an extra item
             item.delete()
@@ -382,7 +382,7 @@ class OutlookContacts(CSVImporter.CSVImporter):
         sectionKind=Globals.repository.find(kindPath)
         sectionsList=[]
         for child in object.iterChildren():
-            if child.kind is sectionKind:
+            if child.itsKind is sectionKind:
                 sectionsList.append(child)
         object.sections=sectionsList
         

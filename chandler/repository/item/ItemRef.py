@@ -132,19 +132,22 @@ class ItemRef(object):
         else:
             if other.isStale():
                 logger.error('Found stale item %s at %s of kind %s',
-                             other, other.getItemPath(),
-                             other._kind.getItemPath())
+                             other, other.itsPath,
+                             other._kind.itsPath)
                 return False
             else:
-                otherName = item.getAttributeAspect(name, 'otherName',
-                                                    default=None)
+                otherName = item.getAttributeAspect(name, 'otherName')
+                if otherName is None:
+                    logger.error('otherName is None for attribute %s.%s',
+                                 item._kind.itsPath, name)
+                    return False
                 otherOtherName = other.getAttributeAspect(otherName,
                                                           'otherName',
                                                           default=None)
                 if otherOtherName != name:
                     logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
-                                 item._kind.getItemPath(), name, otherName,
-                                 other._kind.getItemPath(), otherName,
+                                 item._kind.itsPath, name, otherName,
+                                 other._kind.itsPath, otherName,
                                  otherOtherName)
                     return False
 
@@ -181,7 +184,7 @@ class ItemRef(object):
             attrs['otherName'] = item._otherName(name)
 
         generator.startElement('ref', attrs)
-        generator.characters(other.getUUID().str64())
+        generator.characters(other._uuid.str64())
         generator.endElement('ref')
 
 
@@ -278,7 +281,7 @@ class UUIDStub(Stub):
         super(UUIDStub, self).__init__()
 
         self.item = item
-        self.uuid = other.getUUID()
+        self.uuid = other._uuid
 
     def __repr__(self):
 
@@ -325,7 +328,7 @@ class RefArgs(object):
             
         if self.refName is None:
             if other is None:
-                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.getItemPath())
+                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.itsPath)
             else:
                 self.refName = other._refName(self.attrName)
 
@@ -511,7 +514,7 @@ class RefDict(LinkedMap):
     def __repr__(self):
 
         return '<%s: %s.%s.%s>' %(type(self).__name__,
-                                  self._getItem().getItemPath(),
+                                  self._getItem().itsPath,
                                   self._name, self._otherName)
 
     def __contains__(self, obj):
@@ -800,25 +803,25 @@ class RefDict(LinkedMap):
                 other = self[key]
             except DanglingRefError, e:
                 logger.error('DanglingRefError on %s.%s: %s',
-                             self._item.getItemPath(), self._name, e)
+                             self._item.itsPath, self._name, e)
                 return False
             except KeyError, e:
                 logger.error('KeyError on %s.%s: %s',
-                             self._item.getItemPath(), self._name, e)
+                             self._item.itsPath, self._name, e)
                 return False
             else:
                 if other.isStale():
                     logger.error('Found stale item %s at %s of kind %s',
-                                 other, other.getItemPath(),
-                                 other._kind.getItemPath())
+                                 other, other.itsPath,
+                                 other._kind.itsPath)
                     return False
                 else:
                     name = other.getAttributeAspect(self._otherName, 'otherName', default=None)
                     if name != self._name:
                         logger.error("OtherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
-                                     other._kind.getItemPath(),
+                                     other._kind.itsPath,
                                      self._otherName, name,
-                                     self._item._kind.getItemPath(),
+                                     self._item._kind.itsPath,
                                      self._name, self._otherName)
                         return False
                         
@@ -827,7 +830,7 @@ class RefDict(LinkedMap):
             
         if l != 0:
             logger.error("Iterator on %s.%s doesn't match length (%d left for %d total)",
-                         self._item.getItemPath(), self._name, l, len(self))
+                         self._item.itsPath, self._name, l, len(self))
             return False
 
         return True

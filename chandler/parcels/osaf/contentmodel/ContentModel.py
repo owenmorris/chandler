@@ -25,10 +25,10 @@ class ContentModel(Parcel.Parcel):
         Parcel.Parcel.__init__(self, name, parent, kind)
 
     def _setUUIDs(self, parent):
-        ContentModel.contentItemParentID = parent.getUUID()
-        ContentModel.contentItemKindID = self.find('ContentItem').getUUID()
-        ContentModel.projectKindID = self.find('Project').getUUID()
-        ContentModel.groupKindID = self.find('Group').getUUID()
+        ContentModel.contentItemParentID = parent.itsUUID
+        ContentModel.contentItemKindID = self.find('ContentItem').itsUUID
+        ContentModel.projectKindID = self.find('Project').itsUUID
+        ContentModel.groupKindID = self.find('Group').itsUUID
 
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()

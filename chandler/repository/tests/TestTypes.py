@@ -27,7 +27,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 
         self.kind = self._find(self._KIND_KIND)
         self.itemKind = self._find(self._ITEM_KIND)
-        self.attrKind = self.itemKind.getAttribute('kind').kind
+        self.attrKind = self.itemKind.itsParent['Attribute']
         self.newKind = self.kind.newItem('newKind', self.rep)
         self.typeKind = self._find('//Schema/Core/Type')
 
@@ -99,8 +99,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         # create values
         typeStrings = { 'String':'abcde', 'Symbol':'str', 'Integer':'123',
                         'Long':'456', 'Float':'123.456', 'Complex':'(34.4+3j)',
-                        'Boolean':'True', 'UUID':str(self.attrKind.getUUID()),
-                        'SingleRef':str(self.attrKind.getUUID()),
+                        'Boolean':'True', 'UUID':str(self.attrKind.itsUUID),
+                        'SingleRef':str(self.attrKind.itsUUID),
                         'Path':'//Schema/Core/Item', 'NoneType':None,
                         'Class':'repository.item.Item.Item', 'Enumeration':'ref',
                         'Struct':'ref', 'DateTime':'2004-01-08 12:34:56.15',
@@ -122,7 +122,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         class myStruct(object):
             __slots__ = ('name', 'rank')
             
-        self.uuid = self.attrKind.getUUID()
+        self.uuid = self.attrKind.itsUUID
         self.uuidString = str(self.uuid)
         self.pathString = '//Schema/Core/Item'
         self.path = Path(self.pathString)
@@ -239,7 +239,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'NoneType':(None, [None]),
                        'Class': (self.itemClass, ['abcde']),
                        'Enumeration':('green', ['abcde']),
-#                       'Struct':(str(self.struct.getUUID()), ['abcde']),
+#                       'Struct':(str(self.struct.itsUUID), ['abcde']),
                        'DateTime':(self.dateTime,["abacde"]),
                        'DateTimeDelta':(self.dateTimeDelta, ["abcde"]),
                        'RelativeDateTime':(self.relativeDateTime, ["abcde"]),

@@ -28,12 +28,12 @@ def GetElementCellValues(element):
 
 class ZaoBaoListDelegate:
     def ElementParent(self, element):
-        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+        if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             return None
         return element.channel
 
     def ElementChildren(self, element):
-        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+        if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             return element.items
         return None
 
@@ -41,12 +41,12 @@ class ZaoBaoListDelegate:
         return GetElementCellValues(element)
 
     def ElementHasChildren(self, element):
-        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+        if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             return len(element.getAttributeValue('items', default=[])) != 0
         return False
 
     def NeedsUpdate(self, notification):
-        chanUUID = Globals.repository[self.counterpartUUID].rootPath.getUUID()
+        chanUUID = Globals.repository[self.counterpartUUID].rootPath.itsUUID
         changedUUID = notification.data['uuid']
         if chanUUID == changedUUID:
             self.scheduleUpdate = True
@@ -56,7 +56,7 @@ class ZaoBaoTreeDelegate:
         chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
         if element == chanKind:
             return None
-        if element.kind == chanKind:
+        if element.itsKind is chanKind:
             return chanKind
         return element.channel
 
@@ -66,7 +66,7 @@ class ZaoBaoTreeDelegate:
         if element == chanKind:
             return KindQuery().run([chanKind])
 
-        if element.kind == chanKind:
+        if element.itsKind is chanKind:
             return element.items
 
         return None
@@ -79,14 +79,14 @@ class ZaoBaoTreeDelegate:
         if element == chanKind:
             return True
 
-        if element.kind == chanKind:
+        if element.itsKind is chanKind:
             return len(element.getAttributeValue('items', default=[])) != 0
 
         return False
 
     def NeedsUpdate(self, notification):
         item = Globals.repository.find(notification.data['uuid'])
-        if item.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+        if item.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             self.scheduleUpdate = True
 
 

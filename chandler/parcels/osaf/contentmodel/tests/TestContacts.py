@@ -51,15 +51,15 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         phoneNumberItem = Contacts.PhoneNumber("phoneNumberItem")
 
         # Double check kinds
-        self.assertEqual(contactItem.kind,
+        self.assertEqual(contactItem.itsKind,
                          Contacts.ContactsParcel.getContactKind())
-        self.assertEqual(contactSectionItem.kind,
+        self.assertEqual(contactSectionItem.itsKind,
                          Contacts.ContactsParcel.getContactSectionKind())
-        self.assertEqual(contactNameItem.kind,
+        self.assertEqual(contactNameItem.itsKind,
                          Contacts.ContactsParcel.getContactNameKind())
-        self.assertEqual(streetAddressItem.kind,
+        self.assertEqual(streetAddressItem.itsKind,
                          Contacts.ContactsParcel.getStreetAddressKind())
-        self.assertEqual(phoneNumberItem.kind,
+        self.assertEqual(phoneNumberItem.itsKind,
                          Contacts.ContactsParcel.getPhoneNumberKind())
 
         # Literal properties

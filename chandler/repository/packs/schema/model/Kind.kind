@@ -13,7 +13,7 @@
       <!-- 
          - plus local attributes below:
          -     notFoundAttributes, inheritedAttributes,
-         -     superKinds, subKinds, items, attributes, classes, 
+         -     superKinds, subKinds, attributes, classes, 
          -     displayAttribute
         -->
     </ref>
@@ -90,22 +90,6 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">superKinds</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>items</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
-    </ref>
-
-    <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">kind</attribute>
-    <attribute name="persist" type="bool">False</attribute>
   </item>
 
   <item withSchema="True">

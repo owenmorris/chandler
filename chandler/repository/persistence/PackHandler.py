@@ -74,7 +74,7 @@ class PackHandler(ContentHandler):
 
         if not attrs.has_key('file'):
             itemKind = self.repository.find('Schema/Core/Item')
-            self.pack._setKind(itemKind)
+            self.pack._kind = itemKind         #kludge
             self.pack.description = self.path
 
     def cwdStart(self, attrs):

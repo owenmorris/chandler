@@ -22,7 +22,7 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
 
         HTMLText = "<html><body>"
         
-        kind = item.kind
+        kind = item.itsKind
         if kind is Globals.repository.find ("//parcels/OSAF/contentmodel/calendar/CalendarEvent"):
             HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
             HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()

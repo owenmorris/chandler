@@ -94,7 +94,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         myKind = kind.newItem('listKind', self.rep)
                                                                   
         # create an attribute with cardinality list and add to the kind
-        attrKind = itemKind.getAttribute('kind').kind             
+        attrKind = itemKind.itsParent['Attribute']
         multiAttribute = Attribute('strings', myKind, attrKind)   
         multiAttribute.cardinality = 'list'
         myKind.addValue('attributes', multiAttribute)             
@@ -182,7 +182,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         myKind = kind.newItem('dictKind', self.rep)
                                                                   
         # create an attribute with cardinality dict and add to the kind
-        attrKind = itemKind.getAttribute('kind').kind
+        attrKind = itemKind.itsParent['Attribute']
         multiAttribute = Attribute('strings', myKind, attrKind)
         multiAttribute.cardinality = 'dict'
         myKind.addValue('attributes', multiAttribute)

@@ -30,7 +30,7 @@ class SingleRef(object):
 
         self._uuid = UUID(state)
     
-    def getUUID(self):
+    def __getUUID(self):
 
         return self._uuid
 
@@ -57,3 +57,6 @@ class SingleRef(object):
     def __ne__(self, other):
 
         return isinstance(other, SingleRef) and self._uuid.__ne__(other._uuid)
+
+    itsUUID = property(__getUUID)
+    

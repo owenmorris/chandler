@@ -202,7 +202,7 @@ class ItemHandler(ContentHandler):
             if self.kind is None:
                 raise ValueError, 'Kind %s not found' %(self.kindRef)
             else:
-                self.item._setKind(self.kind)
+                self.item._kind = self.kind
 
     def _onItemLoad(self):
 
@@ -455,7 +455,7 @@ class ItemHandler(ContentHandler):
             otherName = attribute.getAspect('otherName')
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.getItemPath(), self.name, name, self.kind.getItemPath())
+            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.itsPath, self.name, name, self.kind.itsPath)
 
         return otherName
 
@@ -550,14 +550,14 @@ class ItemHandler(ContentHandler):
 
         if attrCard == 'single':
             if isinstance(value, ItemPackage.Item.Item):
-                raise TypeError, "item %s cannot be stored as a literal value" %(value.getItemPath())
+                raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
 
             if value is ItemPackage.Item.Item.Nil:
                 raise ValueError, 'Cannot persist Item.Nil'
 
             if attrType is not None:
                 if not attrType.recognizes(value):
-                    raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.getItemPath())
+                    raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.itsPath)
                 else:
                     attrType.typeXML(value, generator, withSchema)
             else:

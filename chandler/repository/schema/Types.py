@@ -316,7 +316,7 @@ class SingleRef(Type):
 
     def eval(self, value):
 
-        return self.getRepository()[value.getUUID()]
+        return self.getRepository()[value.itsUUID]
 
     def _compareTypes(self, other):
 
@@ -451,7 +451,7 @@ class Struct(Type):
                 self._fieldXML(repository, value, fieldName, field, generator)
             generator.endElement('fields')
         else:
-            raise TypeError, 'Struct %s has no fields' %(self.getItemPath())
+            raise TypeError, 'Struct %s has no fields' %(self.itsPath)
     
     def _fieldXML(self, repository, value, fieldName, field, generator):
 

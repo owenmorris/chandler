@@ -23,10 +23,10 @@ class ZaoBaoParcel(Parcel):
     def _setUUIDs(self, parent):
 
         # hackery to avoid threading conflicts
-        ZaoBaoParcel.RSSItemParentID = parent.getUUID()
+        ZaoBaoParcel.RSSItemParentID = parent.itsUUID
         
-        ZaoBaoParcel.RSSChannelKindID = self.find('RSSChannel').getUUID()
-        ZaoBaoParcel.RSSItemKindID = self.find('RSSItem').getUUID()
+        ZaoBaoParcel.RSSChannelKindID = self.find('RSSChannel').itsUUID
+        ZaoBaoParcel.RSSItemKindID = self.find('RSSItem').itsUUID
 
     def onItemLoad(self):
         super(ZaoBaoParcel, self).onItemLoad()

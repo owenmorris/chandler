@@ -28,16 +28,16 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure the Parcel was created
         parcel = self.rep.find("//parcels/items")
-        self.assertEqual(parcel.kind,
+        self.assertEqual(parcel.itsKind,
          self.rep.find("//Schema/Core/Parcel"))
 
         # Ensure testInstances were created
         testInstance1 = self.rep.find("//parcels/items/TestInstance1")
-        self.assertEqual(testInstance1.kind,
+        self.assertEqual(testInstance1.itsKind,
          self.rep.find("//parcels/items/Kind2"))
 
         testInstance2 = self.rep.find("//parcels/items/TestInstance2")
-        self.assertEqual(testInstance2.kind,
+        self.assertEqual(testInstance2.itsKind,
          self.rep.find("//parcels/items/Kind2"))
 
         self.assertEqual(testInstance1.RefAttribute, testInstance2)

@@ -28,7 +28,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure the simple Parcel was created with the right Kind and attrs
         simpleParcel = self.rep.find("//parcels/simple")
-        self.assertEqual(simpleParcel.kind,
+        self.assertEqual(simpleParcel.itsKind,
          self.rep.find('//Schema/Core/Parcel'))
         self.assertEqual(simpleParcel.displayName, "Simple Parcel")
         self.assertEqual(simpleParcel.description, 
@@ -39,7 +39,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure testAttribute was created with the right Kind and attrs
         testAttribute = self.rep.find("//parcels/simple/TestAttribute")
-        self.assertEqual(testAttribute.kind,
+        self.assertEqual(testAttribute.itsKind,
          self.rep.find('//Schema/Core/Attribute'))
         self.assertEqual(testAttribute.type, 
          self.rep.find('//Schema/Core/String'))
@@ -48,24 +48,24 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure testKind was created with the right Kind and attrs
         testKind = self.rep.find("//parcels/simple/TestKind")
-        self.assertEqual(testKind.kind,
+        self.assertEqual(testKind.itsKind,
          self.rep.find('//Schema/Core/Kind'))
         self.assertEqual(testKind.displayName, "Test Kind")
         self.assertEqual(testKind.displayAttribute, "TestAttribute")
 
         # Ensure testAttribute is an attribute of testKind (and vice-versa)
-        self.assert_(testKind.attributes.has_key(testAttribute.getUUID()))
-        self.assert_(testAttribute.kinds.has_key(testKind.getUUID()))
+        self.assert_(testKind.attributes.has_key(testAttribute.itsUUID))
+        self.assert_(testAttribute.kinds.has_key(testKind.itsUUID))
 
         # Ensure subKind was created with the right Kind and attrs
         subKind = self.rep.find("//parcels/simple/SubKind")
-        self.assertEqual(subKind.kind,
+        self.assertEqual(subKind.itsKind,
          self.rep.find('//Schema/Core/Kind'))
         self.assertEqual(subKind.displayName, "Subclass Test Kind")
 
         # Ensure testKind and subKind have the correct inheritence links
-        self.assert_(subKind.superKinds.has_key(testKind.getUUID()))
-        self.assert_(testKind.subKinds.has_key(subKind.getUUID()))
+        self.assert_(subKind.superKinds.has_key(testKind.itsUUID))
+        self.assert_(testKind.subKinds.has_key(subKind.itsUUID))
 
 if __name__ == "__main__":
     unittest.main()

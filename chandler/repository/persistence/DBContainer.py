@@ -162,7 +162,7 @@ class RefContainer(DBContainer):
             
         try:
             cursor = self.cursor()
-            key = item.getUUID()._uuid
+            key = item._uuid._uuid
 
             try:
                 value = cursor.set_range(key, flags=DB_DIRTY_READ)
@@ -183,11 +183,11 @@ class VerContainer(DBContainer):
 
         super(VerContainer, self).__init__(store, name, txn, create)
         if create:
-            self._db.put(Repository.ROOT_ID._uuid, pack('>l', ~0), txn)
+            self._db.put(Repository.itsUUID._uuid, pack('>l', ~0), txn)
 
     def getVersion(self):
 
-        return ~unpack('>l', self.get(Repository.ROOT_ID._uuid))[0]
+        return ~unpack('>l', self.get(Repository.itsUUID._uuid))[0]
 
     def setDocVersion(self, uuid, version, docId):
 

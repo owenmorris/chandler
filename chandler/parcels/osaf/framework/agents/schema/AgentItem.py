@@ -68,7 +68,7 @@ class AgentItem(Item):
         """
           Subscribe to the notifications used by the active instructions 
         """
-        clientID = self.getUUID()
+        clientID = self.itsUUID
         notifications = self._GetActiveNotifications()
         Globals.notificationManager.Subscribe(notifications, clientID, callback)
 
@@ -76,7 +76,7 @@ class AgentItem(Item):
         """
           Unsubscribe from the notifications used by the active instructions 
         """
-        clientID = self.getUUID()
+        clientID = self.itsUUID
         Globals.notificationManager.Unsubscribe(clientID)
 
 
@@ -104,13 +104,13 @@ class AgentItem(Item):
         return self.getValue('status', attribute, 0)
  
     def DumpStatus(self):
-        print self.getItemName()
+        print self.itsName
         instructions = self.instructions
         for instruction in instructions:
             print "- Instruction"
             actions = instruction.GetActions()
             for action in actions:
-                print "  -", action.GetName(), "[" + str(action.GetCompletionPercentage()) + "%]", instruction.GetMagicNumber(action.getUUID())
+                print "  -", action.GetName(), "[" + str(action.GetCompletionPercentage()) + "%]", instruction.GetMagicNumber(action.itsUUID)
 
     def _CalculateBusyness(self):
         # returns the average magic number of all the agent's actions
@@ -120,7 +120,7 @@ class AgentItem(Item):
         for instruction in instructions:
             actions = instruction.GetActions()
             for action in actions:
-                n += instruction.GetMagicNumber(action.getUUID())
+                n += instruction.GetMagicNumber(action.itsUUID)
                 i += 1
         if i == 0:
             return 0.0

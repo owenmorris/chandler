@@ -43,8 +43,8 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         conversationItem = Notes.Conversation("conversationItem")
 
         # Double check kinds
-        self.assertEqual(noteItem.kind, Notes.NotesParcel.getNoteKind())
-        self.assertEqual(conversationItem.kind,
+        self.assertEqual(noteItem.itsKind, Notes.NotesParcel.getNoteKind())
+        self.assertEqual(conversationItem.itsKind,
                          Notes.NotesParcel.getConversationKind())
 
         # Literal properties

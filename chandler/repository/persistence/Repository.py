@@ -25,7 +25,7 @@ class VersionConflictError(RepositoryError):
     "Another thread changed %s and saved those changes before this thread got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved."
 
     def __str__(self):
-        return self.__doc__ %(self.args[0].getItemPath())
+        return self.__doc__ %(self.args[0].itsPath)
 
     def getItem(self):
         return self.args[0]
@@ -178,10 +178,6 @@ class Repository(object):
 
         return self.view.check()
 
-    def getUUID(self):
-
-        return Repository.ROOT_ID
-
     def addNotificationCallback(self, fn):
 
         self._notifications.append(fn)
@@ -193,7 +189,7 @@ class Repository(object):
         except ValueError:
             return None
 
-    ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     OPEN = 0x1
     view = property(_getView)
 
@@ -329,7 +325,7 @@ class RepositoryView(object):
                              load=load)
 
         elif isinstance(spec, UUID):
-            if spec == self.ROOT_ID:
+            if spec == self.itsUUID:
                 return self
             else:
                 try:
@@ -372,7 +368,7 @@ class RepositoryView(object):
             for root in self.getRoots():
                 self.dir(root, path)
         else:
-            path.append(item.getItemName())
+            path.append(item.itsName)
             print path
             for child in item:
                 self.dir(child, path)
@@ -457,7 +453,7 @@ class RepositoryView(object):
     def __getitem__(self, key):
 
         if isinstance(key, UUID):
-            if key == self.ROOT_ID:
+            if key == self.itsUUID:
                 return self
             else:
                 try:
@@ -489,7 +485,7 @@ class RepositoryView(object):
 
         return self._roots.values()
 
-    def getItemPath(self, path=None):
+    def _getPath(self, path=None):
         'Return the path of the repository relative to its item, always //.'
 
         if path is None:
@@ -510,7 +506,7 @@ class RepositoryView(object):
 
     def _addItem(self, item, previous=None, next=None):
 
-        name = item.getItemName()
+        name = item.itsName
 
         if name in self._roots:
             raise ValueError, "A root named '%s' exists already" %(name)
@@ -521,7 +517,7 @@ class RepositoryView(object):
 
     def _removeItem(self, item):
 
-        del self._roots[item.getItemName()]
+        del self._roots[item.itsName]
 
     def _unloadChild(self, name):
 
@@ -529,7 +525,7 @@ class RepositoryView(object):
 
     def _registerItem(self, item):
 
-        uuid = item.getUUID()
+        uuid = item.itsUUID
 
         old = self._registry.get(uuid)
         if old and old is not item:
@@ -543,7 +539,7 @@ class RepositoryView(object):
 
     def _unregisterItem(self, item):
 
-        uuid = item.getUUID()
+        uuid = item.itsUUID
         del self._registry[uuid]
         if item.isDeleting():
             self._deletedRegistry[uuid] = uuid
@@ -569,14 +565,21 @@ class RepositoryView(object):
     def _loadChild(self, parent, name):
         raise NotImplementedError, "RepositoryView._loadChild"
 
+    def _newItems(self):
+        raise NotImplementedError, "RepositoryView._newItems"
+
     def _addStub(self, stub):
 
         if not self.isLoading():
             self._stubs.append(stub)
 
-    def getUUID(self):
+    def __getUUID(self):
 
-        return Repository.ROOT_ID
+        return Repository.itsUUID
+
+    def __getName(self):
+
+        return "Repository"
 
     def getLogger(self):
 
@@ -586,7 +589,11 @@ class RepositoryView(object):
 
         return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
 
-    ROOT_ID = property(getUUID)
+    itsUUID = property(__getUUID)
+    itsName = property(__getName)
+    itsPath = property(_getPath)
+    itsParent = None
+    
     logger = property(getLogger)
     debug = property(isDebug)
 
@@ -697,7 +704,7 @@ class OnDemandRepositoryView(RepositoryView):
 
             if self.isDebug():
                 self.logger.debug("loaded version %d of %s",
-                                  item._version, item.getItemPath())
+                                  item._version, item.itsPath)
 
         except:
             if not loading:
@@ -743,9 +750,9 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadChild(self, parent, name):
 
         if parent is not None and parent is not self:
-            uuid = parent.getUUID()
+            uuid = parent.itsUUID
         else:
-            uuid = self.ROOT_ID
+            uuid = self.itsUUID
 
         store = self.repository.store
         doc = store.loadChild(self.version, uuid, name)
@@ -758,7 +765,7 @@ class OnDemandRepositoryView(RepositoryView):
                 if self.isDebug():
                     if parent is not None and parent is not self:
                         self.logger.debug("loading child %s of %s",
-                                          name, parent.getItemPath())
+                                          name, parent.itsPath)
                     else:
                         self.logger.debug("loading root %s", name)
                     
@@ -789,7 +796,7 @@ class OnDemandRepositoryView(RepositoryView):
 
         super(OnDemandRepositoryView, self)._addItem(item, previous, next)
 
-        name = item.getItemName()
+        name = item.itsName
         if name in self._notRoots:
             del self._notRoots[name]
 
@@ -799,7 +806,7 @@ class OnDemandRepositoryView(RepositoryView):
 
         super(OnDemandRepositoryView, self)._removeItem(item)
 
-        name = item.getItemName()
+        name = item.itsName
         self._notRoots[name] = name
 
     def getRoot(self, name, load=True):
