@@ -23,7 +23,7 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.loadParcels()
         
         tools.timing.end("application.TestAllParcels")
-        tools.timing.results()
+        tools.timing.results(verbose=False)
 
         self.assert_( self.rep.check(), "Repository check failed -- see chandler.log" )
 

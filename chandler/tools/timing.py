@@ -96,7 +96,7 @@ def reset():
     totalCounts = 0
     totalTime = 0.0
 
-def results():
+def results(verbose=True):
     keys = trackers.keys()
     keys.sort()
     totalCounts = 0
@@ -105,12 +105,14 @@ def results():
     lines = bannerFormat % \
      ("-----------------------------", "------", "--------", "--------")
     dataFormat = "OSAF_QA: %-30s | %6d | %6.5f | %6.5f"
-    print bannerFormat % ("Operation", "Count", "Total", "Avg")
-    print lines
+    if verbose:
+        print bannerFormat % ("Operation", "Count", "Total", "Avg")
+        print lines
     for key in keys:
         (name, count, time, avg) = trackers[key].results()
         totalCounts += count
         totalTime += time
         print dataFormat % (name, count, time, avg)
-    print lines
-    print dataFormat % ("Totals:", totalCounts, totalTime, totalTime/totalCounts)
+    if verbose:
+        print lines
+        print dataFormat % ("Totals:", totalCounts, totalTime, totalTime/totalCounts)
