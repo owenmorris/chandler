@@ -1119,6 +1119,10 @@ class CloudXMLFormat(ImportExportFormat):
             'kind' : '//parcels/osaf/framework/sharing/Share',
             'fingerprint' : (),
         },
+        'Task' : {
+            'kind' : '//parcels/osaf/contentmodel/tasks/Task',
+            'fingerprint' : (),
+        },
     }
 
     def __init__(self, name=None, parent=None, kind=None,
