@@ -72,3 +72,42 @@ class RectType(CoreTypes.Type):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
+
+    
+class Color:
+    def __init__(self, red, green, blue, alpha):
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+
+    def __str__(self):
+        string = "%s,%s,%s,%s" % (self.red, self.green, self.blue, self.alpha)
+        return string
+
+class ColorType(CoreTypes.Type):
+
+    def makeValue(cls, data):
+        (red, green, blue, alpha) = data.split(",")
+        return Color(int(red), int(green), int(blue), alpha=int(right))
+
+    def makeString(cls, data):
+        return str(data)
+
+    def recognizes(self, value):
+        return isinstance(value, Color)
+
+    def unserialize(self, data):
+        return ColorType.makeValue(data)
+
+    def getValue(self, itemHandler, data):
+        fields = itemHandler.fields
+        if fields:
+            itemHandler.fields = None
+        else:
+            return self.unserialize(data)
+
+        return Color(fields['red'], fields['green'], fields['blue'], fields['alpha'])
+
+    makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)

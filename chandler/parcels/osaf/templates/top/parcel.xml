@@ -73,12 +73,11 @@
     <title>Edit</title>
   </Menu>
   
-  <CharacterStyle itemName="HeaderStyle">
-    <font>Swiss</font>
+  <CharacterStyle itemName="HeaderCharacterStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>12.0</fontSize>
-    <fontStyle>Normal</fontStyle>
-    <fontWeight>Bold</fontWeight>
-    <underlined>False</underlined>
+    <fontStyle>bold</fontStyle>
+    <fontName></fontName>
   </CharacterStyle>
 
   <StaticText itemName="Header">
@@ -90,7 +89,7 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
     <alignment>Left</alignment>
-    <characterStyle itemref="doc:HeaderStyle"/>
+    <characterStyle itemref="doc:HeaderCharacterStyle"/>
     <title>Repository Viewer</title>
   </StaticText>
   

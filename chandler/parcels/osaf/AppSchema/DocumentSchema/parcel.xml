@@ -16,32 +16,40 @@
   <!--
     global attributes for CPIA documents
   -->
-  <Attribute itemName="font">
-    <type itemref="String"/>
+  <Enumeration itemName="fontFamilyEnumType">
+    <values>DefaultUIFont</values>
+    <values>SerifFont</values>
+    <values>SansSerifFont</values>
+    <values>FixedPitchFont</values>
+  </Enumeration>
+   
+  <Attribute itemName="fontFamily">
+    <type itemref="docSchema:fontFamilyEnumType"/>
   </Attribute>
 
   <Attribute itemName="fontSize">
     <type itemref="Float"/>
   </Attribute>
 
+  <!--
+    Currently, fontStyle is a string containing any of the following words:
+    bold light italic underline, but others will be included in the future
+  -->
   <Attribute itemName="fontStyle">
+    <type itemref="String"/> 
+  </Attribute>
+  
+  <Attribute itemName="fontName">
     <type itemref="String"/>
   </Attribute>
-  
-  <Enumeration itemName="weightEnumType">
-    <values>Bold</values>
-    <values>Normal</values>
-    <values>Light</values>
-  </Enumeration>
-   
-  <Attribute itemName="fontWeight">
-    <type itemref="docSchema:weightEnumType"/>
-  </Attribute>
 
-  <Attribute itemName="underlined">
-    <type itemref="Boolean"/>
-  </Attribute>  
-  
+  <Type itemName="ColorType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.ColorType">
+    <fields>red</fields>
+    <fields>green</fields>
+    <fields>blue</fields>
+    <fields>alpha</fields>
+  </Type>
+ 
   <Type itemName="SizeType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.SizeType">
     <fields>width</fields>
     <fields>height</fields>
@@ -103,12 +111,12 @@
     <classes key="python">OSAF.AppSchema.DocumentSchema.Styles.CharacterStyle</classes>
     <superKinds itemref="docSchema:Style"/>
 
-    <attributes itemref="docSchema:font"/>
+    <attributes itemref="docSchema:fontFamily"/>
     <attributes itemref="docSchema:fontSize"/>
     <attributes itemref="docSchema:fontStyle"/>
-    <attributes itemref="docSchema:fontWeight"/>
-    <attributes itemref="docSchema:underlined"/>
+    <attributes itemref="docSchema:fontName"/>
   </Kind>
+  
 
   <!--
     Block

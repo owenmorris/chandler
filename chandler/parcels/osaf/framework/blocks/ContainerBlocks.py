@@ -3,6 +3,45 @@ from Block import Block
 from wxPython.wx import *
 from wxPython.gizmos import *
 
+
+class Font(wxFont):
+    def __init__(self, characterStyle):
+        family = wxDEFAULT
+        size = 12
+        style = wxNORMAL
+        underline = FALSE
+        weight = wxNORMAL
+        if characterStyle:
+            if characterStyle.fontFamily == "SerifFont":
+                family = wxROMAN
+            elif characterStyle.fontFamily == "SanSerifFont":
+                family = wxSWISS
+            elif characterStyle.fontFamily == "FixedPitchFont":
+                family = wxMODERN
+    
+            assert (size > 0)
+            size = int (characterStyle.fontSize + 0.5) #round to integer
+
+            for theStyle in characterStyle.fontStyle.split():
+                lowerStyle = theStyle.lower()
+                if lowerStyle == "bold":
+                    weight = wxBOLD
+                elif lowerStyle == "light":
+                    weight = wxLIGHT
+                elif lowerStyle == "italic":
+                    style = wxITALIC
+                elif lowerStyle == "underline":
+                    underline = TRUE
+                
+        wxFont.__init__ (self,
+                         size,
+                         family,
+                         style,
+                         weight,
+                         underline,
+                         characterStyle.fontName)
+
+
 class ContainerChild(Block):
     def Render (self, parent, parentWindow):
         (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
@@ -34,6 +73,7 @@ class ContainerChild(Block):
             flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
         return flag
 
+
     def Calculate_wxBorder (self):
         border = 0
         spacerRequired = False
@@ -54,6 +94,7 @@ class ContainerChild(Block):
         
         return int (border)
 
+
 class BoxContainer(ContainerChild):
     def RenderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
@@ -70,15 +111,18 @@ class BoxContainer(ContainerChild):
             assert isinstance (parent, wxSizerPtr)
             parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return sizer, parentWindow
-        
+
+
 class StaticText(ContainerChild):
     def RenderOneBlock (self, parent, parentWindow):
+        assert isinstance (parent, wxSizerPtr) #must be in a container
         if self.alignment == "Left":
             style = wxALIGN_LEFT
         elif self.alignment == "Center":
             style = wxALIGN_CENTRE
         elif self.aignment == "Right":
             style = wxALIGN_RIGHT
+
         staticText = wxStaticText (parentWindow,
                                    -1,
                                    self.title,
@@ -86,28 +130,7 @@ class StaticText(ContainerChild):
                                    (self.minimumSize.width, self.minimumSize.height),
                                    style)
 
-        """
-          I think sizers should always live in containers, but
-        I'm not completely sure -- DJA
-        """
-        assert isinstance (parent, wxSizerPtr)
-        if self.characterStyle.font == "Roman":
-            family = wxROMAN
-        elif self.characterStyle.font == "Swiss":
-            family = wxSWISS
-        if self.characterStyle.fontStyle == "Normal":
-            style = wxNORMAL
-        elif self.characterStyle.fontStyle == "Italic":
-            style = wxITALIC
-        if self.characterStyle.fontWeight == "Bold":
-            weight = wxBOLD
-        elif self.characterStyle.fontWeight == "Normal":
-            weight = wxNORMAL
-        elif self.characterStyle.fontWeight == "Light":
-            weight = wxLIGHT
-        font = wxFont(int(self.characterStyle.fontSize), family, style, weight,
-                      self.characterStyle.underlined)
-        staticText.SetFont(font)
+        staticText.SetFont(Font (self.characterStyle))
         parent.Add(staticText, int(self.stretchFactor), 
                    self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return None, None
@@ -145,6 +168,7 @@ class MenuItem(ContainerChild):
             parent.AppendRadioItem(0, title, self.helpString)
         return None, None
 
+
 class TreeList(ContainerChild):
     def RenderOneBlock(self, parent, parentWindow):
         treeList = wxTreeListCtrl(parentWindow)
@@ -156,7 +180,8 @@ class TreeList(ContainerChild):
         
         parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return None, None
-    
+
+
 class EditText(ContainerChild):
     def __init__(self, *arguments, **keywords):
         super (EditText, self).__init__ (*arguments, **keywords)

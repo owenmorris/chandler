@@ -12,3 +12,4 @@ class Block(Item):
         self.RenderOneBlock (data)
         for child in self.childrenBlocks:
             child.RenderOneBlock(data)
+
