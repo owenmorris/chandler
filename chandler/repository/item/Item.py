@@ -43,7 +43,6 @@ class Item(object):
         only the Chandler attributes are saved.
         @type kind: an item
         """
-        
         super(Item, self).__init__()
 
         self._status = Item.NEW
@@ -79,10 +78,26 @@ class Item(object):
         self._setKind(kind)
 
     def __iter__(self):
+        """
+        Iterate over the children of this item.
+        """
 
         return self.iterChildren()
     
     def __repr__(self):
+        """
+        The debugging string representation of an item.
+
+        It follows the following format:
+
+        C{<classname (optional status): name uuid>}
+
+        where:
+          - C{classname} is the name of the class implementing the item
+          - C{optional status} is displayed when the item is stale or deleted
+          - C{name} is the item's name
+          - C{uuid} is the item's UUID
+        """
 
         if self._status & Item.RAW:
             return super(Item, self).__repr__()
@@ -98,10 +113,25 @@ class Item(object):
                                self._uuid.str16())
 
     def __getattr__(self, name):
+        """
+        This method is called by python when looking up a Chandler attribute.
+        @param name: the name of the attribute being accessed.
+        @type name: a string
+        """
 
         return self.getAttributeValue(name)
 
     def __setattr__(self, name, value):
+        """
+        This method is called whenever an attribute's value is set.
+
+        It resolves whether the attribute is a Chandler attribute or a regular
+        python attribute and dispatches to the relevant methods.
+        @param name: the name of the attribute being set.
+        @type name: a string
+        @param value: the value being set.
+        @type value: anything
+        """
 
         if name[0] != '_':
             if self._values.has_key(name):
@@ -116,6 +146,14 @@ class Item(object):
         return super(Item, self).__setattr__(name, value)
 
     def __delattr__(self, name):
+        """
+        This method is called whenever an attribute's value is removed.
+
+        It resolves whether the attribute is a Chandler attribute or a regular
+        python attribute and dispatches to the relevant methods.
+        @param name: the name of the attribute being cleared.
+        @type name: a string
+        """
 
         if self._values.has_key(name):
             self.removeAttributeValue(name, _attrDict=self._values)

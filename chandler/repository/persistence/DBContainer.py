@@ -57,6 +57,11 @@ class DBContainer(object):
 
         return self._db.cursor(txn=self.store.txn, flags=DB_DIRTY_READ)
 
+    def _logDL(self, n):
+
+        self.store.repository.logger.info('detected deadlock: %d', n)
+        
+
 
 class RefContainer(DBContainer):
 
@@ -75,7 +80,7 @@ class RefContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    print 'restarting loadRef aborted by deadlock'
+                    self._logDL(1)
                     continue
 
                 while value is not None and value[0].startswith(cursorKey):
@@ -104,7 +109,12 @@ class RefContainer(DBContainer):
                             return (key, uuid, previous, next, alias)
 
                     else:
-                        value = cursor.next()
+                        while True:
+                            try:
+                                value = cursor.next()
+                                break
+                            except DBLockDeadlockError:
+                                self._logDL(2)
 
                 return None
 
@@ -272,6 +282,13 @@ class HistContainer(DBContainer):
                     parentId = None
 
                 fn(UUID(uuid), version, docId, status, parentId)
-                value = cursor.next()
+
+                while True:
+                    try:
+                        value = cursor.next()
+                        break
+                    except DBLockDeadlockError:
+                        self._logDL(3)
+                        
         finally:
             cursor.close()

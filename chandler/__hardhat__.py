@@ -19,6 +19,7 @@ dependencies = (
                 'SOAPpy',
                 'pychecker',
                 '4suite',
+                'Chandler/repository'
                )
 
 def build(buildenv):
@@ -70,20 +71,6 @@ def build(buildenv):
                                     '/out', 'output.txt' ],
                                   'Building launcher ' + version,
                                   0, 'output.txt')
-
-
-    # Build UUID Extension and install it
-    os.chdir(os.path.join("repository","util","ext"))
-    if buildenv['version'] == 'release':
-        hardhatlib.executeCommand(buildenv, info['name'],
-         [buildenv['python'], 'setup.py', 'build', '--build-base=build_release', 'install'],
-         "Building and installing UUIDext release")
-    if buildenv['version'] == 'debug':
-        hardhatlib.executeCommand(buildenv, info['name'],
-         [buildenv['python_d'], 'setup.py', 'build', '--build-base=build_debug', '--debug', 'install', '--force'],
-         "Building and installing UUIDext debug")
-    os.chdir("../../..")
-
 
 
     os.chdir("distrib")
@@ -192,25 +179,6 @@ def clean(buildenv):
                                     '/out', 'output.txt' ],
                                   'Cleaning launcher ' + version,
                                   0, 'output.txt')
-
-
-    # Clean UUID Extension
-    os.chdir(os.path.join("repository","util","ext"))
-    if buildenv['version'] == 'release':
-        hardhatlib.executeCommand(buildenv, info['name'],
-         [buildenv['python'], 'setup.py', 'clean', 
-         '--build-base=build_release'],
-         "Cleaning UUIDext release")
-        if os.path.exists("build_release"):
-            hardhatlib.rmdir_recursive("build_release")
-    if buildenv['version'] == 'debug':
-        hardhatlib.executeCommand(buildenv, info['name'],
-         [buildenv['python_d'], 'setup.py', 'clean', 
-         '--build-base=build_debug'],
-         "Cleaning UUIDext debug")
-        if os.path.exists("build_debug"):
-            hardhatlib.rmdir_recursive("build_debug")
-    os.chdir("../../..")
 
 
 def run(buildenv):
