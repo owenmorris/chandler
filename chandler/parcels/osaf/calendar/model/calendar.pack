@@ -2,7 +2,7 @@
 
 <pack name="Calendar">
   <item path="//Schema">
-    <item files="CalendarSchema.xml"/>
+    <item file="CalendarSchema.xml"/>
   </item>
   <item file="CalendarRoot.xml"/>
   <item file="JunkRoot.xml"/>

@@ -29,7 +29,6 @@
 <item>
   <name>CalendarEvent</name>
   <kind type="path">//Schema/Model/Kind</kind>
-  <class module="model.schema.Kind">KindKind</class>
 
   <ref name="AttrDefs">
     <ref name="CalendarHeadline" type="path">//Schema/CalendarHeadline</ref>
