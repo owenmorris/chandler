@@ -132,11 +132,11 @@ public:
   // base class virtuals
   // -------------------
   virtual void Command(wxCommandEvent& event);
+  virtual int HitTest(const wxPoint& pt, long * flags) const;
 protected:
   virtual wxSize DoGetBestSize() const ;
   virtual wxNotebookPage *DoRemovePage(size_t page) ;
   virtual wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;// virtual
-  virtual int HitTest(const wxPoint& pt, long * flags) const;
 
   // common part of all ctors
   void Init();
