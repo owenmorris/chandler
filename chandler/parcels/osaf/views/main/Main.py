@@ -27,6 +27,7 @@ from osaf.framework.blocks.ControlBlocks import Timer
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 import application.dialogs.ReminderDialog as ReminderDialog
+import osaf.framework.utils.imports.icalendar as ical
 
 class MainView(View):
     """
@@ -316,6 +317,21 @@ class MainView(View):
             errorMessage = _('Check completed with errors')
             repository.logger.info(errorMessage)
             self.setStatusMessage(errorMessage)
+
+    def onImportIcalendarEvent(self, event):
+        # triggered from "Test | Import iCalendar" Menu
+        repository = Globals.repository
+        self.setStatusMessage ("Importing from " + ical.INFILE)
+        try:
+            if ical.importFile(ical.INFILE, repository):
+                self.setStatusMessage ("Import completed")
+            else:
+                repository.logger.info("Failed importFile")
+                self.setStatusMessage("Import failed")
+        except Exception, e:
+            repository.logger.info("Failed importFile, caught exception " + str(e))
+            self.setStatusMessage("Import failed")
+        
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item
