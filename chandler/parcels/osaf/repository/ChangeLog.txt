@@ -1,6 +1,12 @@
+2003-07-15 Jed Burgess <jed@osafoundation.org>
+   
+   * Changed Repository parcel to use wxTreeListCtrl
+
+
 2003-07-10 john@osafoundation.org
 
    * Moved from parcels directory to parcels/OSAF.
+
 
 2003-04-13 Katie Capps Parlante <capps@osafoundation.org>
 

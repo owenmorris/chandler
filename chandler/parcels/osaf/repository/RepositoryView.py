@@ -26,7 +26,7 @@ from application.repository.Thing import Thing
 from application.SplashScreen import SplashScreen
 from application.ViewerParcel import *
 
-from TwoColumnTreeCtrlPanel import TwoColumnTreeCtrlPanel
+from MultipleColumnTreeCtrl import MultipleColumnTreeCtrl
 
 class RepositoryView(ViewerParcel):
     def __init__(self):
@@ -41,7 +41,7 @@ class wxRepositoryView(wxViewerParcel):
         self.viewTable = false
         repository = Repository()
 
-        self.treeCtrl = TwoColumnTreeCtrlPanel(self)
+        self.treeCtrl = MultipleColumnTreeCtrl(self, 2, ['Key', 'Value'])
         
         self.container = wxBoxSizer(wxVERTICAL)
         
@@ -55,10 +55,10 @@ class wxRepositoryView(wxViewerParcel):
 
         root = self.treeCtrl.AddNewRoot(self.GetItemText(repository.thingList, 'Repository'))
         for item in repository.thingList:
-            itemId = self.treeCtrl.AddNewItem(root, str(item.__module__), item.GetURL())
+            itemId = self.treeCtrl.AddNewItem(root, str(item.__module__), [item.GetURL()])
             self.AddAttributes(itemId, item)
             
-        self.treeCtrl.treeCtrl.Expand(root)
+        self.treeCtrl.Expand(root)
         EVT_MENU(self, XRCID('ViewType'), self.OnToggleViewType)
         EVT_MENU(self, XRCID('AboutRepository'), self.OnAboutRepository)
         
@@ -66,7 +66,7 @@ class wxRepositoryView(wxViewerParcel):
         for key in item.keys():
             element = item[key]
             if isinstance(element, Thing):
-                newId = self.treeCtrl.AddNewItem(attrId, key, element.GetURL())
+                newId = self.treeCtrl.AddNewItem(attrId, key, [element.GetURL()])
                 # @@@ FIXME: Note: cycles are possible!
                 self.AddAttributes(newId, element)
             elif isinstance(element, types.ListType) or isinstance(element, PersistentList):
@@ -76,44 +76,44 @@ class wxRepositoryView(wxViewerParcel):
             elif isinstance(element, types.DictType) or isinstance(element, PersistentDict):
                 self.AddDictItem(element, attrId, key)
             else:
-                self.treeCtrl.AddNewItem(attrId, key, str(element))
+                self.treeCtrl.AddNewItem(attrId, key, [str(element)])
 
     def AddListItem(self, list, parent, key):
         value = self.GetItemText(list, 'List')
-        listId = self.treeCtrl.AddNewItem(parent, key, value)
+        listId = self.treeCtrl.AddNewItem(parent, key, [value])
 #        listId = self.treeCtrl.AddNewItem(parent, value, str(list))
         indexCounter = 0
         for element in list:
             # @@@ FIXME: Note: cycles are possible!
             if (isinstance(element, Thing)):
-                newId = self.treeCtrl.AddNewItem(listId, str(element.__module__), element.GetURL())
+                newId = self.treeCtrl.AddNewItem(listId, str(element.__module__), [element.GetURL()])
                 self.AddAttributes(newId, element)
             else:
-                self.treeCtrl.AddNewItem(listId, '[%d]' % (indexCounter), str(element))
+                self.treeCtrl.AddNewItem(listId, '[%d]' % (indexCounter), [str(element)])
             indexCounter += 1        
         
     def AddTupleItem(self, tuple, parent, key):
         value = self.GetItemText(tuple, 'Tuple')
-        tupleId = self.treeCtrl.AddNewItem(parent, key, value)
+        tupleId = self.treeCtrl.AddNewItem(parent, key, [value])
 #       tupleId = self.treeCtrl.AddNewItem(parent, value, str(tuple))
         indexCounter = 0
         for element in tuple:
-            self.treeCtrl.AddNewItem(tupleId, '[%d]' % (indexCounter), str(element))
+            self.treeCtrl.AddNewItem(tupleId, '[%d]' % (indexCounter), [str(element)])
             indexCounter += 1        
     
     def AddDictItem(self, dict, parent, key):
         value = self.GetItemText(dict, 'Dict')
-        dictId = self.treeCtrl.AddNewItem(parent, key, value)
+        dictId = self.treeCtrl.AddNewItem(parent, key, [value])
 #        dictId = self.treeCtrl.AddNewItem(parent, value, str(dict))
         for dictKey in dict.keys():
-            self.treeCtrl.AddNewItem(dictId, str(dictKey), str(dict[dictKey]))
+            self.treeCtrl.AddNewItem(dictId, str(dictKey), [str(dict[dictKey])])
 
     def AddObjectItem(self, object, parent, key):
         value = 'Object'
-        objectId = self.treeCtrl.AddNewItem(parent, key, value)
+        objectId = self.treeCtrl.AddNewItem(parent, key, [value])
 #        objectId = self.treeCtrl.AddNewItem(parent, value, str(object))
         for dictKey in object.__dict__.keys():
-            self.treeCtrl.AddNewItem(objectId, str(dictKey), str(object.__dict__[dictKey]))
+            self.treeCtrl.AddNewItem(objectId, str(dictKey), [str(object.__dict__[dictKey])])
 
     def GetItemText(self, item, itemTypeName):
         if len(item) == 1:
