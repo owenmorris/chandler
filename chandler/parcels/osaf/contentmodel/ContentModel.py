@@ -9,6 +9,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
 
+ContentItemParent = None
+ContentItemKind = None
+ProjectKind = None
+GroupKind = None
+
 class ContentModel(Parcel.Parcel):
     def __init__(self, name, parent, kind):
         Parcel.Parcel.__init__(self, name, parent, kind)
@@ -22,18 +27,35 @@ class ContentModel(Parcel.Parcel):
             userdata = repository.find('//userdata')
             if not userdata:
                 userdata = itemKind.newItem('userdata', repository)
-                itemKind.newItem('contentitems', userdata)
+            parent = itemKind.newItem('contentitems', userdata)
+
+        global ContentItemParent
+        ContentItemParent = parent
+        assert ContentItemParent
+
+        global ContentItemKind
+        ContentItemKind = repository.find('//parcels/OSAF/contentmodel/ContentItem')
+        assert ContentItemKind
+
+        global ProjectKind
+        ProjectKind = repository.find('//parcels/OSAF/contentmodel/Project')
+        assert ProjectKind
+
+        global GroupKind
+        GroupKind = repository.find('//parcels/OSAF/contentmodel/Group')
+        assert GroupKind
 
 class ContentItem(Item.Item):
-    def __init__(self, name, parent, kind):
+    def __init__(self, name=None, parent=ContentItemParent,
+                 kind=ContentItemKind):
         Item.Item.__init__(self, name, parent, kind)
 
 class Project(Item.Item):
-    def __init__(self, name, parent, kind):
+    def __init__(self, name=None, parent=ContentItemParent, kind=ProjectKind):
         Item.Item.__init__(self, name, parent, kind)
 
 class Group(ContentItem):
-    def __init__(self, name, parent, kind):
+    def __init__(self, name=None, parent=ContentItemParent, kind=GroupKind):
         Item.Item.__init__(self, name, parent, kind)
     
     
