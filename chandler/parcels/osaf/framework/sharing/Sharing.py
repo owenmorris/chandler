@@ -41,7 +41,7 @@ class Parcel(application.Parcel.Parcel):
          (url, collectionName, fromAddress))
         collection = collectionFromSharedUrl(url)
         if collection is not None:
-            # @@@ For 0.4 we will silently eat re-invites
+            # @@@MOR For 0.4 we will silently eat re-invites
             pass
             """
             application.dialogs.Util.ok( \
@@ -55,7 +55,7 @@ class Parcel(application.Parcel.Parcel):
              "%s\nhas invited you to subscribe to\n'%s'\n\n" \
              "Would you like to accept the invitation?" \
              % (fromAddress, collectionName) ):
-                wx.Yield() # @@@ Give the UI a chance to redraw before
+                wx.Yield() # @@@MOR Give the UI a chance to redraw before
                            # long operation
                 subscribeToWebDavCollection(url)
 
@@ -104,7 +104,7 @@ def subscribeToWebDavCollection(url):
 def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
         subscribe to.  """
-    # @@@ Obsolete, or for dev purposes only
+    # @@@MOR Obsolete, or for dev purposes only
 
     url = application.dialogs.Util.promptUser( \
      Globals.wxApplication.mainFrame, "Subscribe to Collection...",
@@ -120,7 +120,7 @@ def syncCollection(collection):
     if isShared(collection):
         print "Synchronizing", collection.sharedURL
 
-        wx.Yield() # @@@ Give the UI a chance to redraw before
+        wx.Yield() # @@@MOR Give the UI a chance to redraw before
                    # long operation
 
         try:
@@ -135,7 +135,7 @@ def syncCollection(collection):
 def putCollection(collection, url):
     """ Putting a collection on the webdav server for the first time. """
 
-    wx.Yield() # @@@ Give the UI a chance to redraw before
+    wx.Yield() # @@@MOR Give the UI a chance to redraw before
                # long operation
 
     try:
@@ -149,7 +149,7 @@ def putCollection(collection, url):
         raise
 
 def isShared(collection):
-    # @@@ Temporary hack until there is a better way to test for isShared
+    # @@@MOR Temporary hack until there is a better way to test for isShared
     return collection.hasAttributeValue('sharedURL') and (collection.sharedURL
      is not None)
 
@@ -258,6 +258,9 @@ class Share(ContentModel.ChandlerItem):
     def close(self):
         self.conduit.close()
 
+    def sync(self):
+        self.conduit.sync()
+
     def put(self):
         self.conduit.put()
 
@@ -285,36 +288,53 @@ class ShareConduit(ContentModel.ChandlerItem):
     def setShare(self, share):
         self.share = share
 
-    def __conditionalPutItem(self, item):
+    def sync(self):
+        items = self.get()
+        # @@@MOR For now, since server changes clobber local changes, don't
+        # bother putting an item we have just fetched
+        self.put(skipItems=items)
+
+    def __conditionalPutItem(self, item, skipItems=None):
         # assumes that self.resourceList has been populated
-        if not item.hasAttributeValue("externalUUID"):
-            item.externalUUID = str(chandlerdb.util.UUID.UUID())
-        externalItemExists = self.__externalItemExists(item)
-        itemVersion = item.getVersion()
-        prevVersion = self.__lookupVersion(item)
-        if itemVersion > prevVersion or not externalItemExists:
-            logger.info("...putting Item %s (%d vs %d) (on server: %s)" % \
-             (item.externalUUID, itemVersion, prevVersion, externalItemExists))
-            data = self._putItem(item)
-            self.__addToManifest(item, data, itemVersion)
-            logger.info("...done, data: %s, version: %d" %
-             (data, itemVersion))
-        else:
-            pass
-            # logger.info("Item is up to date")
+        skip = False
+        if skipItems and item in skipItems:
+            skip = True
+        if not skip:
+            if not item.hasAttributeValue("externalUUID"):
+                item.externalUUID = str(chandlerdb.util.UUID.UUID())
+            externalItemExists = self.__externalItemExists(item)
+            itemVersion = item.getVersion()
+            prevVersion = self.__lookupVersion(item)
+            if itemVersion > prevVersion or not externalItemExists:
+                logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
+                 (item.getItemDisplayName(), item.externalUUID, itemVersion,
+                 prevVersion, externalItemExists))
+                data = self._putItem(item)
+                self.__addToManifest(item, data, itemVersion)
+                logger.info("...done, data: %s, version: %d" %
+                 (data, itemVersion))
+            else:
+                pass
+                # logger.info("Item is up to date")
         try:
             del self.resourceList[self._getItemPath(item)]
         except:
             logger.info("...external item didn't previously exist")
 
-    def put(self):
+    def put(self, skipItems=None):
         """ Transfer entire 'contents', transformed, to server. """
 
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
+        # print "TOP OF PUT"
+        # self._dumpState()
+
         self.itsView.commit() # Make sure locally modified items have had
                               # their version numbers bumped up.
+
+        # print "AFTER FIRST PUT COMMIT"
+        # self._dumpState()
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -322,15 +342,25 @@ class ShareConduit(ContentModel.ChandlerItem):
             self.resourceList = self._getResourceList(location)
 
             for item in self.share.contents:
-                self.__conditionalPutItem(item)
+                self.__conditionalPutItem(item, skipItems)
 
-            self.__conditionalPutItem(self.share)
+            self.__conditionalPutItem(self.share, skipItems)
 
             for (itemPath, value) in self.resourceList.iteritems():
                 self._deleteItem(itemPath)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            pass # @@@
+            pass # @@@MOR
+
+        self.itsView.commit()
+
+        # print "BOTTOM OF PUT, before commit"
+        # self._dumpState()
+
+        self.itsView.commit()
+
+        # print "BOTTOM OF PUT, after commit"
+        # self._dumpState()
 
         logger.info("Finished PUT of %s" % (location))
 
@@ -338,7 +368,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         # assumes self.resourceList is populated
 
         if itemPath not in self.resourceList:
-            print "Hey, it's not there:", itemPath # @@@
+            print "Hey, it's not there:", itemPath # @@@MOR
             logger.info("...Not on server")
             return None
 
@@ -349,7 +379,8 @@ class ShareConduit(ContentModel.ChandlerItem):
             # set later on (by syncManifestVersions) because we won't
             # know the item version until *after* commit
             self.__addToManifest(item, data, -1)
-            logger.info("...imported item %s, data: %s" % (item, data))
+            logger.info("...imported '%s' %s, data: %s" % \
+             (item.getItemDisplayName(), item, data))
             return item
         else:
             pass
@@ -362,18 +393,28 @@ class ShareConduit(ContentModel.ChandlerItem):
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
+        retrievedItems = []
         self.resourceList = self._getResourceList(location)
+
+        # print "Top of GET"
+        # self._dumpState()
 
         self.__resetSeen()
         itemPath = self._getItemPath(self.share)
-        self.__conditionalGetItem(itemPath, into=self.share)
+        item = self.__conditionalGetItem(itemPath, into=self.share)
+        if item is not None:
+            retrievedItems.append(item)
         self.__setSeen(itemPath)
-        del self.resourceList[itemPath]
+        try:
+            del self.resourceList[itemPath]
+        except:
+            pass
 
         for itemPath in self.resourceList:
             item = self.__conditionalGetItem(itemPath)
             if item is not None:
                 self.share.contents.add(item)
+                retrievedItems.append(item)
             self.__setSeen(itemPath)
 
         # If an item was prevsiously on the server (it was in our manifest)
@@ -394,9 +435,16 @@ class ShareConduit(ContentModel.ChandlerItem):
         # Now that we've committed all fetched items, we need to update
         # the versions in the manifest
         self.__syncManifestVersions()
+        # self.itsView.commit()
+        # print "BEFORE COMMIT"
+        # self._dumpState()
         self.itsView.commit()
+        # print "BOTTOM OF GET"
+        # self._dumpState()
 
         logger.info("Finished GET of %s" % location)
+
+        return retrievedItems
 
     # Methods that subclasses *must* implement:
 
@@ -548,10 +596,10 @@ class FileSystemConduit(ShareConduit):
         super(FileSystemConduit, self).__init__(name, parent, kind,
          sharePath, shareName)
 
-        # @@@ What sort of processing should we do on sharePath for this
+        # @@@MOR What sort of processing should we do on sharePath for this
         # filesystem conduit?
 
-        # @@@ Probably should remove any slashes, or warn if there are any?
+        # @@@MOR Probably should remove any slashes, or warn if there are any?
         self.shareName = self.shareName.strip("/")
 
     def getLocation(self): # must implement
@@ -573,7 +621,7 @@ class FileSystemConduit(ShareConduit):
             return self.getLocation()
 
         else:
-            print "@@@ Raise an exception here"
+            print "@@@MOR Raise an exception here"
 
     def _putItem(self, item): # must implement
         path = self._getItemPath(item)
@@ -610,7 +658,7 @@ class FileSystemConduit(ShareConduit):
             fileList[location] = { 'data' : stat.st_mtime }
 
         else:
-            print "@@@ Raise an exception here"
+            print "@@@MOR Raise an exception here"
 
         return fileList
 
@@ -624,7 +672,7 @@ class FileSystemConduit(ShareConduit):
         elif style == ImportExportFormat.STYLE_SINGLE:
             return os.path.isfile(self.getLocation())
         else:
-            print "@@@ Raise an exception here"
+            print "@@@MOR Raise an exception here"
 
     def create(self):
         super(FileSystemConduit, self).create()
@@ -684,7 +732,7 @@ class WebDAVConduit(ShareConduit):
         # leading or trailing slashes)
         self.sharePath = self.sharePath.strip("/")
 
-        # @@@ Probably should remove any slashes, or warn if there are any?
+        # @@@MOR Probably should remove any slashes, or warn if there are any?
         self.shareName = self.shareName.strip("/")
 
         self.onItemLoad()
@@ -702,7 +750,7 @@ class WebDAVConduit(ShareConduit):
 
     def getLocation(self):  # must implement
         """ Return the url of the share """
-        # @@@ need to handle https
+        # @@@MOR need to handle https
         if self.port == 80:
             url = "http://%s" % self.host
         else:
@@ -728,7 +776,7 @@ class WebDAVConduit(ShareConduit):
             return "/%s/%s" % (self.sharePath, self.shareName)
 
         else:
-            print "Error" #@@@ Raise something
+            print "Error" #@@@MOR Raise something
 
     def __getItemURL(self, item):
         """ Return the full url of an item """
@@ -736,7 +784,7 @@ class WebDAVConduit(ShareConduit):
         return self.__URLFromPath(path)
 
     def __URLFromPath(self, path):
-        # @@@ need to handle https
+        # @@@MOR need to handle https
         if self.port == 80:
             url = "http://%s%s" % (self.host, path)
         else:
@@ -751,11 +799,11 @@ class WebDAVConduit(ShareConduit):
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
             resp = self.__getClient().mkcol(url)
-            # @@@ Raise an exception if already exists?
+            # @@@MOR Raise an exception if already exists?
             # print "response from mkcol:", resp.read()
 
     def destroy(self):
-        print " @@@ unimplemented"
+        print " @@@MOR unimplemented"
 
     def open(self):
         super(WebDAVConduit, self).open()
@@ -775,7 +823,18 @@ class WebDAVConduit(ShareConduit):
             etag = resp.getheader('ETag', None)
             if not etag:
                 print "HEAD didn't give me an etag"
-                raise SharingError() #@@@
+                raise SharingError() #@@@MOR
+            etag = self.__cleanEtag(etag)
+        return etag
+
+    def __cleanEtag(self, etag):
+        # Certain webdav servers use a weak etag for a few seconds after
+        # putting a resource, and then change it to a strong etag.  This
+        # tends to be confusing, because it appears that an item has changed
+        # on the server, when in fact we were the last ones to touch it.
+        # Let's ignore weak etags by stripping their leading W/
+        if etag.startswith("W/"):
+            return etag[2:]
         return etag
 
     def _deleteItem(self, itemPath): # must implement
@@ -789,6 +848,7 @@ class WebDAVConduit(ShareConduit):
         resp = self.__getClient().get(itemURL)
         text = resp.read()
         etag = resp.getheader('ETag', None)
+        etag = self.__cleanEtag(etag)
         item = self.share.format.importProcess(text, item=into)
         return (item, etag)
 
@@ -803,12 +863,14 @@ class WebDAVConduit(ShareConduit):
 
             resources = self.__getClient().ls(location + "/")
             for (path, etag) in resources:
+                etag = self.__cleanEtag(etag)
                 resourceList[path] = { 'data' : etag }
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             resp = self.__getClient().head(location)
             resp.read()
             etag = resp.getheader('ETag', None)
+            etag = self.__cleanEtag(etag)
             path = urlparse.urlparse(location)[2]
             resourceList[path] = { 'data' : etag }
 
@@ -816,23 +878,24 @@ class WebDAVConduit(ShareConduit):
 
 
     def _dumpState(self):
-        # print " - - - - - - - - - "
-        # resourceList = self._getResourceList(self.getLocation())
-        # print
-        # print "On server:"
-        # for (path, value) in resourceList.iteritems():
-        #     print path, value
-        # print
+        print " - - - - - - - - - "
+        resourceList = self._getResourceList(self.getLocation())
+        print
+        print "Remote:"
+        for (itemPath, value) in resourceList.iteritems():
+            print itemPath, value
+        print
         print "In manifest:"
         for (path, value) in self.manifest.iteritems():
             print path, value
         print
         print "In contents:"
-        try:
-            for item in self.share.contents:
-                print item.itsPath, item.externalUUID, item.getVersion(), item.getVersion(True)
-        except:
-            print "must be empty"
+        for item in self.share.contents:
+            try:
+                extUUID = item.externalUUID
+            except:
+                extUUID = "(no extUUID)"
+            print item.getItemDisplayName(), extUUID, item.getVersion(), item.getVersion(True)
         print " - - - - - - - - - "
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -909,12 +972,12 @@ class ICalendarFormat(ImportExportFormat):
 
         if not isinstance(item, ItemCollection.ItemCollection):
             print "Only a share or an item collection can be passed in"
-            #@@@ Raise something
+            #@@@MOR Raise something
 
         if not item.hasAttributeValue("externalUUID"):
             item.externalUUID = str(chandlerdb.util.UUID.UUID())
 
-        # @@@ Total hack
+        # @@@MOR Total hack
         newtext = []
         for c in text:
             if ord(c) > 127:
@@ -989,7 +1052,7 @@ class CloudXMLFormat(ImportExportFormat):
     # At the moment it is turned off because we have UUIDs in the XML and we
     # can simply look those up.
 
-    # @@@ At some point, the __nodeDescriptors information might be better off
+    # @@@MOR At some point, the __nodeDescriptors information might be better off
     # living inside the schema itself somewhere, rather than in this module.
 
     useFingerprintSearch = False
@@ -1015,6 +1078,14 @@ class CloudXMLFormat(ImportExportFormat):
                 'firstName',
                 'lastName'
             ),
+        },
+        'Note' : {
+            'kind' : '//parcels/osaf/contentmodel/Note',
+            'fingerprint' : (),
+        },
+        'Photo' : {
+            'kind' : '//parcels/osaf/framework/webserver/servlets/photos/Photo',
+            'fingerprint' : (),
         },
         'Share' : {
             'kind' : '//parcels/osaf/framework/sharing/Share',
@@ -1079,7 +1150,7 @@ class CloudXMLFormat(ImportExportFormat):
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
 
-                    # @@@ avoid endless recursion in the case where an item
+                    # @@@MOR avoid endless recursion in the case where an item
                     # has a reference to itself
                     if value is not item and value is not None:
                         result += self.exportProcess(value, depth+1)
@@ -1090,12 +1161,12 @@ class CloudXMLFormat(ImportExportFormat):
                             result += self.exportProcess(value, depth+1)
 
                 elif cardinality == 'dict':
-                    # @@@
+                    # @@@MOR
                     pass
 
                 result += indent * depth
 
-            else: # it's a literal (@@@ could be SingleRef though)
+            else: # it's a literal (@@@MOR could be SingleRef though)
 
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
@@ -1112,7 +1183,7 @@ class CloudXMLFormat(ImportExportFormat):
                     result += indent * depth
 
                 elif cardinality == 'dict':
-                    # @@@
+                    # @@@MOR
                     pass
 
             result += "</%s>\n" % attrName
@@ -1134,7 +1205,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     def __getNode(self, node, attribute):
 
-        # @@@ This method only supports traversal of single-cardinality
+        # @@@MOR This method only supports traversal of single-cardinality
         # attributes
 
         # attribute can be a dot-separated chain of attribute names
@@ -1150,7 +1221,8 @@ class CloudXMLFormat(ImportExportFormat):
                         # we're at the end of the chain
                         return child
                     else:
-                        # we need to recurse.  @@@ for now, not supporting list
+                        # we need to recurse. @@@MOR for now, not supporting
+                        # list
                         grandChild = child.children
                         while grandChild.type != "element":
                             # skip over non-elements

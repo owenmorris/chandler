@@ -46,6 +46,9 @@ class ShareToolDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnEditShare,
          id=wx.xrc.XRCID("BUTTON_EDIT"))
 
+        self.Bind(wx.EVT_BUTTON, self.OnItems,
+         id=wx.xrc.XRCID("BUTTON_ITEMS"))
+
         self.Bind(wx.EVT_BUTTON, self.OnSyncShare,
          id=wx.xrc.XRCID("BUTTON_SYNC"))
 
@@ -116,18 +119,18 @@ class ShareToolDialog(wx.Dialog):
              resources=self.resources, view=self.view)
         self._populateSharesList()
 
+    def OnItems(self, evt):
+        selection = self.sharesList.GetSelection()
+        if selection > -1:
+            share = self.shares[selection]
+            ShowCollectionEditorDialog(self.parent, collection=share.contents,
+             resources=self.resources, view=self.view)
+
     def OnSyncShare(self, evt):
         selection = self.sharesList.GetSelection()
         if selection > -1:
             share = self.shares[selection]
-            try:
-                share.get()  #@@@MOR
-            except:
-                raise #@@@MOR
-            try:
-                share.put()
-            except Exception, e:
-                raise #@@@MOR
+            share.sync()  #@@@MOR
 
     def OnPutShare(self, evt):
         selection = self.sharesList.GetSelection()
@@ -320,3 +323,63 @@ def ShowShareEditorDialog(parent, share=None, join=False, resources=None,
 
 
 
+class CollectionEditorDialog(wx.Dialog):
+
+    def __init__(self, parent, title, size=wx.DefaultSize,
+         pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
+         resources=None, view=None, collection=None):
+
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+
+        self.view = view
+        self.collection = collection
+        self.resources = resources
+
+        self.mySizer = wx.BoxSizer(wx.VERTICAL)
+        self.toolPanel = self.resources.LoadPanel(self, "CollectionEditor")
+        self.mySizer.Add(self.toolPanel, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+
+        self.SetSizer(self.mySizer)
+        self.mySizer.SetSizeHints(self)
+        self.mySizer.Fit(self)
+
+        self.textName = wx.xrc.XRCCTRL(self, "TEXT_COLLNAME")
+        self.listItems = wx.xrc.XRCCTRL(self, "LIST_ITEMS")
+
+        self.textName.SetValue(self.collection.getItemDisplayName())
+        self._populateList()
+
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+
+        self.Bind(wx.EVT_BUTTON, self.OnRemove,
+         id=wx.xrc.XRCID("BUTTON_REMOVE"))
+
+        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+
+    def _populateList(self):
+        self.items = []
+        self.listItems.Clear()
+        i = 0
+        for item in self.collection:
+            self.items.append(item)
+            self.listItems.Append(item.getItemDisplayName())
+            i += 1
+
+    def OnOk(self, evt):
+        self.EndModal(True)
+
+    def OnRemove(self, evt):
+        selection = self.listItems.GetSelection()
+        if selection > -1:
+            item = self.items[selection]
+            self.collection.remove(item)
+        self._populateList()
+
+
+def ShowCollectionEditorDialog(parent, collection=None, resources=None,
+ view=None):
+        win = CollectionEditorDialog(parent, "Collection Editor",
+         collection=collection, resources=resources, view=view)
+        win.CenterOnScreen()
+        win.ShowModal()
+        win.Destroy()

@@ -12,7 +12,6 @@
         <Attribute itsName="caption">
             <cardinality value="single"/>
             <type itemref="String"/>
-            <initialValue itemref="None"/>
         </Attribute>
         <Attribute itsName="about">
             <redirectTo value="caption" />
@@ -23,11 +22,23 @@
         <Attribute itsName="file">
             <cardinality value="single"/>
             <type itemref="String"/>
-            <initialValue itemref="None"/>
         </Attribute>
         <Attribute itsName="dateTaken">
             <type itemref="DateTime"/>
         </Attribute>
+
+        <Cloud itsName="SharingCloud">
+            <Endpoint itsName="caption">
+                <attribute value="caption"/>
+            </Endpoint>
+            <endpoints itemref="me:PhotoMixin/SharingCloud/caption"/>
+            <Endpoint itsName="dateTaken">
+                <attribute value="dateTaken"/>
+            </Endpoint>
+            <endpoints itemref="me:PhotoMixin/SharingCloud/dateTaken"/>
+        </Cloud>
+        <clouds alias="sharing" itemref="me:PhotoMixin/SharingCloud"/>
+
     </Kind>
 
     <Kind itsName="Photo">
@@ -35,6 +46,7 @@
         <superKinds itemref="me:PhotoMixin"/>
         <superKinds itemref="cm:Note"/>
     </Kind>
+
 
     <web:Resource itsName="photoResource">
         <displayName value="Photo Viewer"/>
