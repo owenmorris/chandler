@@ -375,13 +375,44 @@
   </Kind>
   
   <!--
-    Menu Entries are either MenuItems or Menus
+    Dynamic Containers are built dynamically when the Active View changes.
+    They include Menus, and Toolbars.
+    Used as a mixin class for other blocks.
   -->
-  <Kind itsName="MenuEntry">
-    <classes key="python">osaf.framework.blocks.MenuBlocks.MenuEntry</classes>
-    <superKinds itemref="docSchema:Block"/>
+  <Kind itemName="DynamicContainer">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.DynamicContainer</classes>
 
-    <Attribute itsName="title">
+    <Attribute itemName="dynamicChildren">
+      <type itemref="docSchema:Block"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="docSchema:DynamicChild/dynamicParent"/>
+      <required>False</required>
+    </Attribute>
+
+    <Attribute itemName="collectionDelegate">
+      <redirectTo>dynamicChildren</redirectTo>
+    </Attribute>
+
+    <attributes itemref="docSchema:DynamicContainer/collectionDelegate"/>
+    <attributes itemref="docSchema:DynamicContainer/dynamicChildren"/>
+  </Kind>
+  
+  <!--
+    Dynamic Children are built dynamically when the Active View changes.
+    They include MenuItems, Menus, and ToolbarItems.
+    Used as a mixin class for other blocks.
+  -->
+  <Kind itemName="DynamicChild">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.DynamicChild</classes>
+
+    <Attribute itemName="dynamicParent">
+      <type itemref="docSchema:Block"/>
+      <inverseAttribute itemref="docSchema:DynamicContainer/dynamicChildren"/>
+      <required>False</required>
+      <defaultValue itemref="None"/>
+    </Attribute>
+    
+    <Attribute itemName="title">
       <type itemref="String"/>
       <defaultValue type="String"></defaultValue>
     </Attribute>
@@ -392,12 +423,12 @@
       <values>Delete</values>
     </Enumeration>
     
-    <Attribute itsName="operation">
-      <type itemref="docSchema:MenuEntry/operationEnumType"/>
-      <defaultValue type="docSchema:MenuEntry/operationEnumType">InsertBefore</defaultValue>
+    <Attribute itemName="operation">
+      <type itemref="docSchema:DynamicChild/operationEnumType"/>
+      <defaultValue type="docSchema:DynamicChild/operationEnumType">InsertBefore</defaultValue>
     </Attribute>
     
-    <Attribute itsName="menuLocation">
+    <Attribute itemName="location">
       <type itemref="String"/>
       <defaultValue type="String"></defaultValue>
     </Attribute>
@@ -412,19 +443,21 @@
       <defaultValue type="String"></defaultValue>
     </Attribute>
     
-    <attributes itemref="docSchema:MenuEntry/title"/>
-    <attributes itemref="docSchema:MenuEntry/operation"/>
-    <attributes itemref="docSchema:MenuEntry/menuLocation"/>
-    <attributes itemref="docSchema:MenuEntry/itemLocation"/>
-    <attributes itemref="docSchema:MenuEntry/helpString"/>
+    <attributes itemref="docSchema:DynamicChild/dynamicParent"/>
+    <attributes itemref="docSchema:DynamicChild/title"/>
+    <attributes itemref="docSchema:DynamicChild/operation"/>
+    <attributes itemref="docSchema:DynamicChild/location"/>
+    <attributes itemref="docSchema:DynamicChild/itemLocation"/>
+    <attributes itemref="docSchema:DynamicChild/helpString"/>
   </Kind>
 
   <!--
     MenuItem
   -->
-  <Kind itsName="MenuItem">
-    <classes key="python">osaf.framework.blocks.MenuBlocks.MenuItem</classes>
-    <superKinds itemref="docSchema:MenuEntry"/>
+  <Kind itemName="MenuItem">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.MenuItem</classes>
+    <superKinds itemref="docSchema:Block"/>
+    <superKinds itemref="docSchema:DynamicChild"/>
 
     <Enumeration itsName="menuItemKindEnumType">
       <values>Normal</values>
@@ -451,11 +484,21 @@
   <!--
     Menu
   -->
-  <Kind itsName="Menu">
-    <classes key="python">osaf.framework.blocks.MenuBlocks.Menu</classes>
-    <superKinds itemref="docSchema:MenuEntry"/>
+  <Kind itemName="Menu">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.Menu</classes>
+    <superKinds itemref="docSchema:Block"/>
+    <superKinds itemref="docSchema:DynamicContainer"/>
+    <superKinds itemref="docSchema:DynamicChild"/>
   </Kind>
-
+  
+  <!--
+    MenuBar
+  -->
+  <Kind itemName="MenuBar">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.MenuBar</classes>
+    <superKinds itemref="docSchema:Block"/>
+    <superKinds itemref="docSchema:DynamicContainer"/>
+  </Kind>
   
   <!--
     Button
@@ -772,9 +815,10 @@
   <!--
     Toolbar
   -->
-  <Kind itsName="Toolbar">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.Toolbar</classes>
+  <Kind itemName="Toolbar">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.Toolbar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
+    <superKinds itemref="docSchema:DynamicContainer"/>
 
     <Attribute itsName="toolSize">
       <type itemref="docSchema:SizeType"/>
@@ -787,19 +831,12 @@
   <!--
     ToolbarItem
   -->
-  <Kind itsName="ToolbarItem">
-    <classes key="python">osaf.framework.blocks.ControlBlocks.ToolbarItem</classes>
+  <Kind itemName="ToolbarItem">
+    <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:Block"/>
+    <superKinds itemref="docSchema:DynamicChild"/>
 
-    <Attribute itsName="toolbarLocation">
-      <type itemref="docSchema:Block"/>
-    </Attribute>
-    
-    <Attribute itsName="title">
-      <type itemref="String"/>
-    </Attribute>
-    
-    <Attribute itsName="bitmap">
+    <Attribute itemName="bitmap">
       <type itemref="String"/>
     </Attribute>
     
@@ -814,27 +851,22 @@
       <values>Radio</values>
       <values>Text</values>
       <values>Combo</values>
+      <values>Choice</values>
     </Enumeration>
     
     <Attribute itsName="toolbarItemKind">
       <type itemref="docSchema:ToolbarItem/toolbarItemKindEnumType"/>
     </Attribute>
     
-    <Attribute itsName="statusMessage">
-      <type itemref="String"/>
-    </Attribute>
-    
-    <Attribute itsName="prototype">
+    <Attribute itemName="prototype">
       <description>The prototype block to be placed in the Toolbar</description>
       <type itemref="docSchema:Block"/>
     </Attribute>
     
-    <attributes itemref="docSchema:ToolbarItem/toolbarLocation"/>
-    <attributes itemref="docSchema:ToolbarItem/title"/>
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>
     <attributes itemref="docSchema:ToolbarItem/selectedBitmap"/>
     <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
-    <attributes itemref="docSchema:ToolbarItem/statusMessage"/>
+    <attributes itemref="docSchema:event"/>
   </Kind>
   
   <!-- Item Detail Block  -->

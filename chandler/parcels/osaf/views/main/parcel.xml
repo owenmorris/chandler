@@ -40,31 +40,61 @@
     <dispatchToBlock itemref="doc:StatusBar"/>
   </BlockEvent>
 
+  <BlockEvent itemName="GoBack">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>goBack</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="GoForward">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>goForward</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="RefreshView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>refreshView</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="GoToURL">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>gotoURL</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
   <!--
     Menus
-  -->
-  <Menu itsName="FileMenu">
+  -->  
+  <Menu itemName="FileMenu">
     <title>File</title>
+    <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="EditMenu">
     <title>Edit</title>
+    <location>MenuBar</location>
   </Menu>
     
   <Menu itsName="ViewMenu">
     <title>View</title>
+    <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="TestMenu">
     <title>Test</title>
   </Menu>
+  
+  <!-- the Menu Bar -->
+  <MenuBar itemName="MenuBar"/>
 
   <!--
     Menu Items
   -->
   <MenuItem itsName="NewTabItem">
     <title>New Tab</title>
-    <menuLocation>FileMenu</menuLocation>
+    <location>FileMenu</location>
     <accel>N</accel>
     <helpString>Open a new blank tab</helpString>
     <event itemref="events:New"/>
@@ -72,20 +102,20 @@
   
   <MenuItem itsName="CloseTabItem">
     <title>Close Tab</title>
-    <menuLocation>FileMenu</menuLocation>
+    <location>FileMenu</location>
     <accel>W</accel>
     <helpString>Close the current tab</helpString>
     <event itemref="events:Close"/>
   </MenuItem>
   
-  <MenuItem itsName="FileSeparator1">
-    <menuLocation>FileMenu</menuLocation>
+  <MenuItem itemName="FileSeparator1">
+    <location>FileMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
     <title>Quit</title>
-    <menuLocation>FileMenu</menuLocation>
+    <location>FileMenu</location>
     <accel>Q</accel>
     <helpString>Quit Chandler</helpString>
     <event itemref="events:Quit"/>
@@ -93,128 +123,128 @@
   
   <MenuItem itsName="UndoItem">
     <title>Undo</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <accel>Z</accel>
     <event itemref="events:Undo"/>
   </MenuItem>
 
   <MenuItem itsName="RedoItem">
     <title>Redo</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <accel>Y</accel>
     <event itemref="events:Redo"/>
   </MenuItem>
 
-  <MenuItem itsName="EditSeparator1">
-    <menuLocation>EditMenu</menuLocation>
+  <MenuItem itemName="EditSeparator1">
+    <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="CutItem">
     <title>Cut</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <accel>X</accel>
     <event itemref="events:Cut"/>
   </MenuItem>
 
   <MenuItem itsName="CopyItem">
     <title>Copy</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <accel>C</accel>
     <event itemref="events:Copy"/>
   </MenuItem>
 
   <MenuItem itsName="PasteItem">
     <title>Paste</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <accel>V</accel>
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itsName="EditSeparator2">
-    <menuLocation>EditMenu</menuLocation>
+  <MenuItem itemName="EditSeparator2">
+    <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="PreferencesItem">
     <title>Preferences</title>
-    <menuLocation>EditMenu</menuLocation>
+    <location>EditMenu</location>
     <event itemref="events:Preferences"/>
   </MenuItem>
 
   <MenuItem itsName="ViewSideBarItem">
     <title>View Sidebar</title>
-    <menuLocation>ViewMenu</menuLocation>
+    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideSidebar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewNavigationBarItem">
     <title>View Navigation Bar</title>
-    <menuLocation>ViewMenu</menuLocation>
+    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="events:ViewNavigationBar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewBookmarksBarItem">
     <title>View Bookmarks Bar</title>
-    <menuLocation>ViewMenu</menuLocation>
+    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideBookmarksBar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewStatusBarItem">
     <title>View Status Bar</title>
-    <menuLocation>ViewMenu</menuLocation>
+    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideStatusBar"/>
   </MenuItem>
 
   <MenuItem itsName="GenerateAllItem">
     <title>Generate Content Items</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:GenerateContentItems"/>
     <helpString>generates sample items: 5 contacts, 5 notes, 5 events</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateContactItem">
     <title>Generate Contacts</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:GenerateContacts"/>
     <helpString>generates 10 sample contacts</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateCalendarItem">
     <title>Generate Calendar Event Items</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:GenerateCalendarEventItems"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateNoteItem">
     <title>Generate Notes</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
 
   <MenuItem itsName="ImportContactItem">
     <title>Import Contacts from Outlook CSV</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:ImportContacts"/>
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
   <MenuItem itsName="CheckRepositoryItem">
     <title>Check Repository</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShowPyCrustItem">
     <title>Show PyCrust Debugger</title>
-    <menuLocation>TestMenu</menuLocation>
+    <location>TestMenu</location>
     <event itemref="events:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
@@ -222,9 +252,21 @@
   <!--
     Toolbars
   -->
-  <NavigationBar itsName="NavigationBar">
+  <NavigationBar itemName="NavigationBar">
+    <!-- Dynamic Children -->
+    <dynamicChildren itemref="doc:BackButton"/>
+    <dynamicChildren itemref="doc:ForwardButton"/>
+    <dynamicChildren itemref="doc:Spacer"/>
+    <dynamicChildren itemref="doc:URLBox"/>
+    <dynamicChildren itemref="doc:RefreshButton"/>
+    
     <!-- Attributes -->
     <toolSize>13,13</toolSize>
+    <subscribeWhenVisibleEvents itemref="doc:GoBack"/>
+    <subscribeWhenVisibleEvents itemref="doc:GoForward"/>
+    <subscribeWhenVisibleEvents itemref="doc:RefreshView"/>
+    <subscribeWhenVisibleEvents itemref="doc:GoToURL"/>
+    <stretchFactor>0</stretchFactor>
   </NavigationBar>
 
   <!--
@@ -232,46 +274,50 @@
   -->
   <ToolbarItem itsName="BackButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:NavigationBar"/>
+    <location>NavigationBar</location>
     <title>Back</title>
     <bitmap>application/images/back.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Go to the previous view</statusMessage>
+    <helpString>Go to the previous view</helpString>
+    <event itemref="doc:GoBack"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:NavigationBar"/>
+    <location>NavigationBar</location>
     <title>Forward</title>
     <bitmap>application/images/forward.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Go to the next view</statusMessage>
+    <helpString>Go to the next view</helpString>
+    <event itemref="doc:GoForward"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="RefreshButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:NavigationBar"/>
+    <location>NavigationBar</location>
     <title>Forward</title>
     <bitmap>application/images/refresh.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Refresh the current view</statusMessage>
+    <helpString>Refresh the current view</helpString>
+    <event itemref="doc:RefreshView"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:NavigationBar"/>
+    <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="URLBox">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:NavigationBar"/>
+    <location>NavigationBar</location>
     <title>URLBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
-    <statusMessage></statusMessage>
+    <helpString></helpString>
+    <event itemref="doc:GoToURL"/>
   </ToolbarItem>
 
   <!--
@@ -437,8 +483,16 @@
   
   <BoxContainer itsName="MainBoxContainer">
     <!-- Layout children -->
+    <childrenBlocks itemref="doc:NavigationBar"/>
     <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
+    
+    <!-- NavigationBar ToolbarItems -->
+    <childrenBlocks itemref="doc:BackButton"/>
+    <childrenBlocks itemref="doc:ForwardButton"/>
+    <childrenBlocks itemref="doc:Spacer"/>
+    <childrenBlocks itemref="doc:URLBox"/>
+    <childrenBlocks itemref="doc:RefreshButton"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -449,6 +503,7 @@
         itemClass="osaf.views.main.Main.MainView">
 
     <!-- Menus -->
+    <childrenBlocks itemref="doc:MenuBar"/>
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:NewTabItem"/>
     <childrenBlocks itemref="doc:CloseTabItem"/>
@@ -476,14 +531,6 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
-    
-    <!-- Toolbar -->
-    <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:BackButton"/>
-    <childrenBlocks itemref="doc:ForwardButton"/>
-    <childrenBlocks itemref="doc:RefreshButton"/>
-    <childrenBlocks itemref="doc:Spacer"/>
-    <childrenBlocks itemref="doc:URLBox"/>
     
     <!-- StatusBar -->
     <childrenBlocks itemref="doc:StatusBar"/>

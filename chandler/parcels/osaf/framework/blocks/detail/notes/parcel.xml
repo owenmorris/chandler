@@ -17,12 +17,23 @@
   <core:version>0.3</core:version>
 
   <!--
+    Events
+  -->
+  
+  <BlockEvent itemName="DummyEvent">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onToolPressStub</methodName>
+    <dispatchToBlock itemref="doc:MarkupBar1"/>
+  </BlockEvent>
+
+  <!--
     Layout blocks
   -->
   
   <!-- Root -->
-  <ContentItemDetail itsName="DetailRoot">
-    <childrenBlocks itemref="doc:MarkupBar"/>
+  <ContentItemDetail itemName="DetailRoot">
+    <!-- child blocks -->
+    <childrenBlocks itemref="doc:MarkupBar1"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:StampedEmailArea"/>
@@ -30,14 +41,7 @@
     <childrenBlocks itemref="doc:MessagesArea"/>
     <childrenBlocks itemref="doc:SharingBar"/>
     <childrenBlocks itemref="doc:LabelingArea"/>
-     <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <size>80,20</size>
-    <minimumSize>80,40</minimumSize>
-  </ContentItemDetail>
-
-  <!-- MarkupBar -->
-  <detail:MarkupBar itsName="MarkupBar">
+    <!-- ToolbarItems -->
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
     <childrenBlocks itemref="doc:SharingButton"/>
@@ -54,9 +58,35 @@
     <childrenBlocks itemref="doc:QueuedFlag"/>
     <childrenBlocks itemref="doc:Spacer3"/>
     <childrenBlocks itemref="doc:PrivateButton"/>
+     <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <size>80,20</size>
+    <minimumSize>80,40</minimumSize>
+  </ContentItemDetail>
+
+  <!-- MarkupBar -->
+  <detail:MarkupBar itemName="MarkupBar1">
+    <!-- Dynamic Children -->
+    <dynamicChildren itemref="doc:TriageButton"/>
+    <dynamicChildren itemref="doc:Triage"/>
+    <dynamicChildren itemref="doc:SharingButton"/>
+    <dynamicChildren itemref="doc:TaskButton"/>
+    <dynamicChildren itemref="doc:CalendarButton"/>
+    <dynamicChildren itemref="doc:Spacer1"/>
+    <dynamicChildren itemref="doc:NeedsReplyButton"/>
+    <dynamicChildren itemref="doc:Spacer2"/>
+    <dynamicChildren itemref="doc:OutboxFlag"/>
+    <dynamicChildren itemref="doc:RepliedFlag"/>
+    <dynamicChildren itemref="doc:ForwardedFlag"/>
+    <dynamicChildren itemref="doc:RedirectedFlag"/>
+    <dynamicChildren itemref="doc:DraftFlag"/>
+    <dynamicChildren itemref="doc:QueuedFlag"/>
+    <dynamicChildren itemref="doc:Spacer3"/>
+    <dynamicChildren itemref="doc:PrivateButton"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
+    <subscribeWhenVisibleEvents itemref="doc:DummyEvent"/>
   </detail:MarkupBar>
 
   <!--
@@ -64,24 +94,29 @@
   -->
   <ToolbarItem itsName="TriageButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
     <bitmap>application/images/triage.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Decide when to do...</statusMessage>
+    <helpString>Decide when to do...</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Triage">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
     <toolbarItemKind>Combo</toolbarItemKind>
-    <statusMessage>Mark Item to be done now or later, etc</statusMessage>
+    <helpString>Mark Item to be done now or later, etc</helpString>
     <prototype itemref="doc:TriageCombo"/>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
   
-  <ComboBox itsName="TriageCombo">
+  <!-- prototype for the above ToolbarItem -->
+  <ComboBox itemName="TriageCombo">
     <selection>Processing</selection>
     <choices>Processing</choices>
     <choices>Defered until</choices>
@@ -90,121 +125,146 @@
   
   <ToolbarItem itsName="SharingButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Sharing</title>
     <bitmap>application/images/sharing.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Enable sharing</statusMessage>
+    <helpString>Enable sharing</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="TaskButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Task</title>
     <bitmap>application/images/task.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Make into a Task</statusMessage>
+    <helpString>Make into a Task</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="CalendarButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Calendar</title>
     <bitmap>application/images/calendar.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Put onto the Calendar</statusMessage>
+    <helpString>Put onto the Calendar</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer1">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="NeedsReplyButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Needs reply</title>
     <bitmap>application/images/reply.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Needs a reply</statusMessage>
+    <helpString>Needs a reply</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
     <title>4</title>
   </ToolbarItem>
 
   <ToolbarItem itsName="OutboxFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Outbox</title>
     <bitmap>application/images/outbox.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>In the Out box</statusMessage>
+    <helpString>In the Out box</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="RepliedFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Replied</title>
     <bitmap>application/images/replied.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>A reply has been sent</statusMessage>
+    <helpString>A reply has been sent</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardedFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Forwarded</title>
     <bitmap>application/images/forwarded.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Has been forwarded</statusMessage>
+    <helpString>Has been forwarded</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="RedirectedFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Redirected</title>
     <bitmap>application/images/redirected.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Message has been redirected</statusMessage>
+    <helpString>Message has been redirected</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DraftFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Draft</title>
     <bitmap>application/images/draft.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Message saved as a draft</statusMessage>
+    <helpString>Message saved as a draft</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="QueuedFlag">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Queued</title>
     <bitmap>application/images/queued.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Message has been queued</statusMessage>
+    <helpString>Message has been queued</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
     <title>4</title>
   </ToolbarItem>
 
   <ToolbarItem itsName="PrivateButton">
     <!-- Attributes -->
-    <toolbarLocation itemref="doc:MarkupBar"/>
+    <location>MarkupBar1</location>
+    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Private</title>
     <bitmap>application/images/private.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <statusMessage>Make item Private</statusMessage>
+    <helpString>Make item Private</helpString>
+    <event itemref="doc:DummyEvent"/>
   </ToolbarItem>
 
   <!-- FromAndToArea -->

@@ -19,9 +19,6 @@
   -->
   <Menu itsName="RepositoryMenu">
     <title>Repository Viewer</title>
-    <operation>InsertBefore</operation>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
     <helpString></helpString>
   </Menu>
 
@@ -30,13 +27,20 @@
   -->
   <MenuItem itsName="BlankItem">
     <title>Do Something...</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>RepositoryMenu</menuLocation>
-    <itemLocation></itemLocation>
+    <location>RepositoryMenu</location>
     <menuItemKind>Normal</menuItemKind>
-    <accel></accel>
     <helpString>Not yet implemented</helpString>
+    <event itemref="doc:dummyEvent"/>
   </MenuItem>
+
+  <!-- 
+    Events
+   -->
+
+  <BlockEvent itsName="dummyEvent">
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+    <methodName>OndummyEvent</methodName>
+  </BlockEvent>
 
   <!--
     Layout blocks
@@ -69,7 +73,14 @@
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
-  <SplitterWindow itsName="RepositoryBox">
+  <BoxContainer itsName="RepositoryBox">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:RepositorySplit"/>
+    <childrenBlocks itemref="doc:BlankItem"/>
+    <childrenBlocks itemref="doc:RepositoryMenu"/>
+  </BoxContainer>
+  
+  <SplitterWindow itsName="RepositorySplit">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>

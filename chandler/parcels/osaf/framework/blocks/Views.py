@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from ContainerBlocks import BoxContainer
-from MenuBlocks import MenuEntry
 from osaf.framework.notifications.Notification import Notification
 import wx
 
@@ -105,18 +104,19 @@ class View(BoxContainer):
     def onSetActiveView (self, block):
         """
           Cruise up the parent hierarchy looking for the parent of the first
-        menu or menuItem. If it's not the same as the last time the focus
-        changed then we need to rebuild the menus.
+        DynamicChild (Menu, MenuBar, ToolbarItem, etc). 
+        If it's not the same as the last time the focus changed then we need 
+        to rebuild the Dynamic Containers.
         """
-        from osaf.framework.blocks.MenuBlocks import Menu, MenuItem
-
+        import DynamicContainerBlocks as DynamicContainerBlocks
         Globals.activeView = block
         while (block):
             for child in block.childrenBlocks:
-                if isinstance (child, Menu) or isinstance (child, MenuItem):
-                    if block != Globals.wxApplication.menuParent:
-                        Globals.wxApplication.menuParent = block
-                        Menu.rebuildMenus(block)
-                    return
+                if isinstance (child, DynamicContainerBlocks.DynamicChild):
+                    if block != Globals.mainView.lastDynamicParent:
+                        Globals.mainView.lastDynamicParent = block
+                        DynamicContainerBlocks.DynamicContainer.\
+                                              rebuildDynamicContainers(block, child)
+                        return
             block = block.parentBlock
-
+            

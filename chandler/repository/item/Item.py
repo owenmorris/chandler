@@ -44,8 +44,6 @@ class Item(object):
         only the Chandler attributes are saved.
         @type kind: an item
         """
-        super(Item, self).__init__()
-
         self._status = Item.NEW
         self._version = 0L
         self._lastAccess = 0L
@@ -59,6 +57,9 @@ class Item(object):
         self._root = None
 
         self._setParent(parent)
+
+        # at this point, we may go reentrant
+        super(Item, self).__init__()
 
         if kind is not None:
             kind.getInitialValues(self, self._values, self._references)

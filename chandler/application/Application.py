@@ -290,7 +290,7 @@ class wxApplication (wx.App):
                                        size=(mainView.size.width, mainView.size.height),
                                        style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
-            self.menuParent = None
+            mainView.lastDynamicParent = None
 
             GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """

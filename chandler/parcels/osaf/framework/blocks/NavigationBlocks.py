@@ -8,6 +8,7 @@ from Block import *
 from ContainerBlocks import *
 from ControlBlocks import *
 from Node import *
+import DynamicContainerBlocks as DynamicContainerBlocks
 import wx
 
 
@@ -62,29 +63,26 @@ class BookmarksBar(RectangularChild):
                    {'item':item})
         
 
-class NavigationBar(ContainerChild):
+class NavigationBar(DynamicContainerBlocks.Toolbar):
     """
       Under construction
+      DLDTBD - rework this class.  Use OnInit instead of instantiateWidget?
     """
     def instantiateWidget(self):
+        navigationBar = super(NavigationBar, self).instantiateWidget()
+        
         self.history = []
         self.future = []
-
-        navigationBar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
-        navigationBar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
-        self.showOrHideNavigationBar()
         return navigationBar
-    
-    def toolPressed(self, event):
-        tool = Block.widgetIDToBlock(event.GetId())
-        if tool.itsName == 'BackButton':
-            self.GoBack()
-        elif tool.itsName == 'ForwardButton':
-            self.GoForward()
 
-    def toolEnterPressed(self, event):
-        tool = Globals.wxApplication.mainFrame.FindWindowById(event.GetId())
-        url = tool.GetValue()
+    # DLDTBD  remove this method, use onInit instead of instantiateWidget.
+    def synchronizeWidget(self):
+        super(NavigationBar, self).synchronizeWidget()
+        self.showOrHideNavigationBar()
+        
+    def gotoURL(self, event):
+        urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
+        url = urlBox.widget.GetValue()
         try:
             item = Node.GetItemFromPath(url, '//parcels/osaf/views/main/URLRoot')
         except BadURL:
@@ -102,7 +100,7 @@ class NavigationBar(ContainerChild):
         
     def showOrHideNavigationBar(self):
         frame = Globals.wxApplication.mainFrame
-        navigationBar = frame.GetToolBar()
+        navigationBar = self.widget
         if navigationBar.IsShown() != self.isShown:
             navigationBar.Show(self.isShown)
             frame.Layout()
@@ -110,7 +108,7 @@ class NavigationBar(ContainerChild):
     def onViewNavigationBarEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
-    def GoBack(self):
+    def goBack(self, event):
         if len(self.history) > 1:
             currentLocation = self.history.pop()
             self.future.append(currentLocation)
@@ -122,7 +120,7 @@ class NavigationBar(ContainerChild):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
-    def GoForward(self):
+    def goForward(self, event):
         if len(self.future) > 0:
             newLocation = self.future.pop()
             self.history.append(newLocation)
@@ -134,6 +132,10 @@ class NavigationBar(ContainerChild):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
+    def refreshView(self, event):
+        # Handler for Refresh View tool bar button
+        pass
+    
     def onSelectionChangedEvent (self, notification):
         item = notification.data['item']
         try:
@@ -144,5 +146,6 @@ class NavigationBar(ContainerChild):
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
         urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
-        urlBox.widget.SetValue(path)
+        # DLDTBD - clean up all this NaviationBar code
+        # urlBox.widget.SetValue(path)
         

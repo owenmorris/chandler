@@ -72,9 +72,6 @@
   -->
   <Menu itsName="DemoMenu">
     <title>Block Demo</title>
-    <operation>InsertBefore</operation>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
     <helpString></helpString>
   </Menu>
 
@@ -83,44 +80,32 @@
   -->
   <MenuItem itsName="IntroMenuItem">
     <title>Intro Tab</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
+    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
-    <accel></accel>
     <event itemref="doc:ChooseIntroTab"/>
     <helpString></helpString>
   </MenuItem>
 
   <MenuItem itsName="ButtonsMenuItem">
     <title>Buttons Tab</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
+    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
-    <accel></accel>
     <event itemref="doc:ChooseButtonsTab"/>
     <helpString></helpString>
   </MenuItem>
 
   <MenuItem itsName="ControlsMenuItem">
     <title>Controls Tab</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
+    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
-    <accel></accel>
     <event itemref="doc:ChooseControlsTab"/>
     <helpString></helpString>
   </MenuItem>
 
   <MenuItem itsName="HTMLMenuItem">
     <title>HTML Tab</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
+    <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
-    <accel></accel>
     <event itemref="doc:ChooseHTMLTab"/>
     <helpString></helpString>
   </MenuItem>

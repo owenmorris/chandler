@@ -6,8 +6,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
+import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import wx
 
@@ -148,17 +148,14 @@ class FromEditField(EditTextAttribute):
     def loadAttributeIntoWidget(self, item, widget):
         pass
 
-class MarkupBar(ContainerBlocks.Toolbar):
+class MarkupBar(DynamicContainerBlocks.Toolbar):
     """   Markup Toolbar, for quick control over Items
     """
-    def toolPressed(self, event):
-        tool = Block.Block.widgetIDToBlock(event.GetId())
+    def onToolPressStub(self, notification):
+        tool = notification.data['sender']
         if tool.itsName == 'SharingButton':
             #self.parentBlock.Notify("EnableSharing")
             pass
     
-    def toolEnterPressed(self, event):
-        pass
-                
 
     
