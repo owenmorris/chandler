@@ -314,8 +314,7 @@ class Manager(Item):
             self._repo2ns[pDesc["path"]] = parcel.namespace
 
         handler = MappingHandler()
-        # parser = xml.sax.make_parser(["drv_libxml2"])
-        parser = xml.sax.make_parser()
+        parser = xml.sax.make_parser(["drv_libxml2"])
         parser.setFeature(xml.sax.handler.feature_namespaces, True)
         parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
         parser.setContentHandler(handler)
@@ -500,8 +499,7 @@ class Manager(Item):
         handler.depCallback = self.__loadParcel
 
         # prepare the parser
-        # parser = xml.sax.make_parser(["drv_libxml2"])
-        parser = xml.sax.make_parser()
+        parser = xml.sax.make_parser(["drv_libxml2"])
         parser.setFeature(xml.sax.handler.feature_namespaces, True)
         parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
         parser.setContentHandler(handler)
