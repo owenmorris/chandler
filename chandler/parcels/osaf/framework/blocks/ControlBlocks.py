@@ -538,6 +538,10 @@ class wxTreeAndList:
                                    -1,
                                    -1,
                                    wx.TreeItemData (root.itsUUID))        
+        index = 1
+        for value in cellValues:
+            self.SetItemText (rootNodeId, value, index)
+            index += 1
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
         self.LoadChildren(rootNodeId)
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())

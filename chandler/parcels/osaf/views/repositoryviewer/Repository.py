@@ -14,10 +14,7 @@ class RepositoryDelegate:
     """
     
     def ElementParent(self, element):
-        try:
-            return element.itsParent
-        except AttributeError:
-            return None
+        return element.itsParent
 
     def ElementChildren(self, element):
         if element:
@@ -26,16 +23,16 @@ class RepositoryDelegate:
             return Globals.repository.view
 
     def ElementCellValues(self, element):
-        cellValues = []
-        if element == Globals.repository.view:
-            cellValues.append ("//")
-        else:
-            cellValues.append (element.itsName)
-            cellValues.append (str (element.getItemDisplayName()))
+        cellValues = [element.itsName]
+        if True or element != Globals.repository.view:
+            try:
+                cellValues.append (str (element.getItemDisplayName()))
+            except AttributeError:
+                cellValues.append ('')
             try:
                 cellValues.append (element.itsKind.itsName)
             except AttributeError:
-                cellValues.append ('(kindless)')
+                cellValues.append ('')
             cellValues.append (str (element.itsUUID))
             cellValues.append (str (element.itsPath))
         return cellValues
