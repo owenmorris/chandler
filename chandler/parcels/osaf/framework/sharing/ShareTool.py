@@ -209,12 +209,18 @@ class ShareEditorDialog(wx.Dialog):
         self.mySizer.Fit(self)
 
         self.textTitle = wx.xrc.XRCCTRL(self, "TEXT_TITLE")
+        wx.EVT_SET_FOCUS(self.textTitle, self.OnFocusGained)
         self.choiceColl = wx.xrc.XRCCTRL(self, "CHOICE_COLL")
         self.textServer = wx.xrc.XRCCTRL(self, "TEXT_SERVER")
+        wx.EVT_SET_FOCUS(self.textServer, self.OnFocusGained)
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
+        wx.EVT_SET_FOCUS(self.textUsername, self.OnFocusGained)
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
+        wx.EVT_SET_FOCUS(self.textPassword, self.OnFocusGained)
         self.textSharePath = wx.xrc.XRCCTRL(self, "TEXT_SHAREPATH")
+        wx.EVT_SET_FOCUS(self.textSharePath, self.OnFocusGained)
         self.textShareName = wx.xrc.XRCCTRL(self, "TEXT_SHARENAME")
+        wx.EVT_SET_FOCUS(self.textShareName, self.OnFocusGained)
 
         if join:
             self.choiceColl.Disable()
@@ -260,6 +266,12 @@ class ShareEditorDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+        self.textTitle.SetFocus()
+
+    def OnFocusGained(self, evt):
+        """ Select entire text field contents when focus is gained. """
+        control = evt.GetEventObject()
+        wx.CallAfter(control.SetSelection, -1, -1)
 
 
     def OnOk(self, evt):
@@ -282,7 +294,10 @@ class ShareEditorDialog(wx.Dialog):
              username=username,
              password=password
             )
-            format = Sharing.CloudXMLFormat()
+            if shareName.endswith('.ics'):
+                format = Sharing.ICalendarFormat()
+            else:
+                format = Sharing.CloudXMLFormat()
             if self.join:
                 self.share = Sharing.Share(conduit=conduit, format=format)
             else:
