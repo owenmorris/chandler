@@ -7,14 +7,17 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.Item import Item
+import repository.item.Item as Item
 import mx.DateTime as DateTime
 
-class CalendarEvent(Item):
+class CalendarEvent(Item.Item):
 
     def __init__(self, name, parent, kind):
-        #super(CalendarEvent, self).__init__(name, parent, kind)
-        Item.__init__(self, name, parent, kind)
+        if not parent:
+            parent = ContentModel.ContentItemParent
+        if not kind:
+            kind = CalendarEventKind
+        Item.Item.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
 

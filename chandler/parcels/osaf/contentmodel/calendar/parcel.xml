@@ -7,6 +7,7 @@
 
 <Parcel describes="//parcels/OSAF/contentmodel/calendar"
         itemName="calendar"
+        itemClass="OSAF.contentmodel.calendar.Calendar.CalendarParcel"
         xmlns="//Schema/Core"
         xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:cal="//parcels/OSAF/contentmodel/calendar">
@@ -119,6 +120,7 @@
 
   <Kind itemName="CalendarEvent">
     <displayName>Calendar Event</displayName>
+    <superKinds itemref="content:ContentItem"/>
     <attributes itemref="cal:headline"/>
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:endTime"/>
@@ -132,7 +134,7 @@
     <attributes itemref="cal:transparency"/>
     <attributes itemref="cal:priority"/>
     <displayAttribute itemref="cal:headline"/>
-    <classes key="python">OSAF.contentmodel.calendar.CalendarEvent.CalendarEvent</classes>
+    <classes key="python">OSAF.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
   </Kind>
 
@@ -142,7 +144,7 @@
     <attributes itemref="content:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
     <displayAttribute itemref="content:name"/>
-    <classes key="python">OSAF.contentmodel.calendar.Location.Location</classes>
+    <classes key="python">OSAF.contentmodel.calendar.Calendar.Location</classes>
   </Kind>
 
   <Kind itemName="Calendar">
@@ -154,10 +156,12 @@
 
   <Kind itemName="RecurrencePattern">
     <displayName>Recurrence Pattern</displayName>
+    <classes key="python">OSAF.contentmodel.calendar.Calendar.RecurrencePattern</classes>
   </Kind>
 
   <Kind itemName="Reminder">
     <displayName>Reminder</displayName>
+    <classes key="python">OSAF.contentmodel.calendar.Calendar.Reminder</classes>
   </Kind>
 
 </Parcel>
