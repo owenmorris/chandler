@@ -65,7 +65,31 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, face="Verdana"))
         time = self.item.startTime
-        dc.DrawText(time.Format('%I:%M %p ') + self.item.displayName, (10, 0))
+        self.DrawWrappedText(dc, time.Format('%I:%M %p ' ) + self.item.displayName, self.bounds.width - 1)
+
+    def DrawWrappedText(self, dc, text, wrapLength):
+        # @@@ hack hack hack 
+        # Simple wordwrap to display the text, until we can
+        # get the native text widgets to do it for us.
+        offset = 5
+         
+        lines = text.splitlines()
+        y = 0
+        for line in lines:
+            x = offset
+            wrap = 0
+            words = line.split(' ')
+            for word in words:
+                width, height = dc.GetTextExtent(word)
+                if (x + width > wrapLength):
+                    y += height
+                    x = offset
+                dc.DrawText(word, (x, y))
+                x += width
+                width, height = dc.GetTextExtent(' ')
+                dc.DrawText(' ', (x, y))
+                x += width
+            y += height
 
     def DragHitTest(self, x, y):
         return self.visible
@@ -112,6 +136,11 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
             self.item.duration = DateTime.TimeDelta(.5)
 
         self.canvas.PlaceItemOnCalendar(self)
+
+    def MoveTo(self, x, y):
+        newTime = self.canvas.blockItem.getDateTimeFromPosition(x, y)
+        self.item.ChangeStart(newTime)
+        super(CalendarItem, self).MoveTo(x, y)
 
 class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
@@ -230,7 +259,7 @@ class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
 
     def CreateNewDrawableObject(self, dragRect, startDrag, endDrag):
         newItem = Calendar.CalendarEvent()
-        newItem.displayName = "NEW ITEM"
+        newItem.displayName = _("New Event")
         newDrawableObject = CalendarItem(self, newItem)
         newDrawableObject.SizeDrag(dragRect, startDrag, endDrag)
 
