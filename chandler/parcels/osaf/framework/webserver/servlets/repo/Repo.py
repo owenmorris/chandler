@@ -781,7 +781,10 @@ def RenderItem(repoView, item):
                 result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
                  value.getItemDisplayName())
             except:
-                result += "%s<br>" % (clean(value))
+                if name == "password":
+                    result += "<i>(hidden)</i><br>"
+                else:
+                    result += "%s<br>" % (clean(value))
 
             result += "</td></tr>\n"
             count += 1
