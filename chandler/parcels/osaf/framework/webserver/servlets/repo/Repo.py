@@ -49,6 +49,21 @@ class RepoResource(resource.Resource):
                     text = request.args.get('text', [None])[0]
                     result += RenderSearchResults(repoView, text)
 
+                elif mode == "blocks":
+                    item = repoView.findPath(path)
+                    path = "<a href=%s>[top]</a>" % toLink("/")
+                    i = 2
+                    for part in item.itsPath[1:-1]:
+                        path += " &gt; <a href=%s>%s</a>" % (toLink(item.itsPath[:i]), part)
+                        i += 1
+
+                    name = item.itsName
+                    if name is None:
+                        name = str(item.itsUUID)
+                    result += "<div class='path'>%s &gt; <span class='itemname'><a href=%s>%s</a></span></div>" % (path, toLink(item.itsPath), name)
+
+                    result += RenderBlock(repoView, item)
+
                 elif path != "//":
                     item = repoView.findPath(path)
                     if item is None:
@@ -74,6 +89,7 @@ class RepoResource(resource.Resource):
             result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         return str(result)
+
 
 def RenderSearchForm(repoView):
     result = ""
@@ -374,6 +390,52 @@ def RenderKindQuery(repoView, item):
     result += "</td></tr></table>\n"
     return result
 
+def RenderBlock(repoView, block):
+
+    if block.hasAttributeValue('blockName'):
+        name = block.blockName
+    else:
+        name = "[no block name]"
+
+    if block.childrenBlocks.refCount(False) == 0:
+        hasChildren = False
+    else:
+        hasChildren = True
+
+    result = ""
+    if hasChildren:
+        result += "<table class=block width=100%%>"
+    else:
+        result += "<table class=childlessblock width=100%%>"
+    result += "<tr class=block><td class=block valign=top><a href=%s?mode=blocks>%s</a></td></tr>" % (toLink(block.itsPath), name)
+
+    if block.itsKind.itsName.lower().endswith('bar'):
+        mode = 'horizontal'
+    else:
+        mode = 'vertical'
+
+    try:
+        if block.orientationEnum == "Horizontal":
+            mode = 'horizontal'
+    except:
+        pass
+
+    if mode == 'horizontal':
+        result += "<tr class=block>"
+
+    for child in block.childrenBlocks:
+        childRender = RenderBlock(repoView, child)
+        if mode == 'horizontal':
+            result += "<td class=block valign=top >%s</td>" % childRender
+        else:
+            result += "<tr class=block><td class=block width=100%%>%s</td></tr>" % childRender
+
+    if mode == 'horizontal':
+        result += "</tr>"
+
+    result += "</table>"
+    return result
+
 
 def RenderItem(repoView, item):
 
@@ -381,8 +443,9 @@ def RenderItem(repoView, item):
 
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes):
-    isKind = \
-     (item.itsKind and "//Schema/Core/Kind" == str(item.itsKind.itsPath))
+    isKind = item.isItemOf(repoView.findPath("//Schema/Core/Kind"))
+
+    isBlock = item.isItemOf(repoView.findPath("//parcels/osaf/framework/blocks/Block"))
 
     path = "<a href=%s>[top]</a>" % toLink("/")
     i = 2
@@ -399,7 +462,10 @@ def RenderItem(repoView, item):
     except: pass
 
     if isKind:
-        result += " [Run a <a href=%s?mode=kindquery>Kind Query</a>]" % toLink(item.itsPath)
+        result += " | Run a <a href=%s?mode=kindquery>Kind Query</a>" % toLink(item.itsPath)
+
+    if isBlock:
+        result += " | <a href=%s?mode=blocks>Render block tree</a>" % toLink(item.itsPath)
 
     result += "</div>\n"
 

@@ -136,3 +136,31 @@ A:hover
     text-decoration: underline;
 }
 
+table.childlessblock
+{
+    border: 1px solid #bbb;
+    padding: 2px;
+    margin: 0px;
+}
+
+table.block
+{
+    border: 1px solid #333;
+    padding: 2px;
+    margin: 0px;
+}
+
+tr.block
+{
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+td.block
+{
+    border: 0px;
+    padding: 1px;
+    margin: 0px;
+}
+
