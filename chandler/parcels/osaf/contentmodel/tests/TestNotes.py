@@ -10,7 +10,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
-import osaf.contentmodel.notes.Notes as Notes
+import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.ContentModel as ContentModel
 
 import mx.DateTime as DateTime
 
@@ -23,7 +24,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
     def testNotes(self):
         """ Simple test for creating instances of note related kinds """
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/notes")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
 
         def _verifyNote(note):
             self.assertEqual(note.displayName, "sample note")
@@ -34,11 +35,11 @@ class NotesTest(TestContentModel.ContentModelTestCase):
             reader.close()
 
         # Test the globals
-        notesPath = Path('//parcels/osaf/contentmodel/notes')
+        notesPath = Path('//parcels/osaf/contentmodel')
 
-        self.assertEqual(Notes.NotesParcel.getNoteKind(),
+        self.assertEqual(ContentModel.ContentModel.getNoteKind(),
                          self.rep.find(Path(notesPath, 'Note')))
-        self.assertEqual(Notes.NotesParcel.getConversationKind(),
+        self.assertEqual(ContentModel.ContentModel.getConversationKind(),
                          self.rep.find(Path(notesPath, 'Conversation')))
 
         # Construct sample items
@@ -46,9 +47,9 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         conversationItem = Notes.Conversation("conversationItem")
 
         # Double check kinds
-        self.assertEqual(noteItem.itsKind, Notes.NotesParcel.getNoteKind())
+        self.assertEqual(noteItem.itsKind, ContentModel.ContentModel.getNoteKind())
         self.assertEqual(conversationItem.itsKind,
-                         Notes.NotesParcel.getConversationKind())
+                         ContentModel.ContentModel.getConversationKind())
 
         # Literal properties
         noteItem.displayName = "sample note"

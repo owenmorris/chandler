@@ -68,7 +68,9 @@
   <!-- Calendar Event Attributes -->
   <Enumeration itsName="TimeTransparencyEnum">
     <displayName>Time Transparency</displayName>
-    <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
+    <issues>The iCalendar values for Time Transparency are slightly different. We should 
+        consider making our values match the iCalendar ones, or be a superset of them.  
+        Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
     <values>busy</values>
     <values>free</values>
     <values>tentative</values>
@@ -133,7 +135,7 @@
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
     <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
-    <superKinds itemref="content:ContentItem"/>
+    <superKinds itemref="content:Note"/>
 
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:location"/>

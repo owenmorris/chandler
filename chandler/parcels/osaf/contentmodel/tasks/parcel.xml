@@ -104,7 +104,7 @@
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Task should maybe have a 'Timezone' attribute.</issues>
-    <superKinds itemref="content:ContentItem"/>
+    <superKinds itemref="content:Note"/>
 
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>

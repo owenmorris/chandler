@@ -14,7 +14,7 @@ from mx import DateTime
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.mail.Mail as Mail
-import osaf.contentmodel.notes.Notes as Notes
+import osaf.contentmodel.Notes as Notes
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 

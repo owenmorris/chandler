@@ -17,6 +17,8 @@ class ContentModel(Parcel):
     contentItemKindID = None
     projectKindID = None
     groupKindID = None
+    noteKindID = None
+    conversationKindID = None
 
     # The parcel knows the UUID for the parent, once the parcel is loaded
     contentItemParentID = None
@@ -27,6 +29,8 @@ class ContentModel(Parcel):
         ContentModel.contentItemKindID = self['ContentItem'].itsUUID
         ContentModel.projectKindID = self['Project'].itsUUID
         ContentModel.groupKindID = self['Group'].itsUUID
+        ContentModel.noteKindID = self['Note'].itsUUID
+        ContentModel.conversationKindID = self['Conversation'].itsUUID
 
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()
@@ -69,6 +73,18 @@ class ContentModel(Parcel):
         return Globals.repository[cls.groupKindID]
 
     getGroupKind = classmethod(getGroupKind)
+    
+    def getNoteKind(cls):
+        assert cls.noteKindID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.noteKindID]
+    
+    getNoteKind = classmethod(getNoteKind)
+    
+    def getConversationKind(cls):
+        assert cls.conversationKindID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.conversationKindID]
+    
+    getConversationKind = classmethod(getConversationKind)
 
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
