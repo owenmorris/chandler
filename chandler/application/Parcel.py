@@ -1574,7 +1574,6 @@ def NewItem(view, name, parent, kind, uuid):
     item = cls.__new__(cls)
     item._fillItem(name, parent, kind, uuid=uuid, version=0L, values=values,
      references=refs)
-    view._registerItem(item)
     values._setItem(item)
     refs._setItem(item)
     item._status |= Item.NEW

@@ -323,14 +323,8 @@ class ShareConduit(ContentModel.ChandlerItem):
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
-        # print "TOP OF PUT"
-        # self._dumpState()
-
         self.itsView.commit() # Make sure locally modified items have had
                               # their version numbers bumped up.
-
-        # print "AFTER FIRST PUT COMMIT"
-        # self._dumpState()
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -346,17 +340,11 @@ class ShareConduit(ContentModel.ChandlerItem):
                 self._deleteItem(itemPath)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            pass # @@@MOR
-
-        # self.itsView.commit()
-
-        # print "BOTTOM OF PUT, before commit"
-        # self._dumpState()
+            #@@@MOR This should be beefed up to only publish if at least one
+            # of the items has changed.
+            self._putItem(self.share)
 
         self.itsView.commit()
-
-        # print "BOTTOM OF PUT, after commit"
-        # self._dumpState()
 
         logger.info("Finished PUT of %s" % (location))
 
@@ -391,11 +379,8 @@ class ShareConduit(ContentModel.ChandlerItem):
 
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
-
-        # print "Top of GET"
-        # self._dumpState()
-
         self.__resetSeen()
+
         itemPath = self._getItemPath(self.share)
         item = self.__conditionalGetItem(itemPath, into=self.share)
         if item is not None:
@@ -431,12 +416,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         # Now that we've committed all fetched items, we need to update
         # the versions in the manifest
         self.__syncManifestVersions()
-        # self.itsView.commit()
-        # print "BEFORE COMMIT"
-        # self._dumpState()
         self.itsView.commit()
-        # print "BOTTOM OF GET"
-        # self._dumpState()
 
         logger.info("Finished GET of %s" % location)
 
@@ -604,12 +584,13 @@ class FileSystemConduit(ShareConduit):
         raise Misconfigured()
 
     def _getItemPath(self, item): # must implement
+        extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
             if isinstance(item, Share):
                 fileName = self.SHAREFILE
             else:
-                fileName = "%s.xml" % item.itsUUID
+                fileName = "%s.%s" % (item.itsUUID, extension)
             return os.path.join(self.getLocation(), fileName)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -1290,3 +1271,37 @@ class CloudXMLFormat(ImportExportFormat):
 
         return item
 
+
+class MixedFormat(ImportExportFormat):
+    """
+    myKindID = None
+    myKindPath = "//parcels/osaf/framework/sharing/MixedFormat"
+
+    def __init__(self, name=None, parent=None, kind=None,
+     cloudAlias='sharing'):
+        super(CloudXMLFormat, self).__init__(name, parent, kind)
+        self.cloudAlias = cloudAlias
+
+    def fileStyle(self):
+        return self.STYLE_DIRECTORY
+
+    handlers = (
+        ('CalendarEvent', 'ics', iCalendarHandler),
+        ('Contact', 'vcd', vCardHandler),
+    )
+
+    def extension(self, item):
+        # search the handlers for appropriate extension
+
+    def importProcess(self, text, extension=None, item=None):
+        ### Import a chunk of text, need to figure out which handler to pass
+        ### it to.
+
+        # return item
+        pass
+
+    def exportProcess(self, item):
+        ### Output an item
+        pass
+    """
+    pass

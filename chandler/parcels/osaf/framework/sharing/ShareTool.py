@@ -113,7 +113,7 @@ class ShareToolDialog(wx.Dialog):
             # Here's my best guess about how it should work, although I couldn't figure out
             # how to test it -- DJA
             collection = share.contents
-            mainView = Globals.view[0]
+            mainView = Globals.views[0]
             mainView.postEventByName ("AddToSidebar", {'items':[collection]})
             self.view.commit()
             # ...and selecting that view in the sidebar
