@@ -215,6 +215,7 @@ protected:
 		long			nWidth,
 		const void		*titleText,
 		long			textJust,
+		bool			bUseUnicode,
 		bool			bSelected,
 		bool			bSortAscending );
 	long Win32ItemDelete(

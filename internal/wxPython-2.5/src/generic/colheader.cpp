@@ -517,6 +517,7 @@ bool				bIsSelected;
 		Win32ItemInsert(
 			targetIndex, mItemList[targetIndex]->mExtentX,
 			mItemList[targetIndex]->mLabelTextRef, mItemList[targetIndex]->mTextJust,
+			false, // for Unicode - TBD
 			bIsSelected, mItemList[targetIndex]->mBSortAscending );
 #endif
 
@@ -815,19 +816,22 @@ long wxColumnHeader::Win32ItemInsert(
 	long			nWidth,
 	const void		*titleText,
 	long			textJust,
+	bool			bUseUnicode,
 	bool			bSelected,
 	bool			bSortAscending )
 {
 HDITEM		itemData;
+HWND		targetViewRef;
 long		resultV;
 
-	HWND	targetViewRef = GetHwnd();
+	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
 		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
+	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = (LPSTR)titleText;
 	itemData.cxy = (int)nWidth;
@@ -837,6 +841,7 @@ long		resultV;
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_InsertItem( targetViewRef, (int)iInsertAfter, &itemData );
+//	resultV = SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -844,9 +849,10 @@ long		resultV;
 long wxColumnHeader::Win32ItemDelete(
 	long			itemIndex )
 {
-long		resultV;
+HWND		targetViewRef;
+long			resultV;
 
-	HWND	targetViewRef = GetHwnd();
+	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
 		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
@@ -863,20 +869,24 @@ long wxColumnHeader::Win32ItemRefresh(
 {
 wxColumnHeaderItem		*itemRef;
 HDITEM					itemData;
+HWND					targetViewRef;
 long					resultV;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef == NULL)
 		return (-1L);
 
-	HWND	targetViewRef = GetHwnd();
+	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
 		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
+	ZeroMemory( &itemData, sizeof(itemData) );
+	itemData.mask = HDI_FORMAT | HDI_WIDTH;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
+
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = (LPSTR)(itemRef->mLabelTextRef.c_str());
 	itemData.cxy = (int)(itemRef->mExtentX);
@@ -888,6 +898,7 @@ long					resultV;
 		itemData.fmt |= (itemRef->mBSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
+//	resultV = SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -898,15 +909,18 @@ long wxColumnHeader::Win32ItemSelect(
 	bool			bSortAscending )
 {
 HDITEM		itemData;
+HWND		targetViewRef;
 long		resultV;
 
-	HWND	targetViewRef = GetHwnd();
+	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
 		wxFAIL_MSG( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
+	ZeroMemory( &itemData, sizeof(itemData) );
+	itemData.mask = HDI_FORMAT | HDI_WIDTH;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
@@ -914,6 +928,7 @@ long		resultV;
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
+//	resultV = SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 
 	return resultV;
 }
@@ -1156,7 +1171,7 @@ long wxColumnHeaderItem::DrawSelf( void )
 {
 #if defined(__WXMSW__)
 	// NB: implementation not needed ??
-	 return 0;
+	return 0;
 
 #elif defined(__WXMAC__)
 ThemeButtonDrawInfo		drawInfo;
