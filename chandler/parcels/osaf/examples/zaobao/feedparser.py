@@ -10,7 +10,7 @@ Recommended: Python 2.3 or later
 Recommended: libxml2 <http://xmlsoft.org/python.html>
 """
 
-__version__ = "3.0-beta-22"
+__version__ = "3.0-fc-2"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
@@ -86,6 +86,8 @@ except:
         data = data.replace(">", "&gt;")
         data = data.replace("<", "&lt;")
         return data
+#_XML_AVAILABLE = 0
+#sys.stderr.write("DEBUG: turned off XML support\n")
 
 # base64 support for Atom feeds that contain embedded binary data
 try:
@@ -96,6 +98,7 @@ except:
 # ---------- don't touch these ----------
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
 sgmllib.special = re.compile('<!')
+sgmllib.charref = re.compile('&#(x?[0-9A-Fa-f]+)[^0-9A-Fa-f]')
 
 SUPPORTED_VERSIONS = {'': 'unknown',
                       'rss090': 'RSS 0.90',
@@ -128,9 +131,26 @@ except NameError:
 from UserDict import UserDict
 class FeedParserDict(UserDict):
     def __getitem__(self, key):
-        if key == 'channel': key = 'feed'
-        if key == 'items': key = 'entries'
+        keymap = {'channel': 'feed',
+                  'items': 'entries',
+                  'guid': 'id',
+                  'date': 'modified',
+                  'date_parsed': 'modified_parsed'}
+        key = keymap.get(key, key)
         return UserDict.__getitem__(self, key)
+
+    def has_key(self, key):
+        return hasattr(self, key) or UserDict.has_key(self, key)
+        
+    def __getattr__(self, key):
+        try:
+            return self.__dict__[key]
+        except KeyError:
+            pass
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            raise AttributeError, "object has no attribute '%s'" % key
 
 class _FeedParserMixin:
     namespaces = {"": "",
@@ -268,6 +288,12 @@ class _FeedParserMixin:
         if prefix:
             prefix = prefix + '_'
 
+        # special hack for better tracking of empty textinput/image elements in illformed feeds
+        if (not prefix) and tag not in ('title', 'link', 'description', 'name'):
+            self.intextinput = 0
+        if (not prefix) and tag not in ('title', 'link', 'description', 'url', 'width', 'height'):
+            self.inimage = 0
+        
         # call special handler (if defined) or default handler
         methodname = '_start_' + prefix + suffix
         try:
@@ -332,8 +358,14 @@ class _FeedParserMixin:
     def handle_data(self, text, escape=1):
         # called for each block of plain text, i.e. outside of any tag and
         # not containing any character or entity references
+#        print text
+#        if text == '&#':
+#            try:
+#                raise ValueError
+#            except:
+#                import traceback
+#                traceback.print_stack()
         if not self.elementstack: return
-#        if _debug: sys.stderr.write(text)
         if escape and self.contentparams.get('mode') == 'xml':
             text = _xmlescape(text)
         self.elementstack[-1][2].append(text)
@@ -377,22 +409,13 @@ class _FeedParserMixin:
         return urlparse.urljoin(self.baseuri or '', uri)
     
     def decodeEntities(self, element, data):
-        if self.contentparams.get('mode') == 'escaped':
-            data = data.replace('&lt;', '<')
-            data = data.replace('&gt;', '>')
-            data = data.replace('&amp;', '&')
-            data = data.replace('&quot;', '"')
-            data = data.replace('&apos;', "'")
         return data
-        
+
     def push(self, element, expectingText):
-#        while self.elementstack and self.elementstack[-1][1]:
-#            self.pop(self.elementstack[-1][0])
         self.elementstack.append([element, expectingText, []])
 
     def pop(self, element):
         if not self.elementstack: return
-#        while self.elementstack[-1][0] != element: self.pop(self.elementstack[-1][0])
         if self.elementstack[-1][0] != element: return
 
         element, expectingText, pieces = self.elementstack.pop()
@@ -417,12 +440,14 @@ class _FeedParserMixin:
         output = self.decodeEntities(element, output)
 
         # resolve relative URIs within embedded markup
-        if element in self.can_contain_relative_uris:
-            output = _resolveRelativeURIs(output, self.baseuri, self.encoding)
+        if self.contentparams.get('type', 'text/html') in self.html_types:
+            if element in self.can_contain_relative_uris:
+                output = _resolveRelativeURIs(output, self.baseuri, self.encoding)
         
         # sanitize embedded markup
-        if element in self.can_contain_dangerous_markup:
-            output = _sanitizeHTML(output, self.encoding)
+        if self.contentparams.get('type', 'text/html') in self.html_types:
+            if element in self.can_contain_dangerous_markup:
+                output = _sanitizeHTML(output, self.encoding)
 
         if type(output) == types.StringType:
             try:
@@ -766,8 +791,6 @@ class _FeedParserMixin:
         value = self.pop('modified')
         if _debug: sys.stderr.write('_end_dcterms_modified, value=' + value + '\n')
         parsed_value = _parse_date(value)
-        self._save('date', value)
-        self._save('date_parsed', parsed_value)
         self._save('modified_parsed', parsed_value)
     _end_modified = _end_dcterms_modified
     _end_dc_date = _end_dcterms_modified
@@ -820,10 +843,10 @@ class _FeedParserMixin:
         expectingText = self.infeed or self.inentry
         if self.inentry:
             self.entries[-1].setdefault('links', [])
-            self.entries[-1]['links'].append(attrsD)
+            self.entries[-1]['links'].append(FeedParserDict(attrsD))
         elif self.infeed:
             self.feeddata.setdefault('links', [])
-            self.feeddata['links'].append(attrsD)
+            self.feeddata['links'].append(FeedParserDict(attrsD))
         if attrsD.has_key('href'):
             expectingText = 0
             if attrsD.get('type', '') in self.html_types:
@@ -844,11 +867,10 @@ class _FeedParserMixin:
 
     def _start_guid(self, attrsD):
         self.guidislink = (attrsD.get('ispermalink', 'true') == 'true')
-        self.push('guid', 1)
+        self.push('id', 1)
 
     def _end_guid(self):
-        value = self.pop('guid')
-        self._save('id', value)
+        value = self.pop('id')
         if self.guidislink:
             # guid acts as link, but only if "ispermalink" is not present or is "true",
             # and only if the item doesn't already have a link element
@@ -859,7 +881,6 @@ class _FeedParserMixin:
 
     def _end_id(self):
         value = self.pop('id')
-        self._save('guid', value)
             
     def _start_title(self, attrsD):
         self.incontent += 1
@@ -960,7 +981,7 @@ class _FeedParserMixin:
     def _start_enclosure(self, attrsD):
         if self.inentry:
             self.entries[-1].setdefault('enclosures', [])
-            self.entries[-1]['enclosures'].append(attrsD)
+            self.entries[-1]['enclosures'].append(FeedParserDict(attrsD))
             
     def _start_source(self, attrsD):
         if self.inentry:
@@ -1103,6 +1124,12 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
     def normalize_attrs(self, attrs):
         # utility method to be called by descendants
         attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        # The previous line may have output a Unicode string.  If so we need to convert it back
+        # to raw bytes in the current encoding.  If not, then just pass.
+        try:
+            attrs = [(k, v.encode(self.encoding)) for k, v in attrs]
+        except:
+            pass
         attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
         return attrs
 
@@ -1189,6 +1216,25 @@ class _LooseFeedParser(_FeedParserMixin, _BaseHTMLProcessor):
         sgmllib.SGMLParser.__init__(self)
         _FeedParserMixin.__init__(self, baseuri, encoding)
 
+    def decodeEntities(self, element, data):
+        data = data.replace('&#60;', '&lt;')
+        data = data.replace('&#x3c;', '&lt;')
+        data = data.replace('&#62;', '&gt;')
+        data = data.replace('&#x3e;', '&gt;')
+        data = data.replace('&#38;', '&amp;')
+        data = data.replace('&#x26;', '&amp;')
+        data = data.replace('&#34;', '&quot;')
+        data = data.replace('&#x22;', '&quot;')
+        data = data.replace('&#39;', '&apos;')
+        data = data.replace('&#x27;', '&apos;')
+        if self.contentparams.get('mode') == 'escaped':
+            data = data.replace('&lt;', '<')
+            data = data.replace('&gt;', '>')
+            data = data.replace('&amp;', '&')
+            data = data.replace('&quot;', '"')
+            data = data.replace('&apos;', "'")
+        return data
+        
 class _RelativeURIResolver(_BaseHTMLProcessor):
     relative_uris = [('a', 'href'),
                      ('applet', 'codebase'),
@@ -1358,7 +1404,6 @@ def _open_resource(url_file_stream_or_string, etag=None, modified=None, agent=No
     if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
         if not agent:
             agent = USER_AGENT
-        
         # try to open with urllib2 (to use optional headers)
         request = urllib2.Request(url_file_stream_or_string)
         request.add_header("User-Agent", agent)
@@ -1381,13 +1426,6 @@ def _open_resource(url_file_stream_or_string, etag=None, modified=None, agent=No
         try:
             try:
                 return opener.open(request)
-#            except ValueError:
-#                # not a valid URL, but might be a valid filename
-#                pass
-#            except AssertionError:
-#                # under Python 2.1, non-URLs will fail with an AssertionError;
-#                # still might be a valid filename, so fall through
-#                pass
             except:
                 return _StringIO('')
         finally:
@@ -1739,6 +1777,8 @@ def _stripDoctype(data):
     rss_version may be "rss091n" or None
     stripped_data is the same XML document, minus the DOCTYPE
     """
+    entity_pattern = re.compile(r'<!ENTITY([^>]*?)>', re.MULTILINE)
+    data = entity_pattern.sub('', data)
     doctype_pattern = re.compile(r'<!DOCTYPE([^>]*?)>', re.MULTILINE)
     doctype_results = doctype_pattern.findall(data)
     doctype = doctype_results and doctype_results[0] or ''
@@ -1816,7 +1856,7 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
             proposed_encodings = [result['encoding'], xml_encoding, 'utf-8', 'iso-8859-1', 'windows-1252']
             tried_encodings = []
             for proposed_encoding in proposed_encodings:
-                if proposed_encodings in tried_encodings: continue
+                if proposed_encoding in tried_encodings: continue
                 tried_encodings.append(proposed_encoding)
                 try:
                     data = _changeEncodingDeclaration(data, proposed_encoding)
@@ -2017,3 +2057,15 @@ if __name__ == '__main__':
 #  from Unicode to raw strings before feeding data to sgmllib.SGMLParser;
 #  convert each value in results to Unicode (if possible), even if using
 #  regex-based parsing
+#3.0b23 - 4/21/2004 - MAP - fixed UnicodeDecodeError for feeds that contain
+#  high-bit characters in attributes in embedded HTML in description (thanks
+#  Thijs van de Vossen); moved guid, date, and date_parsed to mapped keys in
+#  FeedParserDict; tweaked FeedParserDict.has_key to return True if asking
+#  about a mapped key
+#3.0fc1 - 4/23/2004 - MAP - made results.entries[0].links[0] and
+#  results.entries[0].enclosures[0] into FeedParserDict; fixed typo that could
+#  cause the same encoding to be tried twice (even if it failed the first time);
+#  fixed DOCTYPE stripping when DOCTYPE contained entity declarations;
+#  better textinput and image tracking in illformed RSS 1.0 feeds
+#3.0fc2 - 5/10/2004 - MAP - added and passed Sam's amp tests; added and passed
+#  my blink tag tests

@@ -129,7 +129,7 @@ class RSSChannel(ContentItem):
             lastModified = lastModified.tuple()
 
         # fetch the data
-        data = feedparser.parse(self.url, etag, lastModified)
+        data = feedparser.parse(str(self.url), etag, lastModified)
 
         # set etag
         SetAttribute(self, data, 'etag')

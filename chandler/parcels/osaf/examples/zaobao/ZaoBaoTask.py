@@ -23,6 +23,7 @@ class UpdateAction(Action):
         repository = self.itsView
 
         repository.commit()
+
         #print 'Updating feeds...'
         chanKind = ZaoBaoParcel.getRSSChannelKind()
         for item in KindQuery().run([chanKind]):
