@@ -15,26 +15,26 @@
 of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
 
-  <EventData itemName="GlobalEvents">
-    <blockEvents itemref="events:New"/>
-    <blockEvents itemref="events:Close"/>
-    <blockEvents itemref="events:Quit"/>
-    <blockEvents itemref="events:Undo"/>
-    <blockEvents itemref="events:Redo"/>
-    <blockEvents itemref="events:Cut"/>
-    <blockEvents itemref="events:Copy"/>
-    <blockEvents itemref="events:Paste"/>
-    <blockEvents itemref="events:Preferences"/>
-    <blockEvents itemref="events:ViewNavigationBar"/>
-    <blockEvents itemref="events:SelectionChanged"/>
-    <blockEvents itemref="events:EnterPressed"/>
-    <blockEvents itemref="events:GenerateContentItems"/>
-    <blockEvents itemref="events:GenerateContacts"/>
-    <blockEvents itemref="events:ImportContacts"/>
-    <blockEvents itemref="events:GenerateNotes"/>
-    <blockEvents itemref="events:GenerateCalendarEvents"/>    
-    <blockEvents itemref="events:CheckRepository"/>
-  </EventData>
+  <EventList itemName="GlobalEvents">
+    <subscribeAlwaysEvents itemref="events:New"/>
+    <subscribeAlwaysEvents itemref="events:Close"/>
+    <subscribeAlwaysEvents itemref="events:Quit"/>
+    <subscribeAlwaysEvents itemref="events:Undo"/>
+    <subscribeAlwaysEvents itemref="events:Redo"/>
+    <subscribeAlwaysEvents itemref="events:Cut"/>
+    <subscribeAlwaysEvents itemref="events:Copy"/>
+    <subscribeAlwaysEvents itemref="events:Paste"/>
+    <subscribeAlwaysEvents itemref="events:Preferences"/>
+    <subscribeAlwaysEvents itemref="events:ViewNavigationBar"/>
+    <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
+    <subscribeAlwaysEvents itemref="events:EnterPressed"/>
+    <subscribeAlwaysEvents itemref="events:GenerateContentItems"/>
+    <subscribeAlwaysEvents itemref="events:GenerateContacts"/>
+    <subscribeAlwaysEvents itemref="events:ImportContacts"/>
+    <subscribeAlwaysEvents itemref="events:GenerateNotes"/>
+    <subscribeAlwaysEvents itemref="events:GenerateCalendarEvents"/>    
+    <subscribeAlwaysEvents itemref="events:CheckRepository"/>
+  </EventList>
 
   <BlockEvent itemName="New">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>

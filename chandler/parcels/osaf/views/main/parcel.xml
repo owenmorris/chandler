@@ -514,9 +514,9 @@
     <childrenBlocks itemref="doc:MainBoxContainer"/>
     
     <!-- Block Events -->
-    <blockEvents itemref="doc:ShowHideSidebar"/>
-    <blockEvents itemref="doc:ShowHideBookmarksBar"/>
-    <blockEvents itemref="doc:ShowHideStatusBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideBookmarksBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

@@ -122,9 +122,9 @@ class ItemCollection (Item):
         events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
                   Globals.repository.findPath('//parcels/osaf/framework/item_added'),
                   Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-        widget.subscriptionUUID = UUID()
+        widget.subscriptionContentsUUID = UUID()
         Globals.notificationManager.Subscribe (events,
-                                               widget.subscriptionUUID,
+                                               widget.subscriptionContentsUUID,
                                                self.onItemChanges)
         widget.scheduleUpdate = False
         widget.lastUpdateTime = 0
@@ -150,5 +150,5 @@ class ItemCollection (Item):
 
     def unSubscribeWidgetToChanges (self, widget):
         widget.Bind (wx.EVT_IDLE, None)
-        Globals.notificationManager.Unsubscribe(widget.subscriptionUUID)
-        delattr (widget, 'subscriptionUUID')
+        Globals.notificationManager.Unsubscribe(widget.subscriptionContentsUUID)
+        delattr (widget, 'subscriptionContentsUUID')

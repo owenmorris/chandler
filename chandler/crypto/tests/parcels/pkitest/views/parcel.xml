@@ -19,9 +19,10 @@
     <childrenBlocks itemref="views:PKITestView/clientRow"/>
     <childrenBlocks itemref="views:PKITestView/sendRow"/>
     <orientationEnum>Vertical</orientationEnum>
-    <blockEvents itemref="views:StartStopServerEvent"/>
-    <blockEvents itemref="views:ConnectDisconnectClientEvent"/>
-    <blockEvents itemref="views:SendDataToServerEvent"/>
+
+    <subscribeAlwaysEvents itemref="views:StartStopServerEvent"/>
+    <subscribeAlwaysEvents itemref="views:ConnectDisconnectClientEvent"/>
+    <subscribeAlwaysEvents itemref="views:SendDataToServerEvent"/>
 
     <blocks:BoxContainer itemName="serverRow">
       <childrenBlocks itemref="views:PKITestView/StartStopServerButton"/>

@@ -90,21 +90,21 @@ class EmbeddedContainer(RectangularChild):
             events = block.blockEvents
         except AttributeError:
             return
-        self.currentId = UUID()
-        Globals.notificationManager.Subscribe(events, 
-                                              self.currentId, 
-                                              Globals.mainView.dispatchEvent)
+        #self.currentId = UUID()
+        #Globals.notificationManager.Subscribe(events, 
+                                              #self.currentId, 
+                                              #Globals.mainView.dispatchEvent)
  
     def UnregisterEvents(self, oldBlock):
         try:
             events = oldBlock.blockEvents
         except AttributeError:
             return
-        try:
-            id = self.currentId
-        except AttributeError:
-            return # If we haven't registered yet
-        Globals.notificationManager.Unsubscribe(id)
+        #try:
+            #id = self.currentId
+        #except AttributeError:
+            #return # If we haven't registered yet
+        #Globals.notificationManager.Unsubscribe(id)
  
         
 class wxSplitterWindow(wx.SplitterWindow):
@@ -332,20 +332,20 @@ class TabbedContainer(RectangularChild):
             events = block.blockEvents
         except AttributeError:
             return
-        self.currentId = UUID()
-        Globals.notificationManager.Subscribe(events, self.currentId, 
-                                              Globals.mainView.dispatchEvent)
+        #self.currentId = UUID()
+        #Globals.notificationManager.Subscribe(events, self.currentId, 
+                                              #Globals.mainView.dispatchEvent)
  
     def UnregisterEvents(self, oldBlock):
         try:
             events = oldBlock.blockEvents
         except AttributeError:
             return
-        try:
-            id = self.currentId
-        except AttributeError:
-            return # If we haven't registered yet
-        Globals.notificationManager.Unsubscribe(id)    
+        #try:
+            #id = self.currentId
+        #except AttributeError:
+            #return # If we haven't registered yet
+        #Globals.notificationManager.Unsubscribe(id)    
     
     def OnChooseTabEvent (self, notification):
         choice = notification.event.choice

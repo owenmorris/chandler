@@ -275,7 +275,17 @@ class wxSummaryTable(wx.grid.PyGridTableBase):
 
 class wxSummary(wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
-        super (wxSummary, self).__init__ (*arguments, **keywords)
+        """
+          Giant hack. Calling event.GetEventObject in OnShow of application, while the
+        object is being created cause the object to get the wrong type because of a
+        "feature" of SWIG. So we need to avoid OnShows in this case.
+        """
+        oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
+        Globals.wxApplication.ignoreSynchronizeWidget = True
+        try:
+            super (wxSummary, self).__init__ (*arguments, **keywords)
+        finally:
+            Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
         self.SetRowLabelSize(0)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)

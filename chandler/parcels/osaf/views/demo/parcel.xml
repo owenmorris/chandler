@@ -429,12 +429,12 @@
     <childrenBlocks itemref="doc:Tabs"/>
 
     <!-- Block Events -->
-    <blockEvents itemref="doc:ChooseIntroTab"/>
-    <blockEvents itemref="doc:ChooseButtonsTab"/>
-    <blockEvents itemref="doc:ChooseControlsTab"/>
-    <blockEvents itemref="doc:ChooseHTMLTab"/>
-    <blockEvents itemref="doc:ReloadTextEvent"/>
-    <blockEvents itemref="doc:AddTextEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChooseIntroTab"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChooseButtonsTab"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChooseControlsTab"/>
+    <subscribeWhenVisibleEvents itemref="doc:ChooseHTMLTab"/>
+    <subscribeWhenVisibleEvents itemref="doc:ReloadTextEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddTextEvent"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

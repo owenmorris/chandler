@@ -79,7 +79,7 @@ class MainFrame(wx.Frame):
         super (MainFrame, self).__init__(*arguments, **keywords)
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.Bind(wx.EVT_CLOSE, self.OnSize)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnClose(self, event):
         """
@@ -244,11 +244,12 @@ class wxApplication (wx.App):
         Globals.taskManager = TaskManager()
         Globals.taskManager.start()
 
-        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.focus = None
         self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, id=-1)
+        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
 
         from osaf.framework.blocks.Views import View
         """
@@ -268,20 +269,11 @@ class wxApplication (wx.App):
 
             GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
-              Subscribe to some global events and those belonging to the mainView.
+              Subscribe to some global events.
             """
-            Globals.notificationManager.Subscribe (GlobalEvents.blockEvents,
+            Globals.notificationManager.Subscribe (GlobalEvents.subscribeAlwaysEvents,
                                                    UUID(),
                                                    Globals.mainView.dispatchEvent)
-            try:
-                events = mainView.blockEvents
-            except AttributeError:
-                pass
-            else:
-                Globals.notificationManager.Subscribe (events,
-                                                       UUID(),
-                                                       Globals.mainView.dispatchEvent)
-
             Globals.mainView.onSetActiveView(mainView)
 
             self.ignoreSynchronizeWidget = False
@@ -353,9 +345,41 @@ class wxApplication (wx.App):
         event.Skip()
 
     def OnDestroy(self, event):
-        theWindow = event.GetWindow()
-        if hasattr (theWindow, 'blockItem'):
-            theWindow.blockItem.onDestroyWidget()
+        widget = event.GetWindow()
+        if hasattr (widget, 'blockItem'):
+            widget.blockItem.onDestroyWidget()
+        event.Skip()
+
+    def OnShow(self, event):
+        """
+          Giant hack. Calling event.GetEventObject while the object is being created cause the
+        object to get the wrong type because of a "feature" of SWIG. So we need to avoid
+        OnShows in this case.
+        """
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            widget = event.GetEventObject()
+            try:
+                block = widget.blockItem
+            except AttributeError:
+                pass
+            else:
+                if hasattr (block, 'subscribeWhenVisibleEvents') and (widget.IsShown() != event.GetShow()):
+                    """
+                      The state of the new GetShow flag should be the opposite of whether or
+                    not we have a subscribeWhenVisibleEventsUUID attribute
+                    """
+                    assert event.GetShow() ^ hasattr (widget, 'subscribeWhenVisibleEventsUUID')
+    
+                    if event.GetShow():
+                        widget.subscribeWhenVisibleEventsUUID = UUID()
+                        Globals.notificationManager.Subscribe (block.subscribeWhenVisibleEvents,
+                                                               widget.subscribeWhenVisibleEventsUUID,
+                                                               Globals.mainView.dispatchEvent)
+                    else:
+                        Globals.notificationManager.Unsubscribe (widget.subscribeWhenVisibleEventsUUID)
+                        delattr (widget, 'subscribeWhenVisibleEventsUUID')
+    
+                
         event.Skip()
 
     def OnIdle(self, event):

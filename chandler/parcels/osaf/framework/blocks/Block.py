@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
+from repository.util.UUID import UUID
 from osaf.framework.notifications.schema.Event import Event
 import wx
 import logging
@@ -30,6 +31,8 @@ class Block(Item):
         args['sender'] = self
         event.Post (args)
 
+    subscribedBlocks = {}              # A dictionary mapping block UUIDS to event subscription clientIDs
+
     def render (self):
         try:
             instantiateWidgetMethod = getattr (self, "instantiateWidget")
@@ -53,14 +56,26 @@ class Block(Item):
                 self.widget = widget
                 widget.blockItem = self
                 """
-                  For those widgets with contents, we need to subscribe to notice changes
+                  For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                try:
+                if hasattr (self, 'contents'):
                     self.contents.subscribeWidgetToChanges (widget)
-                except AttributeError:
-                    pass
-                    
+                """
+                  For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
+                we need to subscribe to them.
+                """
+                if  hasattr (self, 'subscribeWhenVisibleEvents') and widget.IsShown():
+                    widget.subscribeWhenVisibleEventsUUID = UUID()
+                    Globals.notificationManager.Subscribe (self.subscribeWhenVisibleEvents,
+                                                           widget.subscribeWhenVisibleEventsUUID,
+                                                           Globals.mainView.dispatchEvent)
+                if hasattr (self, 'subscribeAlwaysEvents') and not subscribedBlocks.has_key (block.itsUUID):
+                    subscribedBlocks [block.itsUUID] = UUID()
+                    Globals.notificationManager.Subscribe (events,
+                                                           subscribedBlocks [block.itsUUID],
+                                                           Globals.mainView.dispatchEvent)
+
                 """
                   After the blocks are wired up, give the window a chance
                 to synchronize itself to any persistent state.
@@ -80,13 +95,16 @@ class Block(Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        try:
+        if hasattr (self, 'contents'):
             self.contents.unSubscribeWidgetToChanges (self.widget)
-        except AttributeError:
-            pass
+
+        if hasattr (self.widget, 'subscribeWhenVisibleEventsUUID'):
+            Globals.notificationManager.Unsubscribe (self.widget.subscribeWhenVisibleEventsUUID)
+            delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
+
         delattr (self, 'widget')
         self.setPinned (False)
- 
+
     def widgetIDToBlock (theClass, wxID):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
@@ -217,9 +235,7 @@ class RectangularChild(ContainerChild):
 
 
 class BlockEvent(Event):
-    def __init__(self, *arguments, **keywords):
-        super (BlockEvent, self).__init__ (*arguments, **keywords)
-        self.dispatchToBlock = None
+    pass
 
 
 class ChoiceEvent(BlockEvent):

@@ -237,6 +237,7 @@
 
     <Attribute itemName="dispatchToBlock">
       <type itemref="docSchema:Block"/>
+      <defaultValue itemref="None"/>
     </Attribute>
 
     <Attribute itemName="methodName">
@@ -261,14 +262,19 @@
     <attributes itemref="docSchema:ChoiceEvent/choice"/>
   </Kind>
 
-  <Attribute itemName="blockEvents">
+  <Attribute itemName="subscribeWhenVisibleEvents">
     <type itemref="docSchema:BlockEvent"/>
     <cardinality>list</cardinality>
   </Attribute>
 
-  <Kind itemName="EventData">
+  <Attribute itemName="subscribeAlwaysEvents">
+    <type itemref="docSchema:BlockEvent"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Kind itemName="EventList">
     <superKinds itemref="Item"/>
-    <attributes itemref="docSchema:blockEvents"/>
+    <attributes itemref="docSchema:subscribeAlwaysEvents"/>
   </Kind>
 
   <!--
@@ -320,7 +326,8 @@
     <attributes itemref="docSchema:Block/styles"/>
     <attributes itemref="docSchema:Block/isShown"/>
     <attributes itemref="docSchema:Block/eventBoundary"/>
-    <attributes itemref="docSchema:blockEvents"/>    
+    <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
+    <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
   </Kind>
   
   <!--
