@@ -94,6 +94,38 @@
   </item>
 
   <item withSchema="True">
+    <name>kindOf</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+    <attribute name="otherName">ofKind</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>ofKind</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+    <attribute name="otherName">kindOf</attribute>
+  </item>
+
+  <item withSchema="True">
     <name>attributes</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

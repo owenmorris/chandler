@@ -16,26 +16,16 @@ class ClassLoader(object):
             name = name[lastDot+1:]
 
         try:
-            m = __import__(module, {}, {}, name)
+            m = __import__(module, globals(), locals(), name)
         except ImportError:
             raise
         except:
-            logging.getLogger('repository').exception('Importing class %s.%s '\
-                                                      'failed', module, name)
+            logging.getLogger('repository').exception('Importing class %s.%s failed', module, name)
             raise ImportError, sys.exc_value, sys.exc_traceback
 
         try:
-            cls = getattr(m, name)
-            cls.__module__
-
-            return cls
-
+            return getattr(m, name)
         except AttributeError:
-            raise ImportError, "Module %s has no class %s" %(module, name), \
-                  sys.exc_traceback
-        except:
-            logging.getLogger('repository').exception('Importing class %s.%s '\
-                                                      'failed', module, name)
-            raise ImportError, sys.exc_value, sys.exc_traceback
+            raise ImportError, "Module %s has no class %s" %(module, name)
 
     loadClass = classmethod(loadClass)

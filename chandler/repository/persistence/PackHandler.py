@@ -139,7 +139,7 @@ class PackHandler(ContentHandler):
 
         try:
             items = self.repository._loadItemsFile(file, parent,
-                                                   afterLoadHooks=self.hooks[-1])
+                                                   self.hooks[-1], True)
 
             for item in items:
                 if item._status & item.NDIRTY == 0:

@@ -14,7 +14,7 @@ import repository.util.URL
 from new import classobj
 
 from repository.item.Item import Item
-from repository.item.ItemHandler import ItemHandler
+from repository.item.ItemHandler import ValueHandler
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.Query import KindQuery
@@ -28,8 +28,8 @@ class TypeKind(Kind):
 
         super(TypeKind, self)._fillItem(name, parent, kind, **kwds)
 
-        typeHandlers = ItemHandler.typeHandlers[self.itsView]
-        typeHandlers[None] = self._uuid
+        typeHandlers = ValueHandler.typeHandlers[self.itsView]
+        typeHandlers[None] = self
 
     def findTypes(self, value):
         """Return a list of types recognizing value.
@@ -60,11 +60,11 @@ class Type(Item):
     def _registerTypeHandler(self, implementationType):
 
         if implementationType is not None:
-            typeHandlers = ItemHandler.typeHandlers[self.itsView]
+            typeHandlers = ValueHandler.typeHandlers[self.itsView]
             if implementationType in typeHandlers:
-                typeHandlers[implementationType].append(self._uuid)
+                typeHandlers[implementationType].append(self)
             else:
-                typeHandlers[implementationType] = [ self._uuid ]
+                typeHandlers[implementationType] = [ self ]
 
     def onItemLoad(self):
         self._registerTypeHandler(self.getImplementationType())
@@ -170,7 +170,7 @@ class Symbol(Type):
 
     def recognizes(self, value):
 
-        if not (isinstance(value, str) or isinstance(value, unicode)):
+        if type(value) not in (str, unicode):
             return False
         
         for char in value:
@@ -508,7 +508,7 @@ class Struct(Type):
             typeHandler = field.get('type', None)
 
             if typeHandler is None:
-                typeHandler = ItemHandler.typeHandler(repository, fieldValue)
+                typeHandler = ValueHandler.typeHandler(repository, fieldValue)
 
             attrs = { 'name': fieldName, 'typeid': typeHandler._uuid.str64() }
             generator.startElement('field', attrs)
@@ -774,9 +774,9 @@ class Dictionary(Collection):
 
         generator.startElement('values', {})
         for key, val in value._iteritems():
-            ItemHandler.xmlValue(repository,
-                                 key, val, 'value', None, 'single', None, {},
-                                 generator, withSchema)
+            ValueHandler.xmlValue(repository,
+                                  key, val, 'value', None, 'single', None, {},
+                                  generator, withSchema)
         generator.endElement('values')
 
     def makeValue(self, data):
@@ -820,9 +820,9 @@ class List(Collection):
 
         generator.startElement('values', {})
         for val in value._itervalues():
-            ItemHandler.xmlValue(repository,
-                                 None, val, 'value', None, 'single', None, {},
-                                 generator, withSchema)
+            ValueHandler.xmlValue(repository,
+                                  None, val, 'value', None, 'single', None, {},
+                                  generator, withSchema)
         generator.endElement('values')
 
     def makeValue(self, data):
@@ -867,9 +867,9 @@ class Tuple(Collection):
 
         generator.startElement('values', {})
         for val in value:
-            ItemHandler.xmlValue(repository,
-                                 None, val, 'value', None, 'single', None, {},
-                                 generator, withSchema)
+            ValueHandler.xmlValue(repository,
+                                  None, val, 'value', None, 'single', None, {},
+                                  generator, withSchema)
         generator.endElement('values')
 
     def makeValue(self, data):

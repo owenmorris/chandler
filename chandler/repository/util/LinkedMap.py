@@ -48,12 +48,13 @@ class LinkedMap(dict):
             linkedMap.linkChanged(self, key)
 
 
-    def __init__(self):
+    def __init__(self, new):
 
         super(LinkedMap, self).__init__()
 
         self._head = self._makeLink(None)
         self._aliases = None
+        self._flags = new and LinkedMap.NEW or 0
 
     def __repr__(self):
 
@@ -231,11 +232,23 @@ class LinkedMap(dict):
 
     def has_key(self, key, load=True):
 
-        has = super(LinkedMap, self).has_key(key)
-        if not has and load and self._load(key):
-            has = super(LinkedMap, self).has_key(key)
+        if key is None:
+            return False
+        if super(LinkedMap, self).has_key(key):
+            return True
 
-        return has
+        return load and self._load(key)
+
+    def _contains(self, key):
+
+        return super(LinkedMap, self).__contains__(key)
+            
+    def __contains__(self, key):
+
+        if super(LinkedMap, self).__contains__(key):
+            return True
+
+        return self._load(key)
 
     def get(self, key, default=None, load=True):
 
@@ -289,8 +302,8 @@ class LinkedMap(dict):
         @return: a key into the collection or C{None} if the alias does not
         exist.
         """
-        
-        if self._aliases:
+
+        if self._aliases is not None:
             return self._aliases.get(alias)
 
         return None
@@ -376,7 +389,7 @@ class LinkedMap(dict):
 
     def values(self):
 
-        return [item for item in self]
+        return [self[key] for key in self.iterkeys()]
 
     def _values(self):
 
@@ -384,8 +397,8 @@ class LinkedMap(dict):
 
     def itervalues(self):
 
-        for value in self:
-            yield value
+        for link in self.iterkeys():
+            yield self[key]
 
     def _itervalues(self):
 
@@ -413,3 +426,5 @@ class LinkedMap(dict):
 
     _firstKey = property(firstKey, __setFirstKey)
     _lastKey = property(lastKey, __setLastKey)
+
+    NEW = 0x0001

@@ -109,16 +109,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-    def _createRefList(self, item, name, otherName, persist, readOnly, uuid):
+    def _createRefList(self, item, name, otherName,
+                       persist, readOnly, new, uuid):
 
         if persist:
-            return XMLRefList(self, item, name, otherName, readOnly, uuid)
+            return XMLRefList(self, item, name, otherName, readOnly, new, uuid)
         else:
             return TransientRefList(item, name, otherName, readOnly)
 
-    def _createChildren(self, parent):
+    def _createChildren(self, parent, new):
 
-        return XMLChildren(self, parent)
+        return XMLChildren(self, parent, new)
 
     def _getLobType(self, mode):
 
@@ -160,7 +161,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return self._indexWriter
 
-    def refresh(self):
+    def refresh(self, mergeFn=None):
 
         store = self.repository.store
         newVersion = store.getVersion()
@@ -169,7 +170,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
             histNotifications = RepositoryNotifications()
             unloads = {}
             self._mergeItems(self._version, newVersion,
-                             histNotifications, unloads)
+                             histNotifications, unloads, mergeFn)
                     
             self.logger.debug('refreshing view from version %d to %d',
                               self._version, newVersion)
@@ -196,7 +197,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         self.prune(10000)
 
-    def commit(self):
+    def commit(self, mergeFn=None):
 
         if self._status & RepositoryView.COMMITTING == 0:
             if timing: tools.timing.begin("Repository commit")
@@ -226,7 +227,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 while True:
                     try:
                         while True:
-                            self.refresh()
+                            self.refresh(mergeFn)
                             lock = store.acquireLock()
                             newVersion = store.getVersion()
                             if newVersion > self._version:
@@ -376,7 +377,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store._items.applyHistory(call, fromVersion, toVersion)
 
-    def _mergeItems(self, oldVersion, toVersion, histNotifications, unloads):
+    def _mergeItems(self, oldVersion, toVersion, histNotifications, unloads,
+                    mergeFn):
 
         merges = {}
 
@@ -431,13 +433,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     item._status |= Item.RMERGED
 
                 if newDirty & oldDirty & Item.VDIRTY:
-                    self._mergeVDIRTY(item, toVersion, dirties)
+                    self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
                     oldDirty &= ~Item.VDIRTY
                     item._status |= Item.VMERGED
 
                 if newDirty & oldDirty == 0:
                     if oldDirty & Item.VDIRTY:
-                        self._mergeVDIRTY(item, toVersion, None)
+                        self._mergeVDIRTY(item, toVersion, None, mergeFn)
                         oldDirty &= ~Item.VDIRTY
                         item._status |= Item.VMERGED
                     if oldDirty & Item.RDIRTY:
@@ -486,17 +488,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._e_1_overlap(item, name)
         item._references._dirties = dirties
 
-    def _mergeVDIRTY(self, item, toVersion, dirties):
+    def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
 
         if dirties is not None:
             dirties = HashTuple(dirties)
-
-            for name in item._values._getDirties():
-                if name in dirties:
-                    self._e_2_overlap(item, name)
-            for name in item._references._getDirties():
-                if name in dirties:
-                    self._e_2_overlap(item, name)
+            overlaps = []
+            overlaps.extend([name for name in item._values._getDirties()
+                             if name in dirties])
+            overlaps.extend([name for name in item._references._getDirties()
+                             if name in dirties])
+            if overlaps:
+                self._e_2_overlap(item, overlaps[0])
 
         store = self.repository.store
         mergeHandler = MergeHandler(self, item)
@@ -522,3 +524,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def _e_2_overlap(self, item, name):
         
         raise MergeError, ('values', item, 'merging values is not yet implemented, overlapping attribute: %s' %(name), MergeError.BUG)
+
+    def _e_2v_overlap(self, item, name):
+        
+        raise MergeError, ('values', item, "literal value attribute '%s' changed in both views" %(name), MergeError.VALUE)

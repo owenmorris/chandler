@@ -60,27 +60,18 @@ class RefArgs(object):
             
         self.item._references._setRef(self.name, other, self.otherName,
                                       **self.kwds)
-        
 
-class ItemHandler(ContentHandler):
-    'A SAX ContentHandler implementation responsible for loading items.'
-    
-    typeHandlers = {}
-    
-    def __init__(self, repository, parent, afterLoadHooks):
 
-        ContentHandler.__init__(self)
+class ValueHandler(ContentHandler):
 
+    def __init__(self, repository):
+
+        super(ValueHandler, self).__init__()
         self.repository = repository
-        self.loading = repository.isLoading()
-        self.parent = parent
-        self.afterLoadHooks = afterLoadHooks
-        self.item = None
-        self.handlerClass = ItemHandler
-        
+
         if repository not in ItemHandler.typeHandlers:
-            ItemHandler.typeHandlers[repository] = {}
-        
+            ValueHandler.typeHandlers[repository] = {}
+
     def startDocument(self):
 
         self.tagAttrs = []
@@ -102,7 +93,7 @@ class ItemHandler(ContentHandler):
                     delegateClass = type(delegate)
                 else:
                     delegate = self
-                    delegateClass = self.handlerClass
+                    delegateClass = type(self)
         
                 method = getattr(delegateClass, tag + 'Start', None)
                 if method is not None:
@@ -131,7 +122,7 @@ class ItemHandler(ContentHandler):
                     delegateClass = type(delegate)
                 else:
                     delegate = self
-                    delegateClass = self.handlerClass
+                    delegateClass = type(self)
             
                 attrs = self.tagAttrs.pop()
                 method = getattr(delegateClass, self.tags.pop() + 'End', None)
@@ -147,6 +138,325 @@ class ItemHandler(ContentHandler):
 
         self.data += data
 
+    def itemStart(self, itemHandler, attrs):
+
+        self.collections = []
+        self.withSchema = attrs.get('withSchema', 'False') == 'True'
+        self.kindRef = None
+        self.kind = None
+        self.attributes = []
+
+    def kindEnd(self, itemHandler, attrs):
+
+        if attrs['type'] == 'uuid':
+            self.kindRef = UUID(self.data)
+        else:
+            self.kindRef = Path(self.data)
+
+        self.kind = self.repository._findSchema(self.kindRef, self.withSchema)
+
+    def attributeStart(self, itemHandler, attrs):
+
+        attribute = self.getAttribute(attrs['name'])
+        self.attributes.append(attribute)
+
+        cardinality = self.getCardinality(attribute, attrs)
+        
+        if cardinality == 'list':
+            self.collections.append(PersistentList(None, None, None))
+        elif cardinality == 'dict':
+            self.collections.append(PersistentDict(None, None, None))
+        else:
+            self.valueStart(itemHandler, attrs)
+
+    def valueStart(self, itemHandler, attrs):
+
+        if self._setupTypeDelegate(attrs):
+            return
+
+        if (self.tags[-1] == 'attribute' and
+            self._setupTypeDelegate(self.tagAttrs[-1])):
+            return
+
+        typeName = None
+
+        if attrs.has_key('type'):
+            typeName = attrs['type']
+        elif (self.tags[-1] == 'attribute' and
+              self.tagAttrs[-1].has_key('type')):
+            typeName = self.tagAttrs[-1]['type']
+
+        if typeName == 'dict':
+            self.collections.append(PersistentDict(None, None, None))
+        elif typeName == 'list':
+            self.collections.append(PersistentList(None, None, None))
+
+    # valueEnd is called when parsing 'dict' or 'list' cardinality values of
+    # one type (type specified with cardinality) or of unspecified type
+    # (type specified with value) or 'dict' or 'list' type values of 'single'
+    # or unspecified cardinality or values of type 'Dictionary' or 'List' of
+    # any cardinality. A mess of overloading.
+    
+    def attributeEnd(self, itemHandler, attrs, **kwds):
+
+        if kwds.has_key('value'):
+            value = kwds['value']
+        else:
+            attribute = self.attributes.pop()
+            cardinality = self.getCardinality(attribute, attrs)
+
+            if cardinality == 'dict' or cardinality == 'list':
+                value = self.collections.pop()
+            else:
+                typeName = self.getTypeName(attribute, attrs, 'str')
+                if typeName == 'dict' or typeName == 'list':
+                    value = self.collections.pop()
+                else:
+                    value = self.makeValue(typeName, self.data)
+                    if attrs.has_key('eval'):
+                        typeHandler = self.typeHandler(self.repository, value)
+                        value = typeHandler.eval(value)
+            
+        if self.delegates:
+            raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name or self.uuid, attrs['name'], self.delegates)
+
+        self.values[attrs['name']] = value
+
+        flags = attrs.get('flags', None)
+        if flags is not None:
+            flags = int(flags)
+            self.values._setFlags(attrs['name'], flags)
+            if flags & Values.READONLY:
+                if isinstance(value, PersistentCollection):
+                    value.setReadOnly()
+                elif isinstance(value, ItemValue):
+                    value._setReadOnly()
+
+    def valueEnd(self, itemHandler, attrs, **kwds):
+
+        if kwds.has_key('value'):
+            value = kwds['value']
+        else:
+            typeName = self.getTypeName(self.attributes[-1], attrs, None)
+            if typeName is None:
+                if self.tags[-1] == 'attribute':
+                    typeName = self.getTypeName(self.attributes[-1],
+                                                self.tagAttrs[-1], 'str')
+                else:
+                    typeName = 'str'
+                
+            if typeName == 'dict' or typeName == 'list':
+                value = self.collections.pop()
+            else:
+                value = self.makeValue(typeName, self.data)
+                if attrs.has_key('eval'):
+                    typeHandler = self.typeHandler(self.repository, value)
+                    value = typeHandler.eval(value)
+
+        name = attrs.get('name')
+
+        if name is None:
+            self.collections[-1].append(value, False)
+        else:
+            name = self.makeValue(attrs.get('nameType', 'str'), name)
+            self.collections[-1].__setitem__(name, value, False)
+
+    def getAttribute(self, name):
+
+        if self.withSchema is False and self.kind is not None:
+            return self.kind.getAttribute(name)
+        else:
+            return None
+
+    def getCardinality(self, attribute, attrs):
+
+        cardinality = attrs.get('cardinality')
+
+        if cardinality is None:
+            if attribute is None:
+                cardinality = 'single'
+            else:
+                cardinality = attribute.getAspect('cardinality',
+                                                  default='single')
+
+        return cardinality
+
+    def getTypeName(self, attribute, attrs, default):
+
+        if attrs.has_key('typeid'):
+            try:
+                return self.repository[UUID(attrs['typeid'])].handlerName()
+            except KeyError:
+                raise TypeError, "Type %s not found" %(attrs['typeid'])
+
+        if attrs.has_key('typepath'):
+            typeItem = self.repository.find(Path(attrs['typepath']))
+            if typeItem is None:
+                raise TypeError, "Type %s not found" %(attrs['typepath'])
+            return typeItem.handlerName()
+
+        if attrs.has_key('type'):
+            return attrs['type']
+
+        if attribute is not None:
+            attrType = attribute.getAspect('type', default=None)
+            if attrType is not None:
+                return attrType.handlerName()
+
+        return default
+
+    def _setupTypeDelegate(self, attrs):
+
+        if attrs.has_key('typeid'):
+            try:
+                attrType = self.repository[UUID(attrs['typeid'])]
+            except KeyError:
+                raise TypeError, "Type %s not found" %(attrs['typeid'])
+
+            self.delegates.append(attrType)
+            attrType.startValue(self)
+
+            return True
+        
+        elif self.attributes[-1]:
+            attrType = self.attributes[-1].getAspect('type')
+            if attrType is not None and not attrType.isAlias():
+                self.delegates.append(attrType)
+                attrType.startValue(self)
+
+                return True
+
+        return False
+    
+    def makeValue(cls, typeName, data):
+
+        try:
+            return cls.typeDispatch[typeName](data)
+        except KeyError:
+            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
+
+    def typeHandler(cls, repository, value):
+
+        try:
+            for t in ItemHandler.typeHandlers[repository][type(value)]:
+                if t.recognizes(value):
+                    return t
+        except KeyError:
+            pass
+
+        typeKind = ItemHandler.typeHandlers[repository][None]
+        types = typeKind.findTypes(value)
+        if types:
+            return types[0]
+            
+        raise TypeError, 'No handler for values of type %s' %(type(value))
+
+    def makeString(cls, repository, value):
+
+        return cls.typeHandler(repository, value).makeString(value)
+    
+    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
+                 attrs, generator, withSchema):
+
+        if name is not None:
+            if not isinstance(name, str) and not isinstance(name, unicode):
+                attrs['nameType'] = cls.typeHandler(repository,
+                                                    value).handlerName()
+                attrs['name'] = cls.makeString(repository, name)
+            else:
+                attrs['name'] = name
+
+        if attrId is not None:
+            attrs['id'] = attrId.str64()
+
+        if attrCard == 'single':
+            if attrType is not None and attrType.isAlias():
+                aliasType = attrType.type(value)
+                if aliasType is None:
+                    raise TypeError, "%s does not alias type of value '%s' of type %s" %(attrType.itsPath, value, type(value))
+                attrType = aliasType
+                attrs['typeid'] = attrType._uuid.str64()
+
+            elif withSchema or attrType is None:
+                attrType = cls.typeHandler(repository, value)
+                attrs['typeid'] = attrType._uuid.str64()
+
+        else:
+            attrs['cardinality'] = attrCard
+
+        generator.startElement(tag, attrs)
+
+        if attrCard == 'single':
+
+            from repository.item.Item import Item
+            
+            if isinstance(value, Item):
+                raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
+
+            if value is Item.Nil:
+                raise ValueError, 'Cannot persist Item.Nil'
+
+            if attrType is not None:
+                if not attrType.recognizes(value):
+                    raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.itsPath)
+                else:
+                    attrType.typeXML(value, generator, withSchema)
+            else:
+                generator.characters(cls.makeString(repository, value))
+            
+        elif attrCard == 'list':
+            for val in value._itervalues():
+                cls.xmlValue(repository,
+                             None, val, 'value', attrType, 'single',
+                             None, {}, generator, withSchema)
+
+        elif attrCard == 'dict':
+            for key, val in value._iteritems():
+                cls.xmlValue(repository,
+                             key, val, 'value', attrType, 'single',
+                             None, {}, generator, withSchema)
+        else:
+            raise ValueError, attrCard
+
+        generator.endElement(tag)
+
+    xmlValue = classmethod(xmlValue)
+    typeHandler = classmethod(typeHandler)
+    makeString = classmethod(makeString)
+    makeValue = classmethod(makeValue)
+
+    typeHandlers = {}
+    typeDispatch = {
+        'str': str,
+        'unicode': unicode,
+        'uuid': UUID,
+        'path': Path,
+        'ref': lambda(data): SingleRef(UUID(data)),
+        'bool': lambda(data): data != 'False',
+        'int': int,
+        'long': long,
+        'float': float,
+        'complex': complex,
+        'class': lambda(data): ClassLoader.loadClass(data),
+        'none': lambda(data): None,
+    }
+
+
+class ItemHandler(ValueHandler):
+    """
+    A SAX ContentHandler implementation responsible for loading items.
+    """
+    
+    def __init__(self, repository, parent, afterLoadHooks, new):
+
+        super(ItemHandler, self).__init__(repository)
+
+        self.loading = repository.isLoading()
+        self.parent = parent
+        self.afterLoadHooks = afterLoadHooks
+        self.item = None
+        self.new = new
+        
     def refStart(self, itemHandler, attrs):
 
         if self.tags[-1] == 'item':
@@ -183,24 +493,23 @@ class ItemHandler(ContentHandler):
 
         if refList is None:
             refList = self.repository._createRefList(None, name, otherName,
-                                                     True, readOnly, uuid)
+                                                     True, readOnly, self.new,
+                                                     uuid)
                 
         self.collections.append(refList)
 
     def itemStart(self, itemHandler, attrs):
 
+        super(ItemHandler, self).itemStart(itemHandler, attrs)
+
         self.values = Values(None)
         self.references = References(None)
-        self.collections = []
-        self.attributes = []
+
         self.refs = []
         self.name = None
-        self.kind = None
         self.cls = None
-        self.kindRef = None
         self.parentRef = None
         self.isContainer = False
-        self.withSchema = attrs.get('withSchema', 'False') == 'True'
         self.uuid = UUID(attrs.get('uuid'))
         self.version = long(attrs.get('version', '0L'))
         self.update = update = attrs.get('update')
@@ -282,7 +591,7 @@ class ItemHandler(ContentHandler):
                        update = self.update)
 
         if self.isContainer and item._children is None:
-            item._children = self.repository._createChildren(item)
+            item._children = self.repository._createChildren(item, self.new)
 
         if not self.update:
             self.repository._registerItem(item)
@@ -317,12 +626,7 @@ class ItemHandler(ContentHandler):
 
         assert not self.item
 
-        if attrs['type'] == 'uuid':
-            self.kindRef = UUID(self.data)
-        else:
-            self.kindRef = Path(self.data)
-
-        self.kind = self.repository._findSchema(self.kindRef, self.withSchema)
+        super(ItemHandler, self).kindEnd(itemHandler, attrs)
         if self.kind is None:
             if self.withSchema:
                 self.afterLoadHooks.append(self._setKind)
@@ -423,150 +727,6 @@ class ItemHandler(ContentHandler):
         del kwds['name']
         refList.addIndex(attrs['name'], attrs['type'], **kwds)
 
-    def attributeStart(self, itemHandler, attrs):
-
-        attribute = self.getAttribute(attrs['name'])
-        self.attributes.append(attribute)
-
-        cardinality = self.getCardinality(attribute, attrs)
-        typeName = self.getTypeName(attribute, attrs, 'str')
-        
-        if cardinality == 'list':
-            self.collections.append(PersistentList(None, None, None))
-        elif cardinality == 'dict':
-            self.collections.append(PersistentDict(None, None, None))
-        else:
-            self.valueStart(itemHandler, attrs)
-
-    def valueStart(self, itemHandler, attrs):
-
-        if self.setupTypeDelegate(attrs):
-            return
-
-        if (self.tags[-1] == 'attribute' and
-            self.setupTypeDelegate(self.tagAttrs[-1])):
-            return
-
-        typeName = None
-
-        if attrs.has_key('type'):
-            typeName = attrs['type']
-        elif (self.tags[-1] == 'attribute' and
-              self.tagAttrs[-1].has_key('type')):
-            typeName = self.tagAttrs[-1]['type']
-
-        if typeName == 'dict':
-            self.collections.append(PersistentDict(None, None, None))
-        elif typeName == 'list':
-            self.collections.append(PersistentList(None, None, None))
-
-    # valueEnd is called when parsing 'dict' or 'list' cardinality values of
-    # one type (type specified with cardinality) or of unspecified type
-    # (type specified with value) or 'dict' or 'list' type values of 'single'
-    # or unspecified cardinality or values of type 'Dictionary' or 'List' of
-    # any cardinality. A mess of overloading.
-    
-    def attributeEnd(self, itemHandler, attrs, **kwds):
-
-        if kwds.has_key('value'):
-            value = kwds['value']
-        else:
-            attribute = self.attributes.pop()
-            cardinality = self.getCardinality(attribute, attrs)
-
-            if cardinality == 'dict' or cardinality == 'list':
-                value = self.collections.pop()
-            else:
-                typeName = self.getTypeName(attribute, attrs, 'str')
-                if typeName == 'dict' or typeName == 'list':
-                    value = self.collections.pop()
-                else:
-                    value = self.makeValue(typeName, self.data)
-                    if attrs.has_key('eval'):
-                        typeHandler = self.typeHandler(self.repository, value)
-                        value = typeHandler.eval(value)
-            
-        if self.delegates:
-            raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name or self.uuid, attrs['name'], self.delegates)
-
-        self.values[attrs['name']] = value
-
-        flags = attrs.get('flags', None)
-        if flags is not None:
-            flags = int(flags)
-            self.values._setFlags(attrs['name'], flags)
-            if flags & Values.READONLY:
-                if isinstance(value, PersistentCollection):
-                    value.setReadOnly()
-                elif isinstance(value, ItemValue):
-                    value._setReadOnly()
-
-    def valueEnd(self, itemHandler, attrs, **kwds):
-
-        if kwds.has_key('value'):
-            value = kwds['value']
-        else:
-            typeName = self.getTypeName(self.attributes[-1], attrs, None)
-            if typeName is None:
-                if self.tags[-1] == 'attribute':
-                    typeName = self.getTypeName(self.attributes[-1],
-                                                self.tagAttrs[-1], 'str')
-                else:
-                    typeName = 'str'
-                
-            if typeName == 'dict' or typeName == 'list':
-                value = self.collections.pop()
-            else:
-                value = self.makeValue(typeName, self.data)
-                if attrs.has_key('eval'):
-                    typeHandler = self.typeHandler(self.repository, value)
-                    value = typeHandler.eval(value)
-
-        name = attrs.get('name')
-
-        if name is None:
-            self.collections[-1].append(value, False)
-        else:
-            name = self.makeValue(attrs.get('nameType', 'str'), name)
-            self.collections[-1].__setitem__(name, value, False)
-
-    def getCardinality(self, attribute, attrs):
-
-        cardinality = attrs.get('cardinality')
-
-        if cardinality is None:
-            if attribute is None:
-                cardinality = 'single'
-            else:
-                cardinality = attribute.getAspect('cardinality',
-                                                  default='single')
-
-        return cardinality
-
-    def getTypeName(self, attribute, attrs, default):
-
-        if attrs.has_key('typeid'):
-            try:
-                return self.repository[UUID(attrs['typeid'])].handlerName()
-            except KeyError:
-                raise TypeError, "Type %s not found" %(attrs['typeid'])
-
-        if attrs.has_key('typepath'):
-            typeItem = self.repository.find(Path(attrs['typepath']))
-            if typeItem is None:
-                raise TypeError, "Type %s not found" %(attrs['typepath'])
-            return typeItem.handlerName()
-
-        if attrs.has_key('type'):
-            return attrs['type']
-
-        if attribute is not None:
-            attrType = attribute.getAspect('type', default=None)
-            if attrType is not None:
-                return attrType.handlerName()
-
-        return default
-
     def refName(self, attrs, attr):
 
         try:
@@ -586,163 +746,17 @@ class ItemHandler(ContentHandler):
 
         return otherName
 
-    def getAttribute(self, name):
-
-        if self.withSchema is False and self.kind is not None:
-            return self.kind.getAttribute(name)
-        else:
-            return None
-
-    def setupTypeDelegate(self, attrs):
-
-        if attrs.has_key('typeid'):
-            try:
-                attrType = self.repository[UUID(attrs['typeid'])]
-            except KeyError:
-                raise TypeError, "Type %s not found" %(attrs['typeid'])
-
-            self.delegates.append(attrType)
-            attrType.startValue(self)
-
-            return True
-        
-        elif self.attributes[-1]:
-            attrType = self.attributes[-1].getAspect('type')
-            if attrType is not None and not attrType.isAlias():
-                self.delegates.append(attrType)
-                attrType.startValue(self)
-
-                return True
-
-        return False
-    
-    def makeValue(cls, typeName, data):
-
-        try:
-            return cls.typeDispatch[typeName](data)
-        except KeyError:
-            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
-
-    def typeHandler(cls, repository, value):
-
-        try:
-            for uuid in ItemHandler.typeHandlers[repository][type(value)]:
-                t = repository[uuid]
-                if t.recognizes(value):
-                    return t
-        except KeyError:
-            pass
-
-        typeKind = repository[ItemHandler.typeHandlers[repository][None]]
-        types = typeKind.findTypes(value)
-        if types:
-            return types[0]
-            
-        raise TypeError, 'No handler for values of type %s' %(type(value))
-
-    def typeName(cls, repository, value):
-
-        return cls.typeHandler(repository, value).handlerName()
-
-    def makeString(cls, repository, value):
-
-        return cls.typeHandler(repository, value).makeString(value)
-    
-    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
-                 attrs, generator, withSchema):
-
-        if name is not None:
-            if not isinstance(name, str) and not isinstance(name, unicode):
-                attrs['nameType'] = cls.typeName(repository, name)
-                attrs['name'] = cls.makeString(repository, name)
-            else:
-                attrs['name'] = name
-
-        if attrId is not None:
-            attrs['id'] = attrId.str64()
-
-        if attrCard == 'single':
-            if attrType is not None and attrType.isAlias():
-                aliasType = attrType.type(value)
-                if aliasType is None:
-                    raise TypeError, "%s does not alias type of value '%s' of type %s" %(attrType.itsPath, value, type(value))
-                attrType = aliasType
-                attrs['typeid'] = attrType._uuid.str64()
-
-            elif withSchema or attrType is None:
-                attrType = cls.typeHandler(repository, value)
-                attrs['typeid'] = attrType._uuid.str64()
-
-        else:
-            attrs['cardinality'] = attrCard
-
-        generator.startElement(tag, attrs)
-
-        if attrCard == 'single':
-
-            from repository.item.Item import Item
-            
-            if isinstance(value, Item):
-                raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
-
-            if value is Item.Nil:
-                raise ValueError, 'Cannot persist Item.Nil'
-
-            if attrType is not None:
-                if not attrType.recognizes(value):
-                    raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.itsPath)
-                else:
-                    attrType.typeXML(value, generator, withSchema)
-            else:
-                generator.characters(cls.makeString(repository, value))
-            
-        elif attrCard == 'list':
-            for val in value._itervalues():
-                cls.xmlValue(repository,
-                             None, val, 'value', attrType, 'single',
-                             None, {}, generator, withSchema)
-
-        elif attrCard == 'dict':
-            for key, val in value._iteritems():
-                cls.xmlValue(repository,
-                             key, val, 'value', attrType, 'single',
-                             None, {}, generator, withSchema)
-        else:
-            raise ValueError, attrCard
-
-        generator.endElement(tag)
-
-    typeName = classmethod(typeName)
-    typeHandler = classmethod(typeHandler)
-    makeString = classmethod(makeString)
-    makeValue = classmethod(makeValue)
-    xmlValue = classmethod(xmlValue)
-
-    typeDispatch = {
-        'str': str,
-        'unicode': unicode,
-        'uuid': UUID,
-        'path': Path,
-        'ref': lambda(data): SingleRef(UUID(data)),
-        'bool': lambda(data): data != 'False',
-        'int': int,
-        'long': long,
-        'float': float,
-        'complex': complex,
-        'class': lambda(data): ClassLoader.loadClass(data),
-        'none': lambda(data): None,
-    }
-
 
 class ItemsHandler(ContentHandler):
 
-    def __init__(self, repository, parent, afterLoadHooks):
+    def __init__(self, repository, parent, afterLoadHooks, new):
 
-        ContentHandler.__init__(self)
+        super(ItemsHandler, self).__init__()
 
         self.repository = repository
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
+        self.new = new
 
     def startDocument(self):
 
@@ -754,7 +768,7 @@ class ItemsHandler(ContentHandler):
         if self.exception is None:
             if tag == 'item':
                 self.itemHandler = ItemHandler(self.repository, self.parent,
-                                               self.afterLoadHooks)
+                                               self.afterLoadHooks, self.new)
                 self.itemHandler.startDocument()
 
             if self.itemHandler is not None:
@@ -796,9 +810,8 @@ class MergeHandler(ItemHandler):
 
     def __init__(self, repository, origItem):
 
-        ItemHandler.__init__(self, repository, None, None)
+        super(MergeHandler, self).__init__(repository, None, None, False)
         self.origItem = origItem
-        self.handlerClass = MergeHandler
 
     def itemEnd(self, itemHandler, attrs):
 

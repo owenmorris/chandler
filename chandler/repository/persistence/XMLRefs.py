@@ -101,9 +101,7 @@ class PersistentRefs(object):
 
     def resolveAlias(self, alias, load=True):
 
-        load = load and not self._item.isNew()
         key = None
-        
         if load:
             view = self.view
             key = view.repository.store.readName(view._version,
@@ -175,12 +173,12 @@ class PersistentRefs(object):
 
 class XMLRefList(RefList, PersistentRefs):
 
-    def __init__(self, view, item, name, otherName, readOnly, uuid):
+    def __init__(self, view, item, name, otherName, readOnly, new, uuid):
 
         self.uuid = uuid or UUID()
 
         PersistentRefs.__init__(self, view)
-        RefList.__init__(self, item, name, otherName, readOnly)
+        RefList.__init__(self, item, name, otherName, readOnly, new)
 
     def _getRepository(self):
 
@@ -192,8 +190,11 @@ class XMLRefList(RefList, PersistentRefs):
 
     def resolveAlias(self, alias, load=True):
 
-        return (RefList.resolveAlias(self, alias, load) or
-                PersistentRefs.resolveAlias(self, alias, load))
+        key = RefList.resolveAlias(self, alias, load)
+        if key is None and not self._flags & LinkedMap.NEW:
+            key = PersistentRefs.resolveAlias(self, alias, load)
+
+        return key
             
     def linkChanged(self, link, key):
 
@@ -233,7 +234,7 @@ class XMLRefList(RefList, PersistentRefs):
             store = self.view.repository.store
 
             item = self._item
-            if not (item.isNew() or
+            if not (self._flags & LinkedMap.NEW or
                     item.isAttributeDirty(self._name, item._references) or
                     len(self._changedRefs) == 0):
                 raise AssertionError, '%s.%s not marked dirty' %(Item.__repr__(item), self._name)
@@ -280,6 +281,8 @@ class XMLRefList(RefList, PersistentRefs):
             raise ValueError, mode
 
     def _clearDirties(self):
+
+        self._flags &= ~LinkedMap.NEW
 
         PersistentRefs._clearDirties(self)
         if self._indexes:
@@ -437,12 +440,12 @@ class XMLNumericIndex(NumericIndex):
 
 class XMLChildren(Children, PersistentRefs):
 
-    def __init__(self, view, item):
+    def __init__(self, view, item, new=True):
 
         self.uuid = item.itsUUID
 
         PersistentRefs.__init__(self, view)
-        Children.__init__(self, item)
+        Children.__init__(self, item, new)
 
     def __len__(self):
 
@@ -455,10 +458,13 @@ class XMLChildren(Children, PersistentRefs):
 
     def _load(self, key):
 
+        if self._flags & LinkedMap.NEW:
+            return False
+
         if not self._isRemoved(key):
             child = self.view.find(key)
             if child is not None:
-                if key not in self:
+                if not self._contains(key):
                     try:
                         loading = self.view._setLoading(True)
                         self.__setitem__(key, child, alias=child._name)
@@ -470,8 +476,11 @@ class XMLChildren(Children, PersistentRefs):
 
     def resolveAlias(self, alias, load=True):
 
-        return (Children.resolveAlias(self, alias, load) or
-                PersistentRefs.resolveAlias(self, alias, load))
+        key = Children.resolveAlias(self, alias, load)
+        if key is None and not self._flags & LinkedMap.NEW:
+            key = PersistentRefs.resolveAlias(self, alias, load)
+
+        return key
             
     def linkChanged(self, link, key):
 
@@ -542,6 +551,7 @@ class XMLChildren(Children, PersistentRefs):
 
     def _clearDirties(self):
 
+        self._flags &= ~LinkedMap.NEW
         PersistentRefs._clearDirties(self)
 
     def _copy_(self, target):
@@ -566,7 +576,7 @@ class XMLChildren(Children, PersistentRefs):
     
     def _mergeChanges(self, oldVersion, toVersion):
 
-        target = self.view._createChildren(self._item)
+        target = self.view._createChildren(self._item, False)
         self._copy_(target)
         self._item._setChildren(target)
 

@@ -753,6 +753,22 @@ class Item(object):
                 result = result and check
 
         return result
+
+    def getVersion(self, latest=False):
+        """
+        Return the version number of this item.
+
+        @param latest: if C{True}, return the latest version number of this
+        item as it stands now in the repository; if C{False}, the default,
+        return the current version number of this item in this view.
+        @type latest: boolean
+        @return: integer
+        """
+
+        if latest:
+            return self.getRepositoryView().getItemVersion(0x7fffffff, self)
+
+        return self._version
         
     def getValue(self, attribute, key=None, alias=None,
                  default=None, _attrDict=None):
@@ -1881,7 +1897,8 @@ class Item(object):
                     raise ChildNameError, (self, item._name)
 
         else:
-            self._children = self.getRepositoryView()._createChildren(self)
+            self._children = self.getRepositoryView()._createChildren(self,
+                                                                      True)
 
         self._children.__setitem__(item._uuid, item, previous, next, name)
 
@@ -2258,7 +2275,8 @@ class Item(object):
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
         return self.getRepositoryView()._createRefList(self, name, otherName,
-                                                       persist, False, None)
+                                                       persist, False, True,
+                                                       None)
 
     def _commitMerge(self, version):
 
@@ -2427,9 +2445,9 @@ class Item(object):
 
 class Children(LinkedMap):
 
-    def __init__(self, item):
+    def __init__(self, item, new):
 
-        super(Children, self).__init__()
+        super(Children, self).__init__(new)
 
         self._item = None
         self._setItem(item)

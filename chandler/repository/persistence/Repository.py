@@ -178,7 +178,7 @@ class Repository(object):
 
         return RepositoryView(self, name)
 
-    def commit(self):
+    def commit(self, mergeFn=None):
         """
         Commit changes in the current repository view.
 
@@ -192,7 +192,7 @@ class Repository(object):
 
         self.view.commit()
 
-    def refresh(self):
+    def refresh(self, mergeFn=None):
         """
         Refresh the current repository view to the changes made in other views.
 
@@ -541,6 +541,9 @@ class Store(object):
 
     def getDocVersion(self, doc):
         raise NotImplementedError, "%s.getDocVersion" %(type(self))
+
+    def getItemVersion(self, version, uuid):
+        raise NotImplementedError, "%s.getItemVersion" %(type(self))
 
     def attachView(self, view):
         pass

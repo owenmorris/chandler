@@ -287,7 +287,18 @@ class wxApplication (wx.App):
             self.ignoreSynchronizeWidget = False
             self.RenderMainView ()
 
-            Globals.repository.commit()
+            if '-prof' in sys.argv:
+                import hotshot, hotshot.stats
+                prof = hotshot.Profile('commit.log')
+                prof.runcall(Globals.repository.commit)
+                prof.close()
+                stats = hotshot.stats.load('commit.log')
+                stats.strip_dirs()
+                stats.sort_stats('time', 'calls')
+                stats.print_stats(125)
+            else:
+                Globals.repository.commit()
+                
             self.mainFrame.Show()
 
             from osaf.framework.wakeup.WakeupCaller import WakeupCaller

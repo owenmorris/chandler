@@ -89,7 +89,7 @@ class DBGenerator(XMLGenerator):
         elif tag in ('attribute', 'ref'):
             super(DBGenerator, self).endElement(tag)
             uValue = UUID()
-            self.values.append(uValue)
+            self.values.append((self.attrName, uValue))
             self.store._values.saveValue(self._valueBuffer,
                                          self.uItem, self.version,
                                          self.uAttr, uValue,

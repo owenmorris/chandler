@@ -33,7 +33,9 @@ class FilterQuery(Query):
 
 
 class KindQuery(Query):
-    'A query that returns all items of certain kinds or subkinds thereof'
+    """
+    A query that returns all items of certain kinds or subkinds thereof.
+    """
 
     def __init__(self, recursive=True):
 
@@ -42,9 +44,18 @@ class KindQuery(Query):
 
     def run(self, kinds):
 
+        if kinds:
+            newItems = kinds[0].itsView._newItems()
+            if self.recursive or len(kinds) > 1:
+                newItems = list(newItems)
+            for item in self._run(kinds, newItems):
+                yield item
+
+    def _run(self, kinds, newItems):
+
         for kind in kinds:
-            for item in kind.itsView._newItems():
-                if item.itsKind is kind:
+            for item in newItems:
+                if item._kind is kind:
                     yield item
 
             for item in kind.itsView.queryItems(kind=kind):
@@ -52,7 +63,7 @@ class KindQuery(Query):
 
             if self.recursive:
                 subKinds = kind.getAttributeValue('subKinds', default=[])
-                for item in self.run(subKinds):
+                for item in self._run(subKinds, newItems):
                     yield item
 
 

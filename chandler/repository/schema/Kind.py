@@ -27,7 +27,6 @@ class Kind(Item):
         self._values['notFoundAttributes'] = []
         refList = self._refList('inheritedAttributes',
                                 'inheritingKinds', False)
-        
         self._references['inheritedAttributes'] = refList
         self._status |= Item.SCHEMA | Item.PINNED
 
@@ -332,18 +331,21 @@ class Kind(Item):
         if self is superKind:
             return True
 
-        superKinds = self.superKinds
+        return superKind in self._kindOf()
 
-        if len(superKinds) > 0:
-            for kind in superKinds:
-                if kind is superKind:
-                    return True
+    def _kindOf(self):
 
-            for kind in superKinds:
-                if kind.isKindOf(superKind):
-                    return True
+        try:
+            return self._references['kindOf']
 
-        return False
+        except KeyError:
+            kindOf = self._refList('kindOf', 'ofKind', False)
+            self._references['kindOf'] = kindOf
+            for superKind in self.superKinds:
+                kindOf.append(superKind)
+                kindOf.update(superKind._kindOf())
+
+            return kindOf
 
     def getInitialValues(self, item, values, references):
 

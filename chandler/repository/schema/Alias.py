@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from repository.schema.Types import Type
-from repository.item.ItemHandler import ItemHandler
+from repository.item.ItemHandler import ValueHandler
 
 
 class Alias(Type):
@@ -20,12 +20,11 @@ class Alias(Type):
     def type(self, value):
 
         if 'types' in self._references:
-            for t in self.getAttributeValue('types',
-                                            _attrDict=self._references):
+            for t in self._references['types']:
                 if t.recognizes(value):
                     return t
         else:
-            return ItemHandler.typeHandler(self.itsView, value)
+            return ValueHandler.typeHandler(self.itsView, value)
 
         return None
         

@@ -21,13 +21,15 @@ class RefList(LinkedMap):
     used to name and access the references contained by a ref list.
     """
     
-    def __init__(self, item, name, otherName, readOnly=False):
+    def __init__(self, item, name, otherName, readOnly, new):
         """
         The constructor for this class. A RefList should not be instantiated
         directly but created through the item and attribute it is going to
         be used with instead, as for example with: C{item.name = []}.
         """
         
+        super(RefList, self).__init__(new)
+
         self._name = name
         self._otherName = otherName
         self._item = None
@@ -35,12 +37,10 @@ class RefList(LinkedMap):
             self._setItem(item)
         self._indexes = None
 
-        self._flags = RefList.SETDIRTY
+        self._flags |= RefList.SETDIRTY
         if readOnly:
             self._flags |= RefList.READONLY
         
-        super(RefList, self).__init__()
-
     def _isRefList(self):
         return True
     
@@ -107,29 +107,26 @@ class RefList(LinkedMap):
                                     self._item.itsPath,
                                     self._name, self._otherName)
 
-    def __contains__(self, obj):
+    def __contains__(self, key):
         """
         The C{in} operator works both with C{Item} values or C{UUID} keys.
 
         To verify if there is a value for an alias, use the
         L{resolveAlias} method instead.
 
-        @param obj: the item or uuid sought
-        @type obj: an C{Item} instance, C{UUID} instance or C{None}
-        @return: C{False} if C{obj} is C{None} or is not this collection,
+        @param key: the item or uuid sought
+        @type key: an C{Item} instance, C{UUID} instance or C{None}
+        @return: C{False} if C{key} is C{None} or is not this collection,
         C{True} otherwise.
         """
 
-        if obj is None:
+        if key is None:
             return False
 
-        from repository.item.Item import Item
+        if key._isItem():
+            key = key._uuid
         
-        load = not self._item.isNew()
-        if isinstance(obj, Item):
-            return self.has_key(obj._uuid, load)
-
-        return self.has_key(obj, load)
+        return super(RefList, self).__contains__(key)
 
     def addIndex(self, indexName, indexType, **kwds):
         """
@@ -307,7 +304,6 @@ class RefList(LinkedMap):
 
     def _getRef(self, key, load=True):
 
-        load = load and not self._item.isNew()
         return super(RefList, self).__getitem__(key, load)
 
     def _setRef(self, other, **kwds):
@@ -451,6 +447,9 @@ class RefList(LinkedMap):
 
     def _load(self, key):
 
+        if self._flags & LinkedMap.NEW:
+            return False
+
         ref = self._loadRef(key)
         if ref is None:
             return False
@@ -518,7 +517,6 @@ class RefList(LinkedMap):
         @return: an C{Item} instance or C{default}
         """
 
-        load = load and not self._item.isNew()
         return super(RefList, self).get(key, default, load)
 
     def getAlias(self, item):
@@ -852,12 +850,8 @@ class RefList(LinkedMap):
 
     def itervalues(self, indexName=None):
 
-        if indexName is None:
-            for value in super(RefList, self).itervalues():
-                yield value
-        else:
-            for key in self.iterkeys(indexName):
-                yield self[key]
+        for key in self.iterkeys(indexName):
+            yield self[key]
 
     def iteritems(self, indexName=None):
 
@@ -915,14 +909,19 @@ class RefList(LinkedMap):
     def _clearDirties(self):
         pass
 
-    SETDIRTY = 0x0001
-    READONLY = 0x0002
+    SETDIRTY = 0x0002
+    READONLY = 0x0004
 
 
 class TransientRefList(RefList):
     """
     A ref collection class for transient attributes.
     """
+
+    def __init__(self, item, name, otherName, readOnly):
+
+        super(TransientRefList, self).__init__(item, name, otherName, readOnly,
+                                               True)
 
     def linkChanged(self, link, key):
         pass

@@ -208,7 +208,7 @@ class Values(dict):
 
     def _xmlValues(self, generator, withSchema, version, mode):
 
-        from repository.item.ItemHandler import ItemHandler
+        from repository.item.ItemHandler import ValueHandler
         
         item = self._item
         kind = item._kind
@@ -246,9 +246,9 @@ class Values(dict):
                     attrs['flags'] = str(flags)
 
                 try:
-                    ItemHandler.xmlValue(repository, key, value, 'attribute',
-                                         attrType, attrCard, attrId, attrs,
-                                         generator, withSchema)
+                    ValueHandler.xmlValue(repository, key, value, 'attribute',
+                                          attrType, attrCard, attrId, attrs,
+                                          generator, withSchema)
                 except Exception, e:
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise

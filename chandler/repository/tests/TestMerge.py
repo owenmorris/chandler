@@ -448,6 +448,34 @@ class TestMerge(RepositoryTestCase):
         self.assert_(m4.previous is m2)
         self.assert_(main.check(), 'main check failed')
 
+#    def testMergeOverlapV(self):
+#
+#        def mergeFn(code, item, attribute, value):
+#            print 'mergeFn'
+#            return True, item.getAttributeValue(attribute)
+#
+#        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+#                                     'cineguide.pack')
+#        self.rep.loadPack(cineguidePack)
+#        self.rep.commit()
+#
+#        view = self.rep.createView('view')
+#        main = self.rep.setCurrentView(view)
+#
+#        k = view.findPath('//CineGuide/KHepburn')
+#        m = k.movies.first()
+#        m.title = 'changed title in view'
+#        view.commit()
+#        
+#        view = self.rep.setCurrentView(main)
+#        k = main.findPath('//CineGuide/KHepburn')
+#        m = k.movies.first()
+#        m.title = 'changed title in main'
+#        main.commit(mergeFn)
+#
+#        self.assertEquals(m.title, 'changed title in main')
+
+
 
 if __name__ == "__main__":
 #    import hotshot

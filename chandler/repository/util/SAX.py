@@ -7,12 +7,152 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys, traceback
 
 from libxml2mod import xmlEncodeSpecialChars as escape
-from libxml2 import SAXCallback, createPushParser
+from libxml2 import createPushParser
 from cStringIO import StringIO
 
 
 class SAXError(Exception):
     pass
+
+class ParserError(SAXError):
+    pass
+
+
+class SAXCallback(object):
+    """
+    Base class for SAX handlers.
+
+    Source was imported from libxml2 so that this class extends object.
+    """
+
+    def startDocument(self):
+        """
+        Called at the start of the document.
+        """
+        pass
+
+    def endDocument(self):
+        """
+        Called at the end of the document.
+        """
+        pass
+
+    def startElement(self, tag, attrs):
+        """
+        Called at the start of every element, tag is the name of
+        the element, attrs is a dictionary of the element's attributes.
+        """
+        pass
+
+    def endElement(self, tag):
+        """
+        Called at the start of every element, tag is the name of the element.
+        """
+        pass
+
+    def characters(self, data):
+        """
+        Called when character data have been read, data is the string
+        containing the data, multiple consecutive characters() callback
+        are possible.
+        """
+        pass
+
+    def cdataBlock(self, data):
+        """
+        Called when CDATA section have been read, data is the string
+        containing the data, multiple consecutive cdataBlock() callback
+        are possible.
+        """
+        pass
+
+    def reference(self, name):
+        """
+        Called when an entity reference has been found.
+        """
+        pass
+
+    def ignorableWhitespace(self, data):
+        """
+        Called when potentially ignorable white spaces have been found.
+        """
+        pass
+
+    def processingInstruction(self, target, data):
+        """
+        Called when a PI has been found, target contains the PI name and
+        data is the associated data in the PI.
+        """
+        pass
+
+    def comment(self, content):
+        """
+        Called when a comment has been found, content contains the comment.
+        """
+        pass
+
+    def externalSubset(self, name, externalID, systemID):
+        """
+        Called when a DOCTYPE declaration has been found, name is the
+        DTD name and externalID, systemID are the DTD public and system
+        identifier for that DTd if available.
+        """
+        pass
+
+    def internalSubset(self, name, externalID, systemID):
+        """
+        Called when a DOCTYPE declaration has been found, name is the
+        DTD name and externalID, systemID are the DTD public and system
+        identifier for that DTD if available.
+        """
+        pass
+
+    def entityDecl(self, name, type, externalID, systemID, content):
+        """
+        Called when an ENTITY declaration has been found, name is the
+        entity name and externalID, systemID are the entity public and
+        system identifier for that entity if available, type indicates
+        the entity type, and content reports it's string content.
+        """
+        pass
+
+    def notationDecl(self, name, externalID, systemID):
+        """
+        Called when an NOTATION declaration has been found, name is the
+        notation name and externalID, systemID are the notation public and
+        system identifier for that notation if available.
+        """
+        pass
+
+    def attributeDecl(self, elem, name, type, defi, defaultValue, nameList):
+        """
+        Called when an ATTRIBUTE definition has been found.
+        """
+        pass
+
+    def elementDecl(self, name, type, content):
+        """
+        Called when an ELEMENT definition has been found.
+        """
+        pass
+
+    def entityDecl(self, name, publicId, systemID, notationName):
+        """
+        Called when an unparsed ENTITY declaration has been found,
+        name is the entity name and publicId,, systemID are the entity
+        public and system identifier for that entity if available,
+        and notationName indicate the associated NOTATION.
+        """
+        pass
+
+    def warning(self, msg):
+        print msg
+
+    def error(self, msg):
+        raise ParserError, msg
+
+    def fatalError(self, msg):
+        raise ParserError, msg
 
 
 class ContentHandler(SAXCallback):

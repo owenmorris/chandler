@@ -12,6 +12,7 @@ from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.persistence.Repository import Repository
+from repository.util.ThreadLocal import ThreadLocal
 
 from bsddb.db import DB
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_DIRTY_READ
@@ -25,8 +26,11 @@ class DBContainer(object):
         super(DBContainer, self).__init__()
 
         self.store = store
-        self._db = DB(store.env)
         self._filename = name
+        self._threaded = ThreadLocal()
+        
+        self._db = DB(store.env)
+        self._db.set_lorder(4321)
         
         if kwds.get('ramdb', False):
             self._flags = 0
@@ -77,6 +81,7 @@ class DBContainer(object):
 
         self._db.close()
         self._db = None
+        self._threaded = None
 
     def attachView(self, view):
 
@@ -101,12 +106,39 @@ class DBContainer(object):
 
         return self._db.get(key, txn=self.store.txn, flags=self._flags)
 
-    def cursor(self, db=None):
+    def openCursor(self, db=None):
 
         if db is None:
             db = self._db
+
+        try:
+            cursor = self._threaded.cursors[db].dup()
+            self.store.repository.logger.info('duplicated cursor')
+            return cursor
+        except AttributeError:
+            self._threaded.cursors = {}
+        except KeyError:
+            pass
             
-        return db.cursor(txn=self.store.txn, flags=self._flags)
+        cursor = db.cursor(txn=self.store.txn, flags=self._flags)
+        self._threaded.cursors[db] = cursor
+
+        return cursor
+
+    def closeCursor(self, cursor, db=None):
+
+        if cursor is not None:
+
+            if db is None:
+                db = self._db
+
+            try:
+                if self._threaded.cursors[db] is cursor:
+                    del self._threaded.cursors[db]
+            except KeyError:
+                pass
+                
+            cursor.close()
 
     def _logDL(self, n):
 
@@ -267,7 +299,7 @@ class RefContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor(self._history)
+                cursor = self.openCursor(self._history)
 
                 try:
                     value = cursor.set_range(pack('>16sl', uuid._uuid,
@@ -304,8 +336,7 @@ class RefContainer(DBContainer):
                 return
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor, self._history)
                 store.abortTransaction(txnStatus)
 
     def deleteRef(self, keyBuffer, buffer, version, key):
@@ -350,7 +381,7 @@ class RefContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
 
                 try:
                     value = cursor.set_range(cursorKey, flags=self._flags)
@@ -382,8 +413,7 @@ class RefContainer(DBContainer):
                 return None
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
     # has to run within the commit transaction or it may deadlock
@@ -392,7 +422,7 @@ class RefContainer(DBContainer):
         cursor = None
             
         try:
-            cursor = self.cursor()
+            cursor = self.openCursor()
             key = item._uuid._uuid
 
             try:
@@ -404,8 +434,7 @@ class RefContainer(DBContainer):
                 pass
 
         finally:
-            if cursor is not None:
-                cursor.close()
+            self.closeCursor(cursor)
 
 
 class NamesContainer(DBContainer):
@@ -441,7 +470,7 @@ class NamesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
                 
                 try:
                     value = cursor.set_range(cursorKey, flags=self._flags)
@@ -477,8 +506,7 @@ class NamesContainer(DBContainer):
                 return None
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
     def readNames(self, version, key):
@@ -493,7 +521,7 @@ class NamesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
                 
                 try:
                     value = cursor.set_range(cursorKey, flags=self._flags)
@@ -530,8 +558,7 @@ class NamesContainer(DBContainer):
                 return results
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
 
@@ -571,7 +598,7 @@ class ACLContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
                 
                 try:
                     value = cursor.set_range(cursorKey, flags=self._flags)
@@ -614,8 +641,7 @@ class ACLContainer(DBContainer):
                 return None
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
 
@@ -668,7 +694,7 @@ class IndexesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
 
                 try:
                     value = cursor.set_range(cursorKey, flags=self._flags)
@@ -725,8 +751,7 @@ class IndexesContainer(DBContainer):
                 return None
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
 
@@ -778,21 +803,23 @@ class ItemContainer(DBContainer):
         self._writeString(buffer, moduleName)
         self._writeString(buffer, className)
 
-        buffer.write(pack('>l', len(values)))
-        for uValue in values:
+        def writeName(name):
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            buffer.write(pack('>l', _uuid.hash(name)))
+            
+        for (name, uValue) in values:
+            writeName(name)
             buffer.write(uValue._uuid)
 
         count = 0
         for name in dirtyValues:
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            buffer.write(pack('>l', _uuid.hash(name)))
+            writeName(name)
             count += 1
         for name in dirtyRefs:
-            if isinstance(name, unicode):
-                name = name.encode('utf-8')
-            buffer.write(pack('>l', _uuid.hash(name)))
+            writeName(name)
             count += 1
+        buffer.write(pack('>l', len(values)))
         buffer.write(pack('>l', count))
 
         self.put(pack('>16sl', uItem._uuid, ~version), buffer.getvalue())
@@ -811,12 +838,11 @@ class ItemContainer(DBContainer):
         l, className = self._readValue(value, offset)
         offset += l
 
-        count, = unpack('>l', value[offset:offset+4])
-        offset += 4
+        count, = unpack('>l', value[-8:-4])
         values = []
         for i in xrange(count):
-            values.append(UUID(value[offset:offset+16]))
-            offset += 16
+            values.append(UUID(value[offset+4:offset+20]))
+            offset += 20
 
         return (itemVer, uKind, status, uParent, name,
                 moduleName, className, values)
@@ -832,7 +858,7 @@ class ItemContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor()
+                cursor = self.openCursor()
 
                 try:
                     value = cursor.set_range(key, flags=self._flags)
@@ -864,8 +890,7 @@ class ItemContainer(DBContainer):
                 return None, None
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
     def loadItem(self, version, uuid):
@@ -873,6 +898,26 @@ class ItemContainer(DBContainer):
         version, item = self._findItem(version, uuid)
         if item is not None:
             return self._readItem(version, item)
+
+        return None
+
+    def findValue(self, version, uuid, name):
+
+        version, item = self._findItem(version, uuid)
+        if item is not None:
+
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            hash = _uuid.hash(name)
+
+            vCount, dCount = unpack('>ll', item[-8:])
+            pos = -(dCount + 2) * 4 - vCount * 20
+
+            for i in xrange(vCount):
+                h, uValue = unpack('>l16s', item[pos:pos+20])
+                if h == hash:
+                    return UUID(uValue)
+                pos += 20
 
         return None
 
@@ -902,7 +947,7 @@ class ItemContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor(self._index)
+                cursor = self.openCursor(self._index)
 
                 try:
                     value = cursor.set_range(uuid._uuid,
@@ -943,8 +988,7 @@ class ItemContainer(DBContainer):
                 return
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor, self._index)
                 store.abortTransaction(txnStatus)
 
     def applyHistory(self, fn, oldVersion, newVersion):
@@ -957,7 +1001,7 @@ class ItemContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction()
-                cursor = self.cursor(self._versions)
+                cursor = self.openCursor(self._versions)
 
                 try:
                     value = cursor.set_range(pack('>l', oldVersion + 1),
@@ -983,8 +1027,8 @@ class ItemContainer(DBContainer):
                         if status & Item.DELETED:
                             dirties = HashTuple()
                         else:
-                            pos = -(unpack('>l', value[-4:])[0] + 1) << 2
-                            value = value[pos:-4]
+                            pos = -(unpack('>l', value[-4:])[0] + 2) << 2
+                            value = value[pos:-8]
                             dirties = unpack('>%dl' %(len(value) >> 2), value)
                             dirties = HashTuple(dirties)
 
@@ -1002,8 +1046,7 @@ class ItemContainer(DBContainer):
                 return
 
             finally:
-                if cursor is not None:
-                    cursor.close()
+                self.closeCursor(cursor, self._versions)
                 store.abortTransaction(txnStatus)
 
 
@@ -1014,30 +1057,8 @@ class ValueContainer(DBContainer):
         super(ValueContainer, self).__init__(store, name, txn,
                                              dbname = 'data', **kwds)
 
-        if kwds.get('ramdb', False):
-            name = None
-            dbname = None
-        else:
-            dbname = 'index'
-
-        self._index = DB(store.env)
-
-        if kwds.get('create', False):
-            self._index.open(filename = name, dbname = dbname,
-                             dbtype = DB_BTREE,
-                             flags = DB_CREATE | DB_THREAD | self._flags,
-                             txn = txn)
-        else:
-            self._index.open(filename = name, dbname = dbname,
-                             dbtype = DB_BTREE,
-                             flags = DB_THREAD | self._flags,
-                             txn = txn)
-
-        self._db.associate(secondaryDB = self._index,
-                           callback = self._indexKey,
-                           flags = 0,
-                           txn = txn)
-
+        self._index = self.openIndex(name, 'index', txn,
+                                     self._indexKey, **kwds)
         if kwds.get('create', False):
             self.setVersion(0)
 

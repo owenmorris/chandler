@@ -72,11 +72,12 @@ class RepositoryView(object):
 
         return False
 
-    def _createRefList(self, item, name, otherName, persist, readOnly, uuid):
+    def _createRefList(self, item, name, otherName,
+                       persist, readOnly, new, uuid):
 
         raise NotImplementedError, "%s._createRefList" %(type(self))
     
-    def _createChildren(self, parent):
+    def _createChildren(self, parent, new):
 
         raise NotImplementedError, "%s._createChildren" %(type(self))
     
@@ -92,7 +93,7 @@ class RepositoryView(object):
         re-opening a closed view.
         """
 
-        self._roots = self._createChildren(self)
+        self._roots = self._createChildren(self, False)
         self._registry = {}
         self._deletedRegistry = {}
         self._childrenRegistry = {}
@@ -421,11 +422,11 @@ class RepositoryView(object):
                 self.dir(child, path)
             path.pop()
 
-    def _loadItemsFile(self, path, parent, afterLoadHooks):
+    def _loadItemsFile(self, path, parent, afterLoadHooks, new):
 
         self.logger.debug("Loading item file: %s", path)
             
-        handler = ItemsHandler(self, parent or self, afterLoadHooks)
+        handler = ItemsHandler(self, parent or self, afterLoadHooks, new)
         libxml2.SAXParseFile(handler, path, 0)
         if handler.errorOccurred():
             raise handler.saxError()
@@ -441,7 +442,7 @@ class RepositoryView(object):
             else:
                 self.logger.debug('loading item %s', string)
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks, False)
         ctx = libxml2.createPushParser(handler, string, len(string), "item")
         ctx.parseChunk('', 0, 1)
         if handler.errorOccurred():
@@ -454,8 +455,10 @@ class RepositoryView(object):
         if self.isDebug():
             self.logger.debug('loading item %s', doc.getDocUUID())
 
-        handler = ItemHandler(self, parent, afterLoadHooks)
+        handler = ItemHandler(self, parent, afterLoadHooks, False)
         parser.parseDoc(doc, handler)
+        if handler.errorOccurred():
+            raise handler.saxError()
 
         return handler.item
 
@@ -631,7 +634,7 @@ class RepositoryView(object):
 
         return instance
 
-    def refresh(self):
+    def refresh(self, mergeFn=None):
         """
         Refresh this view to the changes made in other views.
 
@@ -656,7 +659,7 @@ class RepositoryView(object):
         
         raise NotImplementedError, "%s.commit" %(type(self))
 
-    def commit(self):
+    def commit(self, mergeFn=None):
         """
         Commit all the changes made to items in this view.
 
@@ -802,6 +805,10 @@ class RepositoryView(object):
 
         self._status &= ~Item.MERGED
 
+    def getItemVersion(self, version, item):
+
+        return self.repository.store.getItemVersion(version, item._uuid)
+
     itsUUID = property(__getUUID)
     itsName = property(__getName)
     itsPath = property(_getPath)
@@ -862,10 +869,6 @@ class OnDemandRepositoryView(RepositoryView):
             item = self._loadItemDoc(doc, self.repository.store,
                                      self, self._hooks)
 
-            if item is None:
-                self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", doc)
-                raise ValueError, "item didn't load, see log for more info"
-                                  
             uuid = item._uuid
             if uuid in self._childrenRegistry:
                 if item._children is not None:

@@ -54,8 +54,10 @@ class MergeError(VersionConflictError):
     RENAME = 1
     MOVE   = 2
     NAME   = 3
-
+    VALUE  = 4
+    
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
                   MOVE: 'MOVE',
-                  NAME: 'NAME' }
+                  NAME: 'NAME',
+                  VALUE: 'VALUE' }

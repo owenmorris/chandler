@@ -60,7 +60,7 @@ class FileContainer(DBContainer):
 
         while True:
             try:
-                cursor = self.cursor()
+                cursor = self.openCursor()
             
                 try:
                     value = cursor.set_range('', flags=self._flags,
@@ -87,8 +87,7 @@ class FileContainer(DBContainer):
                     return results
 
             finally:
-                if cursor:
-                    cursor.close()
+                self.closeCursor(cursor)
 
     def openFile(self, name):
 
@@ -193,9 +192,10 @@ class File(object):
             raise RepositoryError, "File does not exist: %s" %(self.getName())
 
         cursor = None
-
+        blocks = self._container.store._blocks
+        
         try:
-            cursor = self._container.store._blocks.cursor()
+            cursor = blocks.openCursor()
             key = self.getKey()._uuid
             
             try:
@@ -211,8 +211,7 @@ class File(object):
             self._container.delete(self._key)
 
         finally:
-            if cursor:
-                cursor.close()
+            blocks.closeCursor(cursor)
 
     def rename(self, name):
 
