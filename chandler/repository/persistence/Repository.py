@@ -82,8 +82,7 @@ class Repository(object):
         return False
     
     def close(self, purge=False):
-
-        raise NotImplementedError, "Repository.close"
+        pass
 
     def commit(self, purge=False):
 
@@ -235,7 +234,7 @@ class RepositoryView(object):
             raise RepositoryError, "RepositoryView is not open"
 
         del self.repository._threaded.view
-    
+        
         for item in self._registry.itervalues():
             item._setStale()
 
@@ -755,9 +754,8 @@ class RepositoryNotifications(dict):
         super(RepositoryNotifications, self).__init__()
         self.repository = repository
 
-    def changed(self, item, reason, **kwds):
+    def changed(self, uuid, reason, **kwds):
 
-        uuid = item.getUUID()
         value = self.get(uuid, Item.Nil)
 
         if value is not Item.Nil:
@@ -765,7 +763,7 @@ class RepositoryNotifications(dict):
         else:
             self[uuid] = [ (reason, kwds) ]
 
-    def dispatch(self):
+    def dispatchChanges(self):
 
         callbacks = self.repository._notifications
         if callbacks:
@@ -776,5 +774,19 @@ class RepositoryNotifications(dict):
                 for (reason, kwds) in reasons:
                     for callback in callbacks:
                         callback(uuid, 'CollectionChanged', reason, **kwds)
+
+        self.clear()
+
+    def history(self, uuid, reason, **kwds):
+
+        self[uuid] = (reason, kwds)
+    
+    def dispatchHistory(self):
+
+        callbacks = self.repository._notifications
+        if callbacks:
+            for uuid, (reason, kwds) in self.iteritems():
+                for callback in callbacks:
+                    callback(uuid, 'History', reason, **kwds)
 
         self.clear()

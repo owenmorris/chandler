@@ -238,9 +238,14 @@ class VerContainer(DBContainer):
 
 class HistContainer(DBContainer):
 
-    def writeVersion(self, uuid, version, docId, dirty):
+    def writeVersion(self, uuid, version, docId, status, parentId=None):
 
-        self.put(pack('>l16s', version, uuid._uuid), pack('>li', docId, dirty))
+        if parentId is not None:
+            value = pack('>li16s', docId, status, parentId._uuid)
+        else:
+            value = pack('>li', docId, status)
+            
+        self.put(pack('>l16s', version, uuid._uuid), value)
 
     # has to run within the commit transaction
     def apply(self, fn, oldVersion, newVersion):
@@ -259,7 +264,14 @@ class HistContainer(DBContainer):
                 if version > newVersion:
                     break
 
-                fn(UUID(uuid), version, unpack('>li', value[1]))
+                if len(value[1]) == 24:
+                    docId, status, parentId = unpack('>li16s', value[1])
+                    parentId = UUID(parentId)
+                else:
+                    docId, status = unpack('>li', value[1])
+                    parentId = None
+
+                fn(UUID(uuid), version, docId, status, parentId)
                 value = cursor.next()
         finally:
             cursor.close()

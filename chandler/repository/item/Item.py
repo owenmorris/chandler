@@ -24,17 +24,25 @@ class Item(object):
     'The root class for all items.'
     
     def __init__(self, name, parent, kind):
-        '''Construct an Item.
+        """
+        Construct an Item.
 
-        All items require a parent item unless they are a repository root in
-        which case the parent argument is the repository.
-        Kind can be None for schema-less operation.
+        @param name: The name of the item. It must be unique among the names
+        this item's siblings. C{name} be C{None} in which case the base64
+        string representation of this item's C{UUID} becomes its name.
+        @type name: a string
+        @param parent: The parent of this item. All items require a parent
+        unless they are a repository root in which case the parent argument
+        is the repository.
+        @type parent: an item
+        @param kind: The kind for this item. This kind has definitions for
+        all the Chandler attributes that are to be used with this item.
+        This parameter can be C{None} for Chandler attribute-less operation.
         Items have two sets of attributes: the regular implementation python
-        attributes and the Chandler attributes. The latter are kept in a
-        separate dictionary and need to be added first with
-        Item.setAttributeValue() before they can be accessed or set with the
-        '.' operator.
-        When an item is persisted only the Chandler attributes are saved.'''
+        attributes and the Chandler attributes. When an item is persisted
+        only the Chandler attributes are saved.
+        @type kind: an item
+        """
         
         super(Item, self).__init__()
 

@@ -13,6 +13,7 @@ from bsddb.db import DB_DIRTY_READ
 from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
 from PyLucene import IndexSearcher, QueryParser
 from PyLucene import Document, Field
+from PyLucene import attachCurrentThread, detachCurrentThread
 
 from repository.util.UUID import UUID
 from repository.persistence.DBContainer import DBContainer
@@ -415,11 +416,17 @@ class IndexContainer(FileContainer):
 
         super(IndexContainer, self).__init__(store, name, txn, create)
 
+        attachCurrentThread()
         if create:
             directory = DbDirectory(txn, self._db, store._blocks._db,
                                     DB_DIRTY_READ)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
+
+    def close(self):
+
+        super(IndexContainer, self).close()
+        detachCurrentThread()
 
     def getIndexWriter(self):
 

@@ -113,6 +113,8 @@ class XMLRepository(OnDemandRepository):
 
     def close(self, purge=False):
 
+        super(XMLRepository, self).close(purge)
+
         if self.isOpen():
             self.store.close()
             self._env.close()
@@ -269,7 +271,7 @@ class XMLContainer(object):
         docs = {}
         try:
             txnStarted = store._startTransaction()
-            for value in self._xml.queryWithXPath(None, # store.txn,
+            for value in self._xml.queryWithXPath(store.txn,
                                                   query, store.ctx,
                                                   DB_DIRTY_READ):
                 doc = value.asDocument()

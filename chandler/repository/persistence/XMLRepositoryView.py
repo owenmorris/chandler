@@ -228,8 +228,18 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     try:
                         oldVersion = self.version
                         self.version = newVersion
+                        notifications = RepositoryNotifications(repository)
+                        
+                        def unload(uuid, version, docId, status, parent):
 
-                        def unload(uuid, version, (docId, dirty)):
+                            if status & Item.DELETED:
+                                notifications.history(uuid, 'deleted',
+                                                      parent=parent)
+                            elif status & Item.NEW:
+                                notifications.history(uuid, 'added')
+                            else:
+                                notifications.history(uuid, 'changed')
+
                             item = self._registry.get(uuid)
                             if item is not None and item._version < newVersion:
                                 if self.isDebug():
@@ -239,7 +249,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                 item._unloadItem()
                             
                         history.apply(unload, oldVersion, newVersion)
-
+                        notifications.dispatchHistory()
+                        
                     except:
                         if txnStarted:
                             self._abortTransaction()
@@ -251,7 +262,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if lock:
                     env.lock_put(lock)
 
-                self._notifications.dispatch()
+                self._notifications.dispatchChanges()
 
                 if count > 0:
                     self.logger.info('%s committed %d items (%ld bytes) in %s',
@@ -290,28 +301,28 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         docId = data.putDocument(doc)
 
         if isDeleted:
+            parent=item.getItemParent().getUUID()
             versions.setDocVersion(uuid, newVersion, 0)
-            history.writeVersion(uuid, newVersion, 0, item.getDirty())
-            self._notifications.changed(item, 'deleted',
-                                        parent=item.getItemParent().getUUID())
+            history.writeVersion(uuid, newVersion, 0, item._status, parent)
+            self._notifications.changed(uuid, 'deleted', parent=parent)
 
         else:
             versions.setDocVersion(uuid, newVersion, docId)
-            history.writeVersion(uuid, newVersion, docId, item.getDirty())
+            history.writeVersion(uuid, newVersion, docId, item._status)
 
             if isNew:
-                self._notifications.changed(item, 'added')
+                self._notifications.changed(uuid, 'added')
             else:
-                self._notifications.changed(item, 'changed')
+                self._notifications.changed(uuid, 'changed')
 
         return size
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
 
-        def check(uuid, version, (docId, dirty)):
+        def check(uuid, version, docId, status, parentId):
             item = items.get(uuid)
             if item is not None:
-                if item.getDirty() & dirty:
+                if item.getDirty() & status:
                     raise VersionConflictError, item
 
         history.apply(check, oldVersion, newVersion)
@@ -486,7 +497,7 @@ class XMLRefDict(RefDict):
                     raise ValueError, entry[0]
 
             if self._log:
-                self.view._notifications.changed(self._item, self._name)
+                self.view._notifications.changed(self._item._uuid, self._name)
 
             del self._log[:]
             self._deletedRefs.clear()
