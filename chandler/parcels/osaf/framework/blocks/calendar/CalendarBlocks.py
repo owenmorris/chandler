@@ -39,8 +39,7 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(wx.SWISS_FONT)
         time = self.item.startTime
-        dc.DrawText(time.Format('%I:%M %p ') + self.item.headline, (10, 0))
-        #dc.DrawText(self.item.headline, (10, 14))
+        dc.DrawText(time.Format('%I:%M %p ') + self.item.displayName, (10, 0))
 
     def DragHitTest(self, x, y):
         return False

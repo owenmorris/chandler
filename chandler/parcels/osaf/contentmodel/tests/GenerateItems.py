@@ -29,7 +29,7 @@ def GenerateCalendarParticipant():
 
 def GenerateCalendarEvent(days):
     event = Calendar.CalendarEvent()
-    event.headline = random.choice(HEADLINES)
+    event.displayName = random.choice(HEADLINES)
     for i in range(random.randint(1, 2)):
         event.participants.append(GenerateCalendarParticipant())
     
