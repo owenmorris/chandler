@@ -209,16 +209,17 @@ SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_con
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define  SWIGTYPE_p_wxControl swig_types[0] 
-#define  SWIGTYPE_p_wxWindow swig_types[1] 
-#define  SWIGTYPE_p_wxEvent swig_types[2] 
-#define  SWIGTYPE_p_wxObject swig_types[3] 
-#define  SWIGTYPE_p_wxEvtHandler swig_types[4] 
-#define  SWIGTYPE_p_char swig_types[5] 
-#define  SWIGTYPE_p_wxColumnHeader swig_types[6] 
-#define  SWIGTYPE_p_wxColumnHeaderEvent swig_types[7] 
-#define  SWIGTYPE_p_wxCommandEvent swig_types[8] 
-#define  SWIGTYPE_p_wxPoint swig_types[9] 
-static swig_type_info *swig_types[11];
+#define  SWIGTYPE_p_wxSize swig_types[1] 
+#define  SWIGTYPE_p_wxWindow swig_types[2] 
+#define  SWIGTYPE_p_wxEvent swig_types[3] 
+#define  SWIGTYPE_p_wxObject swig_types[4] 
+#define  SWIGTYPE_p_wxEvtHandler swig_types[5] 
+#define  SWIGTYPE_p_char swig_types[6] 
+#define  SWIGTYPE_p_wxColumnHeader swig_types[7] 
+#define  SWIGTYPE_p_wxColumnHeaderEvent swig_types[8] 
+#define  SWIGTYPE_p_wxCommandEvent swig_types[9] 
+#define  SWIGTYPE_p_wxPoint swig_types[10] 
+static swig_type_info *swig_types[12];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -502,7 +503,7 @@ static PyObject * ColumnHeaderEvent_swigregister(PyObject *, PyObject *args) {
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
-static PyObject *_wrap_new_ColumnHeader__SWIG_0(PyObject *, PyObject *args) {
+static PyObject *_wrap_new_ColumnHeader(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
     wxWindow *arg1 = (wxWindow *) 0 ;
     int arg2 = (int) -1 ;
@@ -523,8 +524,11 @@ static PyObject *_wrap_new_ColumnHeader__SWIG_0(PyObject *, PyObject *args) {
     PyObject * obj3 = 0 ;
     PyObject * obj4 = 0 ;
     PyObject * obj5 = 0 ;
+    char *kwnames[] = {
+        (char *) "parent",(char *) "id",(char *) "pos",(char *) "size",(char *) "style",(char *) "name", NULL 
+    };
     
-    if(!PyArg_ParseTuple(args,(char *)"O|OOOOO:new_ColumnHeader",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|OOOOO:new_ColumnHeader",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxWindow,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     if (obj1) {
@@ -577,91 +581,214 @@ static PyObject *_wrap_new_ColumnHeader__SWIG_0(PyObject *, PyObject *args) {
 }
 
 
-static PyObject *_wrap_new_ColumnHeader__SWIG_1(PyObject *, PyObject *args) {
+static PyObject *_wrap_ColumnHeader_Destroy(PyObject *, PyObject *args, PyObject *kwargs) {
     PyObject *resultobj;
-    wxColumnHeader *result;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    bool result;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "self", NULL 
+    };
     
-    if(!PyArg_ParseTuple(args,(char *)":new_ColumnHeader")) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ColumnHeader_Destroy",kwnames,&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
-        if (!wxPyCheckForApp()) SWIG_fail;
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        result = (wxColumnHeader *)new wxColumnHeader();
+        result = (bool)(arg1)->Destroy();
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
     }
-    resultobj = SWIG_NewPointerObj((void*)(result), SWIGTYPE_p_wxColumnHeader, 1);
+    {
+        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+    }
     return resultobj;
     fail:
     return NULL;
 }
 
 
-static PyObject *_wrap_new_ColumnHeader(PyObject *self, PyObject *args) {
-    int argc;
-    PyObject *argv[7];
-    int ii;
+static PyObject *_wrap_ColumnHeader_DoMoveWindow(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    int arg4 ;
+    int arg5 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    PyObject * obj3 = 0 ;
+    PyObject * obj4 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "x",(char *) "y",(char *) "width",(char *) "height", NULL 
+    };
     
-    argc = PyObject_Length(args);
-    for (ii = 0; (ii < argc) && (ii < 6); ii++) {
-        argv[ii] = PyTuple_GetItem(args,ii);
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOO:ColumnHeader_DoMoveWindow",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (int)SWIG_As_int(obj1); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg3 = (int)SWIG_As_int(obj2); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg4 = (int)SWIG_As_int(obj3); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg5 = (int)SWIG_As_int(obj4); 
+    if (PyErr_Occurred()) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->DoMoveWindow(arg2,arg3,arg4,arg5);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
     }
-    if (argc == 0) {
-        return _wrap_new_ColumnHeader__SWIG_1(self,args);
-    }
-    if ((argc >= 1) && (argc <= 6)) {
-        int _v;
-        {
-            void *ptr;
-            if (SWIG_ConvertPtr(argv[0], &ptr, SWIGTYPE_p_wxWindow, 0) == -1) {
-                _v = 0;
-                PyErr_Clear();
-            } else {
-                _v = 1;
-            }
-        }
-        if (_v) {
-            if (argc <= 1) {
-                return _wrap_new_ColumnHeader__SWIG_0(self,args);
-            }
-            _v = SWIG_Check_int(argv[1]);
-            if (_v) {
-                if (argc <= 2) {
-                    return _wrap_new_ColumnHeader__SWIG_0(self,args);
-                }
-                {
-                    _v = wxPySimple_typecheck(argv[2], wxT("wxPoint"), 2);
-                }
-                if (_v) {
-                    if (argc <= 3) {
-                        return _wrap_new_ColumnHeader__SWIG_0(self,args);
-                    }
-                    {
-                        _v = wxPySimple_typecheck(argv[3], wxT("wxSize"), 2);
-                    }
-                    if (_v) {
-                        if (argc <= 4) {
-                            return _wrap_new_ColumnHeader__SWIG_0(self,args);
-                        }
-                        _v = SWIG_Check_long(argv[4]);
-                        if (_v) {
-                            if (argc <= 5) {
-                                return _wrap_new_ColumnHeader__SWIG_0(self,args);
-                            }
-                            {
-                                _v = PyString_Check(argv[5]) || PyUnicode_Check(argv[5]);
-                            }
-                            if (_v) {
-                                return _wrap_new_ColumnHeader__SWIG_0(self,args);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_Enable(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    bool arg2 = (bool) true ;
+    bool result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "bEnable", NULL 
+    };
     
-    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'new_ColumnHeader'");
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:ColumnHeader_Enable",kwnames,&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    if (obj1) {
+        arg2 = (bool)SWIG_As_bool(obj1); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (bool)(arg1)->Enable(arg2);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_Show(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    bool arg2 = (bool) true ;
+    bool result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "bShow", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:ColumnHeader_Show",kwnames,&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    if (obj1) {
+        arg2 = (bool)SWIG_As_bool(obj1); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (bool)(arg1)->Show(arg2);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        resultobj = result ? Py_True : Py_False; Py_INCREF(resultobj);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_DoSetSize(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    int arg4 ;
+    int arg5 ;
+    int arg6 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    PyObject * obj3 = 0 ;
+    PyObject * obj4 = 0 ;
+    PyObject * obj5 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "x",(char *) "y",(char *) "width",(char *) "height",(char *) "sizeFlags", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOO:ColumnHeader_DoSetSize",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (int)SWIG_As_int(obj1); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg3 = (int)SWIG_As_int(obj2); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg4 = (int)SWIG_As_int(obj3); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg5 = (int)SWIG_As_int(obj4); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg6 = (int)SWIG_As_int(obj5); 
+    if (PyErr_Occurred()) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->DoSetSize(arg2,arg3,arg4,arg5,arg6);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_DoGetBestSize(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    wxSize result;
+    PyObject * obj0 = 0 ;
+    char *kwnames[] = {
+        (char *) "self", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O:ColumnHeader_DoGetBestSize",kwnames,&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = ((wxColumnHeader const *)arg1)->DoGetBestSize();
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    {
+        wxSize * resultptr;
+        resultptr = new wxSize((wxSize &) result);
+        resultobj = SWIG_NewPointerObj((void *)(resultptr), SWIGTYPE_p_wxSize, 1);
+    }
+    return resultobj;
+    fail:
     return NULL;
 }
 
@@ -815,8 +942,9 @@ static PyObject *_wrap_ColumnHeader_AppendItem(PyObject *, PyObject *args, PyObj
     wxString *arg2 = 0 ;
     long arg3 ;
     long arg4 ;
-    bool arg5 ;
-    bool arg6 ;
+    bool arg5 = (bool) false ;
+    bool arg6 = (bool) true ;
+    bool arg7 = (bool) false ;
     bool temp2 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
@@ -824,11 +952,12 @@ static PyObject *_wrap_ColumnHeader_AppendItem(PyObject *, PyObject *args, PyObj
     PyObject * obj3 = 0 ;
     PyObject * obj4 = 0 ;
     PyObject * obj5 = 0 ;
+    PyObject * obj6 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "textBuffer",(char *) "textJust",(char *) "extentX",(char *) "bActive",(char *) "bSortAscending", NULL 
+        (char *) "self",(char *) "textBuffer",(char *) "textJust",(char *) "extentX",(char *) "bSelected",(char *) "bSortEnabled",(char *) "bSortAscending", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOO:ColumnHeader_AppendItem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO|OOO:ColumnHeader_AppendItem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     {
@@ -840,13 +969,21 @@ static PyObject *_wrap_ColumnHeader_AppendItem(PyObject *, PyObject *args, PyObj
     if (PyErr_Occurred()) SWIG_fail;
     arg4 = (long)SWIG_As_long(obj3); 
     if (PyErr_Occurred()) SWIG_fail;
-    arg5 = (bool)SWIG_As_bool(obj4); 
-    if (PyErr_Occurred()) SWIG_fail;
-    arg6 = (bool)SWIG_As_bool(obj5); 
-    if (PyErr_Occurred()) SWIG_fail;
+    if (obj4) {
+        arg5 = (bool)SWIG_As_bool(obj4); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    if (obj5) {
+        arg6 = (bool)SWIG_As_bool(obj5); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    if (obj6) {
+        arg7 = (bool)SWIG_As_bool(obj6); 
+        if (PyErr_Occurred()) SWIG_fail;
+    }
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        (arg1)->AppendItem((wxString const &)*arg2,arg3,arg4,arg5,arg6);
+        (arg1)->AppendItem((wxString const &)*arg2,arg3,arg4,arg5,arg6,arg7);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -936,17 +1073,15 @@ static PyObject *_wrap_ColumnHeader_SetLabelText(PyObject *, PyObject *args, PyO
     wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
     long arg2 ;
     wxString *arg3 = 0 ;
-    long arg4 ;
     bool temp3 = false ;
     PyObject * obj0 = 0 ;
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
-    PyObject * obj3 = 0 ;
     char *kwnames[] = {
-        (char *) "self",(char *) "itemIndex",(char *) "textBuffer",(char *) "textJust", NULL 
+        (char *) "self",(char *) "itemIndex",(char *) "textBuffer", NULL 
     };
     
-    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOO:ColumnHeader_SetLabelText",kwnames,&obj0,&obj1,&obj2,&obj3)) goto fail;
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ColumnHeader_SetLabelText",kwnames,&obj0,&obj1,&obj2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
     SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
     arg2 = (long)SWIG_As_long(obj1); 
@@ -956,11 +1091,9 @@ static PyObject *_wrap_ColumnHeader_SetLabelText(PyObject *, PyObject *args, PyO
         if (arg3 == NULL) SWIG_fail;
         temp3 = true;
     }
-    arg4 = (long)SWIG_As_long(obj3); 
-    if (PyErr_Occurred()) SWIG_fail;
     {
         PyThreadState* __tstate = wxPyBeginAllowThreads();
-        (arg1)->SetLabelText(arg2,(wxString const &)*arg3,arg4);
+        (arg1)->SetLabelText(arg2,(wxString const &)*arg3);
         
         wxPyEndAllowThreads(__tstate);
         if (PyErr_Occurred()) SWIG_fail;
@@ -976,6 +1109,69 @@ static PyObject *_wrap_ColumnHeader_SetLabelText(PyObject *, PyObject *args, PyO
         if (temp3)
         delete arg3;
     }
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_GetLabelJustification(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    long arg2 ;
+    long result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "itemIndex", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO:ColumnHeader_GetLabelJustification",kwnames,&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (long)SWIG_As_long(obj1); 
+    if (PyErr_Occurred()) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        result = (long)(arg1)->GetLabelJustification(arg2);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    resultobj = SWIG_From_long((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_ColumnHeader_SetLabelJustification(PyObject *, PyObject *args, PyObject *kwargs) {
+    PyObject *resultobj;
+    wxColumnHeader *arg1 = (wxColumnHeader *) 0 ;
+    long arg2 ;
+    long arg3 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    PyObject * obj2 = 0 ;
+    char *kwnames[] = {
+        (char *) "self",(char *) "itemIndex",(char *) "textJust", NULL 
+    };
+    
+    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOO:ColumnHeader_SetLabelJustification",kwnames,&obj0,&obj1,&obj2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **)(&arg1),SWIGTYPE_p_wxColumnHeader,
+    SWIG_POINTER_EXCEPTION | 0)) == -1) SWIG_fail;
+    arg2 = (long)SWIG_As_long(obj1); 
+    if (PyErr_Occurred()) SWIG_fail;
+    arg3 = (long)SWIG_As_long(obj2); 
+    if (PyErr_Occurred()) SWIG_fail;
+    {
+        PyThreadState* __tstate = wxPyBeginAllowThreads();
+        (arg1)->SetLabelJustification(arg2,arg3);
+        
+        wxPyEndAllowThreads(__tstate);
+        if (PyErr_Occurred()) SWIG_fail;
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
     return NULL;
 }
 
@@ -1136,7 +1332,13 @@ static PyObject * ColumnHeader_swigregister(PyObject *, PyObject *args) {
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"new_ColumnHeaderEvent", (PyCFunction) _wrap_new_ColumnHeaderEvent, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeaderEvent_swigregister", ColumnHeaderEvent_swigregister, METH_VARARGS, NULL },
-	 { (char *)"new_ColumnHeader", _wrap_new_ColumnHeader, METH_VARARGS, NULL },
+	 { (char *)"new_ColumnHeader", (PyCFunction) _wrap_new_ColumnHeader, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_Destroy", (PyCFunction) _wrap_ColumnHeader_Destroy, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_DoMoveWindow", (PyCFunction) _wrap_ColumnHeader_DoMoveWindow, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_Enable", (PyCFunction) _wrap_ColumnHeader_Enable, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_Show", (PyCFunction) _wrap_ColumnHeader_Show, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_DoSetSize", (PyCFunction) _wrap_ColumnHeader_DoSetSize, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_DoGetBestSize", (PyCFunction) _wrap_ColumnHeader_DoGetBestSize, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_SetUnicodeFlag", (PyCFunction) _wrap_ColumnHeader_SetUnicodeFlag, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_GetSelectedItemIndex", (PyCFunction) _wrap_ColumnHeader_GetSelectedItemIndex, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_SetSelectedItemIndex", (PyCFunction) _wrap_ColumnHeader_SetSelectedItemIndex, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -1146,6 +1348,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ColumnHeader_DeleteItem", (PyCFunction) _wrap_ColumnHeader_DeleteItem, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_GetLabelText", (PyCFunction) _wrap_ColumnHeader_GetLabelText, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_SetLabelText", (PyCFunction) _wrap_ColumnHeader_SetLabelText, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_GetLabelJustification", (PyCFunction) _wrap_ColumnHeader_GetLabelJustification, METH_VARARGS | METH_KEYWORDS, NULL },
+	 { (char *)"ColumnHeader_SetLabelJustification", (PyCFunction) _wrap_ColumnHeader_SetLabelJustification, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_GetUIExtent", (PyCFunction) _wrap_ColumnHeader_GetUIExtent, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_SetUIExtent", (PyCFunction) _wrap_ColumnHeader_SetUIExtent, METH_VARARGS | METH_KEYWORDS, NULL },
 	 { (char *)"ColumnHeader_GetFlagAttribute", (PyCFunction) _wrap_ColumnHeader_GetFlagAttribute, METH_VARARGS | METH_KEYWORDS, NULL },
@@ -1608,6 +1812,7 @@ static void *_p_wxPyCommandEventTo_p_wxCommandEvent(void *x) {
     return (void *)((wxCommandEvent *)  ((wxPyCommandEvent *) x));
 }
 static swig_type_info _swigt__p_wxControl[] = {{"_p_wxControl", 0, "wxControl *", 0, 0, 0, 0},{"_p_wxControl", 0, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxControl, 0, 0, 0, 0, 0},{"_p_wxColumnHeader", _p_wxColumnHeaderTo_p_wxControl, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
+static swig_type_info _swigt__p_wxSize[] = {{"_p_wxSize", 0, "wxSize *", 0, 0, 0, 0},{"_p_wxSize", 0, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxWindow[] = {{"_p_wxWindow", 0, "wxWindow *", 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxWindow, 0, 0, 0, 0, 0},{"_p_wxWindow", 0, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxWindow, 0, 0, 0, 0, 0},{"_p_wxColumnHeader", _p_wxColumnHeaderTo_p_wxWindow, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxWindow, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxEvent[] = {{"_p_wxEvent", 0, "wxEvent *", 0, 0, 0, 0},{"_p_wxContextMenuEvent", _p_wxContextMenuEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxMenuEvent", _p_wxMenuEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxCloseEvent", _p_wxCloseEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxMouseEvent", _p_wxMouseEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxEraseEvent", _p_wxEraseEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxSetCursorEvent", _p_wxSetCursorEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxTimerEvent", _p_wxTimerEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxColumnHeaderEvent", _p_wxColumnHeaderEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxInitDialogEvent", _p_wxInitDialogEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxScrollEvent", _p_wxScrollEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxPyEvent", _p_wxPyEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", _p_wxNotifyEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxJoystickEvent", _p_wxJoystickEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxEvent", 0, 0, 0, 0, 0, 0},{"_p_wxIdleEvent", _p_wxIdleEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxWindowCreateEvent", _p_wxWindowCreateEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxQueryNewPaletteEvent", _p_wxQueryNewPaletteEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxMaximizeEvent", _p_wxMaximizeEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxIconizeEvent", _p_wxIconizeEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxActivateEvent", _p_wxActivateEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxSizeEvent", _p_wxSizeEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxMoveEvent", _p_wxMoveEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxPaintEvent", _p_wxPaintEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxNcPaintEvent", _p_wxNcPaintEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxUpdateUIEvent", _p_wxUpdateUIEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxPaletteChangedEvent", _p_wxPaletteChangedEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxDisplayChangedEvent", _p_wxDisplayChangedEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxMouseCaptureChangedEvent", _p_wxMouseCaptureChangedEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxSysColourChangedEvent", _p_wxSysColourChangedEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxDropFilesEvent", _p_wxDropFilesEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxFocusEvent", _p_wxFocusEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxChildFocusEvent", _p_wxChildFocusEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxProcessEvent", _p_wxProcessEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxShowEvent", _p_wxShowEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxCommandEvent", _p_wxCommandEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxPyCommandEvent", _p_wxPyCommandEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxWindowDestroyEvent", _p_wxWindowDestroyEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxNavigationKeyEvent", _p_wxNavigationKeyEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxKeyEvent", _p_wxKeyEventTo_p_wxEvent, 0, 0, 0, 0, 0},{"_p_wxScrollWinEvent", _p_wxScrollWinEventTo_p_wxEvent, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
 static swig_type_info _swigt__p_wxObject[] = {{"_p_wxObject", 0, "wxObject *", 0, 0, 0, 0},{"_p_wxLayoutConstraints", _p_wxLayoutConstraintsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGBSizerItem", _p_wxGBSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizerItem", _p_wxSizerItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollEvent", _p_wxScrollEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIndividualLayoutConstraint", _p_wxIndividualLayoutConstraintTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxStaticBoxSizer", _p_wxStaticBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBoxSizer", _p_wxBoxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizer", _p_wxSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridBagSizer", _p_wxGridBagSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileHistory", _p_wxFileHistoryTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxUpdateUIEvent", _p_wxUpdateUIEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenu", _p_wxMenuTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvent", _p_wxEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGridSizer", _p_wxGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFlexGridSizer", _p_wxFlexGridSizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxInitDialogEvent", _p_wxInitDialogEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaintEvent", _p_wxPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNcPaintEvent", _p_wxNcPaintEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPaletteChangedEvent", _p_wxPaletteChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDisplayChangedEvent", _p_wxDisplayChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseCaptureChangedEvent", _p_wxMouseCaptureChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSysColourChangedEvent", _p_wxSysColourChangedEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControl", _p_wxControlTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSetCursorEvent", _p_wxSetCursorEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTimerEvent", _p_wxTimerEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColumnHeaderEvent", _p_wxColumnHeaderEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFSFile", _p_wxFSFileTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxColumnHeader", _p_wxColumnHeaderTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxClipboard", _p_wxClipboardTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPySizer", _p_wxPySizerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyEvent", _p_wxPyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNotifyEvent", _p_wxNotifyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxShowEvent", _p_wxShowEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxToolTip", _p_wxToolTipTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuItem", _p_wxMenuItemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMoveEvent", _p_wxMoveEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSizeEvent", _p_wxSizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxActivateEvent", _p_wxActivateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIconizeEvent", _p_wxIconizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMaximizeEvent", _p_wxMaximizeEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxQueryNewPaletteEvent", _p_wxQueryNewPaletteEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindowCreateEvent", _p_wxWindowCreateEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxIdleEvent", _p_wxIdleEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCURHandler", _p_wxCURHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxICOHandler", _p_wxICOHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBMPHandler", _p_wxBMPHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImageHandler", _p_wxImageHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxTIFFHandler", _p_wxTIFFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEvtHandler", _p_wxEvtHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxANIHandler", _p_wxANIHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNGHandler", _p_wxPNGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxGIFHandler", _p_wxGIFHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPCXHandler", _p_wxPCXHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxJPEGHandler", _p_wxJPEGHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPNMHandler", _p_wxPNMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxXPMHandler", _p_wxXPMHandlerTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxAcceleratorTable", _p_wxAcceleratorTableTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxImage", _p_wxImageTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxScrollWinEvent", _p_wxScrollWinEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxSystemOptions", _p_wxSystemOptionsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxJoystickEvent", _p_wxJoystickEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxObject", 0, 0, 0, 0, 0, 0},{"_p_wxKeyEvent", _p_wxKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxNavigationKeyEvent", _p_wxNavigationKeyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindowDestroyEvent", _p_wxWindowDestroyEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxWindow", _p_wxWindowTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuBar", _p_wxMenuBarTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyProcess", _p_wxPyProcessTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFileSystem", _p_wxFileSystemTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxContextMenuEvent", _p_wxContextMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMenuEvent", _p_wxMenuEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyApp", _p_wxPyAppTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCloseEvent", _p_wxCloseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxMouseEvent", _p_wxMouseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxEraseEvent", _p_wxEraseEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxBusyInfo", _p_wxBusyInfoTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyCommandEvent", _p_wxPyCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxCommandEvent", _p_wxCommandEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxDropFilesEvent", _p_wxDropFilesEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxFocusEvent", _p_wxFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxChildFocusEvent", _p_wxChildFocusEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxProcessEvent", _p_wxProcessEventTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxControlWithItems", _p_wxControlWithItemsTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyValidator", _p_wxPyValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxValidator", _p_wxValidatorTo_p_wxObject, 0, 0, 0, 0, 0},{"_p_wxPyTimer", _p_wxPyTimerTo_p_wxObject, 0, 0, 0, 0, 0},{0, 0, 0, 0, 0, 0, 0}};
@@ -1620,6 +1825,7 @@ static swig_type_info _swigt__p_wxPoint[] = {{"_p_wxPoint", 0, "wxPoint *", 0, 0
 
 static swig_type_info *swig_types_initial[] = {
 _swigt__p_wxControl, 
+_swigt__p_wxSize, 
 _swigt__p_wxWindow, 
 _swigt__p_wxEvent, 
 _swigt__p_wxObject, 
@@ -1667,6 +1873,7 @@ SWIGEXPORT(void) SWIG_init(void) {
     PyDict_SetItemString(d,"COLUMNHEADER_JUST_Right", SWIG_From_int((int)wxCOLUMNHEADER_JUST_Right));
     PyDict_SetItemString(d,"COLUMNHEADER_FLAGATTR_Enabled", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_Enabled));
     PyDict_SetItemString(d,"COLUMNHEADER_FLAGATTR_Selected", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_Selected));
+    PyDict_SetItemString(d,"COLUMNHEADER_FLAGATTR_SortEnabled", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_SortEnabled));
     PyDict_SetItemString(d,"COLUMNHEADER_FLAGATTR_SortDirection", SWIG_From_int((int)wxCOLUMNHEADER_FLAGATTR_SortDirection));
     PyDict_SetItemString(d,"COLUMNHEADER_HITTEST_NoPart", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_NoPart));
     PyDict_SetItemString(d,"COLUMNHEADER_HITTEST_ItemZero", SWIG_From_int((int)wxCOLUMNHEADER_HITTEST_ItemZero));
