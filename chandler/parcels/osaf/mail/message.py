@@ -66,6 +66,9 @@ def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
 
     return emailAddressOne.lower() == emailAddressTwo.lower()
 
+def dateTimeToRFC2882Date(dateTime):
+    return Utils.formatdate(dateTime.ticks(), True)
+
 def format_addr(emailAddress):
     if not isinstance(emailAddress, Mail.EmailAddress):
         return None

@@ -54,7 +54,7 @@
     </task:Schedule>
     <!--task:Action itsName="sendmail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
     <task:schedule itemref="mail:SMTPClient/MailSchedule"/>
-    <task:actions itemref="mail:SMTPClient/sendmail"/-->
+    <task:actions itemref="mail:SMTPClient/sendMail"/-->
   </task:Task>
 
 </Parcel>

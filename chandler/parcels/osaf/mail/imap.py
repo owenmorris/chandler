@@ -111,8 +111,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         @return: C{None}
         """
 
-        if account is None:
-            raise IMAPMailException("You must pass in a Mail Account instance")
+        if account is None or not account.isItemOf(Mail.MailParcel.getIMAPAccountKind()):
+            raise IMAPMailException("You must pass in a IMAPAccount instance")
 
         viewName = "%s_%s" % (account.displayName, str(UUID.UUID()))
         super(IMAPDownloader, self).__init__(Globals.repository, viewName)
@@ -152,15 +152,12 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             if __debug__:
                 self.printCurrentView("__getMail")
 
-            self.account = self.__getAccount()
-            assert self.account is not None, "Account is None"
-
-            self.account.setPinned()
+            self.__getAccount()
 
             host    = self.account.host
             port    = self.account.port
-            useSSL  = self.account.useSSL
             portSSL = self.account.portSSL
+            useSSL  = self.account.useSSL
 
             if __debug__:
                 self.printAccount()
@@ -375,12 +372,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
     def __getAccount(self):
 
         accountKind = Mail.MailParcel.getIMAPAccountKind()
-        account = accountKind.findUUID(self.accountUUID)
+        self.account = accountKind.findUUID(self.accountUUID)
 
-        if account is None: 
-            self.log.error("No Account for UUID: %s"% self.account.itsUUID)
+        if self.account is None: 
+            raise IMAPException("No Account for UUID: %s"% self.account.itsUUID)
 
-        return account
+        self.account.setPinned()
+
 
     def __printInfo(self, info):
 

@@ -41,4 +41,4 @@ class SMTPSendAction(Action.Action):
     def Execute(self, task):
 
        logging.info("SENDING STMP MAIL")
-       smtp.SMTPSender().sendmail()
+       #smtp.SMTPSender().sendmail()
