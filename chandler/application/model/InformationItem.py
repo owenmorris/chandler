@@ -203,6 +203,11 @@ class InformationItem(RdfObject, Observable):
     annotations = property(getAnnotations, setAnnotations,
                            doc='Persistent list of InformationItems')
 
+    # remote objects
+    def IsRemote(self):
+        """ Returns true if the item is not from the local repository """
+        return hasattr(self, 'remoteAddress') and self.remoteAddress != None
+    
 # More open issues:
 #    * are links and annotations separate lists?
 #    * more or less type checking?
