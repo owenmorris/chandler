@@ -15,14 +15,9 @@ class packlist(list, xml.sax.ContentHandler):
 
         super(list, self).__init__()
         
-        self.path = path
         self.cwd = [ os.path.dirname(path) ]
-
-        xml.sax.parse(path, self)
-
-    def startDocument(self):
-
         self.tagAttrs = []
+        xml.sax.parse(path, self)
 
     def startElement(self, tag, attrs):
 
