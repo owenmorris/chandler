@@ -136,6 +136,7 @@ class wxApplication (wx.App):
             sys.displayhook = _displayHook
 
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        os.chdir (Globals.chandlerDirectory)
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
         self.ignoreSynchronizeWidget = False
@@ -144,9 +145,7 @@ class wxApplication (wx.App):
         """
           Splash Screen
         """
-        splashFile = os.path.join(Globals.chandlerDirectory, 
-                                  "application", "images", "splash.png")
-        splashBitmap = wx.Image(splashFile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        splashBitmap = wx.Image("application/images/splash.png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         splash = wx.SplashScreen(splashBitmap, 
                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, 
                                 6000, None, -1, wx.DefaultPosition, wx.DefaultSize,
@@ -166,7 +165,7 @@ class wxApplication (wx.App):
         """
 #        wx.Locale_AddCatalogLookupPathPrefix('locale')
 #        self.locale.AddCatalog('Chandler.mo')
-        gettext.install('chandler', os.path.join (Globals.chandlerDirectory, 'locale'))
+        gettext.install('chandler', 'locale')
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
         It's necessary to add the "parcels" directory to sys.path in order
@@ -194,9 +193,7 @@ class wxApplication (wx.App):
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
-        repositoryPath = os.path.join(Globals.chandlerDirectory,
-                                      "__repository__")
-        Globals.repository = XMLRepository(repositoryPath)
+        Globals.repository = XMLRepository("__repository__")
 
         kwds = { 'stderr': '-stderr' in sys.argv,
                  'ramdb': '-ramdb' in sys.argv,
@@ -213,9 +210,7 @@ class wxApplication (wx.App):
               Bootstrap an empty repository by loading only the stuff that
             can't be loaded in a data parcel.
             """
-            Globals.repository.loadPack(os.path.join(Globals.chandlerDirectory,
-                                                     "repository", "packs",
-                                                     "schema.pack"))
+            Globals.repository.loadPack("repository/packs/schema.pack")
 
         # Load Parcels
         parcelSearchPath = parcelDir

@@ -29,7 +29,7 @@ class Button(RectangularChild):
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            image = wx.Image(os.path.join(Globals.chandlerDirectory, self.icon), 
+            image = wx.Image(self.icon, 
                              wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
             button = wx.BitmapButton(parentWindow, id, bitmap,
@@ -144,7 +144,7 @@ class HTML(RectangularChild):
                             (self.minimumSize.width,
                              self.minimumSize.height))
         if self.url:
-            htmlWindow.LoadPage(os.path.join(Globals.chandlerDirectory, self.url))
+            htmlWindow.LoadPage(self.url)
             
         self.parentBlock.addToContainer(parent,
                                         htmlWindow,
@@ -577,7 +577,7 @@ class ToolbarItem(RectangularChild):
         toolbar = Globals.repository.find(wxToolbar.blockUUID)
         id = Block.getWidgetID(self)
         if self.toolbarItemKind == 'Button':
-            bitmap = wx.Image (os.path.join(Globals.chandlerDirectory, self.bitmap), 
+            bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
