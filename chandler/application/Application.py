@@ -15,7 +15,6 @@ import PresencePanel
 from application.agents.Notifications.NotificationManager import NotificationManager
 from repository.schema.AutoItem import AutoItem
 from repository.persistence.XMLRepository import XMLRepository
-import application.agents.AgentManager as AgentManager
 from application.ChandlerWindow import ChandlerWindow
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
@@ -193,7 +192,7 @@ class wxApplication (wxApp):
         app = self
 
         # set the new global app
-        Globals.app = self
+        Globals.application = self
 
         wxInitAllImageHandlers()
 
@@ -282,9 +281,6 @@ class wxApplication (wxApp):
         # Create the notification manager
         Globals.notificationManager = NotificationManager()
             
-        # Create the agent manager.. don't start it until later
-        Globals.agentManager = AgentManager.AgentManager()
-
         """
           The model persists, so it can't store a reference to self, which
         is a wxApp object. We use the association to keep track of the
@@ -356,8 +352,10 @@ class wxApplication (wxApp):
         self.jabberClient.Login()
 
         # start the agent manager
+        from application.agents.AgentManager import AgentManager
+        Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
-        
+
         #self.OpenStartingURL()
 
         from OSAF.AppSchema.DocumentSchema.Block import Block
@@ -403,7 +401,7 @@ class wxApplication (wxApp):
             children = self.model.URLTree.GetURLChildren('')
             if len(children) > 0:
                 self.wxMainFrame.GoToURL(children[0], true)
-            
+
     def OnQuit(self, event):
         """
             Exit the application
