@@ -209,7 +209,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle((0, 0), (self.size.width, self.size.height))
         
-        startDay = self.parent.blockItem.getStartDay()
+        startDay = self.parent.blockItem.rangeStart
 
         # Draw the weekdays
         # @@@ Figure out the height of the text
@@ -328,7 +328,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         self._doDrawingCalculations(dc)
         self.canvasItemList = []
 
-        startDay = self.parent.blockItem.getStartDay()
+        startDay = self.parent.blockItem.rangeStart
         
         for day in range(self.parent.blockItem.daysPerView):
             currentDate = startDay + DateTime.RelativeDateTime(days=day)
@@ -379,8 +379,8 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             # event.duration = DateTime.DateTimeDelta(0, 0, 60)
             #     x, y = self.getPositionFromDateTime(newTime)
             #     eventRect = wx.Rect(x, y,
-            #                         self.dayWidth - 1,
-            #                         int(event.duration.hours * self.hourHeight) - 1)
+            #          self.dayWidth - 1,
+            #          int(event.duration.hours * self.hourHeight) - 1)
             pass
         else:
             # @@@ this code might want to live somewhere else, refactored
@@ -388,8 +388,10 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             event = Calendar.CalendarEvent()
             event.InitOutgoingAttributes()
             event.ChangeStart(newTime)
+            self.OnSelectItem(event)
 
-            # @@@ currently this is too slow, and the notification causes flicker
+            # @@@ Bug#1854 currently this is too slow,
+            # and the notification causes flicker
             Globals.repository.commit()
         return None
     
@@ -416,7 +418,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             self.Refresh()
 
     def getDateTimeFromPosition(self, position):
-        startDay = self.parent.blockItem.getStartDay()
+        startDay = self.parent.blockItem.rangeStart
         # @@@ fixes Bug#1831, but doesn't really address the root cause
         # (the window is drawn with (0,0) virtual size on mac)
         if self.dayWidth > 0:
@@ -449,17 +451,6 @@ class WeekBlock(CalendarBlock):
     def instantiateWidget(self):
         return wxWeekPanel(self.parentBlock.widget,
                            Block.Block.getWidgetID(self))
-
-    def getStartDay(self):
-        # @@@ note, need different logic for one day,
-        # or specific set of days instead of a week
-        if self.daysPerView == 7:
-            startDay = self.rangeStart + \
-                       DateTime.RelativeDateTime(days=-6,
-                                                 weekday=(DateTime.Sunday, 0))
-        else:
-            startDay = self.rangeStart
-        return startDay
 
     def setRange(self, date):
         if self.daysPerView == 7:
@@ -621,8 +612,10 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
                                                 newTime.day,
                                                 event.startTime.hour,
                                                 event.startTime.minute))
+            self.OnSelectItem(event)
             
-            # @@@ currently this is too slow, and the notification causes flicker
+            # @@@ Bug#1854 currently this is too slow,
+            # and the notification causes flicker
             Globals.repository.commit()
         return None
 
