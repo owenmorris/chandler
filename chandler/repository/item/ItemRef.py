@@ -869,7 +869,7 @@ class RefDict(LinkedMap):
         if key is None:
             return default
             
-        return self.get(key, load)
+        return self.get(key, default, load)
 
     def resolveAlias(self, alias, load=True):
         """

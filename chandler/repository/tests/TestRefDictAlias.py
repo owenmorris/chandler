@@ -20,7 +20,6 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
     # When I use the alias feature to add items to a ref dictionary
     # and then rebuild the ref dictionary, subsequent searches
     # return True instead of the Item.
-    # Andi, search for your name (below) to enable the test
 
     def _createBlockKind(self, cardinality):
         kind = self._find('//Schema/Core/Kind')
@@ -74,8 +73,8 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(aBlock.blocks.getByAlias('eggs') is eggsBlock)
         self.assert_(aBlock is eggsBlock.blockParent)
 
-        # Andi - change this to True and we fail
-        testWithReload = False
+        # change this to True and we fail, unless the bug is fixed
+        testWithReload = True
 
         # reload the repository
         if testWithReload:
