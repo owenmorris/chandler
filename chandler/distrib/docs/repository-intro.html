@@ -13,7 +13,7 @@ Version 0.1
 
 <p> This document is an introduction to the features of the Chandler
 repository. It's not meant to be an exhaustive coverage of the entire
-API or all of the cool features. Instead it is meant help you get up to
+API or all of the cool features. Instead it is meant to help you get up to
 speed so that you can do common repository tasks.  </p>
 
 <h2>Chandler Data Model</h2>
@@ -201,7 +201,7 @@ from repository.persistence.XMLRepository import XMLRepository<br />
 <p />
 Next we need to tell where to find the repository.  The Chandler
 repository stores its data in a directory somewhere on your
-computer's fileystem.  As a convention, the repository's directory is named
+computer's filesystem.  As a convention, the repository's directory is named
 <code>__repository__</code>.  Let's create a brand new repository in the current
 directory, using the XMLRepository constructor, which needs the path
 for the repository directory. 
@@ -247,7 +247,7 @@ parcel.xml.  <code>repoPath</code> is the path within the repository we
 want to load our parcel. <code>parcelRoot</code> is the directory in which
 the parcel loader will search for parcels that our parcel depends on.  
 In this case, our data parcel depends on our schema parcel, and so the
-schema will be loaded as well.</p>
+schema will be loaded as well. And of course, rep is the repository we've just created.</p>
 
 <p>To see what's in the repository, we can print out part of its contents
 using <code>PrintItem( )</code>:</p>
@@ -379,9 +379,9 @@ with it.  We've already seen that you can get the UUID using
 </td></tr>
 </table>
 <p>Note that in our example, <code>item1.getItemDisplayName()</code>
-will evaulate to "xyzzy".  Why?  In our schema we defined TestAttribute
+will evaluate to "xyzzy".  Why?  In our schema we defined TestAttribute
 to be TestKind's "displayAttribute", therefore that attribute's value
-is returned by <code>getItemDisplayName()</code>.  If a item's kind
+is returned by <code>getItemDisplayName()</code>.  If an item's kind
 does not have a displayAttribute, then the item's name will be returned
 instead.</p>
 
@@ -409,7 +409,8 @@ data = rep.find("//parcels/simple/data")<br />
 item3 = testKind.newItem("item3", data)<br />
 </code>
 <p>
-The first argument to the newItem() method is the name of the item, and the second argument is the parent of the item.  </p>
+The first argument to the newItem() method is the name of the item, and the 
+second argument is the parent of the item.  </p>
 
 You can test whether or not an item has any children
 <p />
@@ -446,7 +447,7 @@ You can rearrange the children of an item by using the <code>placeChild()</code>
 <code>data.placeChild(data.getItemChild("item3"), None)</code>
 <p> will make the 'item3' child the first child of <code>data</code>.
 The first argument is the child you want to move, the second argument
-is the child that you want to you want to place the first child after.
+is the child that you want to place the first child after.
 You supply <code>None</code> to place the child as the first child.  </p>
 
 <p>
@@ -540,7 +541,7 @@ The output looks like this:
 ('modifiedOn', &lt;DateTime object for '2004-02-02 13:34:02.80' at 24b9410&gt;)
 ('kind', &lt;Kind: Parcel 760888e8-55c7-11d8-f88d-000a95bb2738&gt;)
 </pre></code>
-<p> You can also use set the keyword arguments <code>valuesOnly</code>
+<p> You can also use the keyword arguments <code>valuesOnly</code>
 or <code>referencesOnly</code> to <code>True</code> and
 <code>iterAttributes()</code> will only produce literal or reference
 attributes.  </p>
@@ -596,6 +597,7 @@ Which produces the expected result:
 <code>
 &lt;Attribute: publisher 7609f124-55c7-11d8-f88d-000a95bb2738&gt;
 </code>
+<p />
 To add a new item to the list, all you would do is:
 <p />
 <code>
@@ -642,10 +644,17 @@ At this point it is up to you redo the work in your transaction.  </p>
 <li>SubAttributes
 <li>More about cardinality
 <li>More about references
-<li>Pointer to <a href=http://builds.osafoundation.org/autogen/>generated docs</a> (but perhaps not to the copy on "builds.osafoundation.org" since that's an internal machine?)
 </ul>
 <hr />
-Please send any comments to dev@osafoundation.org.
+Please send any comments to <a href=mailto:dev@osafoundation.org>dev@osafoundation.org.</a> 
+<hr>
+$Revision$<br>
+$Date$<br>
+$Author$<br>
+$Log$
+Revision 1.7  2004/02/24 21:39:28  markie
+Typos in ms and add keywords at end
+<br>
 </body>
 </html>
 
