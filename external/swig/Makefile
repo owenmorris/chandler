@@ -38,7 +38,9 @@ clean:
 	fi
 
 expand:    swigwin-1.3.21.zip
-	unzip -o -j swigwin-1.3.21.zip SWIG-1.3.21/swig.exe -d $(BUILD_ROOT)/$(SNAP)/bin/
+	unzip -o swigwin-$(VERSION).zip -d $(BUILD_ROOT)/$(SNAP)/bin/;\
+	mv $(BUILD_ROOT)/$(SNAP)/bin/SWIG-$(VERSION) $(BUILD_ROOT)/$(SNAP)/bin/swig;\
+	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/swig/swig.exe
 
 else
 
