@@ -82,14 +82,14 @@ def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
         return  constants.EMPTY.join(unicodeStr.splitlines())
 
     except(UnicodeError, UnicodeDecodeError, LookupError):
-        return unicode("".join(header.splitlines()), charset, 'replace')
+        return unicode("".join(header.splitlines()), charset, 'ignore')
 
 def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
     assert isinstance(val, str), "The value to convert must be a string"
     assert charset is not None, "A charset must be specified"
 
     try:
-        return unicode(val, charset, 'replace')
+        return unicode(val, charset, 'ignore')
 
     except(UnicodeError, UnicodeDecodeError, LookupError):
         if charset != constants.DEFAULT_CHARSET:

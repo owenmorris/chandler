@@ -127,6 +127,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 
 
 class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
+    __errStr = "An error occurred while downloading IMAP mail: %s"
 
     def __init__(self, repository, account):
         """
@@ -184,32 +185,44 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         self.__getAccount()
 
         self.factory = ChandlerIMAP4Factory(self)
-
-        self.wrappingFactory = policies.WrappingFactory(self.factory)
-        self.wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-        self.factory.startTLS = self.account.useSSL
         self.factory.getContext = lambda : Globals.crypto.getSSLContext()
         self.factory.sslChecker = SSL.Checker.Checker()
-        reactor.connectTCP(self.account.host, self.account.port, self.wrappingFactory)
+        self.factory.startTLS = self.account.useSSL
+
+        wrappingFactory = policies.WrappingFactory(self.factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+        reactor.connectTCP(self.account.host, self.account.port, wrappingFactory)
 
     def catchErrors(self, err):
         """
         This method captures all errors thrown while in the Twisted Reactor Thread.
         @return: C{None}
         """
-
-        if isinstance(err, failure.Failure):
-            err = err.value
-
         if __debug__:
             self.printCurrentView("catchErrors: %s " % str(err))
 
         if not self.factory.connectionLost:
             self.__disconnect()
 
+        if isinstance(err, failure.Failure):
+            err = err.value
+
+        errorType = str(err.__class__)
+        message   = err.__str__()
+
+        if errorType == errors.M2CRYPTO_ERROR:
+            try:
+                #XXX: Special Case should be caught prompting the message to be resend
+                #     if the user adds the cert to the chain
+                if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                    message = "The SSL Certificate returned can not be verified."
+
+            except:
+                pass
+
         #XXX: When IMAP Errors are saved to Repository will need to
         #     wait for commit to complete before doing a Notification
-        utils.NotifyUIAsync(_("Error: %s") % err, self.log.error, alert=True)
+        utils.NotifyUIAsync(_(self.__errStr) % message, self.log.error, alert=True)
 
     def loginClient(self):
         """
@@ -382,8 +395,16 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         """
 
         utils.NotifyUIAsync(self.downloadedStr, self.__printInfo)
-        self.downloadedStr = None
-        self.account = None
+        """Clear references"""
+        self.downloadedStr   = None
+        self.account         = None
+        self.proto           = None
+        self.factory         = None
+        self.numMessages     = 0
+        self.totalDownloaded = 0
+        self.lastUID         = 0
+
+        self.messages.clear()
 
     def __expunge(self, result):
         if __debug__:
@@ -413,5 +434,3 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
                                                 self.account.username, info)
 
         self.log.info(str)
-
-

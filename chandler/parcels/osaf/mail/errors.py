@@ -12,9 +12,13 @@ class IMAPException(MailException):
 class SMTPException(MailException):
     """Base class for all Chandler SMTP based exceptions"""
 
+"""Code return by M2Crypto when a certificate can not be verified"""
+M2CRYPTO_CERTIFICATE_VERIFY_FAILED  = 18
+
 __SMTP_PREFIX        = "twisted.mail.smtp."
 __IMAP4_PREFIX       = "twisted.mail.imap4."
 __TWISTED_PREFIX     = "twisted.internet.error."
+__M2CRYPTO_PREFIX    = "M2Crypto.BIO."
 __MAILSERVICE_PREFIX = "osaf.mail.errors."
 
 AUTH_DECLINED_ERROR       = __SMTP_PREFIX + "AUTHDeclinedError"
@@ -26,6 +30,7 @@ CONNECT_ERROR             = __TWISTED_PREFIX + "ConnectError"
 CONNECT_BIND_ERROR        = __TWISTED_PREFIX + "ConnectBindError"
 UNKNOWN_HOST_ERROR        = __TWISTED_PREFIX + "UnknownHostError"
 TIMEOUT_ERROR             = __TWISTED_PREFIX + "TimeoutError"
+M2CRYPTO_ERROR            = __M2CRYPTO_PREFIX + "BIOError"
 SSL_ERROR                 = __TWISTED_PREFIX + "SSLError"
 DNS_LOOKUP_ERROR          = __TWISTED_PREFIX + "DNSLookupError"
 CONNECTION_REFUSED_ERROR  = __TWISTED_PREFIX + "ConnectionRefusedError"
@@ -47,3 +52,4 @@ SSL_CODE                = __offset + 9
 CONNECTION_REFUSED_CODE = __offset + 10
 UNKNOWN_CODE            = __offset + 11
 MISSING_VALUE_CODE      = __offset + 12
+M2CRYPTO_CODE           = __offset + 13

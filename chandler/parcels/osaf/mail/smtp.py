@@ -114,6 +114,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
 
+        if self.account.useTLS and self.account.useSSL:
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
+                              "TLS and SSL both enabled. Please select only one.")
+            return
+
+
+
         """Get the sender's Email Address will either be the Reply-To or From field"""
         sender = self.__getSender()
 
@@ -123,7 +130,6 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
                               "A From Address is required to send an SMTP Mail Message.")
             return
-
 
         """Make sure the sender's Email Address is valid"""
         if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
@@ -334,8 +340,19 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             deliveryError.errorCode = errors.DNS_LOOKUP_CODE
             deliveryError.errorString = err.__str__()
 
+        elif errorType == errors.M2CRYPTO_ERROR:
+            deliveryError.errorCode = errors.M2CRYPTO_CODE
+
+            try:
+                #XXX: Special Case should be caught prompting the message to be resend
+                #     if the user adds the cert to the chain
+                if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                    deliveryError.errorString = "The SSL Certificate returned can not be verified."
+
+            except:
+                deliveryError.errorString = "SSL communication error"
+
         else:
-            print "errorType: %s" % errorType
             deliveryError.errorCode = errors.UNKNOWN_CODE
             s = "Unknown Exception encountered docString: %s module: %s" % (err.__doc__, err.__module__)
             deliveryError.errorString = s
@@ -426,7 +443,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         username     = None
         password     = None
         authRequired = False
-        sslContext   = None
+        tlsContext   = None
         heloFallback = True
 
         if account.useAuth:
@@ -435,17 +452,23 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             authRequired = True
             heloFallback = False
 
-        if account.useSSL:
-            sslContext = Globals.crypto.getSSLContext()
+        if account.useTLS:
+            tlsContext = Globals.crypto.getSSLContext()
 
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
                                           deferred, account.numRetries, constants.TIMEOUT,
-                                          sslContext, heloFallback, authRequired, account.useSSL)
+                                          tlsContext, heloFallback, authRequired, account.useTLS)
+
+
+        if account.useSSL:
+            factory.startTLS = True
+            factory.getContext = lambda : Globals.crypto.getSSLContext()
 
         factory.protocol = ChandlerESMTPSender
         factory.sslChecker = SSL.Checker.Checker()
+
         wrappingFactory = policies.WrappingFactory(factory)
         wrappingFactory.protocol = wrapper.TLSProtocolWrapper
 
