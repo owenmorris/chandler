@@ -28,7 +28,7 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         attr = self.rep.findPath("//parcels/localattrs/TestKind/TestAttribute")
         self.assert_(attr)
         found = False
-        for (name, attr) in kind.iterAttributes():
+        for name, attr, k in kind.iterAttributes():
             if str(attr.itsPath) == \
              "//parcels/localattrs/TestKind/TestAttribute":
                 found = True

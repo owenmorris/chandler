@@ -364,7 +364,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 references = []
                 kind = item._kind
                 if kind is not None:
-                    for name, attr in kind.iterAttributes():
+                    for name, attr, k in kind.iterAttributes():
                         if name in dirties:
                             if kind.getOtherName(name,
                                                  default=None) is not None:

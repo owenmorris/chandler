@@ -327,7 +327,7 @@ def syncFromServer(item, davItem):
         log.info('%sKind changed from %s to %s' % (OFFSET(), str(item.itsKind), kind))
         item.itsKind = kind
 
-    for (name, attr) in kind.iterAttributes(True):
+    for (name, attr, k) in kind.iterAttributes(True):
 
         value = davItem.getAttribute(attr)
         if not value:

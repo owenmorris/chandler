@@ -381,7 +381,7 @@ def RenderItem(item, urlRoot):
         result += "</tr>\n"
         count = 0
         displayedAttrs = { }
-        for (name,attr) in item.iterAttributes():
+        for name, attr, k in item.iterAttributes():
             if name is None: name = "Anonymous"
             displayedAttrs[name] = attr
         keys = displayedAttrs.keys()

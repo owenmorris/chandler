@@ -234,7 +234,7 @@ class ContentItem(Item.Item):
         attrIter = template.itsKind.iterAttributes()
         while True:
             try:
-                name, value = attrIter.next()
+                name, value, k = attrIter.next()
             except StopIteration:
                 break
             if not template.hasAttributeAspect (name, 'redirectTo'):

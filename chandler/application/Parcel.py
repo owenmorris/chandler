@@ -1638,7 +1638,7 @@ def PrintItem(path, rep, recursive=False, level=0):
         print "attributes for this kind:"
 
         displayedAttrs = { }
-        for (name,attr) in item.iterAttributes():
+        for (name, attr, k) in item.iterAttributes():
             displayedAttrs[name] = attr
 
         keys = displayedAttrs.keys()

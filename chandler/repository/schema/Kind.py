@@ -199,8 +199,10 @@ class Kind(Item):
     def iterAttributes(self, inherited=True,
                        localOnly=False, globalOnly=False):
         """
-        Return a generator of C{(name, attribute)} pairs for iterating over the
-        Chandler attributes defined for and inherited by this kind.
+        Return a generator of C{(name, attribute, kind)} tuples for
+        iterating over the Chandler attributes defined for and inherited by
+        this kind. The C{kind} element is the kind the attribute was
+        inherited from or this kind.
 
         @param inherited: if C{True}, iterate also over attributes that are
         inherited by this kind via its superKinds.
@@ -226,24 +228,28 @@ class Kind(Item):
             if not globalOnly:
                 for attribute in self.iterChildren():
                     if attribute._uuid in attributes:
-                        yield (attribute._name, attribute)
+                        yield (attribute._name, attribute, self)
 
             if not localOnly:
                 for attribute in attributes:
                     if attribute.itsParent is not self:
-                        yield (attributes.getAlias(attribute), attribute)
+                        yield (attributes.getAlias(attribute), attribute, self)
 
         if inherited:
             inheritedAttributes = self.inheritedAttributes
             for superKind in self.superKinds:
-                for name, attribute in superKind.iterAttributes():
+                for name, attribute, k in superKind.iterAttributes():
                     if (attribute._uuid not in inheritedAttributes and
                         inheritedAttributes.resolveAlias(name) is None):
                         inheritedAttributes.append(attribute, alias=name)
             for uuid, link in inheritedAttributes._iteritems():
                 name = link._alias
                 if not self.resolve(name):
-                    yield (name, link._value)
+                    attribute = link._value
+                    for kind in attribute.kinds:
+                        if self.isKindOf(kind):
+                            break
+                    yield (name, attribute, kind)
 
     def _inheritAttribute(self, name):
 
@@ -343,7 +349,7 @@ class Kind(Item):
         if self._initialValues is None:
             self._initialValues = {}
             self._initialReferences = {}
-            for name, attribute in self.iterAttributes():
+            for name, attribute, k in self.iterAttributes():
                 value = attribute.getAspect('initialValue', default=Item.Nil)
                 if value is not Item.Nil:
                     otherName = self.getOtherName(name, default=None)
