@@ -23,7 +23,6 @@ import xml.sax.handler
 
 from model.item.Item import Item
 from model.schema.Kind import Kind
-from model.schema.Namespace import Domain
 from model.schema.Attribute import Attribute
 from model.schema import Types
 
@@ -73,17 +72,17 @@ BOOTSTRAP_IGNORE = ['DaylightSavingTimezone',
                     'ReferencePolicy',
                     'HeavyweightEnumeration']
 
-BOOTSTRAP = {'Boolean' : '//Schema/Model/Types/Boolean',
-             'Number' : '//Schema/Model/Types/Integer',
-             'SimpleString' : '//Schema/Model/Types/String',
-             'PolyglotText' : '//Schema/Model/Types/String',
-             'RigidDatetime' : '//Schema/Model/Types/DateTime',
-             'ReferencePolicyEnum' : '//Schema/Model/Types/String',
-             'RepositoryContainmentPath' : '//Schema/Model/Types/String',
-             'Anything' : '//Schema/Model/Types/String',
-             'AnyString' : '//Schema/Model/Types/String',
-             'UnicodeString' : '//Schema/Model/Types/String',
-             'AttributeOrAttributeChain' : '//Schema/Model/Types/String'}
+BOOTSTRAP = {'Boolean' : '//Schema/Model/Boolean',
+             'Number' : '//Schema/Model/Integer',
+             'SimpleString' : '//Schema/Model/String',
+             'PolyglotText' : '//Schema/Model/String',
+             'RigidDatetime' : '//Schema/Model/DateTime',
+             'ReferencePolicyEnum' : '//Schema/Model/String',
+             'RepositoryContainmentPath' : '//Schema/Model/String',
+             'Anything' : '//Schema/Model/String',
+             'AnyString' : '//Schema/Model/String',
+             'UnicodeString' : '//Schema/Model/String',
+             'AttributeOrAttributeChain' : '//Schema/Model/String'}
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,
@@ -169,11 +168,11 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             bootstrap = attrs.get((None, 'bootstrap'), "False")
             if bootstrap == 'True':
                 if local == 'Attribute':
-                    BOOTSTRAP[name] = '//Schema/Model/Attributes/' + name
+                    BOOTSTRAP[name] = '//Schema/Model/' + name
                 elif local == 'Kind':
-                    BOOTSTRAP[name] = '//Schema/Model/Kinds/' + name
+                    BOOTSTRAP[name] = '//Schema/Model/' + name
                 elif local == 'Type' or local == 'Alias':
-                    BOOTSTRAP[name] = '//Schema/Model/Types/' + name
+                    BOOTSTRAP[name] = '//Schema/Model/' + name
                 if self.verbose:
                     print "Already loaded boostrap: %s" % idString
 
@@ -248,16 +247,15 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def createDomainSchema(self, idString, rootName):
         """Create a DomainSchema with the given id."""
         [prefix, name] = idString.split(':')
-        domainKind = self.repository.find('//Schema/Model/Kinds/Domain')
-        itemKind = self.repository.find('//Schema/Model/Kinds/Item')
+        itemKind = self.repository.find('//Schema/Model/Item')
 
         self.domainSchemaName = name
 
         if self.bootstrap:
             parent = self.repository.find('//Schema/Model')
-            item = FlatDomain('Proposed', parent, domainKind)
+            item = Item('Proposed', parent, itemKind)
         else:
-            item = FlatDomain(name, self.parent, domainKind)
+            item = Item(name, self.parent, itemKind)
 
         self.root = Item(rootName, self.repository, itemKind)
 
@@ -265,8 +263,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createKind(self, prefix, name):
         """Create a Kind item with the given id."""
-        kind = self.repository.find('//Schema/Model/Kinds/Kind')
-        itemKind = self.repository.find('//Schema/Model/Kinds/Item')
+        kind = self.repository.find('//Schema/Model/Kind')
+        itemKind = self.repository.find('//Schema/Model/Item')
         
         if self.verbose:
             print "Creating Kind: (%s, %s)" % (self.domainSchema.getItemPath(),
@@ -279,7 +277,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createAttribute(self, prefix, name):
         """Create an Attribute item with the given id."""
-        kind = self.repository.find('//Schema/Model/Kinds/Attribute')
+        kind = self.repository.find('//Schema/Model/Attribute')
         if self.verbose:
             print "Creating Attribute: (%s, %s)" % (self.domainSchema.getItemPath(),
                                                     name)
@@ -289,7 +287,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createItem(self, prefix, name):
         """Create a generic item, for types, aliases, etc."""
-        kind = self.repository.find('//Schema/Model/Kinds/Item')
+        kind = self.repository.find('//Schema/Model/Item')
         item = Item(name, self.domainSchema, kind)
         return item
 
@@ -320,36 +318,35 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             # reference, but we need the name of the item
             elif key in NAME_REF_TAGS:
                 ref = self.findItem(attributeDictionary[key])
-                item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],
-                                       ref.getItemName())
+                item.setValue(ATTRIBUTE_REF_TAGS[key], ref.getItemName())
 
             # For references, find the item to set the attribute
             elif key in ATTRIBUTE_REF_TAGS:
                 ref = self.findItem(attributeDictionary[key])
-                item.setAttributeValue(ATTRIBUTE_REF_TAGS[key], ref)
+                item.setValue(ATTRIBUTE_REF_TAGS[key], ref)
 
             # Multivalued references
             elif key in ATTRIBUTES_REF_TAGS:
                 for attr in attributeDictionary[key]:
                     ref = self.findItem(attr)
-                    item.addValue(ATTRIBUTES_REF_TAGS[key], ref)
+                    if key == 'attributes':
+                        item.addValue('attributes', ref, alias=ref.getItemName())
+                    else:
+                        item.addValue(ATTRIBUTES_REF_TAGS[key], ref)
                                         
             # Text, look up attribute in the dictionary
             elif (key in ATTRIBUTE_TEXT_TAGS):
                 value = attributeDictionary[key]
-                item.setAttributeValue(ATTRIBUTE_TEXT_TAGS[key], value)
+                item.setValue(ATTRIBUTE_TEXT_TAGS[key], value)
                 
             # Multivalued text, look up attribute in the dictionary
             elif (key in ATTRIBUTES_TEXT_TAGS):
                 value = attributeDictionary[key]
-                item.setAttributeValue(ATTRIBUTES_TEXT_TAGS[key], value)
+                item.setValue(ATTRIBUTES_TEXT_TAGS[key], value)
 
             # Booleans, look up the value in the dictionary
             elif key in ATTRIBUTE_BOOL_TAGS:
                 value = attributeDictionary[key]
-                item.setAttributeValue(ATTRIBUTE_BOOL_TAGS[key], value)
+                item.setValue(ATTRIBUTE_BOOL_TAGS[key], value)
 
-class FlatDomain(Domain):
-    def getNamespace(self, name):
-        return self
 
