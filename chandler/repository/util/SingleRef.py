@@ -34,9 +34,44 @@ class SingleRef(object):
 
         return self._uuid
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
 
         if not isinstance(other, SingleRef):
             raise TypeError, type(other)
         
-        return self._uuid.__cmp__(other._uuid)
+        return self._uuid.__eq__(other._uuid)
+
+    def __ge__(self, other):
+
+        if not isinstance(other, SingleRef):
+            raise TypeError, type(other)
+        
+        return self._uuid.__ge__(other._uuid)
+
+    def __gt__(self, other):
+
+        if not isinstance(other, SingleRef):
+            raise TypeError, type(other)
+        
+        return self._uuid.__gt__(other._uuid)
+
+    def __le__(self, other):
+
+        if not isinstance(other, SingleRef):
+            raise TypeError, type(other)
+        
+        return self._uuid.__le__(other._uuid)
+
+    def __lt__(self, other):
+
+        if not isinstance(other, SingleRef):
+            raise TypeError, type(other)
+        
+        return self._uuid.__lt__(other._uuid)
+
+    def __ne__(self, other):
+
+        if not isinstance(other, SingleRef):
+            raise TypeError, type(other)
+        
+        return self._uuid.__ne__(other._uuid)

@@ -86,3 +86,61 @@ class Path(object):
     def pop(self, i=-1):
 
         return self._names.pop(i)
+
+    def canonize(self):
+
+        names = []
+        for name in self._names:
+            if name == '.':
+                continue
+            if name == '..':
+                if names and not names[-1] in ['/', '//', '..']:
+                    names.pop()
+                else:
+                    names.append(name)
+                continue
+            names.append(name)
+
+        return Path(*names)
+
+    def __eq__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__eq__(other.canonize()._names)
+
+    def __ge__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__ge__(other.canonize()._names)
+
+    def __gt__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__gt__(other.canonize()._names)
+
+    def __le__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__le__(other.canonize()._names)
+
+    def __lt__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__lt__(other.canonize()._names)
+
+    def __ne__(self, other):
+
+        if not isinstance(other, Path):
+            raise TypeError, type(other)
+
+        return self.canonize()._names.__ne__(other.canonize()._names)
