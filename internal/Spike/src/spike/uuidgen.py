@@ -23,7 +23,7 @@ warning_banner = """
 # items in the code above, you must rename them here as well, and if you
 # move items to another module, you must move their UUIDs with them.  In
 # other words, once a UUID is assigned to a particular role, entity,
-# relationship, or module, it should move with the module.
+# relationship, or module, it should be kept in sync with it thereafter.
 ###########################################################################
 \n"""
 

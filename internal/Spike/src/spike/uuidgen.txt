@@ -167,7 +167,7 @@ source code::
     # items in the code above, you must rename them here as well, and if you
     # move items to another module, you must move their UUIDs with them.  In
     # other words, once a UUID is assigned to a particular role, entity,
-    # relationship, or module, it should move with the module.
+    # relationship, or module, it should be kept in sync with it thereafter.
     ###########################################################################
     <BLANKLINE>
     uuid = 'dafcf669-8768-11d9-9096-000b6a0f72f9'
