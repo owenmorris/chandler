@@ -4,9 +4,8 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
-        
+
 class SideBarDelegate:
     def ElementParent(self, element):
         return element.parent

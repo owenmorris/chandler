@@ -35,17 +35,17 @@ class BookmarksBar(RectangularChild):
         self.bookmarksPath = None
 
     def renderOneBlock(self, parent, parentWindow):
-        panel = wx.Panel(parentWindow, -1)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
-        self.addBookmarks(panel, sizer)
-        panel.SetSizerAndFit(sizer)
-        self.parentBlock.addToContainer(parent, panel,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        panelWidget = wxRectangularChild (parentWidget, -1)
+        sizer = wx.BoxSizer (wx.HORIZONTAL)
+        sizer.SetMinSize ((self.minimumSize.width, self.minimumSize.height))
+        self.addBookmarks (panelWidget, sizer)
+        panelWidget.SetSizerAndFit (sizer)
+        self.parentBlock.addToContainer(parentWidget, panelWidget,
                                         self.stretchFactor,
                                         self.Calculate_wxFlag(),
                                         self.Calculate_wxBorder())
-        self.showOrHideBookmarksBar(panel)
-        return panel, None, None
+        return panelWidget, None, None
     
     def addBookmarks(self, parent, sizer):
         for child in self.bookmarksPath.children:
@@ -66,27 +66,6 @@ class BookmarksBar(RectangularChild):
         Globals.wxApplication.mainFrame.SetFocus()
         self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':item})
-        
-    def OnViewBookmarksBarEvent(self, notification):
-        self.open = not self.open
-        self.showOrHideBookmarksBar(Globals.association[self.itsUUID])
-        
-    def showOrHideBookmarksBar(self, bookmarksBar):
-        if bookmarksBar.IsShown() != self.open:
-            bookmarksBar.Show(self.open)
-            parentWindow = Globals.association[self.parentBlock.itsUUID]
-            if self.open:
-                self.parentBlock.addToContainer(parentWindow.GetSizer(), bookmarksBar, 
-                                                self.stretchFactor,
-                                                self.Calculate_wxFlag(),
-                                                self.Calculate_wxBorder(), 
-                                                False)
-            else:
-                self.parentBlock.removeFromContainer(parentWindow, bookmarksBar, False)
-            self.parentBlock.handleChildren(parentWindow)
-        
-    def OnViewBookmarksBarEventUpdateUI(self, notification):
-        notification.data['Check'] = self.open
         
 
 class NavigationBar(Toolbar):

@@ -45,6 +45,12 @@
     <dispatchToBlock itemref="doc:Sidebar"/>
   </BlockEvent>
 
+  <BlockEvent itemName="ShowHideBookmarksBar">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>OnShowHide</methodName>
+    <dispatchToBlock itemref="doc:BookmarksBar"/>
+  </BlockEvent>
+
   <!--
     Menus
   -->
@@ -168,7 +174,7 @@
     <title>View Bookmarks Bar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ViewBookmarksBar"/>
+    <event itemref="doc:ShowHideBookmarksBar"/>
   </MenuItem>
 
   <MenuItem itemName="ViewStatusBarItem">
@@ -288,7 +294,6 @@
   <HTML itemName="AboutChandlerHTML">
     <url>application/welcome.html</url>
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -436,7 +441,6 @@
   <HTML itemName="EmptyPanel">
     <url></url>
     <eventBoundary>True</eventBoundary>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -468,7 +472,6 @@
     <useButtons>False</useButtons>
     <rootPath  itemref="doc:URLRoot"/>
 
-    <open>True</open>
     <size>125,600</size>
     <minimumSize>10,10</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
@@ -481,7 +484,6 @@
     <bookmarksPath itemref="doc:BookmarksRoot"/>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,20</size>
     <minimumSize>200,20</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -499,7 +501,6 @@
     <splitPercentage>0.25</splitPercentage>
     
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -516,8 +517,7 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
-    <size>200,100</size>
+    <size>400,200</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
@@ -570,12 +570,12 @@
     
     <!-- Block Events -->
     <blockEvents itemref="doc:ShowHideSidebar"/>
+    <blockEvents itemref="doc:ShowHideBookmarksBar"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>900,600</size>
     <minimumSize>900,600</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>

@@ -92,23 +92,23 @@ class MainFrame(wx.Frame):
         track changes to the selection are called, and we don't want to count
         these changes, since they weren't caused by user actions.
         """
-        Globals.wxApplication.insideSynchronizeFramework = True
+        Globals.wxApplication.ignoreSynchronizeFramework = True
         Globals.wxApplication.mainFrame = None
         self.Destroy()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
-            event.Skip()
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            counterpart.size.width = self.GetSize().x
-            counterpart.size.height = self.GetSize().y
+        event.Skip()
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
+            block = Globals.repository.find (self.counterpartUUID)
+            block.size.width = self.GetSize().x
+            block.size.height = self.GetSize().y
             """
               size is a repository type that I defined. They seem harder
             to define than necessary and they don't automatically dirty
             themselves when modified. We need to improve this feature
             of the repository -- DJA
             """
-            counterpart.setDirty()   # Temporary repository hack -- DJA
+            block.setDirty()   # Temporary repository hack -- DJA
 
 
 class wxApplication (wx.App):
@@ -138,7 +138,7 @@ class wxApplication (wx.App):
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        self.insideSynchronizeFramework = False
+        self.ignoreSynchronizeFramework = False
 
         wx.InitAllImageHandlers()
         """
@@ -292,10 +292,12 @@ class wxApplication (wx.App):
 
             Globals.mainView.onSetActiveView(mainView)
             mainView.render (self.mainFrame, self.mainFrame)
-
+            
             self.mainFrame.Show()
+
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
+
 
     def OnCommand(self, event):
         """

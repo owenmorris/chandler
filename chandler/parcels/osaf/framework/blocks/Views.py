@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from ContainerBlocks import *
+from ContainerBlocks import BoxContainer
 from MenuBlocks import MenuEntry
 from osaf.framework.notifications.Notification import Notification
 import wx

@@ -21,24 +21,28 @@ class BoxContainer(RectangularChild):
         sizer = wx.BoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
 
-        if self.parentBlock: 
-            panel = wx.Panel(parentWindow, -1)
-            panel.SetSizer(sizer)
-            self.parentBlock.addToContainer(parent, panel, 
-                                                             self.stretchFactor, 
-                                                             self.Calculate_wxFlag(), 
-                                                             self.Calculate_wxBorder())
-            return panel, sizer, panel
+        if self.parentBlock:
+            parentWidget = Globals.association [self.parentBlock.itsUUID]
+            widget = wxRectangularChild (parentWidget, -1)
+            self.parentBlock.addToContainer (parentWidget,
+                                             widget, 
+                                             self.stretchFactor, 
+                                             self.Calculate_wxFlag(), 
+                                             self.Calculate_wxBorder())
         else:
-            parent.SetSizer(sizer)
-            return parent, sizer, parent
+            parentWidget = None
+            widget = Globals.wxApplication.mainFrame
+
+        widget.SetSizer (sizer)
+
+        return widget, None, parentWidget
                 
     def addToContainer(self, parent, child, weight, flag, border, append=True):
+        parentSizer = parent.GetSizer()
         if append:
-            parent.Add(child, int(weight), flag, border)
+            parentSizer.Add(child, int(weight), flag, border)
         else:
-            parent.Prepend(child, int(weight), flag, border)
-        parent.Layout()
+            parentSizer.Prepend(child, int(weight), flag, border)
         
     def removeFromContainer(self, parent, child, doDestroy=True):
         parentSizer = parent.GetSizer()
@@ -144,7 +148,7 @@ class wxSplitWindow(wx.SplitterWindow):
         self.SetMinimumPaneSize(20)
  
     def OnSplitChanged(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
@@ -154,78 +158,83 @@ class wxSplitWindow(wx.SplitterWindow):
             elif splitMode == wx.SPLIT_VERTICAL:
                 counterpart.splitPercentage = position / width
 
-    def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
-            """
-              Calling Skip causes wxWindows to continue processing the event, 
-            which will cause the parent class to get a crack at the event.
-            """
-            event.Skip()
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            counterpart.size.width = event.GetSize().x
-            counterpart.size.height = event.GetSize().y
-            counterpart.setDirty()   # Temporary repository hack -- DJA
-
     def wxSynchronizeFramework(self):
-        counterpart = Globals.repository.find (self.counterpartUUID)
+        block = Globals.repository.find (self.counterpartUUID)
 
-        self.SetSize ((counterpart.size.width, counterpart.size.height))
+        self.SetSize ((block.size.width, block.size.height))
 
-        assert (len (counterpart.childrenBlocks) >= 1 and
-                len (counterpart.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
+        assert (len (block.childrenBlocks) >= 1 and
+                len (block.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
 
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
-        
+ 
+        children = iter (block.childrenBlocks)
+
         window1 = None
-        window2 = None
-
-        children = iter (counterpart.childrenBlocks)
         child1 = children.next()
+        window = Globals.association[child1.itsUUID]
         if child1.open:
-            window1 = Globals.association[child1.itsUUID]
+            window1 = window
+        window.Show (child1.open)
 
-        if len (counterpart.childrenBlocks) >= 2:
+        window2 = None
+        if len (block.childrenBlocks) >= 2:
             child2 = children.next()
+            window = Globals.association[child2.itsUUID]
             if child2.open:
-                window2 = Globals.association[child2.itsUUID]
+                window2 = window
+            window.Show (child2.open)
 
-        isSplit = bool (window1) and bool (window2)
+        shouldSplit = bool (window1) and bool (window2)
         
-        # Update any differences between the block and wxCounterpart
+        # Update any differences between the block and widget
         self.Freeze()
-        if not self.IsSplit() and isSplit:
-            if counterpart.orientationEnum == "Horizontal":
-                position = counterpart.size.height * counterpart.splitPercentage
+        if not self.IsSplit() and shouldSplit:
+            """
+              First time splitWindow creation with two windows or going between
+            a split with one window to a split with two windows
+            """            
+            if block.orientationEnum == "Horizontal":
+                position = block.size.height * block.splitPercentage
                 success = self.SplitHorizontally (window1, window2, position)
             else:
-                position = counterpart.size.width * counterpart.splitPercentage
+                position = block.size.width * block.splitPercentage
                 success = self.SplitVertically (window1, window2, position)
             assert success
-            window1.Show()
-            window2.Show()
-        elif not oldWindow1 and not oldWindow2 and not isSplit:
+        elif not oldWindow1 and not oldWindow2 and not shouldSplit:
+            """
+              First time splitWindow creation with one window.
+            """
             if window1:
                 self.Initialize (window1)
             else:
                 self.Initialize (window2)
         else:
-            if self.IsSplit() and not isSplit:
+            if self.IsSplit() and not shouldSplit:
+                """
+                  Going from two windows in a split to one window in a split.
+                """
+                show = oldWindow2.IsShown()
                 success = self.Unsplit()
+                oldWindow2.Show (show)
                 assert success
+            """
+              Swap window1 and window2 so we can simplify the we can finish
+            our work with only two comparisons.
+            """            
             if bool (oldWindow1) ^ bool (window1):
                 window1, window2 = window2, window1
             if window1:
                 success = self.ReplaceWindow (oldWindow1, window1)
                 assert success
-                oldWindow1.Show(False)
-                window1.Show()
             if window2:
                 success = self.ReplaceWindow (oldWindow2, window2)
                 assert success
-                oldWindow2.Show(False)
-                window2.Show()
+        parent = self.GetParent()
+        if parent:
+            parent.Layout()
         self.Thaw()
         
     def __del__(self):
@@ -243,7 +252,6 @@ class SplitWindow(RectangularChild):
                                         self.stretchFactor, 
                                         self.Calculate_wxFlag(), 
                                         self.Calculate_wxBorder())
-        splitWindow.Bind(wx.EVT_SIZE, splitWindow.OnSize)
         return splitWindow, splitWindow, splitWindow
                 
     def Calculate_wxStyle (self, parentWindow):
@@ -256,22 +264,6 @@ class SplitWindow(RectangularChild):
         else:
             style |= wx.SP_3D
         return style
-
-    def addToContainer(self, parent, child, weight, flag, border, append=True):
-        if not hasattr(self, 'childrenToAdd'):
-            self.childrenToAdd = []
-        self.childrenToAdd.append(child)
-
-    def removeFromContainer(self, parent, child, doDestroy=True):
-        try:
-            self.childrenToAdd.remove(child)
-        except ValueError:
-            parent.Unsplit(child)
-            if doDestroy:
-                child.Destroy()
-
-    def handleChildren(self, window):
-        pass
 
     
 class TabbedContainer(RectangularChild):

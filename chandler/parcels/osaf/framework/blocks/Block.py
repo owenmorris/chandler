@@ -102,6 +102,7 @@ class Block(Item):
 
     def OnShowHide(self, notification):
         self.open = not self.open
+        self.SynchronizeFramework()
         self.parentBlock.SynchronizeFramework()
 
 
@@ -130,23 +131,28 @@ class Block(Item):
         except AttributeError:
             pass
         else:
-            if not Globals.wxApplication.insideSynchronizeFramework:
-                oldInsideSynchronizeFramework = Globals.wxApplication.insideSynchronizeFramework
-                Globals.wxApplication.insideSynchronizeFramework = True
+            if not Globals.wxApplication.ignoreSynchronizeFramework:
+                oldIgnoreSynchronizeFramework = Globals.wxApplication.ignoreSynchronizeFramework
+                Globals.wxApplication.ignoreSynchronizeFramework = True
                 try:
                     method()
                 finally:
-                    Globals.wxApplication.insideSynchronizeFramework = oldInsideSynchronizeFramework
+                    Globals.wxApplication.ignoreSynchronizeFramework = oldIgnoreSynchronizeFramework
 
 
 class ContainerChild(Block):
     def render (self, parent, parentWindow):
-        (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
+        oldIgnoreSynchronizeFramework = Globals.wxApplication.ignoreSynchronizeFramework
+        Globals.wxApplication.ignoreSynchronizeFramework = True
+        try:
+            (widget, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
+        finally:
+            Globals.wxApplication.ignoreSynchronizeFramework = oldIgnoreSynchronizeFramework
         """
           Store the wxWindows version of the object in the association, so
         given the block we can find the associated wxWindows object.
         """
-        if window:
+        if widget:
             UUID = self.itsUUID
             """
               Currently not all wxWindows counterpart objects have a __del__
@@ -160,28 +166,58 @@ class ContainerChild(Block):
                 Globals.repository.find (UUID).itsPath
                 logging.warn("Bug #1177: item %s doesn't remove it's counterpart from the association",
                              str (Globals.repository.find (UUID).itsPath))
-            Globals.association[UUID] = window
-            window.counterpartUUID = UUID
+            Globals.association[UUID] = widget
+            widget.counterpartUUID = UUID
             """
               After the blocks are wired up, give the window a chance
             to synchronize itself to any persistent state.
             """
+            parent = widget
+            parentWindow = widget
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
             self.SynchronizeFramework()
-            self.handleChildren(window)
-        return window, parent, parentWindow
+        return widget
                 
     def addToContainer(self, parent, child, id, flag, border):
         pass
     
     def removeFromContainer(self, parent, child):
         pass
-    
-    def handleChildren(self, window):
-        pass
 
     
+class wxRectangularChild (wx.Panel):
+    def __init__(self, *arguments, **keywords):
+        super (wxRectangularChild, self).__init__ (*arguments, **keywords)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def wxSynchronizeFramework(self):
+        block = Globals.repository.find (self.counterpartUUID)
+        if block.open != self.IsShown():
+            self.Show (block.open)
+            parentWidget = Globals.association [block.parentBlock.itsUUID]
+            parentSizer = parentWidget.GetSizer()
+            if self.IsShown():
+                parentSizer.Show (self)
+            else:
+                parentSizer.Hide (self)
+        if block.open:
+            self.SetSize ((block.size.width, block.size.height))
+            self.Layout()
+
+    def OnSize(self, event):
+        """
+          Calling Skip causes wxWindows to continue processing the event, 
+        which will cause the parent class to get a crack at the event.
+        """
+        event.Skip()
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            counterpart.size.width = event.GetSize().x
+            counterpart.size.height = event.GetSize().y
+            counterpart.setDirty()   # Temporary repository hack -- DJA
+
+
 class RectangularChild(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':

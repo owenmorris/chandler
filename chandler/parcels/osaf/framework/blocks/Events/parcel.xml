@@ -26,7 +26,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:Paste"/>
     <blockEvents itemref="events:Preferences"/>
     <blockEvents itemref="events:ViewNavigationBar"/>
-    <blockEvents itemref="events:ViewBookmarksBar"/>
     <blockEvents itemref="events:ViewStatusBar"/>    
     <blockEvents itemref="events:SelectionChanged"/>
     <blockEvents itemref="events:EnterPressed"/>
@@ -86,11 +85,6 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itemName="ViewNavigationBar">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnViewNavigationBarEvent</methodName>
-  </BlockEvent>
-
-  <BlockEvent itemName="ViewBookmarksBar">
-    <dispatchEnum>Broadcast</dispatchEnum>
-    <methodName>OnViewBookmarksBarEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="ViewStatusBar">

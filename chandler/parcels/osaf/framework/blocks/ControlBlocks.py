@@ -200,7 +200,7 @@ class wxListBlock(wx.ListCtrl):
         event.Skip()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             size = self.GetClientSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
@@ -212,7 +212,7 @@ class wxListBlock(wx.ListCtrl):
         event.Skip()
 
     def On_wxSelectionChanged(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
@@ -358,13 +358,13 @@ class wxSummary(wx.grid.Grid):
         event.Skip()
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
             columnIndex = event.GetRowOrCol()
             counterpart.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             size = event.GetSize()
             widthMinusLastColumn = 0
             assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
@@ -378,7 +378,7 @@ class wxSummary(wx.grid.Grid):
         event.Skip()
 
     def removeFromContainer(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
@@ -626,7 +626,7 @@ class wxTreeAndList:
         event.Skip()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             if isinstance (self, wx.gizmos.TreeListCtrl):
                 size = self.GetClientSize()
                 widthMinusLastColumn = 0
@@ -682,7 +682,7 @@ class wxTreeAndList:
         self.CollapseAndReset (id)
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
             columnIndex = event.GetColumn()
             try:
@@ -691,7 +691,7 @@ class wxTreeAndList:
                 pass
 
     def On_wxSelectionChanged(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
@@ -829,11 +829,6 @@ class Tree(RectangularChild):
                 tree = wxTree (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
             else:
                 tree = wxTreeList (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
-        self.parentBlock.addToContainer(parent,
-                                        tree,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
