@@ -146,8 +146,7 @@ class Kind(Item):
                 attribute = self._inheritAttribute(name)
 
         if attribute is None:
-            raise AttributeError, 'Kind %s has no attribute %s' %(self.itsPath,
-                                                                  name)
+            raise AttributeError, "Kind %s has no definition for attribute '%s'" %(self.itsPath, name)
 
         return attribute
 
@@ -211,8 +210,7 @@ class Kind(Item):
             if not localOnly:
                 for attribute in attributes:
                     if attribute.itsParent is not self:
-                        yield (attributes._get(attribute._uuid)._alias,
-                               attribute)
+                        yield (attributes.getAlias(attribute), attribute)
 
         if inherited:
             inheritedAttributes = self.inheritedAttributes

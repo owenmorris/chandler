@@ -26,7 +26,7 @@
 
     <ref name="clouds" otherName="endpoints"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref otherAlias="attributes" type="path">..</ref>
     </ref>
 
     <attribute name="attribute" cardinality="list">
@@ -45,7 +45,7 @@
 
     <ref name="clouds" otherName="endpoints"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref otherAlias="inheritedAttributes" type="path">..</ref>
     </ref>
 
     <attribute name="attribute" cardinality="list">

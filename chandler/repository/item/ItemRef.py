@@ -959,6 +959,17 @@ class RefDict(LinkedMap):
 
         return None
 
+    def getAlias(self, item):
+        """
+        Get the alias this item is keyed on in this collection.
+
+        @param item: an item in the collection
+        @type item: an L{Item<repository.item.Item.Item>} instance
+        @return: the alias string or None if the item is not aliased
+        """
+
+        return self._get(item._uuid)._alias
+
     def getByIndex(self, indexName, position):
         """
         Get the item through its position in an index.

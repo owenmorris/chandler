@@ -18,7 +18,7 @@ class Cloud(Item):
 
     def getItems(self, item, items=None, references=None, cloudAlias=None):
         """
-        Gather all items in the cloud.
+        Gather all items in the cloud from a given item entrypoint.
 
         Items are found at each endpoint of this cloud and are included into
         the returned result set and the optional C{items} and C{references}
@@ -50,7 +50,7 @@ class Cloud(Item):
               and is supposed to fill the C{items} and C{references}
               dictionaries as this method does.
 
-        @param item: the entry point of the cloud.
+        @param item: the entrypoint of the cloud.
         @type item: an C{Item} instance
         @param items: an optional dictionary keyed on the item UUIDs that
         also receives all items in the cloud.
@@ -66,7 +66,7 @@ class Cloud(Item):
         """
 
         if not item.isItemOf(self.kind):
-            raise TypeError, '%s is not of a kind this cloud (%s) understands' %(item.itsPath, self.itsPath)
+            raise TypeError, '%s (Kind: %s) is not of a kind this cloud (%s) understands' %(item.itsPath, item._kind.itsPath, self.itsPath)
 
         if items is None:
             items = {}
@@ -79,48 +79,11 @@ class Cloud(Item):
         else:
             results = []
 
-        def append(values, value):
-            if isinstance(value, Item):
-                values.append(value)
-            elif isinstance(value, PersistentCollection):
-                values.extend(value._getItems())
-            elif isinstance(value, RefDict):
-                values.extend(value)
-            else:
-                raise TypeError, type(value)
-
-        for endpoint in self.endpoints:
-            value = item
-            for name in endpoint.attribute:
-                if isinstance(value, PersistentCollection):
-                    values = []
-                    for v in value._getItems():
-                        append(values, v.getAttributeValue(name, default=None))
-                    value = values
-                elif isinstance(value, RefDict) or isinstance(value, list):
-                    values = []
-                    for v in value:
-                        append(values, v.getAttributeValue(name, default=None))
-                    value = values
-                else:
-                    value = value.getAttributeValue(name, default=None)
-                    if value is None:
-                        break
-
-            if value is not None:
-                if isinstance(value, Item):
-                    if value._uuid not in items:
-                        results.extend(endpoint.getItems(value, items,
-                                                         references,
-                                                         cloudAlias))
-                elif isinstance(value, RefDict) or isinstance(value, list):
-                    for other in value:
-                        if other is not None and other._uuid not in items:
-                            results.extend(endpoint.getItems(other, items,
-                                                             references,
-                                                             cloudAlias))
-                else:
-                    raise TypeError, type(value)
+        for alias, endpoint in self.iterEndpoints(cloudAlias):
+            for other in endpoint.iterValues(item):
+                if other is not None and other._uuid not in items:
+                    results.extend(endpoint.getItems(other, items, references,
+                                                     cloudAlias))
 
         return results
 
@@ -210,12 +173,12 @@ class Cloud(Item):
 
         return results
 
-    def getEndpoints(self, name, index=0):
+    def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 
         endpoints = []
-        for endpoint in self.endpoints:
+        for endpoint in self.iterEndpoints(cloudAlias):
             names = endpoint.attribute
-            if index < len(names) and names[index] == name:
+            if index < len(names) and names[index] == attrName:
                 endpoints.append(endpoint)
 
         return endpoints
@@ -238,6 +201,82 @@ class Cloud(Item):
 
             filter = CloudFilter(self, store, uuid, version, generator)
             filter.parse(xml, uuids)
+
+    def iterEndpoints(self, cloudAlias=None):
+        """
+        Iterate over the endpoints of this cloud.
+
+        If C{cloudAlias} is not C{None}, endpoints are inherited vertically
+        by going up the cloud kind's superKind chain and horizontally by
+        iterating over the cloud kind's superKinds.
+
+        If an endpoint is aliased in a cloud's endpoints collection,
+        endpoints by the same alias are not inherited.
+        """
+
+        endpoints = self.getAttributeValue('endpoints', default=None)
+        if endpoints is not None:
+            for endpoint in endpoints:
+                yield (endpoints.getAlias(endpoint), endpoint)
+
+        if cloudAlias is not None:
+            for superKind in self.kind._getSuperKinds():
+                for cloud in superKind.getClouds(cloudAlias):
+                    for alias, endpoint in cloud.iterEndpoints(cloudAlias):
+                        if (alias is None or
+                            endpoints is None or
+                            endpoints.resolveAlias(alias) is None):
+                            yield (alias, endpoint)
+
+    def getEndpoints(self, alias, cloudAlias=None):
+        """
+        Get the endpoints for a given alias for this cloud.
+
+        If C{cloudAlias} is not C{None} and this cloud does not define an
+        endpoint by this alias, matching endpoints are inherited
+        from the cloud kind's superKinds.
+
+        @param alias: the alias of the endpoint(s) sought
+        @type alias: a string
+        @param cloudAlias: the optional cloud alias to inherit endpoints with
+        @type cloudAlias: a string
+        """
+
+        if 'endpoints' in self._references:
+            endpoint = self.endpoints.getByAlias(alias)
+            if endpoint is not None:
+                return [endpoint]
+
+        if cloudAlias is not None:
+            results = []
+            for superKind in self.kind._getSuperKinds():
+                for cloud in superKind.getClouds(cloudAlias):
+                    results.extend(cloud.getEndpoints(cloudAlias, alias))
+            return results
+
+        return []
+
+    def iterEndpointValues(self, item, alias, cloudAlias=None):
+        """
+        Iterate over the items at the endpoints for the given alias.
+
+        If C{cloudAlias} is not None and this cloud does not define an
+        endpoint by this alias, matching endpoints are inherited
+        from the cloud kind's superKinds.
+
+        @param alias: the alias of the endpoint(s) sought
+        @type alias: a string
+        @param cloudAlias: the optional cloud alias to inherit endpoints with
+        @type cloudAlias: a string
+        """
+
+
+        if not item.isItemOf(self.kind):
+            raise TypeError, '%s (Kind: %s) is not of a kind this cloud (%s) understands' %(item.itsPath, item._kind.itsPath, self.itsPath)
+
+        for endpoint in self.getEndpoints(alias, cloudAlias):
+            for other in endpoint.iterValues(item):
+                yield other
 
 
 class Endpoint(Item):
@@ -330,5 +369,51 @@ class Endpoint(Item):
                     xml = doc.getContent()
                     self.writeItems(index + 1, uuid, version, generator,
                                     xml, uuids)
+
+    def iterValues(self, item):
+
+        def append(values, value):
+            if value is not None:
+                if isinstance(value, Item) or isinstance(value, RefDict):
+                    values.append(value)
+                elif isinstance(value, PersistentCollection):
+                    values.append(value._getItems())
+                else:
+                    raise TypeError, type(value)
+
+        value = item
+        for name in self.attribute:
+            if isinstance(value, PersistentCollection):
+                values = []
+                for v in value._getItems():
+                    append(values, v.getAttributeValue(name, default=None))
+                value = values
+            elif isinstance(value, RefDict):
+                values = []
+                for v in value:
+                    append(values, v.getAttributeValue(name, default=None))
+                value = values
+            elif isinstance(value, list):
+                values = []
+                for v in value:
+                    if isinstance(v, Item):
+                        append(values, v.getAttributeValue(name, default=None))
+                    else:
+                        for i in v:
+                            append(values, i.getAttributeValue(name, default=None))
+                value = values
+            else:
+                value = value.getAttributeValue(name, default=None)
+                if value is None:
+                    break
+
+        if value is None:
+            return []
+
+        if isinstance(value, Item):
+            return [value]
+
+        return value
+
 
     kindExp = re.compile('<kind type="uuid">(.*)</kind>')

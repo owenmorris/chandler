@@ -121,7 +121,7 @@ class PersistentCollection(object):
 
         return None
 
-    def _getItems(self, items=None):
+    def _iterItems(self, items=None):
 
         if self._companion is not None:
             for item in self._item.getAttributeValue(self._companion):
@@ -138,7 +138,7 @@ class PersistentCollection(object):
                             items[uuid] = value
                             yield value
                 elif isinstance(value, PersistentCollection):
-                    for v in value._getItems(items):
+                    for v in value._iterItems(items):
                         yield v
 
 

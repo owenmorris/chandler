@@ -23,7 +23,7 @@
     <parent type="path">//Schema/CineGuide/Clouds/Actor</parent>
 
     <ref name="clouds">
-      <ref type="path">..</ref>
+      <ref otherAlias="movies" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">
@@ -37,7 +37,7 @@
     <parent type="path">//Schema/CineGuide/Clouds/Actor</parent>
 
     <ref name="clouds">
-      <ref type="path">..</ref>
+      <ref otherAlias="director" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">

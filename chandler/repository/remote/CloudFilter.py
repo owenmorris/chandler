@@ -54,7 +54,7 @@ class CloudFilter(ItemFilter):
         generator = self.generator
 
         if self.cloud is not None:
-            endpoints = self.cloud.getEndpoints(name)
+            endpoints = self.cloud.getAttributeEndpoints(name)
         else:
             endpoints = None
 
