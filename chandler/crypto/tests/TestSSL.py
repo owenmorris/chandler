@@ -19,16 +19,16 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         if not self.isOnline():
             return
 
-        site = 'www.verisign.com'
+        #site = 'www.verisign.com'
+        #fp   = '0FA5B0527BA98FC66276CA166BA22E44A73636C9'
+        site = 'www.thawte.com'
+        fp   = 'D85FE7EC903564DEFD4BCFF82047726F14C09C31'
         
-        ctx = crypto.ssl.getSSLContext(protocol='sslv3')
+        ctx = crypto.ssl.getSSLContext()
         conn = SSL.Connection(ctx)
 
         # We wrap the connect() in try/except and filter some common
         # network errors that are not SSL-related.
-        #
-        # XXX Potential candidates to filter (need to check if ok):
-        #     - SSLError: (54, 'Connection reset by peer')
         try:
             self.assert_(conn.connect((site, 443)) >= 0)
         except socket.gaierror, e:
@@ -36,7 +36,7 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
                 return
             raise
 
-        crypto.ssl.postConnectionCheck(conn, '0FA5B0527BA98FC66276CA166BA22E44A73636C9', hostCheck=True)
+        crypto.ssl.postConnectionCheck(conn, fp, hostCheck=True)
 
         conn.clear()
 
