@@ -208,7 +208,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.mapping[prefix] = None
 
 
-    def makeValue(self, item, attributeName, attributeTypePath, value):
+    def makeValue(self, item, attributeName, attributeTypePath, value, line):
         """ Creates a value from a string, based on the type
             of the attribute.
         """
@@ -218,14 +218,14 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             assert item, \
                    "No parent item at %s:%s" % (self.locator.getSystemId(),
-                                                self.locator.getLineNumber())
+                                               line)
 
             kindItem = item.kind
             attributeItem = kindItem.getAttribute(attributeName)
 
             assert attributeItem, \
                    "No Attribute at %s:%s" % (self.locator.getSystemId(),
-                                              self.locator.getLineNumber())
+                                              line)
         
             value = attributeItem.type.makeValue(value)
 
@@ -307,7 +307,6 @@ class ItemHandler(xml.sax.ContentHandler):
         # parser has already mapped the prefix to the namespace (uri).
         kind = self.findItem(uri, local,
                              self.locator.getLineNumber())
-            
         assert kind, \
                "No kind (%s/%s) at %s:%s" % (uri, local,
                                              self.locator.getSystemId(),
@@ -355,7 +354,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 attributeTypePath = namespace
 
                 value = self.makeValue(item, attributeName, attributeTypePath,
-                 name)
+                 name, line)
                 if key:
                     item.setValue(attributeName, value, key)
                 else:
