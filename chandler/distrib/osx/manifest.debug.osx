@@ -80,4 +80,5 @@ Chandler.icns
 src=chandler/distrib/osx/bundle/debug
 dest=Contents/MacOS/debug
 RunChandler
-RunPython
+# XXX No RunPython in bundle! 
+#RunPython
