@@ -8,6 +8,8 @@ import Block as Block
 import logging
 import wx
 from repository.item.Item import Item
+import sys
+import os
 
 
 class RefCollectionDictionary(Item):
@@ -783,6 +785,18 @@ class ToolbarItem (Block.Block, DynamicChild):
       Under construction
     """
     def instantiateWidget (self):
+        def getBitmapPath (path):
+            """
+              wxWidgets on Mac can only display ugly icons (e.g. one bit alpha) so
+              we'll look up the ugly alternatives.
+            """
+            if sys.platform == "darwin":
+                root, extension = os.path.splitext (path)
+                macAlternatePath = root + "-mac" + extension
+                if os.path.isfile (macAlternatePath):
+                    path = macAlternatePath
+            return path
+        
         # can't instantiate ourself without a toolbar
         try:
             theToolbar = self.dynamicParent.widget
@@ -794,7 +808,7 @@ class ToolbarItem (Block.Block, DynamicChild):
         self.toolID = id
         if (self.toolbarItemKind == 'Button' or
             self.toolbarItemKind == 'Radio'):
-            bitmap = wx.Image (self.bitmap, 
+            bitmap = wx.Image (getBitmapPath (self.bitmap), 
                                wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             if self.toggle:
                 theKind = wx.ITEM_CHECK
@@ -817,7 +831,7 @@ class ToolbarItem (Block.Block, DynamicChild):
             theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
             theKind = wx.ITEM_CHECK
-            bitmap = wx.Image (self.bitmap, 
+            bitmap = wx.Image (getBitmapPath (self.bitmap), 
                                wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             tool = theToolbar.DoAddTool (id,
                                         self.label,
