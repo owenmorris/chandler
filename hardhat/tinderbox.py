@@ -348,7 +348,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
                   'Specially Designated Nationals, and entities on the ' +\
                   'Bureau of Industry and Security Entity List or involved ' +\
                   'with missile technology or nuclear, chemical or ' +\
-                  'biological weapons).</p>'
+                  'biological weapons).</p>\n'
     index = head1 + head2 + cryptoblurb
 
     for distro in ('enduser', 'developer'):
