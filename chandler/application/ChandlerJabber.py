@@ -138,8 +138,9 @@ class JabberClient:
         
         if not self.IsRegistered():     
             if not self.Register():
-                self.connection.disconnect()
-                print "couldnt register ", self.name
+                self.Logout()
+                message = "Couldn't register %s as %s" % (self.name, self.jabberID)
+                wxMessageBox(message)
                 return
         
         if self.connection.auth(username, self.password, 'Chandler'):	            
@@ -240,6 +241,9 @@ class JabberClient:
     # GetCompleteID takes a possibly partial jabber id and returns
     # a corresponding fully qualified ID, by looking it up in the roster
     def GetCompleteID(self, jabberID):
+        if self.roster == None:
+            return jabberID
+        
         realIDs = self.roster.getJIDs()
         searchID = str(jabberID).lower()
         for realID in realIDs:
@@ -545,6 +549,9 @@ class JabberClient:
         self.connection.setRegInfo('email', self.email)
         
         registerResult = self.connection.sendRegInfo()
+        if registerResult == None:
+            return false
+        
         error = registerResult.getError()
         return error == None
                     
