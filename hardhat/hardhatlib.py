@@ -1063,12 +1063,12 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 	raise HardHatError
 
 
-    buildPrepareSource(buildenv, releaseId, cvsModule, True)
+    buildPrepareSource(buildenv, releaseId, module, cvsModule, True)
     buildRelease(buildenv, releaseId, module)
-    buildPrepareSource(buildenv, releaseId, cvsModule, False)
+    buildPrepareSource(buildenv, releaseId, module, cvsModule, False)
     buildDebug(buildenv, releaseId, module)
 
-def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
+def buildPrepareSource(buildenv, releaseId, module, cvsModule, doCheckout=True):
 
     sourceName = module + "_src_" + releaseId
 
