@@ -372,6 +372,19 @@ class ViewContainer(BoxContainer):
             selectionIndex = selectionIndex + 1
 
 
+class wxFrameWindow (wxViewContainer):
+    pass
+
+class FrameWindow (ViewContainer):
+    """
+      @@@ For now a FrameWindow is just a ViewContainer with added position attributes,
+    but we will want to move a lot of MainFrame code from Application.py into here.
+    Right now we special case MainFrame, but we should better work that into the block
+    framework.
+    """
+    pass
+
+
 class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)

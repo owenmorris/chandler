@@ -15,6 +15,19 @@ class SizeStruct(CoreTypes.Struct):
         return size
 
 
+class PositionType(object):
+    __slots__ = 'x', 'y'
+    
+class PositionStruct(CoreTypes.Struct):
+
+    def makeValue(Struct, data):
+        (x, y) = data.split(",")
+        position = PositionType()
+        setattr (position, 'x', float(x))
+        setattr (position, 'y', float(y))
+        return position
+
+
 class RectType(object):
     __slots__ = 'top', 'left', 'bottom', 'right'
 

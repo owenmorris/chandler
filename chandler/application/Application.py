@@ -73,6 +73,7 @@ class MainFrame(wx.Frame):
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_MOVE, self.OnMove)
 
     def OnClose(self, event):
         """
@@ -101,6 +102,18 @@ class MainFrame(wx.Frame):
             Globals.mainViewRoot.size.height = self.GetSize().y
             Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'size', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
         event.Skip()
+
+    def OnMove(self, event):
+        """
+          Calling Skip causes wxWindows to continue processing the event, 
+        which will cause the parent class to get a crack at the event.
+        """
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            Globals.mainViewRoot.position.x = self.GetPosition().x
+            Globals.mainViewRoot.position.y = self.GetPosition().y
+            Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'position', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
+        event.Skip()
+
 
 class wxApplication (wx.App):
     """
@@ -245,9 +258,14 @@ class wxApplication (wx.App):
         self.__twistedReactorManager.startReactor()
 
         mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
+        if (mainViewRoot.position.x == -1 and mainViewRoot.position.y == -1):
+            position = wx.DefaultPosition
+        else:
+            position = (mainViewRoot.position.x, mainViewRoot.position.y)
         self.mainFrame = MainFrame(None,
                                    -1,
                                    "Chandler",
+                                   pos=position,
                                    size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                    style=wx.DEFAULT_FRAME_STYLE)
         mainViewRoot.frame = self.mainFrame

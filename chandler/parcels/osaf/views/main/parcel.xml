@@ -1501,13 +1501,13 @@
   <!--
     Root of User Interface
   -->
-  <ViewContainer itsName="MainViewRoot">
+  <FrameWindow itsName="MainViewRoot">
     <blockName>MainViewRoot</blockName>
     <size>1024,720</size>
     <views itemref="doc:ChandlerMainView"/>
     <views itemref="doc:CPIATestMainView"/>
     <childrenBlocks itemref="doc:MainDetailView"/>
-  </ViewContainer>
+  </FrameWindow>
 
   <TrunkParentBlock itsName="MainDetailView">
     <blockName>MainDetailView</blockName>

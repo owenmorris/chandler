@@ -61,6 +61,12 @@
     <implementationTypes key="python">osaf.framework.blocks.DocumentTypes.SizeType</implementationTypes>
   </Struct>
  
+  <Struct itsName="PositionType" itemClass="osaf.framework.blocks.DocumentTypes.PositionStruct">
+    <fields key="x"></fields>
+    <fields key="y"></fields>
+    <implementationTypes key="python">osaf.framework.blocks.DocumentTypes.PositionType</implementationTypes>
+  </Struct>
+
   <Struct itsName="RectType" itemClass="osaf.framework.blocks.DocumentTypes.RectStruct">
     <fields key="top"></fields>
     <fields key="left"></fields>
@@ -1084,6 +1090,19 @@
     <clouds alias="default" itemref="docSchema:ViewContainer/DefaultCloud"/>
   </Kind>  
   
+  <!--
+    FrameWindow
+  -->
+  <Kind itsName="FrameWindow">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.FrameWindow</classes>
+    <superKinds itemref="docSchema:ViewContainer"/>
+
+    <Attribute itsName="position">
+      <type itemref="docSchema:PositionType"/>
+      <initialValue type="docSchema:PositionType">-1,-1</initialValue>
+    </Attribute>
+  </Kind>  
+
   <!--
     TabbedContainer
   -->
