@@ -50,10 +50,10 @@ chandler-system -a \
     osaf/chandler/net/rap
 
 
-chandler-system -o /disk1/cvs-scripts/count-checkouts
-chandler-system -u /disk1/cvs-scripts/count-checkouts
-chandler-app -o /disk1/cvs-scripts/count-checkouts
-chandler-app -u /disk1/cvs-scripts/count-checkouts
+# chandler-system -o /disk1/cvs-scripts/count-checkouts
+# chandler-system -u /disk1/cvs-scripts/count-checkouts
+# chandler-app -o /disk1/cvs-scripts/count-checkouts
+# chandler-app -u /disk1/cvs-scripts/count-checkouts
 
 dbxml-module -a \
     osaf/chandler/dbxml \
