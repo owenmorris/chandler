@@ -73,6 +73,17 @@ class StringAttributeEditor (AttributeEditor):
         for line in str (string).split (os.linesep):
             dc.DrawText (line, x, y)
             lineWidth, lineHeight = dc.GetTextExtent (line)
+            # If the text doesn't fit within the box we want to clip it and
+            # put '...' at the end.  This method may chop a character in half,
+            # but is a lot faster than doing the proper calculation of where
+            # to cut off the text.  Eventually we will want a solution that
+            # doesn't chop chars, but that will come along with multiline 
+            # wrapping and hopefully won't be done at the python level.
+            if lineWidth > rect.width - 2:
+                width, height = dc.GetTextExtent('...')
+                x = rect.x+1 + rect.width-2 - width
+                dc.DrawRectangle(x, rect.y+1, width+1, height)
+                dc.DrawText('...', x, rect.y+1)
             y += lineHeight
         dc.DestroyClippingRegion()
 
