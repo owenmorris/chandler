@@ -91,7 +91,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         for releaseMode in ('debug', 'release'):
     
             doInstall(releaseMode, workingDir, log)
-            ret = doTests(hardhatScript, chanDir, workingDir, releaseMode, log)
+            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+              cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
     else:
         os.chdir(chanDir)
@@ -163,7 +164,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
             CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
-    return "success"  # end of doTests( )
+    return "success"  # end of Do( )
 
 #   Create end-user, developer distributions
 def makeDistrib(hardhatScript, mode, outputDir, buildVersion, log):
