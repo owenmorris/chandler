@@ -27,6 +27,26 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
 class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
+
+        def checkGroupItemLink(group, contentItem):
+            self.assertEqual(len(contentItem.groups), 1)
+            for item in contentItem.groups:
+                self.assertEqual(item, group)
+                
+            self.assertEqual(len(group.itemsInGroup), 1)
+            for item in group.itemsInGroup:
+                self.assertEqual(item, contentItem)
+
+        def checkProjectItemLink(project, contentItem):
+            self.assertEqual(len(project.itemsInProject), 1)
+            for item in project.itemsInProject:
+                self.assertEqual(item, contentItem)
+                
+            self.assertEqual(len(contentItem.projects), 1)
+            for item in contentItem.projects:
+                self.assertEqual(item, project)
+
+        
         # Check that the globals got created by the parcel
         self.assert_(ContentModel.ContentItemParent)
         self.assert_(ContentModel.ContentItemKind)
@@ -76,31 +96,23 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericContentItem.displayName, "Test Content Item")
 
         # Link the contentItem to the project
-        #genericContentItem.addValue('projects', genericProject)
         genericContentItem.projects.append(genericProject)
-
-        self.assertEqual(len(genericProject.itemsInProject), 1)
-        for item in genericProject.itemsInProject:
-            self.assertEqual(item, genericContentItem)
-
-        self.assertEqual(len(genericContentItem.projects), 1)
-        for item in genericContentItem.projects:
-            self.assertEqual(item, genericProject)
-
+        checkProjectItemLink(genericProject, genericContentItem)
+        
         # Link the group to the contentItem
-        genericGroup.addValue('itemsInGroup', genericContentItem)
-
-        self.assertEqual(len(genericContentItem.groups), 1)
-        for item in genericContentItem.groups:
-            self.assertEqual(item, genericGroup)
-
-        self.assertEqual(len(genericGroup.itemsInGroup), 1)
-        for item in genericGroup.itemsInGroup:
-            self.assertEqual(item, genericContentItem)
+        genericGroup.itemsInGroup.append(genericContentItem)
+        checkGroupItemLink(genericGroup, genericContentItem)
 
         self._reopenRepository()
+
+        # Look to see that projects and groups links still work
+        
         project = self.rep.find("//userdata/contentitems/genericProject")
-        self.assertEqual(len(project.itemsInProject), 1)
+        group = self.rep.find("//userdata/contentitems/genericGroup")
+        contentItem = self.rep.find("//userdata/contentitems/genericContentItem")
+
+        checkProjectItemLink(project, contentItem)
+        checkGroupItemLink(group, contentItem)
 
 if __name__ == "__main__":
     unittest.main()
