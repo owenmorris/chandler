@@ -1,3 +1,131 @@
+Index: twisted/internet/m2ssl.py
+===================================================================
+--- twisted/internet/m2ssl.py	(revision 0)
++++ twisted/internet/m2ssl.py	(revision 0)
+@@ -0,0 +1,123 @@
++# Copyright (C) 2004 Open Source Applications Foundation
++# Auhor: Heikki Toivonen (heikki@osafoundation.org)
++#
++# This library is free software; you can redistribute it and/or
++# modify it under the terms of version 2.1 of the GNU Lesser General Public
++# License as published by the Free Software Foundation.
++#
++# This library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with this library; if not, write to the Free Software
++# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++
++# Import with different names so that we can call the base class methods.
++from M2Crypto.SSL import Connection as M2Connection
++from M2Crypto.SSL import Context as M2Context
++
++class Connection(M2Connection):
++    """
++    A connection object modelled after PyOpenSSL's Connection object that
++    Twisted is used to. Only provides methods that Twisted actually uses,
++    and which need to be different from the normal
++    M2Crypto.SSL.Connection object.
++
++    Documentation for M2Crypto's Connection object is here:
++    http://sandbox.rulemaker.net/ngps/Dist/api/public/M2Crypto.SSL.Connection.Connection-class.html
++
++    Documentation for PyOpenSSL's Connection object is here:
++    http://pyopenssl.sourceforge.net/pyOpenSSL.html/openssl-connection.html
++    """
++
++    def close(self):
++        # M2Crypto.SSL.Connection has a different close().
++        self.socket.close()
++
++    def shutdown(self, how=2):
++        # M2Crypto.SSL.Connection has a different shutdown().
++        M2Connection.close(self)
++
++    def sock_shutdown(self, how):
++        # M2Crypto.SSL.Connection does not have this method.
++        self.socket.shutdown(how)
++
++    def connect_ex(self, addr):
++        # M2Crypto.SSL.Connection does not have this method.
++        # Not sure if this method is actually used.
++        ret = self.socket.connect_ex(addr)
++        if ret == 0:
++            self.addr = addr
++            self.set_connect_state()
++        return ret
++
++    def get_peer_certificate(self):
++        # M2Crypto.SSL.Connection has a differently named method.
++        return self.get_peer_cert()
++
++    def __getattr__(self, name):
++        # If this object does not have the attribute asked for, we try
++        # to delegate to socket, and fail if the socket does not have
++        # the attribute. M2Crypto.SSL.Connection() does not do this.
++        # Not sure if this method is actually used.
++        if hasattr(self.socket, name):
++            return self.socket.__dict__[name]
++        raise AttributeError
++
++    def set_connect_state(self):
++        # Need to do extra work to setup internal state.
++        self.setup_ssl()
++        M2Connection.set_connect_state(self)
++        self.connect_ssl()
++
++    def set_accept_state(self):
++        # Need to do extra work to setup internal state.
++        self.setup_ssl()
++        M2Connection.set_accept_state(self)
++        self.accept_ssl()
++
++    def accept(self):
++        # Need to create this Connection object.
++        sock, addr = self.socket.accept()
++        ssl = Connection(self.ctx, sock)
++        ssl.addr = addr
++        ssl.set_accept_state()
++        return ssl, addr
++
++    def send(self, data):
++        # M2Crypto.SSL.Connection.send() raises exception with empty data.
++        if not data:
++            return 0
++        return self._write_bio(data)
++
++
++class Context(M2Context):
++    """
++    A context object modelled after PyOpenSSL's Context object that
++    Twisted is used to. Only provides methods that Twisted actually uses,
++    and which need to be different from the normal
++    M2Crypto.SSL.Context object.
++    
++    Documentation for M2Crypto's Context object is here:
++    http://sandbox.rulemaker.net/ngps/Dist/api/public/M2Crypto.SSL.Context.Context-class.html
++
++    Documentation for PyOpenSSL's Context object is here:
++    http://pyopenssl.sourceforge.net/pyOpenSSL.html/openssl-context.html
++    """
++
++    def __init__(self, protocol='sslv23'):
++        if (protocol == 1):
++            protocol = 'sslv2'
++        elif (protocol == 2):
++            protocol = 'sslv3'
++        elif (protocol == 3):
++            protocol = 'sslv23'
++        elif (protocol == 4):
++            protocol = 'tlsv1'
++            
++        M2Context.__init__(self, protocol)
++
++
++__all__ = ["Connection", "Context"]
 Index: twisted/internet/ssl.py
 ===================================================================
 --- twisted/internet/ssl.py	(revision 11245)
