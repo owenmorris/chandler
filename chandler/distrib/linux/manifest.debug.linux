@@ -23,7 +23,7 @@ lib
 # Grab the OpenSSL libs
 src=chandler/debug
 recursive=no
-dest=release
+dest=debug
 glob=libssl*,libcrypto*
 lib
 
