@@ -252,7 +252,7 @@ class NotificationManager(Persistent):
         
              
     def _waitForNextNotification(self,clientID):
-        return messageTable.GetMessage(clientID, NotificationManager.BLOCKING)
+        return self.messageTable.GetMessage(clientID, NotificationManager.BLOCKING)
     
     
     def _cancelNotification(self, notificationID, clientID = 0):
