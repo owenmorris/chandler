@@ -67,7 +67,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
     def testMonitorFor(self):
         """ Test query notification via monitors """
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        import wingdbstub
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
