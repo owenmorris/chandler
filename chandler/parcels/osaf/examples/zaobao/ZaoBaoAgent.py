@@ -7,6 +7,8 @@ import application.Globals as Globals
 from OSAF.framework.agents.schema.Action import Action
 from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
 from repository.item.Query import KindQuery
+import socket
+import logging
 
 def MainThreadCommit():
     Globals.repository.commit()
@@ -19,7 +21,10 @@ class UpdateAction(Action):
         #print 'Updating feeds...'
         chanKind = ZaoBaoParcel.getRSSChannelKind()
         for item in KindQuery().run([chanKind]):
-            item.Update()
+            try:
+                item.Update()
+            except socket.timeout:
+                logging.debug('zaobao - socked timed out')
         repository.commit()
         #print 'Updated feeds'
 
