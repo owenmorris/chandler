@@ -88,7 +88,7 @@ class StringAttributeEditor (AttributeEditor):
         try:
             value = item.getAttributeValue (attributeName)
         except AttributeError:
-            value = "<Empty>"
+            value = ""
         else:
             if item.getAttributeAspect (attributeName, "cardinality") == "list":
                 compoundValue = value
@@ -109,12 +109,17 @@ class DateTimeAttributeEditor (StringAttributeEditor):
         else:
             today = DateTime.today()
             yesterday = today + DateTime.RelativeDateTime(days=-1)
+            beginningOfWeek = today + DateTime.RelativeDateTime(days=-8)
+            endOfWeek = today + DateTime.RelativeDateTime(days=-2)
             if today.date == itemDate.date:
-                value = 'Today             ' + itemDate.Format('%I:%M %p')
+                value = itemDate.Format('%I:%M %p')
             elif yesterday.date == itemDate.date:
-                value = 'Yesterday       ' + itemDate.Format('%I:%M %p')
+                value = 'Yesterday'
+            elif itemDate.date >= beginningOfWeek.date and itemDate.date <= endOfWeek.date:
+                value = itemDate.Format('%A')
+                pass
             else:
-                value = itemDate.Format('%Y %b %d   %I:%M %p')
+                value = itemDate.Format('%b %d, %Y')
         return value
 
 
@@ -123,7 +128,7 @@ class ContactNameAttributeEditor (StringAttributeEditor):
         try:
             contactName = item.getAttributeValue (attributeName)
         except AttributeError:
-            value = "<Empty>"
+            value = ""
         else:
             value = contactName.firstName + ' ' + contactName.lastName
         return value
