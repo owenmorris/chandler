@@ -36,6 +36,8 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         except socket.gaierror, e:
             if e.args[0] == 7: #'No address associated with nodename'
                 return
+            if e.args[0] == -3: #'Temporary failure in name resolution'
+                return
             raise
 
         crypto.ssl.postConnectionCheck(conn, fp, hostCheck=True)
