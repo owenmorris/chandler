@@ -2,6 +2,7 @@
 VERSION=2.3.3
 PYTHON=$(BUILD_ROOT)/python
 SRC=$(PYTHON)/Python-$(VERSION)
+OS=$(shell uname)
 
 ifeq ($(DEBUG),1)
 
@@ -24,30 +25,50 @@ BUILD=build_$(SNAP)
 
 default: all
 
+ifeq ($(OS),Darwin)
+
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	../configure --prefix=$(PREFIX) \
+	../configure --prefix=$(PREFIX) $(CONF_DBG) \
                      --enable-framework=$(PREFIX)/Library/Frameworks \
-                     LDFLAGS=-F$(PREFIX)/Library/Frameworks \
-                     $(CONF_DBG)
-
-
-apply: $(SRC)/$(BUILD)/Makefile patches
-	patch -Nup0 < patches; echo ok
+                     LDFLAGS=-F$(PREFIX)/Library/Frameworks
 
 build: apply
 	cd $(SRC)/$(BUILD); \
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework; \
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
 
-expand: Python-$(VERSION).tgz
-	tar xvzf Python-$(VERSION).tgz
-
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
                   $(SNAP)/Library/Frameworks/Python.framework \
             -X $(PYTHON)/xcludes
+
+else
+
+$(SRC)/$(BUILD)/Makefile:
+	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
+	../configure --prefix=$(PREFIX) $(CONF_DBG)
+
+build: apply
+	cd $(SRC)/$(BUILD); \
+	$(MAKE) DB=$(PREFIX)/db $(COMP_OPT) install
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
+                  $(SNAP)/bin/idle $(SNAP)/bin/python* $(SNAP)/lib/python* \
+            -X $(PYTHON)/xcludes
+
+endif
+
+
+apply: $(SRC)/$(BUILD)/Makefile patches
+	patch -Nup0 < patches; echo ok
+
+expand: Python-$(VERSION).tgz
+	tar xvzf Python-$(VERSION).tgz
+
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)

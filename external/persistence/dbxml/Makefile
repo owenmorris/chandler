@@ -2,6 +2,7 @@
 VERSION=1.2.1
 DBXML=$(BUILD_ROOT)/persistence/dbxml
 SRC=$(DBXML)/dbxml-$(VERSION)
+OS=$(shell uname)
 
 ifeq ($(DEBUG),1)
 
@@ -9,7 +10,7 @@ CONF_DBG=--enable-debug
 DIST_DBG=--debug
 PREFIX=$(BUILD_ROOT)/debug
 SNAP=debug
-PYTHON=$(PREFIX)/Library/Frameworks/Python.framework/Versions/2.3/bin/python_d
+PYTHON=python_d
 
 else
 
@@ -17,7 +18,19 @@ CONF_DBG=
 DIST_DBG=
 PREFIX=$(BUILD_ROOT)/release
 SNAP=release
-PYTHON=$(PREFIX)/Library/Frameworks/Python.framework/Versions/2.3/bin/python
+PYTHON=python
+
+endif
+
+ifeq ($(OS),Darwin)
+
+PYTHON:=$(PREFIX)/Library/Frameworks/Python.framework/Versions/2.3/bin/$(PYTHON)
+SITE=Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages
+
+else
+
+PYTHON:=$(PREFIX)/bin/$(PYTHON)
+SITE=lib/python2.3/site-packages
 
 endif
 
@@ -54,7 +67,7 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DBXML)/$(SNAP).tar.gz \
                   $(SNAP)/dbxml/bin $(SNAP)/dbxml/lib \
-                  $(SNAP)/Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages/*dbxml*
+                  $(SNAP)/$(SITE)/*dbxml*
 
 clean:
 	cd $(SRC); rm -rf $(BUILD); rm -rf src/python/$(BUILD)

@@ -1,6 +1,5 @@
 
 VERSION=1.1.2
-LIBXML2VERSION=2.6.3
 LIBXSLT=$(BUILD_ROOT)/persistence/libxslt
 SRC=$(LIBXSLT)/libxslt-$(VERSION)
 

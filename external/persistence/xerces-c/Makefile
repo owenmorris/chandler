@@ -2,6 +2,7 @@
 VERSION=2_4_0
 XERCESC=$(BUILD_ROOT)/persistence/xerces-c
 SRC=$(XERCESC)/xerces-c-src$(VERSION)
+OS=$(shell uname)
 
 ifeq ($(DEBUG),1)
 
@@ -17,6 +18,16 @@ SNAP=release
 
 endif
 
+ifeq ($(OS),Darwin)
+
+CONF_OS=-pmacosx
+
+else
+
+CONF_OS=-plinux
+
+endif
+
 BUILD=build_$(SNAP)
 
 
@@ -27,7 +38,7 @@ $(SRC)/$(BUILD)/src/xercesc/Makefile:
         ( cd $(SRC); tar -cf - obj src version.incl ) | tar -xf - ; \
         cd src/xercesc; \
         XERCESCROOT=$(SRC)/$(BUILD) \
-	./runConfigure -pmacosx $(CONF_DBG) -P$(PREFIX) \
+	./runConfigure $(CONF_OS) $(CONF_DBG) -P$(PREFIX) \
                        -minmem -nsocket -tnative -rnone
 
 build: $(SRC)/$(BUILD)/src/xercesc/Makefile
