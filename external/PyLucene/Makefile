@@ -1,5 +1,5 @@
 
-VERSION=0.6.1
+VERSION=0.6.2
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
@@ -73,6 +73,10 @@ ifeq ($(PYLUCENE_JCCH),)
 PYLUCENE_JCCH=$(GCJ_HOME)/bin/gcjh
 endif
 
+ifeq ($(PYLUCENE_JAR),)
+PYLUCENE_JAR=$(GCJ_HOME)/bin/jar
+endif
+
 build: apply
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
@@ -83,6 +87,7 @@ build: apply
             CXX=$(PYLUCENE_CXX) \
             JCC=$(PYLUCENE_JCC) \
             JCCH=$(PYLUCENE_JCCH) \
+            JAR=$(PYLUCENE_JAR) \
             DB=$(BUILD_ROOT)/persistence/db/db-4.2.52 \
             PREFIX_DB=$(PREFIX_DB) \
             BUILD_DB=build_$(SNAP) \

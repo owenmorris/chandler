@@ -1,23 +1,19 @@
-diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
---- PyLucene-0.6.1/Makefile	2004-09-21 15:24:08.000000000 -0700
-+++ PyLucene-0.6.1-patched/Makefile	2004-10-13 09:57:45.487196800 -0700
-@@ -134,20 +134,22 @@
- 
- ifeq ($(OS),Cygwin)
+--- PyLucene-0.6.2/Makefile	Wed Oct 13 15:07:12 2004
++++ PyLucene-0.6.2-patched/Makefile	Wed Oct 13 15:25:58 2004
+@@ -136,19 +136,21 @@
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
  PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
--CCFLAGS=-O0 -g 
-+CCFLAGS=-O -g 
-+PYDBG=-DPy_TRACE_REFS
+ CCFLAGS=-g 
  LDFLAGS=-g
++PYDBG=-DPy_TRACE_REFS
  else
- CCFLAGS=-O2
-+PYDBG=
+ CCFLAGS=-O3
  LDFLAGS=
++PYDBG=
  endif
  else
  
@@ -25,7 +21,8 @@ diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
  PYTHON_SITE=unknown
  endif
  endif
-@@ -217,17 +219,17 @@
+ endif
+@@ -206,17 +208,17 @@
  
  ifeq ($(OS),Cygwin)
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
@@ -44,29 +41,10 @@ diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
  SWIG_OPT=-D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
-@@ -236,17 +238,17 @@
- 
- $(BINDIR)/db.o: $(BINDIR)/db_const.o
- 	$(JCC) $(JCCFLAGS) -C -d $(CLASSES) --classpath=$(CLASSES) $(DB_SRCS)
- 	$(JCC) -fjni $(JCCFLAGS) $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
- 
- ifeq ($(OS),Darwin)
- # with gcc 3.4-20040407, libdb_java segfaults when compiled with -O2
- $(LIBDB_JAVA_LIB):
--	$(CC) -shared -bundle -o $@ -O $(LDFLAGS) $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.dylib
-+	$(CC) -shared -bundle -o $@ -O $(LDFLAGS) $(DB_INC) -I$(GCJ_HOME)/include $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.dylib
- else
- 
- ifeq ($(OS),Linux)
- $(LIBDB_JAVA_LIB):
- 	$(CC) -shared -o $@ $(CCFLAGS) $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.so
- else
- 
- ifeq ($(OS),Cygwin)
-@@ -364,16 +366,20 @@
+@@ -383,16 +385,19 @@
  
  
- all: env sources apply $(BINDIR) $(LIBS)
+ all: env sources $(BINDIR) $(LIBS)
  	@echo build of $(PYLUCENE_LIB) complete
  
  install:: all
@@ -75,7 +53,6 @@ diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
 +	mkdir -p $(PYTHON_SITE)/security
 +	install $(GCJ_HOME)/lib/security/classpath.security $(PYTHON_SITE)/security
 +	install $(GCJ_HOME)/lib/security/libgcj.security $(PYTHON_SITE)/security
-+
  
  ifeq ($(OS),Darwin)
  install::
@@ -84,7 +61,7 @@ diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
  	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -381,22 +387,25 @@
+@@ -400,22 +405,25 @@
  	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
  else
  
@@ -111,31 +88,8 @@ diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
-@@ -425,18 +434,18 @@
- 
- ifeq ($(OS),Linux)
- distrib::
- ifdef DB
- 	mkdir -p $(DISTRIB)/db
- 	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
- endif
- 	mkdir -p $(DISTRIB)/gcj
--	install $(GCJ_HOME)/lib/libgcj.so.4 $(DISTRIB)/gcj
--	install $(GCJ_HOME)/lib/libstdc++.so.5 $(DISTRIB)/gcj
-+	install $(GCJ_HOME)/lib/libgcj.so.5 $(DISTRIB)/gcj
-+	install $(GCJ_HOME)/lib/libstdc++.so.6 $(DISTRIB)/gcj
- 	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(DISTRIB)/gcj
- else
- 
- ifeq ($(OS),Cygwin)
- distrib::
- ifdef DB
- 	mkdir -p $(DISTRIB)/db
- 	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
-Only in PyLucene-0.6.1-patched: Makefile~
-diff -u8r PyLucene-0.6.1/PyLucene.i PyLucene-0.6.1-patched/PyLucene.i
---- PyLucene-0.6.1/PyLucene.i	2004-09-21 15:24:08.000000000 -0700
-+++ PyLucene-0.6.1-patched/PyLucene.i	2004-10-13 09:54:48.823166400 -0700
+--- PyLucene-0.6.2/PyLucene.i	Sat Oct  2 13:34:04 2004
++++ PyLucene-0.6.2-patched/PyLucene.i	Wed Oct 13 14:28:44 2004
 @@ -918,14 +918,35 @@
  #endif
  
