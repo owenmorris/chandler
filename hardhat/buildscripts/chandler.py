@@ -198,7 +198,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     os.chdir(mainModuleDir)
 
-    # Only do a build build if there were new or updated modules
+    # Only do a big build if there were new or updated modules
     if needToScrubAll or newModules:
         bigBLittleB = "B"
     else:
