@@ -9,24 +9,57 @@ One could construct an ACL object like this, starting with ACE:
 >>> allACE = ACE(principal='all', deny=(), grant=('read', 'DAV:'))
 >>> allACE.grant('write', 'http://www.xythos.com/namespaces/StorageServer/acl/')
 >>> print allACE
-<D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
 
 Then creating the actual ACL by passing in the ACE:
     
 >>> aclObj = ACL(acl=[allACE])
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace></D:acl>
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+</D:acl>
 
 Let's play with the ACE object some more:
 
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/acl/')
 >>> print allACE
-<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-1:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:deny><D:privilege><ns-1:yawn/></D:privilege>
+</D:deny>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
 >>> print allACE._deny.privileges['yawn']
 ['ns-1', 'http://www.example.com/namespaces/acl/']
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
 >>> print allACE
-<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-2:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:deny><D:privilege><ns-2:yawn/></D:privilege>
+</D:deny>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
 >>> print allACE._deny.privileges['yawn']
 ['ns-2', 'http://www.example.com/namespaces/fooledya/acl/']
 >>> allACE.protected = True
@@ -34,10 +67,26 @@ Let's play with the ACE object some more:
 <BLANKLINE>
 >>> allACE.protected = False
 >>> print allACE
-<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-2:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:deny><D:privilege><ns-2:yawn/></D:privilege>
+</D:deny>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
 >>> allACE._deny = _Deny(())
 >>> print allACE
-<D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
 
 You can also modify the ACL object:
 
@@ -50,7 +99,21 @@ ValueError: ace already added
 >>> dummyACE = ACE(principal='http://example.com/users/dummy', deny=(), grant=('read', 'DAV:'))
 >>> aclObj.add(dummyACE)
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace><D:ace><D:principal><D:href>http://example.com/users/dummy</D:href></D:principal><D:grant><D:privilege><D:read/></D:privilege></D:grant></D:ace></D:acl>
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<D:ace>
+<D:principal><D:href>http://example.com/users/dummy</D:href></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+</D:grant>
+</D:ace>
+</D:acl>
 >>> aclObj.remove(dummyACE)
 >>> aclObj.remove(dummyACE)
 Traceback (most recent call last):
@@ -59,7 +122,15 @@ Traceback (most recent call last):
     self.acl.remove(ace)
 ValueError: list.remove(x): x not in list
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace></D:acl>
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+</D:acl>
 
 The handiest way to get an ACL object is to parse it from the XML returned
 by the server:
@@ -68,8 +139,71 @@ by the server:
 >>> print str(parsedACL) == str(aclObj)
 True
 
+Let's parse real life XML now:
+
+>>> xml = ['<?xml version="1.0" encoding="utf-8" ?>']
+>>> xml += ['<D:multistatus xmlns:D="DAV:" xmlns:XS="http://www.w3.org/2001/XMLSchema" xmlns:XSI="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/">']
+>>> xml += ['<D:response>']
+>>> xml += ['<D:href>https://www.sharemation.com/heikki2/hello.txt</D:href>']
+>>> xml += ['     <D:propstat>']
+>>> xml += ['        <D:prop>']
+>>> xml += ['']
+>>> xml += ['<D:acl xmlns:XA="http://www.xythos.com/namespaces/StorageServer/acl/">']
+>>> xml += ['']
+>>> xml += ['<D:ace>']
+>>> xml += ['  <D:principal>']
+>>> xml += ['    <D:property><D:owner/></D:property>']
+>>> xml += ['  </D:principal>']
+>>> xml += ['  <D:grant>']
+>>> xml += ['    <D:privilege><D:read/></D:privilege>']
+>>> xml += ['    <D:privilege><XA:permissions/></D:privilege>']
+>>> xml += ['  </D:grant>']
+>>> xml += ['  <D:protected/>']
+>>> xml += ['</D:ace>']
+>>> xml += ['']
+>>> xml += ['<D:ace>']
+>>> xml += ['  <D:principal>']
+>>> xml += ['    <D:property><D:owner/></D:property>']
+>>> xml += ['  </D:principal>']
+>>> xml += ['  <D:grant>']
+>>> xml += ['    <D:privilege><XA:write/></D:privilege>']
+>>> xml += ['    <D:privilege><XA:delete/></D:privilege>']
+>>> xml += ['  </D:grant>']
+>>> xml += ['</D:ace>']
+>>> xml += ['']
+>>> xml += ['<D:ace>']
+>>> xml += ['  <D:principal>']
+>>> xml += ['    <D:all/>']
+>>> xml += ['  </D:principal>']
+>>> xml += ['  <D:grant/>']
+>>> xml += ['</D:ace>']
+>>> xml += ['']
+>>> xml += ['</D:acl>']
+>>> xml += ['']
+>>> xml += ['      </D:prop>']
+>>> xml += ['       <D:status>HTTP/1.1 200 OK</D:status>']
+>>> xml += ['     </D:propstat>']
+>>> xml += ['</D:response>']
+>>> xml += ['</D:multistatus>']
+>>> xml = '\\n'.join(xml)
+>>> realACL = parse(xml)
+>>> print len(realACL.acl), realACL.acl[0].protected
+3 True
+>>> print realACL
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:ace>
+<D:principal><D:owner/></D:principal>
+<D:grant>
+<D:privilege><ns-1:write/></D:privilege>
+<D:privilege><ns-1:delete/></D:privilege>
+</D:grant>
+</D:ace>
+<D:ace>
+<D:principal><D:all/></D:principal>
+</D:ace>
+</D:acl>
+
 TODO:
-   * Make sure parsing works with XML returned by servers (whitespace etc.)
    * Higher level API:
       - pythonic (raise exceptions on errors, return python objects
         instead of XML etc.)
@@ -80,7 +214,6 @@ TODO:
         in a smart way - for example if want to set read access but there
         is no read per se but it consists of finer graned properties then
         detect and set these automatically
-      - figure out protected properties
 """
 
 import libxml2
@@ -124,7 +257,7 @@ class ACE(object):
         if self.protected:
             return ''
         else:
-            return '<D:ace>%s%s%s</D:ace>' %(str(self._principal),
+            return '<D:ace>%s%s%s</D:ace>\n' %(str(self._principal),
                                              str(self._deny),
                                              str(self._grant))
 
@@ -165,7 +298,7 @@ class ACL(object):
             ace.mapPrefixes(map)
             s += str(ace)
 
-        return '%s>%s</D:acl>' %(acl, s)
+        return '%s>\n%s</D:acl>' %(acl, s)
 
 
 def parse(text):
@@ -179,65 +312,119 @@ def parse(text):
     try:
         doc = libxml2.parseDoc(text)
         acl = ACL()
-        aceNode = doc.children.children
+        aceNode = _firstACE(doc.children)
         while aceNode:
             if not _isDAVElement(aceNode, 'ace'):
-                raise ValueError, 'ace not found'
+                raise ValueError, 'expected ace, got %s' %(aceNode.name)
 
             # 1. get principal
-            principal = aceNode.children
+            principal = _firstChildElement(aceNode)
             if not _isDAVElement(principal, 'principal'):
-                raise ValueError, 'principal not found'
-            actualPrincipal = principal.children
+                raise ValueError, 'expected principal, got %s' %(principal.name)
+            actualPrincipal = _firstChildElement(principal)
             if not _isDAVElement(actualPrincipal):
                 raise ValueError, 'actual principal not found'
             if actualPrincipal.name == 'href':
                 ace = ACE(actualPrincipal.content)
             else:
+                if actualPrincipal.name == 'property':
+                    actualPrincipal = _firstChildElement(actualPrincipal)
+                    if not _isDAVElement(actualPrincipal):
+                        raise ValueError, 'expected property in DAV: ns'
+
                 ace = ACE(actualPrincipal.name)
 
             # 2. get deny and grant privileges
-            node = principal.next
+            node = _nextSiblingElement(principal)
             while node:
                 if not _isDAVElement(node):
                     raise ValueError, 'deny or grant expected, wrong namespace'
                 if node.name == 'deny':
-                    privilege = node.children
+                    privilege = _firstChildElement(node)
                     while privilege:
                         if not _isDAVElement(privilege, 'privilege'):
-                            raise ValueError, 'privilege expected'
-                        ace.deny(privilege.children.name,
-                                 _translateDAVNamespace(privilege.children.ns().content))
-                        privilege = privilege.next
+                            raise ValueError, 'privilege expected, got %s' %(privilege.name)
+                        priv = _firstChildElement(privilege)
+                        ace.deny(priv.name,
+                                 _translateDAVNamespace(priv.ns().content))
+                        privilege = _nextSiblingElement(privilege)
                 elif node.name == 'grant':
-                    privilege = node.children
+                    privilege = _firstChildElement(node)
                     while privilege:
                         if not _isDAVElement(privilege, 'privilege'):
-                            raise ValueError, 'privilege expected'
-                        ace.grant(privilege.children.name,
-                                  _translateDAVNamespace(privilege.children.ns().content))
-                        privilege = privilege.next
+                            raise ValueError, 'privilege expected, got %s' %(privilege.name)
+                        priv = _firstChildElement(privilege)
+                        ace.grant(priv.name,
+                                  _translateDAVNamespace(priv.ns().content))
+                        privilege = _nextSiblingElement(privilege)
+                elif node.name == 'protected':
+                    break
                 else:
-                    raise ValueError, 'deny or grant expected'
-                node = node.next
-           
-            # 3. get protected property TODO
+                    raise ValueError, 'deny or grant expected, got %s' %(node.name)
+                node = _nextSiblingElement(node)
+
+            # 3. get protected property
+            if node and node.name == 'protected':
+                ace.protected = True
 
             acl.add(ace)
             
-            aceNode = aceNode.next
+            aceNode = _nextSiblingElement(aceNode)
 
         return acl
     finally:
-        doc.freeDoc() # It really really sucks I need to do this.
+        doc.freeDoc()
+
+
+def _firstChildElement(node):
+    # We need this method because of text nodes (for example whitespace)
+    child = node.children
+    if not child:
+        return None
+    
+    if child.type == 'element':
+        return child
+    return _nextSiblingElement(child)
+
+
+def _nextSiblingElement(node):
+    # We need this method because of text nodes (for example whitespace)
+    next = node.next
+    while next:
+        if next.type == 'element':
+            return next
+        next = next.next
+    return None
+
+
+def _firstACE(node):
+    if not node:
+        return None
+
+    if  _isDAVElement(node, 'ace'):
+        return node
+
+    ret =_firstACE(node.children)
+    if ret:
+        return ret
+    
+    return _firstACE(node.next)
 
 
 # XXX Terrible namespace hacks for DAV: because libxml2 does not like it
 
 def _isDAVElement(node, name=None):
-    ns = node.ns().content == 'http://osafoundation.org/dav'
+    if node.type != 'element':
+        return False
+    
+    try:
+        ns = node.ns().content == 'http://osafoundation.org/dav'
+    except treeError:
+        return False # There was no namespace
+    
     if name is None:
         return ns
+    
     return ns and node.name == name
 
 
@@ -260,9 +447,9 @@ class _Principal(object):
     def __str__(self):
         if self.url in ('all', 'self', 'authenticated', 'unauthenticated',
                         'owner'):
-            return '<D:principal><D:%s/></D:principal>' %(self.url)
+            return '\n<D:principal><D:%s/></D:principal>\n' %(self.url)
         else:
-            return '<D:principal><D:href>%s</D:href></D:principal>' %(self.url)
+            return '\n<D:principal><D:href>%s</D:href></D:principal>\n' %(self.url)
 
 
 class _Privileges(object):
@@ -307,7 +494,7 @@ class _Privileges(object):
         s = ''
         names = self.privileges.keys()
         for name in names:
-            s += '<D:privilege><%s:%s/></D:privilege>' %(self.privileges[name][0], name) 
+            s += '<D:privilege><%s:%s/></D:privilege>\n' %(self.privileges[name][0], name) 
         return s
 
 
@@ -317,7 +504,7 @@ class _Grant(_Privileges):
     """
     def __str__(self):
         if self.privileges:
-            return '<D:grant>%s</D:grant>' %(super(_Grant, self).__str__())
+            return '<D:grant>\n%s</D:grant>\n' %(super(_Grant, self).__str__())
         else:
             return ''
 
@@ -328,7 +515,7 @@ class _Deny(_Privileges):
     """
     def __str__(self):
         if self.privileges:
-            return '<D:deny>%s</D:deny>' %(super(_Deny, self).__str__())
+            return '<D:deny>%s</D:deny>\n' %(super(_Deny, self).__str__())
         else:
             return ''
 
