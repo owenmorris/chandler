@@ -164,6 +164,9 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
 
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
     #   Create end-user, developer distributions
+    chanDir = os.path.join(workingDir, 'chandler')
+    os.chdir(chanDir)
+    
     print "Making distribution files for " + releaseMode
     log.write(separator)
     log.write("Making distribution files for " + releaseMode + "\n")
@@ -194,7 +197,7 @@ def doCopyLog(msg, workingDir, logPath, log):
         CopyLog(logPath, log)
     else:
         log.write(logPath + ' does not exist!\n')
-        log.write(separator)
+    log.write(separator)
 
 
 def changesInCVS(workingDir, cvsVintage, log):
