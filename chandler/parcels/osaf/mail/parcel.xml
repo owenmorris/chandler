@@ -11,7 +11,7 @@
     <host>code-bear.com</host>
     <username>osafuser</username>
     <password>chandler</password>
-    <useSSL>NoSSL</useSSL>
+    <useSSL>False</useSSL>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress ref="mail:ReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
@@ -29,7 +29,7 @@
     <host>code-bear.com</host>
     <username>osafuser</username>
     <password>chandler</password>
-    <useSSL>NoSSL</useSSL>
+    <useSSL>False</useSSL>
     <useAuth>False</useAuth>
   </content:SMTPAccount>
 
@@ -46,15 +46,14 @@
   </task:Task>
 
 
-  <task:Task itsName="SMTPClient">
+  <task:Task itsName="SMTPMailClient">
     <task:Schedule itsName="MailSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
-      <task:repeatFlag>False</task:repeatFlag>
-      <task:repeatDelay>00:00:00:30</task:repeatDelay>
+      <task:repeatFlag>True</task:repeatFlag>
+      <task:repeatDelay>00:00:01:00</task:repeatDelay>
     </task:Schedule>
-    <!--task:Action itsName="sendmail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
-    <task:schedule itemref="mail:SMTPClient/MailSchedule"/>
-    <task:actions itemref="mail:SMTPClient/sendMail"/-->
+    <!--task:Action itsName="sendMail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
+    <task:schedule itemref="mail:SMTPMailClient/MailSchedule"/>
+    <task:actions itemref="mail:SMTPMailClient/sendMail"/-->
   </task:Task>
-
 </Parcel>

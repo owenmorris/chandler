@@ -4,10 +4,13 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.framework.tasks.Action as Action
+import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import repository.item.Query as Query
 import imap as imap
 import smtp as smtp
+import common as common
+import message as message
 import logging as logging
 
 
@@ -39,6 +42,37 @@ class IMAPDownloadAction(Action.Action):
 
 class SMTPSendAction(Action.Action):
     def Execute(self, task):
+        accountKind = Mail.MailParcel.getSMTPAccountKind()
+        account = None
 
-       logging.info("SENDING STMP MAIL")
-       #smtp.SMTPSender().sendmail()
+        for acc in Query.KindQuery().run([accountKind]):
+            account = acc
+            break
+
+        m = Mail.MailMessage()
+
+        ea = Mail.EmailAddress()
+        ea.emailAddress = "brian@localhost"
+        ea.fullName = "Brian Kirsch"
+
+        ea1 = Mail.EmailAddress()
+        ea1.emailAddress = "bkirsch@osafoundation.org"
+        ea1.fullName = "Brian Kirsch"
+
+        ea2 = Mail.EmailAddress()
+        ea2.emailAddress = "bkmuzic@yahoo.com"
+        ea2.fullName = "Brian Kirsch"
+
+        m.toAddress.append(ea)
+        #m.toAddress.append(ea1)
+        #m.ccAddress.append(ea2)
+
+        m.fromAddress = ea1
+        m.replyToAddress = ea
+        m.subject = "This is a Test From SMTPSenderAction"
+        m.body = message.strToText(m, "body", "This is some body Text")
+        m.inReplyTo = "TEST"
+
+        Globals.repository.commit()
+
+        smtp.SMTPSender(account, m).sendMail()

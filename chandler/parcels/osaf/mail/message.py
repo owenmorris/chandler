@@ -11,6 +11,7 @@ import email.Message as Message
 import email.Utils as Utils
 import re as re
 import common as common
+import logging as logging
 
 __exp = re.compile("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z2-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}")
 
@@ -27,7 +28,7 @@ def isValidEmailAddress(emailAddress):
     @type addr: C{String}
     @return: C{Boolean}
     """
-    if not isinstance(emailAddress, str):
+    if not __isString(emailAddress):
         return False
 
     emailAddress = emailAddress.strip()
@@ -58,7 +59,7 @@ def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
     """
 
     #XXX: There are bugs here because of the weakness of the parseaddr API
-    if not isinstance(emailAddressOne, str) or not isinstance(emailAddressTwo, str):
+    if not __isString(emailAddressOne) or not __isString(emailAddressTwo):
         return False
 
     emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
@@ -91,7 +92,7 @@ def hasValue(value):
     @type value: C{String}
     @return: C{Boolean}
     """
-    if isinstance(value, str):
+    if __isString(value):
         test = value.strip()
         if len(test) > 0:
             return True
@@ -99,7 +100,7 @@ def hasValue(value):
     return False
 
 def isPlainTextContentType(contentType):
-    if isinstance(contentType, str):
+    if __isString(contentType):
         contentType = contentType.lower().strip()
 
         if contentType == common.MIME_TEXT_PLAIN:
@@ -207,7 +208,7 @@ def messageObjectToKind(messageObject, messageText = None):
             del messageObject[key]
 
         except KeyError:
-            print "KEY ERROR Here"
+            logging.error("in osaf.mail.message.messageObjectToKind: KEY ERROR")
 
     if messageObject.is_multipart():
         mimeParts = messageObject.get_payload()
@@ -276,33 +277,35 @@ def kindToMessageObject(mailMessage):
     if mailMessage.body is not None:
         messageObject.set_payload(textToStr(mailMessage.body))
 
-
-    if mailMessage.fromAddress is not None:
-        messageObject['From'] = format_addr(mailMessage.fromAddress)
-
-    if mailMessage.replyToAddress is not None:
-        messageObject["Reply-To"] = format_addr(mailMessage.replyToAddress)
+    __populateParam(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
+    __populateParam(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
 
     to = []
 
     for address in mailMessage.toAddress:
-        to.append(format_addr(address))
+        if hasValue(address.emailAddress):
+            to.append(format_addr(address))
 
-    messageObject['To'] = ", ".join(to)
+    if len(to) > 0:
+        messageObject['To'] = ", ".join(to)
 
     cc = []
 
     for address in mailMessage.ccAddress:
-        cc.append(format_addr(address))
+        if hasValue(address.emailAddress):
+            cc.append(format_addr(address))
 
-    messageObject['Cc'] = ", ".join(cc)
+    if len(cc) > 0:
+        messageObject['Cc'] = ", ".join(cc)
 
     bcc = []
 
     for address in mailMessage.bccAddress:
-        bcc.append(format_addr(address))
+        if hasValue(address.emailAddress):
+             bcc.append(format_addr(address))
 
-    messageObject['Bcc'] = ", ".join(bcc)
+    if len(bcc) > 0:
+        messageObject['Bcc'] = ", ".join(bcc)
 
     return messageObject
 
@@ -326,7 +329,7 @@ def kindToMessageText(mailMessage):
 
 
 def strToText(contentItem, attribute, string):
-    if not isinstance(string, str):
+    if not __isString(string):
         return None
 
     return contentItem.getAttributeAspect(attribute, 'type').makeValue(string, indexed=False)
@@ -344,9 +347,16 @@ def textToStr(text):
     return string
 
 
-def __populateParam(messageObject, param, var):
-    if hasValue(var):
-        messageObject[param] = var
+def __populateParam(messageObject, param, var, type='String'):
+
+    if type == 'String':
+        if hasValue(var):
+            messageObject[param] = var
+
+    elif(type == 'EmailAddress'):
+        if var is not None and hasValue(var.emailAddress):
+            messageObject[param] = format_addr(var)
+
 
 def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
@@ -383,10 +393,16 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
                 kindVar.append(ea)
     else:
-        print "Header slipped through"
+        logging.error("in osaf.mail.message.__assignToKind: HEADER SLIPPED THROUGH")
 
     try:
        del messageObject[key]
 
     except KeyError:
-        print "Key Error Thrown"
+        logging.error("in osaf.mail.message.__assignToKind: KEY ERROR")
+
+def __isString(var):
+    if isinstance(var, str) or isinstance(var, unicode):
+        return True
+
+    return False

@@ -24,7 +24,7 @@ import common as common
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
-    def __init__(self, contextFactory, useSSL):
+    def __init__(self, contextFactory=None, useSSL=False):
         imap4.IMAP4Client.__init__(self, contextFactory)
         self.useSSL = useSSL
 
@@ -40,7 +40,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @return C{None}
         """
 
-        if self.useSSL == 'NoSSL':
+        if not self.useSSL:
             self.serverCapabilities =  self.__disableTLS(caps)
 
         d = defer.Deferred()
@@ -68,7 +68,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, callback, errback, useSSL):
+    def __init__(self, callback, errback, useSSL=False):
         """
         A C{protocol.ClientFactory} that creates C{ChandlerIMAP4Client} instances
         and stores the callback and errback to be used by the C{ChandlerIMAP4Client} instances
@@ -87,10 +87,11 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         self.useSSL = useSSL
 
     def buildProtocol(self, addr):
-        if self.useSSL == 'NoSSL':
-            p = self.protocol(contextFactory=None, useSSL=self.useSSL)
+        if not self.useSSL:
+            p = self.protocol()
         else:
-            p = self.protocol(ssl.ClientContextFactory(useM2=1), self.useSSL)
+            p = self.protocol(ssl.ClientContextFactory(useM2=1), True)
+
         p.factory = self
         return p
 
@@ -98,7 +99,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         logging.error("Unable to connect to server; reason: '%s'", reason)
 
 
-class IMAPMailException(common.MailException):
+class IMAPException(common.MailException):
     pass
 
 class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
@@ -156,20 +157,15 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             host    = self.account.host
             port    = self.account.port
-            portSSL = self.account.portSSL
             useSSL  = self.account.useSSL
-
-            if __debug__:
-                self.printAccount()
 
         finally:
             self.restorePreviousView()
 
-        factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors,
-                                       useSSL)
-        if useSSL == 'SSL':
-            reactor.connectSSL(host, portSSL, factory,
-                               ssl.ClientContextFactory(useM2=1))
+        factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors, useSSL)
+
+        if useSSL:
+            reactor.connectSSL(host, port, factory, ssl.ClientContextFactory(useM2=1))
         else:
             reactor.connectTCP(host, port, factory)
  
@@ -187,7 +183,6 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         str  = "\nHost: %s\n" % self.account.host
         str += "Port: %d\n" % self.account.port
-        str += "PortSSL: %d\n" % self.account.portSSL
         str += "SSL: %s\n" % self.account.useSSL
         str += "Username: %s\n" % self.account.username
         str += "Password: %s\n" % self.account.password
@@ -331,7 +326,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
                 repMessage.deliveryExtension.folder = "INBOX"
                 repMessage.deliveryExtension.uid = uid
 
-                self.account.downloadedMail.append(repMessage)
+                #self.account.downloadedMail.append(repMessage)
 
                 if uid > self.__getLastUID():
                     self.__setLastUID(uid)

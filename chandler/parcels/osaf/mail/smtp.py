@@ -23,31 +23,34 @@ except ImportError:
     from StringIO import StringIO
 
 
-class SMTPMailException(common.MailException):
+class SMTPException(common.MailException):
     pass
 
 class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
     def __init__(self, account, mailMessage):
+        #XXX: Perhaps get the first account if None
         if account is None or not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SMTPMailException("You must pass in a SMTPAccount instance")
 
-        if mailMessage is None or not mailMessage.isItemOf(Mail.MailParcel.getMailMessageKind()):
+        if mailMessage is None or not isinstance(mailMessage, Mail.MailMessage):
             raise SMTPMailException("You must pass in a mailParcel instance")
 
-        viewName = "%s_%s" % (account.displayName, str(UUID.UUID()))
+        id = "STMPSender Mail ", DateTime.now().ticks()
+        viewName = "%s_%s_%s" % (id, account.displayName, str(UUID.UUID()))
 
         super(SMTPSender, self).__init__(Globals.repository, viewName)
 
         self.accountUUID = account.itsUUID
         self.account = None
+        self.mailMessage = None 
         self.mailMessageUUID = mailMessage.itsUUID
-        self.mailMessage = None
+        self.sent = False
 
     #in thread
     def sendMail(self):
         if __debug__:
-            self.printCurrentView("sendmail")
+            self.printCurrentView("sendMail")
 
         reactor.callFromThread(self.__sendMail)
 
@@ -59,94 +62,135 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             if __debug__:
                 self.printCurrentView("__sendMail")
 
-            self.__getMessageAndAccount()
+            self.__getKinds()
 
             """ Refresh our view before adding items to our mail Message
                 and commiting. Will not cause merge conflicts since
                 no data changed in view in yet """
             self.view.commit()
 
-            username  = self.account.username
-            passsword = self.account.password
-            host    = self.account.host
-            port    = self.account.port
-            portSSL = self.account.portSSL
-            useSSL  = self.account.useSSL
-            useAuth = self.account.useAuth
+            username     = self.account.username
+            password     = self.account.password
+            host         = self.account.host
+            port         = self.account.port
+            useSSL       = self.account.useSSL
+            useAuth      = self.account.useAuth
             authRequired = True
-            sslRequired = False
-
-            if useSSL = 'SSL':
-                sslRequired = True
+            sslContext   = None
 
             if not useAuth:
                 authRequired = False
-                username = None
-                password = None
+                username     = None
+                password     = None
+
+            if useSSL:
+                sslContext = ssl.ClientContextFactory(useM2=1)
 
             self.mailMessage.outgoingMessage(account=self.account)
 
             messageObject = message.kindToMessageObject(self.mailMessage)
             messageText = messageObject.as_string()
-            self.mailMessage.rfc2882Message = message.strToText("rfc2822Message", messageText)
-
-            msg = StringIO(messageText)
+            self.mailMessage.rfc2882Message = message.strToText(self.mailMessage, "rfc2822Message", messageText)
             d = defer.Deferred().addCallbacks(self.__mailSuccess, self.__mailFailure)
+            msg = StringIO(messageText)
 
-            #XXX: perhaps commit here
+            to_addrs = []
 
-            #XXX: Look in to Bcc Cc
-            to_addrs = messageObject['To']
-            from_addr = messageObject['From']
+            for address in self.mailMessage.toAddress:
+                to_addrs.append(address.emailAddress)
+
+            if self.mailMessage.replyToAddress is not None:
+                from_addr = self.mailMessage.replyToAddress.emailAddress
+
+            else:
+                from_addr = self.mailMessage.fromAddress.emailAddress
 
         finally:
            self.restorePreviousView()
 
-        if useSSL = 'SSL':
-            factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
-                                              0, requireAuthentication=authRequired, requireTransportSecurity=False)
-
-             """Won't see StartTLS here"""
-            reactor.connectSSL(host, portSSL, factory,
-                               ssl.ClientContextFactory(useM2=1))
-
+        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
+                                          0, contextFactory=sslContext, requireAuthentication=authRequired,
+                                          requireTransportSecurity=False)
+        #XXX: Is this correct
+        if useSSL:
+            reactor.connectSSL(host, port, factory, sslContext)
         else:
-            #pass the context Factory in trySSL
-            factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
-                                              0, requireAuthentication=authRequired, requireTransportSecurity=False)
-
             reactor.connectTCP(host, port, factory)
 
 
-    """ 
-        Set the mail as sent 
-        set dateSent perhaps (need a string api for date sent)
-        commit mail
-    """
     def __mailSuccess(self, result):
-        addrs = []
+        self.setViewCurrent()
 
-        for address in result[1]:
-            addrs.append(address[0])
+        try:
+            if __debug__:
+                self.printCurrentView("__mailSuccess")
 
-        self.log.info("SMTP Message sent to %d recipients[%s]" % (result[0], ", ".join(addrs))
+            addrs = []
 
-        date = DateTime.now()
-        self.mailMessage.dateSent = date
-        self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(date)
+            for address in result[1]:
+                addrs.append(address[0])
 
-        self.mailMessage.deliveryExtension.sendSucceeded()
+            str = "recipients"
 
-        ### NOW Commit the message in a viewThread
+            if len(addrs) == 1:
+                str = "recipient"
 
-    #TODO: Figure out what exc is for all cases
+            info = "SMTP Message sent to %d %s [%s]" % (result[0], str, ", ".join(addrs))
+            self.log.info(info)
+
+            self.mailMessage.dateSent = DateTime.now()
+            self.mailMessage.dateSentString = message.dateTimeToRFC2882Date(DateTime.now())
+
+            self.mailMessage.deliveryExtension.sendSucceeded()
+            self.sent = True 
+
+        finally:
+           self.restorePreviousView()
+
+        """Commit the view in a thread to prevent blocking"""
+        self.commitView(True)
+
     def __mailFailure(self, exc):
-        self.log.error("SMTP send failed: %s" % exc)
+        self.setViewCurrent()
 
-        self.mailMessage.deliveryExtension.sendFailed()
-        ### Now Commit then post a event back to Don to Display
+        try:
+            if __debug__:
+                self.printCurrentView("__mailFailure")
 
-    def __getMessageAndAccount(self):
+            print exc
+            self.log.error("SMTP send failed: %s" % exc)
+
+            self.mailMessage.deliveryExtension.sendFailed()
+            self.sent = False
+
+        finally:
+           self.restorePreviousView()
+
+        """Commit the view in a thread to prevent blocking"""
+        self.commitView(True)
+
+
+    def _viewCommitSuccess(self):
+        """
+        Overides C{RepositoryView.AbstractRepositoryViewManager}.
+        It posts a commit event to the GUI thread, unpins the C{SMTPAccountKind} and
+        C{MailMessageKind} from memory, and writes commit info to the logger
+        @return: C{None}
+        """
+
+        #XXX: Post a failure event back to the Gui
+        #XXX: Could just look at the message Delivery Extension state as well
+        if not self.sent:
+            pass
+
+        self.account.setPinned(False)
+        self.mailMessage.setPinned(False)
+        self.account = None
+        self.mailMessage = None
+
+        Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
+
+    def __getKinds(self):
 
         accountKind = Mail.MailParcel.getSMTPAccountKind()
         self.account = accountKind.findUUID(self.accountUUID)
@@ -155,11 +199,10 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         self.mailMessage = mailMessageKind.findUUID(self.mailMessageUUID)
 
         if self.account is None:
-            raise SMTPException("No Account for UUID: %s" % self.account.itsUUID)
+            raise SMTPException("No Account for UUID: %s" % self.accountUUID)
 
         if self.mailMessage is None:
-            raise SMTPException("No MailMessage for UUID: %s" % self.mailMessage.itsUUID)
+            raise SMTPException("No MailMessage for UUID: %s" % self.mailMessageUUID)
 
         self.account.setPinned()
         self.mailMessage.setPinned()
-
