@@ -92,6 +92,7 @@ parcels
 tools
 
 glob=*
+exclude=CVS
 repository
 locale
 

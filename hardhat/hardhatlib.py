@@ -1190,6 +1190,7 @@ def handleManifest(buildenv, filename):
     params["dest"] = None
     params["recursive"] = True
     params["glob"] = "*"
+    params["exclude"] = "CVS"
     srcdir = buildenv['root']
     destdir = buildenv['distdir']
 
@@ -1220,13 +1221,15 @@ def handleManifest(buildenv, filename):
                 else:
                     params["recursive"] = False
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", "recursive=" + value)
-
+            if name == "exclude":
+                params["exclude"] = value.split(",")
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "exclude=" + value)
         else:
             abspath = os.path.join(srcdir,line)
             if os.path.isdir(abspath):
                 log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
                 copyto = os.path.join(buildenv['distdir'], params["dest"], line)
-                _copyTree(abspath, copyto, params["recursive"], params["glob"])
+                _copyTree(abspath, copyto, params["recursive"], params["glob"], params["exclude"])
             else:
                 if os.path.exists(abspath):
                     log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
@@ -1285,12 +1288,12 @@ def expandVars(line):
     return line
     
 
-def _copyTree(srcdir, destdir, recursive, patterns):
+def _copyTree(srcdir, destdir, recursive, patterns, excludes):
     os.chdir(srcdir)
     for pattern in patterns:
         matches = glob.glob(pattern)
         for match in matches:
-            if os.path.isfile(match):
+            if os.path.isfile(match) and not match in excludes:
                 if not os.path.exists(destdir):
                     _mkdirs(destdir)
                 if os.path.islink(match):
@@ -1301,9 +1304,9 @@ def _copyTree(srcdir, destdir, recursive, patterns):
     if recursive:
         for name in os.listdir(srcdir):
             full_name = os.path.join(srcdir, name)
-            if os.path.isdir(full_name):
+            if os.path.isdir(full_name) and not name in excludes:
                 _copyTree(full_name, os.path.join(destdir, name), True, 
-                 patterns)
+                 patterns, excludes)
 
 def _mkdirs(newdir, mode=0777):
     try: 
@@ -1327,18 +1330,18 @@ def copyFiles(srcdir, destdir, patterns):
                     _mkdirs(destdir)
                 shutil.copy(match, destdir)
 
-def copyTree(srcdir, destdir, patterns):
+def copyTree(srcdir, destdir, patterns, excludes):
     for pattern in patterns:
         matches = glob.glob(os.path.join(srcdir, pattern))
         for match in matches:
-            if os.path.isfile(match):
+            if os.path.isfile(match) and not match in excludes:
                 if not os.path.exists(destdir):
                     _mkdirs(destdir)
                 shutil.copy(match, destdir)
     for name in os.listdir(srcdir):
         fullpath = os.path.join(srcdir, name)
-        if os.path.isdir(fullpath):
-            copyTree(fullpath, os.path.join(destdir, name), patterns)
+        if os.path.isdir(fullpath) and not name in excludes:
+            copyTree(fullpath, os.path.join(destdir, name), patterns, excludes)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
