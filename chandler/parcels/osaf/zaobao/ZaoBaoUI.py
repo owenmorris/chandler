@@ -28,7 +28,7 @@ if __is_standalone__:
 else:    
     #Chandler modules
     from application.ViewerParcel import *
-    from application.model.LocalRepository import LocalRepository
+    from application.model_deprecated.LocalRepository import LocalRepository
     
     #ZaoBao modules
     from OSAF.zaobao import RSSData

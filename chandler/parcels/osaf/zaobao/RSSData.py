@@ -13,8 +13,8 @@ import mx.DateTime
 from persistence.dict import PersistentDict
 
 # Chandler modules
-from application.model.InformationItem import InformationItem
-from application.model.LocalRepository import LocalRepository
+from application.model_deprecated.InformationItem import InformationItem
+from application.model_deprecated.LocalRepository import LocalRepository
 
 # ZaoBao modules
 from OSAF.zaobao import rssparser
