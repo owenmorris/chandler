@@ -29,6 +29,9 @@
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\chandler.exe"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\README.win.txt"
+
+!define MUI_PAGE_CUSTOMFUNCTION_PRE "change_cancel_text"
+
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -54,6 +57,12 @@ ShowUnInstDetails hide
 
 Function .onInit
   ;!insertmacro MUI_LANGDLL_DISPLAY
+FunctionEnd
+
+Function change_cancel_text
+
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Settings" "CancelEnabled" "0"
+
 FunctionEnd
 
 Section "MainSection" SEC01
