@@ -15,7 +15,6 @@ endif
 
 SRCDIR = .
 BINDIR = build_$(mode)
-RELDIR = ../../$(mode)
 
 CLASSES = $(BINDIR)/classes
 CC = $(GCJ)/bin/gcc
@@ -24,7 +23,6 @@ JCC = $(GCJ)/bin/gcj
 JCCH = $(GCJ)/bin/gcjh
 
 LUCENE = $(SRCDIR)/lucene-$(VERSION)
-DB = $(SRCDIR)/../db/db-$(DBVERSION)
 
 PYTHON_INC = $(RELDIR)/include/python2.3
 PYTHON_SITE = $(RELDIR)/lib/python2.3/site-packages
@@ -51,7 +49,7 @@ $(BINDIR)/db.o: $(BINDIR)/db_const.o
 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
 
 $(BINDIR)/libdb_java-4.2.so:
-	$(CC) -shared -o $(BINDIR)/libdb_java-4.2.so $(CCFLAGS) -I$(DB) -I$(DB)/build_$(mode) -I$(RELDIR)/db/include $(DB)/libdb_java/db_java_wrap.c ../../$(mode)/db/lib/libdb-4.2.so
+	$(CC) -shared -o $(BINDIR)/libdb_java-4.2.so $(CCFLAGS) -I$(DB) -I$(DB)/build_$(mode) -I$(RELDIR)/db/include $(DB)/libdb_java/db_java_wrap.c $(RELDIR)/db/lib/libdb-4.2.so
 
 $(BINDIR)/store.o: $(BINDIR)/db.o $(BINDIR)/lucene.o
 	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) $(STORE_SRCS)
@@ -90,6 +88,7 @@ install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.so
 	install PyLucene.py $(PYTHON_SITE)
 	install $(BINDIR)/_PyLucene.so $(PYTHON_SITE)
 	install $(BINDIR)/libdb_java-4.2.so $(RELDIR)/db/lib
+	mkdir -p $(RELDIR)/lib
 	install $(GCJ)/lib/libgcj.so.4 $(RELDIR)/lib
 	install $(GCJ)/lib/libstdc++.so.5 $(RELDIR)/lib
 	install $(GCJ)/lib/libgcc_s.so.1 $(RELDIR)/lib

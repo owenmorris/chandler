@@ -15,7 +15,6 @@ endif
 
 SRCDIR = .
 BINDIR = build_$(mode)
-RELDIR = ../../$(mode)
 
 CLASSES = $(BINDIR)/classes
 CC = $(GCJ)/bin/gcc
@@ -24,7 +23,6 @@ JCC = $(GCJ)/bin/gcj
 JCCH = $(GCJ)/bin/gcjh
 
 LUCENE = $(SRCDIR)/lucene-$(VERSION)
-DB = $(SRCDIR)/../db/db-$(DBVERSION)
 PYTHON = $(RELDIR)/Library/Frameworks/Python.framework/Versions/2.3
 
 PYTHON_INC = $(PYTHON)/include/python2.3
@@ -54,7 +52,7 @@ $(BINDIR)/db.o: $(BINDIR)/db_const.o
 # with gcc 3.4-20040107, libdb_java crashes when compiled with -O2
 
 $(BINDIR)/libdb_java-4.2.jnilib:
-	$(CC) -shared -bundle -o $(BINDIR)/libdb_java-4.2.jnilib -O $(LDFLAGS) -I$(GCJ)/include -I$(DB) -I$(DB)/build_$(mode) -I$(RELDIR)/db/include $(DB)/libdb_java/db_java_wrap.c ../../$(mode)/db/lib/libdb-4.2.dylib
+	$(CC) -shared -bundle -o $(BINDIR)/libdb_java-4.2.jnilib -O $(LDFLAGS) -I$(GCJ)/include -I$(DB) -I$(DB)/build_$(mode) -I$(RELDIR)/db/include $(DB)/libdb_java/db_java_wrap.c $(RELDIR)/db/lib/libdb-4.2.dylib
 
 $(BINDIR)/store.o: $(BINDIR)/db.o $(BINDIR)/lucene.o
 	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) $(STORE_SRCS)
@@ -94,6 +92,7 @@ install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib
 	install $(BINDIR)/_PyLucene.so $(PYTHON_SITE)
 	install $(BINDIR)/libdb_java-4.2.jnilib $(RELDIR)/db/lib
 	install libdb_java-4.2.la.osx $(RELDIR)/db/lib/libdb_java-4.2.la
+	mkdir -p $(RELDIR)/lib
 	install $(GCJ)/lib/libgcj.4.dylib $(RELDIR)/lib
 	install $(GCJ)/lib/libstdc++.6.dylib $(RELDIR)/lib
 	install $(GCJ)/lib/libgcc_s.1.0.dylib $(RELDIR)/lib

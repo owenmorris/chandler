@@ -21,7 +21,6 @@ _dbg =
 
 SRCDIR = .
 BINDIR = build_$(mode)
-RELDIR = ..\..\$(mode)
 
 CLASSES = $(BINDIR)/classes
 CC = $(GCJ)\bin\gcc
@@ -30,7 +29,6 @@ JCC = $(GCJ)\bin\gcj
 JCCH = $(GCJ)\bin\gcjh
 
 LUCENE = $(SRCDIR)\lucene-$(VERSION)
-DB = $(SRCDIR)\..\db\db-$(DBVERSION)
 
 PYTHON_INC = $(RELDIR)\bin\include
 PYTHON_SITE = $(RELDIR)\bin\Lib\site-packages

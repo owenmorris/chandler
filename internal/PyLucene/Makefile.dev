@@ -28,7 +28,7 @@ JCC = $(GCJ_HOME)/bin/gcj
 JCCH = $(GCJ_HOME)/bin/gcjh
 
 LUCENE = $(SRCDIR)/lucene-$(VERSION)
-DB = $(SRCDIR)/../db/db-$(DBVERSION)
+DB = $(SRCDIR)/../external/persistence/db/db-$(DBVERSION)
 PYTHON = /Library/Frameworks/Python.framework/Versions/2.3
 
 PYTHON_INC = $(PYTHON)/include/python2.3
