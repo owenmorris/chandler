@@ -38,3 +38,13 @@ chandler-source -a \
 dbxml-module -a \
     osaf/chandler/dbxml \
     osaf/chandler/bsddb3
+
+morgen -a \
+    osaf/chandler/Chandler \
+    osaf/chandler/PyXML \
+    osaf/chandler/python \
+    osaf/chandler/zodb \
+    osaf/chandler/distutils \
+    osaf/chandler/egenix-mx \
+    osaf/chandler/hardhat \
+    osaf/chandler/wxpython
