@@ -11,7 +11,7 @@ build:
 	cd $(SRC); \
 	cp yapps2.py yappsrt.py grammar.py parsetree.py $(BUILD_ROOT)/$(SNAP)/$(SITE)/
 
-expand: yapps-$(VERSION).zip
+expand: 
 	unzip -o yapps$(VERSION).zip
 
 snap: 
