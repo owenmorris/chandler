@@ -29,6 +29,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>Les débuts d'une jeune actrice</text>
+   </attribute>
   </item>
 
   <item>
@@ -42,6 +46,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>Pendant la guerre de Sécession, le docteur Marsch se dans les rangs nordistes. Sa femme et ses quatre filles doivent se débrouiller pour vivre.</text>
+   </attribute>
   </item>
 
   <item>
@@ -55,6 +63,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>Une jeune femme s'éprend d'un homme déjà marié.</text>
+   </attribute>
   </item>
 
   <item>
@@ -67,19 +79,27 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>Les tentatives d'une jeune fille modeste pour entrer dans la bonne société.</text>
+   </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Mary of Scotland</attribute>
-    <attribute name="frenchTitle">Mary Stuart</attribute>
+    <attribute name="frenchTitle">Marie Stuart</attribute>
     <attribute name="released">1936-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/JFord</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>La rivalité entre Elisabeth Ire d'Angleterre et Marie d'Écosse et de France.</text>
+   </attribute>
   </item>
 
   <item>
@@ -92,6 +112,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+   <attribute name="synopsis">
+      <text>Une jeune fille se déguise en garçon pour participer aux activités d'une bande d'escrocs. Grâce à une rencontre, elle réalisera son rêve : la création d'une compagnie théâtrale.</text>
+   </attribute>
   </item>
 
   <item>

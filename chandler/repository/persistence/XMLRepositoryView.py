@@ -63,6 +63,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         del self._log[:]
 
+    def queryItems(self, query, load=True):
+
+        store = self.repository.store
+        docs = store.queryItems(self.version, query)
+
+        return [self.find(store.getDocUUID(doc), load=load) for doc in docs]
+
 
 class XMLRepositoryLocalView(XMLRepositoryView):
 

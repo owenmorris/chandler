@@ -142,6 +142,10 @@ class Repository(object):
 
         return self.view.find(spec, _index, load)
 
+    def queryItems(self, query, load=True):
+
+        return self.view.queryItems(query, load)
+
     def loadPack(self, path, parent=None):
 
         self.view.loadPack(path, parent)
@@ -465,6 +469,9 @@ class RepositoryView(object):
     def cancel(self):
         raise NotImplementedError, "RepositoryView.cancel"
 
+    def queryItems(self, query, load=True):
+        raise NotImplementedError, "RepositoryView.queryItems"
+
     def _loadItem(self, uuid):
         raise NotImplementedError, "RepositoryView._loadItem"
 
@@ -525,6 +532,9 @@ class Store(object):
     def loadRef(self, version, uItem, uuid, key):
         raise NotImplementedError, "Store.loadRef"
 
+    def queryItems(self, version, query):
+        raise NotImplementedError, "Store.queryItems"
+    
     def parseDoc(self, doc, handler):
         raise NotImplementedError, "Store.parseDoc"
 

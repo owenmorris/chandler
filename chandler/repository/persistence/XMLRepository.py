@@ -174,14 +174,14 @@ class XMLContainer(object):
             
     def loadChild(self, version, uuid, name):
 
-        ctx = self.store.ctx
+        store = self.store
+        ctx = store.ctx
         ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
         ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
         ctx.setVariableValue("version", XmlValue(float(version)))
 
         doc = None
         ver = 0
-        store = self.store
         txnStarted = False
 
         try:
@@ -274,6 +274,31 @@ class XMLContainer(object):
         for name, (ver, doc) in roots.iteritems():
             if not name in view._roots:
                 view._loadDoc(doc)
+
+    def queryItems(self, version, query):
+
+        store = self.store
+        ctx = store.ctx
+        txnStarted = False
+
+        docs = {}
+        try:
+            txnStarted = store._startTransaction()
+            for value in self._xml.queryWithXPath(store.txn, query, ctx,
+                                                  DB_DIRTY_READ):
+                doc = value.asDocument()
+                ver = self.getDocVersion(doc)
+                if ver <= version:
+                    uuid = self.getDocUUID(doc)
+                    dv = docs.get(uuid, None)
+                    if dv is not None and dv[1] < ver or dv is None:
+                        docs[uuid] = (doc, ver)
+
+        finally:
+            if txnStarted:
+                store._abortTransaction()
+
+        return [dv[0] for dv in docs.itervalues()]
 
     def deleteDocument(self, doc):
 
@@ -606,6 +631,10 @@ class XMLStore(Store):
         return self._refs.loadRef(version, key, "".join((uItem._uuid,
                                                          uuid._uuid,
                                                          key._uuid)))
+
+    def queryItems(self, version, query):
+
+        return self._data.queryItems(version, query)
 
     def parseDoc(self, doc, handler):
 
