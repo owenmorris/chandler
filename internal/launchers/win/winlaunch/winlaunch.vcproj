@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\debug\bin\Include"
+				AdditionalIncludeDirectories="..\..\..\..\external\debug\bin\Include; ..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\python\Python-2.3.3\PC"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\..\..\debug\bin\libs\python23_d.lib"
+				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python23_d.lib"
 				OutputFile="$(OutDir)/chandler.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
@@ -71,7 +71,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\..\..\..\release\bin\Include"
+				AdditionalIncludeDirectories="..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\release\include;..\..\..\..\external\python\Python-2.3.3\PC"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\..\..\release\bin\libs\python23.lib"
+				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python23.lib"
 				OutputFile="$(OutDir)/chandler.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
