@@ -1,64 +1,56 @@
-#!/bin/env python
-#----------------------------------------------------------------------------
-# Name:         Chandler.py
-# Author:       Open Source Application Foundation
-# Created:      XX/XX/XX
-# Copyright:    
-#----------------------------------------------------------------------------
+#!bin/env python
+
+"""The chandler application.  The application itself simply tracks open
+ChandlerWindows."""
+
+__author__ = "Jed Burgess"
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__license__ = "Python"
+
 
 from wxPython.wx import *
 from wxPython.xrc import *
 
-import cal.CalendarView
 
-class MyFrame(wxFrame):
-    def __init__(self, parent, id, title,
-                 pos = wxPyDefaultPosition, size = wxPyDefaultSize,
-                 style = wxDEFAULT_FRAME_STYLE ):
-        wxFrame.__init__(self, parent, id, title, pos, size, style)
+from application.ChandlerWindow import ChandlerWindow
 
-        resources = wxXmlResource ("resources/resources.xrc")
-        self.SetMenuBar (resources.LoadMenuBar ("MenuBar"))
-        self.SetToolBar (resources.LoadToolBar (self, "ToolBar"))
-
-        self.CreateStatusBar(1)
-        self.SetStatusText("Welcome!")
-        
-        # insert main window here
-        view = cal.CalendarView.CalendarView(self)
-        
-        # WDR: handler declarations for MyFrame
-        EVT_MENU(self, wxID_ABOUT, self.OnAbout)
-        EVT_MENU(self, XRCID ("menu_quit"), self.OnQuit)
-        EVT_CLOSE(self, self.OnCloseWindow)
-
-    def OnAbout(self, event):
-        dialog = wxMessageDialog(self, "Welcome to Chandler 0.01\n(C)opyright OSAF",
-            "About Chandler", wxOK|wxICON_INFORMATION )
-        dialog.CentreOnParent()
-        dialog.ShowModal()
-        dialog.Destroy()
-    
-    def OnQuit(self, event):
-        self.Close(true)
-    
-    def OnCloseWindow(self, event):
-        self.Destroy()
-    
-
-#----------------------------------------------------------------------------
-
-class MyApp(wxApp):
-    
+class osafApp(wxApp):
     def OnInit(self):
         wxInitAllImageHandlers()
-        frame = MyFrame(None, -1, "Chandler", wxPoint(20,20), wxSize(500,340) )
-        frame.Show(true)
+        self.frame = ChandlerWindow(None, self, pos=wxPoint(20,20))
+#        self.frames = [frame]
+        self.frame.Show(true)
         
         return true
 
-#----------------------------------------------------------------------------
+#    def OpenNewViewer(self, location):
+#        """Create a new ChandlerWindow and add it to the list of open windows.
+#        Offsets the new window slightly so that they are not directly overlayed."""
+#        location.x += 40
+#        location.y += 40
+#        frame = ChandlerWindow(None, self, self.components, pos=location)
+#        self.frames.append(frame)
+#        frame.Show(true)    
+        
+#    def RemoveWindow(self, win):
+#        """Remove the window from the list of open windows.  Should only be called
+#        right before the window is closed."""
+#        self.frames.remove(win)        
 
-app = MyApp(1)
-app.MainLoop()
+    def QuitApp(self):
+        self.frame.Close(true)
+#        """Quit the application by closing all open windows."""
+#        windowsToClose = []
+#        # Make a copy of self.frames because it will change as we close
+#        #  individual windows
+#        for frame in self.frames:
+#            windowsToClose.append(frame)
+#        for frame in windowsToClose:
+#             frame.Close(true)
+
+if __name__=="__main__":
+    app = osafApp(1)
+    app.MainLoop()
 
