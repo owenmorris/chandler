@@ -5,9 +5,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
 
-
 from wxPython.wx import *
-from Persistence import Persistent
 import time
 
 class wxCanvasDropSource (wxDropSource):
@@ -57,11 +55,16 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.canvas.RefreshScrolledRect (self.bounds);
 
     def OnMouseEvent (self, event):
-        event.Skip ()
+        event.Skip()
         x, y = event.GetPositionTuple()
-        if event.ButtonDown () and self.DragHitTest (x, y):
+        if event.ButtonDown() and self.DragHitTest (x, y):
             self.DoDrag(x, y)
     
+    def SetBounds (self, bounds):
+        self.canvas.RefreshScrolledRect (self.bounds);
+        self.bounds = bounds
+        self.canvas.RefreshScrolledRect (self.bounds);
+
     def Show (self, show):
         """
           Python doesn't have logical exclusive or, so we need
@@ -123,14 +126,25 @@ class wxSimpleDrawableObject (wxEvtHandler):
         dataObject = self.ConvertDrawableObjectToDataObject(x, y)
         dropSource = wxCanvasDropSource (self, dataObject)
 
-        self.canvas.InternalDnDItem = self
+        self.canvas.internalDnDItem = self
         result = dropSource.DoDragDrop (wxDrag_AllowMove)
-        self.canvas.InternalDnDItem = None
+        self.canvas.internalDnDItem = None
         self.dragImage.Hide()
         self.dragImage.EndDrag()
 
+    def DrawMask (self, dc):
+        """
+          optionally implement this routine to draw a mask
+        """
+        pass
+      
+    def SizeDrag (self, dragRect, startDrag, endDrag):
+        self.canvas.RefreshScrolledRect (self.bounds)
+        self.bounds = dragRect
+        self.canvas.RefreshScrolledRect (self.bounds)
+        
     """
-      You must implement the following functions for each kind of drawableobject
+      You must implement the following functions
     """
 
     def Draw (self, dc):
@@ -139,15 +153,10 @@ class wxSimpleDrawableObject (wxEvtHandler):
         """
         assert (false)
       
-    def DrawMask (self, dc):
-        """
-          optionally implement this routine to draw a mask
-        """
-        pass
-      
     def DragHitTest (self, x, y):
         """
           You must implement this routine to do hit testing for dragable region
+        of drawable object
         """
         assert (false)
       
@@ -159,10 +168,12 @@ class wxSimpleDrawableObject (wxEvtHandler):
 
     
 class wxSimpleCanvas (wxScrolledWindow):
+
     def __init__(self, parent, dropTargetDataObject):
+        self.autoCreateDistance = 0
         wxScrolledWindow.__init__( self, parent, -1, style=wxSUNKEN_BORDER)
         self.zOrderedDrawableObjects = []
-        self.InternalDnDItem = None
+        self.internalDnDItem = None
         EVT_PAINT (self, self.OnPaint)
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
         EVT_MOUSE_EVENTS (self, self.OnMouseEvent)
@@ -270,15 +281,71 @@ class wxSimpleCanvas (wxScrolledWindow):
         pass
 
     def OnMouseEvent (self, event):
+        x, y = event.GetPositionTuple()
+        x, y = self.CalcUnscrolledPosition (x, y)
         for drawableObject in self.zOrderedDrawableObjects:
-            x, y = event.GetPositionTuple()
-            x, y = self.CalcUnscrolledPosition (x, y)
             if drawableObject.bounds.Inside (x, y):
                 event.m_x = x - drawableObject.bounds.GetX()
                 event.m_y = y - drawableObject.bounds.GetY()
                 if drawableObject.ProcessEvent (event):
-                    return
-        event.Skip()
+                    return true
+
+        if self.autoCreateDistance != 0:
+            if event.ButtonDown() and self.CreateHitTest (x, y):
+                self.dragStart = wxPoint (x, y)
+                self.CaptureMouse()
+                return true
+            elif event.Dragging():
+                """
+                  Clip mouse position to the scrolling window's bounds
+                """
+                boundsX, boundsY = self.GetVirtualSizeTuple()
+                if x < 0:
+                    x = 0
+                if x > boundsX:
+                    x = boundsX
+                if y < 0:
+                    y = 0
+                if y > boundsY:
+                    y = boundsY
+
+                deltaX =  x - self.dragStart.x
+                deltaY =  y - self.dragStart.y
+                if not hasattr (self, 'dragCreateDrawableObject'):
+                    if (deltaX * deltaX) + (deltaY * deltaY) > (self.autoCreateDistance * self.autoCreateDistance):
+                        """
+                           Create a new drawable object if we've dragged autoCreateDistance
+                        pixels
+                        """
+                        self.dragCreateDrawableObject = self.CreateNewDrawableObject (self.dragStart,
+                                                                                      wxPoint (x, y))
+                        self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
+                        self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
+                    return true
+                else:
+                    if deltaX >= 0:
+                        left = self.dragStart.x
+                        width = deltaX
+                    else:
+                        left = x
+                        width = -deltaX
+                        
+                    if deltaY >= 0:
+                        top = self.dragStart.y
+                        height = deltaY
+                    else:
+                        top = y
+                        height = -deltaY
+                    dragRect = wxRect (top, left, width, height)
+                    self.dragCreateDrawableObject.SizeDrag (dragRect,
+                                                            self.dragStart,
+                                                            wxPoint (x, y))
+
+            elif event.ButtonUp():
+                del self.dragCreateDrawableObject
+                self.ReleaseMouse()
+                return true
+        return false
 
     def OnData (self, dataObject, x, y, result):
         """
@@ -288,22 +355,43 @@ class wxSimpleCanvas (wxScrolledWindow):
         x = drawableObject.bounds.GetLeft()
         y = drawableObject.bounds.GetTop()
         if result == wxDragMove or result == wxDragCopy:
-            if (self.InternalDnDItem != None) and (result == wxDragMove):
-                assert (self.zOrderedDrawableObjects.count (self.InternalDnDItem) == 1)
-                self.zOrderedDrawableObjects.remove (self.InternalDnDItem)
-                self.zOrderedDrawableObjects.insert (0, self.InternalDnDItem)
-                self.InternalDnDItem.MoveTo (x, y)
+            if (self.internalDnDItem != None) and (result == wxDragMove):
+                assert (self.zOrderedDrawableObjects.count (self.internalDnDItem) == 1)
+                self.zOrderedDrawableObjects.remove (self.internalDnDItem)
+                self.zOrderedDrawableObjects.insert (0, self.internalDnDItem)
+                self.internalDnDItem.MoveTo (x, y)
             else:
                 self.zOrderedDrawableObjects.insert (0, drawableObject)
                 self.RefreshScrolledRect (drawableObject.bounds);
         return result
 
+    def CreateHitTest (self, x, y):
+        """
+          Set self.autoCreateDistance to some value other than zero to enable
+        dragging autoCreateDistance pixels to automatically create new drawable
+        objects.
+          By default, drawable objects are created if you click and drag in the
+        canvas anwhere there isn't a drawable object. You can restrict this location
+        that drawable objects are created by overriding this routine
+        """
+        return true
+
     """
-      You must implement the following functions for each kind of drawableobject
+      You must implement the following functions
     """
 
     def ConvertDataObjectToDrawableObject (self, dataObject, x, y):
         """
-          You must implement this routine to do draw 
+          You must implement this routine to convert a dataobject, used in
+        drag and drop into a drawable object.
         """
         assert (false)
+      
+    def CreateNewDrawableObject (self, startDrag, endDrag):
+        """
+          You must implement this routine to create new drawable objects by
+        dragging on the blank canvas.
+        """
+        assert (false)
+      
+
