@@ -38,10 +38,3 @@ install:
 	do \
 		$(MAKE) -C $$system DEBUG=$(DEBUG) install; \
 	done
-
-build:
-	@for system in $(SYSTEMS); \
-	do \
-		$(MAKE) -C $$system DEBUG=$(DEBUG) ; \
-	done
-
