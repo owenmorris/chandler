@@ -42,12 +42,11 @@ class SideBar(Persistent):
         wasEmpty = false
         if not hasattr(wxWindow, 'root'):
             wxWindow.root = wxWindow.AddRoot('Root')
-            wasEmpty = true        
-        self.sideBarURLTree = PersistentDict()
+            wasEmpty = true
         self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, 
-                             wxWindow.root, wasEmpty)
+                             wxWindow.root, wasEmpty, "")
 
-    def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent, wasEmpty):
+    def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent, wasEmpty, parentUri):
         """
           Synchronizes the sidebar's URLTree with the application's
         URLTree.  The sidebar only stores a dict mapping visible items
@@ -60,24 +59,25 @@ class SideBar(Persistent):
             name = item[1]
             children = item[2]
             hasChildren = len(children) > 0
+            uri = parentUri + '/' + name
 
             if not sideBarURLTree.has_key(instanceId):
                 itemId = wxWindow.AppendItem(parent, name)
-                wxWindow.uriDictMap[name] = itemId
+                wxWindow.uriDictMap[uri] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarURLTree[instanceId] = URLTreeEntry(instance, false,
                                                           itemId, {}, false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parent, name)
-                    wxWindow.uriDictMap[name] = itemId
+                    wxWindow.uriDictMap[uri] = itemId
                     sideBarURLTree[instanceId].wxId = itemId
                 else:
                     itemId = sideBarURLTree[instanceId].wxId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarURLTree[instanceId].isOpen:
                     self.__UpdateURLTree(sideBarURLTree[instanceId].children, 
-                                         item[2], itemId)
+                                         item[2], itemId, false, uri)
             sideBarURLTree[instanceId].isMarked = true
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
@@ -156,8 +156,18 @@ class wxSideBar(wxTreeCtrl):
         if self.model.ignoreChangeSelect:
             return
         clickedItem = event.GetItem()
-        text = self.GetItemText(clickedItem)
-        app.wxMainFrame.GoToUri(text)
+        uri = self.BuildUriFromItem(clickedItem)
+        app.wxMainFrame.GoToUri(uri)
+        
+    def BuildUriFromItem(self, item, uri = ""):
+        """
+          Given an item in the SideBar hierarchy, builds up that item's uri
+        and returns it.
+        """
+        if self.GetRootItem() == item:
+            return uri
+        newUri = '/' + self.GetItemText(item) + uri
+        return self.BuildUriFromItem(self.GetItemParent(item), newUri)
             
     def OnItemExpanding(self, event):
         """
@@ -175,7 +185,7 @@ class wxSideBar(wxTreeCtrl):
             assert (hasattr (parcel, 'displayName'))
             if parcel.displayName == text:
                 instanceId = id(parcel)
-                self.model.sideBarURLTree[instanceId][1] = true
+                self.model.sideBarURLTree[instanceId].isOpen = true
         self.model.SynchronizeView()
             
     def OnDestroy(self, event):

@@ -30,7 +30,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 16
+    VERSION = 17
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -239,7 +239,7 @@ class wxApplication (wxApp):
             self.wxMainFrame.GoToUri(uri, false)
         else:
             if len(self.model.URLTree) > 0:
-                self.wxMainFrame.GoToUri(self.model.URLTree[0][1], true)
+                self.wxMainFrame.GoToUri('/' + self.model.URLTree[0][1], true)
             
     def OnQuit(self, event):
         """
