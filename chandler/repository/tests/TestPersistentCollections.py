@@ -92,6 +92,7 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
 
         for k, v in emps.items():
             print k,v
+        manager.employees = []
         manager.employees.update(emps)
         for k, v in manager.employees.items():
             print k,v
