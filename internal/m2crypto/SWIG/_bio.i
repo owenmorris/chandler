@@ -122,6 +122,10 @@ int bio_ctrl_pending(BIO *bio) {
     return (int)BIO_ctrl_pending(bio);
 }
 
+int bio_ctrl_wpending(BIO *bio) {
+    return (int)BIO_ctrl_wpending(bio);
+}
+
 int bio_ctrl_get_write_guarantee(BIO *a) {
     return BIO_ctrl_get_write_guarantee(a);
 }

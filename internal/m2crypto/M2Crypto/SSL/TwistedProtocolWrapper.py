@@ -3,6 +3,8 @@ from twisted.internet import defer
 from M2Crypto import BIO, m2
 from M2Crypto.SSL import Context, Connection
 
+debug = 0
+
 class TLSProtocolWrapper(ProtocolWrapper):
     """
     A SSL/TLS protocol wrapper to be used with Twisted.
@@ -10,7 +12,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
     Usage:
         factory = MyFactory()
         factory.startTLS = True # Starts SSL immediately, otherwise waits
-                                # for STARTTLS from peer
+                                # for STARTTLS from peer (XXX TODO)
         wrappingFactory = WrappingFactory(factory)
         wrappingFactory.protocol = TLSProtocolWrapper
         reactor.connectTCP(host, port, wrappingFactory)
@@ -23,7 +25,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     """
     def __init__(self, factory, wrappedProtocol):
-        print 'MyProtocolWrapper.__init__'
+        if debug:
+            print 'MyProtocolWrapper.__init__'
         ProtocolWrapper.__init__(self, factory, wrappedProtocol)
 
         # wrappedProtocol == client/server instance
@@ -44,9 +47,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
         if hasattr(factory.wrappedFactory, 'startTLS'):
             if factory.wrappedFactory.startTLS:
-                self._startTLS()
+                self.startTLS()
 
-    def _startTLS(self):
+    def startTLS(self):
         self.internalBio = m2.bio_new(m2.bio_s_bio())
         m2.bio_set_write_buf_size(self.internalBio, 8192*8) # XXX change size
         self.networkBio = m2.bio_new(m2.bio_s_bio())
@@ -54,6 +57,11 @@ class TLSProtocolWrapper(ProtocolWrapper):
         m2.bio_make_bio_pair(self.internalBio, self.networkBio)
 
         self.sslBio = m2.bio_new(m2.bio_f_ssl())
+
+        # XXX Things still don't work if we try to write more than buf at one
+        # XXX time. Dunno what would help, maybe this?
+        # XXX self.iossl = m2.bio_new(m2.bio_f_buffer()) ? 
+        # XXX m2.bio_push(self.iossl, self,sslBio) ?
 
         self.ssl = m2.ssl_new(self.ctx.ctx)
         
@@ -64,7 +72,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.tlsStarted = True
 
     def makeConnection(self, transport):
-        print 'MyProtocolWrapper.makeConnection'
+        if debug:
+            print 'MyProtocolWrapper.makeConnection'
         ProtocolWrapper.makeConnection(self, transport)
 
     def _encrypt(self, data=''):
@@ -72,15 +81,19 @@ class TLSProtocolWrapper(ProtocolWrapper):
         g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
         if g > 0:
             r = m2.bio_write(self.sslBio, self.data)
-            if r < 0:
+            if r <= 0:
                 assert(m2.bio_should_retry(self.sslBio))
             else:
                 self.data = self.data[r:]
-        pending = m2.bio_ctrl_pending(self.networkBio)
-        if pending > 0:
-            encryptedData = m2.bio_read(self.networkBio, pending)
-        else:
-            encryptedData = ''
+        encryptedData = ''
+        while 1:
+            pending = m2.bio_ctrl_pending(self.networkBio)
+            if pending:
+                d = m2.bio_read(self.networkBio, pending)
+                if d is not None: # This is strange, but seems to happen
+                    encryptedData += d
+            else:
+                break
         return encryptedData
 
     def _decrypt(self, data=''):
@@ -88,28 +101,34 @@ class TLSProtocolWrapper(ProtocolWrapper):
         g = m2.bio_ctrl_get_write_guarantee(self.networkBio)
         if g > 0:
             r = m2.bio_write(self.networkBio, self.encrypted)
-            if r < 0:
+            if r <= 0:
                 assert(m2.bio_should_retry(self.networkBio))
             else:
                 self.encrypted = self.encrypted[r:]
-        pending = m2.bio_ctrl_pending(self.sslBio)
-        if pending > 0:
-            decryptedData = m2.bio_read(self.sslBio, pending)
-        else:
-            decryptedData = ''
+        decryptedData = ''
+        while 1:
+            pending = m2.bio_ctrl_pending(self.sslBio)
+            if pending:
+                d = m2.bio_read(self.sslBio, pending)
+                if d is not None: # This is strange, but seems to happen
+                    decryptedData += d
+            else:
+                break
         return decryptedData
 
     def write(self, data):
-        print 'MyProtocolWrapper.write'
+        if debug:
+            print 'MyProtocolWrapper.write'
         if not self.tlsStarted:
             ProtocolWrapper.write(self, data)
             return
-        
+
         encryptedData = self._encrypt(data)
         ProtocolWrapper.write(self, encryptedData)
 
     def writeSequence(self, data):
-        print 'MyProtocolWrapper.writeSequence'
+        if debug:
+            print 'MyProtocolWrapper.writeSequence'
         if not self.tlsStarted:
             ProtocolWrapper.writeSequence(self, ''.join(data))
             return
@@ -117,49 +136,67 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.write(''.join(data))
 
     def loseConnection(self):
-        print 'MyProtocolWrapper.loseConnection'
-        if self.sslBio:
-            m2.bio_free_all(self.sslBio)
-            self.sslBio = None
-        self.internalBio = None
-        self.networkBio = None
+        if debug:
+            print 'MyProtocolWrapper.loseConnection'
         ProtocolWrapper.loseConnection(self)
 
     def registerProducer(self, producer, streaming):
-        print 'MyProtocolWrapper.registerProducer'
+        if debug:
+            print 'MyProtocolWrapper.registerProducer'
         ProtocolWrapper.registerProducer(self, producer, streaming)
 
     def unregisterProducer(self):
-        print 'MyProtocolWrapper.unregisterProducer'
+        if debug:
+            print 'MyProtocolWrapper.unregisterProducer'
         ProtocolWrapper.unregisterProducer(self)
 
     def stopConsuming(self):
-        print 'MyProtocolWrapper.stopConsuming'
+        if debug:
+            print 'MyProtocolWrapper.stopConsuming'
         ProtocolWrapper.stopConsuming(self)
 
     def connectionMade(self):
-        print 'MyProtocolWrapper.connectionMade'
+        if debug:
+            print 'MyProtocolWrapper.connectionMade'
         ProtocolWrapper.connectionMade(self)
 
     def dataReceived(self, data):
-        print 'MyProtocolWrapper.dataReceived'
+        if debug:
+            print 'MyProtocolWrapper.dataReceived'
         if not self.tlsStarted:
             ProtocolWrapper.dataReceived(self, data)
             return
 
         decryptedData = self._decrypt(data)
-        if decryptedData is None:
-            decryptedData = ''
 
-        if self.data or m2.bio_ctrl_pending(self.networkBio) > 0:
+        if self.data or m2.bio_ctrl_pending(self.networkBio):
             encryptedData = self._encrypt()
             ProtocolWrapper.write(self, encryptedData)
+
+        if debug:
+            print 'sending decrypted off', decryptedData
+            print m2.bio_ctrl_pending(self.sslBio)
+            print m2.bio_ctrl_pending(self.networkBio)
 
         ProtocolWrapper.dataReceived(self, decryptedData)
 
     def connectionLost(self, reason):
-        print 'MyProtocolWrapper.connectionLost'
-        print 'data', self.data
-        print 'encrypted', self.encrypted        
+        if debug and 0:
+            print 'MyProtocolWrapper.connectionLost'
+            print 'data', self.data
+            print 'encrypted', self.encrypted
+            print m2.bio_ctrl_pending(self.sslBio)
+            print m2.bio_ctrl_pending(self.networkBio)
+
+            decryptedData = self._decrypt()
+            if decryptedData:
+                ProtocolWrapper.dataReceived(self, decryptedData)
+        
+        if self.sslBio:
+            m2.bio_free_all(self.sslBio)
+            self.sslBio = None
+        self.internalBio = None
+        self.networkBio = None
+
         ProtocolWrapper.connectionLost(self, reason)
 
