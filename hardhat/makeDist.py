@@ -14,8 +14,7 @@ outputDir = sys.argv[2]
 distCmd = {'debug':'-dD', 'release':'-D'}
 
 homeDir = os.environ['HOME']
-buildDir = "/www/docs/chandler/continuous/" + buildName
-buildRef = "chandler/continuous/" + buildName
+buildDir = os.path.join(homeDir, "tinderbuild")
 whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 hardhatFile = os.path.join(whereAmI, "hardhat.py")
 workingDir = os.path.join(homeDir,"tinderbuild","chandler")
@@ -39,6 +38,7 @@ def main():
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatFile, "-o", outputDir, distCmd[releaseMode], 
          buildVersionEscaped])
+        dumpOutputList(outputList)
 
         newDir = os.path.join(outputDir, buildVersion)
         os.rename(os.path.join(buildDir, "output"), newDir)
