@@ -5,5 +5,5 @@ if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 echo CHANDLERHOME is %CHANDLERHOME%
 echo CHANDLERBIN is %CHANDLERBIN%
 path %CHANDLERBIN%\debug\bin
-"%CHANDLERBIN%\debug\bin\python.exe" %*
+"%CHANDLERBIN%\debug\bin\python_d.exe" %*
 endlocal
