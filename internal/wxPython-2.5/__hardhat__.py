@@ -134,7 +134,7 @@ def build(buildenv):
          'install',
         ]
         if version == "debug":
-            buildOptions.append("--debug")
+            buildOptions.append("FINAL=0")
         if buildenv['os'] == "posix":
             buildOptions.append("WXPORT=gtk2")
             buildOptions.append("UNICODE=1")
