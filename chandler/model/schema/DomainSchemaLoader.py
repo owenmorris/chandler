@@ -241,6 +241,11 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 else:
                     ref = self.findItem(attributeDictionary[key])
                     item.setAttributeValue(ATTRIBUTE_REF_TAGS[key], ref)
+
+            # Store class mapping in a dictionary
+            elif key == 'pythonClass':
+                value = attributeDictionary[key]
+                item.setValue('Classes', value, 'python')
                     
             # For booleans or text, look up the value in the dictionary
             elif key in ATTRIBUTE_TEXT_TAGS:
