@@ -361,9 +361,9 @@ class Block(Item):
         @type lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
                     or C{True} for forced resync.
 
-          Currently, we're limited to a depth of three nested views
+          Currently, we're limited to a depth of four nested views
         """
-        assert len (Globals.views) <= 3
+        assert len (Globals.views) <= 4
         Globals.views.append (self)
 
         def synchToDynamicBlock (block, isChild):
