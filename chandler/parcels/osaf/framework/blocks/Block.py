@@ -331,14 +331,17 @@ class Block(Item):
                 finally:
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
-
-class wxRectangularChild (wx.Panel):
-    def __init__(self, *arguments, **keywords):
-        super (wxRectangularChild, self).__init__ (*arguments, **keywords)
-
+class ShownSynchronizer:
+    """
+    A mixin that handles isShown-ness: Make sure my visibility matches my block's.
+    """
     def wxSynchronizeWidget(self):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
+    
+class wxRectangularChild (ShownSynchronizer, wx.Panel):
+    def __init__(self, *arguments, **keywords):
+        super (wxRectangularChild, self).__init__ (*arguments, **keywords)
 
     def CalculateWXBorder(self, block):
         border = 0

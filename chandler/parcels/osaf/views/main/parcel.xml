@@ -81,8 +81,13 @@
     <dispatchToBlock itemref="doc:Sidebar"/>
   </BlockEvent>
 
-  <BlockEvent itsName="ShareOrManage">
-    <eventName>ShareOrManage</eventName>
+  <BlockEvent itsName="ShareSidebarCollection">
+    <eventName>ShareSidebarCollection</eventName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ManageSidebarCollection">
+    <eventName>ManageSidebarCollection</eventName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
@@ -361,7 +366,8 @@
   <Menu itsName="CollectionMenu">
     <blockName>CollectionMenu</blockName>
     <title>&amp;Collection</title>
-    <childrenBlocks itemref="doc:ShareOrManageItem"/>
+    <childrenBlocks itemref="doc:ShareSidebarCollectionItem"/>
+    <childrenBlocks itemref="doc:ManageSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:RenameItem"/>
   </Menu>
   
@@ -1076,14 +1082,21 @@
   <MenuItem itsName="RenameItem">
     <blockName>RenameItem</blockName>
     <title>Rename</title>
-    <helpString>Rename a collection</helpString>
+    <helpString>Rename the selected collection</helpString>
   </MenuItem>
 
-  <MenuItem itsName="ShareOrManageItem">
-    <blockName>ShareOrManageItem</blockName>
+  <MenuItem itsName="ShareSidebarCollectionItem">
+    <blockName>ShareSidebarCollectionItem</blockName>
     <title>Share</title>
-    <event itemref="doc:ShareOrManage"/>
-    <helpString>Share or Manage a collection</helpString>
+    <event itemref="doc:ShareSidebarCollection"/>
+    <helpString>Share the selected collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ManageSidebarCollectionItem">
+    <blockName>ManageSidebarCollectionItem</blockName>
+    <title>Manage</title>
+    <event itemref="doc:ManageSidebarCollection"/>
+    <helpString>Manage the selected collection</helpString>
   </MenuItem>
 
   <!--
@@ -1094,7 +1107,6 @@
     <!-- Children -->
     <childrenBlocks itemref="doc:SyncButton"/>
     <childrenBlocks itemref="doc:NewButton"/>
-    <childrenBlocks itemref="doc:ShareButton"/>
     
     <!-- Attributes -->
     <toolSize>24,24</toolSize>
@@ -1123,16 +1135,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
     <event itemref="doc:NewNote"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ShareButton">
-    <blockName>ShareButton</blockName>
-    <title>Share</title>
-    <label>Share</label>
-    <bitmap>application/images/toolbar_share.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Share or Manage the collection selected in the sidebar</helpString>
-    <event itemref="doc:ShareOrManage"/>
   </ToolbarItem>
 
   <!--
@@ -1362,7 +1364,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.19</splitPercentage>
+    <splitPercentage>0.20</splitPercentage>
     <border>0.0, 0.0, 0.0, 0.0</border>
   </SplitterWindow>
   
@@ -1376,6 +1378,23 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
+  <BlockEvent itsName="ReminderTime">
+    <eventName>ReminderTime</eventName>
+    <dispatchToBlock itemref="doc:ReminderTimer"/>
+  </BlockEvent>
+
+  <contentModel:ItemCollection itsName="ReminderItems">
+    <displayName>ReminderItems</displayName>
+    <_rule value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/><!-- i.hasAttribute('reminderTime') -->
+  </contentModel:ItemCollection>
+
+  <Timer itsName="ReminderTimer"
+         itemClass="osaf.views.main.Main.ReminderTimer">
+    <subscribeWhenVisibleEvents itemref="doc:ReminderTime"/>
+    <event itemref="doc:ReminderTime"/>
+    <contents itemref="doc:ReminderItems"/>
+  </Timer> 
+  
   <View itsName="MainView"
         itemClass="osaf.views.main.Main.MainView">
 
@@ -1388,6 +1407,9 @@
     <!-- Layout children -->
     <childrenBlocks itemref="doc:MainBoxContainer"/>
     
+    <!-- Reminder timer -->
+    <childrenBlocks itemref="doc:ReminderTimer"/>
+    
     <!-- Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:EditAccountPreferences"/>
     <subscribeWhenVisibleEvents itemref="doc:NewCalendar"/>
@@ -1397,7 +1419,8 @@
     <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
     <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
     <subscribeWhenVisibleEvents itemref="doc:RequestSelectSidebarItem"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShareSidebarCollection"/>
+    <subscribeWhenVisibleEvents itemref="doc:ManageSidebarCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowColumn"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>

@@ -226,7 +226,7 @@
       <required>True</required>
     </Attribute>
   </Kind>
-
+  
   <Kind itsName="KindParameterizedEvent">
     <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
@@ -617,17 +617,27 @@
   <Kind itsName="Choice">
     <classes key="python">osaf.framework.blocks.ControlBlocks.Choice</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
+    <attributes itemref="docSchema:event"/>
     
     <Attribute itsName="choices">
       <type itemref="String"/>
       <cardinality>list</cardinality>
     </Attribute>
-
-    <Attribute itsName="itemSelected">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
   </Kind>
 
+ <!--
+    CheckBox
+  -->
+  <Kind itsName="CheckBox">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.CheckBox</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+    <attributes itemref="docSchema:event"/>
+    
+    <Attribute itsName="title">
+      <type itemref="String"/>
+    </Attribute>     
+  </Kind>
+  
   <!--
     LayoutChooser
   -->
@@ -1105,6 +1115,18 @@
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 
+  <!-- Timer Block  -->
+
+  <Kind itsName="Timer">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Timer</classes>
+    <superKinds itemref="docSchema:Block"/>
+    
+    <Attribute itsName="event">
+      <description>The event we'll send when we go off</description>
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+  </Kind>
+
   <!-- View Style Kind -->
   <Kind itsName="ViewStyleKind">
     <displayName itsValue="View Style"/>
@@ -1149,5 +1171,5 @@
     <attributes itemref="docSchema:EditText/readOnly"/>
 
   </Kind>
-
+  
 </Parcel>

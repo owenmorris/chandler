@@ -17,7 +17,8 @@
   <displayName>Calendar Content Model</displayName>
   <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>
   <issues>We have not yet fully addressed dates, times, timezones, etc.</issues>
-  <issues>Reminders, recurrence are still placeholders, and they might be general enough to live with PimSchema.</issues>
+  <issues>Recurrence is still a placeholder, and might be general enough to live with PimSchema.</issues>
+  <issues>reminderTime is also a trial balloon.</issues>
   <issues>The calendar schema depends heavily on people/contacts/users/groups/etc, we have yet to adequately model them.</issues>
   <issues>Consider using the icalendar terminology, generally</issues>
   <issues>Consider using the common icalendar task attributes (i.e. percentComplete)</issues>
@@ -52,10 +53,10 @@
     <type itemref="cal:RecurrencePattern"/>
   </Attribute>
 
-  <Attribute itsName="reminders">
-    <displayName>Reminders</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:Reminder"/>
+  <Attribute itsName="reminderTime">
+    <issues>This may not be general enough</issues>
+    <displayName>ReminderTime</displayName>
+    <type itemref="DateTime"/>
   </Attribute>
 
 
@@ -112,7 +113,7 @@
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:location"/>
     <attributes itemref="cal:recurrence"/>
-    <attributes itemref="cal:reminders"/>
+    <attributes itemref="cal:reminderTime"/>
     <attributes itemref="cal:participants"/>
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
@@ -178,11 +179,11 @@
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/recurrence"/>
 
-      <Endpoint itsName="reminders">
-        <attribute value="reminders"/>
+      <Endpoint itsName="reminderTime">
+        <attribute value="reminderTime"/>
         <includePolicy value="byValue"/>
       </Endpoint>
-      <endpoints itemref="cal:CalendarEventMixin/Cloud/reminders"/>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/reminderTime"/>
 
       <Endpoint itsName="participants">
         <attribute value="participants"/>
@@ -231,14 +232,6 @@
     <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
     <displayName>Recurrence Pattern</displayName>
     <classes key="python">osaf.contentmodel.calendar.Calendar.RecurrencePattern</classes>
-  </Kind>
-
-  <Kind itsName="Reminder">
-    <superKinds itemref="Item"/>
-    <issues>Reminder is still a placeholder, and  might be general enough to live with PimSchema.</issues>
-    <issues>Reminder should have an attribute that points to a Calendar Event.</issues>
-    <displayName>Reminder</displayName>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.Reminder</classes>
   </Kind>
 
 </Parcel>

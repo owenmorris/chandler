@@ -21,6 +21,8 @@ HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 
 DURATIONS = [60, 90, 120, 150, 180]
 
+REMINDERS = [None, None, 1, 10] # The "None"s make a 50% chance the event will have no reminder...
+
 def GenerateCalendarParticipant():
     email = Mail.EmailAddress()
     domainName = random.choice(DOMAIN_LIST)
@@ -45,6 +47,12 @@ def GenerateCalendarEvent(days):
     
     # Choose random minutes
     event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))
+    
+    # Maybe a nice reminder?
+    reminderInterval = random.choice(REMINDERS)
+    if reminderInterval is not None:
+        event.reminderTime = event.startTime - DateTime.RelativeDateTime(minutes=reminderInterval)
+
     event.importance = random.choice(IMPORTANCE)
     return event
     

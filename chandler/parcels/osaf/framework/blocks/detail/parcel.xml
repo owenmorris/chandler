@@ -40,7 +40,7 @@
   <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontStyle>bold</fontStyle>
-    <fontSize>8</fontSize>
+    <fontSize>10</fontSize>
   </CharacterStyle>
 
   <ColorStyle itsName="GrayBackground1">
@@ -67,6 +67,16 @@
   <BlockEvent itsName="TogglePrivate">
     <eventName>TogglePrivate</eventName>
     <dispatchToBlock itemref="doc:MarkupBar"/>
+  </BlockEvent>
+  
+  <BlockEvent itsName="ToggleAllDay">
+    <eventName>ToggleAllDay</eventName>
+    <dispatchToBlock itemref="doc:EditAllDay"/>
+  </BlockEvent>
+  
+  <BlockEvent itsName="ReminderChanged">
+    <eventName>ReminderChanged</eventName>
+    <dispatchToBlock itemref="doc:EditReminder"/>
   </BlockEvent>
   
   <BlockEvent itsName="SendShareItem">
@@ -100,6 +110,7 @@
     <childrenBlocks itemref="doc:CalendarLocation"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
     <childrenBlocks itemref="doc:CalendarDuration"/>
+    <childrenBlocks itemref="doc:CalendarDetailsArea"/>
     <childrenBlocks itemref="doc:NotesArea"/>
     <childrenBlocks itemref="doc:SendShareButton"/>
     <!-- Attributes -->
@@ -535,6 +546,70 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
   </EditText>
+
+  <ContentItemDetail itsName="CalendarDetailsArea"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarDetailsArea"/>
+    <childrenBlocks itemref="doc:EditAllDay"/>
+    <childrenBlocks itemref="doc:CalDetailsLeftSpacer"/>
+    <childrenBlocks itemref="doc:EditReminder"/>
+    <childrenBlocks itemref="doc:CalDetailsRightSpacer"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+  </ContentItemDetail>
+
+  <CheckBox itsName="EditAllDay"
+            itemClass="osaf.framework.blocks.detail.Detail.AllDayCheckBox">
+    <blockName value="EditAllDay"/>
+    <!-- Attributes -->
+    <title>All day</title>
+    <size>60,24</size>
+    <minimumSize>60,24</minimumSize>
+    <border>0.0, 10.0, 0.0, 0.0</border>
+    <subscribeWhenVisibleEvents itemref="doc:ToggleAllDay"/>
+    <event itemref="doc:ToggleAllDay"/>
+    <alignmentEnum>alignMiddleLeft</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </CheckBox>
+
+  <StaticText itsName="CalDetailsLeftSpacer">
+    <blockName value="CalDetailsLeftSpacer"/>
+    <title></title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>1.0</stretchFactor>
+    <minimumSize>10, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+  </StaticText>
+
+  <Choice itsName="EditReminder"
+            itemClass="osaf.framework.blocks.detail.Detail.EditReminder">
+    <blockName value="EditReminder"/>
+    <choices>No reminder</choices>
+    <choices>1 minute</choices>
+    <choices>5 minutes</choices>
+    <choices>10 minutes</choices>
+    <choices>30 minutes</choices>
+    <choices>60 minutes</choices>
+    <choices>90 minutes</choices>
+    <subscribeWhenVisibleEvents itemref="doc:ReminderChanged"/>
+    <event itemref="doc:ReminderChanged"/>
+    <minimumSize>100, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </Choice>
+
+  <StaticText itsName="CalDetailsRightSpacer">
+    <blockName value="CalDetailsRightSpacer"/>
+    <title></title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>1.0</stretchFactor>
+    <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+  </StaticText>
+
 
   <!-- NotesArea -->
   <EditText itsName="NotesArea"

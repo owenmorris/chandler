@@ -16,16 +16,14 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
-import mx.DateTime as DateTime
 from osaf.framework.attributeEditors.AttributeEditors import AttributeEditor
+from repository.schema.Types import DateTime
+from repository.schema.Types import RelativeDateTime
+import mx.DateTime
 
 class Button(RectangularChild):
     def instantiateWidget(self):
-        try:
-            id = Block.getWidgetID(self)
-        except AttributeError:
-            id = 0
-
+        id = self.getWidgetID(self)
         parentWidget = self.parentBlock.widget
         if self.buttonKind == "Text":
             button = wx.Button (parentWidget,
@@ -63,14 +61,43 @@ class Button(RectangularChild):
             self.Post(event, {'item':self})
 
                               
+class wxCheckBox(ShownSynchronizer, wx.CheckBox):
+    pass
+
+class CheckBox(RectangularChild):
+    def instantiateWidget(self):
+        try:
+            id = Block.getWidgetID(self)
+        except AttributeError:
+            id = 0
+
+        parentWidget = self.parentBlock.widget
+        checkbox = wxCheckBox (parentWidget,
+                          id, 
+                          self.title,
+                          wx.DefaultPosition,
+                          (self.minimumSize.width, self.minimumSize.height))
+        checkbox.Bind(wx.EVT_CHECKBOX, Globals.wxApplication.OnCommand, id=id)
+        return checkbox
+    
+class wxChoice(ShownSynchronizer, wx.Choice):
+    pass
+
 class Choice(RectangularChild):
     def instantiateWidget(self):
-        return wx.Choice (self.parentBlock.widget,
-                          -1, 
-                          wx.DefaultPosition,
-                          (self.minimumSize.width, self.minimumSize.height),
-                          self.choices)
+        try:
+            id = Block.getWidgetID(self)
+        except AttributeError:
+            id = 0
 
+        parentWidget = self.parentBlock.widget
+        choice = wxChoice (parentWidget,
+                         id, 
+                         wx.DefaultPosition,
+                         (self.minimumSize.width, self.minimumSize.height),
+                         self.choices)
+        choice.Bind(wx.EVT_CHOICE, Globals.wxApplication.OnCommand, id=id)
+        return choice
 
 class ComboBox(RectangularChild):
     def instantiateWidget(self):
@@ -99,16 +126,12 @@ class ContextMenuItem(RectangularChild):
         wxContextMenu.Bind(wx.EVT_MENU, Globals.wxApplication.OnCommand, id=id)
 
     
-class wxEditText(wx.TextCtrl):
+class wxEditText(ShownSynchronizer, wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
         minW, minH = arguments[-1] # assumes minimum size passed as last arg
         self.SetSizeHints(minW=minW, minH=minH)
-
-    def wxSynchronizeWidget(self):
-        if self.blockItem.isShown != self.IsShown():
-            self.Show (self.blockItem.isShown)
 
     def OnEnterPressed(self, event):
         self.blockItem.PostEventByName ('EnterPressed', {'text':self.GetValue()})
@@ -812,10 +835,8 @@ class RadioBox(RectangularChild):
                             (self.minimumSize.width, self.minimumSize.height),
                             self.choices, self.itemsPerLine, dimension)
 
-class wxStaticText(wx.StaticText):
-    def wxSynchronizeWidget(self):
-        if self.blockItem.isShown != self.IsShown():
-            self.Show (self.blockItem.isShown)
+class wxStaticText(ShownSynchronizer, wx.StaticText):
+    pass
 
 class StaticText(RectangularChild):
     def instantiateWidget (self):
@@ -837,16 +858,11 @@ class StaticText(RectangularChild):
         return staticText
 
     
-class wxStatusBar (wx.StatusBar):
+class wxStatusBar (ShownSynchronizer, wx.StatusBar):
     def __init__(self, *arguments, **keywords):
         super (wxStatusBar, self).__init__ (*arguments, **keywords)
         self.gauge = wx.Gauge(self, -1, 100, size=(125, 30), style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
-        self.gauge.Show(False)
-        
-    def wxSynchronizeWidget(self):
-        if self.blockItem.isShown != self.IsShown():
-            self.Show (self.blockItem.isShown)
-            
+        self.gauge.Show(False)            
 
 class StatusBar(Block):
     def instantiateWidget (self):
@@ -1118,7 +1134,7 @@ class wxItemDetail(wx.html.HtmlWindow):
             self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
 
     def wxSynchronizeWidget(self):
-        if self.blockItem.selection:
+        if self.blockItem.selection is not None:
             self.SetPage (self.blockItem.getHTMLText (self.blockItem.selection))
         else:
             self.SetPage('<html><body></body></html>')
@@ -1170,6 +1186,46 @@ class ContentItemDetail(BoxContainer):
         # return the root of the Detail View
         # delegate to our parent, until we get to the Detail View Root
         return self.parentBlock.detailRoot()
+
+class wxPyTimer(wx.PyTimer):
+    """ 
+    A wx.PyTimer that has an IsShown() method, like all the other widgets
+    that blocks deal with; it also generates its own event from Notify
+    """              
+    def IsShown(self):
+        return True
+    
+    def Notify(self):
+        event = wx.PyEvent()
+        event.SetEventType(wx.wxEVT_TIMER)
+        event.SetId(Block.getWidgetID(self.blockItem))
+        Globals.wxApplication.OnCommand(event)
+        
+class Timer(Block):
+    """
+    A Timer block. Fires (sending a BlockEvent) at a particular time.
+    A passed time will fire "shortly".
+    """
+    def instantiateWidget (self):
+        timer = wxPyTimer(self.parentBlock.widget)
+        return timer
+        
+    def setFiringTime(self, when):
+        # First turn off the old timer
+        timer = self.widget
+        timer.Stop()
+
+        # Set the new time, if we have one. If it's in the past, fire "really soon".
+        if when is not None:
+            millisecondsUntilFiring = (when - mx.DateTime.now()).seconds * 1000
+            if millisecondsUntilFiring < 100:
+                millisecondsUntilFiring = 100
+                
+            # print "*** setFiringTime: will fire at %s in %s minutes" % (when, millisecondsUntilFiring / 60000)
+            timer.Start(millisecondsUntilFiring, True)
+        else:
+            # print "*** setFiringTime: No new time."
+            pass
 
 """
 Attribute Editor Block

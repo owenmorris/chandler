@@ -12,6 +12,7 @@ import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.imap
+import mx
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 import osaf.contentmodel.mail.Mail as Mail
@@ -23,9 +24,10 @@ from repository.item.Query import KindQuery
 from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
+from osaf.framework.blocks.ControlBlocks import Timer
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
-
+import application.dialogs.ReminderDialog as ReminderDialog
 
 class MainView(View):
     """
@@ -423,7 +425,13 @@ class MainView(View):
             menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 
-    def onShareOrManageEvent (self, notification):
+    def onShareSidebarCollectionEvent(self, notification):
+        self._onShareOrManageSidebarCollectionEvent(notification)
+        
+    def onManageSidebarCollectionEvent(self, notification):
+        self._onShareOrManageSidebarCollectionEvent(notification)
+        
+    def _onShareOrManageSidebarCollectionEvent(self, notification):
         """
           Share the collection selected in the Sidebar. 
         If the current collection is already shared, then manage the collection.
@@ -444,22 +452,28 @@ class MainView(View):
 
         self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
-    def onShareOrManageEventUpdateUI (self, notification):
+        
+    def onShareSidebarCollectionEventUpdateUI (self, notification):
+        self._onShareOrManageSidebarCollectionEventUpdateUI(notification, False)
+        
+    def onManageSidebarCollectionEventUpdateUI (self, notification):
+        self._onShareOrManageSidebarCollectionEventUpdateUI(notification, True)
+        
+    def _onShareOrManageSidebarCollectionEventUpdateUI (self, notification, doManage):
         """
         Update the menu to reflect the selected collection name
         """
         collection = self.getSidebarSelectedCollection ()
-        accountOK = self.webDAVAccountIsSetup ()
-        if accountOK and collection is not None:
+        verb = (doManage and _('Manage') or _('Share'))
+        
+        if collection is not None:
             # notification.data['Enable'] = True
-            if Sharing.isShared (collection):
-                menuTitle = _('Manage collection "%s"') % collection.displayName
-            else:
-                menuTitle = _('Share collection "%s"') % collection.displayName
+            menuTitle = _('%s collection "%s"') % (verb, collection.displayName)
         else:
-            # notification.data['Enable'] = False
-            menuTitle = _('Share a collection')
+            menuTitle = _('%s a collection') % verb
+            
         notification.data ['Text'] = menuTitle
+        notification.data['Enable'] = doManage == (collection is not None and Sharing.isShared(collection))
 
     def onSyncCollectionEvent (self, notification):
         # Triggered from "Test | Sync collection..."
@@ -582,3 +596,54 @@ class MainView(View):
         # return True iff the webDAV account is set up
         return Sharing.getWebDavPath() != None
         
+class ReminderTimer(Timer):
+    def __init__(self, *args, **kwds):
+        super(ReminderTimer, self).__init__(*args, **kwds)
+        self.reminderDialog = None
+    
+    def synchronizeWidget (self):
+        # print "*** Synchronizing ReminderTimer widget!"
+        super(ReminderTimer, self).synchronizeWidget()
+        if not Globals.wxApplication.ignoreSynchronizeWidget:            
+            pending = self.getPendingReminders()
+            if len(pending) > 0:
+                self.setFiringTime(pending[0].reminderTime)
+    
+    def getPendingReminders (self):
+        # @@@BJS Eventually, the query should be able to do the hasAttribute filtering for us;
+        # for now, that doesn't seem to work so we're doing it here.
+        # Should be: timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() ]
+        timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() if item.hasAttributeValue("reminderTime")]
+        if len(timesAndReminders) == 0:
+            return []
+        timesAndReminders.sort()
+        sortedReminders = [ item[1] for item in timesAndReminders ]
+        return sortedReminders
+    
+    def onCollectionChanged(self, notification):
+        # print "*** Got reminders collection changed!"
+        pending = self.getPendingReminders()
+        closeIt = False
+        if self.reminderDialog is not None:
+            (nextReminderTime, closeIt) = self.reminderDialog.UpdateList(pending)
+        elif len(pending) > 0:
+            nextReminderTime = pending[0].reminderTime
+        else:
+            nextReminderTime = None
+        if closeIt:
+            self.reminderDialog.Destroy()
+            self.reminderDialog = None            
+        self.setFiringTime(nextReminderTime)
+    
+    def onReminderTimeEvent(self, notification):
+        # Run the reminders dialog and re-queue our timer if necessary
+        # print "*** Got reminders time event!"
+        pending = self.getPendingReminders()
+        if self.reminderDialog is None:
+            self.reminderDialog = ReminderDialog.ReminderDialog(Globals.wxApplication.mainFrame, -1)
+        (nextReminderTime, closeIt) = self.reminderDialog.UpdateList(pending)
+        if closeIt:
+            # print "*** closing the dialog!"
+            self.reminderDialog.Destroy()
+            self.reminderDialog = None            
+        self.setFiringTime(nextReminderTime)

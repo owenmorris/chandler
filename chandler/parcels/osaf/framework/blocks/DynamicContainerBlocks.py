@@ -650,7 +650,7 @@ class Menu (MenuBar, DynamicChild):
 Toolbar classes
 """
 
-class wxToolbar (wx.ToolBar):
+class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
     def __init__(self, *arguments, **keywords):
         super (wxToolbar, self).__init__ (*arguments, **keywords)
         # keep track of ToolbarItems so we can tell when/how they change in synchronize
@@ -658,9 +658,8 @@ class wxToolbar (wx.ToolBar):
         self.toolItems = 0
         
     def wxSynchronizeWidget(self):
-        if self.blockItem.isShown != self.IsShown():
-            self.Show (self.blockItem.isShown)
-            
+        super (wxToolbar, self).wxSynchronizeWidget()
+        
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
         self.blockItem.synchronizeColor()

@@ -32,9 +32,6 @@ class CalendarParcel(application.Parcel.Parcel):
         recurrenceKind = self['RecurrencePattern']
         CalendarParcel.recurrencePatternKindID = recurrenceKind.itsUUID
         
-        reminderKind = self['Reminder']
-        CalendarParcel.reminderKindID = reminderKind.itsUUID
-
         calendarEventMixinKind = self['CalendarEventMixin']
         CalendarParcel.calendarEventMixinKindID = calendarEventMixinKind.itsUUID
 
@@ -76,20 +73,12 @@ class CalendarParcel(application.Parcel.Parcel):
 
     getRecurrencePatternKind = classmethod(getRecurrencePatternKind)
 
-    def getReminderKind(cls):
-        assert cls.reminderKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.reminderKindID]
-
-    getReminderKind = classmethod(getReminderKind)
-
-
     # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
     calendarEventKindID = None
     calendarEventMixinKindID = None
     locationKindID = None
     calendarKindID = None
     recurrencePatternKindID = None
-    reminderKindID = None
 
 class CalendarEventMixin(Item.Item):
     """
@@ -184,22 +173,46 @@ class CalendarEventMixin(Item.Item):
         
         endTime is updated based on the new duration, startTime remains fixed
         """
-        if (self.startTime != None):
+        if (self.startTime is not None):
             self.endTime = self.startTime + dateTimeDelta
 
     duration = property(GetDuration, SetDuration,
                                 doc="mxDateTimeDelta: the length of an event")
 
+    def GetReminderDelta(self):
+        """ Returns the difference between startTime and reminderTime, an mxDateTimeDelta """
+        if (self.hasAttributeValue("startTime") and
+            self.hasAttributeValue("reminderTime")):
+            return self.startTime - self.reminderTime
+        else:
+            return None
+   
+    def SetReminderDelta(self, reminderDelta):
+        if (self.startTime is not None):
+            if reminderDelta is not None:
+                self.reminderTime = self.startTime - reminderDelta
+            else:
+                del self.reminderTime
+    
+    reminderDelta = property(GetReminderDelta, SetReminderDelta,
+                             doc="reminderDelta: the amount of time in advance of the event that we want a reminder")
+    
     def ChangeStart(self, dateTime):
         """Change the start time without changing the duration.
 
         Setting startTime directly will effectively change the duration,
-        because the endTime is not affected. This method changes the endTime"""
+        because the endTime is not affected. This method changes the endTime, 
+        as well as the reminderTime if we have one."""
+
+        # Adjust the reminder first, while we still have the old time.
+        try:
+            self.reminderTime = self.reminderTime - (self.startTime - dateTime)
+        except AttributeError:
+                pass
 
         duration = self.duration
         self.startTime = dateTime
         self.endTime = self.startTime + duration
-
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     def __init__(self, name=None, parent=None, kind=None):
@@ -275,12 +288,3 @@ class RecurrencePattern(Item.Item):
         if not kind:
             kind = CalendarParcel.getRecurrencePatternKind()
         super (RecurrencePattern, self).__init__(name, parent, kind)
-
-class Reminder(Item.Item):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = CalendarParcel.getReminderKind()
-        super (Reminder, self).__init__(name, parent, kind)
-        

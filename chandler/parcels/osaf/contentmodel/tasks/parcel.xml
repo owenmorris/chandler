@@ -95,7 +95,7 @@
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
 
     <attributes itemref="cal:recurrence"/>
-    <attributes itemref="cal:reminders"/>
+    <attributes itemref="cal:reminderTime"/>
 
     <!-- task-specific attributes -->
     <attributes itemref="tasks:requestor"/>
@@ -176,8 +176,7 @@
     <Attribute itsName="dueByTickler">
       <displayName>Due by Tickler</displayName>
       <description>The reminder information for a Task Event.</description>
-      <cardinality>list</cardinality>
-      <type itemref="cal:Reminder"/>
+      <type itemref="DateTime"/>
     </Attribute>
 
   </Kind>

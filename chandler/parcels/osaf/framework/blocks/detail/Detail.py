@@ -1161,3 +1161,69 @@ class EditLocationAttribute (EditRedirectAttribute):
             else:
                 value = ''
         widget.SetValue (value)
+
+class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
+    """
+      "All Day" checkbox
+    """
+    def shouldShow (self, item):
+        # @@@BJS For now, don't show
+        shown = False # item is not None and item.isItemOf (Calendar.CalendarParcel.getCalendarEventMixinKind())
+        return shown
+
+    def synchronizeItemDetail (self, item):
+        hasChanged = super(AllDayCheckBox, self).synchronizeItemDetail(item)
+        if item is not None and self.isShown:
+            try:
+                allDay = item.allDay
+            except AttributeError:
+                allDay = False
+            self.widget.SetValue(allDay)
+        return hasChanged
+    
+    def onToggleAllDayEvent (self, notification):
+        item = self.selectedItem()
+        if item is not None:
+            if self.widget.GetValue() == wx.CHK_CHECKED:
+                item.allDay = True
+            else:
+                del item.allDay
+
+class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
+    """
+    A choice popup for Reminder Values
+    """
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def synchronizeItemDetail (self, item):
+        hasChanged = super(EditReminder, self).synchronizeItemDetail(item)
+        if item is not None and self.isShown:
+            try:
+                reminderDelta = item.reminderDelta
+            except AttributeError:
+                reminderDelta = None
+            if reminderDelta is None:
+                reminderChoice = _("No reminder")
+            else:
+                reminderChoice = (reminderDelta.minutes == 1) and _("1 minute") or (_("%i minutes") % reminderDelta.minutes)
+            choiceIndex = self.widget.FindString(reminderChoice)
+            # If we can't find the choice, just show "no reminder" - this'll happen if this event's reminder has been "snoozed"
+            if choiceIndex == -1:
+                choiceIndex = self.widget.FindString(_("No reminder"))
+            self.widget.Select(choiceIndex)
+        return hasChanged
+
+    def onReminderChangedEvent (self, notification):
+        item = self.selectedItem()
+        if item is not None:
+            reminderChoice = self.widget.GetStringSelection()
+            if reminderChoice == _('No reminder'):
+                item.reminderDelta = None
+            else:
+                # @@@BJS Assumes the menu item is of the form "nn Minutes"
+                item.reminderDelta = DateTime.DateTimeDeltaFrom(minutes=int(reminderChoice.split(' ', 2)[0]))
+
+
