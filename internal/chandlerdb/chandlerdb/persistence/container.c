@@ -3,8 +3,6 @@
  * The container C type
  */
 
-#include <db.h>
-
 #if defined(_MSC_VER)
 #include <winsock2.h>
 #include <malloc.h>
@@ -16,7 +14,7 @@
 #error system is not linux, os x or winnt
 #endif
 
-
+#include <db.h>
 #include <Python.h>
 #include "structmember.h"
 
@@ -414,7 +412,7 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
     else
     {
         DB *db = ((DBObject *) (((t_container *) self)->db))->db;
-        DB_TXN *db_txn = ((DBTxnObject *) txn)->txn;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
         DBT key, data;
         int vLen = PyString_GET_SIZE(value);
         int len = 36 + vLen;
@@ -545,7 +543,7 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
     else
     {
         DB *db = ((DBObject *) (((t_container *) self)->db))->db;
-        DB_TXN *db_txn = ((DBTxnObject *) txn)->txn;
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((DBTxnObject *) txn)->txn;
         valueType prevType, nextType, aliasType;
         char keyBuffer[52], *dataBuffer;
         DBT key, data;

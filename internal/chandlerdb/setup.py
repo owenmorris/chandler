@@ -53,12 +53,12 @@ def main():
     else:
         raise ValueError, 'unsupported os: %s' %(os.name)
 
-    setup(name='chandlerdb', version='0.4',
+    setup(name='chandlerdb', version='0.5',
           ext_modules=extensions,
           py_modules=modules)
     if os.name == 'nt' and os.path.exists('rijndael.py'):
         shutil.move('rijndael.py', 'chandlerdb/util/rijndael.py')
-    setup(name='chandlerdb', version='0.4',
+    setup(name='chandlerdb', version='0.5',
           py_modules=['chandlerdb.util.rijndael'])
 
 if __name__ == "__main__":
