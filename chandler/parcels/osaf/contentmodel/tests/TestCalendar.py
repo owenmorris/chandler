@@ -11,6 +11,7 @@ import unittest, os
 
 import OSAF.contentmodel.calendar.Calendar as Calendar
 import OSAF.contentmodel.tests.TestContentModel as TestContentModel
+import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 
 import mx.DateTime as DateTime
 
@@ -120,6 +121,10 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         del item
         itemShouldBeGone = self.rep.find(path)
         self.assertEqual(itemShouldBeGone, None)
+        self.rep.commit()
+
+    def testGeneratedEvents(self):
+        GenerateItems.GenerateCalendarEvents(100, 100)
         self.rep.commit()
 
 if __name__ == "__main__":

@@ -43,6 +43,8 @@ class ContentModelTestCase(unittest.TestCase):
     def _reopenRepository(self):
         self.rep.commit()
         self.rep.close()
+        self.rep = XMLRepository.XMLRepository(os.path.join(self.testdir,
+                                                            '__repository__'))
         self.rep.open()
 
 
