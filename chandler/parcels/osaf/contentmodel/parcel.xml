@@ -10,7 +10,8 @@
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
              xmlns:parcel="//Schema/Core/Parcel"
-             xmlns="//parcels/OSAF/contentmodel">
+             xmlns="//parcels/OSAF/contentmodel"
+             itemClass="OSAF.contentmodel.ContentModel.ContentModel">
 
   <core:displayName>Pim Schema</core:displayName>
   <core:description>Pim schema for the 0.3 release</core:description>
@@ -122,6 +123,7 @@
     <core:attributes itemref="fyiLinkedToItems"/>
     <core:attributes itemref="attachedNotes"/>
     <core:attributes itemref="attachedToItems"/>
+    <core:classes key="python">OSAF.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 
 
@@ -156,6 +158,7 @@
     <core:attributes itemref="parentProject"/>
     <core:attributes itemref="subProjects"/>
     <core:attributes itemref="itemsInProject"/>
+    <core:classes key="python">OSAF.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 
 <!-- Group -->
@@ -172,6 +175,7 @@
     <core:superKinds itemref="ContentItem"/>
     <core:attributes itemref="name"/>
     <core:attributes itemref="itemsInGroup"/>
+    <core:classes key="python">OSAF.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 
 </core:Parcel>
