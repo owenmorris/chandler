@@ -507,7 +507,7 @@
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxListBox" name="ACCOUNTS_LIST">
-                <size>200,150</size>
+                <size>240,190</size>
                 <style>wxLB_SINGLE</style>
                 <content>
                 </content>
@@ -521,7 +521,7 @@
         <orient>wxHORIZONTAL</orient>
         <object class="sizeritem">
             <flag>wxALIGN_CENTER|wxALL</flag>
-            <border>5</border>
+            <border>10</border>
             <object class="wxButton" name="wxID_OK">
                 <label>OK</label>
                 <default>1</default>
@@ -529,7 +529,7 @@
         </object>
         <object class="sizeritem">
             <flag>wxALIGN_CENTER|wxALL</flag>
-            <border>5</border>
+            <border>10</border>
             <object class="wxButton" name="wxID_CANCEL">
                 <label>Cancel</label>
             </object>

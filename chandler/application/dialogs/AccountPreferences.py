@@ -424,9 +424,11 @@ class AccountPreferencesDialog(wx.Dialog):
                                     username=username, password=password,
                                     path=path)
         result = access[0]
-        status = access[1]
+        reason = access[1]
+
         if result == WebDAV.CANT_CONNECT:
-            msg = "Couldn't connect to %s.\nPlease double-check the server name and port settings." % host
+            msg = "Couldn't connect to server '%s'.\nPlease double-check the server name and port settings." % host
+            msg += "\nError was: '%s'." % reason
         elif result == WebDAV.NO_ACCESS:
             msg = "Permission denied by server '%s'." % host
         elif result == WebDAV.READ_ONLY:

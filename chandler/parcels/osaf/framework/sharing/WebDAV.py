@@ -58,6 +58,10 @@ class Client(object):
         except socket.herror, err:
             message = "Unknown host %s" % self.host
             raise ConnectionError(message=message)
+        except socket.error, err:
+            message = "Socket error: %s" % \
+                      (" ".join(map(lambda x : str(x), err.args)))
+            raise ConnectionError(message=message)
 
     def mkcol(self, url, extraHeaders={ }):
         return self._request('MKCOL', url, extraHeaders=extraHeaders)
@@ -256,6 +260,15 @@ READ_WRITE   = 2
 
 def checkAccess(host, port=80, useSSL=False, username=None, password=None,
                 path=None):
+    """ Check the permissions for a webdav account by reading and writing
+        to that server.
+
+    Returns a tuple (result code, reason), where result code indicates the
+    level of permissions:  CANT_CONNECT, NO_ACCESS, READ_ONLY, READ_WRITE.
+    CANT_CONNECT will be accompanied by a "reason" string that was provided
+    from the socket layer.  NO_ACCESS and READ_ONLY will be accompanied by
+    an HTTP status code.  READ_WRITE will have a "reason" of None.
+    """
 
     client = Client(host, port, username, password, useSSL)
 
@@ -281,7 +294,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         response = client.propfind(url, depth=0)
         body = response.read()
     except ConnectionError, err:
-        return (CANT_CONNECT, None)
+        return (CANT_CONNECT, err.message)
 
     status = response.status
     # print "PROPFIND:", url, status
