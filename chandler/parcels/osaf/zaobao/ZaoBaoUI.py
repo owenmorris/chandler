@@ -446,7 +446,8 @@ class wxZaoBaoItemView(wxHtmlWindow):
         
     def subItemsForHTML(self,item,text):
         def translate(match):
-            return item.getAttributeValue(self._translationDict[match.group(0)])
+            return item.getAttributeValue(self._translationDict[match.group(0)],
+                                          default='')
         
         return self._regex.sub(translate, text)
 
