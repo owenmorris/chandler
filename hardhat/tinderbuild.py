@@ -101,7 +101,8 @@ def main():
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
                 newDirName = nowString
-                newDirName = newDirName.replace(" ", "@")
+                newDirName = newDirName.replace(" ", "_")
+                newDirName = newDirName.replace(":", "-")
                 newDir = os.path.join(outputDir, newDirName)
                 print "newDir =", newDir
                 os.rename(os.path.join(buildDir, "output"), newDir)
