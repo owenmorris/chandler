@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-    <name>JAnthony</name>
-    <kind type="path">//Schema/CineGuide/Kinds/Director</kind>
-
-    <attribute name="name">Joseph Anthony</attribute>
-</item>
