@@ -28,53 +28,53 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where True')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where True')
         self._checkQuery(lambda i: False, results)
 
     def testFunctionKindQuery(self):
         """ Test calling a function in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
                 
     def testVariableQuery(self):
         """ Test query where source is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
-        results = self._executeQuery(u'for i in $1 where contains(i.itsName,"arc")', [k])
+        results = self._executeQuery('for i in $1 where contains(i.itsName,"arc")', [k])
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
 
     def testNotFunctionKindQuery(self):
         """ Test negating a function call in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
         self._checkQuery(lambda i: 'arc' in i.itsName, results)
 
     def testEqualityKindQuery(self):
         """ Test equality operator in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where i.itsName == "Item"')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.itsName == "Item"')
         self._checkQuery(lambda i: not i.itsName == 'Item', results)
 
     def testInequalityKindQuery(self):
         """ Test inequality operator in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where i.itsName != "Item"')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.itsName != "Item"')
         self._checkQuery(lambda i: not i.itsName != 'Item', results)
 
     def testLengthKindQuery(self):
         """ Test calling a unary function in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
         self._checkQuery(lambda i: not len(i.attributes) >= 4, results)
         
     def testAndKindQuery(self):
         """ Test AND operator in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ("arc" in i.itsName and len(i.attributes) >= 4), results)
 
     def testNotAndKindQuery(self):
         """ Test AND NOT operation in the query predicate """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ('arc' in i.itsName and not len(i.attributes) >= 4), results)
 
     def testMethodCallQuery(self):
         """  """
-        results = self._executeQuery(u'for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
         self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
     def testItemTraversalQuery(self):
@@ -137,7 +137,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testWhereVariableQuery(self):
         """ Test using a variable in the where clause """
-        queryString= u'for i in "//Schema/Core/Kind" where contains(i.itsName,$0)'
+        queryString= 'for i in "//Schema/Core/Kind" where contains(i.itsName,$0)'
         import repository.query.Query as Query
         q = Query.Query(self.rep, queryString)
         pattern = 'arc'
