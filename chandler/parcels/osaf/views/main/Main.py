@@ -520,9 +520,15 @@ class MainView(View):
         Globals.repository.commit()
         self.setStatusMessage ('')
 
-    def selectView(self, view, showDetailView=True):
-        """ Given a view, select it in the sidebar. Optionally display its 
-            detail view """
+    def selectView(self, view, showInDetailView=False):
+        """
+          Given a view, select it in the sidebar. 
+        Optionally display an item in the detail view.
+        @param view: the view to select in the sidebar
+        @type view: C{Block}
+        @param showInDetailView: the item (or None) for the Detail View; False disables
+        @type showInDetailView: C{Item} or None.  False disables notifying the Detail View.
+        """
 
         rootPath = '//parcels/osaf/framework/blocks/Events/'
         requestSelectSidebarItem = \
@@ -533,7 +539,7 @@ class MainView(View):
         # Tell the sidebar we want to select this view
         self.Post(requestSelectSidebarItem, {'item':view})
 
-        if showDetailView:
-            # Tell the ActiveView to select the collection
-            # It will pass the collection on to the Detail View.
-            self.Post (selectionChangedInsideActiveView, {'item':view})
+        if showInDetailView is not False:
+            # Tell the ActiveView to select the item (usually a collection)
+            # It will pass the item on to the Detail View.
+            self.Post (selectionChangedInsideActiveView, {'item':showInDetailView})

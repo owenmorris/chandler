@@ -77,7 +77,7 @@ def subscribeToWebDavCollection(url):
     event.Post(args)
     Globals.repository.commit()
     # ...and selecting that view in the sidebar
-    Globals.mainView.selectView(args['view'], showDetailView=True)
+    Globals.mainView.selectView(args['view'], showInDetailView=collection)
 
 
 def manualSubscribeToCollection():
