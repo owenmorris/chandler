@@ -565,6 +565,34 @@ class TestMerge(RepositoryTestCase):
         self.assert_(m4.previous is m2)
         self.assert_(main.check(), 'main check failed')
 
+    def testMergeNoOverlapVRMulti(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m6 = view.findPath('//CineGuide/m6')
+        m6.writers = k.movies.first().writers
+        m6.frenchTitle = 'titre change'
+        view.commit()
+        self.assert_(view.check(), 'view check failed')
+        
+        view = self.rep.setCurrentView(main)
+        m6 = main.findPath('//CineGuide/m6')
+        m6.title = 'changed title'
+        main.commit()
+
+        m6 = main.findPath('//CineGuide/m6')
+        self.assert_(m6.title == 'changed title')
+        self.assert_(m6.frenchTitle == 'titre change')
+        self.assert_(len(m6.writers) == 3)
+        self.assert_(main.check(), 'main check failed')
+
     def testMergeOverlapV(self):
 
         def mergeFn(code, item, attribute, value):

@@ -20,7 +20,8 @@ from repository.persistence.Repository import RepositoryNotifications
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren
 from repository.persistence.DBContainer import HashTuple
-from repository.persistence.DBItemIO import DBItemWriter, DBItemMergeReader
+from repository.persistence.DBItemIO \
+     import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
 
 timing = False
 if timing: import tools.timing
@@ -487,29 +488,22 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _mergeRDIRTY(self, item, dirties, oldVersion, toVersion):
 
         dirties = HashTuple(dirties)
-        merged = []
-        for name in item._references._getDirties():
-            if name in dirties:
-                value = item._references.get(name, None)
-                if value is not None and value._isRefList():
-                    value._mergeChanges(oldVersion, toVersion)
-                    merged.append(dirties.hash(name))
-        if merged:
-            dirties = HashTuple(filter(lambda hash: hash not in merged,
-                                       dirties))
-        item._references._dirties = dirties
+        store = self.repository.store
+        args = store._items.loadItem(toVersion, item._uuid)
+        DBItemRMergeReader(store, item, dirties,
+                           oldVersion, *args).readItem(self, [])
 
     def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
 
         dirties = HashTuple(dirties)
         store = self.repository.store
         args = store._items.loadItem(toVersion, item._uuid)
-        DBItemMergeReader(store, item, dirties, mergeFn, *args).readItem(self,
-                                                                         [])
+        DBItemVMergeReader(store, item, dirties,
+                           mergeFn, *args).readItem(self, [])
 
     def _i_merged(self, item):
 
-        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.4x', self, item.itsPath, (item._status & Item.MERGED) >> 16)
+        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.8x', self, item.itsPath, (item._status & Item.MERGED))
 
     def _e_1_rename(self, item, parentId, newParentId):
 

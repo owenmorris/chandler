@@ -118,6 +118,7 @@
   </item>
 
   <item>
+    <name>m6</name>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Mary of Scotland</attribute>

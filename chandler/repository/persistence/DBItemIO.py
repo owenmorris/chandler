@@ -16,6 +16,7 @@ from repository.item.PersistentCollections import PersistentList, PersistentDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError \
      import LoadError, LoadValueError, MergeError
+from repository.persistence.DBContainer import HashTuple
 
 
 class DBItemWriter(ItemWriter):
@@ -640,12 +641,15 @@ class DBItemMergeReader(DBItemReader):
                      self.item._references._prepareMerge(),
                      self.uValues, kind, withSchema, view, afterLoadHooks)
 
+
+class DBItemVMergeReader(DBItemMergeReader):
+
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):
 
         value = Item.Nil
         if name in self.dirties:
-            offset, value = super(DBItemMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+            offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
             originalValues = self.item._values
             if originalValues._isDirty(name):
                 originalValue = originalValues.get(name, Item.Nil)
@@ -715,3 +719,52 @@ class DBItemMergeReader(DBItemReader):
 
         raise MergeError, ('values', item, 'merging refs is not yet implement\
 ed, overlapping attribute: %s' %(name), MergeError.BUG)
+
+
+class DBItemRMergeReader(DBItemMergeReader):
+
+    def __init__(self, store, item, dirties, oldVersion, *args):
+
+        super(DBItemRMergeReader, self).__init__(store, item, dirties,
+                                                 None, *args)
+
+        self.merged = []
+        self.oldVersion = oldVersion
+        self.oldDirties = item._references._getDirties()
+
+    def readItem(self, view, afterLoadHooks):
+
+        super(DBItemRMergeReader, self).readItem(view, afterLoadHooks)
+
+        if self.merged:
+            self.dirties = HashTuple(filter(lambda h: h not in self.merged,
+                                            self.dirties))
+        self.item._references._dirties = self.dirties
+
+    def _value(self, offset, data, kind, withSchema, attribute, view, name,
+               afterLoadHooks):
+
+        return offset, Item.Nil
+    
+    def _ref(self, offset, data, kind, withSchema, attribute, view, name,
+             afterLoadHooks):
+
+        if name in self.dirties:
+            flags = ord(data[offset])
+
+            if flags & DBItemWriter.LIST:
+                if name in self.oldDirties:
+                    value = self.item._references.get(name, None)
+                    if value is not None and value._isRefList():
+                        value._mergeChanges(self.oldVersion, self.version)
+                        self.merged.append(self.dirties.hash(name))
+
+                        return offset, Item.Nil
+
+                else:
+                    offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+                    value._setItem(self.item)
+    
+                    return offset, value
+
+        return offset, Item.Nil
