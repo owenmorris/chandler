@@ -83,7 +83,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         def dummyCallback(notification):
             self.callbackCalled = True
 
-        nm.Subscribe(event, 'thisShouldBeAnUUID', dummyCallback)
+        nm.Subscribe([event], 'thisShouldBeAnUUID', dummyCallback)
 
         notification = Notification(event, None, None)
         nm.PostNotification(notification)
@@ -94,7 +94,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
         # test duplicate subscription
         try:
-            nm.Subscribe(event, 'thisShouldBeAnUUID', dummyCallback)
+            nm.Subscribe([event], 'thisShouldBeAnUUID', dummyCallback)
         except:
             pass
         else:
@@ -124,11 +124,11 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
         # subscribe to changed, added, deleted events
         e = rep.find('//parcels/OSAF/framework/item_changed')
-        nm.Subscribe(e, 1, onItemChanged)
+        nm.Subscribe([e], 1, onItemChanged)
         e = rep.find('//parcels/OSAF/framework/item_added')
-        nm.Subscribe(e, 2, onItemAdded)
+        nm.Subscribe([e], 2, onItemAdded)
         e = rep.find('//parcels/OSAF/framework/item_deleted')
-        nm.Subscribe(e, 3, onItemDeleted)
+        nm.Subscribe([e], 3, onItemDeleted)
 
         print 'adding event'
         e = MakeEvent()

@@ -48,8 +48,6 @@ class NotificationManager(object):
             
         self.declarations.acquire()
         try:
-            if type(events) != types.ListType:
-                events = [events]
             decls = []
             for e in events:
                 decls.append(self.declarations[e.getUUID()])
