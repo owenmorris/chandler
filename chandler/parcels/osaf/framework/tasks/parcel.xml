@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/OSAF/framework/tasks"
+        itemName="tasks"
+        xmlns="//Schema/Core"
+        xmlns:sched="//parcels/OSAF/framework/tasks">
+
+  <displayName>Task Schema</displayName>
+
+  <!-- Kind: Action -->
+
+  <Kind itemName="Action">
+    <displayName>Action</displayName>
+
+    <Enumeration itemName="ActionTypeEnum">
+      <values>none</values>
+      <values>script</values>
+      <values>expression</values>
+      <values>inline</values>
+      <values>classmethod</values>
+    </Enumeration>
+
+    <Attribute itemName="actionType">
+      <displayName>Action Type</displayName>
+      <type itemref="sched:Action/ActionTypeEnum"/>
+      <cardinality>single</cardinality>
+      <!-- <defaultValue>none</defaultValue> -->
+    </Attribute>
+  
+    <Attribute itemName="actionScript">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+  
+    <Attribute itemName="actionValue">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="actionFilePath">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="asyncFlag">
+      <displayName>Asynchronous Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="wxThreadFlag">
+      <displayName>Asynchronous Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+    
+    <Attribute itemName="confirmFlag">
+      <displayName>Request Confirmation Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="actionPermissionRequest">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="actionOwner">
+      <displayName>Action Instruction Backlink</displayName>
+      <type itemref="sched:Task"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="sched:Task/actions"/>
+    </Attribute>
+
+    <attributes itemref="sched:Action/actionType"/>
+    <attributes itemref="sched:Action/actionScript"/>
+    <attributes itemref="sched:Action/actionValue"/>
+    <attributes itemref="sched:Action/actionFilePath"/>
+    <attributes itemref="sched:Action/actionPermissionRequest"/>
+    <attributes itemref="sched:Action/asyncFlag"/>
+    <attributes itemref="sched:Action/wxThreadFlag"/>
+    <attributes itemref="sched:Action/confirmFlag"/>
+    <attributes itemref="sched:Action/actionOwner"/>
+    <superKinds itemref="Item"/>
+    <classes key="python">OSAF.framework.tasks.Action.Action</classes>
+  </Kind>
+
+
+  <!-- Kind: Schedule -->
+
+  <Kind itemName="Schedule">
+    <displayName>Timed Condition</displayName>
+
+    <Attribute itemName="startTime">
+      <displayName>Start Time</displayName>
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="repeatFlag">
+      <displayName>Repeat Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="repeatDelay">
+      <displayName>Repeat Delay</displayName>
+      <type itemref="DateTimeDelta"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="scheduleOwner">
+      <displayName>Schedule Owner</displayName>
+      <type itemref="sched:Task"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="sched:Task/schedule"/>
+    </Attribute>
+
+    <attributes itemref="sched:Schedule/startTime"/>
+    <attributes itemref="sched:Schedule/repeatFlag"/>
+    <attributes itemref="sched:Schedule/repeatDelay"/>
+    <attributes itemref="sched:Schedule/scheduleOwner"/>
+    <superKinds itemref="Item"/>
+  </Kind>
+
+
+  <!-- Kind: Instruction -->
+
+  <Kind itemName="Task">
+    <displayName>Task</displayName>
+
+    <Attribute itemName="enabled">
+      <displayName>Enabled Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="schedule">
+      <displayName>Instruction Schedule</displayName>
+      <type itemref="sched:Schedule"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="sched:Schedule/scheduleOwner"/>
+    </Attribute>
+  
+    <Attribute itemName="actions">
+      <displayName>Instruction Actions</displayName>
+      <type itemref="sched:Action"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="sched:Action/actionOwner"/>
+    </Attribute>
+  
+    <attributes itemref="sched:Task/enabled"/>
+    <attributes itemref="sched:Task/schedule"/>
+    <attributes itemref="sched:Task/actions"/>
+
+    <superKinds itemref="Item"/>
+
+    <classes key="python">OSAF.framework.tasks.Task.Task</classes>
+  </Kind>
+
+</Parcel>
