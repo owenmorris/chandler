@@ -92,6 +92,9 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     def testStamping(self):
         # Make sure the contentModel is loaded.
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
+        # @@@ Also make sure the default imap account is loaded, in order to
+        # have a "me" EmailAddress
+        self.loadParcel("http://osafoundation.org/parcels/osaf/mail")
 
         # Get the stamp kinds
         mailMixin = Mail.MailParcel.getMailMessageMixinKind()

@@ -201,6 +201,34 @@ class promptUserDialog(wx.Dialog):
         return self.textControl.GetValue()
 
 
+
+# A simple "ok/cancel" dialog
+
+def okCancel(parent, caption, message):
+    """ Prompt the user with a Ok/Cancel dialog.  Return True if Ok,
+        False if Cancel.
+        @param parent: A wx parent
+        @type frame: wx frame
+        @param caption: The caption string for the dialog
+        @type caption: String
+        @param message:  A message prompting the user for input
+        @type item:  String
+    """
+
+    dlg = wx.MessageDialog(parent, message, caption, 
+     wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+    val = dlg.ShowModal()
+
+    if val == wx.ID_OK:
+        value = True
+    else:
+        value = False
+
+    dlg.Destroy()
+    return value
+
+
+
 # A simple "yes/no" dialog
 
 def yesNo(parent, caption, message):

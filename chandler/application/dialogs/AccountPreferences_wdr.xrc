@@ -479,7 +479,7 @@
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxListBox" name="ACCOUNTS_LIST">
-                <size>150,180</size>
+                <size>150,150</size>
                 <style>wxLB_SINGLE</style>
                 <content>
                 </content>

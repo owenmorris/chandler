@@ -3,9 +3,10 @@ import wx
 import wx.xrc
 import application.Globals
 from application.Globals import repository as repo
-from application.Globals import parcelManager as pm
 from repository.item.Query import KindQuery
+import osaf.mail.message
 import osaf.contentmodel.mail.Mail as Mail
+import application.dialogs.Util
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
@@ -14,15 +15,32 @@ WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
 # Special handlers referenced in the PANELS dictionary below:
 
+def IMAPValidationHandler(item, fields, values):
+    """ Return False if any invalid fields, True otherwise """
+    if not osaf.mail.message.isValidEmailAddress(values['IMAP_EMAIL_ADDRESS']):
+        application.dialogs.Util.ok(application.Globals.wxApplication.mainFrame,
+         "Invalid Email Address", "The email address, '%s', is invalid" % \
+         (values['IMAP_EMAIL_ADDRESS']))
+        return False
+    return True
+
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
     newFullName = values['IMAP_FULL_NAME']
-    # Use the getEmailAddress( ) factory method to retrieve the appropriate
-    # EmailAddress item (could be an existing one if the fields match, or
-    # a new one could be created)
-    item.replyToAddress = Mail.EmailAddress.getEmailAddress(newAddressString,
-     newFullName)
-    Mail.EmailAddress.invalidateMeAddressCache()
+
+    # If there isn't already an emailAddress set up, just reuse the empty
+    # default EmailAddress item.  Otherwise, possibly fetch a new EmailAddress
+    # item.
+    if item.replyToAddress.emailAddress:
+        # Use the getEmailAddress( ) factory method to retrieve the appropriate
+        # EmailAddress item (could be an existing one if the fields match, or
+        # a new one could be created)
+        item.replyToAddress = \
+         Mail.EmailAddress.getEmailAddress(newAddressString,
+         newFullName)
+        if item.replyToAddress is None:
+            print "Error, got None from getEmailAddress(%s, %s)" % \
+             (newAddressString, newFullName)
 
     # process as normal:
     for (field, desc) in fields.iteritems():
@@ -67,6 +85,7 @@ PANELS = {
         },
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
+        "validationHandler" : IMAPValidationHandler,
     },
     "SMTP" : {
         "fields" : {
@@ -137,9 +156,10 @@ PANELS = {
     },
 }
 
-# Generic defaults based on the attr type.  Use "default" on attr for specific defaults.
+# Generic defaults based on the attr type.  Use "default" on attr for
+# specific defaults.
 DEFAULTS = {'string': '', 'integer': 0, 'boolean': False}
-    
+
 class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
@@ -150,34 +170,51 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.resources = resources
 
+        # outerSizer will have two children to manage: on top is innerSizer,
+        # and below that is the okCancelSizer
+        self.outerSizer = wx.BoxSizer(wx.VERTICAL)
+
         # innerSizer will have two children to manage: on the left is the
         # AccountsPanel and on the right is the switchable detail panel
         self.innerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.accountsPanel = self.resources.LoadPanel(self, "AccountsPanel")
         self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
-        # outerSizer will have two children to manage: on top is innerSizer,
-        # and below that is the OkCancelPanel
-        self.outerSizer = wx.BoxSizer(wx.VERTICAL)
-        self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         self.okCancelPanel = self.resources.LoadPanel(self, "OkCancelPanel")
-        self.outerSizer.Add(self.okCancelPanel, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        self.outerSizer.Add(self.okCancelPanel, 0,
+         wx.ALIGN_BOTTOM|wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        self.panels = {}
+        for (key, value) in PANELS.iteritems():
+            self.panels[key] = self.resources.LoadPanel(self, value['id'])
+            self.panels[key].Hide()
 
         self.SetSizer(self.outerSizer)
+        self.outerSizer.SetSizeHints(self)
         self.outerSizer.Fit(self)
 
         self.accountsList = wx.xrc.XRCCTRL(self, "ACCOUNTS_LIST")
         self.currentIndex = None # the list index of account in detail panel
         self.currentPanelType = None
         self.currentPanel = None # whatever detail panel we swap in
+
+        # data is a list of dictionaries of the form:
+        # 'item' => item.itsUUID
+        # 'values' => a dict mapping field names to attribute values
+        # The order of the data list needs to be the same order as what's in
+        # the accounts list widget.
         self.data = [ ]
 
         self.__PopulateAccountsList(account)
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+
         self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
          id=wx.xrc.XRCID("ACCOUNTS_LIST"))
+
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
         # Setting focus to the accounts list let's us "tab" to the first
@@ -193,8 +230,8 @@ class AccountPreferencesDialog(wx.Dialog):
         repo.refresh()
 
         accountIndex = 0 # which account to select first
-        accountKind = pm.lookup(MAIL_MODEL, "AccountBase")
-        webDavAccountKind = pm.lookup(WEBDAV_MODEL, "WebDAVAccount")
+        accountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "AccountBase")
+        webDavAccountKind = application.Globals.parcelManager.lookup(WEBDAV_MODEL, "WebDAVAccount")
         i = 0
         for item in KindQuery().run([accountKind, webDavAccountKind]):
             if account == item:
@@ -210,13 +247,13 @@ class AccountPreferencesDialog(wx.Dialog):
                     except KeyError:
                         setting = DEFAULTS[desc['type']]
                 values[field] = setting
-            self.data.append( { "item" : item, "values" : values } )
+            self.data.append( { "item" : item.itsUUID, "values" : values } )
             self.accountsList.Append(item.displayName)
             i += 1
 
         if i > 0:
             self.accountsList.SetSelection(accountIndex)
-            self.__SwapDetailPane(accountIndex)
+            self.__SwapDetailPanel(accountIndex)
 
 
     def __ApplyChanges(self):
@@ -227,7 +264,7 @@ class AccountPreferencesDialog(wx.Dialog):
          self.data[self.currentIndex]['values'])
 
         for account in self.data:
-            item = account['item']
+            item = repo.findUUID(account['item'])
             values = account['values']
             panel = PANELS[item.accountType]
             if panel.has_key("saveHandler"):
@@ -237,12 +274,32 @@ class AccountPreferencesDialog(wx.Dialog):
                  panel['fields'].iteritems():
                     item.setAttributeValue(desc['attr'], values[field])
 
+    def __Validate(self):
 
-    def __SwapDetailPane(self, index):
-        """ Given an index into the account list, store the current pane's
-            (if any) contents to the data list, destroy current pane, determine
-            type of pane to pull in, load it, populated it. """
+        # First store the current form values to the data structure
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+         self.data[self.currentIndex]['values'])
 
+        i = 0
+        for account in self.data:
+            item = repo.findUUID(account['item'])
+            values = account['values']
+            panel = PANELS[item.accountType]
+            if panel.has_key("validationHandler"):
+                valid = panel["validationHandler"](item, panel['fields'],
+                 values)
+                if not valid:
+                    # Show the invalid panel
+                    self.accountsList.SetSelection(i)
+                    self.__SwapDetailPanel(i)
+                    return False
+            i += 1
+        return True
+
+    def __SwapDetailPanel(self, index):
+        """ Given an index into the account list, store the current panel's
+            (if any) contents to the data list, destroy current panel, determine
+            type of panel to pull in, load it, populated it. """
 
         if index == self.currentIndex: return
 
@@ -252,16 +309,19 @@ class AccountPreferencesDialog(wx.Dialog):
              self.data[self.currentIndex]['values'])
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
-            wx.CallAfter(self.currentPanel.Destroy)
 
         self.currentIndex = index
-        self.currentPanelType = self.data[index]['item'].accountType
-        self.currentPanel = self.resources.LoadPanel(self,
-         PANELS[self.currentPanelType]['id'])
+        item = repo.findUUID(self.data[index]['item'])
+        self.currentPanelType = item.accountType
+        self.currentPanel = self.panels[self.currentPanelType]
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
          self.data[index]['values'])
 
-        self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        self.currentPanel.Show()
+        self.innerSizer.Layout()
+        self.outerSizer.Layout()
+        self.outerSizer.SetSizeHints(self)
         self.outerSizer.Fit(self)
 
         # When a text field receives focus, call the handler.
@@ -296,9 +356,10 @@ class AccountPreferencesDialog(wx.Dialog):
                 control.SetValue(str(data[field]))
 
     def OnOk(self, evt):
-        self.__ApplyChanges()
-        self.EndModal(True)
-        repo.commit()
+        if self.__Validate():
+            self.__ApplyChanges()
+            self.EndModal(True)
+            repo.commit()
 
     def OnCancel(self, evt):
         self.EndModal(False)
@@ -308,12 +369,13 @@ class AccountPreferencesDialog(wx.Dialog):
         # if not evt.IsSelection(): return
 
         sel = evt.GetSelection()
-        self.__SwapDetailPane(sel)
+        self.__SwapDetailPanel(sel)
 
     def OnFocusGained(self, evt):
         """ Select entire text field contents when focus is gained. """
         control = evt.GetEventObject()
         wx.CallAfter(control.SetSelection, -1, -1)
+
 
 def ShowAccountPreferencesDialog(parent, account=None):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
@@ -324,3 +386,4 @@ def ShowAccountPreferencesDialog(parent, account=None):
         win.CenterOnScreen()
         val = win.ShowModal()
         win.Destroy()
+        return val

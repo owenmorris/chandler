@@ -558,7 +558,7 @@ class EmailAddress(Item.Item):
             return super(EmailAddress, self).__str__()
             # Stale items shouldn't go through the code below
 
-        if self.emailAddress == self._getTheMeAddress():
+        if self is self.getCurrentMeEmailAddress():
             fullName = 'me'
         else:
             try:
@@ -710,44 +710,14 @@ class EmailAddress(Item.Item):
                 return None
     getEmailAddress = classmethod (getEmailAddress)
 
-    # theMeAddress is cached here.  It's an emailAddress string.
-    _theMeAddress = None
-
-    def _getTheMeAddress (cls):
-        """
-          Lookup the "me" emailAddress string.
-        @return: C{String} the email address of the default account, or None
-        """
-        if cls._theMeAddress is not None:
-            return cls._theMeAddress
-
-        # get the default IMAP address, and use it to find/build "me"
-        import osaf.mail.imap as imap
-    
-        try:
-            account = imap.getIMAPAccount ()
-        except (imap.IMAPException, TypeError):
-            return None
-        try:
-            address = account.emailAddress
-        except AttributeError:
-            return None
-        cls._theMeAddress = address
-        return address
-    _getTheMeAddress = classmethod (_getTheMeAddress)
-
-    def invalidateMeAddressCache(cls):
-        """ If the notion of the "me" address is changed by anyone, this
-            cached copy of it should be invalidated. """
-        cls._theMeAddress = None
-    invalidateMeAddressCache = classmethod (invalidateMeAddressCache)
 
     def getCurrentMeEmailAddress (cls):
         """
-          Lookup or create the "me" EmailAddress.
-        The "me" EmailAddress is whichever entry is the current IMAP default address.
+          Lookup the "me" EmailAddress.
+        The "me" EmailAddress is whichever entry is the current IMAP default 
+        address.
         """
-        meAddress = cls._getTheMeAddress()
-        # if there is no account, we'll get None, and just create an EmailAddress for it
-        return cls.getEmailAddress (meAddress)
+        import osaf.mail.imap as imap
+
+        return imap.getIMAPAccount().replyToAddress
     getCurrentMeEmailAddress = classmethod (getCurrentMeEmailAddress)

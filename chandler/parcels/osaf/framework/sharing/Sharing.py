@@ -10,6 +10,7 @@ import osaf.mail.message
 from repository.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
+import wx
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
@@ -37,6 +38,8 @@ class Parcel(application.Parcel.Parcel):
              "%s\nhas invited you to subscribe to\n'%s'\n\n" \
              "Would you like to accept the invitation?" \
              % (fromAddress, collectionName) ):
+                wx.Yield() # @@@ Give the UI a chance to redraw before
+                           # long operation
                 subscribeToWebDavCollection(url)
 
     def _errorCallback(self, error):
@@ -98,6 +101,10 @@ def manualPublishCollection(collection):
 def syncCollection(collection):
     if isShared(collection):
         print "Synchronizing", collection.sharedURL
+
+        wx.Yield() # @@@ Give the UI a chance to redraw before
+                   # long operation
+
         try:
             osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
         except Exception, e:
@@ -109,6 +116,10 @@ def syncCollection(collection):
 
 def putCollection(collection, url):
     """ Putting a collection on the webdav server for the first time. """
+
+    wx.Yield() # @@@ Give the UI a chance to redraw before
+               # long operation
+
     try:
         osaf.framework.webdav.Dav.DAV(url).put(collection)
     except Exception, e:
@@ -141,6 +152,20 @@ def getWebDavPath():
 
 def getWebDavAccount():
     return Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
+
+def isMailSetUp():
+
+    # Find imap account, and make sure email address is valid
+    imap = Globals.repository.findPath("//parcels/osaf/mail/IMAPAccountOne")
+    if not imap.emailAddress:
+        return False
+
+    # Find smtp account, and make sure server field is set
+    smtp = Globals.repository.findPath("//parcels/osaf/mail/SMTPAccountOne")
+    if not smtp.host:
+        return False
+
+    return True
 
 # Non-blocking methods that the mail thread can use to call methods on the
 # main thread:

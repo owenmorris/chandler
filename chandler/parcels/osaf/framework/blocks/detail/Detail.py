@@ -16,6 +16,7 @@ import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
 import application.dialogs.Util as Util
+import application.dialogs.AccountPreferences as AccountPreferences
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import wx
@@ -144,6 +145,17 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         """
         self.finishSelectionChanges () # finish changes to previous selected item 
         item = self.selectedItem()
+
+        if not Sharing.isMailSetUp():
+            if Util.okCancel(Globals.wxApplication.mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not AccountPreferences.ShowAccountPreferencesDialog( \
+                 Globals.wxApplication.mainFrame):
+                    return
+            else:
+                return
+
         # preflight the send/share request
         # mail items and collections need their recievers set up
         try:

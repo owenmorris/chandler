@@ -321,6 +321,17 @@ class MainView(View):
         # find all the shared collections and sync them.
         self.onSyncWebDAVEvent (notification)
 
+        if not Sharing.isMailSetUp():
+            if application.dialogs.Util.okCancel( \
+             Globals.wxApplication.mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
+                 Globals.wxApplication.mainFrame):
+                    return
+            else:
+                return
+
         # synch mail
         self.setStatusMessage (_("Getting new Mail"))
         self.onGetNewMailEvent (notification)
