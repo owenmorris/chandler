@@ -4,7 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import Item
 from model.util.UUID import UUID
 from model.util.Path import Path
 
@@ -169,20 +168,20 @@ class RefDict(object):
     def __setitem__(self, key, value):
 
         old = self._dict.get(key)
-        isItem = isinstance(value, Item.Item)
-
-        if isinstance(old, ItemRef):
-            if isItem:
-                old._reattach(self._item, self._name,
-                              old.other(self._item), value, self._otherName)
-            else:
+        
+        if old is not None and isinstance(old, ItemRef):
+            if isinstance(value, ItemRef):
                 old._detach(self._item, self._name,
                             old.other(self._item), self._otherName)
-        else:
-            if isItem:
-                value = ItemRef(self._item, self._name, value, self._otherName)
+            else:
+                old._reattach(self._item, self._name,
+                              old.other(self._item), value, self._otherName)
+                return
+
+        elif not isinstance(value, ItemRef):
+            value = ItemRef(self._item, self._name, value, self._otherName)
             
-            self._dict.__setitem__(key, value)
+        self._dict.__setitem__(key, value)
 
     def __delitem__(self, key):
 
