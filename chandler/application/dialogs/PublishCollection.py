@@ -5,6 +5,7 @@ import application.Globals
 from application.Globals import repository as repo
 from application.Globals import parcelManager as pm
 import osaf.mail.message
+import osaf.mail.sharing
 import application.dialogs.Util
 
 DEFAULT_URL = "http://code-bear.com/dav"
@@ -44,19 +45,15 @@ class PublishCollectionDialog(wx.Dialog):
             for invitee in invitees:
                 if not osaf.mail.message.isValidEmailAddress(invitee):
                     self.waitLabel.SetLabel("Invalid address: %s" % invitee)
-                    # application.dialogs.Util.showAlert(self.parent,
-                    #  "Invalid email address:\n%s" % invitee)
                     return
 
         url = self.urlText.GetValue()
-        self.OkButton.Enable(False)
-        self.CancelButton.Enable(False)
         self.waitLabel.SetLabel("Publishing, Please Wait...")
+
         osaf.framework.webdav.Dav.DAV(url).put(self.collection)
 
-        # send invites
-        for invitee in invitees:
-            print "I would be inviting", invitee
+        if invitees:
+            osaf.mail.sharing.sendInvitation(url, invitees)
 
         self.EndModal(True)
 
