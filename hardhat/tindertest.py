@@ -17,13 +17,15 @@ False = 0
 # it, it may get reverted to a slightly earlier version
 
 import hardhatutil, time, smtplib, os, sys, md5, sha
+from optparse import OptionParser
 
 # args:  toAddr, buildName, project, outputDir
 
-toAddr    = sys.argv[1]
-buildName = sys.argv[2]
-project   = sys.argv[3]
-outputDir = sys.argv[4]
+# toAddr    = sys.argv[1]
+# buildName = sys.argv[2]
+# project   = sys.argv[3]
+# outputDir = sys.argv[4]
+# doDistrib = sys.argv[4]
 
 whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 hardhatFile = os.path.join(whereAmI, "hardhat.py")
@@ -33,16 +35,39 @@ buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
 stopFile = os.path.join(buildDir, "stop")
 fromAddr = "builds@osafoundation.org"
-buildscriptFile = os.path.join("buildscripts", project + ".py")
-
 
 def main():
+    global buildscriptFile
+    
+    parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.1")
+#    parser.add_option("-h", "--help", help="Print this message and options")
+    parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
+      default="buildreport@osafoundation.org", help="Where to mail script reports\n"
+      " [default] buildreport@osafoundation.org")
+#     parser.add_option("-b", "--buildName", action="store", type="string", dest="buildName",
+#       help="What identifier to use for your builds")
+    parser.add_option("-p", "--project", action="store", type="string", dest="project",
+      default="chandler", help="Name of script to use (without .py extension)\n"
+      "[default] chandler")
+    parser.add_option("-o", "--output", action="store", type="string", dest="outputDir",
+      default="~/output", help="Name of temp output directory\n"
+      " [default] ~/output")
+    parser.add_option("-D", "--distrib", action="store_true", dest="doDistrib",
+      default=False, help="Shall distribution archives be prepared and uploaded?\n"
+      " [default] False")
+      
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.print_help()
+        parser.error("You must at least provide a name for your build")
 
+    buildName = args[0]
     prevStartInt = 0
     curDir = os.path.abspath(os.getcwd())
+    buildscriptFile = os.path.join("buildscripts", options.project + ".py")
 
-    if not os.path.exists(outputDir):
-        os.mkdir(outputDir)
+    if not os.path.exists(options.outputDir):
+        os.mkdir(options.outputDir)
 
     if not os.path.exists(buildDir):
         os.mkdir(buildDir)
@@ -94,7 +119,7 @@ def main():
 
             treeName = mod.treeName
 
-            SendMail(fromAddr, toAddr, startTime, buildName, "building", 
+            SendMail(fromAddr, options.toAddr, startTime, buildName, "building", 
              treeName, None)
 
             ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
@@ -113,29 +138,34 @@ def main():
             status = "build_failed"
 
         else:
-            if ret == "success":
-                print "There were changes, and the build was successful"
-                log.write("There were changes, and the build was successful\n")
+            if ret == "success-nochanges":
+                print "There were no changes, and the tests were successful"
+                log.write("There were no changes, and the tests were successful\n")
                 status = "success"
-#                 newDir = os.path.join(outputDir, buildVersion)
-#                 os.rename(os.path.join(buildDir, "output"), newDir)
-#                 log.write("Calling CreateIndex with " + newDir + "\n")
-#                 if os.path.exists(outputDir+os.sep+"index.html"):
-#                     os.remove(outputDir+os.sep+"index.html")
-#                 if os.path.exists(outputDir+os.sep+"time.js"):
-#                     os.remove(outputDir+os.sep+"time.js")
-#                 for x in ["enduser", "developer"]:
-#                     if os.path.exists(outputDir+os.sep+x+".html"):
-#                         os.remove(outputDir+os.sep+x+".html")
-#                 RotateDirectories(outputDir)
-#                 CreateIndex(outputDir, buildVersion, nowString, buildName)
-# 
-#                 buildNameNoSpaces = buildName.replace(" ", "")
-#                 print "Rsyncing..."
-#                 outputList = hardhatutil.executeCommandReturnOutputRetry(
-#                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
-#                  outputDir + os.sep, 
-#                  "192.168.101.46:continuous-new/" + buildNameNoSpaces])
+            elif ret == "success-changes":
+                print "There were changes, and the tests were successful"
+                log.write("There were changes, and the tests were successful\n")
+                status = "success"
+                if options.doDistrib:
+                    newDir = os.path.join(options.outputDir, buildVersion)
+                    os.rename(os.path.join(buildDir, "output"), newDir)
+                    log.write("Calling CreateIndex with " + newDir + "\n")
+                    if os.path.exists(options.outputDir+os.sep+"index.html"):
+                        os.remove(options.outputDir+os.sep+"index.html")
+                    if os.path.exists(options.outputDir+os.sep+"time.js"):
+                        os.remove(options.outputDir+os.sep+"time.js")
+                    for x in ["enduser", "developer"]:
+                        if os.path.exists(options.outputDir+os.sep+x+".html"):
+                            os.remove(options.outputDir+os.sep+x+".html")
+                    RotateDirectories(options.outputDir)
+                    CreateIndex(options.outputDir, buildVersion, nowString, buildName)
+    
+                    buildNameNoSpaces = buildName.replace(" ", "")
+                    print "Rsyncing..."
+                    outputList = hardhatutil.executeCommandReturnOutputRetry(
+                     [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+                     options.outputDir + os.sep, 
+                     "192.168.101.46:continuous-new/" + buildNameNoSpaces])
 
             elif ret == "build_failed":
                 print "The build failed"
@@ -161,7 +191,7 @@ def main():
         log.close()
         nowTime = str(int(time.time()))
 
-        SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, 
+        SendMail(fromAddr, options.toAddr, startTime, buildName, status, treeName, 
          logContents)
 
         clobber = 0
