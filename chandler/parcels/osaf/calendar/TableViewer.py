@@ -54,7 +54,7 @@ class TableViewer(Persistent):
         begin = self.rangeStart
         end = begin + self.rangeIncrement
         return ((date > begin) and (date < end))
-        
+
 class wxTableViewer(wxPanel):
     def __init__(self):
         value = wxPrePanel()
@@ -74,6 +74,9 @@ class wxTableViewer(wxPanel):
         
         EVT_SIZE(self, self.OnSize)
         EVT_CALENDAR_DATE(self, self.OnCalendarDate)
+        
+    def _columnSorter(self, key1, key2):
+        return key1 > key2
         
     def _loadEvents(self):
         self.eventList = []
@@ -95,7 +98,9 @@ class wxTableViewer(wxPanel):
                 self.list.InsertStringItem(index, item.headline)
                 self.list.SetStringItem(index, 1, startString)
                 self.list.SetStringItem(index, 2, hourString)
+                self.list.SetItemData(index, item.startTime)
                 index = index + 1
+        self.list.SortItems(self._columnSorter)
         
     def OnSize(self, event):
         self.list.SetSize(self.GetClientSize())
