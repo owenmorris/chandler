@@ -1665,6 +1665,7 @@ class Item(object):
                     removeOrphans(self._values)
                     removeOrphans(self._references)
 
+            prevKind = self._kind
             self._kind = kind
 
             if kind is None:
@@ -1673,6 +1674,8 @@ class Item(object):
                 self.__class__ = kind.getItemClass()
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
+
+            Item._monitorsClass.invoke('kind', self, 'schema')
 
     def mixinKinds(self, *kinds):
         """

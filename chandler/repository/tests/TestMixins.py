@@ -8,6 +8,7 @@ import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.item.Item import Item
+from repository.item.Monitors import Monitors
 from repository.schema.Attribute import Attribute
 from repository.schema.Kind import Kind
 
@@ -55,6 +56,21 @@ class MixinTest(RepositoryTestCase):
         self.assert_(not kh.isItemOf(attribute))
         self.assert_(not isinstance(kh, Attribute))
         self.assert_(mixin is actor)
+
+    def testMonitor(self):
+
+        kh = self.rep.findPath('//CineGuide/KHepburn')
+        m1 = kh.movies.first()
+        actor = kh.itsKind
+        movie = m1.itsKind
+        attribute = actor.getAttribute('movies').itsKind
+        self.assert_(kh.isItemOf(actor))
+
+        Monitors.attach(m1, 'kindChanged', 'kind', 'schema')
+        m1.monitorAttribute = None
+        mixin = kh.mixinKinds(('add', movie), ('add', attribute))
+
+        self.assert_(m1.monitorAttribute == 'schema')
 
 
 if __name__ == "__main__":

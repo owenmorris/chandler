@@ -43,7 +43,9 @@ class Monitors(Item):
         monitor = [item, method, args, kwds]
         try:
             instance.monitoring[op][attribute].append(monitor)
-        except KeyError:
+        except KeyError, e:
+            if e.args[0] == op:
+                instance.monitoring[op] = {}
             instance.monitoring[op][attribute] = [monitor]
 
     def detach(cls, item, method, op, attribute, *args, **kwds):

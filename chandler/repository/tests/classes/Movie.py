@@ -16,3 +16,7 @@ class Movie(Item):
     def onItemCopy(self, original):
 
         print 'copied', self.title, 'from', original.itsUUID
+
+    def kindChanged(self, op, item, attribute):
+
+        self.monitorAttribute = attribute

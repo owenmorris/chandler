@@ -21,16 +21,15 @@ class Kind(Item):
     def __init__(self, name, parent, kind):
 
         super(Kind, self).__init__(name, parent, kind)
-
-        self.monitorSchema = False
         self.__init()
         
     def __init(self):
 
+        self.monitorSchema = False
+
         # recursion avoidance
         self._values['notFoundAttributes'] = []
-        refList = self._refList('inheritedAttributes',
-                                'inheritingKinds', False)
+        refList = self._refList('inheritedAttributes', 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refList
 
         ofKind = self._refList('ofKind', 'kindOf', False)
