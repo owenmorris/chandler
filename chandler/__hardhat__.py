@@ -223,4 +223,5 @@ def generateDocs(buildenv):
                           'repository/item',
                           'repository/persistence',
                           'repository/util',
+                          'repository/query',
                           'repository/schema')
