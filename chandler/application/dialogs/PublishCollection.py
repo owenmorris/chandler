@@ -9,9 +9,6 @@ import osaf.mail.sharing
 import application.dialogs.Util
 import osaf.framework.sharing.Sharing
 
-#@@@ This will go away:
-DEFAULT_URL = "http://code-bear.com/dav"
-
 class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, resources, collection):
         pre = wx.PreDialog()
@@ -33,9 +30,8 @@ class PublishCollectionDialog(wx.Dialog):
             if path:
                 self.urlText.SetValue("%s/%s" % (path, collection.itsUUID))
             else:
-                #@@@ This will go away:
-                self.urlText.SetValue("%s/%s" % (DEFAULT_URL, 
-                 collection.itsUUID))
+                self.urlText.SetValue("http://server/path/%s" % \
+                 collection.itsUUID)
 
         self.inviteesText = wx.xrc.XRCCTRL(self, "ID_INVITEES")
 

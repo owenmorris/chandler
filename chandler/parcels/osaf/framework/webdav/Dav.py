@@ -6,6 +6,9 @@ from repository.util.URL import URL
 import application.Globals as Globals
 import Sync
 
+#@@@ Temporary way for retrieving webdav 'account' information
+import osaf.framework.sharing.Sharing
+
 """
  * If I make ItemCollections use a refcollection under the hood as a real attribute
    then I can get rid of most of the code in put/getCollection as it will just do
@@ -102,4 +105,5 @@ class DAVConnection(davlib.DAV):
         port = url.port or 80
 
         davlib.DAV.__init__(self, host, port)
-        self.setauth('test', 'test')
+        acct = osaf.framework.sharing.Sharing.getWebDavAccount()
+        self.setauth(acct.username, acct.password)

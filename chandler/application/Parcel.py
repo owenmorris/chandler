@@ -357,6 +357,11 @@ class Manager(Item):
             # the "filesToParse" list:
             for directory in self.path:
                 for root, dirs, files in os.walk(directory):
+
+                    # Allows you to skip specific parcels
+                    if 'noload' in files:
+                        continue
+
                     if 'parcel.xml' in files:
                         repoPath = "//parcels/%s" % root[len(directory)+1:]
                         repoPath = repoPath.replace(os.path.sep, "/")

@@ -112,6 +112,9 @@ def getWebDavPath():
     else:
         return None
 
+def getWebDavAccount():
+    return Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
+
 # Non-blocking methods that the mail thread can call to post events to the
 # main thread:
 
