@@ -9,7 +9,6 @@ import time
 
 from wxPython.wx import *
 
-from model.item.Item import Item
 from repository.item.Item import Item
 import application.Application # for repository
 
