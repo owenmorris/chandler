@@ -24,6 +24,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
                 if tabName == itemName:
                     found = True
                     self.widget.SetSelection(tabIndex)
+            self.parentBlock.widget.Freeze()
             if not found:
                 page = self.widget.GetPage(activeTab)
                 previousChild = self.childrenBlocks.previous(page.blockItem)
@@ -34,6 +35,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
                 item.render()                
                 item.widget.SetSize (self.widget.GetClientSize())                
             self.synchronizeWidget()
+            self.parentBlock.widget.Thaw()
 
     def onNewEvent (self, notification):
         "Create a new tab"
@@ -44,8 +46,10 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         
         self.widget.selectedTab = self.widget.GetPageCount()
         newItem.parentBlock = self
+        self.parentBlock.widget.Freeze()
         newItem.render()
         self.synchronizeWidget()
+        self.parentBlock.widget.Thaw()
         self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':newItem})
 
@@ -76,7 +80,9 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             self.widget.selectedTab = self.widget.GetSelection() - 1
         page = self.widget.GetPage(pageIndex)
         page.blockItem.parentBlock = None
+        self.parentBlock.widget.Freeze()        
         self.synchronizeWidget()
+        self.parentBlock.widget.Thaw()
         self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
 
@@ -92,9 +98,11 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         if not found:
             self.widget.selectedTab = self.widget.GetPageCount()
             item.parentBlock = self
+            self.parentBlock.widget.Freeze()
             item.render()
             item.widget.SetSize (self.widget.GetClientSize())
             self.synchronizeWidget()
+            self.parentBlock.widget.Thaw()
             self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
         
