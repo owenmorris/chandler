@@ -263,6 +263,14 @@ class wxApplication (wx.App):
           isn't found then make a copy into the soup with the right name.
         """
         mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
+        
+        """
+          But first, blow away the soup if --refresh-ui is specified
+        """
+        if Globals.options.refreshui and mainViewRoot:
+            mainViewRoot.delete(True)
+            mainViewRoot = None
+
         if not mainViewRoot:
             template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
             assert (template)

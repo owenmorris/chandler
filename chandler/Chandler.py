@@ -70,6 +70,7 @@ def loadConfig(chandlerDirectory):
                      'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
                      'wing':       ('-w', '--wing',       'b', False, None, ''),
                      'komodo':     ('-k', '--komodo',     'b', False, None, ''),
+                     'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
                       }
 
     from optparse import OptionParser
