@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+<item>
+  <name>CalendarStartTime</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+
+  <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
+  <attribute name="Cardinality">single</attribute>
+</item>
+
+<item>
+  <name>CalendarEndTime</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+
+  <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
+  <attribute name="Cardinality">single</attribute>
+</item>
+
+<item>
+  <name>CalendarHeadline</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+
+  <ref name="Type" type="path">//Schema/Model/Types/String</ref>  
+  <attribute name="Cardinality">single</attribute>
+</item>
+
+<item>
+  <name>CalendarEvent</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
+
+  <ref name="AttrDefs">
+    <ref name="CalendarHeadline" type="path">//Schema/CalendarHeadline</ref>
+    <ref name="CalendarStartTime" type="path">//Schema/CalendarStartTime</ref>
+    <ref name="CalendarEndTime" type="path">//Schema/CalendarEndTime</ref>
+  </ref>
+
+  <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.CalendarEvent.CalendarEvent</attribute>
+
+</item>
+
+</items>

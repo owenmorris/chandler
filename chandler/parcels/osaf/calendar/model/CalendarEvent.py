@@ -7,6 +7,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from model.item.Item import Item
+from mx import DateTime
 
 class CalendarEventFactory:
     def __init__(self, rep):
@@ -14,7 +15,11 @@ class CalendarEventFactory:
         self._kind = rep.find("//Schema/CalendarEvent")
         
     def NewItem(self):
-        return CalendarEvent(None, self._container, self._kind)
+        item = CalendarEvent(None, self._container, self._kind)
+        item.setAttribute("CalendarStartTime", DateTime.now())
+        item.setAttribute("CalendarEndTime", DateTime.now())
+
+        return item
 
 class CalendarEvent(Item):
     def __init__(self, name, parent, kind, **_kwds):
@@ -49,6 +54,9 @@ class CalendarEvent(Item):
         duration = self.CalendarDuration
         self.CalendarStartTime = dateTime
         self.CalendarEndTime = self.CalendarStartTime + duration
+        
+    def IsRemote(self):
+        return False
 
 
         
