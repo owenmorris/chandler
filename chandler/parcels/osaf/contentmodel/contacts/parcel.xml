@@ -161,6 +161,7 @@
     <attributes itemref="calendar:participatingIn"/>
     <attributes itemref="tasks:requestedTasks"/>
     <attributes itemref="tasks:taskRequests"/>
+    <!-- redirections -->
     <attributes itemref="contact:who"/>
     <attributes itemref="contact:about"/>
     <attributes itemref="contact:date"/>

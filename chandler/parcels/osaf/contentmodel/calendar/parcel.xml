@@ -122,6 +122,10 @@
     <redirectTo>participants</redirectTo>
   </Attribute>
 
+  <Attribute itsName="whoFrom">
+    <redirectTo>organizer</redirectTo>
+  </Attribute>
+
   <Attribute itsName="about">
     <redirectTo>displayName</redirectTo>
   </Attribute>
@@ -147,10 +151,13 @@
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
+    <!-- redirections -->
     <attributes itemref="cal:who"/>
+    <attributes itemref="cal:whoFrom"/>
     <attributes itemref="cal:about"/>
     <attributes itemref="cal:date"/>
 
+    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventAspect</classes>
   </Kind>
 
   <Kind itsName="CalendarEvent">
@@ -158,7 +165,7 @@
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
     <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
-    <superKinds itemref="content:Note"/>
+    <superKinds itemref="content:ContentItem"/>
     <superKinds itemref="cal:CalendarEventAspect"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>

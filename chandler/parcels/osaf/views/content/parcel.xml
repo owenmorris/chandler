@@ -13,7 +13,7 @@
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-             xmlns:notesDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/notes"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
 	     xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
@@ -280,7 +280,7 @@
     <displayName>OldCalendar</displayName>
 
     <childrenBlocks itemref="view:CalendarList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -292,7 +292,7 @@
     <displayName>NotesList</displayName>
 
     <childrenBlocks itemref="view:NoteList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -315,7 +315,7 @@
     <displayName>Mixed</displayName>
 
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -325,7 +325,7 @@
   <SplitterWindow itsName="InListView">
     <displayName>In</displayName>
     <childrenBlocks itemref="view:InList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -337,7 +337,7 @@
     <displayName>Out</displayName>
 
     <childrenBlocks itemref="view:OutList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -349,7 +349,7 @@
     <displayName>Calendar</displayName>
 
     <childrenBlocks itemref="view:NewCalendarList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

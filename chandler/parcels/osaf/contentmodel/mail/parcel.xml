@@ -367,6 +367,10 @@
   </Attribute>
 
   <Attribute itsName="who">
+    <redirectTo>toAddress</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="whoFrom">
     <redirectTo>replyAddress</redirectTo>
   </Attribute>
 
@@ -407,9 +411,13 @@
     <attributes itemref="mail:deliveryStatus"/>
     <attributes itemref="mail:stronglyLinkedTask"/>
     <attributes itemref="mail:spamScore"/>
+    <!-- redirections -->
     <attributes itemref="mail:who"/>
+    <attributes itemref="mail:whoFrom"/>
     <attributes itemref="mail:about"/>
     <attributes itemref="mail:date"/>
+
+    <classes key="python">osaf.contentmodel.mail.Mail.MailMessageAspect</classes>
   </Kind>
 
   <Kind itsName="MailMessage">
@@ -417,7 +425,7 @@
     <description>A Mail Message represents any sort of email message, sent or received.</description>
     <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
     <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
-    <superKinds itemref="content:Note"/>
+    <superKinds itemref="content:ContentItem"/>
     <superKinds itemref="mail:MailMessageAspect"/>
     <displayAttribute itemref="mail:subject"/>
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessage</classes>

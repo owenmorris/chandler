@@ -11,13 +11,29 @@ import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
+from osaf.contentmodel.mail.Mail import MailParcel
+from osaf.contentmodel.tasks.Task import TaskParcel
+from osaf.contentmodel.calendar.Calendar import CalendarParcel
+
 class Note(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = ContentModel.ContentModel.getNoteKind()
         super (Note, self).__init__(name, parent, kind)
 
-        self.aboutAttribute = "title"
+    def StampKind(self, newKind):
+        """
+          Stamp ourself into the new kind defined by the
+        Aspect passed in newKind.
+        """
+        # Maps a Note plus an aspect to its associated kind
+        _kindTransform = {TaskParcel.taskAspectKindID: TaskParcel.getTaskKind(), 
+                         MailParcel.mailMessageAspectKindID: MailParcel.getMailMessageKind(),
+                         CalendarParcel.calendarEventAspectKindID: CalendarParcel.getCalendarEventKind()}
+    
+        # the _kindTransform tells us what a Note will become
+        self.itsKind = _kindTransform[newKind]
+        
 
 class Conversation(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):

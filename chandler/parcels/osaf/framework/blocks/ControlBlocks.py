@@ -960,7 +960,8 @@ class SelectionContainer(BoxContainer):
         """
           just remember the new selected ContentItem.
         """
-        self.selection = notification.data['item']
+        item = notification.data['item']
+        self.selection = item
 
     def selectedItem(self):
         # return the item being viewed

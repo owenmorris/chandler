@@ -33,6 +33,9 @@ class MailParcel(application.Parcel.Parcel):
         mailMessageKind = self['MailMessage']
         MailParcel.mailMessageKindID = mailMessageKind.itsUUID
 
+        mailMessageAspectKind = self['MailMessageAspect']
+        MailParcel.mailMessageAspectKindID = mailMessageAspectKind.itsUUID
+
     def getAttachmentKind(cls):
         assert cls.attachmentKindID, "Mail parcel not yet loaded"
         return Globals.repository[cls.attachmentKindID]
@@ -57,12 +60,27 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailMessageKind = classmethod(getMailMessageKind)
 
+    def getMailMessageAspectKind(cls):
+        assert cls.mailMessageAspectKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.mailMessageAspectKindID]
+    
+    getMailMessageAspectKind = classmethod(getMailMessageAspectKind)
+
     attachmentKindID = None
     emailAccountKindID = None
     emailAddressKindID = None
     mailMessageKindID = None
+    mailMessageAspectKindID = None
 
-class MailMessage(ContentModel.ContentItem):
+class MailMessageAspect(Item.Item):
+    """
+      Mail Message Aspect is the bag of Message-specific attributes.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
+    pass
+
+class MailMessage(ContentModel.ContentItem, MailMessageAspect):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()

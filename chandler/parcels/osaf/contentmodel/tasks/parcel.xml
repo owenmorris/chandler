@@ -92,6 +92,10 @@
     <redirectTo>requestor</redirectTo>
   </Attribute>
 
+  <Attribute itsName="whoFrom">
+    <redirectTo>requestee</redirectTo>
+  </Attribute>
+
   <Attribute itsName="about">
     <redirectTo>displayName</redirectTo>
   </Attribute>
@@ -116,17 +120,20 @@
     <attributes itemref="tasks:taskStatus"/>
     <attributes itemref="tasks:dueDate"/>
     <attributes itemref="mail:stronglyLinkedMail"/>
+    <!-- redirections -->
     <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:whoFrom"/>
     <attributes itemref="tasks:about"/>
     <attributes itemref="tasks:date"/>
     
+    <classes key="python">osaf.contentmodel.tasks.Task.TaskAspect</classes>
   </Kind>
 
   <Kind itsName="Task">
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Task should maybe have a 'Timezone' attribute.</issues>
-    <superKinds itemref="content:Note"/>
+    <superKinds itemref="content:ContentItem"/>
     <superKinds itemref="tasks:TaskAspect"/>
     
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>

@@ -9,6 +9,10 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
+import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.tasks.Task as Task
+import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.Notes as Notes
 import wx
 
 """
@@ -16,38 +20,265 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-class DetailParcel(application.Parcel.Parcel):
+class DetailParcel (application.Parcel.Parcel):
     pass
 
-class Headline(ControlBlocks.StaticText):
-    """Headline, or Title field of the Content Item, as static text"""
+class DetailRoot (ControlBlocks.ContentItemDetail):
+    """
+      Root of the Detail View.
+    """
     def onSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWidget.
+          We have an event boundary inside us, which keeps all
+        the events sent between blocks of the Detail View to
+        ourselves.
+          When we get a SelectionChanged event, we jump across
+        the event boundary and call synchronizeItemDetail on each
+        block to give it a chance to synchronize on the details of
+        the Item.  
+          Notify container blocks before their children.
         """
-        self.widget.SetLabel (notification.data ['item'].about)
+        super(DetailRoot, self).onSelectionChangedEvent(notification)
+        item= self.selectedItem()
+        assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
+        self.synchronizeDetailView(item)
+
+    def synchronizeDetailView(self, item):
+        """
+          We have an event boundary inside us, which keeps all
+        the events sent between blocks of the Detail View to
+        ourselves.
+          When we get a SelectionChanged event, we jump across
+        the event boundary and call synchronizeItemDetail on each
+        block to give it a chance to synchronize on the details of
+        the Item.  
+          Notify container blocks before their children.
+          
+          DLDTBD - find a better way to broadcast inside my boundary.
+        """
+        def reNotifyInside(block, item):
+            try:
+                block.synchronizeItemDetail(item)
+            except AttributeError:
+                pass
+            try:
+                for child in block.childrenBlocks:
+                    reNotifyInside(child, item)
+            except AttributeError:
+                pass
+        reNotifyInside(self, item)
+    
+    def synchronizeWidget (self):
+        super(DetailRoot, self).synchronizeWidget ()
+        item= self.selectedItem()
+        self.synchronizeDetailView(item)
         
-class DateTimeBlock(ControlBlocks.StaticText):
+class DetailChild(ControlBlocks.ContentItemDetail):
+    """
+      First Child of the Detail Root.
+    """
+    def selectedItem (self):
+        # return the ContentItem being viewed
+        return self.parentBlock.selectedItem()
+
+class DetailSyncronizer(object):
+    """
+      Mixin class that handles synchronizeWidget and
+    the SelectionChanged event by calling synchronizeItemDetail.
+    Most client classes will only have to implement
+    synchronizeItemDetail.
+    """
+    def selectedItem (self):
+        # return the ContentItem being viewed
+        return self.parentBlock.selectedItem()
+
+    def relayoutParents (self):
+        # relayout the parent block
+        block = self
+        while (not block.eventBoundary and block.parentBlock):
+            block = block.parentBlock
+            block.synchronizeWidget()
+
+    def synchronizeItemNone (self):
+        # called instead of synchronizeItemDetail when there is no selected item.
+        pass
+    
+    def synchronizeItemDetail (self, item):
+        # override this method to draw your block's detail portion of this Item.
+        raise NotImplementedError, "%s.synchronizeItemDetail()" % (type(self))
+    
+class StaticTextLabel(DetailSyncronizer, ControlBlocks.StaticText):
+    def synchronizeItemNone(self):
+        self.widget.SetLabel ('')  
+    
+class DateTimeBlock (StaticTextLabel):
     """
     Date and Time associated with the Content Item
     Currently this is static text, but soon it will need to be editable
     """
-    def onSelectionChangedEvent (self, notification):
+    def synchronizeItemDetail (self, item):
         """
           Display the item in the wxWidget.
         """
-        item = notification.data['item']
         widget = self.widget
         theDate = item.date # get the redirected date attribute
         theDate = str(theDate)
         widget.SetLabel(theDate)
+
+class Headline (StaticTextLabel):
+    """Headline, or Title field of the Content Item, as static text"""
+    def synchronizeItemDetail (self, item):
+        """
+          Display the item's HeadLine in the wxWidget.
+        """
+        self.widget.SetLabel (item.about)
         
-class EditTextAttribute(ControlBlocks.EditText):
+class StaticTextAttribute(StaticTextLabel):
+    """
+      Static Text that displays the name of the selected item's Attribute
+    """
+    def synchronizeItemDetail (self, item):
+        whoRedirect = item.getAttributeAspect(self.whichAttribute(), 'redirectTo')
+        if whoRedirect is None:
+            whoRedirect = '  '
+        else:
+            whoRedirect = ' ' + whoRedirect + ': '
+        self.widget.SetLabel (whoRedirect)
+        # relayout the parent block
+        self.relayoutParents() 
+
+    def whichAttribute(self):
+        # override to define the attribute to be used
+        raise NotImplementedError, "%s.whichAttribute()" % (type(self))
+
+class ToString (StaticTextAttribute):
+    def whichAttribute(self):
+        return 'who'
+
+class FromString (StaticTextAttribute):
+    def whichAttribute(self):
+        return 'whoFrom'
+
+class MarkupBar (DetailSyncronizer, DynamicContainerBlocks.Toolbar):
+    """   
+      Markup Toolbar, for quick control over Items.
+    Doesn't need to synchronizeItemDetail, because
+    the individual ToolbarItems synchronizeItemDetail.
+    """
+    def synchronizeItemDetail (self, item):
+        pass
+    
+    def onToolPressStub (self, notification):
+        tool = notification.data['sender']
+        if tool.itsName == 'SharingButton':
+            #self.parentBlock.Notify("EnableSharing")
+            pass
+    
+    def selectedItem (self):
+        # return the ContentItem being viewed
+        return self.parentBlock.selectedItem()
+
+    def onButtonPressed (self, notification):
+        # Rekind the item by adding or removing the associated aspect
+        tool = notification.data['sender']
+        # DLDTBD - use self instead of bar here, once block copy problem is fixed.
+        bar = tool.dynamicParent
+        item = bar.selectedItem()
+        if item is not None:
+            whichKindID = tool.stampAspectKind().itsUUID
+            if bar.widget.GetToolState(tool.toolID):
+                item.StampKind(whichKindID)
+            else:
+                item.UnStampKind(whichKindID)
+            # DLDTBD - notify the world that the item has a new kind.
+            self.relayoutParents()        
+
+class DetailStampButton (DetailSyncronizer, DynamicContainerBlocks.ToolbarItem):
+    """
+      Common base class for the stamping buttons in the Markup Bar
+    """
+    def stampAspectClass(self):
+        # return the class of this stamp's aspect (bag of kind-specific attributes)
+        raise NotImplementedError, "%s.stampAspectClass()" % (type(self))
+    
+    def stampAspectKind(self):
+        # return the kind of this stamp's aspect (bag of kind-specific attributes)
+        raise NotImplementedError, "%s.stampAspectKind()" % (type(self))
+    
+    def synchronizeItemDetail (self, item):
+        # toggle this button to reflect the kind of the selected item
+        shouldToggleBasedOnClass = isinstance(item, self.stampAspectClass())
+        shouldToggleBasedOnKind = item.itsKind.isKindOf(self.stampAspectKind())
+        assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
+               "Class/Kind mismatch for class %s, kind %s" % (item.__class__, item.itsKind)
+        self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
+
+    def synchronizeItemNone (self):
+        # called instead of synchronizeItemDetail when there is no selected item.
+        self.synchronizeItemDetail (None)
+
+class SharingButton (DetailStampButton):
+    """
+      Sharing button in the Markup Bar
+    """
+    def stampAspectClass(self):
+        return Mail.MailMessageAspect
+    
+    def stampAspectKind(self):
+        return Mail.MailParcel.getMailMessageAspectKind()
+    
+class CalendarStamp (DetailStampButton):
+    """
+      Calendar button in the Markup Bar
+    """
+    def stampAspectClass(self):
+        return Calendar.CalendarEventAspect
+
+    def stampAspectKind(self):
+        return Calendar.CalendarParcel.getCalendarEventAspectKind()
+
+class TaskStamp (DetailStampButton):
+    """
+      Task button in the Markup Bar
+    """
+    def stampAspectClass(self):
+        return Task.TaskAspect
+
+    def stampAspectKind(self):
+        return Task.TaskParcel.getTaskAspectKind()
+        
+class FromAndToArea (DetailSyncronizer, ControlBlocks.ContentItemDetail):
+    def synchronizeItemDetail (self, item):
+        # if the item's not a Note, then we should show ourself
+        shouldShow = not isinstance (item, Notes.Note)
+        self.show(shouldShow)
+        # relayout the parent block if it's safe to do so
+        
+    def synchronizeItemNone(self):
+        self.show(False)
+    
+    def show(self, shouldShow):
+        # if the show status has changed, tell our widget, and our parent
+        if shouldShow != self.isShown:
+            try:
+                widget = self.widget
+            except AttributeError:
+                return
+            # we have a widget
+            if shouldShow:
+                widget.Show(True)
+                self.isShown = True
+            else:
+                widget.Show(False)
+                self.isShown = False
+            self.relayoutParents()
+        
+class EditTextAttribute (DetailSyncronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
     Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses
     """
-    def instantiateWidget(self):
+    def instantiateWidget (self):
         widget = super (EditTextAttribute, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
         # Currently looks like OnLoseFocus is not getting called every time we lose focus,
@@ -56,21 +287,17 @@ class EditTextAttribute(ControlBlocks.EditText):
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
         return widget
 
-    def onKeyUp(self, event):
+    def onKeyUp (self, event):
         self.saveTextValue()
 
-    def selectedItem(self):
-        # return the ContentItem being viewed
-        return self.parentBlock.selectedItem()
-    
-    def saveTextValue(self):
+    def saveTextValue (self):
         # save the user's edits into item's attibute
         item = self.selectedItem()
         widget = self.widget
         if item and widget:
             self.saveAttributeFromWidget(item, widget)
         
-    def loadTextValue(self, item):
+    def loadTextValue (self, item):
         # load the edit text from our attribute into the field
         if not item:
             item = self.selectedItem()
@@ -78,47 +305,40 @@ class EditTextAttribute(ControlBlocks.EditText):
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
         
-    def onLoseFocus(self, notification):
+    def onLoseFocus (self, notification):
         # called when we lose focus, to save away the text
         self.saveTextValue()
         
-    def onSelectionChangedEvent (self, notification):
-        """
-          Display the item in the wxWidget.
-        """
-        item = notification.data['item']
-        self.synchronizeWidget(item)    # make sure we use the new item    
-
     def OnDataChanged (self):
         # Notification that an edit operation has taken place
         self.saveTextValue()
 
-    def synchronizeWidget (self, item=None):
-        # optional second parameter is the new item to synchronize to
-        # lets us avoid a race condition getting the new item from the parent block
-        super(EditTextAttribute, self).synchronizeWidget()
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            self.loadTextValue(item)
+    def synchronizeItemDetail (self, item):
+        self.widget.Show(True)
+        self.loadTextValue(item)
             
-    def saveAttributeFromWidget(self, item, widget):  
+    def synchronizeItemNone (self):
+        self.widget.Show(False)
+            
+    def saveAttributeFromWidget (self, item, widget):  
        # subclasses need to override this method
        raise NotImplementedError, "%s.SaveAttributeFromWidget()" % (type(self))
 
-    def loadAttributeIntoWidget(self, item, widget):  
+    def loadAttributeIntoWidget (self, item, widget):  
        # subclasses need to override this method
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
-class NoteBody(EditTextAttribute):
+class NoteBody (EditTextAttribute):
     """
     Body attribute of a ContentItem, e.g. a Note
     """
-    def saveAttributeFromWidget(self, item, widget):  
+    def saveAttributeFromWidget (self, item, widget):  
         textType = item.getAttributeAspect('body', 'type')
         widgetText = widget.GetValue()
         if widgetText:
             item.body = textType.makeValue(widgetText)
         
-    def loadAttributeIntoWidget(self, item, widget):  
+    def loadAttributeIntoWidget (self, item, widget):  
         if item.hasAttributeValue("body"):
             # get the character string out of the Text LOB
             noteBody = item.body
@@ -129,7 +349,7 @@ class NoteBody(EditTextAttribute):
         else:
             widget.Clear()
 
-class ToEditField(EditTextAttribute):
+class ToEditField (EditTextAttribute):
     """
     Body attribute of a ContentItem, e.g. a Note
     """
@@ -140,7 +360,8 @@ class ToEditField(EditTextAttribute):
         if toFieldString:
             item.who = toFieldString
        
-    def loadAttributeIntoWidget(self, item, widget):
+    def loadAttributeIntoWidget (self, item, widget):
+        whoRedirect = item.getAttributeAspect('who', 'redirectTo')
         try:
             whoString = item.who # get redirected who list
         except AttributeError:
@@ -152,21 +373,10 @@ class ToEditField(EditTextAttribute):
             whoString = ', '.join(whoNames)
         widget.SetValue(whoString)
 
-class FromEditField(EditTextAttribute):
+class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
     def saveAttributeFromWidget(self, item, widget):  
         pass       
     def loadAttributeIntoWidget(self, item, widget):
         pass
 
-class MarkupBar(DynamicContainerBlocks.Toolbar):
-    """   Markup Toolbar, for quick control over Items
-    """
-    def onToolPressStub(self, notification):
-        tool = notification.data['sender']
-        if tool.itsName == 'SharingButton':
-            #self.parentBlock.Notify("EnableSharing")
-            pass
-    
-
-    

@@ -26,6 +26,7 @@ class TaskParcel(application.Parcel.Parcel):
     def _setUUIDs(self):
         taskKind = self['Task']
         TaskParcel.taskKindID = taskKind.itsUUID
+        TaskParcel.taskAspectKindID = self['TaskAspect'].itsUUID
 
     def getTaskKind(cls):
         assert cls.taskKindID, "Task parcel not yet loaded"
@@ -33,9 +34,24 @@ class TaskParcel(application.Parcel.Parcel):
 
     getTaskKind = classmethod(getTaskKind)
 
-    taskKindID = None
+    def getTaskAspectKind(cls):
+        assert cls.taskAspectKindID, "Task parcel not yet loaded"
+        return Globals.repository[cls.taskAspectKindID]
+    
+    getTaskAspectKind = classmethod(getTaskAspectKind)
 
-class Task(ContentModel.ContentItem):
+    taskKindID = None
+    taskAspectKindID = None
+
+class TaskAspect(Item.Item):
+    """
+      Task Aspect is the bag of Task-specific attributes.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
+    pass
+
+class Task(ContentModel.ContentItem, TaskAspect):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -46,3 +62,4 @@ class Task(ContentModel.ContentItem):
 
         self.whoAttribute = "requestor"
         self.dateAttribute = "dueDate"
+

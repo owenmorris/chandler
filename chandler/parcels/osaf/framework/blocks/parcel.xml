@@ -195,6 +195,7 @@
     <Attribute itsName="dispatchToBlock">
       <type itemref="docSchema:Block"/>
       <defaultValue itemref="None"/>
+      <copyPolicy value="copy"/>
     </Attribute>
 
     <Attribute itsName="methodName">
@@ -390,12 +391,12 @@
       <required>False</required>
     </Attribute>
     
-    <Attribute itemName="collectionDelegate">
+    <Attribute itemName="collectionSpecifier">
       <redirectTo>dynamicChildren</redirectTo>
       <copyPolicy value="copy"/>
     </Attribute>
     
-    <attributes itemref="docSchema:DynamicContainer/collectionDelegate"/>
+    <attributes itemref="docSchema:DynamicContainer/collectionSpecifier"/>
     <attributes itemref="docSchema:DynamicContainer/dynamicChildren"/>
   </Kind>
   
@@ -894,6 +895,12 @@
       <description>The label that goes under this ToolbarItem</description>
       <type itemref="String"/> 
       <defaultValue type="String"></defaultValue>
+    </Attribute>
+    
+    <Attribute itemName="toggle">
+      <description>For Buttons, makes it stay pressed down until pressed again.</description>
+      <type itemref="Boolean"/> 
+      <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
     
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>

@@ -13,16 +13,16 @@ class RefCollectionDictionary(object):
       Provides dictionary access to a reference collection attribute 
     L{RefDict<repository.item.ItemRef.RefDict>}.
     The attribute that contains the reference collection is determined
-    through attribute indirection using the collectionDelegate attribute.
+    through attribute indirection using the collectionSpecifier attribute.
     The "itsName" property of the items in the reference collection
     is used for the dictionary lookup by default.  You can override
     the name accessor if you want to use something other than
     itsName to key the items in the collection.
     """
     def __init__(self):
-        # ensure that the collectionDelegate exists
-        if not self.hasAttributeValue(self.collectionDelegate()):
-            self.setAttributeValue(self.collectionDelegate(), [])
+        # ensure that the collectionSpecifier exists
+        if not self.hasAttributeValue(self.collectionSpecifier()):
+            self.setAttributeValue(self.collectionSpecifier(), [])
         
     def itemNameAccessor(self, item):
         """
@@ -37,17 +37,17 @@ class RefCollectionDictionary(object):
         """
         return item.itsName
     
-    def collectionDelegate(self):
+    def collectionSpecifier(self):
         """
         determines which attribute to use for the
-        collectionDelegate.
+        collectionSpecifier.
         subclasses can override this method if they want to
-        use something other than collectionDelegate, 
+        use something other than collectionSpecifier, 
         which is typlically set up to redirect to the actual
         attribute that contains the collection.
         @return: a C{String} for the name of the collection attribute
         """
-        return 'collectionDelegate' # should be a redirectTo attribute
+        return 'collectionSpecifier' # should be a redirectTo attribute
 
     def _index(self, key):
         """
@@ -56,7 +56,7 @@ class RefCollectionDictionary(object):
         @type key: C{immutable}, typically C{String}
         @return: a C{Tuple} containing C{(item, collection)} or raises an exception if not found.
         """
-        coll = self.getAttributeValue(self.collectionDelegate())
+        coll = self.getAttributeValue(self.collectionSpecifier())
         return (coll.getByAlias(key), coll)
         
     def index(self, key):
@@ -76,7 +76,7 @@ class RefCollectionDictionary(object):
         """
         Returns an iterator to the collection attribute.
         """
-        return iter(self.getAttributeValue(self.collectionDelegate()))
+        return iter(self.getAttributeValue(self.collectionSpecifier()))
  
     def __len__(self):
         """
@@ -84,7 +84,7 @@ class RefCollectionDictionary(object):
         """
         # In case our collection doesn't exist return zero
         try:
-            return len(self.getAttributeValue(self.collectionDelegate()))
+            return len(self.getAttributeValue(self.collectionSpecifier()))
         except AttributeError:
             return 0
     
@@ -102,7 +102,7 @@ class RefCollectionDictionary(object):
         @type key: C{item}
         @return: C{True} if found, or {False} if not found.
         """
-        coll = self.getAttributeValue(self.collectionDelegate())
+        coll = self.getAttributeValue(self.collectionSpecifier())
         return coll.get(item.itsUUID) != None
     
     def __getitem__(self, key):
@@ -137,7 +137,7 @@ class RefCollectionDictionary(object):
         @type item: C{item}
         """
         # 
-        coll = self.getAttributeValue(self.collectionDelegate())
+        coll = self.getAttributeValue(self.collectionSpecifier())
         coll.append(item, alias=self.itemNameAccessor(item))
         if index is not None:
             prevItem = coll.previous(index)
@@ -536,12 +536,17 @@ class ToolbarItem(Block.Block, DynamicChild):
             bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             if self.label:
-                tool = wxToolbar.AddLabelTool(id, self.label, bitmap, 
-                                              shortHelp=self.title, 
-                                              longHelp=self.helpString)
+                tool = wxToolbar.AddLabelTool (id, self.label, bitmap, 
+                                               shortHelp=self.title, 
+                                               longHelp=self.helpString)
             else:
-                tool = wxToolbar.AddSimpleTool (id, bitmap, 
-                                                self.title, self.helpString)
+                if self.toggle:
+                    tool = wxToolbar.AddCheckTool (id, bitmap, 
+                                                   shortHelp=self.title, 
+                                                   longHelp=self.helpString)
+                else:
+                    tool = wxToolbar.AddSimpleTool (id, bitmap, 
+                                                    self.title, self.helpString)
             # Bind events to the Application OnCommand dispatcher, which will
             #  call the block.event method
             wxToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
@@ -586,5 +591,13 @@ class ToolbarItem(Block.Block, DynamicChild):
         elif __debug__:
             assert False, "unknown toolbarItemKind"
             numItems = 0
+        # splice in the tool as this item's widget
+        # this isn't done automatically since ToolbarItems don't use
+        # instantiateWidget
+        # DLDTBD - figure out a way to have the block instantiate a widget
+        # without having it show up anywhere until it gets added to the Toolbar.
+        if tool is not None:
+            self.widget = tool
+            self.widget.blockItem = self
         return numItems
 

@@ -90,10 +90,6 @@
     <core:attributes itemref="core:Parcel/createdOn"/>
     <core:attributes itemref="core:Parcel/modifiedOn"/>
     <core:attributes itemref="conversations"/>
-    <!-- redirections -->
-    <core:attributes itemref="who"/>
-    <core:attributes itemref="date"/>
-    <core:attributes itemref="about"/>
 
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
@@ -104,6 +100,11 @@
     <core:displayName>Note</core:displayName>
     <core:superKinds itemref="ContentItem"/>
     <core:classes key="python">osaf.contentmodel.Notes.Note</core:classes>
+    
+    <!-- redirections -->
+    <core:attributes itemref="who"/>
+    <core:attributes itemref="date"/>
+    <core:attributes itemref="about"/>
   </core:Kind>
   
   <!-- Conversation -->
@@ -206,21 +207,21 @@
 
   <core:Kind itsName="MailedTask">
     <core:description>A Task stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="mail:MailMessageAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEvent">
     <core:description>An Event stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="mail:MailMessageAspect"/>
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
   </core:Kind>
 
   <core:Kind itsName="EventTask">
     <core:description>A Task stamped as an Event, or vica versa</core:description>
-    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>
     <core:superKinds itemref="TaskEventExtraAspect"/>
@@ -228,7 +229,7 @@
 
   <core:Kind itsName="MailedEventTask">
     <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
-    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="mail:MailMessageAspect"/>
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>

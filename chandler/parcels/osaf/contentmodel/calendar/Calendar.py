@@ -33,6 +33,9 @@ class CalendarParcel(application.Parcel.Parcel):
         reminderKind = self['Reminder']
         CalendarParcel.reminderKindID = reminderKind.itsUUID
 
+        calendarEventAspectKind = self['CalendarEventAspect']
+        CalendarParcel.calendarEventAspectKindID = calendarEventAspectKind.itsUUID
+
     def onItemLoad(self):
         super(CalendarParcel, self).onItemLoad()
         self._setUUIDs()
@@ -46,6 +49,12 @@ class CalendarParcel(application.Parcel.Parcel):
         return Globals.repository[cls.calendarEventKindID]
 
     getCalendarEventKind = classmethod(getCalendarEventKind)
+
+    def getCalendarEventAspectKind(cls):
+        assert cls.calendarEventAspectKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.calendarEventAspectKindID]
+
+    getCalendarEventAspectKind = classmethod(getCalendarEventAspectKind)
 
     def getLocationKind(cls):
         assert cls.locationKindID, "CalendarParcel not yet loaded"
@@ -74,12 +83,21 @@ class CalendarParcel(application.Parcel.Parcel):
 
     # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
     calendarEventKindID = None
+    calendarEventAspectKindID = None
     locationKindID = None
     calendarKindID = None
     recurrencePatternKindID = None
     reminderKindID = None
 
-class CalendarEvent(ContentModel.ContentItem):
+class CalendarEventAspect(Item.Item):
+    """
+      Calendar Event Aspect is the bag of Event-specific attributes.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
+    pass
+
+class CalendarEvent(ContentModel.ContentItem, CalendarEventAspect):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
@@ -152,3 +170,4 @@ class Reminder(Item.Item):
         if not kind:
             kind = CalendarParcel.getReminderKind()
         super (Reminder, self).__init__(name, parent, kind)
+        
