@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<DomainSchema itemName="core:CoreSchema" root="Core"
+<DomainSchema itemName="core:CoreSchema" root="Core" bootstrap="True"
   xmlns="http://osafoundation.org/2003/08/CoreSchema"
   xmlns:core="http://osafoundation.org/2003/08/CoreSchema"
   xml:base="http://osafoundation.org/2003/08/CoreSchema">
@@ -8,7 +8,7 @@
 <!-- the 'containmentPath' elements may be temporary -->
 <!-- they might get replaced once we figure out parcel loading -->
 <!-- right now, they're very handy for the xslt transform to our 'pack & item xml' formats -->
-  <itemPathMapping prefix="core" path="//Schema/CoreSchema/"/>
+  <itemPathMapping prefix="core" path="//Schema/Model/Proposed/"/>
 
   <displayName>Core</displayName>
   <version>0</version>
@@ -44,7 +44,7 @@
   </description>
 
 <!-- Global Attributes -->
-  <Attribute itemName="core:displayName">
+  <Attribute itemName="core:displayName" bootstrap="True">
     <displayName>displayName</displayName>
     <description>Any sort of name for an item.</description>
     <cardinality>single</cardinality>
@@ -78,7 +78,7 @@
     <type itemref="core:String"/>
   </Attribute>
 
-  <Attribute itemName="core:description">
+  <Attribute itemName="core:description" boostrap="True">
     <displayName>description</displayName>
     <description>Any sort of comment or description to explain more about an item.</description>
     <cardinality>single</cardinality>
@@ -104,7 +104,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:Item"/>
     <inverseAttribute itemref="core:equivalent"/>
-    <relationshipType>equivalent</relationshipType>
+    <referencePolicy>equivalent</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:hidden">
@@ -116,7 +116,7 @@
     <defaultValue>false</defaultValue>
   </Attribute>
 
-  <Attribute itemName="core:type">
+  <Attribute itemName="core:type" bootstrap="True">
     <displayName>type</displayName>
     <description>What sorts of values can this field or attribute have?</description>
     <cardinality>set</cardinality>
@@ -213,7 +213,7 @@
     <type itemref="core:Item"/>
     <hidden/>
     <inverseAttribute itemref="core:repositoryContainmentChildren"/>
-    <relationshipType>parent</relationshipType>
+    <referencePolicy>parent</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:repositoryContainmentChildren">
@@ -223,7 +223,7 @@
     <type itemref="core:Item"/>
     <hidden/>
     <inverseAttribute itemref="core:repositoryContainmentParent"/>
-    <relationshipType>children</relationshipType>
+    <referencePolicy>children</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:repositoryContainmentPath">
@@ -242,7 +242,7 @@
     <type itemref="core:ForeignItem"/>
     <hidden/>
     <inverseAttribute itemref="core:localCopy"/>
-    <relationshipType>owns</relationshipType>
+    <referencePolicy>owns</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:note">
@@ -288,10 +288,10 @@
     <inverseAttribute itemref="core:itemsSupplied"/>
   </Attribute>
 
-  <Kind itemName="core:Item">
+  <Kind itemName="core:Item" bootstrap="True">
     <displayName>Item</displayName>
     <displayAttribute itemref="core:displayName"/>
-    <attributes itemref="core:id"/>
+    <attributes itemref="core:itemName"/>
     <attributes itemref="core:uuid"/>
     <attributes itemref="core:instanceOfPrimaryKind"/>
     <attributes itemref="core:instanceOfAdditionalKind"/>
@@ -317,7 +317,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:DomainSchema"/>
     <inverseAttribute itemref="core:isUsedBy"/>
-    <relationshipType>parent</relationshipType>
+    <referencePolicy>parent</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:isUsedBy">
@@ -326,7 +326,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:DomainSchema"/>
     <inverseAttribute itemref="core:dependsOn"/>
-    <relationshipType>children</relationshipType>
+    <referencePolicy>children</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:version">
@@ -344,7 +344,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:SchemaItem"/>
     <inverseAttribute itemref="core:definedInDomainSchema"/>
-    <relationshipType>owns</relationshipType>
+    <referencePolicy>owns</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:definedTypes">
@@ -413,7 +413,7 @@
     <cardinality>single</cardinality>
     <type itemref="core:DomainSchema"/>
     <inverseAttribute itemref="core:schemaDefinitions"/>
-    <relationshipType>ownedBy</relationshipType>
+    <referencePolicy>ownedBy</referencePolicy>
   </Attribute>
 
   <Kind itemName="core:SchemaItem">
@@ -429,7 +429,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:Taxon"/>
     <inverseAttribute itemref="core:subTaxons"/>
-    <relationshipType>parent</relationshipType>
+    <referencePolicy>parent</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:subTaxons">
@@ -438,7 +438,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:Taxon"/>
     <inverseAttribute itemref="core:superTaxon"/>
-    <relationshipType>children</relationshipType>
+    <referencePolicy>children</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:usedInAlias">
@@ -449,7 +449,7 @@
     <inverseAttribute itemref="core:aliasFor"/>
   </Attribute>
 
-  <Kind itemName="core:Taxon">
+  <Kind itemName="core:Taxon" bootstrap="True">
     <displayName>Taxon</displayName>
     <description>
       Taxon can be a Kind, or a Type, or a Kind-of-Compound-Attribute. Taxon is an abstract superkind for these three other kinds.
@@ -500,7 +500,7 @@
     <inverseAttribute itemref="core:appliesToType"/>
   </Attribute>
 
-  <Kind itemName="core:Type">
+  <Kind itemName="core:Type" bootstrap="True">
     <displayName>Type</displayName>
     <examples>'integer'</examples>
     <examples>'boolean'</examples>
@@ -526,7 +526,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:Field"/>
     <inverseAttribute itemref="core:owningType"/>
-    <relationshipType>owns</relationshipType>
+    <referencePolicy>owns</referencePolicy>
   </Attribute>
 
   <Kind itemName="core:CompoundType">
@@ -552,7 +552,7 @@
     <cardinality>single</cardinality>
     <type itemref="core:CompoundType"/>
     <inverseAttribute itemref="core:field"/>
-    <relationshipType>ownedBy</relationshipType>
+    <referencePolicy>ownedBy</referencePolicy>
   </Attribute>
 
   <Kind itemName="core:Field">
@@ -576,7 +576,7 @@
     <defaultValue>false</defaultValue>
   </Attribute>
 
-  <Attribute itemName="core:attributes">
+  <Attribute itemName="core:attributes" bootstrap="True">
     <displayName>implied attributes</displayName>
     <description>A set of attributes typically found on items of this Kind.</description>
     <cardinality>set</cardinality>
@@ -584,7 +584,7 @@
     <inverseAttribute itemref="core:usedInKind"/>
   </Attribute>
 
-  <Attribute itemName="core:displayAttribute">
+  <Attribute itemName="core:displayAttribute" bootstrap="True">
     <displayName>display attribute</displayName>
     <description>For items of this kind, what attribute should we look in to find a human readable name for this item?  For example, in an Email Message item we might use the 'subject' attribute, and in a Contact item we might use the 'person name' attribute.</description>
     <cardinality>single</cardinality>
@@ -608,7 +608,7 @@
     <inverseAttribute itemref="core:definedKinds"/>
   </Attribute>
 
-  <Attribute itemName="core:superKinds">
+  <Attribute itemName="core:superKinds" bootstrap="True">
     <displayName>super kind</displayName>
     <description>The superkinds for this kind.</description>
     <type itemref="core:Kind"/>
@@ -617,7 +617,7 @@
     <defaultValue>core:Item</defaultValue>
   </Attribute>
 
-  <Attribute itemName="core:subKinds">
+  <Attribute itemName="core:subKinds" bootstrap="True">
     <displayName>sub kinds</displayName>
     <description>The subkinds of this kind.</description>
     <type itemref="core:Kind"/>
@@ -625,7 +625,7 @@
     <superAttribute itemref="core:subTaxons"/>
   </Attribute>
 
-  <Kind itemName="core:Kind">
+  <Kind itemName="core:Kind" bootstrap="True">
     <displayName>Kind</displayName>
     <examples>Calendar Event</examples>
     <examples>Contact</examples>
@@ -641,7 +641,7 @@
     <attributes itemref="core:abstract"/>
     <attributes itemref="core:attributes"/>
     <attributes itemref="core:displayAttribute"/>
-    <attributes itemref="core:equivalentKind"/>
+    <attributes itemref="core:equivalentKinds"/>
     <attributes itemref="core:kindDefinedInDomainSchema"/>
     <attributes itemref="core:superKinds"/>
     <attributes itemref="core:subKinds"/>
@@ -678,25 +678,25 @@
   </Kind>
 
 <!-- Attribute Definition -->
-  <Attribute itemName="core:superAttribute">
+  <Attribute itemName="core:superAttribute" bootstrap="True">
     <displayName>super attribute</displayName>
     <description>What attribute is this a sub-attribute of?</description>
     <cardinality>single</cardinality>
     <type itemref="core:Attribute"/>
     <inverseAttribute itemref="core:subAttributes"/>
-    <relationshipType>parent</relationshipType>
+    <referencePolicy>parent</referencePolicy>
   </Attribute>
 
-  <Attribute itemName="core:subAttributes">
+  <Attribute itemName="core:subAttributes" bootstrap="True">
     <displayName>sub attributes</displayName>
     <description>What attributes have this one as their super attribute?</description>
     <cardinality>set</cardinality>
     <type itemref="core:Attribute"/>
     <inverseAttribute itemref="core:superAttribute"/>
-    <relationshipType>children</relationshipType>
+    <referencePolicy>children</referencePolicy>
   </Attribute>
 
-  <Attribute itemName="core:cardinality">
+  <Attribute itemName="core:cardinality" bootstrap="True">
     <displayName>cardinality</displayName>
     <description>How many values can this attribute have?</description>
     <cardinality>single</cardinality>
@@ -705,7 +705,7 @@
     <defaultValue>core:single</defaultValue>
   </Attribute>
 
-  <Attribute itemName="core:defaultValue">
+  <Attribute itemName="core:defaultValue" bootstrap="True">
     <displayName>default value</displayName>
     <description>What default value is 'copied' into new instances?</description>
     <cardinality>single</cardinality>
@@ -726,7 +726,7 @@
     <cardinality>set</cardinality>
     <type itemref="core:AttributeRestriction"/>
     <inverseAttribute itemref="core:appliesToAttribute"/>
-    <relationshipType>owns</relationshipType>
+    <referencePolicy>owns</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:equivalentAttributes">
@@ -737,7 +737,7 @@
     <superAttribute itemref="core:equivalent"/>
   </Attribute>
 
-  <Attribute itemName="core:required">
+  <Attribute itemName="core:required" bootstrap="True">
     <displayName>required</displayName>
     <description>TRUE if this attribute is not allowed to have a NULL value.</description>
     <cardinality>single</cardinality>
@@ -751,7 +751,7 @@
     <cardinality>single</cardinality>
     <type itemref="core:DerivationRule"/>
     <inverseAttribute itemref="core:derivedAttribute"/>
-    <relationshipType>owns</relationshipType>
+    <referencePolicy>owns</referencePolicy>
   </Attribute>
   
   <Attribute itemName="core:inverseAttribute">
@@ -770,7 +770,7 @@
     <defaultValue>false</defaultValue>
   </Attribute>
 
-  <Attribute itemName="core:relationshipType">
+  <Attribute itemName="core:referencePolicy">
     <displayName>relationship type</displayName>
     <description>What sort of relationship does this item have to the item pointed to by this attribute?</description>
     <cardinality>single</cardinality>
@@ -816,7 +816,7 @@
     <description>Is this a transitive relationship?  A relationship 'foo' is transitive when ((A.foo = B, and B.foo = C) means that (A.foo = C)). For example, the 'subclass' relationship is transitive.  If A is a subclass of B, and B is a subclass of C, then A is a subclass C.  Similar to the RDF/OWL property 'owl:TransitiveProperty'.</description>
     <cardinality>single</cardinality>
     <type itemref="core:Boolean"/>
-    <derivation>Derived from core:relationshipType.</derivation>
+    <derivation>Derived from core:referencePolicy.</derivation>
   </Attribute>
 
   <Attribute itemName="core:symmetric">
@@ -824,27 +824,27 @@
     <description>Is this a symmetric relationship?  A relationship 'foo' is symmetric when ((A.foo = B) means that (B.foo = A)). For example, the 'spouse' relationship is symmetric.  If A is the spouse of B, then B is the spouse of A.  Similar to the RDF/OWL property 'owl:SymmetricProperty'.</description>
     <cardinality>single</cardinality>
     <type itemref="core:Boolean"/>
-    <derivation>Derived from core:relationshipType.</derivation>
+    <derivation>Derived from core:referencePolicy.</derivation>
   </Attribute>
 
-  <Attribute itemName="core:deletePolicy">
+  <Attribute itemName="core:deletePolicy" bootstrap="True">
     <displayName>delete policy</displayName>
     <description>If A has a reference to B, and vice-versa, what do we do when A is deleted?  Do we delete B also, or do we just remove B's reference to A, or do we delete B only if nobody else now references B?</description>
     <cardinality>single</cardinality>
     <type itemref="core:DeletePolicyEnum"/>
-    <derivation>Derived from core:relationshipType.</derivation>
+    <derivation>Derived from core:referencePolicy.</derivation>
   </Attribute>
 
-  <Attribute itemName="core:copyPolicy">
+  <Attribute itemName="core:copyPolicy" bootstrap="True">
     <displayName>copy policy</displayName>
     <description>If A has a reference to B, and vice-versa, what do we do when A is copied?  Do we copy B also (deep copy), or do we just set the new copy of A to point to the old version of B (shallow copy)?</description>
     <cardinality>single</cardinality>
     <type itemref="core:CopyPolicyEnum"/>
-    <derivation>Derived from core:relationshipType.</derivation>
+    <derivation>Derived from core:referencePolicy.</derivation>
   </Attribute>
 
 
-  <Kind itemName="core:Attribute">
+  <Kind itemName="core:Attribute" bootstrap="True">
     <displayName>Attribute Definition</displayName>
     <examples>('name', text string)</examples>
     <examples>('height', integer)</examples>
@@ -866,7 +866,7 @@
     <attributes itemref="core:subAttributes"/>
     <attributes itemref="core:type"/>
     <attributes itemref="core:cardinality"/>
-    <attributes itemref="core:default"/>
+    <attributes itemref="core:defaultValue"/>
     <attributes itemref="core:defaultFormat"/>
     <attributes itemref="core:restrictions"/>
     <attributes itemref="core:equivalentAttributes"/>
@@ -874,7 +874,7 @@
     <attributes itemref="core:derivation"/>
     <attributes itemref="core:inverseAttribute"/>
     <attributes itemref="core:unidirectional"/>
-    <attributes itemref="core:relationshipType"/>
+    <attributes itemref="core:referencePolicy"/>
     <attributes itemref="core:attributeDefinedInDomainSchema"/>
     <attributes itemref="core:usedInKind"/>
     <attributes itemref="core:usedAsDisplayAttribute"/>
@@ -978,6 +978,7 @@
   <Item itemName="core:children"/>
   <Item itemName="core:owns"/>
   <Item itemName="core:ownedBy"/>
+  <!-- @@@ duplicate definitions of equivalent -->
   <Item itemName="core:equivalent"/>
 
 <!-- Attribute Format -->
@@ -1037,7 +1038,7 @@
     <required/>
     <type itemref="core:Attribute"/>
     <inverseAttribute itemref="core:restrictions"/>
-    <relationshipType>ownedBy</relationshipType>
+    <referencePolicy>ownedBy</referencePolicy>
   </Attribute>
 
   <Attribute itemName="core:restrictionInfo">
@@ -1074,7 +1075,7 @@
     <cardinality>single</cardinality>
     <type itemref="core:DerivationRule"/>
     <inverseAttribute itemref="core:derivation"/>
-    <relationshipType>ownedBy</relationshipType>
+    <referencePolicy>ownedBy</referencePolicy>
   </Attribute>
   
   <Attribute itemName="core:formula">
@@ -1340,7 +1341,7 @@
     <cardinality>single</cardinality>
     <type itemref="core:Item"/>
     <inverseAttribute itemref="core:proxyFor"/>
-    <relationshipType>ownedBy</relationshipType>
+    <referencePolicy>ownedBy</referencePolicy>
   </Attribute>
 
   <Kind itemName="core:ForeignItem">
@@ -1354,7 +1355,7 @@
   </Kind>
 
 <!-- String -->
-  <Alias itemName="core:String">
+  <Alias itemName="core:String" bootstrap="True">
     <displayName>String</displayName>
     <description>
       If an attribute is of type 'String', the values are allowed to be any sort of string type: an 'Simple String' (like a 'Unicode String'), or a 'Compound String' (like a 'Polyglot String').
@@ -1406,7 +1407,7 @@
   </Type>
 
 <!-- Integer -->
-  <Type itemName="core:Integer">
+  <Type itemName="core:Integer" bootstrap="True">
     <displayName>Integer</displayName>
     <examples>25</examples>
     <examples>75</examples>
@@ -1414,7 +1415,7 @@
   </Type>
 
 <!-- Float -->
-  <Type itemName="core:Float">
+  <Type itemName="core:Float" bootstrap="True">
     <displayName>Float</displayName>
     <examples>2.5</examples>
     <examples>0.75</examples>
@@ -1451,7 +1452,7 @@
   </Type>
 
 <!-- Symbol -->
-  <Type itemName="core:Symbol">
+  <Type itemName="core:Symbol" bootstrap="True">
     <displayName>Symbol</displayName>
     <description>
       A short ASCII string with no spaces or special characters.  Something suitable for using as a variable name in Python or Java.
@@ -1497,7 +1498,7 @@
   </Type>
 
 <!-- UUID -->
-  <Type itemName="core:UUID">
+  <Type itemName="core:UUID" bootstrap="True">
     <displayName>UUID</displayName>
     <examples>e2d03cb4-9d58-11d7-d179-000393db837c</examples>
     <description>
@@ -1615,18 +1616,18 @@
     <attributes itemref="core:winterTimezoneFor"/>
   </Kind>
 
-  <core:FixedTimezone itemName="core:PST_Timezone">
-    <core:displayName>Pacific Standard Time</core:displayName>
-    <core:abbreviation>PST</core:abbreviation>
-    <core:utcOffset>-8:00</core:utcOffset>
-  </core:FixedTimezone>
+  <FixedTimezone itemName="core:PST_Timezone">
+    <displayName>Pacific Standard Time</displayName>
+    <abbreviation>PST</abbreviation>
+    <utcOffset>-8:00</utcOffset>
+  </FixedTimezone>
 
-  <core:FixedTimezone itemName="core:PDT_Timezone">
-    <core:displayName>Pacific Daylight Time</core:displayName>
-    <core:abbreviation>PDT</core:abbreviation>
-    <core:utcOffset>-7:00</core:utcOffset>
-  </core:FixedTimezone>
-  
+  <FixedTimezone itemName="core:PDT_Timezone">
+    <displayName>Pacific Daylight Time</displayName>
+    <abbreviation>PDT</abbreviation>
+    <utcOffset>-7:00</utcOffset>
+  </FixedTimezone>
+
 <!-- Daylight Saving Timezone -->
   <Attribute itemName="core:summerTimezone">
     <displayName>summer timezone</displayName>
@@ -1663,12 +1664,13 @@
     <attributes itemref="core:transitionRule"/>
   </Kind>
 
-  <core:DaylightSavingTimezone itemName="core:PT_Timezone">
-    <core:displayName>Pacific Time</core:displayName>
-    <core:abbreviation>PT</core:abbreviation>
-    <core:summerTimezone itemref="core:PDT_Timezone"/>
-    <core:winterTimezone itemref="core:PST_Timezone"/>
-  </core:DaylightSavingTimezone>
+<!-- Can't handle these items yet -->
+  <DaylightSavingTimezone itemName="core:PT_Timezone">
+    <displayName>Pacific Time</displayName>
+    <abbreviation>PT</abbreviation>
+    <summerTimezone itemref="core:PDT_Timezone"/>
+    <winterTimezone itemref="core:PST_Timezone"/>
+  </DaylightSavingTimezone>
 
 <!-- Date -->
   <Attribute itemName="core:year">
