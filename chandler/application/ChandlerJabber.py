@@ -606,6 +606,30 @@ class JabberClient:
         self.roster = self.connection.requestRoster()
         self.NotifyPresenceChanged(jabberID)
 
+    # utility routine that parses a url, sees if the first part is
+    # a remote address, and strips it if we're not connected or the
+    # user isn't present
+    def StripRemoteIfNecessary(self, uri):
+        if uri.startswith('/'):
+            uri = uri[1:]
+        if uri.endswith('/'):
+            uri = uri[:-1] 
+        fields = uri.split('/')
+        
+        remoteaddress = None
+        localuri = uri
+        
+        if fields[0].find('@') > -1:
+            remoteaddress = fields[0]
+            localuri = string.join(fields[1:], '/')
+
+            if not self.IsConnected():
+                return localuri
+            if not self.IsPresent(remoteaddress):
+                return localuri
+            
+        return uri
+    
 # here's a subclass of timer to periodically drive the event mechanism
 class JabberTimer(wxTimer):
     def __init__(self, jabberClient):

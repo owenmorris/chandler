@@ -277,6 +277,7 @@ class wxApplication (wxApp):
 			self.wxMainFrame = app.association[id(self.model.mainFrame)]
 		uri = self.wxMainFrame.navigationBar.model.GetCurrentUri()
 		if uri != None:
+			uri = app.jabberClient.StripRemoteIfNecessary(uri)
 			self.wxMainFrame.GoToUri(uri, false)
 		else:
 			children = self.model.URLTree.GetUriChildren('')
