@@ -118,6 +118,10 @@ int x509_req_write_pem(BIO *bio, X509_REQ *x) {
     return PEM_write_bio_X509_REQ(bio, x);
 }
 
+int x509_write_pem(BIO *bio, X509 *x) {
+    return PEM_write_bio_X509(bio, x);
+}
+
 X509_CRL *x509_crl_read_pem(BIO *bio) {
     return PEM_read_bio_X509_CRL(bio, NULL, NULL, NULL);
 }

@@ -196,6 +196,21 @@ class X509:
         m2.i2d_x509(buf.bio_ptr(), self.x509)
         return buf.read_all()
 
+    def as_pem(self):
+        """
+        as_pem
+        """
+        buf=BIO.MemoryBuffer()
+        m2.x509_write_pem(buf.bio_ptr(), self.x509)
+        return buf.read_all()
+
+    def save_pem(self, filename):
+        """
+        save_pem
+        """
+        bio=BIO.openfile(filename, 'wb')
+        return m2.x509_write_pem(bio.bio_ptr(), self.x509)
+
     def get_version(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_get_version(self.x509)

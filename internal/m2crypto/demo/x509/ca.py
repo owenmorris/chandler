@@ -93,4 +93,6 @@ if __name__ == '__main__':
     print req.as_text()
     cert = makeCert(req, pkey)
     print cert.as_text()
+    print cert.as_pem()
+    cert.save_pem('my_ca_cert.pem')
     Rand.save_file('../randpool.dat')
