@@ -333,7 +333,7 @@
   </Menu>
   
   <MenuItem itsName="NewNoteItem">
-    <blockName>NewTabItem</blockName>
+    <blockName>NewNoteItem</blockName>
     <title>Note</title>
     <accel>N</accel>
     <helpString>Create a new Note</helpString>
