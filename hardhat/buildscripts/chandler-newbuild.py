@@ -33,7 +33,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     # Initialize external (hardly ever changes)
     print "Initializing external modules ..."
     log.write("- - - - external - - - - - - -\n")
-    moduleData["external"] = {}
+    # not needed here?    moduleData["external"] = {}
     
     # Do external setup for both debug and release here
     for releaseMode in ('debug', 'release'):
