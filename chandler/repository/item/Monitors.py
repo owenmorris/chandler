@@ -44,7 +44,7 @@ class Monitors(Item):
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
         instance = cls.getInstance(item.itsView)
-        monitor = [item, method, list(args), kwds]
+        monitor = [item, method, args, kwds]
         try:
             instance.monitoring[op][attribute].append(monitor)
         except KeyError:
@@ -53,7 +53,7 @@ class Monitors(Item):
     def detach(cls, item, method, op, attribute, *args, **kwds):
 
         instance = cls.getInstance(item.itsView)
-        monitor = [item, method, list(args), kwds]
+        monitor = [item, method, args, kwds]
 
         instance.monitoring[op][attribute].remove(monitor)
 

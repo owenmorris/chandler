@@ -70,19 +70,17 @@ class RemoteStore(XMLStore):
         if version == 0:
             versionId, version = self.transport.getVersionInfo()
 
-            txnStarted = False
+            txnStatus = 0
             try:
-                txnStarted = self.startTransaction()
+                txnStatus = self.startTransaction()
                 history.setVersion(version)
                 history.setVersion(version, versionId)
                 history.setVersionId(versionId, self.itsUUID)
             except:
-                if txnStarted:
-                    txnStarted = self.abortTransaction()
+                self.abortTransaction(txnStatus)
                 raise
             else:
-                if txnStarted:
-                    txnStarted = self.commitTransaction()
+                self.commitTransaction(txnStatus)
                 
         return version
 

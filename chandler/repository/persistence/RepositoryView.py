@@ -4,10 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import libxml2, threading, logging, heapq, sys, gc
+import libxml2, logging, heapq, sys, gc
+
+from threading import currentThread, Thread
 
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
+from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler, ItemsHandler
@@ -40,7 +43,7 @@ class RepositoryView(object):
             raise RepositoryError, "Repository is not open"
 
         self.repository = repository
-        self.name = name or threading.currentThread().getName()
+        self.name = name or currentThread().getName()
 
         self.openView()
         
@@ -196,7 +199,7 @@ class RepositoryView(object):
     def _setLoading(self, loading, runHooks=False):
 
         if self.repository.view is not self:
-            raise RepositoryError, "In thread %s the current view is %s, not %s" %(threading.currentThread(), self.repository.view, self)
+            raise RepositoryError, "In thread %s the current view is %s, not %s" %(currentThread(), self.repository.view, self)
 
         status = (self._status & RepositoryView.LOADING != 0)
 
@@ -826,6 +829,7 @@ class OnDemandRepositoryView(RepositoryView):
     def __init__(self, repository, name):
 
         self._version = repository.store.getVersion()
+        self._exclusive = ThreadSemaphore()
         self._hooks = []
         
         super(OnDemandRepositoryView, self).__init__(repository, name)
@@ -849,8 +853,10 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadDoc(self, doc):
 
         try:
+            release = False
             loading = self.isLoading()
             if not loading:
+                release = self._exclusive.acquire()
                 self._setLoading(True)
                 self._hooks = []
 
@@ -885,11 +891,15 @@ class OnDemandRepositoryView(RepositoryView):
             if not loading:
                 self._setLoading(False, False)
                 self._hooks = []
+            if release:
+                self._exclusive.release()
             raise
         
         else:
             if not loading:
                 self._setLoading(False, True)
+            if release:
+                self._exclusive.release()
 
         return item
 
@@ -1167,7 +1177,7 @@ class AbstractRepositoryViewManager(object):
         """
 
         if useThread:
-            thread = threading.Thread(target=self.__commitInView)
+            thread = Thread(target=self.__commitInView)
             thread.start()
 
         else:

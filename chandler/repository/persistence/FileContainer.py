@@ -484,4 +484,6 @@ class IndexContainer(FileContainer):
                     docs[uuid] = (ver, hit.get('attribute'))
             i += 1
 
+        searcher.close()
+
         return docs

@@ -7,7 +7,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, os.path, libxml2, cStringIO
 
 from datetime import datetime
-from threading import currentThread
 from struct import pack
 
 from chandlerdb.util import lock
@@ -263,11 +262,11 @@ class XMLContainer(object):
     def queryItems(self, version, query):
 
         store = self.store
-        txnStarted = False
+        txnStatus = 0
 
         docs = {}
         try:
-            txnStarted = store.startTransaction()
+            txnStatus = store.startTransaction()
             for value in self._xml.queryWithXPath(store.txn,
                                                   query, store.ctx,
                                                   DB_DIRTY_READ):
@@ -280,8 +279,7 @@ class XMLContainer(object):
                         docs[uuid] = (doc, ver)
 
         finally:
-            if txnStarted:
-                store.abortTransaction()
+            store.abortTransaction(txnStatus)
 
         results = []
         for uuid, (doc, ver) in docs.iteritems():
@@ -338,10 +336,10 @@ class XMLStore(Store):
     def open(self, **kwds):
 
         self._ramdb = kwds.get('ramdb', False)
-        txnStarted = False
+        txnStatus = 0
         
         try:
-            txnStarted = self.startTransaction()
+            txnStatus = self.startTransaction()
             txn = self.txn
                 
             self._xml = XMLContainer(self, "__xml__", txn, **kwds)
@@ -355,8 +353,7 @@ class XMLStore(Store):
             self._acls = ACLContainer(self, "__acls__", txn, **kwds)
             self._indexes = IndexesContainer(self, "__indexes__", txn, **kwds)
         finally:
-            if txnStarted:
-                self.commitTransaction()
+            self.commitTransaction(txnStatus)
 
     def close(self):
 
@@ -414,9 +411,9 @@ class XMLStore(Store):
         refs = []
 
         buffer = self._refs.prepareKey(uItem, uuid)
-        txnStarted = False
+        txnStatus = 0
         try:
-            txnStarted = self.startTransaction()
+            txnStatus = self.startTransaction()
             key = firstKey
             while key is not None:
                 ref = self._refs.loadRef(buffer, version, key)
@@ -425,8 +422,7 @@ class XMLStore(Store):
                 refs.append(ref)
                 key = ref[1]
         finally:
-            if txnStarted:
-                self.abortTransaction()
+            self.abortTransaction(txnStatus)
             buffer.close()
 
         return refs
@@ -485,32 +481,50 @@ class XMLStore(Store):
 
     def startTransaction(self):
 
+        status = 0
+        repository = self.repository
+
+        view = repository.getCurrentView(create=False)
+        if view is not None:
+            if view._exclusive.acquire():
+                status = XMLStore.EXCLUSIVE
+        
         if not self._ramdb:
             if self.txn is None:
-                self.txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
-                return True
+                self.txn = repository._env.txn_begin(None, DB_DIRTY_READ)
+                status |= XMLStore.TXNSTARTED
         else:
             self.txn = None
 
-        return False
+        return status
 
-    def commitTransaction(self):
+    def commitTransaction(self, status):
 
-        if self.txn is not None:
-            self.txn.commit()
-            self.txn = None
-            return True
+        try:
+            if status & XMLStore.TXNSTARTED:
+                if self.txn is None:
+                    raise AssertionError, 'txn is None'
+                self.txn.commit()
+                self.txn = None
+        finally:
+            if status & XMLStore.EXCLUSIVE:
+                self.repository.view._exclusive.release()
 
-        return False
+        return status
 
-    def abortTransaction(self):
+    def abortTransaction(self, status):
 
-        if self.txn is not None:
-            self.txn.abort()
-            self.txn = None
-            return True
+        try:
+            if status & XMLStore.TXNSTARTED:
+                if self.txn is None:
+                    raise AssertionError, 'txn is None'
+                self.txn.abort()
+                self.txn = None
+        finally:
+            if status & XMLStore.EXCLUSIVE:
+                self.repository.view._exclusive.release()
 
-        return False
+        return status
 
     def lobName(self, uuid, version):
 
@@ -641,6 +655,9 @@ class XMLStore(Store):
             return None
 
         return self.serveItem(version, uuid)
+
+    TXNSTARTED = 0x0001
+    EXCLUSIVE  = 0x0002
 
     env = property(_getEnv)
     ctx = property(_getCtx)

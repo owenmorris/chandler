@@ -9,7 +9,7 @@ from time import time
 from struct import pack
 from cStringIO import StringIO
 
-from bsddb.db import DBLockDeadlockError, DBNotFoundError
+from bsddb.db import DBLockDeadlockError
 
 from repository.item.Item import Item
 from repository.item.RefCollections import TransientRefList
@@ -133,22 +133,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return self.repository.store.startTransaction()
 
-    def _commitTransaction(self):
+    def _commitTransaction(self, status):
 
         if self._indexWriter is not None:
             self.repository.store._index.optimizeIndex(self._indexWriter)
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.repository.store.commitTransaction()
+        self.repository.store.commitTransaction(status)
 
-    def _abortTransaction(self):
+    def _abortTransaction(self, status):
 
         if self._indexWriter is not None:
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.repository.store.abortTransaction()
+        self.repository.store.abortTransaction(status)
 
     def _getIndexWriter(self):
 
@@ -202,25 +202,25 @@ class XMLRepositoryView(OnDemandRepositoryView):
             if timing: tools.timing.begin("Repository commit")
 
             try:
+                self._exclusive.acquire()
                 self._status |= RepositoryView.COMMITTING
-
+                
                 store = self.repository.store
                 history = store._history
                 before = time()
 
                 size = 0L
-                txnStarted = False
+                txnStatus = 0
                 lock = None
 
-                def finish(lock, txnStarted, commit):
-                    if txnStarted:
-                        if commit:
-                            self._commitTransaction()
-                        else:
-                            self._abortTransaction()
+                def finish(lock, txnStatus, commit):
+                    if commit:
+                        self._commitTransaction(txnStatus)
+                    else:
+                        self._abortTransaction(txnStatus)
                     if lock:
                         lock = store.releaseLock(lock)
-                    return lock, False
+                    return lock, 0
         
                 self._notifications.clear()
         
@@ -236,7 +236,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                 break
 
                         count = len(self._log)
-                        txnStarted = self._startTransaction()
+                        txnStatus = self._startTransaction()
 
                         if count > 0:
                             newVersion += 1
@@ -247,18 +247,18 @@ class XMLRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 self._roots._saveValues(newVersion)
 
-                        lock, txnStarted = finish(lock, txnStarted, True)
+                        lock, txnStatus = finish(lock, txnStatus, True)
                         break
 
                     except DBLockDeadlockError:
                         self.logger.info('retrying commit aborted by deadlock')
-                        lock, txnStarted = finish(lock, txnStarted, False)
+                        lock, txnStatus = finish(lock, txnStatus, False)
                         continue
 
                     except:
-                        if txnStarted:
+                        if txnStatus:
                             self.logger.exception('aborting transaction (%ld bytes)', size)
-                        lock, txnStarted = finish(lock, txnStarted, False)
+                        lock, txnStatus = finish(lock, txnStatus, False)
                         raise
 
                 self._version = newVersion
@@ -294,6 +294,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
             finally:
                 self._status &= ~RepositoryView.COMMITTING
+                self._exclusive.release()
 
             if timing: tools.timing.end("Repository commit")
 

@@ -26,7 +26,7 @@ class RemoteFilter(XMLFilter):
         self._isOn = False
         self._isSkipping = False
         
-        self._txnStarted = False
+        self._txnStatus = 0
         self._lock = None
         self._buffer = cStringIO.StringIO()
         self._refBuffer = cStringIO.StringIO()
@@ -87,8 +87,8 @@ class RemoteFilter(XMLFilter):
             if self._indexWriter is not None:
                 self._indexWriter.close()
                 self._indexWriter = None
-            if self._txnStarted:
-                self._txnStarted = self.store.abortTransaction()
+            self.store.abortTransaction(self._txnStatus)
+            self._txnStatus = 0
             if self._lock:
                 self._lock = self.store.releaseLock(self._lock)
 
@@ -101,7 +101,7 @@ class RemoteFilter(XMLFilter):
             if versionId != self.versionId:
                 raise ValueError, "remote version ids don't match"
 
-        self._txnStarted = self.store.startTransaction()
+        self._txnStatus = self.store.startTransaction()
         self._lock = self.store.acquireLock()
 
     def itemsEnd(self, attrs):
@@ -111,8 +111,8 @@ class RemoteFilter(XMLFilter):
             self._indexWriter.close()
             self._indexWriter = None
             
-        if self._txnStarted:
-            self._txnStarted = self.store.commitTransaction()
+        self.store.commitTransaction(self._txnStatus)
+        self._txnStatus = 0
         if self._lock:
             self._lock = self.store.releaseLock(self._lock)
 

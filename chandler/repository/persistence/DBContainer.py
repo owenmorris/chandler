@@ -209,12 +209,14 @@ class RefContainer(DBContainer):
 
     def applyHistory(self, fn, uuid, oldVersion, newVersion):
 
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor(self._history)
 
                 try:
@@ -224,7 +226,7 @@ class RefContainer(DBContainer):
                 except DBNotFoundError:
                     return
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(16)
                         continue
                     else:
@@ -243,7 +245,7 @@ class RefContainer(DBContainer):
                         value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(17)
                         continue
                     else:
@@ -254,8 +256,7 @@ class RefContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
     def deleteRef(self, keyBuffer, buffer, version, key):
 
@@ -291,13 +292,14 @@ class RefContainer(DBContainer):
     def loadRef(self, buffer, version, key):
 
         cursorKey = self._packKey(buffer, key)
+        store = self.store
 
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
 
                 try:
@@ -305,7 +307,7 @@ class RefContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(1)
                         continue
                     else:
@@ -321,7 +323,7 @@ class RefContainer(DBContainer):
                             value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(2)
                         continue
                     else:
@@ -332,8 +334,7 @@ class RefContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
     # has to run within the commit transaction or it may deadlock
     def deleteItem(self, item):
@@ -458,12 +459,14 @@ class HistContainer(DBContainer):
 
     def apply(self, fn, oldVersion, newVersion):
 
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
 
                 try:
@@ -472,7 +475,7 @@ class HistContainer(DBContainer):
                 except DBNotFoundError:
                     return
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(18)
                         continue
                     else:
@@ -509,7 +512,7 @@ class HistContainer(DBContainer):
                         value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(19)
                         continue
                     else:
@@ -520,17 +523,18 @@ class HistContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
     def _readHistory(self, uuid, version):
 
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor(self._versions)
 
                 try:
@@ -539,7 +543,7 @@ class HistContainer(DBContainer):
                 except DBNotFoundError:
                     return None, None, None, None
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(7)
                         continue
                     else:
@@ -559,7 +563,7 @@ class HistContainer(DBContainer):
                         value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(5)
                         continue
                     else:
@@ -570,8 +574,7 @@ class HistContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
     def getDocId(self, uuid, version):
 
@@ -615,13 +618,14 @@ class NamesContainer(DBContainer):
             name = name.encode('utf-8')
 
         cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
-            
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
                 
                 try:
@@ -629,7 +633,7 @@ class NamesContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(8)
                         continue
                     else:
@@ -649,7 +653,7 @@ class NamesContainer(DBContainer):
                             value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(9)
                         continue
                     else:
@@ -660,20 +664,20 @@ class NamesContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
     def readNames(self, version, key):
 
         results = []
         cursorKey = key._uuid
-            
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
                 
                 try:
@@ -681,7 +685,7 @@ class NamesContainer(DBContainer):
                 except DBNotFoundError:
                     return results
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(12)
                         continue
                     else:
@@ -702,7 +706,7 @@ class NamesContainer(DBContainer):
                         value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(13)
                         continue
                     else:
@@ -713,8 +717,7 @@ class NamesContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
 
 class ACLContainer(DBContainer):
@@ -745,12 +748,14 @@ class ACLContainer(DBContainer):
                 name = name.encode('utf-8')
             cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
 
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
                 
                 try:
@@ -758,7 +763,7 @@ class ACLContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(10)
                         continue
                     else:
@@ -785,7 +790,7 @@ class ACLContainer(DBContainer):
                             value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(11)
                         continue
                     else:
@@ -796,8 +801,7 @@ class ACLContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
 
 class IndexesContainer(DBContainer):
@@ -866,13 +870,14 @@ class IndexesContainer(DBContainer):
     def loadKey(self, index, keyBuffer, version, key):
         
         cursorKey = self._packKey(keyBuffer, key)
-
+        store = self.store
+        
         while True:
-            txnStarted = False
+            txnStatus = 0
             cursor = None
 
             try:
-                txnStarted = self.store.startTransaction()
+                txnStatus = store.startTransaction()
                 cursor = self.cursor()
 
                 try:
@@ -880,7 +885,7 @@ class IndexesContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(14)
                         continue
                     else:
@@ -921,7 +926,7 @@ class IndexesContainer(DBContainer):
                             value = cursor.next()
 
                 except DBLockDeadlockError:
-                    if txnStarted:
+                    if txnStatus & store.TXNSTARTED:
                         self._logDL(15)
                         continue
                     else:
@@ -932,8 +937,7 @@ class IndexesContainer(DBContainer):
             finally:
                 if cursor is not None:
                     cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
+                store.abortTransaction(txnStatus)
 
 
 class HashTuple(tuple):

@@ -853,10 +853,13 @@ class MergeHandler(ItemHandler):
             origRef = origItem._references.get(name, None)
 
             if origRef is None:
-                itemRef = None
-            elif origRef._isItem() and origRef._uuid == uuid:
+                itemRef = uuid
+            elif (origRef._isItem() and origRef._uuid == uuid or
+                  origRef._isUUID() and origRef == uuid):
                 itemRef = origRef
             else:
+                if origRef._isUUID():
+                    origRef = origItem._references._getRef(name, origRef)
                 origItem._references._unloadValue(name, origRef, otherName)
                 itemRef = uuid
 
