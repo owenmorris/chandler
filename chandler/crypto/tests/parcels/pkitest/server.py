@@ -1,6 +1,7 @@
 from M2Crypto import SSL, Rand, threading
-import thread
+import threading
 from socket import *
+import logging
 
 verbose_debug = 1
 
@@ -61,18 +62,31 @@ def do_server_loop(conn):
         return 1
     return 0
 
-def server_thread(ctx, sock, addr):
-    conn = SSL.Connection(ctx, sock)
-    conn.setup_addr(addr)
-    conn.set_accept_state()
-    conn.setup_ssl()
-    conn.accept_ssl()
-    
-    post_connection_check(conn)
+class Server(threading.Thread):
+    """
+    SSL server.
+    """
+    def __init__(self, ctx, sock, addr):
+        self.ctx = ctx
+        self.sock = sock
+        self.addr = addr
 
-    print 'SSL Connection opened'
-    if do_server_loop(conn):
-        conn.close()
-    else:
-        conn.clear()
-    print 'SSL Connection closed'        
+    def run(self):
+        log = logging.getLogger('sslserver')
+        log.setLevel(logging.INFO)
+        log.info('Accepting SSL client connection:' + str(self.ctx)
+                 + str(self.sock) + str(self.addr))
+        
+        self.conn = SSL.Connection(self.ctx, self.sock)
+        self.conn.setup_addr(self.addr)
+        self.connx.set_accept_state()
+        self.conn.setup_ssl()
+        self.conn.accept_ssl()
+
+        log.info('SSL Connection opened')
+        if do_server_loop(self.conn):
+            self.conn.close()
+        else:
+            self.conn.clear()
+        log.info('SSL Connection closed')
+    

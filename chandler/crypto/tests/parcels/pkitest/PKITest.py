@@ -46,6 +46,10 @@ class PKITestViewParcel(Parcel):
 class PKITestView(BoxContainer):
 
     def OnStartStopServerEvent(self, notification):
+        log = logging.getLogger('m2seeder')
+        log.setLevel(logging.INFO)
+        log.info('Start/Stop server called')
+        
         serverPort = Globals.repository.find('//parcels/pkitest/views/PKITestView/ServerPortText')
         wxServerPortText = Globals.association[serverPort.getUUID( )]
         sPort = wxServerPortText.GetValue()
@@ -56,7 +60,11 @@ class PKITestView(BoxContainer):
         sock.bind(('', int(sPort)))
         sock.listen(5)
         conn, addr = sock.accept()
-        thread.start_new_thread(server.server_thread, (ctx, conn, addr))
+
+        log.info('accepted: ' + str(conn) + str(addr))
+        
+        self.server = server.Server(ctx, conn, addr)
+        self.server.start()
 
     def OnConnectDisconnectClientEvent(self, notification):
         ctx = setup_client_ctx()
