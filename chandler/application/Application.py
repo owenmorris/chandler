@@ -160,6 +160,9 @@ class wxApplication (wxApp):
         a popup window; not setting WXREDIRECT at all will let wxApp
         decide what to do.
         """
+
+        self.argv = argv
+
         if os.environ.has_key('WXREDIRECT'):
             if os.environ['WXREDIRECT'] != '0':
                 redirect = True
@@ -168,8 +171,6 @@ class wxApplication (wxApp):
             wxApp.__init__(self, redirect)
         else:
             wxApp.__init__(self)
-
-        self.argv = argv
 
     def OnInit(self):       
         """
