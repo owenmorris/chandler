@@ -24,9 +24,9 @@ class Kind(Item):
         
         return self.getAttribute('Class')(name, parent, self)
         
-    def getAttrDef(self, name, inheriting=False):
+    def getAttrDef(self, name):
 
-        attrDef = self._getAttrDef(name, inheriting)
+        attrDef = self.getValue('AttrDefs', name, _attrDict=self._references)
         if attrDef is None:
             attrDef = self.getValue('InheritedAttrDefs', name,
                                     _attrDict=self._references)
@@ -35,30 +35,34 @@ class Kind(Item):
 
         return attrDef
 
-    def _getAttrDef(self, name, inheriting):
-
-        return self.getValue('AttrDefs', name, _attrDict=self._references)
-
     def inheritAttrDef(self, name):
 
-        if self.hasAttribute('SuperKind'):
-            if self.hasValue('NotFoundAttrDefs', name):
-                return None
-
+        if self.hasValue('NotFoundAttrDefs', name):
+            return None
+        
+        inheritingKinds = self._getInheritingKinds(name)
+        if inheritingKinds is not None:
             cache = True
-            for superKind in self.SuperKind:
-                if superKind is not None:
-                    attrDef = superKind.getAttrDef(name, True)
+            for inheritingKind in inheritingKinds:
+                if inheritingKind is not None:
+                    attrDef = inheritingKind.getAttrDef(name)
                     if attrDef is not None:
                         self.attach('InheritedAttrDefs', attrDef)
                         return attrDef
                 else:
                     cache = False
                     
-            if cache and not self.hasValue('NotFoundAttrDefs', name):
+            if cache:
                 self.addValue('NotFoundAttrDefs', name)
 
         return None
+
+    def _getInheritingKinds(self, name):
+
+        if self.hasAttribute('SuperKind'):
+            return self.SuperKind
+
+        return self._kind._getInheritingKinds(name)
 
     def _saveRefs(self, generator, withSchema):
 
@@ -75,6 +79,12 @@ class KindKind(Kind):
         self._kind = self
 
 
+class ItemKind(Kind):
+
+    def _getInheritingKinds(self, name):
+        return None
+
+
 class SchemaRoot(Item):
 
     def __init__(self, name, parent, kind, **_kwds):
@@ -87,11 +97,14 @@ class SchemaRoot(Item):
 
     def afterLoadHook(self):
 
-        def cacheKind(item):
+        def apply(item):
 
             if item._kind is None and item.hasAttribute('Kind'):
                 item._kind = item.Kind
-            for child in item:
-                cacheKind(child)
+            if item.hasAttribute('NotFoundAttrDefs'):
+                del item.NotFoundAttrDefs[:]
 
-        cacheKind(self)
+            for child in item:
+                apply(child)
+
+        apply(self)

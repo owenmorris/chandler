@@ -5,7 +5,7 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="AttrDefs" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="Values" type="path">//Schema/Model/Attributes/Values</ref>
+    <ref name="Values" type="path">/Model/Attributes/Values</ref>
   </ref>
 
   <ref name="SuperKind" cardinality="list"

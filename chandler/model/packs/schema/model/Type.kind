@@ -8,10 +8,5 @@
     <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list" otherName="SubKind" otherCard="dict">
-    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
-         type="path">/Model/Item</ref>
-  </ref>
-
   <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Type</attribute>
 </item>

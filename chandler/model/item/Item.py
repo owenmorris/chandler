@@ -1044,7 +1044,7 @@ class ItemHandler(xml.sax.ContentHandler):
         return otherName
 
     def getAttrDef(self, name):
-        
+
         if self.kind is not None:
             return self.kind.getAttrDef(name)
         else:
