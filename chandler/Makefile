@@ -1,7 +1,5 @@
 # Make file for new chandler
 
-VERSION=0.3-2
-
 include ../external/Makefile.inc
 
 DEPS =../external/persistence/db/db-4.2.52.tar.gz \
@@ -18,11 +16,12 @@ DEPS =../external/persistence/db/db-4.2.52.tar.gz \
 	  ../external/egenix-mx/egenix-mx-base-2.1.0.tar.gz \
 	  ../external/jabber-py/jabberpy0.4-0.tar.gz \
 	  ../external/SOAPpy/SOAPpy-0.10.2.tar.gz \
-	  ../external/pychecker/pychecker-0.8.13.tar.gz
+	  ../external/pychecker/pychecker-0.8.13.tar.gz \
+	  ../external/openssl/openssl0.9.7c.tar.gz
 
 .PHONY: $(DEPS)
 
-all: env $(DEPS) ../external/sources-$(VERSION).tar
+all: env $(DEPS) 
 	cd ../external; \
 	make expand; \
 	make
