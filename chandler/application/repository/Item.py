@@ -4,7 +4,7 @@
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
-__license__ = "OSAF"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.repository.Namespace import chandler, dc
 from application.repository.Thing import Thing

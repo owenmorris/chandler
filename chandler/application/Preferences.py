@@ -1,7 +1,7 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
-__license__ = "OSAF License"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from persistence import Persistent
 from persistence.dict import PersistentDict

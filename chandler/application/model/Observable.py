@@ -6,7 +6,7 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
-__license__ = "OSAF"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 class Observable:
     """Mixin class, used to make an object observable"""
