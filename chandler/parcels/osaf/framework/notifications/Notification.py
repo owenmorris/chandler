@@ -22,3 +22,6 @@ class Notification(object):
 
     def SetData(self,data):
         self.data = data
+
+    def __repr__(self):
+        return '<Notification> ' +  str(self.event.getItemPath())
