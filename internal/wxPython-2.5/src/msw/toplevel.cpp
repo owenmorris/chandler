@@ -218,7 +218,14 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 
     if ( exflags )
     {
-        // there is no taskbar under CE, so omit all this
+ 	if (wxApp::GetComCtl32Version() >= 582)
+//		if (GetKeyState( VK_CAPITAL ) == 0)
+		{
+			*exflags |= 0x02000000;	// WS_EX_COMPOSITED
+//			MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
+		}
+
+       // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
         {
@@ -427,6 +434,10 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
 #else // other (including normal desktop) Windows
     wxSize sz(size);
 #endif
+
+	// cannot let this flag go through...
+	if (! IsTopLevel())
+		exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
 
     return MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
 }
