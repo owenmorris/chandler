@@ -1,3 +1,5 @@
+from M2Crypto import util, EVP
+
 class SSLVerificationError(Exception):
     pass
 
@@ -24,16 +26,11 @@ class Checker:
             der = peerCert.as_der()
             md = EVP.MessageDigest(self.digest)
             md.update(der)
-            digest = md.final() # XXX See if we can compare as numbers
-            hexstr = hex(util.octx_to_num(digest))
-            fingerprint = hexstr[2:len(hexstr)-1]
-            fpLen = len(fingerprint)
-            if fpLen < 40: # len(sha1 in hex) == 40
-                fingerprint = '0' * (40 - fpLen) + fingerprint # Pad with 0's
-            if fingerprint != certSha1Fingerprint:
+            digest = md.final()
+            if util.octx_to_num(digest) != int(self.fingerprint, 16):
                 raise WrongCertificate, 'peer certificate fingerprint does not match'
 
-        if host:
+        if self.host:
             hostValidationPassed = False
 
             # XXX See RFC 2818 (and maybe 3280) for matching rules
@@ -41,8 +38,8 @@ class Checker:
             # XXX subjectAltName might contain multiple fields
             # subjectAltName=DNS:somehost
             try:
-                if cert.get_ext('subjectAltName').get_value() != 'DNS:' + host:
-                    raise SSLError, 'subjectAltName does not match host'
+                if peerCert.get_ext('subjectAltName').get_value() != 'DNS:' + self.host:
+                    raise WrongHost, 'subjectAltName does not match host'
                 hostValidationPassed = True
             except LookupError:
                 pass
@@ -50,8 +47,9 @@ class Checker:
             # commonName=somehost
             if not hostValidationPassed:
                 try:
-                    if cert.get_subject().CN != host:
+                    if peerCert.get_subject().CN != self.host:
                         raise WrongHost, 'peer certificate commonName does not match host'
                 except AttributeError:
                     raise WrongHost, 'no commonName in peer certificate'
 
+        return True
