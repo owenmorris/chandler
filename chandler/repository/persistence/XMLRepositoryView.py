@@ -30,10 +30,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
         super(XMLRepositoryView, self).__init__(repository)
         self._log = []
 
-    def getRoots(self):
+    def getRoots(self, load=True):
         'Return a list of the roots in the repository.'
 
-        self.repository.store.loadRoots(self.version)
+        if load:
+            self.repository.store.loadRoots(self.version)
+            
         return super(XMLRepositoryView, self).getRoots()
 
     def logItem(self, item):

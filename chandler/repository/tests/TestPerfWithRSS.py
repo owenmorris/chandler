@@ -57,6 +57,10 @@ class TestPerfWithRSS(unittest.TestCase):
 
         itemCount = 0
         feeds = self.__getFeeds()
+
+        print 'got %d feeds' %(len(feeds)), '(running 20 for the demo)'
+        feeds = feeds[0:20]
+
         for feed in feeds:
             self.rep.logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)

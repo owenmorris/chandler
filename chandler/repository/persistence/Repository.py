@@ -115,7 +115,11 @@ class Repository(object):
 
     def __iter__(self):
 
-        return self.view._registry.itervalues()
+        return self.iterChildren()
+    
+    def iterChildren(self, load=True):
+
+        return self.view.iterChildren(load)
 
     def isOpen(self):
 
@@ -133,9 +137,9 @@ class Repository(object):
 
         return self.view.__getitem__(key)
 
-    def getRoots(self):
+    def getRoots(self, load=True):
 
-        return self.view.getRoots()
+        return self.view.getRoots(load)
 
     def walk(self, path, callable, _index=0, **kwds):
 
@@ -433,7 +437,15 @@ class RepositoryView(object):
 
         raise TypeError, key
 
-    def getRoots(self):
+    def __iter__(self):
+
+        return self.iterChildren()
+    
+    def iterChildren(self, load=True):
+
+        return self.getRoots(load).__iter__()
+
+    def getRoots(self, load=True):
         'Return a list of the roots in the repository.'
 
         return self._roots.values()
@@ -456,10 +468,6 @@ class RepositoryView(object):
             raise RepositoryError, 'current thread is not owning item'
 
         return not self.isLoading()
-
-    def __iter__(self):
-
-        return self._registry.itervalues()
 
     def _addItem(self, item, previous=None, next=None):
 
