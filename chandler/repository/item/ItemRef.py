@@ -87,6 +87,8 @@ class ItemRef(object):
         else:
             other._removeRef(otherName)
 
+        other.setDirty()
+
     def reattach(self, item, name, old, new, otherName):
 
         self.detach(item, name, old, otherName)

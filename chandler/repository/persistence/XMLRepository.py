@@ -168,8 +168,11 @@ class XMLContainer(object):
         try:
             txnStarted = store._startTransaction()
             docId = store._versions.getDocId(uuid, version)
-            if docId is not None:
+
+            # None -> not found, 0 -> deleted
+            if docId: 
                 return self._xml.getDocument(store.txn, docId, DB_DIRTY_READ)
+
         finally:
             if txnStarted:
                 store._abortTransaction()
@@ -190,20 +193,6 @@ class XMLContainer(object):
 
         try:
             txnStarted = store._startTransaction()
-            if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(store.txn,
-                                                   "/item[container=$uuid and name=$name and number(@version)<=$version]",
-                                                   ctx, DB_DIRTY_READ)
-                try:
-                    while True:
-                        result = results.next(store.txn).asDocument()
-                        dv = self.getDocVersion(result)
-                        if dv > ver:
-                            ver = dv
-                            doc = result
-                except StopIteration:
-                    return doc
-
             if self.version == "1.2.0":
                 for value in self._xml.queryWithXPath(store.txn,
                                                       self.store.containerExpr,
@@ -213,6 +202,12 @@ class XMLContainer(object):
                     if dv > ver:
                         ver = dv
                         doc = result
+
+                if doc is not None:
+                    value = XmlValue()
+                    if (doc.getMetaData('', 'deleted', value) and
+                        value.asString() == 'True'):
+                        doc = None
 
                 return doc
 
@@ -237,25 +232,7 @@ class XMLContainer(object):
 
         try:
             txnStarted = store._startTransaction()
-            if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(store.txn,
-                                                   "/item[container=$uuid and number(@version)<=$version]",
-                                                   ctx, DB_DIRTY_READ)
-                try:
-                    while True:
-                        doc = results.next(store.txn).asDocument()
-                        xml = doc.getContent()
-                        match = nameExp.match(xml, xml.index("<name>"))
-                        name = match.group(1)
-
-                        if not name in view._roots:
-                            ver = self.getDocVersion(doc)
-                            if not name in roots or ver > roots[name][0]:
-                                roots[name] = (ver, doc)
-                except StopIteration:
-                    pass
-
-            elif self.version == "1.2.0":
+            if self.version == "1.2.0":
                 for value in self._xml.queryWithXPath(store.txn,
                                                       "/item[container=$uuid and number(@version)<=$version]",
                                                       ctx, DB_DIRTY_READ):
@@ -275,7 +252,11 @@ class XMLContainer(object):
             if txnStarted:
                 store._abortTransaction()
 
+        value = XmlValue()
         for name, (ver, doc) in roots.iteritems():
+            if (doc.getMetaData('', 'deleted', value) and
+                value.asString() == 'True'):
+                continue
             if not name in view._roots:
                 view._loadDoc(doc)
 

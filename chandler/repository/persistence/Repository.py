@@ -42,6 +42,7 @@ class Repository(object):
         self.dbHome = dbHome
         self._status = 0
         self._threaded = ThreadLocal()
+        self._notifications = []
 
     def create(self):
 
@@ -168,6 +169,17 @@ class Repository(object):
     def getUUID(self):
 
         return Repository.ROOT_ID
+
+    def addNotificationCallback(self, fn):
+
+        self._notifications.append(fn)
+
+    def removeNotificationCallback(self, fn):
+
+        try:
+            return self._notifications.pop(self._notifications.index(fn))
+        except ValueError:
+            return None
 
     ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     OPEN = 0x1
@@ -371,7 +383,11 @@ class RepositoryView(object):
     def _loadItemString(self, string, parent=None, afterLoadHooks=None):
 
         if self.isDebug():
-            self.logger.debug(string[51:73])
+            index = string.find('uuid="')
+            if index > -1:
+                self.logger.debug('loading item %s', string[index+6:index+28])
+            else:
+                self.logger.debug('loading item %s', string)
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
         ctx = libxml2.createPushParser(handler, string, len(string), "item")
@@ -382,7 +398,12 @@ class RepositoryView(object):
     def _loadItemDoc(self, doc, parser, parent=None, afterLoadHooks=None):
 
         if self.isDebug():
-            self.logger.debug(self.repository.store.getDocContent(doc)[51:73])
+            string = self.repository.store.getDocContent(doc)
+            index = string.find('uuid="')
+            if index > -1:
+                self.logger.debug('loading item %s', string[index+6:index+28])
+            else:
+                self.logger.debug('loading item %s', string)
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
         parser.parseDoc(doc, handler)
@@ -715,3 +736,33 @@ class OnDemandRepositoryView(RepositoryView):
         finally:
             self._hooks = hooks
             self.setLoading(loading)
+
+
+class RepositoryNotifications(dict):
+
+    def __init__(self, repository):
+
+        super(RepositoryNotifications, self).__init__()
+        self.repository = repository
+
+    def changed(self, item, reason):
+
+        uuid = item.getUUID()
+        value = self.get(uuid, Item.Nil)
+
+        if value is not Item.Nil:
+            value.append(reason)
+        else:
+            self[uuid] = [ reason ]
+
+    def dispatch(self):
+
+        callbacks = self.repository._notifications
+        if callbacks:
+            for uuid, reasons in self.iteritems():
+                reason = reasons.pop()
+                for callback in callbacks:
+                    callback(uuid, 'ItemChanged', reason)
+                for reason in reasons:
+                    for callback in callbacks:
+                        callback(uuid, 'CollectionChanged', reason)

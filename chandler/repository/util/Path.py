@@ -105,42 +105,30 @@ class Path(object):
 
     def __eq__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__eq__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__eq__(other.canonize()._names))
 
     def __ge__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__ge__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__ge__(other.canonize()._names))
 
     def __gt__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__gt__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__gt__(other.canonize()._names))
 
     def __le__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__le__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__le__(other.canonize()._names))
 
     def __lt__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__lt__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__lt__(other.canonize()._names))
 
     def __ne__(self, other):
 
-        if not isinstance(other, Path):
-            raise TypeError, type(other)
-
-        return self.canonize()._names.__ne__(other.canonize()._names)
+        return (isinstance(other, Path) and
+                self.canonize()._names.__ne__(other.canonize()._names))

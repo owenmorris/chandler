@@ -11,13 +11,14 @@ from struct import pack
 
 from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
-from dbxml import XmlDocument
+from dbxml import XmlDocument, XmlValue
 
 from repository.item.Item import Item
 from repository.item.ItemRef import RefDict, TransientRefDict
 from repository.persistence.Repository import Repository, RepositoryError
 from repository.persistence.Repository import VersionConflictError
 from repository.persistence.Repository import OnDemandRepositoryView
+from repository.persistence.Repository import RepositoryNotifications
 from repository.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
 from repository.util.Lob import Text, Binary
@@ -28,8 +29,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def __init__(self, repository):
 
         super(XMLRepositoryView, self).__init__(repository)
-        self._log = []
 
+        self._log = []
+        self._notifications = RepositoryNotifications(repository)
+        
     def getRoots(self, load=True):
         'Return a list of the roots in the repository.'
 
@@ -104,6 +107,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         versions = store._versions
         history = store._history
         env = repository._env
+
+        self._notifications.clear()
 
         before = datetime.now()
         count = len(self._log)
@@ -195,6 +200,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if lock:
                     env.lock_put(lock)
 
+                self._notifications.dispatch()
+
                 if count > 0:
                     self.logger.info('%s committed %d items (%ld bytes) in %s',
                                      self, count, size,
@@ -204,39 +211,48 @@ class XMLRepositoryLocalView(XMLRepositoryView):
     def _saveItem(self, item, newVersion, data, versions, history):
 
         uuid = item._uuid
-
-        if item.isDeleted():
+        isNew = item.isNew()
+        isDeleted = item.isDeleted()
+        
+        if isDeleted:
             del self._deletedRegistry[uuid]
-            if not item.isNew():
-                if self.isDebug():
-                    self.logger.debug('Removing version %d of %s',
-                                      item._version, item.getItemPath())
-                versions.setDocVersion(uuid, newVersion, 0)
-                history.writeVersion(uuid, newVersion, 0, item.getDirty())
+            if isNew:
+                return 0
 
-            return 0
+        if self.isDebug():
+            self.logger.debug('saving version %d of %s',
+                              newVersion, item.getItemPath())
+
+        out = cStringIO.StringIO()
+        generator = XMLGenerator(out, 'utf-8')
+        generator.startDocument()
+        item._saveItem(generator, newVersion)
+        generator.endDocument()
+        content = out.getvalue()
+        out.close()
+        size = len(content)
+
+        doc = XmlDocument()
+        doc.setContent(content)
+        if isDeleted:
+            doc.setMetaData('', '', 'deleted', XmlValue('True'))
+        docId = data.putDocument(doc)
+
+        if isDeleted:
+            versions.setDocVersion(uuid, newVersion, 0)
+            history.writeVersion(uuid, newVersion, 0, item.getDirty())
+            self._notifications.changed(item, 'deleted')
 
         else:
-            if self.isDebug():
-                self.logger.debug('Saving version %d of %s',
-                                  newVersion, item.getItemPath())
-
-            out = cStringIO.StringIO()
-            generator = XMLGenerator(out, 'utf-8')
-            generator.startDocument()
-            item._saveItem(generator, newVersion)
-            generator.endDocument()
-
-            doc = XmlDocument()
-            content = out.getvalue()
-            size = len(content)
-            doc.setContent(content)
-            out.close()
-            docId = data.putDocument(doc)
             versions.setDocVersion(uuid, newVersion, docId)
             history.writeVersion(uuid, newVersion, docId, item.getDirty())
 
-            return size
+            if isNew:
+                self._notifications.changed(item, 'added')
+            else:
+                self._notifications.changed(item, 'changed')
+
+        return size
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
 
@@ -416,7 +432,10 @@ class XMLRefDict(RefDict):
 
                 else:
                     raise ValueError, entry[0]
-    
+
+            if self._log:
+                self.view._notifications.changed(self._item, self._name)
+
             del self._log[:]
             self._deletedRefs.clear()
             

@@ -1142,7 +1142,8 @@ class Item(object):
             generator.characters(value)
             generator.endElement(tag)
 
-        kind = self._kind
+        isDeleted = self.isDeleted()
+
         attrs = { 'uuid': self._uuid.str64() }
         if withSchema:
             attrs['withSchema'] = 'True'
@@ -1152,38 +1153,41 @@ class Item(object):
 
         xmlTag('name', {}, self._name, generator)
 
-        if kind is not None:
-            xmlTag('kind', { 'type': 'uuid' },
-                   kind.getUUID().str64(), generator)
+        if not isDeleted:
+            kind = self._kind
+            if kind is not None:
+                xmlTag('kind', { 'type': 'uuid' },
+                       kind.getUUID().str64(), generator)
 
-        if (withSchema or kind is None or
-            kind.getItemClass() is not type(self)):
-            xmlTag('class', { 'module': self.__module__ },
-                   type(self).__name__, generator)
+            if (withSchema or kind is None or
+                kind.getItemClass() is not type(self)):
+                xmlTag('class', { 'module': self.__module__ },
+                       type(self).__name__, generator)
 
         attrs = {}
-
         parent = self.getItemParent()
         parentID = parent.getUUID().str64()
 
-        if parent._isItem():
-            link = parent._children._get(self._name)
-            if link._previousKey is not None:
-                attrs['previous'] = link._previousKey
-            if link._nextKey is not None:
-                attrs['next'] = link._nextKey
+        if not isDeleted:
+            if parent._isItem():
+                link = parent._children._get(self._name)
+                if link._previousKey is not None:
+                    attrs['previous'] = link._previousKey
+                if link._nextKey is not None:
+                    attrs['next'] = link._nextKey
 
-        if '_children' in self.__dict__:
-            children = self._children
-            if children._firstKey is not None:
-                attrs['first'] = children._firstKey
-            if children._lastKey is not None:
-                attrs['last'] = children._lastKey
+            if '_children' in self.__dict__:
+                children = self._children
+                if children._firstKey is not None:
+                    attrs['first'] = children._firstKey
+                if children._lastKey is not None:
+                    attrs['last'] = children._lastKey
 
         xmlTag('container', attrs, parentID, generator)
 
-        self._xmlAttrs(generator, withSchema, version, mode)
-        self._xmlRefs(generator, withSchema, version, mode)
+        if not isDeleted:
+            self._xmlAttrs(generator, withSchema, version, mode)
+            self._xmlRefs(generator, withSchema, version, mode)
 
         generator.endElement('item')
 

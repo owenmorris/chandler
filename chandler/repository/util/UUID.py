@@ -55,23 +55,23 @@ class UUID(object):
 
     def __ge__(self, other):
 
-        return self._uuid >= other._uuid
+        return isinstance(other, UUID) and self._uuid >= other._uuid
 
     def __gt__(self, other):
 
-        return self._uuid > other._uuid
+        return isinstance(other, UUID) and self._uuid > other._uuid
 
     def __le__(self, other):
 
-        return self._uuid <= other._uuid
+        return isinstance(other, UUID) and self._uuid <= other._uuid
 
     def __lt__(self, other):
 
-        return self._uuid < other._uuid
+        return isinstance(other, UUID) and self._uuid < other._uuid
 
     def __ne__(self, other):
 
-        return self._uuid != other._uuid
+        return isinstance(other, UUID) and self._uuid != other._uuid
 
     def str16(self):
         '''Return the standard hexadecimal string representation of this UUID.
