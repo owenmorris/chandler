@@ -72,7 +72,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             extModuleDir = os.path.join(releaseModeDir, "external")
             intModuleDir = os.path.join(releaseModeDir, "internal")
             version = getVersion(os.path.join(extModuleDir, "Makefile"))
-            sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar.gz")
+            sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar")
             log.write("Checking for source tarball " + sourceTarball + "\n")
             if not os.path.exists(sourceTarball) :
                 # Now need to do the setup for external - "expand" and "make"
