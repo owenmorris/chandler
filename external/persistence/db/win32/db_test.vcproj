@@ -20,9 +20,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories=".,.."
-				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -38,16 +39,17 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="Release/libdb42.lib"
+				AdditionalDependencies="Release/libdb43.lib"
 				OutputFile=".\Release/db_test.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/db_test.pdb"
-				SubSystem="1"/>
+				SubSystem="1"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Release/db_test.tlb"/>
+				TypeLibraryName=".\Release/db_test.tlb"
+				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy built executable files."
@@ -83,7 +85,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".,.."
-				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Debug/db_test.pch"
@@ -98,16 +100,18 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386 /FIXED:NO"
-				AdditionalDependencies="Debug/libdb42d.lib odbc32.lib odbccp32.lib"
+				AdditionalOptions="/FIXED:NO"
+				AdditionalDependencies="Debug/libdb43d.lib odbc32.lib odbccp32.lib"
 				OutputFile="Debug/dbkill.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				SubSystem="1"/>
+				SubSystem="1"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\Debug/db_test.tlb"/>
+				TypeLibraryName=".\Debug/db_test.tlb"
+				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy built executable files."
@@ -136,7 +140,23 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\dbkill.cpp">
+			RelativePath="dbkill.cpp">
+			<FileConfiguration
+				Name="Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="2"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions=""/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					PreprocessorDefinitions=""/>
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

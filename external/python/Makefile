@@ -1,6 +1,6 @@
 
 VERSION=2.3.3
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-2
 BZIP2VERSION=1.0.2
 ZLIBVERSION=1.2.1
 
@@ -159,9 +159,8 @@ $(SRC)/$(BUILD)/Makefile:
                      --enable-framework=$(PREFIX)/Library/Frameworks
 
 build: expand apply
-	cd $(SRC)/$(BUILD); \
-        $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework; \
-        $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
+	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
+	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 snap: 

@@ -1,8 +1,11 @@
 
-VERSION=0.8.2
-RELVER=$(VERSION)-6
+VERSION=0.9.2
+RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
+
+DB_VER=4.3.21
+DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -16,23 +19,28 @@ SUFFIX=
 _SUFFIX=
 endif
 PREFIX_PYTHON=$(PREFIX)/bin
-PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-4.2.52
+PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER)
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/bin/libdb_java42$(SUFFIX).dll
+         $(SNAP)/bin/libdb_java$(subst .,,$(DB_LIB_VER))$(SUFFIX).dll
 else
 
 ifeq ($(OS),Darwin)
 PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
 PREFIX_DB=$(PREFIX)/db
+ifeq ($(DB_LIB_VER),4.3)
+_dylib=dylib
+else
+_dylib=jnilib
+endif
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-4.2.jnilib \
-         $(SNAP)/db/lib/libdb_java-4.2.la \
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).$(_dylib) \
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
          $(SNAP)/lib/libgcj.5.dylib \
          $(SNAP)/lib/libstdc++.6.dylib
@@ -45,7 +53,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-4.2.so \
+         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so \
          $(SNAP)/lib/libgcc_s.so.1 \
          $(SNAP)/lib/libgcj.so.5 \
          $(SNAP)/lib/libstdc++.so.6
@@ -89,7 +97,9 @@ build: expand apply
             JCC=$(PYLUCENE_JCC) \
             JCCH=$(PYLUCENE_JCCH) \
             JAR=$(PYLUCENE_JAR) \
-            DB=$(BUILD_ROOT)/persistence/db/db-4.2.52 \
+            DB=$(BUILD_ROOT)/persistence/db/db-$(DB_VER) \
+            DB_VER=$(DB_VER) \
+            DB_LIB_VER=$(DB_LIB_VER) \
             PREFIX_DB=$(PREFIX_DB) \
             BUILD_DB=build_$(SNAP) \
             all install

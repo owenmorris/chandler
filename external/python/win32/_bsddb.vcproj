@@ -37,7 +37,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libdb42d.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib libdb43d.lib"
 				OutputFile="./_bsddb_d.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -105,7 +105,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libdb42.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib libdb43.lib"
 				OutputFile="./_bsddb.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"

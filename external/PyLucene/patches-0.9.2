@@ -1,11 +1,11 @@
---- PyLucene-0.8.2/Makefile	Sun Nov  7 16:06:15 2004
-+++ PyLucene-0.8.2-patched/Makefile	Sun Nov  7 16:19:25 2004
-@@ -139,19 +139,21 @@
+--- PyLucene-0.9.2/Makefile	Mon Nov 15 21:22:42 2004
++++ PyLucene-0.9.2-patched/Makefile	Mon Nov 15 21:36:58 2004
+@@ -138,19 +138,21 @@
+ ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
  PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
- LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
  CCFLAGS=-O -g 
  LDFLAGS=-g
@@ -22,26 +22,26 @@
  endif
  endif
  endif
-@@ -221,17 +223,17 @@
+@@ -245,17 +247,17 @@
+ PYLUCENE_CP:=$(PYLUCENE_CP):$(DB)/java/src
  
  ifeq ($(OS),Cygwin)
- DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
- DB_CONST=`cygpath -aw $(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java`
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -name '*.java' -exec cygpath -aw {} \;` 
  DB_INC=-I`cygpath -aw $(PREFIX_DB)` -I`cygpath -aw $(PREFIX_DB)/dbinc` -I`cygpath -aw $(PREFIX_DB)/build_win32`
+ PYLUCENE_CP:=`cygpath -awp $(PYLUCENE_CP)`
  else
- DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
- DB_CONST=$(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -name '*.java'`
 -DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/build_unix
 +DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/$(BUILD_DB)
  endif
  
  STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
- OBJS:=$(BINDIR)/store.o $(BINDIR)/db_const.o $(BINDIR)/db.o $(OBJS)
+ OBJS:=$(BINDIR)/store.o $(BINDIR)/db.o $(OBJS)
  LIBS:=$(LIBDB_JAVA_LIB) $(LIBS)
- SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1
+ SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" 
  
- $(BINDIR)/db_const.o:
-@@ -533,16 +535,19 @@
+ $(BINDIR)/db.o:
+@@ -620,16 +622,19 @@
  
  
  all: env sources $(BINDIR) $(LIBS)
@@ -58,10 +58,10 @@
  install::
  ifdef DB
  	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
- 	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
+ 	install libdb_java-$(DB_LIB_VER).la.osx $(PREFIX_DB)/lib/libdb_java-$(DB_LIB_VER).la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -550,22 +555,25 @@
+@@ -637,22 +642,25 @@
  	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
  else
  
@@ -79,7 +79,7 @@
  install::
  ifdef DB
 -	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
-+	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
++	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/bin
  endif
  endif
  endif
@@ -88,9 +88,9 @@
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
---- PyLucene-0.8.2/PyLucene.i	Tue Nov  2 17:56:44 2004
-+++ PyLucene-0.8.2-patched/PyLucene.i	Sun Nov  7 16:20:05 2004
-@@ -2359,16 +2359,37 @@
+--- PyLucene-0.9.2/PyLucene.i	Mon Nov 15 19:49:36 2004
++++ PyLucene-0.9.2-patched/PyLucene.i	Mon Nov 15 21:37:24 2004
+@@ -2381,16 +2381,37 @@
  #endif
  
      objects = new java::util::Hashtable();

@@ -1,5 +1,5 @@
 
-VERSION=4.2.52
+VERSION=4.3.21
 RELVER=$(VERSION)-1
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
@@ -14,7 +14,7 @@ BINDIR=$(SRC)/$(BUILD)/$(Snap)
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
 	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
 
-build: expand apply compile installext
+build: expand compile installext
 
 compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 	cd $(SRC)/$(BUILD); \
@@ -54,17 +54,16 @@ BUILD=build_$(SNAP)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../dist/configure --prefix=$(PREFIX)/db \
-                          --enable-cxx \
                           --with-pic \
                           $(CONF_DBG)
 
-build: expand apply $(SRC)/$(BUILD)/Makefile
+build: expand $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
-snap: 
+snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/db/bin $(SNAP)/db/lib \
@@ -72,9 +71,6 @@ snap:
 	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif
-
-apply: patches
-	patch -Nup0 < patches; echo ok
 
 db-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/db-$(VERSION).tar.gz
