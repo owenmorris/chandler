@@ -51,9 +51,9 @@ class BoxContainer (RectangularChild):
         return widget
 
 
-class wxChoiceContainer(wxBoxContainer):
+class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):
-        super (wxChoiceContainer, self).__init__ (*arguments, **keywords)
+        super (wxLayoutChooser, self).__init__ (*arguments, **keywords)
             
     def wxSynchronizeWidget(self, *arguments, **keywords):
         selectedChoice = self._getSelectedChoice()
@@ -63,7 +63,7 @@ class wxChoiceContainer(wxBoxContainer):
                     childBlock.parentBlock = None
                     if hasattr(childBlock, 'widget'):
                         childBlock.widget.Destroy()
-            super(wxChoiceContainer, self).wxSynchronizeWidget(*arguments, **keywords)
+            super(wxLayoutChooser, self).wxSynchronizeWidget(*arguments, **keywords)
 
             try: # @@@ Until all the views have the necessary choices
                 choice = self.blockItem.choices[selectedChoice]
@@ -116,7 +116,7 @@ class wxChoiceContainer(wxBoxContainer):
         return -1
     
 
-class ChoiceContainer(BoxContainer):
+class LayoutChooser(BoxContainer):
     def instantiateWidget (self):
         self.selection = -1
         if self.orientationEnum == 'Horizontal':
@@ -127,7 +127,7 @@ class ChoiceContainer(BoxContainer):
         sizer = wx.BoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
         parentWidget = self.parentBlock.widget 
-        widget = wxChoiceContainer(parentWidget, Block.getWidgetID(self))
+        widget = wxLayoutChooser(parentWidget, Block.getWidgetID(self))
         widget.SetSizer (sizer)
 
         return widget

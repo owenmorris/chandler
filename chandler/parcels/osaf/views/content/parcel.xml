@@ -214,14 +214,14 @@
     <columnWidths>170</columnWidths>
   </Table>
   
-  <ChoiceContainer itsName="CalendarSummary">
+  <LayoutChooser itsName="CalendarSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <choices itemref="view:CalendarTable"/>
     <choices itemref="view:SummaryMonth"/>
     <choices itemref="view:SummaryWeek"/>
     <choices itemref="view:SummaryDay"/>    
     <orientationEnum>Vertical</orientationEnum>
-  </ChoiceContainer>
+  </LayoutChooser>
 
   <!-- Calendar Table -->
   <Table itsName="CalendarTable">

@@ -688,10 +688,10 @@
   </Kind>
 
   <!--
-    ChoiceContainer
+    LayoutChooser
   -->
-  <Kind itsName="ChoiceContainer">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.ChoiceContainer</classes>
+  <Kind itsName="LayoutChooser">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.LayoutChooser</classes>
     <superKinds itemref="docSchema:BoxContainer"/>
     
     <Attribute itsName="choices">
@@ -699,7 +699,7 @@
       <cardinality>list</cardinality>
     </Attribute>
 
-    <attributes itemref="docSchema:ChoiceContainer/choices"/>
+    <attributes itemref="docSchema:LayoutChooser/choices"/>
   </Kind>
 
   <!--
