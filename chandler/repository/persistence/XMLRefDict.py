@@ -485,15 +485,17 @@ class XMLChildren(Children):
                             if oldAlias is not None:
                                 self._e_1_renames(oldAlias, link._alias, alias)
                             else:
-                                key = self.resolveAlias(alias)
-                                if key is not None:
-                                    self._e_2_renames(key, alias, child)
+                                if alias is not None:
+                                    key = self.resolveAlias(alias)
+                                    if key is not None:
+                                        self._e_2_renames(key, alias, child)
                                 self.setAlias(child, alias)
 
                     except KeyError:
-                        key = self.resolveAlias(alias)
-                        if key is not None:
-                            self._e_names(child, key, alias)
+                        if alias is not None:
+                            key = self.resolveAlias(alias)
+                            if key is not None:
+                                self._e_names(child, key, alias)
                         link = self.__setitem__(child, None, alias=alias)
 
                     if previousKey is None or self.has_key(previousKey):
