@@ -14,9 +14,10 @@ dependencies = (
 
 def build(buildenv):
 
+    version = buildenv['version']
+
     if buildenv['os'] in ('osx', 'posix'):
 
-        version = buildenv['version']
 
         # Create the build directory
 
@@ -149,49 +150,24 @@ def build(buildenv):
         hardhatlib.executeCommand(buildenv, info['name'], installOptions,
          "Installing wxPython")
 
+
+    # Windows
+
     if buildenv['os'] == 'win':
 
-        if buildenv['version'] == 'release':
+        os.chdir("build")
+        os.chdir("msw")
 
-            os.chdir("build")
-            os.chdir("msw")
-            #  build msw.sln
-
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'dll', 'FINAL=1'],
-             
-             "Building wxWindows")
-
-            os.chdir("..")
-            os.chdir("..")
-            os.chdir("lib")
-            hardhatlib.copyFile("wxmsw24.dll", buildenv['root'] +os.sep+ \
-             "release" + os.sep + "bin")
-            hardhatlib.copyFile("wxmsw24.lib", buildenv['root'] +os.sep+ \
-             "release" + os.sep + "lib")
-            hardhatlib.copyFile("wxmsw24.exp", buildenv['root'] +os.sep+ \
-             "release" + os.sep + "lib")
-
-
-        if buildenv['version'] == 'debug':
-
-            os.chdir("..")
-            os.chdir("..")
-            os.chdir("src")
-            os.chdir("msw")
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'dll', 'FINAL=0'],
-             "Building wxWindows")
-
-            os.chdir("..")
-            os.chdir("..")
-            os.chdir("lib")
-            hardhatlib.copyFile("wxmsw24d.dll", buildenv['root'] +os.sep+ \
-             "debug" + os.sep + "bin")
-            hardhatlib.copyFile("wxmsw24d.lib", buildenv['root'] +os.sep+ \
-             "debug" + os.sep + "lib")
-            hardhatlib.copyFile("wxmsw24d.exp", buildenv['root'] +os.sep+ \
-             "debug" + os.sep + "lib")
+        hardhatlib.executeCommand( buildenv, info['name'],
+         [buildenv['compiler'], 
+         "msw.sln",
+         "/build",
+         version.capitalize(),
+         "/out",
+         "output.txt"],
+         "Building %s %s" % (info['name'], version),
+         0, "output.txt")
+         
 
 
 
