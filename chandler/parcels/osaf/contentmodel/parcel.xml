@@ -236,6 +236,11 @@
     <core:description>A Task stamped as a Mail, or vica versa</core:description>
     <core:superKinds itemref="mail:MailMessage"/>
     <core:superKinds itemref="tasks:TaskMixin"/>
+    <!-- redirections -->
+    <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:whoFrom"/>
+    <attributes itemref="tasks:about"/>
+    <attributes itemref="tasks:date"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEvent">
@@ -243,6 +248,11 @@
     <core:description>An Event stamped as a Mail, or vica versa</core:description>
     <core:superKinds itemref="mail:MailMessage"/>
     <core:superKinds itemref="calendar:CalendarEventMixin"/>
+    <!-- redirections -->
+    <attributes itemref="calendar:who"/>
+    <attributes itemref="calendar:whoFrom"/>
+    <attributes itemref="calendar:about"/>
+    <attributes itemref="calendar:date"/>
   </core:Kind>
 
   <core:Kind itsName="EventTask">
@@ -251,6 +261,11 @@
     <core:superKinds itemref="calendar:CalendarEvent"/>
     <core:superKinds itemref="tasks:TaskMixin"/>
     <core:superKinds itemref="TaskEventExtraMixin"/>
+    <!-- redirections -->
+    <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:whoFrom"/>
+    <attributes itemref="tasks:about"/>
+    <attributes itemref="tasks:date"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEventTask">
@@ -258,6 +273,11 @@
     <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
     <core:superKinds itemref="mail:MailMessageMixin"/>
     <core:superKinds itemref="EventTask"/>
+    <!-- redirections -->
+    <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:whoFrom"/>
+    <attributes itemref="tasks:about"/>
+    <attributes itemref="tasks:date"/>
   </core:Kind>
 
 <!-- Project -->

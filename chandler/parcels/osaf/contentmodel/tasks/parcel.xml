@@ -120,11 +120,6 @@
     <attributes itemref="tasks:taskStatus"/>
     <attributes itemref="tasks:dueDate"/>
     <attributes itemref="mail:stronglyLinkedMail"/>
-    <!-- redirections -->
-    <attributes itemref="tasks:who"/>
-    <attributes itemref="tasks:whoFrom"/>
-    <attributes itemref="tasks:about"/>
-    <attributes itemref="tasks:date"/>
     
     <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
   </Kind>
@@ -135,6 +130,11 @@
     <issues>Task should maybe have a 'Timezone' attribute.</issues>
     <superKinds itemref="content:Note"/>
     <superKinds itemref="tasks:TaskMixin"/>
+    <!-- redirections -->
+    <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:whoFrom"/>
+    <attributes itemref="tasks:about"/>
+    <attributes itemref="tasks:date"/>
     
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
     

@@ -411,11 +411,6 @@
     <attributes itemref="mail:deliveryStatus"/>
     <attributes itemref="mail:stronglyLinkedTask"/>
     <attributes itemref="mail:spamScore"/>
-    <!-- redirections -->
-    <attributes itemref="mail:who"/>
-    <attributes itemref="mail:whoFrom"/>
-    <attributes itemref="mail:about"/>
-    <attributes itemref="mail:date"/>
 
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessageMixin</classes>
   </Kind>
@@ -428,6 +423,11 @@
     <superKinds itemref="content:Note"/>
     <superKinds itemref="mail:MailMessageMixin"/>
     <displayAttribute itemref="mail:subject"/>
+    <!-- redirections -->
+    <attributes itemref="mail:who"/>
+    <attributes itemref="mail:whoFrom"/>
+    <attributes itemref="mail:about"/>
+    <attributes itemref="mail:date"/>
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessage</classes>
   </Kind>
 

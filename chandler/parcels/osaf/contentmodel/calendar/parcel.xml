@@ -151,11 +151,6 @@
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
-    <!-- redirections -->
-    <attributes itemref="cal:who"/>
-    <attributes itemref="cal:whoFrom"/>
-    <attributes itemref="cal:about"/>
-    <attributes itemref="cal:date"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
   </Kind>
@@ -167,6 +162,11 @@
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
     <superKinds itemref="content:Note"/>
     <superKinds itemref="cal:CalendarEventMixin"/>
+    <!-- redirections -->
+    <attributes itemref="cal:who"/>
+    <attributes itemref="cal:whoFrom"/>
+    <attributes itemref="cal:about"/>
+    <attributes itemref="cal:date"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
