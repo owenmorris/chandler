@@ -118,7 +118,7 @@
 
   <Attribute itemName="vcardType">
     <displayName>vCard type</displayName>
-    <decription>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</decription>
+    <description>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>

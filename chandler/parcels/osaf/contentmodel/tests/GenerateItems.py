@@ -73,7 +73,7 @@ def GeneratePhoneNumbers():
     for i in range(random.randint(1, 3)):
         phone = Contacts.PhoneNumber()
         phone.phoneNumber = GeneratePhoneNumber()
-        phone.phoneType = random.choice(PHONETYPES)
+        # phone.phoneType = random.choice(PHONETYPES)
         list.append(phone)
     return list
 
