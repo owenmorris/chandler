@@ -226,7 +226,7 @@ def distribute(buildenv):
         hardhatlib.rmdir_recursive(distDir)
 
 def _outputLine(path, text):
-    output = open(path, 'w', 0)
+    output = open(path, 'a', 0)
     output.write(text + "\n")
     output.close()
 
