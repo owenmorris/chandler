@@ -169,17 +169,17 @@
   <List itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </List>
 
   <!-- All Summary View -->
@@ -193,17 +193,17 @@
   <Table itsName="AllTable">
     <contents itemref="view:allItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <BoxContainer itsName="InSummary">
@@ -216,17 +216,17 @@
   <Table itsName="InTable">
     <contents itemref="view:inItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <BoxContainer itsName="OutSummary">
@@ -239,17 +239,17 @@
   <Table itsName="OutTable">
     <contents itemref="view:outItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
   
   <ChoiceContainer itsName="CalendarSummary">
@@ -265,85 +265,85 @@
   <Table itsName="CalendarTable">
     <contents itemref="view:calendarItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <!-- Contact Table -->
   <Table itsName="ContactTable">
     <contents itemref="view:contactItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <!-- Note Table -->
   <Table itsName="NoteTable">
     <contents itemref="view:notesItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <!-- Task Table -->
   <Table itsName="TaskTable">
     <contents itemref="view:taskItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <!-- Mail Table -->
   <Table itsName="MailTable">
     <contents itemref="view:mailItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <BoxContainer itsName="JunkSummary">
@@ -356,17 +356,17 @@
   <Table itsName="JunkTable">
     <contents itemref="view:junkItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <BoxContainer itsName="TrashSummary">
@@ -379,17 +379,17 @@
   <Table itsName="TrashTable">
     <contents itemref="view:trashItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <!-- Untitled Summary -->
@@ -403,17 +403,17 @@
   <Table itsName="UntitledTable">
     <contents itemref="view:untitledItemCollection"/>
 
+    <columnHeadings>date</columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
 
+    <columnAttributeNames>date</columnAttributeNames>
     <columnAttributeNames>who</columnAttributeNames>
     <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
 
+    <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
   </Table>
 
   <ItemDetail itsName="MixedItemDetail"
