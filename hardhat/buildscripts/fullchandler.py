@@ -94,11 +94,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         for mod in cvsModules:
             cvsChanges[mod] = True
 
+        clean = ''
         for releaseMode in releaseModes:
-            doBuild(releaseMode, workingDir, log, cvsChanges, clean='')
+            doBuild(releaseMode, workingDir, log, cvsChanges, clean)
             
             if upload:
                 doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+
+            clean = 'clean'
 
         for releaseMode in releaseModes:
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
@@ -122,10 +125,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         if cvsChanges['external'] or cvsChanges['internal']:
             log.write("Changes in CVS require build\n")
             changes = "-changes"
+            clean = 'realclean'
             for releaseMode in releaseModes:        
-                doBuild(releaseMode, workingDir, log, cvsChanges)
+                doBuild(releaseMode, workingDir, log, cvsChanges, clean)
+                
                 if upload:
                     doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+
+                clean = 'clean'
             
         if cvsChanges['external'] or cvsChanges['internal'] or cvsChanges['chandler']:
             log.write("Changes in CVS require making distributions\n")
