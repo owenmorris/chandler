@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.query.parser.QueryParser as QueryParser
 import tools.timing
 import sets
+import mx.DateTime.ISO
 
 import logging
 log = logging.getLogger("RepoQuery")
@@ -169,7 +170,7 @@ class Query(object):
             infix_fns = ['contains']
             binary_fns = []
             unary_ops = ['not']
-            unary_fns = ['len']
+            unary_fns = ['date','len']
 
             def infix_op(op, args):
                 """
@@ -185,7 +186,10 @@ class Query(object):
                 args = ast [2:][0]
                 log.debug("%s %s %s" % (tok, fn, args))
                 if fn in unary_fns and len(args) == 1:
-                    pred = "%s(%s)" % (fn, compile_predicate(args[0]))
+                    if fn == 'date':
+                        pred = "mx.DateTime.ISO.ParseDateTime(%s)" % compile_predicate(args[0])
+                    else:
+                        pred = "%s(%s)" % (fn, compile_predicate(args[0]))
                 elif fn in binary_fns and len(args) == 2: 
                     pred = fn+'('+compile_predicate(args[0])+','+compile_predicate(args[1])+')'
                 elif fn in infix_fns:
@@ -246,7 +250,6 @@ class Query(object):
             represented by the AST.
             (The AST is actually the list of arguments to 'union')
             """
-            print ast
             queries = [ self.__analyze(i) for i in ast[0] ]
             return ('union', queries)
 
@@ -256,9 +259,7 @@ class Query(object):
             represented by the AST
             (The AST is the two arguments to 'intersect')
             """
-            print ast
             queries = [ self.__analyze(i) for i in ast[0:2] ]
-            print queries
             return ('intersect', queries)
 
         def analyze_difference(ast):
