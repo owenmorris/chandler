@@ -402,12 +402,14 @@
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessage" />
         <displayName value="Mail Message" />
         <description value="MailMessageMixin, and Note, all rolled up into one" />
+        <displayAttribute value="subject" />
     </Kind>
 
     <Kind itsName="MailMessageMixin">
         <superKinds itemref="mail:MIMEContainer" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessageMixin" />
         <displayName value="Mail Message Mixin" />
+        <displayAttribute value="subject" />
         <description value="Used to mixin mail message attributes into a content item" />
         <issues value="Once we have attributes and a cloud defined for Attachment, we need to include attachments by cloud, and not by value." />
         <issues value="Really not sure what to do with the 'downloadAccount' attribute and how it should be included in the cloud.  For now it's by value." />
@@ -624,6 +626,7 @@
     <Kind itsName="EmailAddress">
         <superKinds itemref="content:ContentItem" />
         <displayName value="Email Address Kind" />
+        <displayAttribute value="emailAddress" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.EmailAddress" />
         <examples value="abe@osafoundation.org" />
         <description value="An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address." />

@@ -316,11 +316,7 @@ def RenderKindQuery(item):
     output = []
     try:
         for i in repository.item.Query.KindQuery().run([item]):
-            try:
-                name = i.displayName
-            except:
-                name = i.itsName
-            output.append("<a href=%s>'%s'</a>  (%s) %s" % (toLink(i.itsPath), name, i.itsKind.itsName, i.itsPath))
+            output.append("<a href=%s>'%s'</a>  (%s) %s" % (toLink(i.itsPath), i.getItemDisplayName(), i.itsKind.itsName, i.itsPath))
         result += ("<br>".join(output))
     except Exception, e:
         result += "Caught an exception: %s<br> %s" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
@@ -344,7 +340,10 @@ def RenderItem(item):
         path += " &gt; <a href=%s>%s</a>" % (toLink(item.itsPath[:i]), part)
         i += 1
 
-    result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, item.itsName)
+    name = item.itsName
+    if name is None:
+        name = str(item.itsUUID)
+    result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
 
     try: result += " (<a href=%s>%s</a>)" % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
     except: pass
@@ -353,6 +352,12 @@ def RenderItem(item):
         result += " [Run a <a href=%s?mode=kindquery>Kind Query</a>]" % toLink(item.itsPath)
 
     result += "</div>\n"
+
+    try:
+        displayName = item.displayName
+        result += "<div class='subheader'><b>Display Name:</b> %s</div>\n" % displayName
+    except:
+        pass
 
     try:
         description = item.description
@@ -368,28 +373,29 @@ def RenderItem(item):
         result += "</ul></p>\n"
     except: pass
 
-    result += "<div class='children'><b>Child items:</b> "
+    result += "<div class='children'><b>Child items:</b><br> "
     children = {}
     for child in item.iterChildren():
-        # if isinstance(child, Kind) or isinstance(child, Attribute) or isinstance(child, Type) or isinstance(child, Cloud) or isinstance(child, Endpoint) or isinstance(child, Parcel):
         name = child.itsName
-        if name is None: name = str(child.itsUUID)
-        try:
-            displayName = child.displayName
-            name = "%s (%s)" % (name, displayName)
-        except:
-            pass
+        if name is None:
+            name = str(child.itsUUID)
         children[name] = child
     keys = children.keys()
     keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
     output = []
     for key in keys:
         child = children[key]
-        output.append("<a href=%s>%s</a>" % (toLink(child.itsPath), key))
+        name = child.itsName
+        displayName = ""
+        if name is None:
+            name = str(child.itsUUID)
+            displayName = child.getItemDisplayName()
+        children[name] = child
+        output.append(" &nbsp; <a href=%s>%s </a> %s" % (toLink(child.itsPath), key, displayName))
     if not output:
-        result += " None"
+        result += " &nbsp; None"
     else:
-        result += (", ".join(output))
+        result += ("<br>".join(output))
     result += "</div>\n"
 
 
@@ -498,7 +504,7 @@ def RenderItem(item):
             output = []
             for j in value:
                 output.append("<a href=%s>%s</a>" % \
-                 (toLink(j.itsPath), j.itsName))
+                 (toLink(j.itsPath), j.getItemDisplayName()))
             result += (", ".join(output))
 
             result += "</td></tr>\n"
@@ -547,7 +553,7 @@ def RenderItem(item):
             target = item.getAttributeValue(name, default=None)
             if target is not None:
                 result += "<a href=%s>%s</a><br>" % (toLink(target.itsPath),
-                 target.itsName)
+                 target.getItemDisplayName())
             else:
                 result += " None"
             result += "</td></tr>\n"
@@ -561,7 +567,7 @@ def RenderItem(item):
             result += "</td><td valign=top>"
             try:
                 result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
-                 value.itsName)
+                 value.getItemDisplayName())
             except:
                 result += "%s (%s)<br>" % (clean(value), clean(type(value)))
 
@@ -577,6 +583,15 @@ def RenderItem(item):
 
 
     return result
+
+def getItemName(item):
+    try:
+        name = item.getItemDisplayName()
+    except:
+        name = item.itsName
+    if name is None:
+        name = str(item.itsUUID)
+    return name
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
