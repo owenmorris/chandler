@@ -1,4 +1,6 @@
 
+VERSION=0.3-0
+
 ifeq ($(DEBUG),1)
 SNAP=debug
 else
@@ -51,20 +53,20 @@ env:
         fi
 
 sources:
-	tar -cvf sources.tar $(SOURCES)
+	tar -cvf sources-$(VERSION).tar $(SOURCES)
 
-sources.tar:
-	curl http://builds.osafoundation.org/external/sources.tar > sources.tar
+sources-$(VERSION).tar:
+	curl http://builds.osafoundation.org/external/sources-$(VERSION).tar > sources-$(VERSION).tar
 
-expand: sources.tar
-	tar xvf sources.tar; \
+expand: sources-$(VERSION).tar
+	tar xvf sources-$(VERSION).tar; \
 	for system in $(SYSTEMS); \
 	do \
 	    (cd $$system; $(MAKE) expand); \
 	done
 
 binaries: env
-	@rm -f $(SNAP).tar $(SNAP).tar.gz; \
+	@rm -f $(SNAP)-$(VERSION).tar $(SNAP)-$(VERSION).tar.gz; \
 	for system in $(SYSTEMS); \
 	do \
 	    (cd $$system; $(MAKE) DEBUG=$(DEBUG) snap); \
@@ -73,11 +75,11 @@ binaries: env
 	do \
 	    echo appending $$system; \
 	    gunzip -c $$system/$(SNAP).tar.gz > _tmp.tar; \
-            tar -Af $(SNAP).tar _tmp.tar; \
+            tar -Af $(SNAP)-$(VERSION).tar _tmp.tar; \
 	    rm _tmp.tar; \
 	done; \
-	echo compressing $(SNAP).tar; \
-        gzip $(SNAP).tar;
+	echo compressing $(SNAP)-$(VERSION).tar; \
+        gzip $(SNAP)-$(VERSION).tar;
 
 all: env
 	@for system in $(SYSTEMS); \
