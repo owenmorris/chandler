@@ -54,14 +54,8 @@ Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
 InstallDir "$PROGRAMFILES\Chandler"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
-ShowInstDetails show
-ShowUnInstDetails show
-
-  ; show the language selection dialog before any UI pages are displayed
-
-Function .onInit
-  !insertmacro MUI_LANGDLL_DISPLAY
-FunctionEnd
+ShowInstDetails nevershow
+ShowUnInstDetails nevershow
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
