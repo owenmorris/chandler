@@ -40,6 +40,11 @@
         <type itemref="DateTime"/>
       </Attribute>
 
+      <Attribute itsName="anyTime">
+        <displayName>AnyTime</displayName>
+        <type itemref="Boolean"/>
+      </Attribute>
+      
       <Attribute itsName="location">
         <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
         <displayName>Location</displayName>
@@ -159,6 +164,10 @@
         <attribute value="endTime"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/SharingCloud/endTime"/>
+      <Endpoint itsName="allDay">
+        <attribute value="allDay"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/SharingCloud/allDay"/>
       <Endpoint itsName="location">
         <attribute value="location"/>
       </Endpoint>

@@ -14,6 +14,7 @@ import repository.item.Item as Item
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import logging
+import tools.timing
 
 import application.Globals as Globals
 
@@ -147,8 +148,10 @@ class ContentItem(ChandlerItem):
         else:
             self.mixinKinds ((operation, mixinKind)) # create a class on-the-fly
         self._stampPostProcess (addedKinds) # initialize attributes of added kinds
+        
         # make sure the respository knows about the item's new Kind
-        Globals.repository.commit ()
+        # @@@BJS: I'm pretty sure this isn't necessary, so I'm commenting it out to speed things up.
+        # Globals.repository.commit ()
 
     def _stampPreProcess (self, removedKinds):
         """
@@ -262,13 +265,15 @@ class ContentItem(ChandlerItem):
         return the list of candidate kinds for stamping
         right now, we consider only ContentItems.
         """
-        kindKind = Globals.repository.findPath('//Schema/Core/Kind')
-        allKinds = Query.KindQuery().run([kindKind])
-        contentItemKinds = []
-        contentItemKind = ContentItem.getKind ()
-        for aKind in allKinds:
-            if aKind.isKindOf (contentItemKind):
-                contentItemKinds.append (aKind)
+        global cachedContentItemKinds
+        try:
+            contentItemKinds = cachedContentItemKinds
+        except NameError:
+            kindKind = Globals.repository.findPath('//Schema/Core/Kind')
+            allKinds = Query.KindQuery().run([kindKind])
+            contentItemKind = ContentItem.getKind ()
+            contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
+            cachedContentItemKinds = contentItemKinds
         return contentItemKinds
 
     def _computeTargetKindSignature (self, operation, stampKind):
