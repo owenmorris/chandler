@@ -56,12 +56,12 @@ PyObject *bio_read(BIO *bio, int num) {
     Py_BEGIN_ALLOW_THREADS
     r = BIO_read(bio, buf, num);
     Py_END_ALLOW_THREADS
-    if (r == -2) {
+    if (r < 0) {
         PyMem_Free(buf);
-        PyErr_SetString(_bio_err, ERR_reason_error_string(ERR_get_error()));
-        return NULL;
-    } else if (r == -1) {
-        PyMem_Free(buf);
+        if (ERR_peek_error()) {
+            PyErr_SetString(_bio_err, ERR_reason_error_string(ERR_get_error()));
+            return NULL;
+        }
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -82,12 +82,12 @@ PyObject *bio_gets(BIO *bio, int num) {
     Py_BEGIN_ALLOW_THREADS
     r = BIO_gets(bio, buf, num);
     Py_END_ALLOW_THREADS
-    if (r == -2) {
+    if (r < 0) {
         PyMem_Free(buf);
-        PyErr_SetString(_bio_err, ERR_reason_error_string(ERR_get_error()));
-        return NULL;
-    } else if (r == -1) {
-        PyMem_Free(buf);
+        if (ERR_peek_error()) {
+            PyErr_SetString(_bio_err, ERR_reason_error_string(ERR_get_error()));
+            return NULL;
+        }
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -114,6 +114,11 @@ int bio_write(BIO *bio, PyObject *from) {
     Py_BEGIN_ALLOW_THREADS
     ret = BIO_write(bio, fbuf, flen);
     Py_END_ALLOW_THREADS
+    if (ret < 0) {
+	if (ERR_peek_error()) {
+            PyErr_SetString(_bio_err, ERR_reason_error_string(ERR_get_error()));
+        }
+    }
     return ret;
 }
 

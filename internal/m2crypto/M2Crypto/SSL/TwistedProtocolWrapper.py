@@ -1,9 +1,15 @@
 from twisted.protocols.policies import ProtocolWrapper
-from twisted.internet import defer
-from M2Crypto import BIO, m2
-from M2Crypto.SSL import Context, Connection
+from twisted.python.failure import Failure
+
+import M2Crypto # for M2Crypto.BIO.BIOError
+from M2Crypto import BIO, m2, X509
+from M2Crypto.SSL import Context, Connection, Checker
 
 debug = 0
+
+class _Null:
+    def __init__(self, *args, **kw): pass
+    def __call__(self, *args, **kw): return self
 
 class TLSProtocolWrapper(ProtocolWrapper):
     """
@@ -19,9 +25,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     MyFactory should have the following interface:
 
-        startTLS:                boolean   Set to True to start SSL immediately
-        getContext():            function  Should return M2Crypto.SSL.Context()
-        sslPostConnectionCheck() function  Should do SSL post connection check
+        startTLS:     boolean   Set to True to start SSL immediately
+        getContext(): function  Should return M2Crypto.SSL.Context()
+        sslChecker(): function  Should do SSL post connection check
 
     """
     def __init__(self, factory, wrappedProtocol):
@@ -32,19 +38,24 @@ class TLSProtocolWrapper(ProtocolWrapper):
         # wrappedProtocol == client/server instance
         # factory.wrappedFactory == client/server factory
 
-        self.data = ''
-        self.encrypted = ''
-
+        self.data = '' # Clear text to encrypt and send
+        self.encrypted = '' # Encrypted data we need to decrypt and pass on
+        self.tlsStarted = False # SSL/TLS mode or pass through
+        self.checked = False # Post connection check done or not
+        self.connectionLostCalled = False
+        
         if hasattr(factory.wrappedFactory, 'getContext'):
             self.ctx = factory.wrappedFactory.getContext()
         else:
-            self.ctx = Context()
+            self.ctx = Context() # Note that this results in insecure SSL
 
-        if hasattr(factory.wrappedFactory, 'sslPostConnectionCheck'):
-            self.sslPostConnectionCheck = factory.wrappedFactory.sslPostConnectionCheck
-
-        self.tlsStarted = False
-
+        if hasattr(factory.wrappedFactory, 'sslChecker'):
+            self.postConnectionCheck = factory.wrappedFactory.sslChecker
+        else:
+            # This may be ok for servers, but typically clients would
+            # want to make sure they are talking to the expected host.
+            self.postConnectionCheck = _Null
+            
         if hasattr(factory.wrappedFactory, 'startTLS'):
             if factory.wrappedFactory.startTLS:
                 self.startTLS()
@@ -53,6 +64,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.clear()
 
     def clear(self):
+        """
+        Clear this instance, after which it is ready for reuse.
+        """
         if self.tlsStarted:
             if self.sslBio:
                 m2.bio_free_all(self.sslBio)
@@ -61,10 +75,17 @@ class TLSProtocolWrapper(ProtocolWrapper):
             self.networkBio = None
         self.data = ''
         self.encrypted = ''
+        self.tlsStarted = False
+        self.checked = False
+        self.connectionLostCalled = False
         # We can reuse self.ctx and it will be deleted automatically
         # when this instance dies
         
     def startTLS(self):
+        """
+        Start SSL/TLS. If this is not called, this instance just passes data
+        through untouched.
+        """
         if self.tlsStarted:
             raise Exception, 'TLS already started'
         
@@ -96,54 +117,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
             print 'MyProtocolWrapper.makeConnection'
         ProtocolWrapper.makeConnection(self, transport)
 
-    def _encrypt(self, data=''):
-        # XXX mirror image of _decrypt - refactor
-        self.data += data
-        encryptedData = ''
-        g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
-        if g > 0 and self.data != '':
-            r = m2.bio_write(self.sslBio, self.data)
-            if r <= 0:
-                assert(m2.bio_should_retry(self.sslBio))
-            else:
-                self.data = self.data[r:]
-                
-        while 1:
-            pending = m2.bio_ctrl_pending(self.networkBio)
-            if pending:
-                d = m2.bio_read(self.networkBio, pending)
-                if d is not None: # This is strange, but d can be None
-                    encryptedData += d
-                else:
-                    assert(m2.bio_should_retry(self.networkBio))
-            else:
-                break
-        return encryptedData
-
-    def _decrypt(self, data=''):
-        # XXX mirror image of _encrypt - refactor
-        self.encrypted += data
-        decryptedData = ''
-        g = m2.bio_ctrl_get_write_guarantee(self.networkBio)
-        if g > 0 and self.encrypted != '':
-            r = m2.bio_write(self.networkBio, self.encrypted)
-            if r <= 0:
-                assert(m2.bio_should_retry(self.networkBio))
-            else:
-                self.encrypted = self.encrypted[r:]
-                
-        while 1:
-            pending = m2.bio_ctrl_pending(self.sslBio)
-            if pending:
-                d = m2.bio_read(self.sslBio, pending)
-                if d is not None: # This is strange, but d can be None
-                    decryptedData += d
-                else:
-                    assert(m2.bio_should_retry(self.sslBio))
-            else:
-                break
-        return decryptedData
-
     def write(self, data):
         if debug:
             print 'MyProtocolWrapper.write'
@@ -151,8 +124,12 @@ class TLSProtocolWrapper(ProtocolWrapper):
             ProtocolWrapper.write(self, data)
             return
 
-        encryptedData = self._encrypt(data)
-        ProtocolWrapper.write(self, encryptedData)
+        try:
+            encryptedData = self._encrypt(data)
+            ProtocolWrapper.write(self, encryptedData)
+        except M2Crypto.BIO.BIOError, e:
+            self.connectionLost(Failure(e))
+            ProtocolWrapper.loseConnection(self)
 
     def writeSequence(self, data):
         if debug:
@@ -166,6 +143,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
     def loseConnection(self):
         if debug:
             print 'MyProtocolWrapper.loseConnection'
+        # XXX Do we need to do m2.ssl_shutdown(self.ssl)?
         ProtocolWrapper.loseConnection(self)
 
     def registerProducer(self, producer, streaming):
@@ -196,25 +174,92 @@ class TLSProtocolWrapper(ProtocolWrapper):
             ProtocolWrapper.dataReceived(self, data)
             return
 
-        decryptedData = '1'
-        encryptedData = '1'
         self.encrypted += data
-        while decryptedData != '' or encryptedData != '':
 
-            if debug:
-                print 'before:', len(encryptedData), len(self.data), m2.bio_ctrl_pending(self.networkBio), len(decryptedData), len(self.encrypted)
+        try:
+            while 1:
+                decryptedData = self._decrypt()
 
-            decryptedData = self._decrypt()
+                self._check()
 
-            encryptedData = self._encrypt()
-            ProtocolWrapper.write(self, encryptedData)
+                encryptedData = self._encrypt()
+                ProtocolWrapper.write(self, encryptedData)
 
-            ProtocolWrapper.dataReceived(self, decryptedData)
+                ProtocolWrapper.dataReceived(self, decryptedData)
+
+                if decryptedData == '' and encryptedData == '':
+                    break
+        except M2Crypto.BIO.BIOError, e:
+            self.connectionLost(Failure(e))
+            ProtocolWrapper.loseConnection(self)
+        except Checker.SSLVerificationError, e:
+            self.connectionLost(Failure(e))
+            ProtocolWrapper.loseConnection(self)
 
     def connectionLost(self, reason):
         if debug:
             print 'MyProtocolWrapper.connectionLost'
         self.clear()
+        if not self.connectionLostCalled:
+            ProtocolWrapper.connectionLost(self, reason)
+            self.connectionLostCalled = True
 
-        ProtocolWrapper.connectionLost(self, reason)
+    def _check(self):
+        if not self.checked and m2.ssl_is_init_finished(self.ssl):
+            x = m2.ssl_get_peer_cert(self.ssl)
+            if x:
+                x509 = X509.X509(x, 1)
+            else:
+                x509 = None
+            if not self.postConnectionCheck(x509):
+                raise Checker.SSLVerificationError, 'post connection check'
+            self.checked = True
 
+    def _encrypt(self, data=''):
+        # XXX near mirror image of _decrypt - refactor
+        self.data += data
+        encryptedData = ''
+        g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
+        if g > 0 and self.data != '':
+            r = m2.bio_write(self.sslBio, self.data)
+            if r <= 0:
+                assert(m2.bio_should_retry(self.sslBio))
+            else:
+                assert(self.checked)               
+                self.data = self.data[r:]
+                
+        while 1:
+            pending = m2.bio_ctrl_pending(self.networkBio)
+            if pending:
+                d = m2.bio_read(self.networkBio, pending)
+                if d is not None: # This is strange, but d can be None
+                    encryptedData += d
+                else:
+                    assert(m2.bio_should_retry(self.networkBio))
+            else:
+                break
+        return encryptedData
+
+    def _decrypt(self, data=''):
+        # XXX near mirror image of _encrypt - refactor
+        self.encrypted += data
+        decryptedData = ''
+        g = m2.bio_ctrl_get_write_guarantee(self.networkBio)
+        if g > 0 and self.encrypted != '':
+            r = m2.bio_write(self.networkBio, self.encrypted)
+            if r <= 0:
+                assert(m2.bio_should_retry(self.networkBio))
+            else:
+                self.encrypted = self.encrypted[r:]
+                
+        while 1:
+            pending = m2.bio_ctrl_pending(self.sslBio)
+            if pending:
+                d = m2.bio_read(self.sslBio, pending)
+                if d is not None: # This is strange, but d can be None
+                    decryptedData += d
+                else:
+                    assert(m2.bio_should_retry(self.sslBio))
+            else:
+                break
+        return decryptedData

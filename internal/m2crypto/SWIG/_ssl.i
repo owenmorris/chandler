@@ -628,5 +628,10 @@ static long ssl_ctx_set_cache_size(SSL_CTX *ctx, long arg)
 {
   return SSL_CTX_sess_set_cache_size(ctx, arg);
 }
+
+int ssl_is_init_finished(SSL *ssl)
+{
+  return SSL_is_init_finished(ssl);
+}
 %}
 
