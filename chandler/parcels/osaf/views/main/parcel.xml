@@ -308,6 +308,8 @@
     <item itemref="zaobao:AboutZaoBao"/>
     <children itemref="doc:OSAFRSS"/>
     <children itemref="doc:ZaoBaoRSS"/>
+    <children itemref="doc:ChandlerWikiRSS"/>
+    <children itemref="doc:JungleWikiRSS"/>
     <children itemref="doc:TedRSS"/>
     <children itemref="doc:ChaoRSS"/>
     <children itemref="doc:LessigRSS"/>
@@ -321,6 +323,14 @@
   <Node itemName="TedRSS">
     <displayName>Ted Leung on the air</displayName>
     <item itemref="zaobao:ted_ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="ChandlerWikiRSS">
+    <displayName>Chandler Wiki</displayName>
+    <item itemref="zaobao:chandlerwiki_ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="JungleWikiRSS">
+    <displayName>Jungle Wiki</displayName>
+    <item itemref="zaobao:junglewiki_ZaoBaoChannelView"/>
   </Node>
   <Node itemName="ZaoBaoRSS">
     <displayName>ZaoBao News</displayName>

@@ -20,6 +20,14 @@
     <displayName>Loading... OSAF News</displayName>
     <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
   </zb:RSSChannel>
+  <zb:RSSChannel itemName="chandlerwiki">
+    <displayName>Loading... Chandler Wiki</displayName>
+    <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Chandler/WebRss?skin=rss</zb:url>
+  </zb:RSSChannel>
+  <zb:RSSChannel itemName="junglewiki">
+    <displayName>Loading... Jungle Wiki</displayName>
+    <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Jungle/WebRss?skin=rss</zb:url>
+  </zb:RSSChannel>
   <zb:RSSChannel itemName="ted">
     <displayName>Loading... Ted Leung on the air</displayName>
     <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
@@ -202,6 +210,94 @@
   
 
 
+  <Tree itemName="chandlerwiki_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:chandlerwiki"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="chandlerwiki_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="chandlerwiki_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:chandlerwiki_ChannelList"/>
+    <childrenBlocks itemref="doc:chandlerwiki_ChannelItemDetail"/>
+  </SplitWindow>
+
+
+  <Tree itemName="junglewiki_ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:junglewiki"/>
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>True</useButtons>
+
+    <columnHeadings>Subject</columnHeadings>
+    <columnWidths>300</columnWidths>
+    <columnHeadings>Date</columnHeadings>
+    <columnWidths>150</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </Tree>
+
+  <zb:ZaoBaoItemDetail itemName="junglewiki_ChannelItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </zb:ZaoBaoItemDetail>
+
+  <SplitWindow itemName="junglewiki_ZaoBaoChannelView">
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
+    <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
+  </SplitWindow>
 
 
 
