@@ -364,22 +364,6 @@ class wxViewerParcel(wxPanel):
                 index += 1
             return wxNOT_FOUND
 
-        def CopyMenuItem(source, destination):
-            """
-              Delete all the items in the destinations, then copy all the source
-            items over to the destination. We do this instead of just replacing
-            the destination menu with the source menu, because replacing the
-            help menu on Macintosh fails (since it's owned by the system and can't
-            be deleted). Also avoiding the replace eliminates flicker that is
-            seen in the menubar as it's replaced.
-            """
-            for menuItem in destination.GetMenuItems():
-                destination.DestroyItem(menuItem)
-            
-            for menuItem in source.GetMenuItems():
-                destination.AppendItem(source.RemoveItem(menuItem))
-                
-
         mainFrameId = id(app.model.mainFrame)
         """
           We require that there's a mainFrame and that wxWindows contains FindResourceWithoutLogging.
