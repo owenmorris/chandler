@@ -24,6 +24,8 @@ class DAVException(Exception):
     pass
 class NotFound(DAVException):
     pass
+class NotAuthorized(DAVException):
+    pass
 
 class DAV(object):
     def __init__(self, resourceURL):
@@ -57,6 +59,8 @@ class DAV(object):
         r = self.__request('head', unicode(self.url))
         if r.status == 404:
             raise NotFound
+        if r.status == 401:
+            raise NotAuthorized
         return r
 
     def putResource(self, body, type='text/plain'):
@@ -73,6 +77,8 @@ class DAV(object):
         r = self.__request('propfind', unicode(self.url), body, depth)
         if r.status == 404:
             raise NotFound
+        if r.status == 401:
+            raise NotAuthorized
         return r
 
     def setProps(self, props):
@@ -82,6 +88,8 @@ class DAV(object):
         log.debug(r.read())
         if r.status == 404:
             raise NotFound
+        if r.status == 401:
+            raise NotAuthorized
         return r
 
     def _getETag(self):
