@@ -30,12 +30,26 @@ Please also understand that our underlying database is undergoing massive change
 If you run into problems, please see <a href=http://wiki.osafoundation.org/bin/view/Main/ReportingBugs>Reporting Bugs</a>.
 </p>
 
+<h2>Compatibility Notes</h2>
+<ul>
+
+<li>Our Linux binaries are built on a RedHat 8 machine that
+has libc version 2.3.2.  To run these binaries, your machine
+will need libc 2.3.2.  To see what version of libc you have,
+run "ldd --version" on the command line.  If you are building
+Chandler yourself you will need gcc 3.3.x, as described in <a
+href=http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler>Building
+Chandler</a>.
+<li>The OSX binaries have only been tested on Panther (10.3).
+<li>The Windows binaries have only been tested on XP.
+</ul>
+
 <h2>What Should I Download?</h2>
 There are a few different types of Chandler distribution files that are available in this plugh; choose the one that's right for you:
 <ul>
 <li> <b>End-users' distributions: </b> If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, and run!
 <b>Please select one of the following:</b>
-<a href=#enduserlinux>Linux</a> (RedHat 8.0 and newer only - other linux versions, please build from source) | 
+<a href=#enduserlinux>Linux</a> | 
 <a href=#enduserosx>Mac OSX</a> | 
 <a href=#enduserwin>Windows</a>
 <br>
@@ -43,7 +57,7 @@ There are a few different types of Chandler distribution files that are availabl
 <br>
 <li> <b>Developers' distributions: </b> If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  You can also use this distribution to develop your own parcels (see <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>ParcelLoading</a> for details on loading your own parcels).
 <b>Please select one of the following:</b>
-<a href=#devbinlinux>Linux</a> (RedHat 8.0 and newer only - other linux versions, please build from source) | 
+<a href=#devbinlinux>Linux</a> | 
 <a href=#devbinosx>Mac OSX</a> | 
 <a href=#devbinwin>Windows</a>
 <br>
@@ -66,7 +80,7 @@ There are a few different types of Chandler distribution files that are availabl
 <a name=enduserlinux></a> &nbsp; <br>
 <h2>End-Users' Distribution: <i>Linux</i></h2>
 
-<p>Note: This binary is built for RedHat 8.0 or newer.  Other platforms may
+<p>Note: This binary is built for RedHat 8.0 or newer, with libc 2.3.2.  Other platforms may
 have to build from source.</p>
 
 Download <a href=Chandler_linux_XYZZY.tar.gz>Chandler_linux_XYZZY.tar.gz</a>
@@ -127,7 +141,7 @@ explorer, double-click on chandler.exe in the directory you extracted to.
 <a name=devbinlinux></a> &nbsp; <br>
 <h2>Developers' Distribution: <i>Linux</i></h2>
 
-<p>Note: This binary is built for RedHat 8.0 or newer.  Other platforms may
+<p>Note: This binary is built for RedHat 8.0 or newer, with libc 2.3.2.  Other platforms may
 have to build from source.</p>
 
 Download <a href=Chandler_linux_debug_XYZZY.tar.gz>Chandler_linux_debug_XYZZY.tar.gz</a> and save it to disk.  Change your shell's current directory to the location you saved the file and unpack the distribution via:
