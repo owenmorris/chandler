@@ -287,27 +287,35 @@ class List(RectangularChild):
 
 
 class wxSummaryTable(wx.grid.PyGridTableBase):
-    def __init__(self, elementDelegate):
-        super (wxSummaryTable, self).__init__ ()
-        self.elementDelegate = elementDelegate
+    def __init__(self, *arguments, **keywords):
+        super (wxSummaryTable, self).__init__ (*arguments, **keywords)
 
     def GetNumberRows(self):
-        return self.elementDelegate.ElementCount() 
+        """
+          We've got the usual chicken & egg problems: Wx calls GetNumberRows &
+        GetNumberCols before wiring up the view instance variable
+        """
+        if self.GetView():
+            return self.GetView().ElementCount()
+        return 1
 
-    def GetNumberCols(self): 
-        return len (self.elementDelegate.blockItem.columnHeadings)
+    def GetNumberCols(self):
+        if self.GetView():
+            return len (self.GetView().blockItem.columnHeadings)
+        return 1
 
     def GetColLabelValue(self, column):
-        return self.elementDelegate.blockItem.columnHeadings[column]
+        return self.GetView().blockItem.columnHeadings[column]
 
     def IsEmptyCell(self, row, column): 
         return False 
 
     def GetValue(self, row, column): 
-        return self.elementDelegate.GetElementText(row, column)
+        return self.GetView().GetElementText(row, column)
 
     def SetValue(self, row, column, value):
-        self.elementDelegate.GetElementText(row, column, value) 
+        self.GetView().GetElementText(row, column, value) 
+
 
 class wxSummary(wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
@@ -324,11 +332,6 @@ class wxSummary(wx.grid.Grid):
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
         self.SetRowLabelSize(0)
-        """
-          wxSummaryTable handles the callbacks to display the elements of the
-        table. Setting the second argument to True cause the table to be deleted
-        when the grid is deleted.
-        """
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
@@ -338,17 +341,26 @@ class wxSummary(wx.grid.Grid):
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
+        """
+          wxSummaryTable handles the callbacks to display the elements of the
+        table. Setting the second argument to True cause the table to be deleted
+        when the grid is deleted.
 
-        gridTable = wxSummaryTable (self)
-        self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
-
+          We've also got the usual chicken and egg problem: SetTable uses the
+        table before initializing it's view so GetView() returns none.
+        """
+        gridTable = wxSummaryTable()
         self.currentRows = gridTable.GetNumberRows()
         self.currentColumns = gridTable.GetNumberCols()
+
+        self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
+
         
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = event.GetSize()
             widthMinusLastColumn = 0
+
             assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
             lastColumnIndex = self.GetNumberCols() - 1
             for column in xrange (lastColumnIndex):
