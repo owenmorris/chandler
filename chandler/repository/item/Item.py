@@ -16,7 +16,7 @@ from model.util.Path import Path
 class Item(object):
     'The root class for all items.'
     
-    def __init__(self, name, parent, kind, **_kwds):
+    def __init__(self, name, parent, kind):
         '''Construct an Item.
 
         All items require a parent item unless they are a repository root in
@@ -32,32 +32,33 @@ class Item(object):
         super(Item, self).__init__()
 
         self._status = 0
-        self._uuid = _kwds.get('_uuid') or UUID()
+        self._uuid = UUID()
 
-        values = _kwds.get('_values')
-        if values is not None:
-            values._setItem(self)
-            self._values = values
-        else:
-            self._values = Values(self)
-
-        references = _kwds.get('_references')
-        if references is not None:
-            references._setItem(self)
-            self._references = references
-        else:
-            self._references = References(self)
+        self._values = Values(self)
+        self._references = References(self)
         
         self._name = name or self._uuid.str64()
+        self._kind = None
         self._root = None
 
-        if parent is not None:
-            self._parent = parent
-            self._setRoot(parent._addItem(self))
-        else:
-            self._parent = None
+        self._setParent(parent)
+        self._setKind(kind)
 
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        self._uuid = kwds['uuid']
+        self._name = name or self._uuid.str64()
         self._kind = None
+        self._root = None
+        self._status = 0
+
+        kwds['values']._setItem(self)
+        self._values = kwds['values']
+        
+        kwds['references']._setItem(self)
+        self._references = kwds['references']
+
+        self._setParent(parent)
         self._setKind(kind)
 
     def __iter__(self):
@@ -72,6 +73,9 @@ class Item(object):
     
     def __repr__(self):
 
+        if self._status & Item.RAW:
+            return super(Item, self).__repr__()
+        
         return "<%s: %s %s>" %(type(self).__name__, self._name,
                                self._uuid.str16())
 
@@ -677,7 +681,15 @@ class Item(object):
             self._parent._removeItem(self)
             self._setRoot(parent._addItem(self))
             self._parent = parent
-    
+
+    def _setParent(self, parent):
+
+        if parent is not None:
+            self._parent = parent
+            self._setRoot(parent._addItem(self))
+        else:
+            self._parent = None
+
     def _addItem(self, item):
 
         name = item._name
@@ -846,11 +858,21 @@ class Item(object):
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
 
+    def __new__(cls, *args):
+
+        item = object.__new__(cls, *args)
+        item._status = Item.RAW
+
+        return item
+
+
     loadClass = classmethod(loadClass)
+    __new__ = classmethod(__new__)
     
     DELETED  = 0x1
     DIRTY    = 0x2
     DELETING = 0x4
+    RAW      = 0x8
     
 
 class ItemHandler(xml.sax.ContentHandler):
@@ -976,11 +998,12 @@ class ItemHandler(xml.sax.ContentHandler):
             else:
                 cls = self.kind.getItemClass()
 
-        self.item = item = cls(self.name, self.parent, self.kind,
-                               _uuid = UUID(attrs.get('uuid')),
-                               _values = self.values,
-                               _references = self.references,
-                               _afterLoadHooks = self.afterLoadHooks)
+        self.item = item = cls.__new__(cls)
+        item._fillItem(self.name, self.parent, self.kind,
+                       uuid = UUID(attrs.get('uuid')),
+                       values = self.values,
+                       references = self.references,
+                       afterLoadHooks = self.afterLoadHooks)
 
         self.repository._registerItem(item)
 

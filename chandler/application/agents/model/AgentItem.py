@@ -23,9 +23,6 @@ class AgentItemFactory:
 
 class AgentItem(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-        super(AgentItem, self).__init__(name, parent, kind, **_kwds)
-    
     def GetName(self):
         """ return the name of the agent"""
         return self.agentName

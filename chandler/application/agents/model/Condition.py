@@ -22,9 +22,6 @@ class ConditionFactory:
 
 class Condition(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Condition, self).__init__(name, parent, kind, **_kwds)
-
     def GetNotifications(self):
         """
           return a list of notifications used by this condition

@@ -11,6 +11,8 @@
   <description>Agents schema for the 0.2 release</description>
   <version>0.1</version>
 
+  <itemPathMapping prefix="core"
+                   path="//Schema/Model/"/>
   <itemPathMapping prefix="types"
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="agents"
@@ -109,6 +111,7 @@
       <attributes itemref="agents:actionOwner"/>
       <attributes itemref="agents:actionRepertoireOwner"/>
       <classes key="python">application.agents.model.Action.Action</classes>
+      <superKinds itemref="core:Item" />
     </Kind>
 
     <Kind itemName="agents:DialogAction">
@@ -182,6 +185,7 @@
     <attributes itemref="agents:conditionOwner"/>
     <attributes itemref="agents:conditionRepertoireOwner"/>   
     <classes key="python">application.agents.model.Condition.Condition</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
   
   <!-- Attributes used in Instruction -->
@@ -220,6 +224,7 @@
     <attributes itemref="agents:actions"/>
     <attributes itemref="agents:instructionOwner"/>
     <classes key="python">application.agents.model.Instruction.Instruction</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
   
   <!-- Attributes used in Repertoire -->
@@ -251,6 +256,7 @@
     <attributes itemref="agents:possibleConditions"/>
     <attributes itemref="agents:repertoireOwner"/>
     <classes key="python">application.agents.model.Repertoire.Repertoire</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
   
   <!-- Attributes used in AgentItem -->
@@ -324,6 +330,7 @@
     <attributes itemref="agents:imageData"/>
     <attributes itemref="agents:prefData"/>
     <classes key="python">application.agents.model.AgentItem.AgentItem</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
 </DomainSchema>

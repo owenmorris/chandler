@@ -28,5 +28,4 @@ class BlockFactory:
 
 
 class Block(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Block, self).__init__(name, parent, kind, **_kwds)
+    pass

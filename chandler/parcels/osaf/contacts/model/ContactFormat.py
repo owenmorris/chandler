@@ -32,8 +32,6 @@ class ContactFormatFactory:
         return item
 
 class ContactFormat(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(ContactFormat, self).__init__(name, parent, kind, **_kwds)
         
     def GetHeaderAttributes(self):
         attributeStr = self.getAttributeValue('headerAttributes')

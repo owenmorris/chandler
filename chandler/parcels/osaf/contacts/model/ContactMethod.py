@@ -31,8 +31,6 @@ class ContactMethodFactory:
         return item
 
 class ContactMethod(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(ContactMethod, self).__init__(name, parent, kind, **_kwds)
  
     # methods to get and set all of the attributes
     def GetMethodType(self):

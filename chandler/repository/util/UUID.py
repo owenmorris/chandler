@@ -27,7 +27,10 @@ class UUID(object):
             
     def __repr__(self):
 
-        return UUIDext.toString(self._uuid)
+        try:
+            return UUIDext.toString(self._uuid)
+        except AttributeError:
+            return super(UUID, self).__repr__()
 
     def __hash__(self):
 

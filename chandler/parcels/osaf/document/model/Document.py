@@ -25,5 +25,4 @@ class DocumentFactory:
 
 
 class Document(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Document, self).__init__(name, parent, kind, **_kwds)
+    pass

@@ -7,6 +7,8 @@
   <ref name="attributes">
     <ref name="dictionary" type="path">/Collections/Attributes/dictionary</ref>
     <ref name="list" type="path">/Collections/Attributes/list</ref>
+    <ref name="lists" type="path">/Collections/Attributes/lists</ref>
+    <ref name="dictionaries" type="path">/Collections/Attributes/dictionaries</ref>
     <ref name="alias" type="path">/Collections/Attributes/alias</ref>
   </ref>
 

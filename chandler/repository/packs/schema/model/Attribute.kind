@@ -21,6 +21,12 @@
     <ref name="subAttributes" type="path">/Model/Attributes/subAttributes</ref>
   </ref>
 
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
+    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
+         type="path">/Model/Item</ref>
+  </ref>
+
   <attribute name="classes" cardinality="dict" 
              type="model.schema.Types.Class">
     <value name="python">model.schema.Attribute.Attribute</value>

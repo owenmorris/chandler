@@ -38,8 +38,6 @@ class ContactEntityFactory:
         return item
 
 class ContactEntity(Item):  
-    def __init__(self, name, parent, kind, **_kwds):
-        super(ContactEntity, self).__init__(name, parent, kind, **_kwds)
         
     # methods for various properties
     def GetName(self):

@@ -22,9 +22,6 @@ class RepertoireFactory:
 
 class Repertoire(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Repertoire, self).__init__(name, parent, kind, **_kwds)
- 
     def GetConditions(self):
         return self.possibleConditions
     

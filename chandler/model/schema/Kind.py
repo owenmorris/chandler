@@ -4,15 +4,24 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+
 from model.item.Item import Item
 from model.item.ItemRef import RefDict
+from model.util.Path import Path
 
 
 class Kind(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
+    def __init__(self, name, parent, kind):
 
-        super(Kind, self).__init__(name, parent, kind, **_kwds)
+        super(Kind, self).__init__(name, parent, kind)
+
+        # recursion avoidance
+        self._values['notFoundAttributes'] = []
+
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(Kind, self)._fillItem(name, parent, kind, **kwds)
 
         # recursion avoidance
         self._values['notFoundAttributes'] = []
@@ -82,7 +91,8 @@ class Kind(Item):
         if self.hasAttributeValue('superKinds'):
             return self.superKinds
 
-        return self._kind._getInheritingKinds()
+#        return self._kind._getInheritingKinds()
+        raise ValueError, 'No superKind for %s' %(self.getItemPath())
 
     def _saveRefs(self, generator, withSchema):
 
@@ -99,9 +109,13 @@ class Kind(Item):
 
 class KindKind(Kind):
 
-    def __init__(self, name, parent, kind, **_kwds):
+    def __init__(self, name, parent, kind):
 
-        super(KindKind, self).__init__(name, parent, self, **_kwds)
+        super(KindKind, self).__init__(name, parent, self)
+
+    def _fillItem(self, name, parent, kind, **kwds):
+    
+        super(KindKind, self)._fillItem(name, parent, self, **kwds)
 
 
 class ItemKind(Kind):
@@ -113,13 +127,12 @@ class ItemKind(Kind):
 
 class SchemaRoot(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
+    def _fillItem(self, name, parent, kind, **kwds):
 
-        super(SchemaRoot, self).__init__(name, parent, kind, **_kwds)
+        super(SchemaRoot, self)._fillItem(name, parent, kind, **kwds)
 
-        afterLoadHooks = _kwds.get('_afterLoadHooks', None)
-        if afterLoadHooks is not None:
-            afterLoadHooks.append(self.afterLoadHook)
+        if kwds['afterLoadHooks'] is not None:
+            kwds['afterLoadHooks'].append(self.afterLoadHook)
 
     def afterLoadHook(self):
 

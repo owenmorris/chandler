@@ -29,9 +29,6 @@ class ActionFactory:
 
 class Action(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Action, self).__init__(name, parent, kind, **_kwds)
-
     def IsAsynchronous(self):
         """
           return True if the action should be executed asynchronously

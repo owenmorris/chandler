@@ -24,9 +24,6 @@ class ContactName(Item):
     # list of valid name parts - FIXME: get this from the schema
     validNameParts = ['fullname', 'sortname', 'firstname', 'lastname', 'middlename']
     
-    def __init__(self, name, parent, kind, **_kwds):
-        super(ContactName, self).__init__(name, parent, kind, **_kwds)
- 
     def GetNamePart(self, partName):
         if self.hasAttributeValue(partName):
             return self.getAttributeValue(partName)        

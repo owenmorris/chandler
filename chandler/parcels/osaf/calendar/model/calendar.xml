@@ -6,6 +6,8 @@
   <description>Calendar schema for the 0.2 release</description>
   <version>0.1</version>
 
+  <itemPathMapping prefix="core" 
+                   path="//Schema/Model/"/>
   <itemPathMapping prefix="types" 
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="cal" 
@@ -78,6 +80,7 @@
     <attributes itemref="cal:location"/>
     <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.calendar.model.CalendarEvent.CalendarEvent</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
   <!-- @@@ Location may be not be calendar specific -->
@@ -87,6 +90,7 @@
     <attributes itemref="cal:eventsAtLocation"/>
     <displayAttribute itemref="cal:name"/>
     <classes key="python">OSAF.calendar.model.Location.Location</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
   <Kind itemName="cal:Calendar">
@@ -94,6 +98,7 @@
     <attributes itemref="cal:name"/>
     <displayAttribute itemref="cal:name"/>
     <classes key="python">OSAF.calendar.model.Calendar.Calendar</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
 </DomainSchema>

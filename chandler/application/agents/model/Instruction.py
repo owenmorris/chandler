@@ -22,9 +22,6 @@ class InstructionFactory:
 
 class Instruction(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Instruction, self).__init__(name, parent, kind, **_kwds)
-    
     def IsEnabled(self):
         return self.enabled
 

@@ -23,8 +23,6 @@ class CalendarEventFactory:
         return item
 
 class CalendarEvent(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(CalendarEvent, self).__init__(name, parent, kind, **_kwds)
 
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""

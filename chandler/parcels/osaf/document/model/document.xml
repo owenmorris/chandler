@@ -6,6 +6,8 @@
   <description>Document block schema for the 0.2 release</description>
   <version>0.1</version>
 
+  <itemPathMapping prefix="core"
+                   path="//Schema/Model/"/>
   <itemPathMapping prefix="types"
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="doc"
@@ -56,6 +58,7 @@
     <attributes itemref="doc:notifications"/>
 
     <classes key="python">OSAF.document.model.Document.Document</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
   <Kind itemName="doc:BoxContainer">
@@ -67,6 +70,7 @@
     <attributes itemref="doc:positionInParent"/>
 
     <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 
   <Kind itemName="doc:Block">
@@ -79,5 +83,6 @@
     <attributes itemref="doc:positionInParent"/>
 
     <classes key="python">OSAF.document.model.Block.Block</classes>
+    <superKinds itemref="core:Item" />
   </Kind>
 </DomainSchema>

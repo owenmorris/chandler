@@ -21,8 +21,6 @@ class CalendarFactory:
         return item
 
 class Calendar(Item):
-    def __init__(self, name, parent, kind, **_kwds):
-        super(Location, self).__init__(name, parent, kind, **_kwds)
 
     def IsRemote(self):
         return False
