@@ -56,13 +56,13 @@ parser Query:
     rule difference_stmt: 'difference' "\(" stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2=stmt }}  "\)"
         {{ return [ 'difference', stmt1, stmt2] }}
 
-    rule for_stmt: 'for' ID 'in' 
+    rule for_stmt: 'for' ID ( 'in' {{ recursive = False }} | 'inevery'  {{ recursive = True }} )
                    ( name_expr 'where' and_or_expr 
-                     {{ return [ 'for', ID, name_expr, and_or_expr ] }} END 
+                     {{ return [ 'for', ID, name_expr, and_or_expr, recursive ] }} END 
                    | STRING 'where' and_or_expr 
-                     {{ return [ 'for', ID, STRING, and_or_expr ] }} END 
+                     {{ return [ 'for', ID, STRING, and_or_expr, recursive ] }} END 
                    | stmt 'where' and_or_expr )
-                     {{ return [ 'for', stmt, and_or_expr ] }} END
+                     {{ return [ 'for', stmt, and_or_expr, recursive ] }} END
 
     rule and_or_expr: rel_expr
          {{ result = rel_expr }}
