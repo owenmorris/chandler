@@ -68,7 +68,7 @@ if os.name == 'nt':
     openssl_dir = 'c:\\pkg\\openssl'
     include_dirs = [my_inc, openssl_dir + '/include']
     library_dirs = [openssl_dir + '\\lib']
-    libraries = ['ssl32', 'eay32']
+    libraries = ['ssleay32', 'libeay32']
     extra_compile_args = [ "-DTHREADING" ]
 
 elif os.name == 'posix':
