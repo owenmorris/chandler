@@ -288,6 +288,7 @@ def TreeFactory(parent):
             EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
             EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
             EVT_IDLE(self, self.OnIdle)
+            EVT_SIZE(self, self.OnSize)
             self.scheduleUpdate = False
             self.lastUpdateTime = 0
             self.ignoreExpand = False
@@ -298,6 +299,21 @@ def TreeFactory(parent):
             """
             if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
                 self.SynchronizeFramework()
+            event.Skip()
+    
+        def OnSize(self, event):
+            size = event.GetSize()
+            if isinstance (self, wxTreeListCtrl):
+                widthMinusLastColumn = 0
+                assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+                for column in range (self.GetColumnCount() - 1):
+                    widthMinusLastColumn += self.GetColumnWidth (column)
+                lastColumnWidth = size.width - widthMinusLastColumn
+                if lastColumnWidth > 0:
+                    self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+            else:
+                assert isinstance (self, wxTreeList), "We're assuming the only other choice is a wxTree"
+                self.SetSize (size)
             event.Skip()
     
         def OnExpanding(self, event):
@@ -387,13 +403,13 @@ def TreeFactory(parent):
             theClass = wxTree.classesByName.get (self.__class__.__name__)
             if not theClass:
                 parts = counterpart.elementDelegate.split (".")
-                assert len(parts) >= 2, "Delegate " + counterpart.elementDelegate + "isn't a module and class"
+                assert len(parts) >= 2, "Delegate % isn't a module and class" % counterpart.elementDelegate
                 delegateClassName = parts.pop ()
                 newClassName = self.__class__.__name__ + '_' + delegateClassName
                 theClass = wxTree.classesByName.get (newClassName)
                 if not theClass:
                     module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
-                    assert module.__dict__.get (delegateClassName), "Class " + counterpart.elementDelegate + "doesn't exist"
+                    assert module.__dict__.get (delegateClassName), "Class % doesn't exist" % counterpart.elementDelegate
                     theClass = classobj (str(newClassName),
                                          (self.__class__, module.__dict__[delegateClassName]),
                                          {})
