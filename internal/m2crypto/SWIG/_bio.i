@@ -8,6 +8,7 @@
 %apply Pointer NONNULL { BIO * };
 %apply Pointer NONNULL { BIO_METHOD * };
 
+%name(bio_s_bio) extern BIO_METHOD *BIO_s_bio(void);
 %name(bio_s_mem) extern BIO_METHOD *BIO_s_mem(void);
 %name(bio_s_socket) extern BIO_METHOD *BIO_s_socket(void);
 %name(bio_f_ssl) extern BIO_METHOD *BIO_f_ssl(void);
@@ -121,6 +122,10 @@ int bio_ctrl_pending(BIO *bio) {
     return (int)BIO_ctrl_pending(bio);
 }
 
+int bio_ctrl_get_write_guarantee(BIO *a) {
+    return BIO_ctrl_get_write_guarantee(a);
+}
+
 int bio_reset(BIO *bio) {
     return (int)BIO_reset(bio);
 }
@@ -174,6 +179,27 @@ int bio_get_fd(BIO *bio) {
 
 int bio_do_handshake(BIO *bio) {
     return BIO_do_handshake(bio);
+}
+
+/* macro */
+int bio_make_bio_pair(BIO* b1, BIO* b2) {
+    return BIO_make_bio_pair(b1, b2);
+}
+
+int bio_set_write_buf_size(BIO* b, size_t size) {
+    return BIO_set_write_buf_size(b, size);
+}
+
+int bio_should_retry(BIO* a) {
+    return BIO_should_retry(a);
+}
+
+int bio_should_read(BIO* a) {
+    return BIO_should_read(a);
+}
+
+int bio_should_write(BIO* a) {
+    return BIO_should_write(a);
 }
 %}
 
