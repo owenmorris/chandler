@@ -155,18 +155,6 @@ def build(buildenv):
             hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
              os.sep + "debug")
 
-    _transformFilesXslt(buildenv, 
-     os.path.join(buildenv['root'],"Chandler","model","schema","html_transform.xml"),
-     os.path.join(buildenv['root'],"Chandler"),
-     os.path.join(buildenv['root'],buildenv['version'],"docs"),
-     [
-      os.path.join("parcels","OSAF","calendar","model","calendar.xml"),
-      os.path.join("parcels","OSAF","contacts","model","contacts.xml"),
-      os.path.join("application","agents","model","agents.xml"),
-      os.path.join("model","schema","CoreSchema.xml"),
-     ]
-    )
-
 
 def clean(buildenv):
     pass
@@ -462,3 +450,17 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
                  srcFile, transformFile 
                  ], 
                  "XSLT: " + file )
+
+def generateDocs(buildenv):
+    _transformFilesXslt(buildenv, 
+     os.path.join(buildenv['root'],"Chandler","model","schema","html_transform.xml"),
+     os.path.join(buildenv['root'],"Chandler"),
+     os.path.join(buildenv['root'],buildenv['version'],"docs"),
+     [
+      os.path.join("parcels","OSAF","calendar","model","calendar.xml"),
+      os.path.join("parcels","OSAF","contacts","model","contacts.xml"),
+      os.path.join("application","agents","model","agents.xml"),
+      os.path.join("model","schema","CoreSchema.xml"),
+     ]
+    )
+
