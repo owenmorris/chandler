@@ -657,13 +657,23 @@ class wxToolbar (wx.ToolBar):
         self.toolItems = 0
         
     def wxSynchronizeWidget(self):
-        dynamicChildren = self.blockItem.dynamicChildren
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
             
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
         self.blockItem.synchronizeColor()
+        
+        # first time synchronizing this bar?
+        dynamicChildren = self.blockItem.dynamicChildren
+        if self.toolItems == 0:
+            self.toolItems = len (dynamicChildren)
+            # shallow copy the children list
+            for child in dynamicChildren:
+                self.toolItemList.append (child)
+            # draw the bar, and we're done.
+            self.Realize()
+            return
         
         # check if anything has changed in this toolbar
         rebuild = False
@@ -686,8 +696,9 @@ class wxToolbar (wx.ToolBar):
             
             # we should have a toolbar set up for us in the barList
             for item in dynamicChildren:
-                self.toolItems += item.addTool(self)
+                item.instantiateWidget ()
                 self.toolItemList.append(item)
+                self.toolItems += 1
             self.Realize()
             """
               Disable all tools. If they have an event they will be enabled
@@ -696,8 +707,24 @@ class wxToolbar (wx.ToolBar):
             """
             for item in dynamicChildren:
                 self.EnableTool (Block.Block.getWidgetID(item), False)
-            
-            
+
+wxToolBarToolClass = wx.ToolBarToolBase
+
+class wxToolbarItem (wxToolBarToolClass):
+    """
+    Toolbar Tool Widget.
+    """
+    def wxSynchronizeWidget(self):
+        """
+        For now, synchronizing is done by the Toolbar, not the Tools
+        """
+        pass
+
+    def IsShown (self):
+        # Since wx.ToolbarTools are not real widgets, they don't support IsShown,
+        #  so we'll provide a stub for CPIA.
+        return True
+    
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
@@ -721,7 +748,7 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
         return style
     
     def synchronizeColor (self):
-        # if there's a color style defined, syncronize the color
+        # if there's a color style defined, synchronize the color
         if self.hasAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
 
@@ -730,8 +757,13 @@ class ToolbarItem (Block.Block, DynamicChild):
     """
       Under construction
     """
-    def addTool(self, wxToolbar):
-        numItems = 1
+    def instantiateWidget (self):
+        # can't instantiate ourself without a toolbar
+        try:
+            theToolbar = self.dynamicParent.widget
+        except AttributeError:
+            return None
+        
         tool = None
         id = Block.Block.getWidgetID(self)
         self.toolID = id
@@ -746,7 +778,7 @@ class ToolbarItem (Block.Block, DynamicChild):
             else:
                 theKind = wx.ITEM_NORMAL
             
-            tool = wxToolbar.DoAddTool (id,
+            tool = theToolbar.DoAddTool (id,
                                         self.label,
                                         bitmap,
                                         wx.NullBitmap,
@@ -755,52 +787,58 @@ class ToolbarItem (Block.Block, DynamicChild):
                                         longHelp=self.helpString)
             # Bind events to the Application OnCommand dispatcher, which will
             #  call the block.event method
-            wxToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
+            theToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
         elif self.toolbarItemKind == 'Separator':
-            wxToolbar.AddSeparator()
-            numItems = 1
+            theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
-            numItems = 0
+            theKind = wx.ITEM_CHECK
+            bitmap = wx.Image (self.bitmap, 
+                               wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            tool = theToolbar.DoAddTool (id,
+                                        self.label,
+                                        bitmap,
+                                        wx.NullBitmap,
+                                        kind = theKind,
+                                        shortHelp=self.title,
+                                        longHelp=self.helpString)
+            tool.SetName(self.title)
+            theToolbar.AddControl (tool)
         elif self.toolbarItemKind == 'Text':
-            tool = wx.TextCtrl (wxToolbar, id, "", 
+            tool = wx.TextCtrl (theToolbar, id, "", 
                                wx.DefaultPosition, 
                                wx.Size(300,-1), 
                                wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
-            wxToolbar.AddControl (tool)
+            theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_TEXT_ENTER, Globals.wxApplication.OnCommand, id=id)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
             choices = proto.choices
-            tool = wx.ComboBox (wxToolbar,
+            tool = wx.ComboBox (theToolbar,
                             -1,
                             proto.selection, 
                             wx.DefaultPosition,
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
-            wxToolbar.AddControl (tool)
+            theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_COMBOBOX, Globals.wxApplication.OnCommand, id=id)
             tool.Bind(wx.EVT_TEXT, Globals.wxApplication.OnCommand, id=id)
         elif self.toolbarItemKind == 'Choice':
             proto = self.prototype
             choices = proto.choices
-            tool = wx.Choice (wxToolbar,
+            tool = wx.Choice (theToolbar,
                             -1,
                             wx.DefaultPosition,
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
-            wxToolbar.AddControl (tool)
+            theToolbar.AddControl (tool)
             tool.Bind(wx.EVT_CHOICE, Globals.wxApplication.OnCommand, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
-            numItems = 0
-        # splice in the tool as this item's widget
-        # this isn't done automatically since ToolbarItems don't use
-        # instantiateWidget
-        # @@@DLD - figure out a way to have the block instantiate a widget
-        # without having it show up anywhere until it gets added to the Toolbar.
-        if tool is not None:
-            self.widget = tool
-            self.widget.blockItem = self
-        return numItems
+        
+        # convert this object from a wx.ToolBarTool to a wxToolBarItem,
+        # so we can call methods on that widget class.
+        assert tool.__class__ is wxToolBarToolClass, "wx ToolBarTool class mismatch with ToolbarItem"
+        tool.__class__ = wxToolbarItem
+        return tool
 
