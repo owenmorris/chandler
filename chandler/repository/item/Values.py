@@ -86,6 +86,14 @@ class Values(dict):
 
         return default
 
+    def _isReadOnly(self, key):
+
+        return self._getFlags(key) & Values.READONLY != 0
+
+    def _isTransient(self, key):
+
+        return self._getFlags(key) & Values.TRANSIENT != 0
+
     def _xmlValues(self, generator, withSchema, version, mode):
 
         from repository.item.ItemHandler import ItemHandler

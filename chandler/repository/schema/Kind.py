@@ -55,10 +55,44 @@ class Kind(Item):
         """
         Return the class used to create items of this Kind.
 
-        By default, the L{Item<repository.item.Item.Item>} class is returned.
+        If this Kind has superKinds and C{self.classes['python']} is not set
+        a composite class is generated and cached from the superKinds.
+
+        The L{Item<repository.item.Item.Item>} class is returned by default.
         """
 
-        return self.getAttributeValue('classes').get('python', Item)
+        try:
+            return self._values['classes']['python']
+        except KeyError:
+            pass
+        except TypeError:
+            pass
+
+        superClasses = []
+        
+        hash = UUIDext.combine(0, self._uuid._hash)
+        for superKind in self._getSuperKinds():
+            c = superKind.getItemClass()
+            if c is not Item and c not in superClasses:
+                superClasses.append(c)
+                hash = UUIDext.combine(hash, superKind._uuid._hash)
+
+        count = len(superClasses)
+
+        if count == 0:
+            c = Item
+        elif count == 1:
+            c = superClasses[0]
+        else:
+            if hash < 0:
+                hash = ~hash
+            name = "class_%08x" %(hash)
+            c = classobj(name, tuple(superClasses), {})
+
+        self._values['classes'] = { 'python': c }
+        self._values._setFlag('classes', self._values.TRANSIENT)
+
+        return c
 
     def check(self, recursive=False):
 
@@ -216,6 +250,20 @@ class Kind(Item):
         return self._kind.itsParent['Item']
 
     def mixin(self, superKinds):
+        """
+        Find or generate a mixin kind.
+
+        The mixin kind is defined as the combination of this kind and the
+        additional kind items specified with C{superKinds}.
+        A new kind is generated if the corresponding mixin kind doesn't yet
+        exist. The item class of the resulting mixin kind is a composite of
+        the superKinds' item classes. See L{getItemClass} for more
+        information.
+
+        @param superKinds: the kind items added to this kind to form the mixin
+        @type superKinds: list
+        @return: a L{Kind<repository.schema.Kind.Kind>} instance
+        """
 
         duplicates = {}
         for superKind in superKinds:
@@ -234,20 +282,18 @@ class Kind(Item):
 
         kind = parent.getItemChild(name)
         if kind is None:
-            kind = MixinKind(name, parent, self._kind)
+            kind = Kind(name, parent, self._kind)
 
             kind.addValue('superKinds', self)
             kind.superKinds.extend(superKinds)
             kind.addValue('mixins', self._uuid)
             kind.mixins.extend([sk._uuid for sk in superKinds])
-
-            kind._createItemClass()
             
         return kind
         
     def isMixin(self):
 
-        return False
+        return 'mixins' in self._values
 
     def isAlias(self):
 
@@ -312,11 +358,30 @@ class Kind(Item):
                 references[name] = value
 
     def flushCaches(self):
+        """
+        Flush the caches setup on this Kind and its subKinds.
+
+        This method should be called when following properties have been
+        changed:
+
+            - the kind's item class, the value of C{self.classes['python']},
+              see L{getItemClass} for more information
+
+            - the kind's attributes list or some attributes' initial values
+
+            - the kind's superKinds list
+
+        The caches of the subKinds of this kind are flushed recursively.
+        """
 
         self.inheritedAttributes.clear()
         del self.notFoundAttributes[:]
         self._initialValues = None
         self._initialReferences = None
+
+        # clear auto-generated composite class
+        if self._values._isTransient('classes'):
+            del self._values['classes']['python']
 
         for subKind in self.getAttributeValue('subKinds',
                                               _attrDict=self._references,
@@ -400,40 +465,3 @@ class ItemKind(Kind):
 
     def check(self, recursive=False):
         return super(Kind, self).check(recursive)
-
-
-class MixinKind(Kind):
-
-    def _fillItem(self, name, parent, kind, **kwds):
-
-        super(MixinKind, self)._fillItem(name, parent, kind, **kwds)
-        self._createItemClass()
-
-    def isMixin(self):
-        return True
-
-    def _createItemClass(self):
-
-        duplicates = {}
-        superClasses = []
-        
-        for superKind in self._getSuperKinds():
-            c = superKind.getItemClass()
-            if c is not Item and c.__name__ not in duplicates:
-                superClasses.append(c)
-                duplicates[c.__name__] = c
-
-        count = len(superClasses)
-
-        if count == 0:
-            c = None
-        elif count == 1:
-            c = superClasses[0]
-        else:
-            c = classobj(self._name, tuple(superClasses), {})
-
-        if c is not None:
-            self.classes = { 'python': c }
-            self._values._setFlag('classes', self._values.TRANSIENT)
-
-        return c
