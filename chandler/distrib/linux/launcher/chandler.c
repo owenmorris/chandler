@@ -133,6 +133,7 @@ main(int argc, char **argv)
     SetLibraryPath(libDir);
     unsetenv("PYTHONPATH");
     unsetenv("PYTHONHOME");
+    setenv("PYTHONOPTIMIZE", "1", 1);
     chdir(exeDir);
     free(exePath);
     exePath = malloc((strlen(libDir)+strlen(PROG_BIN)+2) * sizeof(char));
