@@ -28,7 +28,7 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.lock = threading.Lock()
 
 def repositoryCallback(uuid, notification, reason, **kwds):
-    if notification == 'ItemChanged':
+    if notification == 'History':
         eventPath = '//parcels/OSAF/framework/item_' + reason
     else:
         return
@@ -37,8 +37,12 @@ def repositoryCallback(uuid, notification, reason, **kwds):
 
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
+    import threading
+    note.threadid = id(threading.currentThread())
     d = { 'uuid' : uuid, 'keywords' : kwds }
     note.SetData(d)
+
+    #print uuid, notification, reason, kwds
 
     Globals.notificationManager.PostNotification(note)
 
