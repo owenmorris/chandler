@@ -93,7 +93,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
+    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="inItemCollection">
@@ -102,7 +102,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="outQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
+    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="outItemCollection">
