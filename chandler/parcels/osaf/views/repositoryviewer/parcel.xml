@@ -102,7 +102,6 @@
 
   <SplitWindow itemName="RepositoryBox">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:RepositoryMenu"/>
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>
 
