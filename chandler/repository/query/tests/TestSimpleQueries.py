@@ -29,8 +29,12 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
+        tools.timing.reset()
+        tools.timing.begin("repository.query.tests.TestSimpleQueries.testKindQuery")
         results = self._compileQuery('testKindQuery','for i in "//Schema/Core/Kind" where True')
         self._checkQuery(lambda i: False, results)
+        tools.timing.end("repository.query.tests.TestSimpleQueries.testKindQuery")
+        tools.timing.results(verbose=False)
 
     def testFunctionKindQuery(self):
         """ Test calling a function in the query predicate """
@@ -89,45 +93,30 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         """ Test a multiple item path traversal in the query predicate """
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
-        tools.timing.begin("Load Contacts Parcel")
         self.loadParcels(
          ['http://osafoundation.org/parcels/osaf/contentmodel/contacts']
         )
-        tools.timing.end("Load Contacts Parcel")
 
         view = self.rep.view
-        tools.timing.begin("Generate Contacts")
         GenerateItems.GenerateContacts(view, 100)
-        tools.timing.end("Generate Contacts")
 
-        tools.timing.begin("Commit Contacts")
         view.commit()
-        tools.timing.end("Commit Contacts")
-#        tools.timing.results()
         
         results = self._compileQuery('testItemTraversalQuery',u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
         self._checkQuery(lambda i: not 'a' in i.contactName.firstName, results)
 
     def testEnumerationQuery(self):
         """ Test an enumeration attribute in the query predicate """
-        tools.timing.reset()
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
-        tools.timing.begin("Load Calendar Parcel")
         self.loadParcels(
          ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
         )
-        tools.timing.end("Load Calendar Parcel")
 
         view = self.rep.view
-        tools.timing.begin("Generate Calendar Events")
         GenerateItems.generateCalendarEventItems(view, 100, 30)
-        tools.timing.end("Generate Calendar Events")
 
-        tools.timing.begin("Commit Calendar Events")
         view.commit()
-        tools.timing.end("Commit Calendar Events")
-        tools.timing.results()
         
         results = self._compileQuery('testEnumerationQuery',u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
         self._checkQuery(lambda i: not i.importance == 'fyi', results)
@@ -158,24 +147,16 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testDateQuery(self):
         """ Test a date range in the query predicate """
-        tools.timing.reset()
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
-        tools.timing.begin("Load Calendar Parcel")
         self.loadParcels(
          ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
         )
-        tools.timing.end("Load Calendar Parcel")
 
         view = self.rep.view
-        tools.timing.begin("Generate Calendar Events")
         GenerateItems.generateCalendarEventItems(view, 100, 30)
-        tools.timing.end("Generate Calendar Events")
 
-        tools.timing.begin("Commit Calendar Events")
         view.commit()
-        tools.timing.end("Commit Calendar Events")
-#        tools.timing.results()
 
         # since GenerateCalenderEventItems generates events offset from now(),
         # need to dynamically compute the date range for the query

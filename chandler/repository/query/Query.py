@@ -13,7 +13,7 @@ from chandlerdb.util.UUID import UUID
 import repository.item.Monitors as Monitors
 
 import logging
-log = logging.getLogger("RepoQuery")
+log = logging.getLogger("repository.query")
 log.setLevel(logging.INFO)
 
 import time

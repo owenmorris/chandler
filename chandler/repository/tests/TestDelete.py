@@ -32,10 +32,11 @@ class TestDelete(RepositoryTestCase):
 
         self._reopenRepository()
         k = self.rep.findPath('//CineGuide/KHepburn')
+        tools.timing.reset()
         for m in k.movies:
-            tools.timing.begin("repository.TestDelete")
+            tools.timing.begin("repository.tests.TestDelete.testDeleteItemsInCollection")
             m.delete()
-            tools.timing.end("repository.TestDelete")
+            tools.timing.end("repository.tests.TestDelete.testDeleteItemsInCollection")
 
         self.assert_(len(k.movies) == 0)
         self.assert_(self.rep.check())
@@ -50,7 +51,9 @@ class TestDelete(RepositoryTestCase):
         tools.timing.reset()
 
         k = self.rep.findPath('//CineGuide/KHepburn')
+        tools.timing.begin("repository.tests.TestDelete.testCloudDelete")
         k.delete(cloudAlias='remote')
+        tools.timing.end("repository.tests.TestDelete.testCloudDelete")
         self.rep.commit()
         self.rep.check()
         self._reopenRepository()

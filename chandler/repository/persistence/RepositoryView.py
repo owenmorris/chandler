@@ -20,7 +20,7 @@ from repository.persistence.PackHandler import PackHandler
 import Repository
 
 
-timing = True
+timing = False
 if timing: import tools.timing
 
 class RepositoryView(object):

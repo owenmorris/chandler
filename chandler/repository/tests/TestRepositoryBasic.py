@@ -12,6 +12,7 @@ import os, unittest
 from bsddb.db import DBNoSuchFileError
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.DBRepository import DBRepository
+import tools.timing
 
 class BasicRepositoryTest(unittest.TestCase):
     """ Very basic repository tests """
@@ -37,7 +38,11 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def testCreate(self):
         """ Create a repository and make sure it is open """
+        tools.timing.reset()
+        tools.timing.begin("repository.TestRepositoryBasic.testCreate")
         self.rep.create()
+        tools.timing.end("repository.TestRepositoryBasic.testCreate")
+        tools.timing.results(verbose=False)
         self.assert_(self.rep.check())
         self.assert_(self.rep.isOpen())
 
@@ -56,7 +61,11 @@ TODO is there more pack testing we need to do?
         self.assert_(self.rep.check())
         schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')
+        tools.timing.reset()
+        tools.timing.begin("repository.TestRepositoryBasic.testLoadPack")
         self.rep.loadPack(schemaPack)
+        tools.timing.end("repository.TestRepositoryBasic.testLoadPack")
+        tools.timing.results(verbose=False)
         self.assert_(self.rep.check())
     
     def tearDown(self):

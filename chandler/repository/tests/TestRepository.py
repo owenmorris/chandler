@@ -11,6 +11,7 @@ import RepositoryTestCase, os, unittest
 
 from repository.util.Path import Path
 from bsddb.db import DBNoSuchFileError
+import tools.timing
 
 class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
     """ Very basic repository tests """
@@ -57,7 +58,12 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 
     def testFind(self):
         """ Make sure we can run find """
-        kind = self._find('//Schema/Core/Kind')
+        tools.timing.reset()
+        tools.timing.begin("repository.tests.TestRepository.testFind")
+        kind = self.rep.findPath('//Schema/Core/Kind')
+        tools.timing.end("repository.tests.TestRepository.testFind")
+        tools.timing.results(verbose=False)
+
         self.assert_(kind is not None)
         #TODO should check UUID
         pass
