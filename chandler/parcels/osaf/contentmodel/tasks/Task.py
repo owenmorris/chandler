@@ -62,8 +62,8 @@ class TaskMixin(Item.Item):
         # default status is To Do
         self.taskStatus = 'todo'
 
-        # default due date is 7 days hence
-        self.dueDate = DateTime.now() + DateTime.DateTimeDelta(7)
+        # default due date is 1 hour hence
+        self.dueDate = DateTime.now() + DateTime.DateTimeDelta(0,1)
 
         # default the requestor to "me"
         self.requestor = self.getCurrentMeEmailAddress ()
