@@ -86,7 +86,8 @@ class Application(Persistent):
 			pageLocation = 'application' + os.sep + 'welcome.html'		
 			splash = SplashScreen(None, _("Welcome to Chandler"), 
 					      pageLocation, false)
-			splash.ShowModal()
+			if splash.ShowModal():
+				splash.Destroy()
 			
 	def __setstate__(self, dict):
 		"""
@@ -303,7 +304,8 @@ class wxApplication (wxApp):
 		pageLocation = 'application' + os.sep + 'welcome.html'		
 		splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
 				      pageLocation, useTimer=false)
-		splash.Show(true)
+		if splash.ShowModal():
+			splash.Destroy()
 
 	# handle the preferences command by showing the preferences dialog
 	def OnPreferences(self, event):
