@@ -71,16 +71,16 @@ class DetailRoot (ControlBlocks.SelectionContainer):
             try:
                 # process from the children up
                 for child in block.childrenBlocks:
-                    notify = reNotifyInside (child, item)
-                    notifyParent = notifyParent or notify
+                    notifyParent = reNotifyInside (child, item) or notifyParent
             except AttributeError:
                 pass
             try:
-                notify = block.synchronizeItemDetail(item)
-                notifyParent = notifyParent or notify
+                syncMethod = block.synchronizeItemDetail
             except AttributeError:
                 if notifyParent:
                     block.synchronizeWidget()
+            else:
+                notifyParent = syncMethod(item) or notifyParent
             return notifyParent
 
         children = self.childrenBlocks
@@ -846,11 +846,18 @@ class EditTimeAttribute (EditRedirectAttribute):
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
-    def saveAttributeFromWidget(self, item, widget):
-        """"
-          Update the attribute from the user edited string in the widget.
-        """
-        dateString = widget.GetValue().strip('?')
+    def parseDateTime (self, dateString):
+        theDate = None
+        # work around a problem when using hour of 12
+        # @@@DLD Check if this date parsing bug is fixed yet - due in version 2.1
+        if DateTime.__version__ < '2.1':
+            try:
+                twelveLocation = dateString.upper().index('12:')
+            except ValueError:
+                pass
+            else:
+                dateString = dateString[:twelveLocation]\
+                             + '00:' + dateString[twelveLocation+3:]
         try:
             # convert to Date/Time
             theDate = DateTime.Parser.DateTimeFromString (dateString)
@@ -858,13 +865,17 @@ class EditTimeAttribute (EditRedirectAttribute):
             pass
         except DateTime.RangeError:
             pass
+        return theDate
+
+    def saveAttributeFromWidget(self, item, widget):
+        """"
+          Update the attribute from the user edited string in the widget.
+        """
+        dateString = widget.GetValue().strip('?')
+        theDate = self.parseDateTime (dateString)
         try:
-            # save the new Date/Time
-            whichTimeAttribute = self.whichAttribute()
-            if 'start' in whichTimeAttribute:
-                item.ChangeStart (theDate)
-            else:
-                item.setAttributeValue(whichTimeAttribute, theDate)
+            # save the new Date/Time into the startTime attribute
+            item.ChangeStart (theDate)
         except:
             # DLDTBD figure out reasonable exceptions to catch during conversion
             dateString = dateString + '?'
@@ -882,7 +893,7 @@ class EditTimeAttribute (EditRedirectAttribute):
         try:
             dateTime = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
-            value = ''
+            value = 'yyyy-mm-dd HH:MM'
         else:
             value = dateTime.strftime (self.timeFormat)
         widget.SetValue (value)
@@ -905,7 +916,10 @@ class EditDurationAttribute (EditRedirectAttribute):
     An attribute-based edit field for Duration Values
     Our parent block knows which attribute we edit.
     """
-    durationFormat = '%I:%M'
+    durationFormatShort = '%H:%M'
+    durationFormatLong = '%d:%H:%M:%S'
+    zeroDays = DateTime.DateTimeDelta (0)
+    hundredDays = DateTime.DateTimeDelta (100)
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
@@ -921,14 +935,14 @@ class EditDurationAttribute (EditRedirectAttribute):
             theDuration = DateTime.Parser.DateTimeDeltaFromString (durationString)
         except ValueError: 
             pass
-        try:
+
+        # if we got a value different from the default
+        if self.hundredDays > theDuration > self.zeroDays:
             # save the new duration
             item.duration = theDuration
-        except:
-            # DLDTBD figure out reasonable exceptions to catch during conversion
-            durationString = dateString + '?'
-        else:
-            durationString = theDuration.strftime (self.durationFormat)
+
+        # get the newly formatted string
+        durationString = self.formattedDuration (theDuration, durationString)
 
         # redisplay the processed Date/Time in the widget
         widget.SetValue(durationString)
@@ -943,7 +957,24 @@ class EditDurationAttribute (EditRedirectAttribute):
         except AttributeError:
             value = '?'
         else:
-            value = theDuration.strftime (self.durationFormat)
+            if theDuration is not None:
+                value = self.formattedDuration (theDuration, '')
+            else:
+                value = 'hh:mm'
         widget.SetValue (value)
 
+    def formattedDuration (self, aDuration, originalString):
+        """
+          Return a string containing the formatted duration.
+        """
+        # if we got a value different from the default
+        if self.hundredDays > aDuration > self.zeroDays:
+            if aDuration.day == 0 and aDuration.second == 0:
+                format = self.durationFormatShort
+            else:
+                format = self.durationFormatLong
+            return aDuration.strftime (format)
+        else:
+            # show that we didn't understand the input
+            return originalString + '?'
 
