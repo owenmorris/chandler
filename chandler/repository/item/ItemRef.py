@@ -22,7 +22,7 @@ class ItemRef(object):
 
     def __repr__(self):
 
-        return '<ItemRef: %s>' %(self._other)
+        return '<ItemRef: %s - %s>' %(self._item, self._other)
 
     def _setItem(self):
         pass

@@ -242,7 +242,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def classEnd(self, itemHandler, attrs):
 
-        self.cls = repository.item.Item.Item.loadClass(self.data, attrs['module'])
+        self.cls = repository.item.Item.Item.loadClass(self.data,
+                                                       attrs['module'])
 
     def nameEnd(self, itemHandler, attrs):
 

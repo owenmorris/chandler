@@ -330,10 +330,13 @@ class Item(object):
 
     def iterChildren(self, load=True):
 
+        if self._status & Item.STALE:
+            raise ValueError, "item is stale: %s" %(self)
+
         if not load:
             if self.__dict__.has_key('_children'):
                 for child in self._children._itervalues():
-                    yield child
+                    yield child._value
 
         elif self.__dict__.has_key('_children'):
             for child in self._children:
@@ -658,7 +661,7 @@ class Item(object):
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
-            self._parent._removeItem(self)
+            self.getItemParent()._removeItem(self)
             self._setRoot(None)
 
             self._status |= Item.DELETED | Item.STALE
@@ -726,45 +729,53 @@ class Item(object):
         if path is None:
             path = Path()
             
-        self._parent.getItemPath(path)
+        self.getItemParent().getItemPath(path)
         path.append(self._name)
 
         return path
 
     def getRoot(self):
-        '''Return this item's repository root.
+        """Return this item's repository root.
 
-        All single-slash rooted paths are expressed relative to this root.'''
-        
+        All single-slash rooted paths are expressed relative to this root."""
+
+        if self._root.isStale():
+            self._root = self.getRepository()[self._root._uuid]
+            
         return self._root
 
     def _setRoot(self, root):
 
-        oldRepository = self.getRepository()
-        self._root = root
-        newRepository = self.getRepository()
+        if root is not self._root:
 
-        if oldRepository is not newRepository:
+            oldRepository = self.getRepository()
+            self._root = root
+            newRepository = self.getRepository()
 
-            if oldRepository is not None and newRepository is not None:
-                raise NotImplementedError, 'changing repositories'
+            if oldRepository is not newRepository:
 
-            if oldRepository is not None:
-                oldRepository._unregisterItem(self)
+                if oldRepository is not None and newRepository is not None:
+                    raise NotImplementedError, 'changing repositories'
 
-            if newRepository is not None:
-                newRepository._registerItem(self)
+                if oldRepository is not None:
+                    oldRepository._unregisterItem(self)
 
-                self.setDirty()
+                if newRepository is not None:
+                    newRepository._registerItem(self)
 
-        for child in self.iterChildren(load=False):
-            child._setRoot(root)
+                    self.setDirty()
+
+            for child in self.iterChildren(load=False):
+                child._setRoot(root)
 
     def getItemParent(self):
         """Return this item's container parent.
 
         To change the parent, use Item.move()."""
 
+        if self._parent.isStale():
+            self._parent = self.getRepository()[self._parent._uuid]
+            
         return self._parent
 
     def _setKind(self, kind):
@@ -790,21 +801,26 @@ class Item(object):
 
     def rename(self, name):
         'Rename this item.'
-        
-        self._parent._removeItem(self)
-        self._name = name
-        self._parent._addItem(self)
 
-    def move(self, parent, previous=None, next=None):
+        parent = self.getItemParent()
+        parent._removeItem(self)
+        self._name = name
+        parent._addItem(self)
+
+    def move(self, newParent, previous=None, next=None):
         'Move this item under another container or make it a root.'
 
-        if self._parent is not parent:
-            self._parent._removeItem(self)
-            self._setRoot(parent._addItem(self, previous, next))
-            self._parent = parent
+        parent = self.getItemParent()
+        if parent is not newParent:
+            parent._removeItem(self)
+            self._setRoot(newParent._addItem(self, previous, next))
+            self._parent = newParent
 
     def _isRepository(self):
         return False
+
+    def _isItem(self):
+        return True
 
     def _setParent(self, parent, previous=None, next=None):
 
@@ -838,7 +854,7 @@ class Item(object):
         if '_notChildren' in self.__dict__ and name in self._notChildren:
             del self._notChildren[name]
             
-        return self._root
+        return self.getRoot()
 
     def _removeItem(self, item):
 
@@ -846,6 +862,9 @@ class Item(object):
 
     def getItemChild(self, name, load=True):
         'Return the child as named or None if not found.'
+
+        if self._status & Item.STALE:
+            raise ValueError, "item is stale: %s" %(self)
 
         child = None
         if self.__dict__.has_key('_children'):
@@ -864,9 +883,6 @@ class Item(object):
         return child
 
     def __getitem__(self, key):
-
-        if isinstance(key, UUID):
-            return self.getRepository()[key]
 
         if isinstance(key, str) or isinstance(key, unicode):
             child = self.getItemChild(key)
@@ -902,10 +918,7 @@ class Item(object):
                 return self.getRepository().walk(path, callable, 1, **kwds)
 
             elif path[0] == '/':
-                if self._root is self:
-                    return self.walk(path, callable, 1, **kwds)
-                else:
-                    return self._root.walk(path, callable, 1, **kwds)
+                return self.getRoot().walk(path, callable, 1, **kwds)
 
         if path[_index] == '.':
             if _index == l - 1:
@@ -914,8 +927,9 @@ class Item(object):
 
         if path[_index] == '..':
             if _index == l - 1:
-                return self._parent
-            return self._parent.walk(path, callable, _index + 1, **kwds)
+                return self.getItemParent()
+            return self.getItemParent().walk(path, callable,
+                                             _index + 1, **kwds)
 
         child = self.getItemChild(path[_index], kwds.get('load', True))
         child = callable(self, path[_index], child, **kwds)
@@ -1005,17 +1019,15 @@ class Item(object):
 
         attrs = {}
 
-        if self._root is not self:
-            parentID = self._parent.getUUID().str64()
+        parent = self.getItemParent()
+        parentID = parent.getUUID().str64()
 
-            link = self._parent._children._get(self._name)
+        if parent._isItem():
+            link = parent._children._get(self._name)
             if link._previousKey is not None:
                 attrs['previous'] = link._previousKey
             if link._nextKey is not None:
                 attrs['next'] = link._nextKey
-
-        else:
-            parentID = self.getRepository().ROOT_ID.str64()
 
         if '_children' in self.__dict__:
             children = self._children
@@ -1041,13 +1053,20 @@ class Item(object):
             raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.getItemPath())
         
         if not self._status & Item.STALE:
+            repository = self.getRepository()
+
             self._status |= Item.DIRTY
             if self.hasAttributeValue('kind'):
                 del self.kind
+
             self._values._unload()
             self._references._unload()
-            self.getRepository()._unregisterItem(self)
+            repository._unregisterItem(self)
+
             self._parent._unloadChild(self._name)
+            if '_children' in self.__dict__ and len(self._children) > 0:
+                repository._registerChildren(self._uuid, self._children)
+
             self._status |= Item.STALE
 
     def _unloadChild(self, name):
@@ -1134,6 +1153,12 @@ class Children(LinkedMap):
 
         super(Children, self).__init__(dictionary)
         self._item = item
+
+    def _setItem(self, item):
+
+        self._item = item
+        for link in self._itervalues():
+            link._value._parent = item
         
     def linkChanged(self, link, key):
 

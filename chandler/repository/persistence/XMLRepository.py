@@ -209,7 +209,7 @@ class XMLRepository(OnDemandRepository):
 
             raise ValueError, "dbxml %s not supported" %(self.version)
 
-        def loadroots(self, view):
+        def loadRoots(self, view):
 
             ctx = XmlQueryContext()
             ctx.setReturnType(XmlQueryContext.ResultDocuments)
@@ -526,7 +526,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def getRoots(self):
         'Return a list of the roots in the repository.'
 
-        self.repository._store.loadroots(self)
+        self.repository._store.loadRoots(self)
         return super(XMLRepositoryView, self).getRoots()
 
     def logItem(self, item):

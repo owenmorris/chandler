@@ -51,8 +51,10 @@ class Repository(object):
         self.verbose = verbose
         
     def _isRepository(self):
-
         return True
+
+    def _isItem(self):
+        return False
     
     def close(self, purge=False):
 
@@ -131,6 +133,10 @@ class Repository(object):
 
         self.view.check()
 
+    def getUUID(self):
+
+        return Repository.ROOT_ID
+
     ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     OPEN = 0x1
     view = property(_getView)
@@ -148,10 +154,14 @@ class RepositoryView(object):
         self._roots = {}
         self._registry = {}
         self._deletedRegistry = {}
+        self._childrenRegistry = {}
         self._stubs = []
         self._status = 0
 
     def _isRepository(self):
+        return False
+
+    def _isItem(self):
         return False
 
     def createRefDict(self, item, name, otherName, persist):
@@ -163,6 +173,10 @@ class RepositoryView(object):
     def isLoading(self):
 
         return (self._status & RepositoryView.LOADING) != 0
+
+    def isStale(self):
+
+        return False
         
     def setLoading(self, loading=True):
 
@@ -407,7 +421,17 @@ class RepositoryView(object):
 
     def _registerItem(self, item):
 
-        self._registry[item.getUUID()] = item
+        uuid = item.getUUID()
+
+        old = self._registry.get(uuid)
+        if old and old is not item:
+            raise ValueError, 're-registering %s with different object' %(item)
+        
+        self._registry[uuid] = item
+
+    def _registerChildren(self, uuid, children):
+
+        self._childrenRegistry[uuid] = children
 
     def _unregisterItem(self, item):
 
@@ -436,11 +460,11 @@ class RepositoryView(object):
         if not self.isLoading():
             self._stubs.append(stub)
 
-    def _getRootID(self):
+    def getUUID(self):
 
         return Repository.ROOT_ID
 
-    ROOT_ID = property(_getRootID)
+    ROOT_ID = property(getUUID)
     LOADING = 0x1
     
 
@@ -458,7 +482,7 @@ class Store(object):
     def loadChild(self, view, parent, name):
         raise NotImplementedError, "Store.loadChild"
 
-    def loadroots(self, view):
+    def loadRoots(self, view):
         raise NotImplementedError, "Store.loadRoots"
 
     def parseDoc(self, doc, handler):
@@ -497,6 +521,14 @@ class OnDemandRepositoryView(RepositoryView):
 
             item = self._loadItemDoc(doc, self.repository._store,
                                      afterLoadHooks = self._hooks)
+
+            uuid = item._uuid
+            if uuid in self._childrenRegistry:
+                children = self._childrenRegistry[uuid]
+                del self._childrenRegistry[uuid]
+                item._children = children
+                children._setItem(item)
+                
             if self.repository.verbose:
                 print "loaded version %d of %s" %(item._version,
                                                   item.getItemPath())
@@ -547,6 +579,7 @@ class OnDemandRepositoryView(RepositoryView):
                 
         if doc is not None:
             uuid = store.getDocUUID(doc)
+
             if (not self._deletedRegistry or
                 not uuid in self._deletedRegistry):
                 if self.repository.verbose:
