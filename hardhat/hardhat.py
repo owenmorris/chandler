@@ -27,7 +27,7 @@ def usage():
     print "-C MODULE   clean MODULE and its dependencies"
     print "-d          use debug version" 
     print "-D          create a distribution" 
-    print "-e          show environment variables in hardhat.log"
+    # print "-e          show environment variables in hardhat.log (on by default)"
     print "-h          display this help" 
     print "-i          inspect system (not implemented)" 
     print "-n          non-interactive (won't prompt during scrubbing)" 
