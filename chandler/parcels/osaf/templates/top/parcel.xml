@@ -17,10 +17,55 @@
     <data></data>
   </Query>
 
+
+  <StaticText itemName="StaticText1">
+    <!-- <parentBlock></parentBlock> -->
+    <!-- <childrenBlocks></childrenBlocks> -->
+    <!-- <styles></styles> -->
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </StaticText>
+
+
+  <StaticText itemName="StaticText2">
+    <!-- <parentBlock></parentBlock> -->
+    <!-- <childrenBlocks></childrenBlocks> -->
+    <!-- <styles></styles> -->
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>alignCenterRight</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </StaticText>
+
+
+  <StaticText itemName="StaticText3">
+    <!-- <parentBlock></parentBlock> -->
+    <!-- <childrenBlocks></childrenBlocks> -->
+    <!-- <styles></styles> -->
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </StaticText>
+
+
   <BoxContainer itemName="TopDocument">
     <content-spec itemref="doc:myQuery"/>
     <!-- <parentBlock></parentBlock> -->
-    <!-- <childrenBlocks></childrenBlocks> -->
+    <childrenBlocks itemref="doc:StaticText1"/>
+    <childrenBlocks itemref="doc:StaticText2"/>
+    <childrenBlocks itemref="doc:StaticText3"/>
     <!-- <styles></styles> -->
     <open>True</open>
 

@@ -3,11 +3,13 @@ from Block import Block
 from wxPython.wx import *
 
 class ContainerChild(Block):
+    def Render (self, parent, parentWindow):
+        (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
+        if self.hasAttributeValue ('childrenBlocks'):
+            for child in self.childrenBlocks:
+                child.RenderOneBlock (parent, parentWindow)
 
-    def __init__(self, *arguments, **keywords):
-        super (ContainerChild, self).__init__ (*arguments, **keywords)
- 
-    def RenderOneBlock (self, parent):
+    def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
             flag = wxGROW
         elif self.alignmentEnum == 'growConstrainAspectRatio':
@@ -30,7 +32,9 @@ class ContainerChild(Block):
             flag = wxALIGN_BOTTOM | wxALIGN_LEFT
         elif self.alignmentEnum == 'alignBottomRight':
             flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
+        return flag
 
+    def Calculate_wxBorder (self):
         border = 0
         spacerRequired = False
         for edge in (self.border.top, self.border.left, self.border.bottom, self.border.right):
@@ -48,22 +52,11 @@ class ContainerChild(Block):
         """
         assert not spacerRequired
         
-        return flag, border
+        return int (border)
 
 
 class BoxContainer(ContainerChild):
-    def __init__(self, *arguments, **keywords):
-        super (BoxContainer, self).__init__ (*arguments, **keywords)
- 
-    def Render (self, parent):
-        platformObject = self.RenderOneBlock (parent)
-        if self.hasAttributeValue ('childrenBlocks'):
-            for child in self.childrenBlocks:
-                child.RenderOneBlock (platformObject)
-
-
-    def RenderOneBlock (self, parent):
-        (flag, border) = ContainerChild.RenderOneBlock (self, parent)
+    def RenderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wxHORIZONTAL
         else:
@@ -72,17 +65,30 @@ class BoxContainer(ContainerChild):
         sizer = wxBoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
 
-        sizer.Add (wxTextCtrl (parent, 100, "text", wxDefaultPosition, wxSize (100, 24)))
-        if isinstance (parent, wxFrame):
+        if isinstance (parent, wxWindowPtr):
             parent.SetSizer (sizer)
         else:
-            assert isinstance (parent, wxSizer)
-            parent.add(sizer, 1, flag, int (border))
+            assert isinstance (parent, wxSizerPtr)
+            parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return sizer, parentWindow
+    
 
 class StaticText(ContainerChild):
-    def __init__(self, *arguments, **keywords):
-        super (BoxContainer, self).__init__ (*arguments, **keywords)
+    def RenderOneBlock (self, parent, parentWindow):
+        staticText = wxStaticText (parentWindow,
+                                   -1,
+                                   "Test",
+                                   wxDefaultPosition,
+                                   (self.minimumSize.width, self.minimumSize.height))
 
+        """
+          I think sizers should always live in containers, but
+        I'm not completely sure -- DJA
+        """
+        assert isinstance (parent, wxSizerPtr)
+        parent.Add(staticText, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+
+        
 class EditText(ContainerChild):
     def __init__(self, *arguments, **keywords):
-        super (BoxContainer, self).__init__ (*arguments, **keywords)
+        super (EditText, self).__init__ (*arguments, **keywords)

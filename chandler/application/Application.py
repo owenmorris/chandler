@@ -375,7 +375,7 @@ class wxApplication (wxApp):
         if topDocument:
             self.testFrame = TestFrame()
             assert isinstance (topDocument, Block)
-            topDocument.Render (self.testFrame)
+            topDocument.Render (self.testFrame, self.testFrame)
             self.testFrame.Show()
 
         return true                     #indicates we succeeded with initialization

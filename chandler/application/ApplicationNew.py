@@ -5,27 +5,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import gettext, os, sys
 from wxPython.wx import *
-import Globals
-#import ChandlerJabber
+import Globals, ChandlerJabber
 import repository.schema.LoadParcels as LoadParcels
 from repository.schema.AutoItem import AutoItem
-#import application.agents.AgentManager as AgentManager
-
-#import os, sys, stat, locale, threading, logging
-#from wxPython.wx import *
-#from wxPython.xrc import *
-
-#import PreferencesDialog
-#import ChandlerJabber
-#import PresencePanel
-
-#from application.agents.Notifications.NotificationManager import NotificationManager
-#
-#
-#from application.ChandlerWindow import ChandlerWindow
-#from application.Preferences import Preferences
-#from application.SplashScreen import SplashScreen
-#from application.URLTree import URLTree
 
 
 """
@@ -187,7 +169,7 @@ class wxApplicationNew (wxApp):
         if topDocument:
             self.testFrame = TestFrame()
             assert isinstance (topDocument, Block)
-            topDocument.Render (self.testFrame)
+            topDocument.Render (self.testFrame, self.testFrame)
             self.testFrame.Show()
 
         return true                     #indicates we succeeded with initialization
