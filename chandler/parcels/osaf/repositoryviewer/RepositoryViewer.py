@@ -83,10 +83,21 @@ class wxRepositoryViewer(wxViewerParcel):
         htmlString = htmlString + "</ul><h5>Attributes</h5><ul>"
         for attribute in item.attributes():
             key = attribute[0]
-            value = str(attribute[1])
-            value = value.replace("<", "&lt;")
-            value = value.replace(">", "&gt;")
-            htmlString = htmlString + ("<li><b>%s: </b>%s</li>" % (key, value))
+
+            if isinstance(attribute[1], dict):
+                htmlString = htmlString + ("<li><b>%s:</b></li><ul>" % key)
+                for attr in attribute[1]:
+                    attrString = str(attr)
+                    attrString = attrString.replace("<", "&lt;")
+                    attrString = attrString.replace(">", "&gt;")
+                    htmlString = htmlString + ("<li>%s</li>" % attrString)
+                htmlString = htmlString + ("</ul>")
+            else:
+                value = str(attribute[1])
+                value = value.replace("<", "&lt;")
+                value = value.replace(">", "&gt;")
+                htmlString = htmlString + ("<li><b>%s: </b>%s</li>" % (key, value))
+
         htmlString = htmlString + "</ul></body></html>"
         
         self.detail.SetPage(htmlString)
