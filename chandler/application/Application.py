@@ -29,7 +29,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 10
+    VERSION = 11
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -42,10 +42,10 @@ class Application(Persistent):
           Create instances of other objects that belong to the application.
         Here are all the public attributes:
 
-        self.preferences               object containing all application preferences
-        self.mainFrame                 ChandlerWindow
-        self.URLTree                   tree of parcel views
-        self.version                   see __setstate__
+        self.preferences         object containing all application preferences
+        self.mainFrame           ChandlerWindow
+        self.URLTree             tree of parcel views
+        self.version             see __setstate__
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
@@ -63,10 +63,10 @@ class Application(Persistent):
 
     def __setstate__(self, dict):
         """
-          Data often lives a long time, even longer than code and we may need to
-        update it over time as it's structure changes. A convienent way to do
-        this is to check for an old version in __setstate__, which is called
-        each time the object is loaded, and update the data as necessary.
+          Data often lives a long time, even longer than code and we may need
+        to update it over time as it's structure changes. A convienent way to 
+        do this is to check for an old version in __setstate__, which is 
+        called each time the object is loaded, and update the data as necessary.
           Until the schema of the data settles down, I'm going to always create
         a completely new application each time the data changes. Don't forget
         to call the base class, since it initializes the objects data
@@ -87,30 +87,30 @@ class wxApplication (wxApp):
     """
       Many wxPython objects, for example wxApplication have corresponding
     persistent model counterparts. The persistent object stores data that
-    needs to be saved across successive application executions. The non-persistent
-    object, usually a wxPython object can't be easily be saved because they
-    contain data that doesn't pickle.
+    needs to be saved across successive application executions. The 
+    non-persistent object, usually a wxPython object can't be easily be saved
+    because they contain data that doesn't pickle.
       We'll use the convention of naming the wxPython view object with a "wx"
     prefix using the same name its persistent model counterpart.
       Here's a description of the data available that the wxApplication makes
     available for the rest of the program:
 
-    self.applicationResources      the main application-wide XRC resources
-    self.association               a dictionary mapping persistent object ids to non-persistent
-                                   wxPython counterparts
-    self.chandlerDirectory         directory containing chandler executable
-    self.parcels                   global list of parcel classes
-    self.model                     the persistent counterpart
-    self.storage                   ZODB low level database
-    self.db                        ZODB high level database (object cache)
-    self.connection                connection to ZODB
-    self.dbroot                    ZODB root object tree
-    self.homeDirectory             path to a folder in the user's home directory
-    self.wxMainFrame               active wxChandlerWindow
-    self.locale                    locale used for internationalization
+    self.applicationResources     the main application-wide XRC resources
+    self.association              a dictionary mapping persistent object ids
+                                  to non-persistent wxPython counterparts
+    self.chandlerDirectory        directory containing chandler executable
+    self.parcels                  global list of parcel classes
+    self.model                    the persistent counterpart
+    self.storage                  ZODB low level database
+    self.db                       ZODB high level database (object cache)
+    self.connection               connection to ZODB
+    self.dbroot                   ZODB root object tree
+    self.homeDirectory            path to a folder in the user's home directory
+    self.wxMainFrame              active wxChandlerWindow
+    self.locale                   locale used for internationalization
 
-    In the future we may replace ZODB with another database that provides similar
-    functionality
+    In the future we may replace ZODB with another database that provides 
+    similar functionality
     """
     def OnInit(self):       
         """Main application initialization. Open the persistent object
@@ -125,8 +125,8 @@ class wxApplication (wxApp):
         self.model=None
 
         global app
-        assert app==None                #More than one application object doesn't make any sense
-        app = self;
+        assert app == None     #More than one app object doesn't make sense
+        app = self
 
         wxInitAllImageHandlers()
 
@@ -186,7 +186,8 @@ class wxApplication (wxApp):
             OnTest1 and OnTest2. To see how all this works check out
             ChandlerWindow.py and application.xrc.
             """
-            EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
+            EVT_MENU(self, XRCID ('CreateNewRepository'), 
+                     self.OnCreateNewRepository)
 
         EVT_MENU(self, -1, self.OnMenuCommand)
         self.InMenuCommand = false      #used by OnMenuCommand
@@ -201,7 +202,7 @@ class wxApplication (wxApp):
             menuBar = self.wxMainFrame.GetMenuBar ()
             menuBar.Check (XRCID ('CreateNewRepository'),
                            hasattr (self.model, 'CreateNewRepository'))
-        
+                    
     def OnQuit(self, event):
         """
           Exit the application
@@ -213,9 +214,9 @@ class wxApplication (wxApp):
            Load the parcels and call the class method to install them. Packages
         are defined by directories that contain __init__.py. __init__.py must
         define assign the parcel's class name to parcelClass. For example
-        "parcelClass = CalendarView.CalendarView", where the first string before the
-        dot is the file, (CalendarView.py) and the second string is the class
-        e.g. CalendarView. See calendar/__init__.py for an example
+        "parcelClass = CalendarView.CalendarView", where the first string 
+        before the dot is the file, (CalendarView.py) and the second string is
+        the class e.g. CalendarView. See calendar/__init__.py for an example.
         """
         self.parcels=[]
         """
@@ -241,6 +242,7 @@ class wxApplication (wxApp):
                   Import the parcel's class and append it to our global list
                 of parcels and install it.
                 """
+                
                 parcelClassStrings = module.parcelClass.split ('.')
                 directory += '.' + parcelClassStrings[0]
                 module = __import__(directory, globals, locals, ['*'])

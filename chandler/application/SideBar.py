@@ -24,6 +24,8 @@ class SideBar(Persistent):
         SideBar (like which levels are expanded).
         """
         self.sideBarURLTree = PersistentDict()
+        self.uriDictMap = PersistentDict()
+        self.ignoreChangeSelect = false
         
     def SynchronizeView(self):
         """
@@ -35,8 +37,7 @@ class SideBar(Persistent):
         """
         if not app.association.has_key(id(self)):
             wxWindow = wxSideBar ()
-            app.association[id(self)] = wxSideBar ()
-            wxWindow.OnInit (self)
+            app.association[id(self)] = wxWindow
         else:
             wxWindow = app.association[id(self)]
         
@@ -64,12 +65,14 @@ class SideBar(Persistent):
 
             if not sideBarURLTree.has_key(instanceId):
                 itemId = wxWindow.AppendItem(parent, name)
+                self.uriDictMap[name] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarURLTree[instanceId] = URLTreeEntry(instance, false,
                                                           itemId, {}, false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parent, name)
+                    self.uriDictMap[name] = itemId
                     sideBarURLTree[instanceId].wxId = itemId
                 else:
                     itemId = sideBarURLTree[instanceId].wxId
@@ -87,6 +90,16 @@ class SideBar(Persistent):
                 del sideBarURLTree[key]
             else:
                 item.isMarked = false
+                
+    def SelectUri(self, uri):
+        """
+          Selects the proper uri when we have navigated to a different one
+        via some tool other than the sideBar.
+        """
+        wxWindow = app.association[id(self)]
+        self.ignoreChangeSelect = true
+        wxWindow.SelectItem(self.uriDictMap[uri])
+        self.ignoreChangeSelect = false
 
 class URLTreeEntry:
     """
@@ -141,17 +154,11 @@ class wxSideBar(wxTreeCtrl):
         to select parcels, and not visit specific uri's, but that is only
         temporary.
         """
+        if self.model.ignoreChangeSelect:
+            return
         clickedItem = event.GetItem()
         text = self.GetItemText(clickedItem)
-        for item in app.model.URLTree:
-            parcel = item[0]
-            """
-            Each parcel must have an attribute which is the displayName.
-            """
-            assert (hasattr (parcel, 'displayName'))
-            if parcel.displayName == text:
-                parcel.SynchronizeView ()
-                return
+        app.wxMainFrame.GoToUri(text)
             
     def OnItemExpanding(self, event):
         """

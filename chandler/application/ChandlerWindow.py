@@ -50,8 +50,8 @@ class ChandlerWindow(Persistent):
         else:
             wxWindow = app.association[id(self)]
         
-        # Probably not the right place for this.  
         wxWindow.sideBar.model.SynchronizeView()
+        wxWindow.navigationBar.model.SynchronizeView()
         wxWindow.MoveOntoScreen()
 
 class wxChandlerWindow(wxFrame):
@@ -97,6 +97,8 @@ class wxChandlerWindow(wxFrame):
         
         self.sideBar = self.FindWindowByName("SideBar")
         assert (self.sideBar != None)
+        self.navigationBar = self.FindWindowByName("NavigationBar")
+        assert (self.navigationBar != None)
 
         if __debug__:
             """
@@ -187,3 +189,24 @@ class wxChandlerWindow(wxFrame):
         self.model.size['width'] = rect.GetWidth()
         self.model.size['height'] = rect.GetHeight()
             
+    def GoToUri(self, uri, doAddToHistory = true):
+        """
+          Navigates to the specified uri.  Steps for this include:
+        1) Telling the parcel to display itself  2) Adjusting the sidebar
+        to represent the currently selected uri  3) Adjusting the navigation
+        bar to have the proper history and synchronize its view.
+        """
+        for item in application.Application.app.model.URLTree:
+            parcel = item[0]
+            """
+            Each parcel must have an attribute which is the displayName.
+            """
+            assert (hasattr (parcel, 'displayName'))
+            if parcel.displayName == uri:
+                parcel.SynchronizeView ()
+                self.sideBar.model.SelectUri(uri)
+                if doAddToHistory:
+                    self.navigationBar.model.AddUriToHistory(uri)
+                self.navigationBar.model.SynchronizeView()
+                return true
+        return false
