@@ -244,6 +244,7 @@ class wxApplication (wxApp):
           Open the repository.
           -file argument to use file repository
           -create argument forces a new repository.
+          -recover argument runs recovery when opening after a crash.
           Load the Repository after the path has been altered, but before
           the parcels are loaded. 
         """
@@ -257,9 +258,9 @@ class wxApplication (wxApp):
         self.repository = theClass(repositoryPath)
 
         if '-create' in self.argv:
-            self.repository.create(notxn='-notxn' in self.argv,)
+            self.repository.create()
         else:
-            self.repository.open(create=True, notxn='-notxn' in self.argv)
+            self.repository.open(create=True, recover='-recover' in self.argv)
 
         # Load the repository foundations
         # @@@ This repository loading code should not be embedded in the
