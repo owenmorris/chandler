@@ -128,7 +128,11 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def _abortTransaction(self):
 
         if self._indexWriter is not None:
-            self._indexWriter.close()
+            try:
+                self._indexWriter.close()
+            except ValueError:
+                self.logger.exception('closing indexWriter during abort')
+                
             self._indexWriter = None
             
         self.repository.store.abortTransaction()
@@ -306,6 +310,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
                        (item.itsParent.itsUUID, item._name), origPN,
                        item._status)
 
+        if item._status & item.ADIRTY:
+            for name, acl in item._acls.iteritems():
+                store.saveACL(newVersion, uuid, name, acl)
+
         if isDeleted:
             self._notifications.changed(uuid, 'deleted', parent=origPN[0])
         elif isNew:
@@ -394,7 +402,7 @@ class XMLRefDict(RefDict):
 
     def _writeRef(self, key, version, uuid, previous, next, alias):
 
-        self._getRefs().saveRef(self._key, self._value, key, version,
+        self._getRefs().saveRef(self._key, self._value, version, key,
                                 uuid, previous, next, alias)
 
     def _eraseRef(self, key):
@@ -410,8 +418,8 @@ class XMLRefDict(RefDict):
 
         if key is None:
             view = self.view
-            key = view.repository.store._names.readName(self._uuid, alias,
-                                                        view.version)
+            key = view.repository.store.readName(view.version, self._uuid,
+                                                 alias)
 
         return key
 
@@ -433,7 +441,7 @@ class XMLRefDict(RefDict):
     def _xmlValues(self, generator, version, mode):
 
         if mode == 'save':
-            names = self.view.repository.store._names
+            store = self.view.repository.store
             for op, key, oldAlias in self._log:
                 try:
                     value = self._get(key, load=False)
@@ -451,16 +459,16 @@ class XMLRefDict(RefDict):
                         self._writeRef(key, version,
                                        uuid, previous, next, alias)
                         if oldAlias is not None:
-                            names.writeName(self._uuid, oldAlias,
-                                            version, None)
+                            store.writeName(version, self._uuid, oldAlias,
+                                            None)
                         if alias is not None:
-                            names.writeName(self._uuid, alias,
-                                            version, uuid)
+                            store.writeName(version, self._uuid, alias,
+                                            uuid)
                         
                 elif op == 1:             # remove
                     self._writeRef(key, version, None, None, None, None)
                     if oldAlias is not None:
-                        names.writeName(key, version, oldAlias, None)
+                        store.writeName(version, key, oldAlias, None)
 
                 else:                     # error
                     raise ValueError, op

@@ -19,7 +19,7 @@ from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import VerContainer, HistContainer
-from repository.persistence.DBContainer import NamesContainer
+from repository.persistence.DBContainer import NamesContainer, ACLContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
 from repository.persistence.FileContainer import IndexContainer
 from repository.remote.CloudFilter import CloudFilter
@@ -205,7 +205,7 @@ class XMLContainer(object):
             
     def loadChild(self, version, uuid, name):
 
-        uuid = self.store._names.readName(uuid, name, version)
+        uuid = self.store.readName(version, uuid, name)
         if uuid is None:
             return None
 
@@ -355,6 +355,7 @@ class XMLStore(Store):
             self._binary = FileContainer(self, "__binary__", txn, **kwds)
             self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
             self._index = IndexContainer(self, "__index__", txn, **kwds)
+            self._acls = ACLContainer(self, "__acls__", txn, **kwds)
         finally:
             if txnStarted:
                 self.commitTransaction()
@@ -368,8 +369,9 @@ class XMLStore(Store):
         self._history.close()
         self._text.close()
         self._binary.close()
-        self._index.close()
         self._blocks.close()
+        self._index.close()
+        self._acls.close()
 
     def attachView(self, view):
 
@@ -380,8 +382,9 @@ class XMLStore(Store):
         self._history.attachView(view)
         self._text.attachView(view)
         self._binary.attachView(view)
-        self._index.attachView(view)
         self._blocks.attachView(view)
+        self._index.attachView(view)
+        self._acls.attachView(view)
 
     def detachView(self, view):
 
@@ -392,8 +395,9 @@ class XMLStore(Store):
         self._history.detachView(view)
         self._text.detachView(view)
         self._binary.detachView(view)
-        self._index.detachView(view)
         self._blocks.detachView(view)
+        self._index.detachView(view)
+        self._acls.detachView(view)
 
     def loadItem(self, version, uuid):
 
@@ -436,6 +440,22 @@ class XMLStore(Store):
             buffer.close()
 
         return refs
+
+    def readName(self, version, key, name):
+
+        return self._names.readName(version, key, name)
+
+    def writeName(self, version, key, name, uuid):
+
+        return self._names.writeName(version, key, name, uuid)
+
+    def loadACL(self, version, uuid, name):
+
+        return self._acls.readACL(version, uuid, name)
+
+    def saveACL(self, version, uuid, name, acl):
+
+        return self._acls.writeACL(version, uuid, name, acl)
 
     def queryItems(self, version, query):
 
@@ -587,7 +607,7 @@ class XMLStore(Store):
             parent, name = origPN
             self._versions.setDocVersion(uuid, version, 0)
             self._history.writeVersion(uuid, version, 0, status, parent)
-            self._names.writeName(parent, name, version, None)
+            self.writeName(version, parent, name, None)
 
         else:
             self._versions.setDocVersion(uuid, version, docId)
@@ -595,10 +615,10 @@ class XMLStore(Store):
 
             if origPN is not None:
                 parent, name = origPN
-                self._names.writeName(parent, name, version, None)
+                self.writeName(version, parent, name, None)
 
             parent, name = currPN
-            self._names.writeName(parent, name, version, uuid)
+            self.writeName(version, parent, name, uuid)
 
     def serveItem(self, version, uuid):
 
@@ -630,7 +650,7 @@ class XMLStore(Store):
         if version == 0:
             version = self._versions.getVersion()
         
-        uuid = self._names.readName(uuid, name, version)
+        uuid = self.readName(version, uuid, name)
         if uuid is None:
             return None
 

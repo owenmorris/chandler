@@ -8,6 +8,7 @@ import cStringIO
 
 from repository.item.ItemRef import ItemRef, NoneRef, RefArgs, RefDict
 from repository.item.Values import Values, References, ItemValue
+from repository.item.Access import ACL
 from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
@@ -1344,17 +1345,63 @@ class Item(object):
                 
         return kind
 
-    def __getACLs(self):
+    def setACL(self, acl, name=None):
+        """
+        Set an ACL on this item.
+
+        An ACL can be set for the item or for individual attributes on the
+        item.
+
+        @param acl: an L{ACL<repository.item.Access.ACL>} instance
+        @param name: the name of the attribute to set the ACL for or C{None},
+        the default, to set the ACL for the item.
+        @type name: a string
+        """
+
+        if not '_acls' in self.__dict__:
+            self._acls = { name: acl }
+        else:
+            self._acls[name] = acl
+        
+        self.setDirty(Item.ADIRTY)
+
+    def removeACL(self, name=None):
+        """
+        Remove an ACL from this item.
+
+        An ACL can be removed for the item or for individual attributes on the
+        item.
+
+        @param name: the name of the attribute to remove the ACL for or
+        C{None}, the default, to remove the ACL for the item.
+        @type name: a string
+        """
+
+        self.setACL(None, name)
+
+    def getACL(self, name=None):
+        """
+        Get an ACL from this item.
+
+        An ACL can be obtained from the item or from individual attributes
+        on the item.
+
+        @param name: the name of the attribute to get the ACL from or C{None}
+        to get the ACL for the item.
+        @type name: a string
+        @return: an L{ACL<repository.item.Access.ACL>} instance or C{None} if
+        no ACL is set
+        """
 
         if '_acls' in self.__dict__:
-            return self._acls
+            acl = self._acls.get(name, Item.Nil)
+        else:
+            acl = Item.Nil
 
-        return None
+        if acl is Item.Nil:
+            acl = self.getRepository().getACL(self._uuid, name, self._version)
 
-    def __setACLs(self, acls):
-
-        self._acls = acls
-        self.setDirty(Item.ADIRTY)
+        return acl
 
     def getRepository(self):
         """
@@ -1792,8 +1839,6 @@ class Item(object):
         xmlTag('container', attrs, parentID, generator)
 
         if not isDeleted:
-            if save & Item.ADIRTY:
-                self._xmlAccess(generator, mode)
             if save & Item.VDIRTY:
                 self._xmlAttrs(generator, withSchema, version, mode)
             if save & Item.RDIRTY:
@@ -1874,15 +1919,6 @@ class Item(object):
             if self.getAttributeAspect(key, 'persist', default=True):
                 value._xmlValue(key, self, generator, withSchema, version,
                                 mode)
-
-    def _xmlAccess(self, generator, mode):
-
-        acls = self.__dict__.get('_acls', None)
-        if acls:
-            generator.startElement('access', None)
-            for key, acl in acls.iteritems():
-                acl._xmlValue(key, generator, mode)
-            generator.endElement('access')
 
     def _refDict(self, name, otherName=None, persist=None):
 
@@ -1998,16 +2034,6 @@ class Item(object):
                        """
                        Return this item's kind.
                        """)
-
-    itsAccess = property(fget = __getACLs,
-                         fset = __setACLs,
-                         doc =
-                         """
-                         Return this item's access control lists.
-
-                         If this item has no access control lists,
-                         C{None} is returned.
-                         """)
 
 
 class Children(LinkedMap):

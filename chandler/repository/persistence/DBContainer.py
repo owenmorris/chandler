@@ -8,6 +8,7 @@ import UUIDext, cStringIO
 
 from struct import pack, unpack
 
+from repository.item.Access import ACL, ACE
 from repository.util.UUID import UUID
 from repository.persistence.Repository import Repository
 
@@ -140,7 +141,7 @@ class RefContainer(DBContainer):
             raise NotImplementedError, "value: %s, type: %s" %(value,
                                                                type(value))
 
-    def saveRef(self, keyBuffer, buffer, key, version,
+    def saveRef(self, keyBuffer, buffer, version, key,
                 uuid, previous, next, alias):
 
         buffer.truncate(0)
@@ -430,7 +431,7 @@ class HistContainer(DBContainer):
 
 class NamesContainer(DBContainer):
 
-    def writeName(self, key, name, version, uuid):
+    def writeName(self, version, key, name, uuid):
 
         if isinstance(name, unicode):
             name = name.encode('utf-8')
@@ -441,7 +442,7 @@ class NamesContainer(DBContainer):
         self.put(pack('>16sll', key._uuid, UUIDext.hash(name), ~version),
                  uuid._uuid)
 
-    def readName(self, key, name, version):
+    def readName(self, version, key, name):
 
         if isinstance(name, unicode):
             name = name.encode('utf-8')
@@ -472,7 +473,7 @@ class NamesContainer(DBContainer):
                         nameVer = ~unpack('>l', value[0][-4:])[0]
                 
                         if nameVer <= version:
-                            if value[1] == value[0][0:16]:    # removed name
+                            if value[1] == value[0][0:16]:    # deleted name
                                 return None
 
                             return UUID(value[1])
@@ -483,6 +484,89 @@ class NamesContainer(DBContainer):
                 except DBLockDeadlockError:
                     if txnStarted:
                         self._logDL(9)
+                        continue
+                    else:
+                        raise
+
+                return None
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
+
+
+class ACLContainer(DBContainer):
+
+    def writeACL(self, version, key, name, acl):
+
+        if name is None:
+            key = pack('>16sll', key._uuid, 0, ~version)
+        else:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            key = pack('>16sll', key._uuid, UUIDext.hash(name), ~version)
+
+        if acl is None:    # deleted acl
+            value = pack('>l', 0)
+        else:
+            value = "".join([pack('>16sl', ace.pid._uuid, ace.perms)
+                             for ace in acl])
+
+        self.put(key, value)
+
+    def readACL(self, version, key, name):
+
+        if name is None:
+            cursorKey = pack('>16sl', key._uuid, 0)
+        else:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            cursorKey = pack('>16sl', key._uuid, UUIDext.hash(name))
+
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor()
+                
+                try:
+                    value = cursor.set_range(cursorKey, flags=self._flags)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(10)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        key, aces = value
+                        aclVer = ~unpack('>l', key[-4:])[0]
+                
+                        if aclVer <= version:
+                            if len(aces) == 4:    # deleted acl
+                                return None
+
+                            acl = ACL()
+                            for i in xrange(0, len(aces), 20):
+                                pid = UUID(aces[i:i+16])
+                                perms = unpack('>l', aces[i+16:i+20])[0]
+                                acl.append(ACE(pid, perms))
+
+                            return acl
+                        
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(11)
                         continue
                     else:
                         raise

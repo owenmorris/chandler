@@ -171,6 +171,10 @@ class Repository(object):
 
         return self.view.searchItems(query, load)
 
+    def getACL(self, uuid, name, version):
+
+        return self.store.loadACL(version, uuid, name)
+
     def loadPack(self, path, parent=None):
 
         self.view.loadPack(path, parent)
@@ -360,6 +364,10 @@ class RepositoryView(object):
     def _findKind(self, spec, withSchema):
 
         return self.find(spec)
+
+    def getACL(self, uuid, name, version):
+
+        return self.repository.store.loadACL(version, uuid, name)
 
     def loadPack(self, path, parent=None):
         'Load items from the pack definition file at path.'
@@ -659,6 +667,9 @@ class Store(object):
 
     def loadRefs(self, version, uItem, uuid, firstKey):
         raise NotImplementedError, "Store.loadRefs"
+
+    def loadACL(self, version, uuid, name):
+        raise NotImplementedError, "Store.loadACL"
 
     def queryItems(self, version, query):
         raise NotImplementedError, "Store.queryItems"

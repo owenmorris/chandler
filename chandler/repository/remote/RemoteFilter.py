@@ -188,12 +188,12 @@ class RemoteFilter(XMLFilter):
 
             if self._ref is not None:
                 self.store._refs.saveRef(self._keyBuffer, self._refBuffer,
-                                         self._ref, self.itemVersion,
+                                         self.itemVersion, self._ref,
                                          self._ref, self._previous,
                                          None, self._alias)
                 if self._alias is not None:
-                    self.store._names.writeName(self._refsUUID, self._alias,
-                                                self.itemVersion, self._ref)
+                    self.store.writeName(self.itemVersion, self._refsUUID,
+                                         self._alias, self._ref)
                     
             uuid = attrs['uuid']
             del attrs['uuid']
@@ -212,12 +212,12 @@ class RemoteFilter(XMLFilter):
 
             if self._ref is not None:
                 self.store._refs.saveRef(self._keyBuffer, self._refBuffer,
-                                         self._ref, self.itemVersion,
+                                         self.itemVersion, self._ref,
                                          self._ref, self._previous,
                                          uuid, self._alias)
                 if self._alias is not None:
-                    self.store._names.writeName(self._refsUUID, self._alias,
-                                                self.itemVersion, self._ref)
+                    self.store.writeName(self.itemVersion, self._refsUUID,
+                                         self._alias, self._ref)
 
             self._previous = self._ref
             self._ref = uuid

@@ -7,10 +7,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 class Permission(object):
 
-    READ    = 0x0001
-    WRITE   = 0x0002
-    REMOVE  = 0x0004
-    CHANGE  = 0x0008
+    DENY    = 0x0001
+    READ    = 0x0002
+    WRITE   = 0x0004
+    REMOVE  = 0x0008
+    CHANGE  = 0x0010
 
 
 class AccessDeniedError(Exception):
@@ -33,13 +34,6 @@ class ACL(list):
 
         return grant & ~deny
 
-    def _xmlValue(self, key, generator, mode):
-
-        generator.startElement('acl', { 'name': key })
-        for ace in self:
-            ace._xmlValue(generator, mode)
-        generator.endElement('acl')
-
 
 class ACE(object):
 
@@ -49,24 +43,20 @@ class ACE(object):
 
         self.pid = pid
         self.perms = perms
-        self.deny = deny
+
+        if deny:
+            self.perms |= Permission.DENY
+
+    def __repr__(self):
+
+        return '<ACE: %s 0x%0.8x>' %(self.pid.str64(), self.perms)
 
     def verify(self, principal, perms):
 
         if not principal.isMemberOf(self.pid):
             return (0, 0)
 
-        if self.deny:
+        if self.perms & Permission.DENY:
             return (0, perms & self.perms)
         else:
             return (perms & self.perms, 0)
-
-    def _xmlValue(self, generator, mode):
-
-        attrs = { 'pid': self.pid.str64() }
-        if self.deny:
-            attrs['deny'] = 'True'
-            
-        generator.startElement('ace', attrs)
-        generator.characters(str(self.perms))
-        generator.endElement('ace')
