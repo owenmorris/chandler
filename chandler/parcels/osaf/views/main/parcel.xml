@@ -486,7 +486,7 @@
   <MenuItem itsName="PrefsAccountsItem">
     <blockName>PrefsAccountsItem</blockName>
     <title>Accounts...</title>
-    <accel>Ctrl+A</accel>
+    <!-- <accel>Ctrl+A</accel> -->
     <helpString>Account Preferences</helpString>
     <event itemref="events:EditAccountPreferences"/>
   </MenuItem>
