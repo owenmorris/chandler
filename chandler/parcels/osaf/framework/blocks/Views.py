@@ -27,9 +27,9 @@ class View(BoxContainer):
               Call method named methodName on every block and it's children
             who implements it
             """
-            if block:
-                callMethod (block, methodName, notification)
-                for child in block.childrenBlocks:
+            callMethod (block, methodName, notification)
+            for child in block.childrenBlocks:
+                if child and not child.eventBoundary:
                     broadcast (child, methodName, notification)
 
         event = notification.event

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel describes="//parcels/OSAF/views/locations"
+             itemName="locations"
+             xmlns:core="//Schema/Core"
+             xmlns="//parcels/OSAF/framework/blocks"
+             xmlns:doc="//parcels/OSAF/views/locations"
+             xmlns:repository="//parcels/OSAF/views/repositoryviewer"
+             xmlns:demo="//parcels/OSAF/views/demo"
+             xmlns:zaobao="//parcels/OSAF/views/zaobao">
+
+  <core:version>0.3</core:version>
+
+  <!--
+    URL Nodes
+  -->
+  <Node itemName="URLRoot">
+    <displayName></displayName>
+    <children itemref="doc:Repository"/>
+    <children itemref="doc:Demo"/>
+    <children itemref="doc:ZaoBao"/>
+  </Node>
+
+  <Node itemName="Repository">
+    <displayName>Repository</displayName>
+    <item itemref="repository:RepositoryBox"/>
+  </Node>
+
+  <Node itemName="Demo">
+    <displayName>Demo</displayName>
+    <item itemref="demo:TabBox"/>
+  </Node>
+
+  <Node itemName="ZaoBao">
+    <displayName>ZaoBao</displayName>
+    <item itemref="zaobao:ZaoBaoTab"/>
+  </Node>
+
+</core:Parcel>

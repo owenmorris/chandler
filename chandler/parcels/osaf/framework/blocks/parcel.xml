@@ -320,11 +320,18 @@
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
+
+    <Attribute itemName="eventBoundary">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
     <attributes itemref="docSchema:Block/contentSpec"/>
     <attributes itemref="docSchema:Block/childrenBlocks"/>
     <attributes itemref="docSchema:Block/parentBlock"/>
     <attributes itemref="docSchema:Block/styles"/>
     <attributes itemref="docSchema:Block/open"/>
+    <attributes itemref="docSchema:Block/eventBoundary"/>
   </Kind>
   
   <!--
@@ -343,13 +350,6 @@
   <Kind itemName="ContainerChild">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
-
-    <Attribute itemName="eventBoundary">
-      <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
-    </Attribute>
-
-    <attributes itemref="docSchema:ContainerChild/eventBoundary"/>
   </Kind>
 
   <!--
@@ -872,6 +872,10 @@
       <defaultValue type="String"></defaultValue>
     </Attribute>
 
+    <Attribute itemName="rootPath">
+      <type itemref="Item"/>
+    </Attribute>
+
     <attributes itemref="docSchema:TreeList/hideRoot"/>
     <attributes itemref="docSchema:TreeList/noLines"/>
     <attributes itemref="docSchema:TreeList/useButtons"/>    
@@ -879,6 +883,7 @@
     <attributes itemref="docSchema:TreeList/columnWidths"/>
     <attributes itemref="docSchema:TreeList/openedContainers"/>
     <attributes itemref="docSchema:TreeList/selection"/>
+    <attributes itemref="docSchema:TreeList/rootPath"/>
   </Kind>  
 
   <!--
@@ -914,5 +919,33 @@
     <attributes itemref="docSchema:ItemView/selection"/>
   </Kind>  
 
+  <!--
+    Node
+  -->
+  <Kind itemName="Node">
+    <classes key="python">OSAF.framework.blocks.Node.Node</classes>
+
+    <Attribute itemName="parent">
+      <type itemref="docSchema:Node"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="docSchema:Node/children"/>
+    </Attribute>
+  
+    <Attribute itemName="children">
+      <type itemref="docSchema:Node"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="docSchema:Node/parent"/>
+    </Attribute>
+
+    <Attribute itemName="item">
+      <type itemref="docSchema:Block"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <attributes itemref="docSchema:Node/children"/>
+    <attributes itemref="docSchema:Node/parent"/>
+    <attributes itemref="docSchema:Node/item"/>
+  </Kind>
+  
 </Parcel>
 
