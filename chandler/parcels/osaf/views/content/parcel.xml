@@ -114,14 +114,9 @@
   <Table itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
-    <elementDelegate>osaf.views.content.Content.MixedListDelegate</elementDelegate>
-
-    <columnRenderer></columnRenderer>
-    <columnRenderer>osaf.framework.blocks.ControlBlocks.SmileRenderer</columnRenderer>
-
-    <columnHeadings>Who (Participants)</columnHeadings>
-    <columnHeadings>About (Headline)</columnHeadings>
-    <columnHeadings>Date (Start Time)</columnHeadings>
+    <columnHeadings>whoAttribute</columnHeadings>
+    <columnHeadings>aboutAttribute</columnHeadings>
+    <columnHeadings>dateAttribute</columnHeadings>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>

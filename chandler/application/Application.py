@@ -52,14 +52,14 @@ def mixinAClass (self, myMixinClassImportPath):
         parts = myMixinClassImportPath.split (".")
         assert len(parts) >= 2, "Delegate %s isn't a module and class" % myMixinClassImportPath
         delegateClassName = parts.pop ()
-        newClassName = self.__class__.__name__ + '_' + delegateClassName
+        newClassName = delegateClassName + '_' + self.__class__.__name__
         try:
             theClass = _classesByName [newClassName]
         except KeyError:
             module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
             assert module.__dict__.get (delegateClassName), "Class %s doesn't exist" % myMixinClassImportPath
             theClass = classobj (str(newClassName),
-                                 (self.__class__, module.__dict__[delegateClassName]),
+                                 (module.__dict__[delegateClassName], self.__class__,),
                                  {})
             theClass._alreadyMixedIn = True
             _classesByName [newClassName] = theClass
@@ -144,7 +144,7 @@ class wxApplication (wx.App):
         """
           Splash Screen
         """
-        splashBitmap = wx.Image("application/images/splash.png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        splashBitmap = self.GetImage ("splash")
         splash = wx.SplashScreen(splashBitmap, 
                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, 
                                 6000, None, -1, wx.DefaultPosition, wx.DefaultSize,
@@ -316,6 +316,9 @@ class wxApplication (wx.App):
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
 
+
+    def GetImage (self, name):
+        return wx.Image("application/images/" + name + ".png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()
 
     def OnCommand(self, event):
         """

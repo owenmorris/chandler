@@ -15,7 +15,7 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
-
+import mx.DateTime as DateTime
 
 class Button(RectangularChild):
     def instantiateWidget(self):
@@ -183,7 +183,7 @@ class HTML(RectangularChild):
         return htmlWindow
 
  
-class ListDelegate:
+class ListDelegate (object):
     """
       Default delegate for Lists that use the block's contents. Override
     to customize your behavior.
@@ -215,7 +215,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
-            elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.ListDelegate'
         mixinAClass (self, elementDelegate)
         
     def OnSize(self, event):
@@ -290,7 +290,7 @@ class wxTableData(wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
 
-    def GetNumberRows(self):
+    def GetNumberRows (self):
         """
           We've got the usual chicken & egg problems: wxWidgets calls GetNumberRows &
         GetNumberCols before wiring up the view instance variable
@@ -299,22 +299,41 @@ class wxTableData(wx.grid.PyGridTableBase):
             return self.GetView().ElementCount()
         return 1
 
-    def GetNumberCols(self):
+    def GetNumberCols (self):
         if self.GetView():
             return len (self.GetView().blockItem.columnHeadings)
         return 1
 
-    def GetColLabelValue(self, column):
-        return self.GetView().blockItem.columnHeadings[column]
+    def GetColLabelValue (self, column):
+        return self.GetView().blockItem.columnHeadings [column]
 
-    def IsEmptyCell(self, row, column): 
+    def IsEmptyCell (self, row, column): 
         return False 
 
-    def GetValue(self, row, column): 
-        return self.GetView().GetElementValue(row, column)
+    def GetValue (self, row, column): 
+        return self.GetView().GetElementValue (row, column)
 
-    def SetValue(self, row, column, value):
-        self.GetView().GetElementValue(row, column, value) 
+    def SetValue (self, row, column, value):
+        self.GetView().SetElementValue (row, column, value) 
+
+    def GetTypeName (self, row, column):
+        return self.GetView().GetElementType (row, column)
+
+
+class AttributeDelegate (ListDelegate):
+    def GetElementValue (self, row, column):
+        if column == 1:
+            return "calendar"
+        else:
+            item = self.blockItem.contents [row]
+            attributeName = self.blockItem.columnHeadings [column]
+            indirectAttributeName = item.getAttributeValue (attributeName)
+            return item.getAttributeValue (indirectAttributeName)
+
+    def GetElementType (self, row, column):
+        if column == 1:
+            return "image"
+        return "string"
 
 
 class wxTable(wx.grid.Grid):
@@ -332,6 +351,10 @@ class wxTable(wx.grid.Grid):
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
         self.SetRowLabelSize(0)
+
+        self.SetDefaultRenderer (ImageRenderer())
+        self.RegisterDataType ("image", ImageRenderer(), None);
+
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
@@ -339,7 +362,7 @@ class wxTable(wx.grid.Grid):
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
-            elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
         mixinAClass (self, elementDelegate)
         """
           wxTableData handles the callbacks to display the elements of the
@@ -410,22 +433,6 @@ class wxTable(wx.grid.Grid):
         for columnIndex in xrange (newColumns):
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
-        columnIndex = 0
-        for importPath in self.blockItem.columnRenderer:
-            if importPath:
-                parts = importPath.split (".")
-                assert len(parts) >= 2, "Renderer %s isn't a module and class" % importPath
-                className = parts.pop ()
-                module = __import__ ('.'.join(parts), globals(), locals(), className)
-                theClass = vars (module) [className]
-                renderer = theClass (gridTable)
-        
-                attribute = wx.grid.GridCellAttr()
-                attribute.SetReadOnly (renderer.IsReadOnly())
-                attribute.SetRenderer (renderer)
-                self.SetColAttr (columnIndex, attribute)
-            columnIndex = columnIndex + 1
-
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message) 
@@ -463,82 +470,99 @@ class wxTable(wx.grid.Grid):
         self.SetGridCursor (row, cursorColumn)
 
 
-class SmileRenderer (wx.grid.PyGridCellRenderer):
-    def __init__(self, gridTable):
-        super (SmileRenderer, self).__init__ ()
-        self.gridTable = gridTable
-        self.image = self.GetImage()
+class AttributeRenderer (wx.grid.PyGridCellRenderer):
+    def Format (self, value):
+        theType = type (value)
+        
+        if theType == str:
+            return value
 
-    def IsReadOnly (self):
-        return True
+        elif theType == type (DateTime.DateTime(0)):
+            return value.Format("%B %d, %Y    %I:%M %p")
+        
+        else:
+            result = ""
+            for piece in value:
+                result = result + ', ' + self.Format (piece)
+            return result
 
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
-        offscreenBuffer = wx.MemoryDC()
-        offscreenBuffer.SelectObject(self.image)
+        """
+          We have to set the clipping region on the grid's DC, otherwise
+          the text will draw outside the cell
 
-        # clear the background
+          SetTextColoursAndFont(grid, attr, dc, isSelected);
+      
+          grid.DrawTextRectangle(dc, grid.GetCellValue(row, col),
+                                 rect, hAlign, vAlign);
+        """
+        dc.SetClippingRect (rect)
+
+        value = grid.GetTable().GetValue (row, col)
+        formattedValue = self.Format (value)
+
         dc.SetBackgroundMode(wx.SOLID)
+        dc.SetFont(wx.SWISS_FONT)
 
         if isSelected:
-            dc.SetBrush(wx.Brush(wx.BLUE, wx.SOLID))
-            dc.SetPen(wx.Pen(wx.BLUE, 1, wx.SOLID))
+            dc.SetTextForeground (grid.GetSelectionForeground())
+            dc.SetTextBackground (grid.GetSelectionBackground())
+            dc.SetBrush (wx.Brush (grid.GetSelectionBackground(), wx.SOLID))
+            dc.SetPen (wx.Pen (grid.GetSelectionBackground(), 1, wx.SOLID))
         else:
-            dc.SetBrush(wx.Brush(wx.WHITE, wx.SOLID))
-            dc.SetPen(wx.Pen(wx.WHITE, 1, wx.SOLID))
-        dc.DrawRectangleRect(rect)
+            dc.SetTextForeground (attr.GetTextColour())
+            dc.SetTextBackground (attr.GetBackgroundColour())
+            dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
+            dc.SetPen (wx.Pen (attr.GetBackgroundColour(), 1, wx.SOLID))
 
-        #dc.DrawRectangle((rect.x, rect.y), (rect.width, rect.height))
+        dc.DrawRectangleRect (rect)
+        dc.DrawText(formattedValue, (rect.x+1, rect.y+1))
 
-        # copy the offscreenBuffer but only to the size of the grid cell
-        width, height = self.image.GetWidth(), self.image.GetHeight()
+        width, height = dc.GetTextExtent(formattedValue)
+        
+        if width > rect.width - 2:
+            width, height = dc.GetTextExtent("...")
+            x = rect.x + 1 + rect.width - 2 - width
+            dc.DrawRectangle ((x, rect.y + 1), (width + 1, height))
+            dc.DrawText ("...", (x, rect.y + 1))
 
-        if width > rect.width-2:
-            width = rect.width-2
+        dc.DestroyClippingRegion()
 
-        if height > rect.height-2:
-            height = rect.height-2
+class ImageRenderer (wx.grid.PyGridCellRenderer):
+    def Draw (self, grid, attr, dc, rect, row, col, isSelected):
+        imageName = grid.GetTable().GetValue (row, col)
+        image = Globals.wxApplication.GetImage (imageName)
 
-        dc.Blit ((rect.x+1, rect.y+1),
-                 (width, height),
-                 offscreenBuffer,
-                 (0, 0),
-                 wx.COPY,
-                 True)
-
-    def GetImage (self):
-        data = '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06' + \
-               '\x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00' + \
-               '\x00\x02\x97IDATx\x9ce\x93\xcdkSi\x18\xc5\x7f\xef\xfd\x88iC\x85\x11\xeaW\xbd' + \
-               '1Z\x83D\x04\x11a\x18\xc4\x8e\xd8\x8e\x9dB\x87Y\xe8N\xc2(6\xf1\x82[).\xdd\xa6' + \
-               '\xfe\x01nj7\xf3?\x14\x06k\xbb)sA\x04Q\xd3!\tZ\xda\xe9\x07\xc8\xc0\x08\xc5' + \
-               '\xb64\xefm<.r[[}\xe0,\xde\x8f\xf3>\xbc\xe7<\x07\xe3\xb8\xec\xc5\xf4\xf4\xb4' + \
-               '\x8a\xc5[\xca\xe5\x8e\xc9\xf3\x8c|\xdfQ>\x1f(\x0c\xcb\x8a\xa2H\xdf\xde\xdf' + \
-               '\xb7\x08\xc3\xb2\x82 \xa3J\xe5\'U\xab7emQ\xd6\xdeR\xb5\xfa\x9b*\x95\xac\x82' + \
-               '\xc0(\x0cK\xfb\x1f1\x8e\x0b\xc0\xf5_~V6\xfb?O\x9e\xfc\x8e\xef[`\x03X\x07Z@' + \
-               '\x13\x98\'\x8ek\xdc\xbfoYZ\xba\xcc\xd4\xf3\xc8\x008\x00\xf7\xcaw\x95\xcd\xc2' + \
-               '\xf8x\x05\xdf/\x00\x99\x84(\xda\xb5\x05l\xe2\xfb\x86\xf1\xf1\x03d\xb3\xb3' + \
-               '\xdc+\xdfi\x1fFQ\xa4 8$kk\x92\x16%=\xd3\xe8\xe8\xa8\x00IEIE\x01\xea\xee\xee' + \
-               '\x96\xd4)\xa9C\xd6\xa2\xe0\x04mM\xc2\xb0\xacS\xa7\xb6y\xf8\xf0\x11\xe0\x02' + \
-               '\xff`\xcc\x10\x00R\x11X\xa3PxG\xbd^G\xea\x04\xb5`\xdb0\xf6\xb8\xc5\xc2R\x11g' + \
-               'f\xe6/\x86\x87{\x80U`\x1ex\xcd\xd7j\x02\xab,//\xef\xd9\xfb\x0c\xcdN\x86\x07' + \
-               '\xba\x98\x99\x99\xc4\xf8\xbe\xa3\x8d\x8d\x07\xf8~\x17\xb0\xc5\xc8\xc8\x07&&' + \
-               '\xec\xaep\xb0\x9c\x08\x9a\x90[-X;L\xbc\xe5\x929\xb9\xd4\x16\x11l\xa2\xf8\'&&' + \
-               'b`\r\xa8\x02\x8d=d\x81\xb69}"\rq\x07\xc4i\x00\x9c\\\xae\x87Fc\x05\xf8\x0fhP(' + \
-               '\xbc\x04^$\x9d\xf5\x95L\x0c-\x87\x85\x0f\x9f`\xb3\x8bF\xdd\x90;\xd9\x8d\xd7' + \
-               '\xdf\xff+\x93\x93\x7fr\xfe|\n\x10\xb5\x1ad2bc\xa71\x9f\x81mh\x19.\x9d\xebB' + \
-               '\x8b=\xb0y\x90\xc9g\x1f\xe9\xbf:\xb0c\xa3\x91\xb5\x1d\x89Mm\xab\x94N+\x95J' + \
-               '\xc9\xf3\\e\xd2\x9e.\xf4\x1e\x92V\xcfJ\xb5>\xd9W\xd7\x14\x1cM)\x9a\x9dV2\xc2' + \
-               '#*\x95\x8c$?\x81\'\xc9\x95\x8c\x91\x0ex\xea\xbfx\\Z\xbc \xd5\xafH\xd5\x01' + \
-               '\x95n\x1cWx\xfb\x86\xf6eap\xb0O\xa5\x12\xb2\x16I\tZ\x8e\xb4\xfe\x83\xb4R\x90' + \
-               '\xde\xff(\xfb\xe6\x8aJ7\x8fj\xf0\xea\xc5\xdd<8;?\x9dz\x1e\x19\xd7\x1d\xa1' + \
-               '\xb7\x17\xc6\xc6`n\x0e\xe2\xa6K\xdct\x98{\xb7\xce\xd8\xd3\x7f\xe9\x1dz\x81{' + \
-               '\xb0\x8f\xa9\xd9\xb7fw,\xbe\x8dg\x14E\n\xc3\xbb\xca\xe7\x8f\xc8\xf7\x90\xef' + \
-               '\xa1\xfc\x99\xc3\n\xcb\x7f(\xfa{\xf6\xbb8\x7f\x01 \xf1c\xdaX\x1e\x99\x02\x00' + \
-               '\x00\x00\x00IEND\xaeB`\x82' 
-        from wx import ImageFromStream, BitmapFromImage
-        import cStringIO
-        return BitmapFromImage (ImageFromStream (cStringIO.StringIO (data)))
-
+        if image:
+            offscreenBuffer = wx.MemoryDC()
+    
+            offscreenBuffer.SelectObject (image)
+    
+            dc.SetBackgroundMode (wx.SOLID)
+    
+            if isSelected:
+                dc.SetBrush (wx.Brush (grid.GetSelectionBackground(), wx.SOLID))
+                dc.SetPen (wx.Pen (grid.GetSelectionBackground(), 1, wx.SOLID))
+            else:
+                dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
+                dc.SetPen (wx.Pen (attr.GetBackgroundColour(), 1, wx.SOLID))
+     
+            dc.DrawRectangleRect(rect)
+    
+            width, height = image.GetWidth(), image.GetHeight()
+    
+            if width > rect.width - 2:
+                width = rect.width - 2
+    
+            if height > rect.height - 2:
+                height = rect.height - 2
+    
+            dc.Blit ((rect.x + 1, rect.y + 1),
+                     (width, height),
+                     offscreenBuffer,
+                     (0, 0),
+                     wx.COPY,
+                     True)
 
 class Table(RectangularChild):
     def __init__(self, *arguments, **keywords):

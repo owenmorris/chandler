@@ -104,6 +104,7 @@
 
   <Attribute itsName="elementDelegate">
     <type itemref="String"/>
+    <defaultValue type="String"></defaultValue>
   </Attribute>
 
   <Attribute itsName="event">
@@ -607,12 +608,6 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.Table</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Attribute itsName="columnRenderer">
-      <type itemref="String"/>
-      <cardinality>list</cardinality>
-      <defaultValue /> 
-    </Attribute>
-
     <Attribute itsName="selectedColumn">
       <type itemref="String"/>
       <defaultValue itemref="None"/>
@@ -620,7 +615,7 @@
     
     <attributes itemref="docSchema:columnHeadings"/>
     <attributes itemref="docSchema:columnWidths"/>
-    <attributes itemref="docSchema:Table/columnRenderer"/>
+
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
     <attributes itemref="docSchema:Table/selectedColumn"/>
