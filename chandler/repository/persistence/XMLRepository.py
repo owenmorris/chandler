@@ -21,8 +21,8 @@ from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.Repository import OnDemandRepositoryView
 
 from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_LOCK_WRITE
-from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL
+from bsddb.db import DB_CREATE, DB_BTREE, DB_LOCK_WRITE, DB_THREAD
+from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_LOCK_YOUNGEST
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from dbxml import XmlContainer, XmlDocument, XmlValue
@@ -60,10 +60,17 @@ class XMLRepository(OnDemandRepository):
         else:
             self.delete()
         
-        self._env = DBEnv()
+        self._env = self._createEnv()
         self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
 
         self._openDb(True)
+
+    def _createEnv(self):
+
+        env = DBEnv()
+        env.set_lk_detect(DB_LOCK_YOUNGEST)
+
+        return env
 
     def delete(self):
 
@@ -79,7 +86,7 @@ class XMLRepository(OnDemandRepository):
 
         if not self.isOpen():
             super(XMLRepository, self).open(verbose)
-            self._env = DBEnv()
+            self._env = self._createEnv()
 
             try:
                 if recover:
@@ -135,7 +142,7 @@ class XMLRepository(OnDemandRepository):
 
         return XMLRepositoryView(self)
 
-    OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN
+    OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
 
     class xmlContainer(Store):
 
@@ -151,7 +158,7 @@ class XMLRepository(OnDemandRepository):
                                         self._xml.get_version_patch())
             
             if create:
-                self._xml.open(txn, DB_CREATE | DB_DIRTY_READ)
+                self._xml.open(txn, DB_CREATE | DB_DIRTY_READ | DB_THREAD)
                 self._xml.addIndex(txn, "", "uuid",
                                    "node-attribute-equality-string")
                 self._xml.addIndex(txn, "", "kind",
@@ -161,14 +168,21 @@ class XMLRepository(OnDemandRepository):
                 self._xml.addIndex(txn, "", "name",
                                    "node-element-equality-string")
             else:
-                self._xml.open(txn, DB_DIRTY_READ)
+                self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
 
         def loadItem(self, view, uuid):
 
-            docId = view.repository._versions.getDocId(view, uuid,
-                                                       view.version)
-            if docId is not None:
-                return self._xml.getDocument(view._txn, docId, DB_DIRTY_READ)
+            txnStarted = False
+            try:
+                txnStarted = view._startTransaction()
+                docId = view.repository._versions.getDocId(view, uuid,
+                                                           view.version)
+                if docId is not None:
+                    return self._xml.getDocument(view._txn, docId,
+                                                 DB_DIRTY_READ)
+            finally:
+                if txnStarted:
+                    view._abortTransaction()
 
             return None
             
@@ -180,34 +194,41 @@ class XMLRepository(OnDemandRepository):
 
             doc = None
             ver = 0
-            
-            if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(view._txn,
-                                                   "/item[container=$uuid and name=$name and number(@version)<=$version]",
-                                                   view.ctx, DB_DIRTY_READ)
-                try:
-                    while True:
-                        result = results.next(view._txn).asDocument()
+            txnStarted = False
+
+            try:
+                txnStarted = view._startTransaction()
+                if self.version == "1.1.0":
+                    results = self._xml.queryWithXPath(view._txn,
+                                                       "/item[container=$uuid and name=$name and number(@version)<=$version]",
+                                                       view.ctx, DB_DIRTY_READ)
+                    try:
+                        while True:
+                            result = results.next(view._txn).asDocument()
+                            dv = self.getDocVersion(result)
+                            if dv > ver:
+                                ver = dv
+                                doc = result
+                    except StopIteration:
+                        return doc
+
+                if self.version == "1.1.1":
+                    for value in self._xml.queryWithXPathExpression(view._txn,
+                                                                    view.containerExpr,
+                                                                    DB_DIRTY_READ):
+                        result = value.asDocument()
                         dv = self.getDocVersion(result)
                         if dv > ver:
                             ver = dv
                             doc = result
-                except StopIteration:
+
                     return doc
 
-            if self.version == "1.1.1":
-                for value in self._xml.queryWithXPathExpression(view._txn,
-                                                                view.containerExpr,
-                                                                DB_DIRTY_READ):
-                    result = value.asDocument()
-                    dv = self.getDocVersion(result)
-                    if dv > ver:
-                        ver = dv
-                        doc = result
+                raise ValueError, "dbxml %s not supported" %(self.version)
 
-                return doc
-
-            raise ValueError, "dbxml %s not supported" %(self.version)
+            finally:
+                if txnStarted:
+                    view._abortTransaction()
 
         def loadRoots(self, view):
 
@@ -218,14 +239,33 @@ class XMLRepository(OnDemandRepository):
             ctx.setVariableValue("version", XmlValue(float(view.version)))
             nameExp = re.compile("<name>(.*)</name>")
             roots = {}
+            txnStarted = False
 
-            if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(view._txn,
-                                                   "/item[container=$uuid and number(@version)<=$version]",
-                                                   ctx, DB_DIRTY_READ)
-                try:
-                    while True:
-                        doc = results.next(view._txn).asDocument()
+            try:
+                txnStarted = view._startTransaction()
+                if self.version == "1.1.0":
+                    results = self._xml.queryWithXPath(view._txn,
+                                                       "/item[container=$uuid and number(@version)<=$version]",
+                                                       ctx, DB_DIRTY_READ)
+                    try:
+                        while True:
+                            doc = results.next(view._txn).asDocument()
+                            xml = doc.getContent()
+                            match = nameExp.match(xml, xml.index("<name>"))
+                            name = match.group(1)
+
+                            if not name in view._roots:
+                                ver = self.getDocVersion(doc)
+                                if not name in roots or ver > roots[name][0]:
+                                    roots[name] = (ver, doc)
+                    except StopIteration:
+                        pass
+
+                elif self.version == "1.1.1":
+                    for value in self._xml.queryWithXPath(view._txn,
+                                                          "/item[container=$uuid and number(@version)<=$version]",
+                                                          ctx, DB_DIRTY_READ):
+                        doc = value.asDocument()
                         xml = doc.getContent()
                         match = nameExp.match(xml, xml.index("<name>"))
                         name = match.group(1)
@@ -234,24 +274,12 @@ class XMLRepository(OnDemandRepository):
                             ver = self.getDocVersion(doc)
                             if not name in roots or ver > roots[name][0]:
                                 roots[name] = (ver, doc)
-                except StopIteration:
-                    pass
+                else:
+                    raise ValueError, "dbxml %s not supported" %(self.version)
 
-            elif self.version == "1.1.1":
-                for value in self._xml.queryWithXPath(view._txn,
-                                                      "/item[container=$uuid and number(@version)<=$version]",
-                                                      ctx, DB_DIRTY_READ):
-                    doc = value.asDocument()
-                    xml = doc.getContent()
-                    match = nameExp.match(xml, xml.index("<name>"))
-                    name = match.group(1)
-
-                    if not name in view._roots:
-                        ver = self.getDocVersion(doc)
-                        if not name in roots or ver > roots[name][0]:
-                            roots[name] = (ver, doc)
-            else:
-                raise ValueError, "dbxml %s not supported" %(self.version)
+            finally:
+                if txnStarted:
+                    view._abortTransaction()
 
             for name, (ver, doc) in roots.iteritems():
                 if not name in view._roots:
@@ -300,11 +328,11 @@ class XMLRepository(OnDemandRepository):
             
             if create:
                 self._db.open(filename = name, dbtype = DB_BTREE,
-                              flags = DB_CREATE | DB_DIRTY_READ,
+                              flags = DB_CREATE | DB_DIRTY_READ | DB_THREAD,
                               txn = txn)
             else:
                 self._db.open(filename = name, dbtype = DB_BTREE,
-                              flags = DB_DIRTY_READ,
+                              flags = DB_DIRTY_READ | DB_THREAD,
                               txn = txn)
 
         def close(self):
