@@ -164,7 +164,51 @@ def build(buildenv):
 
 
 def clean(buildenv):
-    pass
+    
+    # Clean the linux launcher program
+    if buildenv['os'] == 'posix':
+        os.chdir("distrib/linux/launcher")
+        version = buildenv['version']
+        buildDir = "build_"+version
+        if os.path.exists(buildDir):
+            hardhatlib.rmdir_recursive(buildDir)
+        os.chdir("../../..")
+
+    # Clean the windows launcher program
+    if buildenv['os'] == 'win':
+        version = buildenv['version']
+
+        try:
+            os.remove('output.txt')
+        except:
+            pass
+
+        hardhatlib.executeCommand(buildenv, info['name'],
+                                  [ buildenv['compiler'],
+                                    'distrib/win/launcher/launcher.sln',
+                                    '/clean', version.capitalize(),
+                                    '/out', 'output.txt' ],
+                                  'Cleaning launcher ' + version,
+                                  0, 'output.txt')
+
+
+    # Clean UUID Extension
+    os.chdir(os.path.join("model","util","ext"))
+    if buildenv['version'] == 'release':
+        hardhatlib.executeCommand(buildenv, info['name'],
+         [buildenv['python'], 'setup.py', 'clean', 
+         '--build-base=build_release'],
+         "Cleaning UUIDext release")
+        if os.path.exists("build_release"):
+            hardhatlib.rmdir_recursive("build_release")
+    if buildenv['version'] == 'debug':
+        hardhatlib.executeCommand(buildenv, info['name'],
+         [buildenv['python_d'], 'setup.py', 'clean', 
+         '--build-base=build_debug'],
+         "Cleaning UUIDext debug")
+        if os.path.exists("build_debug"):
+            hardhatlib.rmdir_recursive("build_debug")
+    os.chdir("../../..")
 
 
 def run(buildenv):
