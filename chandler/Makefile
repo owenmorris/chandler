@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/internal
 # When a version changes, the ARCHIVES list below needs to be updated.
-
+#
 ARCHIVES=../$(SNAP)-0.3-7.tar.gz \
          ../wxPython-$(SNAP)-2.5-2.tar.gz \
          ../PyLucene-$(SNAP)-0.3-1.tar.gz \
