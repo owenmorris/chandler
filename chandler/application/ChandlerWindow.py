@@ -48,11 +48,13 @@ class ChandlerWindow(Persistent):
             app.association[id(self)] = wxWindow
         else:
             wxWindow = app.association[id(self)]
-        
+            
         wxWindow.sideBar.model.SynchronizeView()
-        wxWindow.navigationBar.model.SynchronizeView()
+        # FIXME: The navigation bar is currently broken under Linux
+        if wxPlatform != '__WXGTK__':        
+            wxWindow.navigationBar.model.SynchronizeView()
         wxWindow.MoveOntoScreen()
-
+        
 class wxChandlerWindow(wxFrame):
 
     def __init__(self):
@@ -93,11 +95,13 @@ class wxChandlerWindow(wxFrame):
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
         assert (self.menuBar != None)
         self.SetMenuBar (self.menuBar)
-        
+
         self.sideBar = self.FindWindowByName("SideBar")
         assert (self.sideBar != None)
-        self.navigationBar = self.FindWindowByName("NavigationBar")
-        assert (self.navigationBar != None)
+        # FIXME: The navigation bar is currently broken under Linux
+        if wxPlatform != '__WXGTK__':        
+            self.navigationBar = self.FindWindowByName("NavigationBar")
+            assert (self.navigationBar != None)
 
         if __debug__:
             """
@@ -208,8 +212,10 @@ class wxChandlerWindow(wxFrame):
             if parcel.displayName == uri:
                 parcel.SynchronizeView ()
                 self.sideBar.model.SelectUri(uri)
-                if doAddToHistory:
-                    self.navigationBar.model.AddUriToHistory(uri)
-                self.navigationBar.model.SynchronizeView()
+                # FIXME: The navigation bar is currently broken under Linux
+                if wxPlatform != '__WXGTK__':        
+                    if doAddToHistory:
+                        self.navigationBar.model.AddUriToHistory(uri)
+                    self.navigationBar.model.SynchronizeView()
                 return true
         return false
