@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="clouds"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:me="http://testparcels.org/clouds" >
+
+    <namespace value="http://testparcels.org/clouds" />
+
+    <Kind itsName="Widget">
+        <Attribute itsName="childWidgets">
+            <cardinality value="list"/>
+            <type itemref="me:Widget"/>
+            <inverseAttribute itemref="me:Widget/parentWidgets"/>
+            <initialValue />
+        </Attribute>
+        <Attribute itsName="parentWidgets">
+            <cardinality value="list"/>
+            <type itemref="me:Widget"/>
+            <inverseAttribute itemref="me:Widget/childWidgets"/>
+            <initialValue />
+        </Attribute>
+        <Attribute itsName="sprockets">
+            <cardinality value="list"/>
+            <type itemref="me:Sprocket"/>
+            <inverseAttribute itemref="me:Sprocket/widgets"/>
+            <initialValue />
+        </Attribute>
+        <Attribute itsName="otherSprockets">
+            <cardinality value="list"/>
+            <type itemref="me:Sprocket"/>
+            <inverseAttribute itemref="me:Sprocket/widgets"/>
+            <initialValue />
+        </Attribute>
+        <Attribute itsName="xyzzy">
+            <type itemref="String"/>
+            <initialValue type="String" value=""/>
+        </Attribute>
+        <Cloud itsName="Cloud">
+            <kind itemref="me:Widget"/>
+            <Endpoint itsName="childWidgets">
+                <attribute value="childWidgets"/>
+                <cloud itemref="me:Widget/Cloud"/>
+                <includePolicy value="byCloud"/>
+            </Endpoint>
+            <Endpoint itsName="sprockets">
+                <attribute value="sprockets"/>
+                <includePolicy value="byValue"/>
+            </Endpoint>
+            <endpoints itemref="me:Widget/Cloud/childWidgets"/>
+            <endpoints itemref="me:Widget/Cloud/sprockets"/>
+        </Cloud>
+    </Kind>
+
+    <Kind itsName="Sprocket">
+        <Attribute itsName="widgets">
+            <cardinality value="list"/>
+            <type itemref="me:Widget"/>
+            <inverseAttribute itemref="me:Widget/sprockets"/>
+            <initialValue />
+        </Attribute>
+        <Attribute itsName="xyzzy">
+            <type itemref="String"/>
+            <initialValue type="String" value=""/>
+        </Attribute>
+    </Kind>
+
+</Parcel>

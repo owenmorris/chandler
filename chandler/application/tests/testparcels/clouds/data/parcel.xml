@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="data"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:up="http://testparcels.org/clouds"
+        xmlns:me="http://testparcels.org/clouds/data" >
+
+    <namespace value="http://testparcels.org/clouds/data" />
+
+    <up:Widget itsName="widgetA">
+        <xyzzy value="wA"/>
+        <childWidgets itemref="me:widgetB"/>
+        <childWidgets itemref="me:widgetC"/>
+        <sprockets itemref="me:sprocketA" />
+        <otherSprockets itemref="me:sprocketD"/>
+    </up:Widget>
+
+    <up:Widget itsName="widgetB">
+        <xyzzy value="wB"/>
+        <sprockets itemref="me:sprocketA" />
+    </up:Widget>
+
+    <up:Widget itsName="widgetC">
+        <xyzzy value="wC"/>
+        <sprockets itemref="me:sprocketB" />
+        <sprockets itemref="me:sprocketC" />
+    </up:Widget>
+
+    <up:Sprocket itsName="sprocketA">
+        <xyzzy value="sA"/>
+    </up:Sprocket>
+
+    <up:Sprocket itsName="sprocketB">
+        <xyzzy value="sB"/>
+    </up:Sprocket>
+
+    <up:Sprocket itsName="sprocketC">
+        <xyzzy value="sC"/>
+    </up:Sprocket>
+
+    <up:Sprocket itsName="sprocketD">
+        <xyzzy value="sD"/>
+    </up:Sprocket>
+
+</Parcel>
