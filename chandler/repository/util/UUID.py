@@ -92,7 +92,10 @@ class UUID(object):
 
     def __ne__(self, other):
 
-        return isinstance(other, UUID) and self._uuid != other._uuid
+        if isinstance(other, UUID):
+            return self._uuid != other._uuid
+
+        return True
 
     def str16(self):
         """

@@ -40,7 +40,7 @@ class Path(object):
 
     def __getslice__(self, start, end):
 
-        return apply(Path, self._names.__getslice__(start, end))
+        return Path(*self._names.__getslice__(start, end))
 
     def __getitem__(self, index):
 
@@ -168,5 +168,7 @@ class Path(object):
 
     def __ne__(self, other):
 
-        return (isinstance(other, Path) and
-                self.normalize()._names.__ne__(other.normalize()._names))
+        if isinstance(other, Path):
+            return self.normalize()._names.__ne__(other.normalize()._names)
+
+        return True
