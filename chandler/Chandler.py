@@ -174,9 +174,10 @@ def main():
             realMain()
         except Exception, exception:
             type, value, stack = sys.exc_info()
-            formattedBacktrace = "".join (traceback.format_exception (type, value, stack))
+            formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
 
-            message = "Chandler encountered an unexpected problem %s\n\n%s" % (message, formattedBacktrace)
+            message = ("Chandler encountered an unexpected problem %s\n" + \
+                      "Here are the bottom 5 frames of the stack:\n%s") % (message, formattedBacktrace)
             logging.exception(message)
             # @@@ 25Issue - Cannot create wxItems if the app failed to initialize
             dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
