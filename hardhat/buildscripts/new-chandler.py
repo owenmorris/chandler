@@ -25,8 +25,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     global ret
 
     # find path to buildscripts
-#    thisScriptDir = os.path.join("/home/markie/hardhat", "buildscripts")
-#    print "Build scripts dir is " + thisScriptDir + "\n"
+    thisScriptDir = buildenv['hardhatroot'] + os.sep + "buildscripts"
+    print "Build scripts dir is " + thisScriptDir + "\n"
 
     # initialize return value
     ret = "no_changes" 
@@ -84,19 +84,19 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Expanding external sources\n")
             try: 
+#               outputList = hardhatutil.executeCommandReturnOutput(
+#                [buildenv['make'], "expand" ])
+#               hardhatutil.dumpOutputList(outputList, log)
+#               outputList = hardhatutil.executeCommandReturnOutput(
+#                [buildenv['make'], dbgStr ])
+#               hardhatutil.dumpOutputList(outputList, log)
+#               log.write("Making external (debug) binaries\n")
+#               outputList = hardhatutil.executeCommandReturnOutput(
+#                [buildenv['make'], dbgStr, "binaries" ])
+                initFile = os.path.join(thisScriptDir, 'init.sh')
+                log.write("Running init script from " + initFile + "\n")
                 outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], "expand" ])
-                hardhatutil.dumpOutputList(outputList, log)
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], dbgStr ])
-                hardhatutil.dumpOutputList(outputList, log)
-                log.write("Making external (debug) binaries\n")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], dbgStr, "binaries" ])
-#                initFile = os.path.join(thisScriptDir, 'init.sh')
-#                log.write("Running init script from " + initFile + "\n")
-#                outputList = hardhatutil.executeCommandReturnOutput(
-#                 [initFile] )
+                 [initFile] )
                 hardhatutil.dumpOutputList(outputList, log)
 
             except Exception, e:
