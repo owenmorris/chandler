@@ -58,7 +58,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, "chandler")
     if os.path.exists(workingDir):
-        hardhatutil.rmdirRecursive(chanDir)
+        if os.path.exists(chanDir):
+            hardhatutil.rmdirRecursive(chanDir)
     else:
         os.mkdir(workingDir)
     os.chdir(workingDir)
