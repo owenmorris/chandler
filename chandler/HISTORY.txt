@@ -2,6 +2,73 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
+
+    Content Model:
+
+    * Fixed a problem with the python objects that would cause threading
+      problems
+
+    * Added Task attributes to CalendarEvent, and removed the Task kind
+
+    * Tightened the types of attributes, taking advantage of circular
+      references
+
+    * Added descriptions, other comments to attributes and kinds
+
+    * Generally added to the content model to better reflect design
+      team's current thinking
+
+
+    CPIA:
+
+    * Created most basic blocks.
+
+    * Created a demo parcel to show off the available building blocks as well
+      as serve as a future unit test.
+
+    * Split the block hierarchy into parcels.  Moved from having all of the
+      ui specified in a single file to containing each parcel's description
+      separate.
+
+    * Began implementing the caterpillar ui.
+
+
+    Parcel Loader:
+
+    * Parent parcels are loaded automatically
+
+    * Circular references between parcels are now allowed
+
+    * LoadParcel( ) allows you to load a single parcel (along with any
+      dependencies)
+
+    * PrintItem( ) recursively prints repository items to stdout
+
+    * Added unit tests for: ensuring proper creation of Parcels, Kinds
+      (and sub-Kinds), and attributes; checking dependency-loading;
+      verifying circular references; assigning to inherited
+      attributes; loading all parcels
+
+
+    Repository:
+
+    * Lucene full-text indexing integrated
+
+    * "lob" (large object) support
+
+    * Bug fixes
+
+
+    HardHat:
+
+    * You can now run a subset of the unit tests (all tests found
+      in the current directory and below are run via hardhat.py -t)
+
+    * HardHat and Tinderbox now distinguish between failed
+      builds and failed unit tests
+
+
 Milestone 9 (CVS tag CHANDLER_M_09) 2003-11-11
 
     * Hardhat -g runs all files named parcel.xml through two xsl transforms
