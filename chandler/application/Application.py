@@ -274,6 +274,10 @@ class wxApplication (wxApp):
         self.model = self.repository.find('//Application')
         if not self.model:
             self.model = Application(name='Application', parent=self.repository)
+
+        # Create the agent manager.. don't start it until later
+        self.agentManager = AgentManager.AgentManager()
+
         """
           The model persists, so it can't store a reference to self, which
         is a wxApp object. We use the association to keep track of the
@@ -343,8 +347,7 @@ class wxApplication (wxApp):
         self.InCommand = false          #used by OnCommand
         self.jabberClient.Login()
 
-        # initialize the agent manager
-        self.agentManager = AgentManager.AgentManager()
+        # start the agent manager
         self.agentManager.Startup()
         
         #self.OpenStartingURL()
