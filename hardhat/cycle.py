@@ -42,7 +42,7 @@ def main():
     if alertAddr.find('@') == -1:
         alertAddr += "@" + defaultDomain
 
-#    print "options ", options 
+#     print "options ", options 
 #     print " Build script ", options.doScript
 #     print "args ", args[0] 
     
@@ -79,10 +79,9 @@ def main():
         try:
             # bring this hardhat directory up to date
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "update", "-D'"+ nowString + "'"])
-#            hardhatutil.dumpOutputList(outputList)
-        except:
+             [cvsProgram, "-q", "update", "-D'"+ nowString + "'"])
             hardhatutil.dumpOutputList(outputList)
+        except:
             raise TinderbuildError, "Error updating HardHat"
 
         
@@ -91,11 +90,10 @@ def main():
             outputList = hardhatutil.executeCommandReturnOutput(
              [os.path.join(curDir, options.doScript), "-o", options.outputDir, 
              "-a", alertAddr, 
-             "-t", mailtoAddr, 
+             "-t", mailtoAddr,
              "-p", options.project, args[0] ])
             hardhatutil.dumpOutputList(outputList)
         except:
-            hardhatutil.dumpOutputList(outputList)
             raise TinderbuildError, "Failed to launch build script"
 
         if os.path.exists(stopFile):
