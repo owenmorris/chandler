@@ -480,6 +480,11 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.EnableDragCell(True)
         self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
+        """
+          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
+        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
+        grid adding a new style for not showing scrollbars.  Bug #2375
+        """
         self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         """
@@ -563,13 +568,18 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             for column in xrange (lastColumnIndex):
                 widthMinusLastColumn += self.GetColSize (column)
             lastColumnWidth = size.width - widthMinusLastColumn
+            """
+              Big fat hack. Since the grid is a scrolled window we set a border equal to the size
+            of the scrollbar so the scroll bars won't show. Instead we should consider modifying
+            grid adding a new style for not showing scrollbars.  Bug #2375
+            """
+            lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
             # @@@ This does not work properly and needs to be looked at
             # Removing it for the single column case because it causes the
             # sidebar to grow indefinitely
-            if self.GetNumberCols() != 1:
-                if lastColumnWidth > 0:
-                    self.SetColSize (lastColumnIndex, lastColumnWidth)
-                    self.ForceRefresh()
+            if lastColumnWidth > 0:
+                self.SetColSize (lastColumnIndex, lastColumnWidth)
+                self.ForceRefresh()
         event.Skip()
 
     def OnColumnDrag(self, event):
@@ -628,6 +638,12 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         # update the last column to fill the rest of the widget
         remaining = self.GetSize().width - widthMinusLastColumn
+        """
+          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
+        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
+        grid adding a new style for not showing scrollbars.  Bug #2375
+        """
+        remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         if remaining > 0:
             self.SetColSize(newColumns - 1, remaining)
         

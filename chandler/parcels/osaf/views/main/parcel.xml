@@ -266,12 +266,14 @@
 
  <BlockEvent itsName="ImportIcalendar">
     <blockName>ImportIcalendar</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
  <BlockEvent itsName="ExportIcalendar">
     <blockName>ExportIcalendar</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="CommitRepository">
@@ -354,7 +356,8 @@
 
   <BlockEvent itsName="ShareTool">
     <blockName>ShareTool</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
   
   <BlockEvent itsName="SyncCollection">
@@ -948,34 +951,34 @@
     <blockName>SkinsMenu</blockName>
     <title>Skins</title>
     <helpString>Change user-interface skin</helpString>
-    <childrenBlocks itemref="doc:HorizontalMenuItem"/>
-    <childrenBlocks itemref="doc:VerticalMenuItem"/>
+    <childrenBlocks itemref="doc:ChandlerSkinMenuItem"/>
+    <childrenBlocks itemref="doc:CPIATestSkinMenuItem"/>
   </Menu>
 
-  <MenuItem itsName="HorizontalMenuItem">
-    <blockName>HorizontalMenuItem</blockName>
-    <title>Horizontal splitter</title>
-    <event itemref="doc:ChooseMainView2"/>
+  <MenuItem itsName="ChandlerSkinMenuItem">
+    <blockName>ChandlerSkinMenuItem</blockName>
+    <title>Chandler</title>
+    <event itemref="doc:ChooseChandlerMainView"/>
     <helpString>Switch to skin with horizontal splitter</helpString>
   </MenuItem>
 
-  <MenuItem itsName="VerticalMenuItem">
-    <blockName>VerticalMenuItem</blockName>
-    <title>Vertical splitter</title>
-    <event itemref="doc:ChooseMainView"/>
+  <MenuItem itsName="CPIATestSkinMenuItem">
+    <blockName>CPIATestSkinMenuItem</blockName>
+    <title>CPIA Test</title>
+    <event itemref="doc:ChooseCPIATestMainView"/>
     <helpString>Switch to skin with vertical splitter</helpString>
   </MenuItem>
 
-  <ChoiceEvent itsName="ChooseMainView">
+  <ChoiceEvent itsName="ChooseChandlerMainView">
     <methodName>onChoiceEvent</methodName>
-    <choice>MainView</choice>
+    <choice>ChandlerMainView</choice>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainViewRoot</dispatchToBlockName>
   </ChoiceEvent>  
   
-  <ChoiceEvent itsName="ChooseMainView2">
+  <ChoiceEvent itsName="ChooseCPIATestMainView">
     <methodName>onChoiceEvent</methodName>
-    <choice>MainView2</choice>
+    <choice>CPIATestMainView</choice>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainViewRoot</dispatchToBlockName>
   </ChoiceEvent>  
@@ -1462,7 +1465,7 @@
   <BoxContainer itsName="MainBoxContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:HorizontalMainContainer"/>
+    <childrenBlocks itemref="doc:ChandlerMainContainer"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -1479,7 +1482,7 @@
     <contextMenu itemref="doc:sidebarContextMenu"/>
   </Table>
  
-  <BoxContainer itsName="HorizontalMainContainer">
+  <BoxContainer itsName="ChandlerMainContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:SidebarBoxContainer"/>
     <childrenBlocks itemref="doc:TabbedView"/>
@@ -1626,10 +1629,10 @@
     <contents itemref="doc:ReminderItems"/>
   </Timer> 
   
-  <View itsName="MainView"
+  <View itsName="ChandlerMainView"
         itemClass="osaf.views.main.Main.MainView">
 
-    <displayName>MainView</displayName>
+    <displayName>ChandlerMainView</displayName>
     <blockName>MainView</blockName>
 
     <childrenBlocks itemref="doc:MenuBar"/>
@@ -1649,17 +1652,17 @@
     <viewContainer itemref="doc:MainViewRoot"/>
   </View>
 
-  <View itsName="MainView2"
+  <View itsName="CPIATestMainView"
         itemClass="osaf.views.main.Main.MainView">
 
-    <displayName>MainView2</displayName>
+    <displayName>CPIATestMainView</displayName>
     <blockName>MainView</blockName>
 
 
-    <childrenBlocks itemref="doc:MenuBar" copy="MenuBar2"/>
-    <childrenBlocks itemref="doc:StatusBar" copy="StatusBar2"/>
-    <childrenBlocks itemref="doc:MainBoxContainer2"/>
-    <childrenBlocks itemref="doc:ReminderTimer" copy="ReminderTimer2"/>
+    <childrenBlocks itemref="doc:MenuBar" copy="CPIATestMenuBar"/>
+    <childrenBlocks itemref="doc:StatusBar" copy="CPIATestStatusBar"/>
+    <childrenBlocks itemref="doc:CPIATestMainBoxContainer"/>
+    <childrenBlocks itemref="doc:ReminderTimer" copy="CPIATestReminderTimer"/>
     
     <!-- Block Events dispatched by name -->
     <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
@@ -1673,43 +1676,43 @@
     <viewContainer itemref="doc:MainViewRoot"/>
   </View>
 
-  <BoxContainer itsName="MainBoxContainer2">
+  <BoxContainer itsName="CPIATestMainBoxContainer">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:NavigationBar" copy="NavigationBar2"/>
-    <childrenBlocks itemref="doc:MainSplitter2"/>
+    <childrenBlocks itemref="doc:NavigationBar" copy="CPIATestNavigationBar"/>
+    <childrenBlocks itemref="doc:CPIATestMainSplitter"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <SplitterWindow itsName="MainSplitter2">
+  <SplitterWindow itsName="CPIATestMainSplitter">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarBoxContainer" copy="SidebarBoxContainer2"/>
-    <childrenBlocks itemref="doc:TabbedView2"/>
+    <childrenBlocks itemref="doc:SidebarBoxContainer" copy="CPIATestSidebarBoxContainer"/>
+    <childrenBlocks itemref="doc:CPIATestTabbedView"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
   
-  <TabbedContainer itsName="TabbedView2"
+  <TabbedContainer itsName="CPIATestTabbedView"
                    itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarDetailView2"/>
+    <childrenBlocks itemref="doc:CPIATestSidebarDetailView"/>
   </TabbedContainer>  
 
-  <DetailBlock itsName="SidebarDetailView2">
+  <DetailBlock itsName="CPIATestSidebarDetailView">
     <blockName>SidebarDetailView</blockName>
     <detailItem itemref="content:allItemCollection"/>
-    <viewCache itemref="doc:SidebarDetailViewCache2"/>
+    <viewCache itemref="doc:CPIATestSidebarDetailViewCache"/>
   </DetailBlock>
 
-  <SidebarDetailViewCache itsName="SidebarDetailViewCache2">
-    <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate2</treeTemplatePath>
+  <SidebarDetailViewCache itsName="CPIATestSidebarDetailViewCache">
+    <treeTemplatePath>//parcels/osaf/views/main/CPIATestSidebarDetailViewTemplate</treeTemplatePath>
   </SidebarDetailViewCache>
 
-  <SplitterWindow itsName="SidebarDetailViewTemplate2">
-    <childrenBlocks itemref="doc:SummaryView" copy="SummaryView2"/>
+  <SplitterWindow itsName="CPIATestSidebarDetailViewTemplate">
+    <childrenBlocks itemref="doc:SummaryView" copy="CPIATestSummaryView"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -1719,15 +1722,15 @@
   <ViewContainer itsName="MainViewRoot">
     <blockName>MainViewRoot</blockName>
     <size>1024,720</size>
-    <views itemref="doc:MainView"/>
-    <views itemref="doc:MainView2"/>
+    <views itemref="doc:ChandlerMainView"/>
+    <views itemref="doc:CPIATestMainView"/>
     <childrenBlocks itemref="doc:MainDetailView"/>
   </ViewContainer>
 
   <DetailBlock itsName="MainDetailView">
     <blockName>MainDetailView</blockName>
-    <detailItem itemref="doc:MainView2"/>
-    <childrenBlocks itemref="doc:MainView2"/>
+    <detailItem itemref="doc:ChandlerMainView"/>
+    <childrenBlocks itemref="doc:ChandlerMainView"/>
     <viewCache itemref="doc:MainDetailViewCache"/>
   </DetailBlock>
 
