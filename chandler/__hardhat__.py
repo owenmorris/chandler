@@ -1,178 +1,19 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
 info = {
-        'name':'Chandler',
+        'name':'chandler',
         'root':'..',
        }
 
-dependencies = (
-                'python',
-                'epydoc',
-                '../../internal/wxPython-2.5',
-                'persistence/xerces-c',
-                'persistence/pathan',
-                'persistence/dbxml',
-                'persistence/libxml2',
-                'persistence/libxslt',
-                'persistence/PyLucene',
-                'pyxml',
-                'egenix-mx',
-                'jabber-py',
-                'SOAPpy',
-                'pychecker',
-                # 'm2crypto',
-                'chandler/repository'
-               )
+dependencies = ()
 
 def build(buildenv):
-
-    # Build the linux launcher program
-    if buildenv['os'] == 'posix':
-        os.chdir("distrib/linux/launcher")
-        version = buildenv['version']
-        buildDir = "build_"+version
-        if not os.path.exists(buildDir):
-            os.mkdir(buildDir)
-            if not os.path.exists(os.path.join(buildDir, "Makefile")):
-                os.symlink("../Makefile", os.path.join(buildDir, "Makefile"))
-        os.chdir(buildDir)
-        if buildenv['version'] == 'release':
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['make'], 
-             "CHANDLER_ROOT="+buildenv['root'], 
-             "VPATH=.." ],
-             "Making launcher programs")
-        else:
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['make'], 
-             "DEBUG=1", 
-             "CHANDLER_ROOT="+buildenv['root'], 
-             "VPATH=.." ],
-             "Making launcher programs")
-        hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
-         os.sep + version)
-        hardhatlib.copyFile("chandler", buildenv['root'] + \
-         os.sep + version)
-
-        os.chdir("../../../..")
-
-    # Build the windows launcher program
-    elif buildenv['os'] == 'win':
-        version = buildenv['version']
-
-        try:
-            os.remove('output.txt')
-        except:
-            pass
-
-        hardhatlib.executeCommand(buildenv, info['name'],
-                                  [ buildenv['compiler'],
-                                    'distrib/win/launcher/launcher.sln',
-                                    '/build', version.capitalize(),
-                                    '/out', 'output.txt' ],
-                                  'Building launcher ' + version,
-                                  0, 'output.txt')
-
-    os.chdir("distrib")
-
-    if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
-        if buildenv['os'] == 'osx':
-            os.chdir("osx")
-        elif buildenv['os'] == 'posix':
-            os.chdir("linux")
-
-        if buildenv['version'] == 'release':
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunRelease to release")
-            hardhatlib.copyFile("RunRelease", buildenv['root'] + \
-             os.sep + "release")
-
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunPython to release")
-            hardhatlib.copyFile("RunPythonRelease", buildenv['root'] + \
-             os.sep + "release")
-            os.rename(
-             buildenv['root']+os.sep+"release"+os.sep+"RunPythonRelease",
-             buildenv['root']+os.sep+"release"+os.sep+"RunPython"
-            )
-
-        if buildenv['version'] == 'debug':
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunDebug to debug")
-            hardhatlib.copyFile("RunDebug", buildenv['root'] + \
-             os.sep + "debug")
-
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunPython to debug")
-            hardhatlib.copyFile("RunPythonDebug", buildenv['root'] + \
-             os.sep + "debug")
-            os.rename(
-             buildenv['root']+os.sep+"debug"+os.sep+"RunPythonDebug",
-             buildenv['root']+os.sep+"debug"+os.sep+"RunPython"
-            )
-
-    if buildenv['os'] == 'win':
-        os.chdir("win")
-        if buildenv['version'] == 'release':
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCP71.DLL to release/bin")
-            hardhatlib.copyFile("msvcp71.dll", buildenv['root'] + \
-             os.sep + "release" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCR71.DLL to release/bin")
-            hardhatlib.copyFile("msvcr71.dll", buildenv['root'] + \
-             os.sep + "release" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunRelease.bat to release")
-            hardhatlib.copyFile("RunRelease.bat", buildenv['root'] + \
-             os.sep + "release")
-        if buildenv['version'] == 'debug':
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCP71D.DLL to debug/bin")
-            hardhatlib.copyFile("msvcp71d.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCR71D.DLL to debug/bin")
-            hardhatlib.copyFile("msvcr71d.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCRTD.DLL to debug/bin")
-            hardhatlib.copyFile("msvcrtd.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying RunDebug.bat to debug")
-            hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
-             os.sep + "debug")
-
+    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
+     "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/NewBuildInstructions for how to build")
 
 def clean(buildenv):
-    
-    # Clean the linux launcher program
-    if buildenv['os'] == 'posix':
-        os.chdir("distrib/linux/launcher")
-        version = buildenv['version']
-        buildDir = "build_"+version
-        if os.path.exists(buildDir):
-            hardhatlib.rmdir_recursive(buildDir)
-        os.chdir("../../..")
-
-    # Clean the windows launcher program
-    if buildenv['os'] == 'win':
-        version = buildenv['version']
-
-        try:
-            os.remove('output.txt')
-        except:
-            pass
-
-        hardhatlib.executeCommand(buildenv, info['name'],
-                                  [ buildenv['compiler'],
-                                    'distrib/win/launcher/launcher.sln',
-                                    '/clean', version.capitalize(),
-                                    '/out', 'output.txt' ],
-                                  'Cleaning launcher ' + version,
-                                  0, 'output.txt')
-
+    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
+     "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/NewBuildInstructions for how to build")
 
 def run(buildenv):
 
@@ -187,21 +28,7 @@ def run(buildenv):
 
 
 def removeRuntimeDir(buildenv):
-
-    path = ""
-
-    if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'debug'
-
-    if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'release'
-
-
-    if path:
-        if os.access(path, os.F_OK):
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
-             "Removing: " + path)
-            hardhatlib.rmdir_recursive(path)
+    pass
 
 def distribute(buildenv):
 
