@@ -60,7 +60,10 @@ class TabbedView(ControlBlocks.TabbedContainer):
         item = Globals.repository.find(page.blockUUID)
         item.parentBlock = None
         self.synchronizeWidget()
-                                        
+        
+    def OnCloseEventUpdateUI(self, notification):
+        notification.data['Enable'] = (len(self.tabNames) > 1)
+        
     def getUniqueName (self, name):
         if not self.hasChild(name):
             return name
