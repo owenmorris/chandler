@@ -9,9 +9,9 @@ class RdfClass(RdfResource):
     def __init__(self, klass):
         RdfResource.__init__(self)
 
-        self.name = self.klass.__name__
-        self.uri = self.klass.uri
-        self.rdfs = self.klass.rdfs
+        self.name = klass.__name__
+        self.uri = klass.uri
+        self.rdfs = klass.rdfs
 
     def __init__(self, name, uri):
         RdfResource.__init__(self)

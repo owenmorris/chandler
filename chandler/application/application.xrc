@@ -111,7 +111,7 @@
                 <label>Paste</label>
                 <accel>Ctrl+V</accel>
             </object>
-            <object class="wxMenuItem" name="Delete">
+            <object class="wxMenuItem" name="wxID_CLEAR">
                 <label>Delete</label>
                 <accel>Del</accel>
             </object>

@@ -62,6 +62,10 @@ class wxSimpleDrawableObject (wxEvtHandler):
 
     def OnMouseEvent (self, event):
         x, y = event.GetPositionTuple()
+        if event.ButtonDown() and self.SelectedHitTest (x, y) :
+            self.canvas.DeSelectAll()
+            self.SetSelected()
+            self.canvas.Update()
         if event.ButtonDown() and self.DragHitTest (x, y):
             self.DoDrag(x, y)
             return true
@@ -174,6 +178,26 @@ class wxSimpleDrawableObject (wxEvtHandler):
         """
         assert (false)
 
+    def SelectedHitTest (self, x, y):
+        """
+        You must implement this routine to do hit testing to identify the region
+        for selecting the object.
+        """
+        assert (false)
+        
+    def SetSelected(self, selected=true):
+        """
+        Sets the selected bit for this object. Does a canvas refresh on the object
+        if it has changed state. Does not call Update on the canvas.
+        """
+        # Use the same trick as Show()
+        if selected:
+            selected = true
+        
+        # Only do a refresh if we've changed state.
+        if (selected ^ self.selected):
+            self.selected = selected
+            self.canvas.RefreshScrolledRect (self.bounds);
     
 class wxSimpleCanvas (wxScrolledWindow):
 
@@ -352,6 +376,8 @@ class wxSimpleCanvas (wxScrolledWindow):
                             self.dragCreateDrawableObject = self.CreateNewDrawableObject (dragRect,
                                                                                           self.dragStart,
                                                                                           wxPoint (x, y))
+                            self.DeSelectAll()
+                            self.dragCreateDrawableObject.selected = true
                             self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
                             self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
                         return true
@@ -414,6 +440,14 @@ class wxSimpleCanvas (wxScrolledWindow):
         dragging on the blank canvas.
         """
         assert (false)
-      
-
-
+        
+    def DeSelectAll (self):
+        """
+        Mark all selected objects as not selected. Only Refresh the objects
+        that change, don't call Update.
+        """
+        for drawableObject in self.zOrderedDrawableObjects:
+            if (drawableObject.selected):
+                drawableObject.selected = false
+                self.RefreshScrolledRect (drawableObject.bounds)
+                
