@@ -1508,6 +1508,11 @@ class wxAEBlock(wxRectangularChild):
     def destroyControl(self):
         if self.control is None:
             return
+
+        oldParent = self.control.GetParent()
+        if oldParent is not None:
+            oldParent.RemoveChild(self.control)
+            
         wx.CallAfter(self.control.Destroy) # destroy this control next idle.
         self.control = None
 
