@@ -17,9 +17,10 @@ class SideBar(Persistent):
     """
     def __init__(self):
         """
-          sideBarURLTree is the subset of the app.model.URLTree visible in
-          ChandlerWindow with some added information as to whether or not
-          each node is expanded.
+          sideBarURLTree is a dict mapping what this instance of SideBar
+        has visible to the application's full URLTree.  The dict is a 
+        tree of dicts that contain extra data specific to this instance of
+        SideBar (like which levels are expanded).
         """
         self.sideBarURLTree = PersistentDict.PersistentDict()
         
@@ -37,10 +38,13 @@ class SideBar(Persistent):
             wxWindow.OnInit (self)
         else:
             wxWindow = app.association[id(self)]
-            
-        self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree)
+        
+        if not hasattr(wxWindow, 'root'):
+            wxWindow.root = wxWindow.AddRoot('Root')
 
-    def __UpdateURLTree(self, sideBarURLTree, appURLTree):
+        self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, wxWindow.root)
+
+    def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent):
         """
           Synchronizes the sidebar's URLTree with the application's
         URLTree.  The sidebar only stores a dict mapping visible items
@@ -48,22 +52,21 @@ class SideBar(Persistent):
         """
         for item in appURLTree:
             instance = item[0]
-            name = item[1]
-            childrenList = item[2]
             instanceId = id(instance)
-            
-            if not sideBarURLTree.has_key(id(instance)):
-                childrenDict = {}
-                for child in childrenList:
-                    childrenDict[id(child)] = child
-                sideBarURLTree[instanceId] = [instance, false, 0, 
-                                              childrenDict, false]
+            name = item[1]
+            children = item[2]
+            hasChildren = len(children) > 0
+                        
+            if not sideBarURLTree.has_key(instanceId):
+                itemId = app.association[id(self)].AppendItem(parent, name)
+                app.association[id(self)].SetItemHasChildren(itemId, hasChildren)
+                sideBarURLTree[instanceId] = [instance, false, itemId, 
+                                              {}, false]
             else:
-                # Do ceck to see if items are the same
-                ## Not yet implemented
+                itemId = sideBarURLTree[instanceId][2]
+                app.association[id(self)].SetItemHasChildren(itemId, hasChildren)
                 if sideBarURLTree[instanceId][1]: # If it is open
-                    # Repeat recursively
-                    self.UpdateURLTree(sideBarURLTree[instanceId][3], children)
+                    self.__UpdateURLTree(sideBarURLTree[instanceId][3], item[2], itemId)
             # Mark the item as existing in the app's URLTree
             sideBarURLTree[instanceId][4] = true
         # Now we clean up items that exist in the dict, but not 
@@ -72,11 +75,11 @@ class SideBar(Persistent):
             item = sideBarURLTree[key]
             # If it was not marked, delete it
             if not item[4]:
+                app.association[id(self)].Delete(item[2])
                 del sideBarURLTree[key]
             else:
                 # Clear the visited flag
                 item[4] = false
-        app.association[id(self)].UpdateView()
         
 
 class wxSideBar(wxTreeCtrl):
@@ -104,39 +107,15 @@ class wxSideBar(wxTreeCtrl):
         is a wxApp object. We use the association to keep track of the
         wxPython object associated with each persistent object.
         """
-        app.association[id(self.model)] = self
+        app.association[id(self.model)] = self        
         """
            There isn't a EVT_DESTROY function, so we'll implement it do
         what the function would have done.
         """
         EVT_WINDOW_DESTROY (self, self.OnDestroy)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnSelChanged)
+        EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnItemExpanding)
         
-    def UpdateView(self):
-        """
-          Updates the wxTreeCtrl to match the model's version of the Sidebar.
-        Right now, it only displays the first level parcel names, but it
-        should recursively display all of the available uri's.
-        """
-        if not hasattr(self, 'root'):
-            self.root = self.AddRoot("Root")
-            
-        for item in app.model.URLTree:
-            instance = item[0]
-            name = item[1]
-            children = item[2]
-            hasChildren = len(children) > 0
-            modelItem = self.model.sideBarURLTree[id(instance)]            
-
-            itemId = self.AppendItem(self.root, name)
-            self.SetItemHasChildren(itemId, hasChildren)
-            
-            isOpen = modelItem[1]
-            if hasChildren and isOpen:
-                # Recursively visit the children
-                ## Not yet implemented
-                pass
-                
     def OnSelChanged(self, event):
         """
           Whenever the selection changes in the sidebar we must update the
@@ -155,7 +134,21 @@ class wxSideBar(wxTreeCtrl):
             if parcel.displayName == text:
                 parcel.SynchronizeView ()
                 return
-
+            
+    def OnItemExpanding(self, event):
+        item = event.GetItem()
+        text = self.GetItemText(item)
+        for item in app.model.URLTree:
+            parcel = item[0]
+            """
+            Each parcel must have an attribute which is the displayName.
+            """
+            assert (hasattr (parcel, 'displayName'))
+            if parcel.displayName == text:
+                instanceId = id(parcel)
+                self.model.sideBarURLTree[instanceId][1] = true
+        self.model.SynchronizeView()
+            
     def OnDestroy(self, event):
         """
           Remove from the association when the sidebar is destroyed.
