@@ -21,22 +21,25 @@ def PrintItem(uri, rep, level=0):
     item = rep.find(uri)
     print uri
 
+    for i in range(level+2):
+        print " ",
+
+    print "attributes:"
+    for (attr,source) in GetAttributes(item):
+        for k in range(level+4):
+            print " ",
+        if source is item:
+            print attr.getItemPath()
+        else:
+            print attr.getItemPath(), "(from %s)" % source.getItemPath()
+
     for (name, value) in item.iterAttributes():
 
         t = type(value)
 
         if name == "attributes":
-            for i in range(level+2):
-                print " ",
+            pass
 
-            print "%s:" % name
-            for (attr,source) in GetAttributes(item):
-                for k in range(level+4):
-                    print " ",
-                if source is item:
-                    print attr.getItemPath()
-                else:
-                    print attr.getItemPath(), "(from %s)" % source.getItemPath()
 
         elif name == "notFoundAttributes" or name == "inheritedAttributes":
             pass
@@ -92,13 +95,15 @@ def PrintItem(uri, rep, level=0):
 def GetAttributes(kind):
     """ Build the list of attributes this kind has, including inherited
     """
-
-    for attr in kind.attributes:
-        yield (attr, kind)
+    try:
+        for attr in kind.attributes:
+            yield (attr, kind)
+    except AttributeError, e:
+        pass
 
     try:
         for superKind in kind.superKinds:
             for tuple in GetAttributes(superKind):
                 yield tuple
-    except AttributeError:
+    except AttributeError, e:
         pass
