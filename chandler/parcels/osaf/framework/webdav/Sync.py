@@ -5,6 +5,7 @@ import application.Globals as Globals
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 
+import Dav
 import DAVItem as DAVItem
 
 
@@ -114,9 +115,10 @@ def syncToServer(dav, item):
             for i in value:
                 if isinstance(i, Item):
                     defaultURL = dav.url.join(i.itsUUID.str16())
-                    durl = i.getAttributeValue('sharedURL', default=defaultURL)
-                    # mmm, recursion
-                    #DAV(durl).put(i)
+                    try:
+                        durl = i.getAttributeValue('sharedURL')
+                    except AttributeError:
+                        durl = defaultURL
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
                     #XXX fix this (Value is a PersistentList here??)
@@ -127,9 +129,14 @@ def syncToServer(dav, item):
         elif acard == 'single':
             if isinstance(value, Item):
                 defaultURL = dav.url.join(value.itsUUID.str16())
-                durl = value.getAttributeValue('sharedURL', default=defaultURL)
-                #DAV(durl).put(value)
+                try:
+                    durl = value.getAttributeValue('sharedURL')
+                except AttributeError:
+                    durl = defaultURL
+                    print 'Cant export %s -- Not a ContentItem' % (str(value))
+                    
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
+                    
             else:
                 atypepath = "%s" % (atype.itsPath)
                 props += makePropString(name, namespace, atype.makeString(value))
@@ -177,7 +184,7 @@ def nodesFromXml(data):
 
 
 def syncFromServer(item, davItem):
-    from Dav import DAV
+    from Dav import DAV, NotFound
     kind = davItem.itsKind
 
     for (name, attr) in kind.iterAttributes(True):
@@ -204,8 +211,11 @@ def syncFromServer(item, davItem):
             else:
                 raise Exception
             for node in nodes:
-                otherItem = DAV(node.content).get()
-                setfunc(name, otherItem)
+                try:
+                    otherItem = DAV(node.content).get()
+                    setfunc(name, otherItem)
+                except NotFound:
+                    print 'Cant access %s' % (node.content)
 
         else:
             if attr.cardinality == 'list':

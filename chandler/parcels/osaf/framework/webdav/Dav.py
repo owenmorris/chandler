@@ -53,10 +53,7 @@ class DAV(object):
 
     def get(self):
         """ returns a newly created Item """
-        try:
-            return Sync.getItem(self)
-        except NotFound:
-            return None
+        return Sync.getItem(self)
 
     def put(self, item):
         # add an entry here to say that we're already here
@@ -74,9 +71,16 @@ class DAV(object):
         else:
             item.sharedURL = self.url
 
+
+        contentItemKind = Globals.repository.findPath('//parcels/osaf/contentmodel/ContentItem')
+
         clouds = item.itsKind.getClouds('default')
         for cloud in clouds:
             for i in cloud.getItems(item):
+                # we only support publishing content items
+                if not i.isItemOf(contentItemKind):
+                    print 'Skipping %s -- Not a ContentItem' % (str(i))
+                    continue
                 defaultURL = self.url.join(i.itsUUID.str16())
                 durl = i.getAttributeValue('sharedURL', default=defaultURL)
                 i.sharedURL = durl
