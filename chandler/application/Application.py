@@ -191,8 +191,6 @@ class wxApplication (wxApp):
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
 
-        self.initInProgress = true
-        
         global app
         assert app == None     #More than one app object doesn't make sense
         app = self
@@ -371,7 +369,6 @@ class wxApplication (wxApp):
 
         self.OpenStartingURL()
         
-        self.initInProgress = false
         return true                     #indicates we succeeded with initialization
 
     if __debug__:
@@ -524,11 +521,11 @@ class wxApplication (wxApp):
 
         if not self.InCommand:
             self.InCommand = true
-            if hasattr(self.wxMainFrame, 'activeParcel'):
-                activeParcel = self.wxMainFrame.activeParcel
-                if activeParcel != None:
-                    activeParcel.GetEventHandler().ProcessEvent(event)
-                    applicationCommand = false
+            try:
+                self.wxMainFrame.activeParcel.GetEventHandler().ProcessEvent(event)
+                applicationCommand = false
+            except AttributeError:
+                pass
             self.InCommand = false
 
         # This gives a chance for the app to respond to the events as well

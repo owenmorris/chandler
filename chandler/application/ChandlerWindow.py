@@ -82,7 +82,7 @@ class wxChandlerWindow(wxFrame):
         
     def OnActivate(self, event):
         """
-           The Application keeps a copy of the last persistent window openn
+           The Application keeps a copy of the last persistent window open
         so that the next time we run the application we can open the same 
         window.
         """
@@ -228,15 +228,18 @@ class wxChandlerWindow(wxFrame):
             return
         self.wasClosed = True
 
-        application.Application.app.repository.commit(purge=True)
-        application.Application.app.repository.close()
+        app = application.Application.app
 
-        del application.Application.app.association[id(self.model)]
-        application.Application.app.model.URLTree.RemoveSideBar(self.model)
-        del application.Application.app.applicationResources
+        app.repository.commit(purge=True)
+        app.repository.close()
+
+        del app.association[id(self.model)]
+        app.model.URLTree.RemoveSideBar(self.model)
+        del app.applicationResources
         if self.activeParcel:
             self.activeParcel.Deactivate()
 
+        del app.wxMainFrame
         self.Destroy()
         
     def UpdateViewMenuDisplay(self, event):
