@@ -1,5 +1,5 @@
---- Python-2.4b2/Mac/OSX/Makefile	Thu Nov 18 13:54:59 2004
-+++ Python-2.4b2-patched/Mac/OSX/Makefile	Thu Nov 18 13:55:18 2004
+--- Python-2.4c1/Mac/OSX/Makefile	Thu Nov 18 13:54:59 2004
++++ Python-2.4c1-patched/Mac/OSX/Makefile	Thu Nov 18 13:55:18 2004
 @@ -54,18 +54,17 @@
  	Resources/English.lproj/Documentation/doc \
  	Resources/English.lproj/Documentation/ide
@@ -20,8 +20,8 @@
  
  install_Python:
  	@if test ! -f $(DOCINDEX); then \
---- Python-2.4b2/PC/getpathp.c	Sat Aug  7 12:12:27 2004
-+++ Python-2.4b2-patched/PC/getpathp.c	Thu Nov 18 14:00:18 2004
+--- Python-2.4c1/PC/getpathp.c	Sat Aug  7 12:12:27 2004
++++ Python-2.4c1-patched/PC/getpathp.c	Thu Nov 18 14:00:18 2004
 @@ -484,18 +484,23 @@
  		zip_path[len-2] = 'i';
  		zip_path[len-1] = 'p';
@@ -48,8 +48,8 @@
  
  	/* We need to construct a path from the following parts.
  	   (1) the PYTHONPATH environment variable, if set;
---- Python-2.4b2/Lib/distutils/sysconfig.py	Wed Oct 13 08:54:16 2004
-+++ Python-2.4b2-patched/Lib/distutils/sysconfig.py	Thu Nov 18 14:04:29 2004
+--- Python-2.4c1/Lib/distutils/sysconfig.py	Wed Oct 13 08:54:16 2004
++++ Python-2.4c1-patched/Lib/distutils/sysconfig.py	Thu Nov 18 14:04:29 2004
 @@ -144,16 +144,29 @@
  
      Mainly needed on Unix, so we can plug in the information that
@@ -80,8 +80,8 @@
              ldshared = os.environ['LDSHARED']
          if os.environ.has_key('CPP'):
              cpp = os.environ['CPP']
---- Python-2.4b2/Modules/_bsddb.c	Fri Sep  3 18:36:59 2004
-+++ Python-2.4b2-patched/Modules/_bsddb.c	Thu Nov 18 14:08:09 2004
+--- Python-2.4c1/Modules/_bsddb.c	Fri Sep  3 18:36:59 2004
++++ Python-2.4c1-patched/Modules/_bsddb.c	Thu Nov 18 14:08:09 2004
 @@ -461,17 +461,17 @@
      d->doff = (unsigned int) doff;
      return 1;
@@ -161,9 +161,9 @@
  #endif
  
      ADD_INT(d, DB_ARCH_ABS);
---- Python-2.4b2/setup.py	Wed Oct 13 08:54:16 2004
-+++ Python-2.4b2-patched/setup.py	Thu Nov 18 14:09:48 2004
-@@ -518,16 +518,25 @@
+--- Python-2.4c1/setup.py	Wed Oct 13 08:54:16 2004
++++ Python-2.4c1-patched/setup.py	Thu Nov 18 14:09:48 2004
+@@ -521,16 +521,25 @@
                                  '/usr/local/BerkeleyDB.3.2/include',
                                  '/usr/local/include/db3',
                                  '/opt/sfw/include/db3',
@@ -189,7 +189,7 @@
          try:
              # See whether there is a Sleepycat header in the standard
              # search path.
-@@ -542,17 +551,17 @@
+@@ -545,17 +554,17 @@
              for dbkey in db_search_order:
                  dbd = db_try_this[dbkey]
                  for dblib in dbd['libs']:
@@ -208,7 +208,7 @@
          except found:
              dblibs = [dblib]
              # A default source build puts Berkeley DB in something like
-@@ -568,16 +577,17 @@
+@@ -571,16 +580,17 @@
                                    runtime_library_dirs=dblib_dir,
                                    include_dirs=db_incs,
                                    libraries=dblibs))
