@@ -73,14 +73,6 @@
              <initialValue type="mail:AccountBase/connectionSecurity/connectionSecurityEnum" value="NONE" />
         </Attribute>
 
-
-         <Attribute itsName="useSSL">
-            <displayName value="Use secure connection (SSL/TLS)" />
-            <description value="Whether or not to use SSL/TLS" />
-            <type itemref="Boolean" />
-            <initialValue type="Boolean" value="False" />
-        </Attribute>
-
         <Attribute itsName="pollingFrequency">
             <displayName value="Polling frequency" />
             <description value="Frequency in seconds" />

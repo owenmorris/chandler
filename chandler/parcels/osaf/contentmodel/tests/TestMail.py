@@ -207,7 +207,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         if type(account) == Mail.AccountBase:
             account.port = 1
-            account.useSSL = False
+            account.connectionSecurity = "NONE"
 
         if type(account) == Mail.SMTPAccount:
             account.fullName = "test"

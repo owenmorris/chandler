@@ -78,10 +78,17 @@ PANELS = {
                 "default": 143,
                 "required" : True,
             },
-            "IMAP_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
-                "linkedTo" : ("IMAP_PORT", { True:"993", False:"143" } )
+            "IMAP_SECURE" : {
+                "attr" : "connectionSecurity",
+                "type" : "radioEnumeration",
+                "buttons" : { 
+                    "IMAP_SECURE_NO" : "NONE", 
+                    # "IMAP_TLS" : "TLS", 
+                    "IMAP_SSL" : "SSL", 
+                    },
+                "default" : "NONE",
+                "linkedTo" : ("IMAP_PORT", 
+                              { "NONE":"143", "TLS":"143", "SSL":"993" } )
             },
             "IMAP_DEFAULT" : {
                 "type" : "currentPointer",
@@ -117,9 +124,17 @@ PANELS = {
                 "default": 25,
                 "required" : True,
             },
-            "SMTP_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
+            "SMTP_SECURE" : {
+                "attr" : "connectionSecurity",
+                "type" : "radioEnumeration",
+                "buttons" : { 
+                    "SMTP_SECURE_NO" : "NONE", 
+                    "SMTP_SECURE_TLS" : "TLS", 
+                    "SMTP_SECURE_SSL" : "SSL", 
+                    },
+                "default" : "NONE",
+                "linkedTo" : ("SMTP_PORT", 
+                              { "NONE":"25", "TLS":"25", "SSL":"465" } )
             },
             "SMTP_USE_AUTH" : {
                 "attr" : "useAuth",
@@ -475,6 +490,16 @@ class AccountPreferencesDialog(wx.Dialog):
         # When an exclusive radio button is clicked, call another handler.
         for field in PANELS[self.currentPanelType]['fields'].keys():
             fieldInfo = PANELS[self.currentPanelType]['fields'][field]
+
+            if fieldInfo['type'] == "radioEnumeration":
+                linkedTo = fieldInfo.get('linkedTo', None)
+                if linkedTo is not None:
+                    for (button, value) in fieldInfo['buttons'].iteritems():
+                        control = wx.xrc.XRCCTRL(self.currentPanel, button)
+                        wx.EVT_RADIOBUTTON(control, control.GetId(),
+                                           self.OnLinkedControl)
+                continue
+
             control = wx.xrc.XRCCTRL(self.currentPanel, field)
 
             if isinstance(control, wx.TextCtrl):
@@ -508,10 +533,24 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __StoreFormData(self, panelType, panel, data):
         for field in PANELS[panelType]['fields'].keys():
-            control = wx.xrc.XRCCTRL(panel, field)
+              
             fieldInfo = PANELS[panelType]['fields'][field]
             valueType = fieldInfo['type']
             valueRequired = fieldInfo.get('required', False)
+
+            if fieldInfo['type'] == 'radioEnumeration':
+                # a radio button group is handled differently, since there
+                # are multiple wx controls controlling a single attribute.
+                for (button, value) in fieldInfo['buttons'].iteritems():
+                    control = wx.xrc.XRCCTRL(panel, button)
+                    if control.GetValue() == True:
+                        data[field] = value
+                        break
+                        
+                continue
+            
+            control = wx.xrc.XRCCTRL(panel, field)
+            
             if valueType == "string":
                 val = control.GetValue().strip()
                 if valueRequired and not val:
@@ -536,6 +575,18 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __FetchFormData(self, panelType, panel, data):
         for field in PANELS[panelType]['fields'].keys():
+            
+            fieldInfo = PANELS[panelType]['fields'][field]
+            if fieldInfo['type'] == 'radioEnumeration' :
+                # a radio button group is handled differently, since there
+                # are multiple wx controls controlling a single attribute.
+                for (button, value) in fieldInfo['buttons'].iteritems():
+                    if value == data[field]:
+                        control = wx.xrc.XRCCTRL(panel, button)
+                        control.SetValue(True)
+                        break
+                continue
+                    
             control = wx.xrc.XRCCTRL(panel, field)
             valueType = PANELS[panelType]['fields'][field]['type']
             if valueType == "string":
@@ -692,7 +743,19 @@ class AccountPreferencesDialog(wx.Dialog):
         # If marked as linkedTo, change the linked field
         ##        "linkedTo" : ("IMAP_PORT", { True:993, False:143 } )
         for (field, fieldInfo) in panel['fields'].iteritems():
-            if wx.xrc.XmlResource.GetXRCID(field) == control.GetId():
+            
+            ids = []
+            if fieldInfo['type'] == 'radioEnumeration':
+                for (button, fieldValue) in fieldInfo['buttons'].iteritems():
+                    buttonId = wx.xrc.XmlResource.GetXRCID(button)
+                    ids.append(buttonId)
+                    if buttonId == control.GetId():
+                        value = fieldValue
+            else:
+                ids = [wx.xrc.XmlResource.GetXRCID(field)]
+                value = control.GetValue()
+                
+            if control.GetId() in ids:
                 linkedTo = fieldInfo.get('linkedTo', None)
                 if linkedTo is not None:
                     linkedField = linkedTo[0]
@@ -700,7 +763,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     linkedControl = wx.xrc.XRCCTRL(self.currentPanel,
                                                    linkedField)
                     if linkedControl.GetValue() in (linkedValues.values()):
-                        linkedControl.SetValue(linkedValues[control.GetValue()])
+                        linkedControl.SetValue(linkedValues[value])
                 break
 
     def OnExclusiveRadioButton(self, evt):
