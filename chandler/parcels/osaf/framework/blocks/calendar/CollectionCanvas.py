@@ -12,7 +12,15 @@ import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
 import osaf.contentmodel.ItemCollection as ItemCollection
 
-
+# temporary hack because Mac/Linux force BitmapButtons to
+# have some specific borders
+def GetPlatformBorder():
+    if '__WXMAC__' in wx.PlatformInfo:
+        return 3
+    if '__WXGTK__' in wx.PlatformInfo:
+        return  5
+    return 0
+    
 # @@@ These buttons could become a more general utility
 
 class CanvasTextButton(wx.BitmapButton):
@@ -37,10 +45,11 @@ class CanvasTextButton(wx.BitmapButton):
         @param bgcolor: the background color of the button
         @type bgcolor: wx.Colour
         """
+        self.forcedBorder = GetPlatformBorder()
         
         bitmap = self.buildBitmap(parent, text, font, fgcolor, bgcolor)
         super(CanvasTextButton, self).__init__(parent, -1,
-                                               bitmap, style=wx.BORDER_NONE)
+                                               bitmap, style=wx.NO_BORDER)
         self.text = text
         self.font = font
         self.fgcolor = fgcolor
@@ -71,18 +80,27 @@ class CanvasTextButton(wx.BitmapButton):
         @rtype: wx.Bitmap
         """
         
-        # Have to ask a window for the text extent, asking
-        # the memory dc doesn't work on the mac
+        # Have to ask a window for the text extent, because
+        # you can't call dc.GetTextExtent() until a bitmap has been selected
         textExtent = window.GetFullTextExtent(text, font)
         bitmap = wx.EmptyBitmap(textExtent[0], textExtent[1])
 
         dc = wx.MemoryDC()
-        dc.SetFont(font)
         dc.SelectObject(bitmap)
+        dc.SetFont(font)
         dc.SetBackground(wx.Brush(bgcolor))
+        dc.SetBackgroundMode(wx.TRANSPARENT)
         dc.Clear()
         dc.SetTextForeground(fgcolor)
         dc.DrawText(text, 0, 0)
+        
+        # destroy the dc so that the stuff gets flushed
+        # to the bitmap, so the mask works
+        dc = None
+        
+        # set the mask so that only the text gets rendered
+        # to the button
+        bitmap.SetMask(wx.Mask(bitmap, bgcolor))
         
         return bitmap
         
@@ -115,8 +133,8 @@ class CanvasTextButton(wx.BitmapButton):
         """ Sizes the button to just fit the bitmap """
 
         bitmap = self.GetBitmapLabel()
-        width = bitmap.GetWidth()
-        height = bitmap.GetHeight()
+        width = bitmap.GetWidth() + self.forcedBorder*2
+        height = bitmap.GetHeight() + self.forcedBorder*2
         self.SetSize(wx.Size(width, height))
 
 class CanvasBitmapButton(wx.BitmapButton):
@@ -134,10 +152,11 @@ class CanvasBitmapButton(wx.BitmapButton):
         @param path: path to a png file
         @type path: string
         """
-
+        self.forcedBorder = GetPlatformBorder()
+        
         bitmap = wx.Image(path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         super(CanvasBitmapButton, self).__init__(parent, -1,
-                                                 bitmap, style=wx.BORDER_NONE)
+                                                 bitmap, style=wx.NO_BORDER)
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
@@ -146,6 +165,14 @@ class CanvasBitmapButton(wx.BitmapButton):
         Do nothing on EraseBackground events, to avoid flicker.
         """
         pass
+
+    def UpdateSize(self):
+        """ Sizes the button to just fit the bitmap """
+        """ @@@ This copies CanvasTextButton.UpdateSize - to be fixed after 0.5 """
+        bitmap = self.GetBitmapLabel()
+        width = bitmap.GetWidth() + self.forcedBorder*2
+        height = bitmap.GetHeight() + self.forcedBorder*2
+        self.SetSize(wx.Size(width, height))
 
 class CanvasItem(object):
     """

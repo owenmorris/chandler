@@ -258,7 +258,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         # @@@ constants
         self.yOffset = 50
         self.hourHeight = 40
-        self.weekHeaderHeight = 20
+        self.weekHeaderHeight = 22
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
 
     def OnInit(self):
@@ -275,7 +275,9 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
-
+                                                             
+        self.prevButton.UpdateSize()
+        self.nextButton.UpdateSize()
  
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
@@ -353,10 +355,11 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
 
         self.monthButton.SetLabel(label)
         self.monthButton.UpdateSize()
+        self.todayButton.UpdateSize()
 
         for day in range(7):
             currentDate = startDate + DateTime.RelativeDateTime(days=day)
-            dayName = currentDate.Format('%a %d')
+            dayName = currentDate.Format('%a ') + str(currentDate.day)
 
             self.dayButtons[day].SetLabel(dayName)
             
@@ -953,6 +956,9 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
+
+        self.todayButton.UpdateSize()
+        self.monthButton.UpdateSize()
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add((0,0), 1, wx.EXPAND, 5)
