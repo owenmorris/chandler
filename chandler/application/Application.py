@@ -144,8 +144,15 @@ class wxApplication (wxApp):
         
         self.LoadParcels()
         self.model.SynchronizeView()
+        EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         return true  #indicates we succeeded with initialization
 
+    def OnQuit(self, event):
+        """
+          Exit the application
+        """
+        self.ExitMainLoop ()
+        
     def LoadParcels(self):       
         """
            Load the parcels and call the class method to install them. Packages
