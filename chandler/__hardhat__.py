@@ -106,6 +106,7 @@ def distribute(buildenv):
              "manifest.debug.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
             os.chdir(buildenv['root'])
+            hardhatlib.convertLineEndings(buildenv['distdir'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
              distName)
 
@@ -169,6 +170,7 @@ def distribute(buildenv):
             manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
             os.chdir(buildenv['root'])
+            hardhatlib.convertLineEndings(buildenv['distdir'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
              distName)
 
