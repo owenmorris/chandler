@@ -17,7 +17,13 @@
     <ref name="CopyPolicy" type="path">/Model/Attributes/CopyPolicy</ref>
     <ref name="CountPolicy" type="path">/Model/Attributes/CountPolicy</ref>
     <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
+    <ref name="InheritingKinds" type="path">/Model/Attributes/InheritingKinds</ref>
     <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
+  </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
+         type="path">/Model/Item</ref>
   </ref>
 
   <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>

@@ -28,7 +28,11 @@ class AttrDef(Item):
                                            'Cardinality': 'single' },
                             'Kinds': { 'Required': False,
                                        'Cardinality': 'dict',
-                                       'OtherName': 'AttrDefs' } })
+                                       'OtherName': 'AttrDefs' },
+                            'Kind': { 'Required': False,
+                                      'Cardinality': 'single',
+                                      'Persist': False,
+                                      'OtherName': 'Items' } })
 
     def refName(self, name):
 

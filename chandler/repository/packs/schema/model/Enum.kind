@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Enum</name>
-    <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">KindKind</class>
+  <name>Enum</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
 
-    <ref name="AttrDefs">
-        <ref name="Values" type="path">//Schema/Model/Attributes/Values</ref>
-    </ref>
-    <ref name="SuperKind" cardinality="list">
-        <ref name="5ddf5752-ab0d-11d7-8a19-000393db837c" nameType="uuid"
-             type="path">//Schema/Model/Type</ref>
-    </ref>
-    <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Enum</attribute>
+  <ref name="AttrDefs">
+    <ref name="Values" type="path">//Schema/Model/Attributes/Values</ref>
+  </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref name="5ddf5752-ab0d-11d7-8a19-000393db837c" nameType="uuid"
+         type="path">//Schema/Model/Type</ref>
+  </ref>
+
+  <attribute name="Class"
+             type="model.schema.Types.Class">model.schema.Types.Enum</attribute>
 </item>

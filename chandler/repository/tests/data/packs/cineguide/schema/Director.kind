@@ -5,7 +5,12 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="AttrDefs">
-    <ref name="Name" type="path">//Schema/CineGuide/Attributes/Name</ref>
-    <ref name="Directed" type="path">//Schema/CineGuide/Attributes/Directed</ref>
+    <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
+    <ref name="Directed" type="path">/CineGuide/Attributes/Directed</ref>
   </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref type="path">/Model/Item</ref>
+  </ref>
+
 </item>

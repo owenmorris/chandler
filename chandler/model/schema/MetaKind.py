@@ -18,8 +18,13 @@ class MetaKind(object):
             self.AttrDefs[attrDef[0]] = MetaKind.attr(attrDef[1])
 
     def getAttrDef(self, name):
-
         return self.AttrDefs.get(name)
+
+    def attach(self, attribute, item):
+        pass
+
+    def detach(self, attribute, item):
+        pass
 
 
     class attr(object):
@@ -33,3 +38,7 @@ class MetaKind(object):
         def getAspect(self, name, default=None):
 
             return getattr(self, name, default)
+
+        def hasAspect(self, name):
+
+            return hasattr(self, name)

@@ -32,7 +32,12 @@ class Type(Item):
 
     kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
                                          'Cardinality': 'dict',
-                                         'OtherName': 'Type' }})
+                                         'OtherName': 'Type' },
+                            'Kind': { 'Required': False,
+                                      'Cardinality': 'single',
+                                      'Persist': False,
+                                      'OtherName': 'Items' } })
+    
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)    
@@ -148,6 +153,7 @@ class Enum(Type):
 
     kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
                                          'Cardinality': 'dict',
+                                         'Persist': False,
                                          'OtherName': 'Type' },
                             'Values': { 'Cardinality': 'list' } })
 
@@ -179,7 +185,10 @@ class Enum(Type):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
-    
+
+    kind = MetaKind(Kind, { 'Kind': { 'Required': False,
+                                      'Cardinality': 'single',
+                                      'OtherName': 'Items' } })
 
 class DateTime(Type):
 

@@ -39,8 +39,9 @@ class Item(object):
         self._name = name or self._uuid.str64()
         self._root = None
         self._parent = parent
-        self._kind = kind
-        
+
+        self._kind = None
+        self._setKind(kind)
         self._setRoot(parent._addItem(self))
 
     def __iter__(self):
@@ -273,8 +274,8 @@ class Item(object):
 
         raise TypeError, attribute + " is not multi-valued"
 
-    def setValue(self, attribute, value, key, _attrDict=None):
-        'Set a value for a multi-valued attribute for a given key.'
+    def setValue(self, attribute, value, key=None, _attrDict=None):
+        'Set a value for a multi-valued attribute, optionally for a given key.'
 
         if _attrDict is None:
             if isinstance(value, Item):
@@ -283,7 +284,7 @@ class Item(object):
                 _attrDict = self._attributes
                 
         attrValue = _attrDict.get(attribute, None)
-
+            
         if attrValue is None:
             card = self.getAttrAspect(attribute, 'Cardinality', 'single')
             isItem = isinstance(value, Item)
@@ -300,7 +301,7 @@ class Item(object):
                     attrValue = RefList(self, attribute,
                                         self._otherName(attribute))
                 else:
-                    attrValue = [value]
+                    attrValue = [ value ]
                     return
             else:
                 raise TypeError, attribute + " is not multi-valued"
@@ -321,7 +322,7 @@ class Item(object):
         attrValue = _attrDict.get(attribute, None)
 
         if attrValue is None:
-            self.setValue(attribute, key, value, _attrDict=_attrDict)
+            self.setValue(attribute, value, key, _attrDict=_attrDict)
         elif isinstance(attrValue, dict):
             attrValue[key] = value
         elif isinstance(attrValue, list):
@@ -359,7 +360,7 @@ class Item(object):
                 return attrValue.index(value) >= 0
             except ValueError:
                 return False
-        elif value is not None:
+        elif attrValue is not None:
             raise TypeError, attribute + " is not multi-valued"
 
         return False
@@ -385,7 +386,7 @@ class Item(object):
 
         The item is added to the endpoint if it is multi-valued. The item
         replaces the endpoint if it is single-valued.'''
-        
+
         self.addValue(attribute, item, item.refName(attribute),
                       _attrDict = self._references)
 
@@ -526,6 +527,16 @@ class Item(object):
         '''Return this item's kind.'''
 
         return getattr(self, '_kind', None)
+
+    def _setKind(self, kind):
+
+        if self._kind is not None:
+            self._kind.detach('Items', self)
+
+        self._kind = kind
+
+        if self._kind is not None:
+            self._kind.attach('Items', self)
 
     def getRepository(self):
         '''Return this item's repository.
@@ -862,7 +873,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if hasattr(self, 'kindRef'):
             item._kindRef = self.kindRef
-            self.repository.kindRefs.append(item)
+            self.repository._appendKindRef(item)
 
         for ref in self.refs:
             other = item.find(ref[1])
@@ -897,8 +908,7 @@ class ItemHandler(xml.sax.ContentHandler):
                         value = ItemRef(item, other, otherName)
             else:
                 value = ItemRef(item, other, otherName)
-                self.repository.itemRefs.append((item, ref[1],
-                                                 otherName, value))
+                self.repository._appendRef(item, ref[1], otherName, value)
 
             valueDict[name] = value
 

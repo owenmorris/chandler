@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Kind</name>
-    <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">KindKind</class>
+  <name>Kind</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
 
-    <ref name="AttrDefs">
-        <ref name="SuperKind" type="path">//Schema/Model/Attributes/SuperKind</ref>
-        <ref name="SubKind" type="path">//Schema/Model/Attributes/SubKind</ref>
-        <ref name="AttrDefs" type="path">//Schema/Model/Attributes/AttrDefs</ref>
-        <ref name="InheritedAttrDefs" type="path">//Schema/Model/Attributes/InheritedAttrDefs</ref>
-        <ref name="NotFoundAttrDefs" type="path">//Schema/Model/Attributes/NotFoundAttrDefs</ref>
-        <ref name="Class" type="path">//Schema/Model/Attributes/Class</ref>
-    </ref>
-    <attribute name="Class" type="model.schema.Types.Class">model.schema.Kind.Kind</attribute>
+  <ref name="AttrDefs">
+    <ref name="SuperKind" type="path">/Model/Attributes/SuperKind</ref>
+    <ref name="SubKind" type="path">/Model/Attributes/SubKind</ref>
+    <ref name="Items" type="path">/Model/Attributes/Items</ref>
+    <ref name="AttrDefs" type="path">/Model/Attributes/AttrDefs</ref>
+    <ref name="InheritedAttrDefs" type="path">/Model/Attributes/InheritedAttrDefs</ref>
+    <ref name="NotFoundAttrDefs" type="path">/Model/Attributes/NotFoundAttrDefs</ref>
+    <ref name="Class" type="path">/Model/Attributes/Class</ref>
+  </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
+         type="path">/Model/Item</ref>
+  </ref>
+
+  <attribute name="Class" 
+             type="model.schema.Types.Class">model.schema.Kind.Kind</attribute>
 </item>

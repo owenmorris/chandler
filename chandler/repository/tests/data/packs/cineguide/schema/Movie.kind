@@ -5,10 +5,15 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="AttrDefs">
-    <ref name="Director" type="path">//Schema/CineGuide/Attributes/Director</ref>
-    <ref name="Title" type="path">//Schema/CineGuide/Attributes/Title</ref>
-    <ref name="FrenchTitle" type="path">//Schema/CineGuide/Attributes/FrenchTitle</ref>
-    <ref name="Released" type="path">//Schema/CineGuide/Attributes/Released</ref>
-    <ref name="Actors" type="path">//Schema/CineGuide/Attributes/Actors</ref>
+    <ref name="Director" type="path">/CineGuide/Attributes/Director</ref>
+    <ref name="Title" type="path">/CineGuide/Attributes/Title</ref>
+    <ref name="FrenchTitle" type="path">/CineGuide/Attributes/FrenchTitle</ref>
+    <ref name="Released" type="path">/CineGuide/Attributes/Released</ref>
+    <ref name="Actors" type="path">/CineGuide/Attributes/Actors</ref>
   </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref type="path">/Model/Item</ref>
+  </ref>
+
 </item>

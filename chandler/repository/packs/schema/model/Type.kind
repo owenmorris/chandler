@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item uuid="5ddf5752-ab0d-11d7-8a19-000393db837c">
-    <name>Type</name>
-    <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">KindKind</class>
+  <name>Type</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
 
-    <ref name="AttrDefs">
-        <ref name="TypeFor" type="path">//Schema/Model/Attributes/TypeFor</ref>
-    </ref>
-    <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Type</attribute>
+  <ref name="AttrDefs">
+    <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
+  </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
+         type="path">/Model/Item</ref>
+  </ref>
+
+  <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Type</attribute>
 </item>

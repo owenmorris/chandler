@@ -5,9 +5,14 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="AttrDefs">
-    <ref name="Name" type="path">//Schema/CineGuide/Attributes/Name</ref>
-    <ref name="Born" type="path">//Schema/CineGuide/Attributes/Born</ref>
-    <ref name="Died" type="path">//Schema/CineGuide/Attributes/Died</ref>
-    <ref name="Movies" type="path">//Schema/CineGuide/Attributes/Movies</ref>
+    <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
+    <ref name="Born" type="path">/CineGuide/Attributes/Born</ref>
+    <ref name="Died" type="path">/CineGuide/Attributes/Died</ref>
+    <ref name="Movies" type="path">/CineGuide/Attributes/Movies</ref>
   </ref>
+
+  <ref name="SuperKind" cardinality="list">
+    <ref type="path">/Model/Item</ref>
+  </ref>
+
 </item>

@@ -8,13 +8,12 @@ import xml.sax, xml.sax.saxutils
 import os.path
 import os
 import sys
-import re
 
 from model.util.UUID import UUID
 from model.util.Path import Path
 from model.item.Item import Item
 from model.item.Item import ItemHandler
-
+from model.persistence.PackHandler import PackHandler
 
 class Repository(object):
     '''A basic one-shot XML files based repository.
@@ -33,6 +32,8 @@ class Repository(object):
         self._dir = dir
         self._roots = {}
         self._registry = {}
+        self._unresolvedRefs = []
+        self._kindRefs = []
 
     def __iter__(self):
 
@@ -109,7 +110,7 @@ class Repository(object):
             except KeyError:
                 return None
 
-        elif isinstance(spec, str):
+        elif isinstance(spec, str) or isinstance(spec, unicode):
             if (spec[0] != '/' and
                 (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
                 return self.find(UUID(spec))
@@ -142,7 +143,18 @@ class Repository(object):
                 item.move(self.find(item._parentRef))
                 del item._parentRef
 
-        cover._resolveKinds()
+    def _resolveKinds(self):
+        
+        for item in self._kindRefs:
+            if item.hasAttribute('Kind'):
+                item._kind = item.Kind
+            else:
+                ref = item._kindRef
+                item._setKind(item.find(ref))
+
+            del item._kindRef
+            
+        del self._kindRefs[:]
         
     def _loadItem(self, path, cover, parent=None, verbose=False):
 
@@ -156,6 +168,10 @@ class Repository(object):
 
     def loadPack(self, path, parent=None, verbose=False):
         'Load items from the pack definition file at path.'
+
+        packs = self.getRoot('Packs')
+        if not packs:
+            packs = Item('Packs', self, None)
 
         cover = Repository.stub(self)
         xml.sax.parse(path, PackHandler(path, parent, cover, verbose))
@@ -256,6 +272,30 @@ class Repository(object):
         out.write('\n')
         out.close()
 
+    def _appendKindRef(self, item):
+
+        self._kindRefs.append(item)
+
+    def _appendRef(self, item, other, otherName, itemRef):
+
+        self._unresolvedRefs.append((item, other, otherName, itemRef))
+
+    def resolveRefs(self, verbose=True):
+
+        i = 0
+        for ref in self._unresolvedRefs[:]:
+            if ref[3]._other is None:
+                other = ref[0].find(ref[1])
+                if other is None:
+                    if verbose:
+                        print "%s -> %s is missing" %(ref[0], ref[1])
+                    i += 1
+                    continue
+
+                ref[3]._attach(ref[0], other, ref[2])
+                    
+            self._unresolvedRefs.pop(i)
+
 
     class stub(object):
 
@@ -263,8 +303,6 @@ class Repository(object):
             super(Repository.stub, self).__init__()
             self.repository = repository
             self.registry = []
-            self.kindRefs = []
-            self.itemRefs = []
 
         def __iter__(self):
             return self.registry.__iter__()
@@ -285,146 +323,20 @@ class Repository(object):
         def _loadItem(self, path, parent):
             return self.repository._loadItem(path, self, parent)
 
+        def _appendKindRef(self, item):
+            self.repository._appendKindRef(item)
+
+        def _appendRef(self, item, other, otherName, itemRef):
+            self.repository._appendRef(item, other, otherName, itemRef)
+
+        def resolveRefs(self, verbose=False):
+            self.repository.resolveRefs(verbose)
+
         def _resolveKinds(self):
-
-            for item in self.kindRefs:
-                ref = item._kindRef
-                del item._kindRef
-                item._kind = item.find(ref)
-
-        def _resolveRefs(self, verbose=True):
-
-            i = 0
-            for ref in self.itemRefs[:]:
-                if ref[3]._other is None:
-                    other = ref[0].find(ref[1])
-                    if other is None:
-                        if verbose:
-                            print ref, ref[1], "is missing"
-                            i += 1
-                            continue
-
-                    ref[3]._attach(ref[0], other, ref[2])
-                    
-                self.itemRefs.pop(i)
+            self.repository._resolveKinds()
 
         def find(self, spec):
             return self.repository.find(spec)
 
         def loadPack(self, path, parent=None, verbose=False):
             return self.repository.loadPack(path, parent, verbose)
-
-
-class PackHandler(xml.sax.ContentHandler):
-    'A SAX ContentHandler implementation responsible for loading packs.'
-
-    def __init__(self, path, parent, cover, verbose):
-
-        self.path = path
-        self.cwd = [ os.path.dirname(path) ]
-        self.parent = [ parent ]
-        self.cover = cover
-        self.verbose = verbose
-
-    def startDocument(self):
-
-        self.tagMethods = []
-        self.tagAttrs = []
-
-    def endDocument(self):
-
-        self.cover._resolveKinds()
-        self.cover._resolveRefs(True)
-        
-    def startElement(self, tag, attrs):
-
-        self.data = ''
-        method = getattr(PackHandler, tag + 'Start', None)
-        if method is not None:
-            method(self, attrs)
-            
-        self.tagMethods.append(getattr(PackHandler, tag + 'End', None))
-        self.tagAttrs.append(attrs)
-
-    def characters(self, data):
-
-        self.data += data
-
-    def endElement(self, tag):
-
-        method = self.tagMethods.pop()
-        attrs = self.tagAttrs.pop()
-
-        if method is not None:
-            method(self, attrs)
-
-    def packStart(self, attrs):
-
-        if attrs.has_key('cwd'):
-            self.cwd[-1] = os.path.join(self.cwd[-1], attrs['cwd'])
-
-        if attrs.has_key('file'):
-            if not self.cover.find(Path('//', 'Packs', attrs['name'])):
-                self.cover.loadPack(os.path.join(self.cwd[-1], attrs['file']),
-                                    self.parent[-1],
-                                    self.verbose)
-
-        else:
-            self.name = attrs['name']
-
-            packs = self.cover.find('Packs')
-            if not packs:
-                packs = Item('Packs', self.cover.repository, None)
-
-            Item(self.name, packs, None).setAttribute('File', self.path)
-
-    def cwdStart(self, attrs):
-
-        self.cwd.append(os.path.join(self.cwd[-1], attrs['path']))
-
-    def cwdEnd(self, attrs):
-
-        self.cwd.pop()
-
-    def itemStart(self, attrs):
-
-        parent = None
-        
-        if attrs.has_key('path'):
-            parent = self.cover.find(Path(attrs['path']))
-        elif attrs.has_key('uuid'):
-            parent = self.cover.find(UUID(attrs['uuid']))
-        elif attrs.has_key('file'):
-            parent = self.loadItem(os.path.join(self.cwd[-1], attrs['file']),
-                                   self.parent[-1])
-        elif attrs.has_key('files'):
-            pattern = '^' + attrs['files'] + '$'
-            pattern = pattern.replace('.', '\\.').replace('*', '.*')
-            exp = re.compile(pattern)
-
-            for file in os.listdir(self.cwd[-1]):
-                if exp.match(file):
-                    parent = self.loadItem(os.path.join(self.cwd[-1], file),
-                                           self.parent[-1])
-            
-        self.parent.append(parent)
-
-        if attrs.has_key('cwd'):
-            self.cwd.append(os.path.join(self.cwd[-1], attrs['cwd']))
-
-    def itemEnd(self, attrs):
-
-        self.parent.pop()
-
-        if attrs.has_key('cwd'):
-            self.cwd.pop()
-
-        if len(self.parent) == 1:
-            self.cover._resolveRefs()
-
-    def loadItem(self, file, parent):
-
-        if self.verbose:
-            print file
-            
-        return self.cover._loadItem(file, parent)
