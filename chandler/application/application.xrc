@@ -13,7 +13,7 @@
                 <border>1</border>
                 <object class="wxToolBar" subclass="application.NavigationBar.wxNavigationBar" name="NavigationBar">
                     <margins>2,2</margins>
-                    <style>wxTB_HORIZONTAL|wxTB_FLAT</style>
+                    <style>wxNO_BORDER|wxTB_HORIZONTAL|wxTB_FLAT</style>
                     <bitmapsize>20,20</bitmapsize>
                     <object class="tool" name="prev">
                         <bitmap>images/BackArrow.png</bitmap>
@@ -48,21 +48,21 @@
             <object class="sizeritem">
                 <option>1</option>
                 <flag>wxALIGN_CENTRE|wxALL|wxEXPAND</flag>
-                <border>1</border>
+                <border>0</border>
                 <object class="wxBoxSizer">
                     <orient>wxHORIZONTAL</orient>
                     <object class="sizeritem">
-                        <flag>wxALL|wxEXPAND</flag>
-                        <border>1</border>
+                        <flag>wxEAST|wxWEST|wxEXPAND</flag>
+                        <border>2</border>
                         <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
-                            <size>120,10</size>
-                            <style>wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_NO_LINES</style>
+                            <size>140,10</size>
+                            <style>wxSUNKEN_BORDER|wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_NO_LINES</style>
                         </object>
                     </object>
                     <object class="sizeritem">
                         <option>1</option>
                         <flag>wxALL|wxEXPAND</flag>
-                        <border>1</border>
+                        <border>2</border>
                         <object class="unknown" name="ViewerParcel">
                             <size>100,10</size>
                         </object>

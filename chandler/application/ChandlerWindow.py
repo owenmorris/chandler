@@ -99,6 +99,8 @@ class wxChandlerWindow(wxFrame):
         self.CreateStatusBar ()
         self.SetStatusText ("Welcome!")
 
+        self.SetBackgroundColour(wxColor(236, 233, 216))
+        
         applicationResources = application.Application.app.applicationResources
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
         assert (self.menuBar != None)
