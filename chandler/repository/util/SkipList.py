@@ -276,6 +276,23 @@ class SkipList(object):
 
         self._place(map, SkipList.REMOVE, key)
 
+    def position(self, map, key):
+
+        curr = map[key]
+        dist = -1
+
+        while curr is not None:
+            level = curr.getLevel()
+            point = curr.getPoint(level)
+            if point.prevKey is None:
+                dist += self._head.getPoint(level).dist
+                curr = None
+            else:
+                curr = map[point.prevKey]
+                dist += curr.getPoint(level).dist
+
+        return dist
+
     def access(self, map, position):
         """
         Get the key at a given position in the skip list.

@@ -977,6 +977,21 @@ class RefDict(LinkedMap):
 
         return self._index(indexName).getKey(position)
 
+    def getIndexPosition(self, indexName, item):
+        """
+        Return the position of an item in an index of this collection.
+
+        Raises C{NoSuchItemError} if the item is not in this collection.
+
+        @return the 0-based position of the item in the index.
+        """
+
+        uuid = item._uuid
+        if uuid in self:
+            return self._index(indexName).getPosition(uuid)
+        else:
+            raise NoSuchItemError, (self, item)
+
     def getIndexEntryValue(self, indexName, item):
         """
         Get an index entry value.
@@ -1310,3 +1325,6 @@ class NoSuchIndexError(IndexError):
 
 class IndexAlreadyExists(IndexError):
     "An index named '%s' already exists on %s"
+
+class NoSuchItemError(IndexError):
+    "No item %s in %s"

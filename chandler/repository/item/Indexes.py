@@ -28,8 +28,11 @@ class Index(dict):
     def removeKey(self, key):
         self._count -= 1
 
-    def getKey(self, key):
+    def getKey(self, n):
         raise NotImplementedError, "%s.getKey" %(type(self))
+
+    def getPosition(self, key):
+        raise NotImplementedError, "%s.getPosition" %(type(self))
 
     def getFirstKey(self):
         raise NotImplementedError, "%s.getFirstKey" %(type(self))
@@ -100,6 +103,10 @@ class NumericIndex(Index, SkipList):
     def getKey(self, n):
 
         return self.access(self, n)
+
+    def getPosition(self, key):
+
+        return self.position(self, key)
 
     def getFirstKey(self):
 
@@ -221,9 +228,16 @@ class SortedIndex(DelegatingIndex):
     def getKey(self, n):
 
         if self._descending:
-            return self._index.getKey(-n)
+            return self._index.getKey(self._count - n - 1)
         else:
             return self._index.getKey(n)
+
+    def getPosition(self, key):
+
+        if self._descending:
+            return self._count - self._index.getPosition(key) - 1
+        else:
+            return self._index.getPosition(key)
 
     def getFirstKey(self):
 
