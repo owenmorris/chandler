@@ -14,14 +14,18 @@ class Query(Item.Item):
         self.__changed = False # transient
         self.__query = RepositoryQuery.Query(Globals.repository) # transient
         self.__query.subscribe()
-        self.onItemLoad()
+        self.__subscribe()
+
 
     def onItemLoad(self):
+        self.__subscribe()
+        log.debug("ContentQuery<%s>.onItemLoad: %s" % (self.itsUUID, self))
+        self.__refresh()
+
+    def __subscribe(self):
         events = [Globals.repository.findPath('//parcels/osaf/framework/query_changed')]
         Globals.notificationManager.Subscribe(events, self.itsUUID, self.onQueryChange)
 
-        log.debug("ContentQuery<%s>.onItemLoad: %s" % (self.itsUUID, self))
-        self.__refresh()
 
     def onItemUnload(self):
         Globals.notificationManager.Unsubscribe(self.itsUUID)
@@ -31,7 +35,7 @@ class Query(Item.Item):
         Override of Item._fillItem
         
         @@@ this is a workaround for the fact the onItemLoad processing is done in a
-        single pass at the end, not as items are loaded.
+        single pass at the end, not as items are loaded.  this is for rehydration
         """
         super(Query, self)._fillItem(name, parent, kind, **kwds)
         # populate transients
@@ -80,6 +84,8 @@ class Query(Item.Item):
         """
         Refresh the cached query results by executing the repository query
         """
+        if self.exactKind:
+            self.__query.recursive = False
         self.__query.execute()
         #@@@ due to generator wackiness (bad interactions with persistent list), force the query generatro to give up the whole thing
         self.results = [ i for i in self.__query ]

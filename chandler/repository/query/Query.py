@@ -12,6 +12,8 @@ import logging
 log = logging.getLogger("RepoQuery")
 log.setLevel(logging.INFO)
 
+import time
+
 class Query:
 
     def __init__(self, repo, queryString = None):
@@ -39,6 +41,8 @@ class Query:
         Before calling execute, be sure that they queryString
         and any parameters have been set
         """
+        
+        start = time.time()
         if self.queryString is None:
             return
         log.debug("RepoQuery.execute(): %s" % self.queryString)
@@ -55,11 +59,13 @@ class Query:
         self._logical_plan = self.__analyze(self.ast)
         tools.timing.end("Analyzing query")
 #        tools.timing.results()
+        log.debug("execute: %s:%f" % (self.queryString,time.time()-start))
 
     def subscribe(self):
         """
         This query should subscribe to repository changes
         """
+        log.debug("RepoQuery<>.subscribe(): %s" % (self.queryString))
         self.__rep.addNotificationCallback(self.queryCallback)
         
     def unsubscribe(self):
@@ -81,17 +87,18 @@ class Query:
         @param notification: a string containing the kind of notification
         @type notification: string
         """
+        start = time.time()
         log.debug("RepoQuery.queryCallback for %s" % self.queryString)
-        if self._logical_plan is None and self.queryString is not None:
-            self.execute()
-        elif self.queryString is None:
+        if self.queryString is None:
             return
+        elif self._logical_plan is None and self.queryString is not None:
+            self.execute()
         changed = False
         for uuid, reason, kwds in changes:
             i = self.__rep.findUUID(uuid)
             #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
-                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
+#                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
                 if self.recursive:
                     rightKind = i.isItemOf(self._kind)
                 else:
@@ -103,9 +110,11 @@ class Query:
                         action = "entered"
                     else:
                         action = "exited"
+                    break #@@@ this means we stop after 1 item (like old code) efficient, but wrong
         if changed:
             log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
             self.__rep.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
+        log.debug("queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __iter__(self):
         """
@@ -299,6 +308,7 @@ class Query:
         @param plan: a tuple indicating the plan type, and a plan
         @type param: tuple 
         """
+        start = time.time()
         if plan[0] == 'for':
             return self.__execute_for(plan[1])
         elif plan[0] == 'union':
@@ -309,4 +319,4 @@ class Query:
             assert False, "Difference evaluation unimplemented"
         else:
             raise ValueError, "Unrecognized plan %s" % plan[0]
-
+        log.debug("__executePlan %s:%f", (self.queryString % time.time()-start))
