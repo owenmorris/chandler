@@ -213,7 +213,6 @@ class AccountPreferencesDialog(wx.Dialog):
                  panel['fields'].iteritems():
                     item.setAttributeValue(desc['attr'], values[field])
 
-        repo.commit()
 
     def __SwapDetailPane(self, index):
         """ Given an index into the account list, store the current pane's
@@ -266,6 +265,7 @@ class AccountPreferencesDialog(wx.Dialog):
     def OnOk(self, evt):
         self.__ApplyChanges()
         self.EndModal(True)
+        repo.commit()
 
     def OnCancel(self, evt):
         self.EndModal(False)
