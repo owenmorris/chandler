@@ -278,8 +278,14 @@ class wxApplication (wxApp):
             cls = loadClass('model.persistence.FileRepository',
                             'FileRepository')
         self.repository = cls(repositoryPath)
+
+        # force create the repository if -create passed in, otherwise open it
+        # and create it only if it doesn't yet exist
+        if '-create' in self.argv:
+            self.repository.create()
+        else:
+            self.repository.open(create=True)
             
-        self.repository.open(create=True)
         if not self.repository.find('//Schema'):
             self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
                                                   "packs", "schema.pack"))
