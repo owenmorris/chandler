@@ -1,7 +1,7 @@
 from M2Crypto import SSL, Rand, threading
 import threading
 from socket import *
-import logging
+#import logging
 
 verbose_debug = 1
 
@@ -22,17 +22,17 @@ def tmp_dh_callback(ssl, is_export, keylength):
 
 def setup_server_ctx():
     ctx = SSL.Context('sslv23')
-    #if ctx.load_verify_locations('ca.pem') != 1:
-    #    print "***No CA file"
-    #if ctx.load_cert_chain('server.pem') != 1:
-    #    print '***No server cert'
-    #ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-    #               10)#, verify_callback) # XXX Crash with callback
-    #ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
+    if ctx.load_verify_locations('ca.pem') != 1:
+        print "***No CA file"
+    if ctx.load_cert_chain('server.pem') != 1:
+        print '***No server cert'
+    ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
+                   10)#, verify_callback) # XXX Crash with callback
+    ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
     #ctx.set_tmp_dh_callback(tmp_dh_callback)# XXX This causes crash
-    #ctx.set_tmp_dh('dh1024.pem')
-    #if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
-    #    print "***No valid ciphers"
+    ctx.set_tmp_dh('dh1024.pem')
+    if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
+        print "***No valid ciphers"
     if verbose_debug:
         ctx.set_info_callback()
     return ctx
@@ -44,6 +44,7 @@ def post_connection_check(conn):
     # Not sure if we can do any other checks
 
 def do_server_loop(conn):
+    print "***STARTING SERVER LOOP"
     while 1:
         try:
             buf = conn.read()
@@ -66,27 +67,26 @@ class Server(threading.Thread):
     """
     SSL server.
     """
-    def __init__(self, ctx, sock, addr):
-        self.ctx = ctx
-        self.sock = sock
-        self.addr = addr
 
     def run(self):
-        log = logging.getLogger('sslserver')
-        log.setLevel(logging.INFO)
-        log.info('Accepting SSL client connection:' + str(self.ctx)
-                 + str(self.sock) + str(self.addr))
+        print "***RUN!"
+        #log = logging.getLogger('sslserver')
+        #log.setLevel(logging.INFO)
+        #log.info('Accepting SSL client connection:' + str(self.ctx)
+        #         + str(self.sock) + str(self.addr))
         
         self.conn = SSL.Connection(self.ctx, self.sock)
         self.conn.setup_addr(self.addr)
-        self.connx.set_accept_state()
+        self.conn.set_accept_state()
         self.conn.setup_ssl()
+        print "***ABOUT TO ACCEPT SSL"
         self.conn.accept_ssl()
 
-        log.info('SSL Connection opened')
+        #log.info('SSL Connection opened')
+        print "***GOING TO DO SERVER LOOP"
         if do_server_loop(self.conn):
             self.conn.close()
         else:
             self.conn.clear()
-        log.info('SSL Connection closed')
+        #log.info('SSL Connection closed')
     

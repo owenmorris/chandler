@@ -32,8 +32,8 @@ class PKITestViewParcel(Parcel):
         #log = logging.getLogger()
         #log.debug('pkitest starting to load parcel')
         m2threading.init()
-        self.seeder = seedm2.Seeder()
-        self.seeder.start()
+        #self.seeder = seedm2.Seeder()
+        #self.seeder.start()
 
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
@@ -63,7 +63,10 @@ class PKITestView(BoxContainer):
 
         log.info('accepted: ' + str(conn) + str(addr))
         
-        self.server = server.Server(ctx, conn, addr)
+        self.server = server.Server()
+        self.server.ctx = ctx
+        self.server.sock = conn
+        self.server.addr = addr
         self.server.start()
 
     def OnConnectDisconnectClientEvent(self, notification):
