@@ -200,6 +200,7 @@ def _createVersionFile(buildenv):
         os.remove(versionFile)
     versionFileHandle = open(versionFile, 'w', 0)
     versionFileHandle.write("build = \"" + buildenv['buildVersion'] + "\"\n")
+    versionFileHandle.write("version = \".5\"\n")
     versionFileHandle.close()
 
 def generateDocs(buildenv):
