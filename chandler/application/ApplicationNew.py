@@ -173,13 +173,13 @@ class wxApplicationNew (wxApp):
         from OSAF.framework.blocks.Block import Block
         
         topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
+
         if topDocument:
             self.mainFrame = MainFrame()
             assert isinstance (topDocument, Block)
             Globals.topController = topDocument.findController()
             self.menuParent = None
             self.mainFrame.counterpartUUID = topDocument.getUUID()
-            topDocument.render (self.mainFrame, self.mainFrame)
 
             events = Globals.repository.find('//parcels/OSAF/framework/blocks/Events')
             names = []
@@ -189,6 +189,8 @@ class wxApplicationNew (wxApp):
             Globals.notificationManager.Subscribe (names,
                                                    Globals.topController.getUUID(),
                                                    Globals.topController.dispatchEvent)
+
+            topDocument.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
         return true                     #indicates we succeeded with initialization
@@ -200,13 +202,13 @@ class wxApplicationNew (wxApp):
         Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
         """
         from OSAF.framework.blocks.Controller import Controller
-        from OSAF.framework.blocks.Block import BlockEvent
+        from OSAF.framework.blocks.Block import Block, BlockEvent
         from OSAF.framework.notifications.Notification import Notification
 
         wxID = event.GetId()
-        if wxID >= BlockEvent.MINIMUM_WX_ID and wxID <= BlockEvent.MAXIMUM_WX_ID:
+        if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
 
-            blockEvent = BlockEvent.wxIDToEvent (wxID)
+            blockEvent = Block.wxIDToObject (wxID)
             data = {'event':blockEvent}
             if event.GetEventType() == wxEVT_UPDATE_UI:
                 data ['type'] = 'UpdateUI'

@@ -47,7 +47,7 @@ class Block(Item):
                 member (event)
             for child in block.childrenBlocks:
                 broadcast (child, methodName, event)
-            
+
         event = notification.data['event']
         """
           Find the controller for the window with the focus
@@ -105,43 +105,46 @@ class Block(Item):
                         return
             block = block.parentBlock
 
+    IdToUUID = []               # A list mapping Ids to UUIDS
+    UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
-class BlockEvent(Event):
-
-    commandIDs = []
     MINIMUM_WX_ID = 2500
     MAXIMUM_WX_ID = 4999
 
-
-    def wxIDToEvent (theClass, wxID):
+    def wxIDToObject (theClass, wxID):
         """
-          Given a wxWindows commandID, returns the corresponding
-        Chandler event object
+          Given a wxWindows Id, returns the corresponding Chandler block
         """
-        return Globals.repository.find (theClass.commandIDs [wxID - theClass.MINIMUM_WX_ID])
+        return Globals.repository.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
  
-    wxIDToEvent = classmethod (wxIDToEvent)
+    wxIDToObject = classmethod (wxIDToObject)
     
 
-    def getwxID (self):
+    def getwxID (theClass, object):
         """
-          wxWindows needs a integer for a command id. Commands between
+          wxWindows needs a integer for a id. Commands between
         wxID_LOWEST and wxID_HIGHEST are reserved. wxPython doesn't export
         wxID_LOWEST and wxID_HIGHEST, which are 4999 and 5999 respectively.
         Passing -1 for an ID will allocate a new ID starting with 0. So
         I will use the range starting at 2500 for our events.
           I'll store the ID for an event in the association and the
         wxApplication keeps a list, named commandIDs with allows us to
-        look up the UUID of an event given it's ID
+        look up the UUID of a block given it's Id
         """
-        UUID = self.getUUID()
+        UUID = object.getUUID()
         try:
-            id = Globals.association [UUID]
+            id = Block.UUIDtoIds [UUID]
         except KeyError:
-            length = len (BlockEvent.commandIDs)
-            BlockEvent.commandIDs.append (UUID)
-            id = length + BlockEvent.MINIMUM_WX_ID
-            assert (id <= BlockEvent.MAXIMUM_WX_ID)
-            assert not Globals.association.has_key (UUID)
-            Globals.association [UUID] = id
+            length = len (Block.IdToUUID)
+            Block.IdToUUID.append (UUID)
+            id = length + Block.MINIMUM_WX_ID
+            assert (id <= Block.MAXIMUM_WX_ID)
+            assert not Block.UUIDtoIds.has_key (UUID)
+            Block.UUIDtoIds [UUID] = id
         return id
+    getwxID = classmethod (getwxID)
+
+    
+class BlockEvent(Event):
+    pass
+

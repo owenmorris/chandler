@@ -222,7 +222,7 @@ class MenuItem(MenuEntry):
             nor can we use wxWindows api's to distinguish them from each other.
             """
             assert self.hasAttributeValue('event')
-            id = self.event.getwxID()
+            id = Block.getwxID(self.event)
             if self.menuItemKind == "Normal":
                 kind = wxITEM_NORMAL
             elif self.menuItemKind == "Check":

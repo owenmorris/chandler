@@ -2,6 +2,8 @@ import application.Globals as Globals
 from Block import Block
 from wxPython.wx import *
 from wxPython.gizmos import *
+from OSAF.framework.notifications.Notification import Notification
+
 
 class Font(wxFont):
     def __init__(self, characterStyle):
@@ -83,6 +85,7 @@ class RectContainer(ContainerChild):
             flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
         return flag
 
+
     def Calculate_wxBorder (self):
         border = 0
         spacerRequired = False
@@ -103,6 +106,7 @@ class RectContainer(ContainerChild):
         
         return int (border)
 
+
 class BoxContainer(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
@@ -119,6 +123,12 @@ class BoxContainer(RectContainer):
 #            assert isinstance (parent, wxSizerPtr)
             parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return sizer, sizer, parentWindow
+
+ 
+class TabbedContainer(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+
 
 class Button(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
@@ -146,13 +156,10 @@ class Button(RectContainer):
             parent.Add(button, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
-        
+    
+
 class ComboBox(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
-        id = 0
-        if self.hasAttributeValue ("itemSelected"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
-
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
         comboBox = wxComboBox(parentWindow, -1, self.selection, 
                               wxDefaultPosition,
@@ -163,6 +170,7 @@ class ComboBox(RectContainer):
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
+    
 class EditText(RectContainer):
     def __init__(self, *arguments, **keywords):
         super (EditText, self).__init__ (*arguments, **keywords)
@@ -373,15 +381,71 @@ class Tree(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
     
+class TreeNode:
+    def __init__(self, nodeId, treeList):
+        self.nodeId = nodeId
+        self.treeList = treeList
+
+
+    def AddChildNode (self, data, title, hasChildren):
+        childNodeId = self.treeList.AppendItem (self.nodeId,
+                                                title,
+                                                -1,
+                                                -1,
+                                                wxTreeItemData (data))
+        self.treeList.SetItemHasChildren (childNodeId, hasChildren)
+
+
+    def AddRootNode (self, data, title, hasChildren):
+        rootNodeId = self.treeList.AddRoot (title, -1, -1, wxTreeItemData (data))
+        self.treeList.SetItemHasChildren (rootNodeId, hasChildren)
+        #self.treeList.Expand (rootNodeId)
+
+                                             
+    def GetData (self):
+        if self.nodeId:
+            return self.treeList.GetPyData (self.nodeId)
+        else:
+            return None        
+
+
+class wxTreeList(wxTreeListCtrl):
+
+    def __init__(self, *arguments, **keywords):
+        wxTreeListCtrl.__init__ (self, *arguments, **keywords)
+        EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
+ 
+
+    def OnExpanding(self, event):
+        """
+          Load the items in the tree only when they are visible.
+        """
+        arguments = {'node':TreeNode (event.GetItem(), self),
+                     'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
+                     'type':'Normal'}
+        notification = Notification('chandler/GetTreeListData', None, None)
+        notification.SetData(arguments)
+        Globals.notificationManager.PostNotification(notification)
+
+
 class TreeList(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
-        treeList = wxTreeListCtrl(parentWindow)
+        treeList = wxTreeList(parentWindow, Block.getwxID(self))
         info = wxTreeListColumnInfo()
         for x in range(len(self.columnHeadings)):
             info.SetText(self.columnHeadings[x])
             info.SetWidth(self.columnWidths[x])
             treeList.AddColumnInfo(info)
-        
-        if isinstance (parent, wxSizerPtr):
-            parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+
+        arguments = {'node':TreeNode (None, treeList),
+                     'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
+                     'type':'Normal'}
+        notification = Notification("chandler/GetTreeListData", None, None)
+        notification.SetData(arguments)
+        Globals.notificationManager.PostNotification(notification)
+
+
+        parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None
+
+
