@@ -12,7 +12,7 @@ import wx
 
 
 class BoxContainer(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wx.HORIZONTAL
         else:
@@ -53,7 +53,7 @@ class BoxContainer(RectangularChild):
 
 
 class EmbeddedContainer(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel = wx.Panel(parentWindow, -1)
         panel.SetSizer(sizer)
@@ -242,7 +242,7 @@ class wxSplitWindow(wx.SplitterWindow):
 
  
 class SplitWindow(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         splitWindow = wxSplitWindow(parentWindow,
                                     Block.getwxID(self), 
                                     wx.DefaultPosition,
@@ -267,7 +267,7 @@ class SplitWindow(RectangularChild):
 
     
 class TabbedContainer(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         self.tabIndex = 0
         try:
             id = Block.getwxID(self.selectionChanged)
@@ -325,7 +325,7 @@ class TabbedContainer(RectangularChild):
 
         
 class Toolbar(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
         return toolbar, None, None

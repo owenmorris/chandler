@@ -17,7 +17,7 @@ import wx.grid
 import webbrowser # for opening external links
 
 class Button(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         try:
             id = Block.getwxID(self)
         except AttributeError:
@@ -60,7 +60,7 @@ class Button(RectangularChild):
 
                               
 class Choice(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         choice = wx.Choice(parentWindow, -1, 
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
@@ -71,7 +71,7 @@ class Choice(RectangularChild):
 
 
 class ComboBox(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         comboBox = wx.ComboBox(parentWindow, -1, self.selection, 
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
@@ -93,7 +93,7 @@ class wxEditText(wx.TextCtrl):
 
             
 class EditText(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         style = 0
         if self.textAlignmentEnum == "Left":
             style |= wx.TE_LEFT
@@ -135,7 +135,7 @@ class wxHTML(wx.html.HtmlWindow):
         webbrowser.open(link.GetHref())
     
 class HTML(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         htmlWindow = wxHTML(parentWindow,
                             Block.getwxID(self),
                             wx.DefaultPosition,
@@ -194,7 +194,7 @@ class wxListBlock(wx.ListCtrl):
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
                 counterpart = Globals.repository.find (self.counterpartUUID)
-                counterpart.SynchronizeWidget()
+                counterpart.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
@@ -280,7 +280,7 @@ class List(RectangularChild):
         super (List, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         list = wxListBlock(parentWindow,
                            Block.getwxID(self),
                            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
@@ -486,7 +486,7 @@ class Summary(RectangularChild):
         super (Summary, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         list = wxSummary(parentWindow,
                          Block.getwxID(self))
         self.parentBlock.addToContainer(parent,
@@ -509,7 +509,7 @@ class Summary(RectangularChild):
 
 
 class RadioBox(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         if self.radioAlignEnum == "Across":
             dimension = wx.RA_SPECIFY_COLS
         elif self.radioAlignEnum == "Down":
@@ -527,12 +527,12 @@ class RadioBox(RectangularChild):
 
 
 class ScrolledWindow(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         return None, None, None
 
 
 class StaticText(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         if self.textAlignmentEnum == "Left":
             style = wx.ALIGN_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -556,7 +556,7 @@ class StaticText(RectangularChild):
 
 
 class StatusBar(RectangularChild):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         frame = Globals.wxApplication.mainFrame
         assert (frame.GetStatusBar () == None), "mainFrame already has a StatusBar"
         frame.CreateStatusBar ()
@@ -568,7 +568,7 @@ class ToolbarItem(RectangularChild):
     """
       Under construction
     """
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
@@ -819,7 +819,7 @@ class Tree(RectangularChild):
         self.rootPath = None
         self.selection = None
 
-    def renderOneBlock(self, parent, parentWindow, nativeWindow=None):
+    def instantiateWidget(self, parent, parentWindow, nativeWindow=None):
         if nativeWindow:
             tree = nativeWindow
         else:
@@ -875,7 +875,7 @@ class ItemDetail(RectangularChild):
         super (ItemDetail, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         htmlWindow = wxItemDetail(parentWindow,
                                   Block.getwxID(self),
                                   wx.DefaultPosition,

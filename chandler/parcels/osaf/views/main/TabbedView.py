@@ -10,13 +10,13 @@ from osaf.framework.blocks.Block import Block as Block
 from repository.util.UUID import UUID
 
 class TabbedView(ControlBlocks.TabbedContainer):
-    def renderOneBlock (self, parent, parentWindow):
+    def instantiateWidget (self, parent, parentWindow):
         try:
             self.tabTitles
         except AttributeError:
             self.tabTitles = self.tabNames
         self.activeTab = -1
-        return ControlBlocks.TabbedContainer.renderOneBlock(self, parent, parentWindow)
+        return ControlBlocks.TabbedContainer.instantiateWidget(self, parent, parentWindow)
 
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']

@@ -167,7 +167,7 @@ class WeekBlock(Block.RectangularChild):
         self.rangeIncrement = DateTime.RelativeDateTime(days=7)
         self.updateRange(DateTime.today() + self.rangeIncrement)
 
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         canvas = wxWeekBlock(parentWindow,
                              Block.Block.getwxID(self))
         self.parentBlock.addToContainer(parent, canvas,
@@ -349,7 +349,7 @@ class MonthBlock(Block.RectangularChild):
         self.rangeIncrement = DateTime.RelativeDateTime(months=1)
         self.updateRange(DateTime.today())
 
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         canvas = wxMonthBlock(parentWindow,
                               Block.Block.getwxID(self))
         self.parentBlock.addToContainer(parent, canvas,

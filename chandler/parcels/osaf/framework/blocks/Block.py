@@ -34,13 +34,13 @@ class Block(Item):
     def render (self, parent, parentWindow):
         """
           ContainerChild overrides render to recursively call
-        renderOneBlock on a tree of Blocks.
+        instantiateWidget on a tree of Blocks.
         """
         pass
 
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         """
-          You should usually override renderOneBlock in your Block subclass
+          You should usually override instantiateWidget in your Block subclass
         to create a platform specific counterpart for the block. The three
         objects returned are:
          - The platform specific counterpart created, e.g. wx.Panel
@@ -145,7 +145,7 @@ class ContainerChild(Block):
         oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
         Globals.wxApplication.ignoreSynchronizeWidget = True
         try:
-            (widget, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
+            (widget, parent, parentWindow) = self.instantiateWidget (parent, parentWindow)
         finally:
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
         """

@@ -34,7 +34,7 @@ class BookmarksBar(RectangularChild):
         super (BookmarksBar, self).__init__ (*arguments, **keywords)
         self.bookmarksPath = None
 
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         panelWidget = wxRectangularChild (parentWidget, -1)
         sizer = wx.BoxSizer (wx.HORIZONTAL)
@@ -72,11 +72,11 @@ class NavigationBar(Toolbar):
     """
       Under construction
     """
-    def renderOneBlock(self, parent, parentWindow):
+    def instantiateWidget(self, parent, parentWindow):
         self.history = []
         self.future = []
 
-        returnArguments = Toolbar.renderOneBlock(self, parent, parentWindow)
+        returnArguments = Toolbar.instantiateWidget(self, parent, parentWindow)
         self.showOrHideNavigationBar()
         return returnArguments
     
@@ -154,8 +154,8 @@ class NavigationBar(Toolbar):
         
         
 class ChandlerStatusBar(StatusBar):
-    def renderOneBlock(self, parent, parentWindow):
-        returnArguments = StatusBar.renderOneBlock(self, parent, parentWindow)
+    def instantiateWidget(self, parent, parentWindow):
+        returnArguments = StatusBar.instantiateWidget(self, parent, parentWindow)
         self.showOrHideStatusBar()
         return returnArguments
     
