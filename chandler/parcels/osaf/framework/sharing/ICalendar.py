@@ -38,7 +38,7 @@ def convertToMX(dt, tz=None):
     if getattr(dt, 'tzinfo', None): dt = dt.astimezone(tz)
     return mx.DateTime.mktime(dt.timetuple())
 
-def convertToUTC(dt, tz = None):
+def convertToUTC(dt, asDate = False, tz = None):
     """Convert the given mxDateTime (without tz) into datetime with tzinfo=UTC.
     
     >>> import datetime, mx.DateTime
@@ -50,7 +50,10 @@ def convertToUTC(dt, tz = None):
     """
     if not tz: tz = localtime
     args = (dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
-    return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
+    if asDate:
+        return datetime.date(*args[0:3])
+    else:
+        return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
 
 def itemsToVObject(view, items, cal=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
@@ -82,14 +85,14 @@ def itemsToVObject(view, items, cal=None):
         except AttributeError:
             pass
         try:
-            comp.add('dtstart').value = convertToUTC(item.startTime)
+            comp.add('dtstart').value = convertToUTC(item.startTime,item.allDay)
         except AttributeError:
             pass
         try:
             if taskorevent == 'TASK':
-                comp.add('due').value = convertToUTC(item.dueDate)
+                comp.add('due').value = convertToUTC(item.dueDate,item.allDay)
             else:
-                comp.add('dtend').value = convertToUTC(item.endTime)
+                comp.add('dtend').value = convertToUTC(item.endTime,item.allDay)
         except AttributeError:
             pass
         try:
@@ -265,6 +268,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 logger.debug("eventItem is %s" % str(eventItem))
                               
                 eventItem.displayName = displayName
+                if isDate:
+                    eventItem.allDay = True
                 eventItem.startTime   = convertToMX(dt)
                 if vtype == u'VEVENT':
                     eventItem.endTime = convertToMX(dt + duration)
