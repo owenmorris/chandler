@@ -19,7 +19,11 @@ class ViewerParcel (Parcel):
       The ViewerParcel set's up the following data for the parcel's use:
 
     self.path                      the path to the parcel directory
-    self.resources                 the parcel's resources
+    
+      And stores the with the non-persistent counterpart:
+
+    counterpart.model              the persistent counterpart
+    counterpart.resources          the model's resources
     """
     def Install(theClass):
         """
