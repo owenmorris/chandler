@@ -550,14 +550,14 @@ class ItemHandler(ContentHandler):
 
         if attrCard == 'single':
             if isinstance(value, ItemPackage.Item.Item):
-                raise TypeError, 'Item %s cannot be stored as a literal' %(value.getItemPath())
+                raise TypeError, "item %s cannot be stored as a literal value" %(value.getItemPath())
 
             if value is ItemPackage.Item.Item.Nil:
                 raise ValueError, 'Cannot persist Item.Nil'
 
             if attrType is not None:
                 if not attrType.recognizes(value):
-                    raise TypeError, 'Value %s of type %s on %s is not recognized by type %s' %(value, type(value), name, attrType.getItemPath())
+                    raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.getItemPath())
                 else:
                     attrType.typeXML(value, generator, withSchema)
             else:

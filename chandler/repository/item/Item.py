@@ -1301,9 +1301,13 @@ class Item(object):
                     attrCard = 'single'
                     attrId = None
 
-                ItemHandler.xmlValue(repository, key, value, 'attribute',
-                                     attrType, attrCard, attrId, generator,
-                                     withSchema)
+                try:
+                    ItemHandler.xmlValue(repository, key, value, 'attribute',
+                                         attrType, attrCard, attrId, generator,
+                                         withSchema)
+                except Exception, e:
+                    e.args = ("while saving attribute '%s' of item %s, %s" %(key, self.getItemPath(), e.args[0]),)
+                    raise
 
     def _xmlRefs(self, generator, withSchema, version, mode):
 
@@ -1346,6 +1350,7 @@ class Item(object):
     STALE     = 0x0080
     HDIRTY    = 0x0100
     DIRTY     = ADIRTY | HDIRTY
+
 
 class Children(LinkedMap):
 
