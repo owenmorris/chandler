@@ -33,6 +33,16 @@ def build(buildenv):
         hardhatlib.executeCommand( buildenv, info['name'],
          [buildenv['make']],
          "Making launcher programs")
+        if buildenv['version'] == 'release':
+            hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
+             os.sep + "release")
+            hardhatlib.copyFile("chandler", buildenv['root'] + \
+             os.sep + "release")
+        if buildenv['version'] == 'debug':
+            hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
+             os.sep + "debug")
+            hardhatlib.copyFile("chandler", buildenv['root'] + \
+             os.sep + "debug")
         os.chdir("../../..")
 
     os.chdir("distrib")
