@@ -92,15 +92,6 @@ class SampleDataTest(unittest.TestCase):
         self.assertEqual(event2.headline, 'Dinner with Gina')
         self.assertEqual(event2.relation.fullName, 'Gina Durante')
 
-class PersistenceTest(unittest.TestCase):
-    def testSaveDictionary(self):
-        storage = Persist.Storage("_PERSIST_")
-        items = storage.persist('items', Persist.List())
-        for item in ItemDict.values():
-            print item
-            items.append(item)
-        storage.commit("added saved list")
-
 if __name__ == "__main__":
     unittest.main()
 

@@ -23,7 +23,7 @@ class EventItem(InformationItem):
         self.endTime = None
 
     def getDuration(self):
-        """Returns an mxDateTimeDelta, returns None if startTime or endTime is None"""
+        """Returns an mxDateTimeDelta, None if startTime or endTime is None"""
 
         if (self.endTime == None) or (self.startTime == None): return None
         return self.endTime - self.startTime
