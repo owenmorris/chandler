@@ -85,7 +85,20 @@
     <type itemref="docSchema:orientationEnumType"/>
   </Attribute>
 
-    
+  <Attribute itemName="columnHeadings">
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itemName="columnWidths">
+    <type itemref="Integer"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itemName="elementDelegate">
+    <type itemref="String"/>
+  </Attribute>
+
   <!--
     Chandler Query
   -->
@@ -146,7 +159,10 @@
     <type itemref="docSchema:CharacterStyle"/>
   </Attribute>
 
-
+  <Attribute itemName="event">
+    <type itemref="docSchema:BlockEvent"/>
+  </Attribute>
+    
   <!--
     Block Events
   -->
@@ -480,13 +496,9 @@
       <type itemref="String"/>
     </Attribute>
     
-    <Attribute itemName="event">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
-    
     <attributes itemref="docSchema:MenuItem/menuItemKind"/>
     <attributes itemref="docSchema:MenuItem/accel"/>
-    <attributes itemref="docSchema:MenuItem/event"/>
+    <attributes itemref="docSchema:event"/>
   </Kind>
 
   <!--
@@ -641,18 +653,52 @@
     <classes key="python">OSAF.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Attribute itemName="columnHeadings">
-      <type itemref="String"/>
-      <cardinality>list</cardinality>
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnWidths"/>
+    <attributes itemref="docSchema:elementDelegate"/>
+  </Kind>  
+
+  <!--
+    Tree
+  -->
+  <Kind itemName="Tree">
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.Tree</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+
+    <Attribute itemName="hideRoot">
+      <type itemref="Boolean"/>
     </Attribute>
 
-    <Attribute itemName="columnWidths">
-      <type itemref="Integer"/>
-      <cardinality>list</cardinality>
+    <Attribute itemName="noLines">
+      <type itemref="Boolean"/>
     </Attribute>
 
-    <attributes itemref="docSchema:List/columnHeadings"/>
-    <attributes itemref="docSchema:List/columnWidths"/>
+    <Attribute itemName="useButtons">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <Attribute itemName="openedContainers">
+      <type itemref="Boolean"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <Attribute itemName="selection">
+      <type itemref="SingleRef"/>
+    </Attribute>
+
+    <Attribute itemName="rootPath">
+      <type itemref="Item"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnWidths"/>
+    <attributes itemref="docSchema:elementDelegate"/>
+    <attributes itemref="docSchema:Tree/hideRoot"/>
+    <attributes itemref="docSchema:Tree/noLines"/>
+    <attributes itemref="docSchema:Tree/useButtons"/>    
+    <attributes itemref="docSchema:Tree/openedContainers"/>
+    <attributes itemref="docSchema:Tree/selection"/>
+    <attributes itemref="docSchema:Tree/rootPath"/>
   </Kind>  
 
   <!--
@@ -684,15 +730,11 @@
       <type itemref="Integer"/>
     </Attribute>
 
-    <Attribute itemName="selectionChanged">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
-
     <attributes itemref="docSchema:RadioBox/title"/>
     <attributes itemref="docSchema:RadioBox/choices"/>
     <attributes itemref="docSchema:RadioBox/radioAlignEnum"/>
     <attributes itemref="docSchema:RadioBox/itemsPerLine"/>
-    <attributes itemref="docSchema:RadioBox/selectionChanged"/>
+    <attributes itemref="docSchema:event"/>
   </Kind>
 
   <!--
@@ -766,13 +808,8 @@
       <cardinality>list</cardinality>
     </Attribute>
       
-    <Attribute itemName="selectionChanged">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
-
     <attributes itemref="docSchema:TabbedContainer/tabPosEnum"/>
     <attributes itemref="docSchema:TabbedContainer/tabNames"/>
-    <attributes itemref="docSchema:TabbedContainer/selectionChanged"/>
   </Kind>  
   
   <!--
@@ -836,63 +873,6 @@
     <attributes itemref="docSchema:ToolbarItem/statusMessage"/>
   </Kind>
   
-  <!--
-    Tree
-  -->
-  <Kind itemName="Tree">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.Tree</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
-
-    <Attribute itemName="hideRoot">
-      <type itemref="Boolean"/>
-    </Attribute>
-
-    <Attribute itemName="noLines">
-      <type itemref="Boolean"/>
-    </Attribute>
-
-    <Attribute itemName="useButtons">
-      <type itemref="Boolean"/>
-    </Attribute>
-
-    <Attribute itemName="columnHeadings">
-      <type itemref="String"/>
-      <cardinality>list</cardinality>
-    </Attribute>
-
-    <Attribute itemName="columnWidths">
-      <type itemref="Integer"/>
-      <cardinality>list</cardinality>
-    </Attribute>
-
-    <Attribute itemName="openedContainers">
-      <type itemref="Boolean"/>
-      <cardinality>dict</cardinality>
-    </Attribute>
-
-    <Attribute itemName="selection">
-      <type itemref="SingleRef"/>
-    </Attribute>
-
-    <Attribute itemName="rootPath">
-      <type itemref="Item"/>
-    </Attribute>
-
-    <Attribute itemName="elementDelegate">
-      <type itemref="String"/>
-    </Attribute>
-
-    <attributes itemref="docSchema:Tree/hideRoot"/>
-    <attributes itemref="docSchema:Tree/noLines"/>
-    <attributes itemref="docSchema:Tree/useButtons"/>    
-    <attributes itemref="docSchema:Tree/columnHeadings"/>
-    <attributes itemref="docSchema:Tree/columnWidths"/>
-    <attributes itemref="docSchema:Tree/openedContainers"/>
-    <attributes itemref="docSchema:Tree/selection"/>
-    <attributes itemref="docSchema:Tree/rootPath"/>
-    <attributes itemref="docSchema:Tree/elementDelegate"/>
-  </Kind>  
-
   <!-- Item Detail Block  -->
 
   <Kind itemName="ItemDetail">

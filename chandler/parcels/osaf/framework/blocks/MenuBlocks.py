@@ -3,7 +3,6 @@ from Block import Block
 from wxPython.wx import *
 
 class MenuEntry(Block):
-    pass
 
     def rebuildMenus (self, startingAtBlock):
         """
@@ -208,7 +207,7 @@ class MenuEntry(Block):
                 wxMenuObject.InsertMenu (index, 0, self.title, newItem, self.helpString)
 
 
-class MenuItem(MenuEntry):
+class MenuItem (MenuEntry):
     def renderMenuEntry(self, wxMenuObject, index, oldItem):
         if self.menuItemKind == "Separator":
             id = wxID_SEPARATOR

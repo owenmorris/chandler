@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import gettext, os, sys, threading
+from new import classobj
 from wxPython.wx import *
 import Globals
 from repository.util.UUID import UUID
@@ -17,15 +18,6 @@ wxEVT_MAIN_THREAD_CALLBACK = wxNewEventType()
 
 def EVT_MAIN_THREAD_CALLBACK(win, func):
     win.Connect(-1, -1, wxEVT_MAIN_THREAD_CALLBACK, func)
-
-
-class MainThreadCallbackEvent(wxPyEvent):
-    def __init__(self, target, *args):
-        wxPyEvent.__init__(self)
-        self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
-        self.target = target
-        self.args = args
-        self.lock = threading.Lock()
 
 
 def repositoryCallback(uuid, notification, reason, **kwds):
@@ -42,6 +34,46 @@ def repositoryCallback(uuid, notification, reason, **kwds):
     note.threadid = id(threading.currentThread())
     note.SetData({'uuid' : uuid, 'keywords' : kwds})
     Globals.notificationManager.PostNotification(note)
+
+
+def mixinAClass (self, myMixinClassImportPath):
+    """
+      Given an object, self, and the path as a string to a mixin class,
+    myMixinClassImportPath, create a new subclass derived from base class
+    of self and the mixin class and makes self's class this new class.
+      This is useful to dynamicly (at runtime) mixin new behavior.
+    """
+    if not self.__class__.__dict__.get ("_alreadyMixedIn"):
+        try:
+            _classesByName = self.__class__._classesByName
+        except AttributeError:
+            self.__class__._classesByName = {}
+            _classesByName = self.__class__._classesByName
+
+        parts = myMixinClassImportPath.split (".")
+        assert len(parts) >= 2, "Delegate % isn't a module and class" % counterpart.elementDelegate
+        delegateClassName = parts.pop ()
+        newClassName = self.__class__.__name__ + '_' + delegateClassName
+        try:
+            theClass = _classesByName [newClassName]
+        except KeyError:
+            module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
+            assert module.__dict__.get (delegateClassName), "Class % doesn't exist" % counterpart.elementDelegate
+            theClass = classobj (str(newClassName),
+                                 (self.__class__, module.__dict__[delegateClassName]),
+                                 {})
+            theClass._alreadyMixedIn = True
+            _classesByName [newClassName] = theClass
+        self.__class__ = theClass
+
+
+class MainThreadCallbackEvent(wxPyEvent):
+    def __init__(self, target, *args):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
+        self.target = target
+        self.args = args
+        self.lock = threading.Lock()
 
 
 class MainFrame(wxFrame):

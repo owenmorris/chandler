@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import time
 import application.Globals as Globals
+from application.Application import mixinAClass
 from Block import *
 from ContainerBlocks import *
 from Styles import Font
@@ -12,9 +13,7 @@ from repository.util.UUID import UUID
 from wxPython.wx import *
 from wxPython.gizmos import *
 from wxPython.html import *
-from new import classobj
 import webbrowser # for opening external links
-
 
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
@@ -176,14 +175,16 @@ class wxListBlock(wxListCtrl):
         
     def SynchronizeFramework(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
+        mixinAClass (self, wxTree, counterpart.elementDelegate)
 
-        for index in range (self.GetColumnCount()):
-            self.DeleteColumn(index)
-                    
+        for index in xrange (self.GetColumnCount()):
+            self.DeleteColumn(0)
+
         for index in range (len(counterpart.columnHeadings)):
-            heading = str(counterpart.columnHeadings[index])
-            width = counterpart.columnWidths[index]
-            self.InsertColumn(index, heading, width=width)            
+            self.InsertColumn(index,
+                              str(counterpart.columnHeadings[index]),
+                              width = counterpart.columnWidths[index])
+
         self.DeleteAllItems()
         counterpart.GetListData(self)
 
@@ -192,9 +193,10 @@ class List(RectangularChild):
       Under construction
     """
     def renderOneBlock (self, parent, parentWindow):
-        list = wxListBlock(parentWindow, Block.getwxID(self), 
+        list = wxListBlock(parentWindow,
+                           Block.getwxID(self),
                            style=self.Calculate_wxStyle())
-        self.getParentBlock(parentWindow).addToContainer(parent, 
+        self.getParentBlock(parentWindow).addToContainer(parent,
                                                          list,
                                                          self.stretchFactor,
                                                          self.Calculate_wxFlag(),
@@ -202,7 +204,7 @@ class List(RectangularChild):
         return list, None, None
 
     def Calculate_wxStyle (self):
-        style = wxLC_REPORT|wxSUNKEN_BORDER|wxLC_EDIT_LABELS
+        style = wxLC_REPORT|wxLC_VIRTUAL|wxSUNKEN_BORDER|wxLC_EDIT_LABELS
         return style
 
         
@@ -299,224 +301,206 @@ class ToolbarItem(RectangularChild):
         return tool, None, None
 
 
-def TreeFactory(parent):
-    class wxTree(parent):
-        classesByName = {}
-        def __init__(self, *arguments, **keywords):
-            parent.__init__ (self, *arguments, **keywords)
-            EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
-            EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
-            EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
-            EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
-            EVT_IDLE(self, self.OnIdle)
-            EVT_SIZE(self, self.OnSize)
-            self.scheduleUpdate = False
-            self.lastUpdateTime = 0
-            self.ignoreExpand = False
+class wxTreeAndList:
+    def __init__(self, *arguments, **keywords):
+        EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
+        EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
+        EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
+        EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
+        EVT_IDLE(self, self.OnIdle)
+        EVT_SIZE(self, self.OnSize)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
 
-        def OnIdle(self, event):
-            """
-              Don't update screen more than once a second
-            """
-            if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
-                self.SynchronizeFramework()
-            event.Skip()
+    def OnIdle(self, event):
+        """
+          Don't update screen more than once a second
+        """
+        if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
+            self.SynchronizeFramework()
+        event.Skip()
+
+    def OnSize(self, event):
+        size = event.GetSize()
+        if isinstance (self, wxTreeListCtrl):
+            widthMinusLastColumn = 0
+            assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+            for column in range (self.GetColumnCount() - 1):
+                widthMinusLastColumn += self.GetColumnWidth (column)
+            lastColumnWidth = size.width - widthMinusLastColumn
+            if lastColumnWidth > 0:
+                self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+        else:
+            assert isinstance (self, wxTreeList), "We're assuming the only other choice is a wxTree"
+            self.SetSize (size)
+        event.Skip()
+
+    def OnExpanding(self, event):
+        self.LoadChildren(event.GetItem())
+
+    def LoadChildren(self, parentId):
+        """
+          Load the items in the tree only when they are visible.
+        """
+        counterpart = Globals.repository.find (self.counterpartUUID)
+
+        parentUUID = self.GetPyData (parentId)
+        for child in self.ElementChildren (Globals.repository [parentUUID]):
+            cellValues = self.ElementCellValues (child)
+            childNodeId = self.AppendItem (parentId,
+                                           cellValues.pop(0),
+                                           -1,
+                                           -1,
+                                           wxTreeItemData (child.getUUID()))
+            index = 1
+            for value in cellValues:
+                self.SetItemText (childNodeId, value, index)
+                index += 1
+            self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
+
+        counterpart.openedContainers [parentUUID] = True
+
+    def OnCollapsing(self, event):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        id = event.GetItem()
+        self.DeleteChildren (id)
+        """
+          if the data passed in has a UUID we'll keep track of the
+        state of the opened tree
+        """
+        try:
+            del counterpart.openedContainers [self.GetPyData(id)]
+        except AttributeError:
+            pass
+
+    def OnColumnDrag(self, event):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        columnIndex = event.GetColumn()
+        try:
+            counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+        except AttributeError:
+            pass
+
+    def On_wxSelectionChanged(self, event):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+
+        itemUUID = self.GetPyData(self.GetSelection())
+        selection = Globals.repository.find (itemUUID)
+        if counterpart.selection != selection:
+            counterpart.selection = selection
     
-        def OnSize(self, event):
-            size = event.GetSize()
-            if isinstance (self, wxTreeListCtrl):
-                widthMinusLastColumn = 0
-                assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-                for column in range (self.GetColumnCount() - 1):
-                    widthMinusLastColumn += self.GetColumnWidth (column)
-                lastColumnWidth = size.width - widthMinusLastColumn
-                if lastColumnWidth > 0:
-                    self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-            else:
-                assert isinstance (self, wxTreeList), "We're assuming the only other choice is a wxTree"
-                self.SetSize (size)
-            event.Skip()
-    
-        def OnExpanding(self, event):
-            if self.ignoreExpand:
+            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                              {'item':selection})
+
+    def ExpandItem(self, id):
+        # @@@ Needs to handle the difference in how wxTreeCtrls and wxTreeListCtrls
+        # expand items.
+        self.Expand (id)
+
+    def SynchronizeFramework(self):
+        def ExpandContainer (self, openedContainers, id):
+            try:
+                expand = openedContainers [self.GetPyData(id)]
+            except KeyError:
                 return
-            self.LoadChildren(event.GetItem())
 
-        def LoadChildren(self, parentId):
-            """
-              Load the items in the tree only when they are visible.
-            """
-            counterpart = Globals.repository.find (self.counterpartUUID)
+            self.ExpandItem(id)
+            child, cookie = self.GetFirstChild (id, 0)
+            while child.IsOk():
+                ExpandContainer (self, openedContainers, child)
+                child = self.GetNextSibling (child)
 
-            parentUUID = self.GetPyData (parentId)
-            for child in self.ElementChildren (Globals.repository [parentUUID]):
-                cellValues = self.ElementCellValues (child)
-                childNodeId = self.AppendItem (parentId,
-                                               cellValues.pop(0),
-                                               -1,
-                                               -1,
-                                               wxTreeItemData (child.getUUID()))
-                index = 1
-                for value in cellValues:
-                    self.SetItemText (childNodeId, value, index)
-                    index += 1
-                self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
-
-            counterpart.openedContainers [parentUUID] = True
-    
-        def OnCollapsing(self, event):
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            id = event.GetItem()
-            self.DeleteChildren (id)
-            """
-              if the data passed in has a UUID we'll keep track of the
-            state of the opened tree
-            """
-            try:
-                del counterpart.openedContainers [self.GetPyData(id)]
-            except AttributeError:
-                pass
-    
-        def OnColumnDrag(self, event):
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            columnIndex = event.GetColumn()
-            try:
-                counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
-            except AttributeError:
-                pass
-    
-        def On_wxSelectionChanged(self, event):
-            counterpart = Globals.repository.find (self.counterpartUUID)
-
-            itemUUID = self.GetPyData(self.GetSelection())
-            selection = Globals.repository.find (itemUUID)
-            if counterpart.selection != selection:
-                counterpart.selection = selection
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        mixinAClass (self, counterpart.elementDelegate)
         
-                counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
-                                  {'item':selection})
+        try:
+            counterpart.columnHeadings
+        except AttributeError:
+            pass # A wxTreeCtrl won't use columnHeadings
+        else:
+            for index in xrange(self.GetColumnCount()):
+                self.RemoveColumn (0)
+    
+            info = wxTreeListColumnInfo()
+            for index in range (len(counterpart.columnHeadings)):
+                info.SetText (counterpart.columnHeadings[index])
+                info.SetWidth (counterpart.columnWidths[index])
+                self.AddColumnInfo (info)
 
-        def ExpandItem(self, id):
-            # @@@ Needs to handle the difference in how wxTreeCtrls and wxTreeListCtrls
-            # expand items.
-            self.Expand (id)
+        self.DeleteAllItems()
 
-        def SynchronizeFramework(self):
-            def ExpandContainer (self, openedContainers, id):
-                try:
-                    expand = openedContainers [self.GetPyData(id)]
-                except KeyError:
-                    return
+        root = counterpart.rootPath
+        if not root:
+            root = self.ElementChildren (None)
+        cellValues = self.ElementCellValues (root)
+        rootNodeId = self.AddRoot (cellValues.pop(0),
+                                   -1,
+                                   -1,
+                                   wxTreeItemData (root.getUUID()))
+        self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))        
+        ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
 
-                self.ExpandItem(id)
+        selection = counterpart.selection
+        if not selection:
+            selection = root
+        self.GoToItem (selection)
+
+        try:
+            subscription = self.subscriptionUUID
+        except AttributeError:
+            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            self.subscriptionUUID = UUID()
+            """
+              Temporarily comment out event subscriptions. This cause gazillions of
+            crashes, which may be related to threads, race conditions, repository
+            interactions. We'll need some more time to track this down in detail.
+            """
+            Globals.notificationManager.Subscribe (events,
+                                                   self.subscriptionUUID,
+                                                   self.NeedsUpdate)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = time.time()
+        
+    def __del__(self):
+        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+        del Globals.association [self.counterpartUUID]
+
+    def GoToItem(self, item):
+        def ExpandTreeToItem (self, item):
+            parent = self.ElementParent (item)
+            if parent:
+                id = ExpandTreeToItem (self, parent)
+                self.Expand (id)
+                itemUUID = item.getUUID()
                 child, cookie = self.GetFirstChild (id, 0)
                 while child.IsOk():
-                    ExpandContainer (self, openedContainers, child)
+                    if self.GetPyData(child) == itemUUID:
+                        return child
                     child = self.GetNextSibling (child)
-    
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            """
-              Implement the knowlege of the item that a tree displays with a mixin
-            class specified by self.elementDelegate. We make a new class for our
-            block that is subclassed from the block's original class and the delegate
-            class with a little Python magic:
-            """
-            theClass = wxTree.classesByName.get (self.__class__.__name__)
-            if not theClass:
-                parts = counterpart.elementDelegate.split (".")
-                assert len(parts) >= 2, "Delegate % isn't a module and class" % counterpart.elementDelegate
-                delegateClassName = parts.pop ()
-                newClassName = self.__class__.__name__ + '_' + delegateClassName
-                theClass = wxTree.classesByName.get (newClassName)
-                if not theClass:
-                    module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
-                    assert module.__dict__.get (delegateClassName), "Class % doesn't exist" % counterpart.elementDelegate
-                    theClass = classobj (str(newClassName),
-                                         (self.__class__, module.__dict__[delegateClassName]),
-                                         {})
-                    wxTree.classesByName [newClassName] = theClass
-                self.__class__ = theClass
-
-            try:
-                counterpart.columnHeadings
-            except AttributeError:
-                pass # A wxTreeCtrl won't use columnHeadings
+                assert False, "Didn't find the item in the tree"
+                return None
             else:
-                columnIndexes = range(self.GetColumnCount())
-                columnIndexes.reverse()
-                for index in columnIndexes:
-                    self.RemoveColumn (index)
-        
-                info = wxTreeListColumnInfo()
-                for index in range (len(counterpart.columnHeadings)):
-                    info.SetText (counterpart.columnHeadings[index])
-                    info.SetWidth (counterpart.columnWidths[index])
-                    self.AddColumnInfo (info)
+                return self.GetRootItem()
 
-            self.DeleteAllItems()
+        id = ExpandTreeToItem (self, item)
+        self.SelectItem (id)
+        self.ScrollTo (id)
 
-            root = counterpart.rootPath
-            if not root:
-                root = self.ElementChildren (None)
-            cellValues = self.ElementCellValues (root)
-            rootNodeId = self.AddRoot (cellValues.pop(0),
-                                       -1,
-                                       -1,
-                                       wxTreeItemData (root.getUUID()))
-            self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))        
-            ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
+ 
+class wxTree(wxTreeCtrl, wxTreeAndList):
+    def __init__(self, *arguments, **keywords):
+        wxTreeCtrl.__init__ (self, *arguments, **keywords)
+        wxTreeAndList.__init__ (self, *arguments, **keywords)
+    
 
-            selection = counterpart.selection
-            if not selection:
-                selection = root
-            self.GoToItem (selection)
-
-            try:
-                subscription = self.subscriptionUUID
-            except AttributeError:
-                events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
-                          Globals.repository.find('//parcels/OSAF/framework/item_added'),
-                          Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
-                counterpart = Globals.repository.find (self.counterpartUUID)
-                self.subscriptionUUID = UUID()
-                """
-                  Temporarily comment out event subscriptions. This cause gazillions of
-                crashes, which may be related to threads, race conditions, repository
-                interactions. We'll need some more time to track this down in detail.
-                """
-                Globals.notificationManager.Subscribe (events,
-                                                       self.subscriptionUUID,
-                                                       self.NeedsUpdate)
-            self.scheduleUpdate = False
-            self.lastUpdateTime = time.time()
-            
-        def __del__(self):
-            Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-            del Globals.association [self.counterpartUUID]
-
-        def GoToItem(self, item):
-            def ExpandTreeToItem (self, item):
-                parent = self.ElementParent (item)
-                if parent:
-                    id = ExpandTreeToItem (self, parent)
-                    self.Expand (id)
-                    itemUUID = item.getUUID()
-                    child, cookie = self.GetFirstChild (id, 0)
-                    while child.IsOk():
-                        if self.GetPyData(child) == itemUUID:
-                            return child
-                        child = self.GetNextSibling (child)
-                    assert False, "Didn't find the item in the tree"
-                    return None
-                else:
-                    return self.GetRootItem()
-
-            id = ExpandTreeToItem (self, item)
-            self.SelectItem (id)
-            self.ScrollTo (id)
-
-    return wxTree
-
+class wxTreeList(wxTreeListCtrl, wxTreeAndList):
+    def __init__(self, *arguments, **keywords):
+        wxTreeListCtrl.__init__ (self, *arguments, **keywords)
+        wxTreeAndList.__init__ (self, *arguments, **keywords)
+    
 
 class Tree(RectangularChild):
     def __init__(self, *arguments, **keywords):
@@ -532,10 +516,9 @@ class Tree(RectangularChild):
             try:
                 self.columnHeadings
             except AttributeError:
-                type = wxTreeCtrl
+                tree = wxTree (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
             else:
-                type = wxTreeListCtrl
-            tree = TreeFactory(type)(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
+                tree = wxTreeList (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
         self.getParentBlock(parentWindow).addToContainer(parent,
                                                          tree,
                                                          self.stretchFactor,
