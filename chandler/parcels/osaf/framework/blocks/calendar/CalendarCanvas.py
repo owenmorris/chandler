@@ -164,7 +164,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     # Get items from the collection
 
     def getDayItemsByDate(self, date):
-        items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
             try:
@@ -179,8 +178,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 (allDay or anyTime) and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
-                items.append(item)
-        return items
+                yield item
 
     def getItemsByDate(self, date):
         """
@@ -192,8 +190,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @return: the items in this collection that appear on the given date
         @rtype: list of Items
         """
-        # make this a generator?
-        items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
             try:
@@ -209,8 +205,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 (not allDay and not anyTime) and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
-                items.append(item)
-        return items
+                yield item
 
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
@@ -220,6 +215,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
 
+        self.majorLinePen = wx.Pen(wx.Colour(204, 204, 204))
+        self.minorLinePen = wx.Pen(wx.Colour(229, 229, 229))
+        self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
+        self.selectionPen = wx.Pen(wx.Colour(102, 102, 102)) # or 153?
+        self.legendColor = wx.Colour(153, 153, 153)
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
     def OnInit(self):
@@ -465,7 +465,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
-        dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+        dc.SetPen(self.majorLinePen)
 
         # Draw lines between days
         for day in range(self.parent.columns):
@@ -549,12 +549,12 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.DrawDay(dc, currentDate, rect)
 
         # Draw a line across the bottom of the header
-        dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+        dc.SetPen(self.majorLinePen)
         dc.DrawLine(0, self.size.height - 1,
                     self.size.width, self.size.height - 1)
         dc.DrawLine(0, self.size.height - 4,
                     self.size.width, self.size.height - 4)
-        dc.SetPen(wx.Pen(wx.Colour(229, 229, 229)))
+        dc.SetPen(self.minorLinePen)
         dc.DrawLine(0, self.size.height - 2,
                     self.size.width, self.size.height - 2)
         dc.DrawLine(0, self.size.height - 3,
@@ -581,11 +581,13 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             if self._currentDragBox and self._currentDragBox.item == item:
                 self._currentDragBox = canvasItem
 
+            # draw selection rectangle, if any
             if (self.parent.blockItem.selection is item):
-                dc.SetBrush(wx.Brush(wx.Colour(217, 217, 217)))
-                dc.SetPen(wx.Pen(wx.Colour(102, 102, 102)))
+                dc.SetBrush(self.selectionBrush)
+                dc.SetPen(self.selectionPen)
                 dc.DrawRectangleRect(itemRect)
 
+            # draw little rectangle to the left of the item
             if (item.transparency == "confirmed"):
                 pen = wx.Pen(wx.BLACK, 3)
             elif (item.transparency == "fyi"):
@@ -721,7 +723,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
 
         # Set text properties for legend
-        dc.SetTextForeground(wx.Colour(153, 153, 153))
+        dc.SetTextForeground(self.legendColor)
         dc.SetFont(self.bigBoldFont)
 
         # Use topTime to draw am/pm on the topmost hour
@@ -754,14 +756,14 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                              hour * self.hourHeight - (hText/2))
             
             # Draw the line between hours
-            dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+            dc.SetPen(self.majorLinePen)
             dc.DrawLine(self.xOffset,
                          hour * self.hourHeight,
                         self.size.width,
                          hour * self.hourHeight)
 
             # Draw the line between half hours
-            dc.SetPen(wx.Pen(wx.Colour(229, 229, 229)))
+            dc.SetPen(self.minorLinePen)
             dc.DrawLine(self.xOffset,
                          hour * self.hourHeight + (self.hourHeight/2),
                         self.size.width,
@@ -770,9 +772,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # Draw lines between days
         for day in range(self.parent.columns):
             if day == 0:
-                dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+                dc.SetPen(self.majorLinePen)
             else:
-                dc.SetPen(wx.Pen(wx.Colour(229, 229, 229)))
+                dc.SetPen(self.minorLinePen)
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
 
@@ -823,7 +825,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             
         # now draw the current item on top of everything else
         if selectedBox:
-            dc.SetBrush(wx.Brush(wx.Colour(229, 229, 229)))
+            dc.SetBrush(self.selectionBrush)
             self.DrawCanvasItem(selectedBox, dc)
             
     def DrawCanvasItem(self, canvasItem, dc):
@@ -834,7 +836,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # Draw one event
         headline = time.Format('%I:%M %p ') + item.displayName
 
-        dc.SetPen(wx.Pen(wx.Colour(153, 153, 153)))
+        dc.SetPen(self.selectionPen)
         dc.DrawRoundedRectangleRect(itemRect, radius=10)
 
         if (item.transparency == "confirmed"):
@@ -1169,7 +1171,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
         
         # Set up pen for drawing the grid
-        dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+        dc.SetPen(self.majorLinePen)
 
         # Draw the lines between the days
         for i in range(1, 7):
