@@ -1,7 +1,13 @@
-<Parcel itemName="base:PimSchema"
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- Parcel manifest for Pim Schema -->
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="PimSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
-        xmlns:base="//Parcels/OSAF"
         xmlns:pim="//Parcels/OSAF/PimSchema">
 
   <displayName>Pim Schema</displayName>
@@ -10,7 +16,7 @@
   <author>Open Source Applications Foundation</author>
 
 <!-- Information Item -->
-  <Attribute itemName="pim:projects">
+  <Attribute itemName="projects">
     <displayName>projects</displayName>
     <description>What project does this item belong to?</description>
     <cardinality>set</cardinality>
@@ -18,7 +24,7 @@
     <inverseAttribute itemref="pim:items"/>
   </Attribute>
 
-  <Attribute itemName="pim:folders">
+  <Attribute itemName="folders">
     <displayName>folders</displayName>
     <description>What folders is this item filed in?</description>
     <cardinality>set</cardinality>
@@ -26,14 +32,14 @@
     <inverseAttribute itemref="pim:items"/>
   </Attribute>
   
-  <Attribute itemName="pim:name">
+  <Attribute itemName="name">
     <displayName>name</displayName>
     <description>names of objects</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="pim:InformationItem">
+  <Kind itemName="InformationItem">
     <displayName>Information Item</displayName>
     <examples>an Calendar Event -- 'Lunch with Tug'</examples>
     <examples>a Contact -- 'Terry Smith'</examples>
@@ -46,7 +52,7 @@
       Everything is a type of Item.
     </description>
     <issues>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issues>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <abstract/>
     <attributes itemref="pim:projects"/>
     <attributes itemref="pim:folders"/>
@@ -54,7 +60,7 @@
 
 
 <!-- Project -->
-  <Attribute itemName="pim:parentProject">
+  <Attribute itemName="parentProject">
     <displayName>parent project</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>single</cardinality>
@@ -62,7 +68,7 @@
     <inverseAttribute itemref="pim:subProjects"/>
   </Attribute>
 
-  <Attribute itemName="pim:subProjects">
+  <Attribute itemName="subProjects">
     <displayName>sub projects</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>set</cardinality>
@@ -70,7 +76,7 @@
     <inverseAttribute itemref="pim:parentProject"/>
   </Attribute>
 
-  <Attribute itemName="pim:items">
+  <Attribute itemName="items">
     <displayName>items</displayName>
     <description>items can be organized into projects</description>
     <cardinality>set</cardinality>
@@ -78,32 +84,32 @@
     <inverseAttribute itemref="pim:projects"/>
   </Attribute>
 
-  <Kind itemName="pim:Project">
+  <Kind itemName="Project">
     <displayName>Project</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="pim:name"/>
-    <attributes itemref="core:description"/>
+    <attributes itemref="description"/>
     <attributes itemref="pim:parentProject"/>
     <attributes itemref="pim:subProjects"/>
     <attributes itemref="pim:items"/>
   </Kind>
 
 <!-- Folder -->
-  <Attribute itemName="pim:items">
+  <Attribute itemName="items">
     <displayName>items</displayName>
     <description>What's in the folder?</description>
     <cardinality>list</cardinality>
-    <type itemref="core:Item"/>
+    <type itemref="Item"/>
   </Attribute>
 
-  <Attribute itemName="pim:type">
+  <Attribute itemName="type">
     <displayName>type</displayName>
     <description>What types of items should the folder be expected to hold?</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Taxon"/>
+    <type itemref="Taxon"/>
   </Attribute>
 
-  <Kind itemName="pim:Folder">
+  <Kind itemName="Folder">
     <displayName>Folder</displayName>
     <examples>Inbox</examples>
     <examples>Sent</examples>
@@ -119,9 +125,9 @@
     <description>
       A Folder represents a folder of e-mail messages (a mailbox) or a folder of any other type of Item.
     </description>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="pim:name"/>
-    <attributes itemref="core:description"/>
+    <attributes itemref="description"/>
     <attributes itemref="pim:items"/>
     <attributes itemref="pim:type"/>
   </Kind>

@@ -1,50 +1,55 @@
-<Parcel itemName="pim:DocumentSchema"
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="DocumentSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
-        xmlns:pim="//Parcels/OSAF/PimSchema"
 	xmlns:doc="//Parcels/OSAF/PimSchema/DocumentSchema">
 
   <displayName>Document Schema</displayName>
   <description>Document block schema for the 0.2 release</description>
   <version>0.1</version>
 
-  <Attribute itemName="doc:blocktype">
+  <Attribute itemName="blocktype">
     <displayName>Block Type</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="doc:contentspec">
+  <Attribute itemName="contentspec">
     <displayName>Content Specification</displayName>
     <cardinality>dict</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="doc:style">
+  <Attribute itemName="style">
     <displayName>Style</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:Dictionary"/>s
+    <type itemref="Dictionary"/>s
   </Attribute>
 
-  <Attribute itemName="doc:notifications">
+  <Attribute itemName="notifications">
     <displayName>Notifications</displayName>
     <cardinality>dict</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="doc:isOpen">
+  <Attribute itemName="isOpen">
     <displayName>Is Open?</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:Boolean"/>
+    <type itemref="Boolean"/>
   </Attribute>
   
-  <Attribute itemName="doc:positionInParent">
+  <Attribute itemName="positionInParent">
     <displayName>Position in Parent</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:Integer"/>
+    <type itemref="Integer"/>
   </Attribute>
 
-  <Kind itemName="doc:Block">
+  <Kind itemName="Block">
     <displayName>Block</displayName>
     <attributes itemref="doc:blocktype"/>
     <attributes itemref="doc:contentspec"/>
@@ -56,14 +61,14 @@
     <classes key="python">OSAF.document.model.Block.Block</classes>
   </Kind>
   
-  <Kind itemName="doc:Container">
+  <Kind itemName="Container">
     <displayName>Container</displayName>
     
     <classes key="python">OSAF.document.model.Container.Container</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
   
-  <Kind itemName="doc:Document">
+  <Kind itemName="Document">
     <displayName>Document</displayName>
     <attributes itemref="doc:blocktype"/>
     <attributes itemref="doc:contentspec"/>
@@ -74,7 +79,7 @@
     <superKinds itemref="doc:Container" />
   </Kind>
 
-  <Kind itemName="doc:BoxContainer">
+  <Kind itemName="BoxContainer">
     <displayName>Box Container</displayName>
     <attributes itemref="doc:blocktype"/>
     <attributes itemref="doc:contentspec"/>
@@ -86,91 +91,91 @@
     <superKinds itemref="doc:Container" />
   </Kind>
 
-  <Kind itemName="doc:Button">
+  <Kind itemName="Button">
     <displayName>Button</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.Button</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
   
-  <Kind itemName="doc:List">
+  <Kind itemName="List">
     <displayName>List</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.List</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:Text">
+  <Kind itemName="Text">
     <displayName>Text</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.Text</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
   
-  <Kind itemName="doc:HtmlWindow">
+  <Kind itemName="HtmlWindow">
     <displayName>HtmlWindow</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.HtmlWindow</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:Label">
+  <Kind itemName="Label">
     <displayName>Label</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.Label</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:ScrolledWindow">
+  <Kind itemName="ScrolledWindow">
     <displayName>ScrolledWindow</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.ScrolledWindow</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:SplitterWindow">
+  <Kind itemName="SplitterWindow">
     <displayName>SplitterWindow</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.SplitterWindow</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:ToggleButton">
+  <Kind itemName="ToggleButton">
     <displayName>ToggleButton</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.ToggleButton</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:Choice">
+  <Kind itemName="Choice">
     <displayName>Choice</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.Choice</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:Tree">
+  <Kind itemName="Tree">
     <displayName>Tree</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.Tree</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:TreeList">
+  <Kind itemName="TreeList">
     <displayName>TreeList</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.TreeList</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
       
-  <Kind itemName="doc:RadioBox">
+  <Kind itemName="RadioBox">
     <displayName>RadioBox</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.RadioBox</classes>
     <superKinds itemref="doc:Block" />
   </Kind>
 
-  <Kind itemName="doc:RadioButton">
+  <Kind itemName="RadioButton">
     <displayName>RadioButton</displayName>
     
     <classes key="python">OSAF.document.model.SimpleControls.RadioButton</classes>

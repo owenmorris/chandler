@@ -1,6 +1,12 @@
-<Parcel itemName="pim:EmailSchema"
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="EmailSchema"
         xmlns="//Schema/Core"
-	xmlns:core="//Schema/Core"
 	xmlns:pim="//Parcels/OSAF/PimSchema"
 	xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema"
 	xmlns:email="//Parcels/OSAF/PimSchema/EmailSchema">
@@ -10,225 +16,225 @@
   <description>...add description here...</description>
 
 <!-- Attachment -->
-  <Attribute itemName="email:name">
+  <Attribute itemName="name">
     <displayName>name</displayName>
     <description>the file name that the user sees</description>
     <cardinality>single</cardinality>
     <required/>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:item">
+  <Attribute itemName="item">
     <displayName>item</displayName>
     <description>the item that has this attachment</description>
     <cardinality>single</cardinality>
     <required/>
-    <type itemref="core:Item"/>
+    <type itemref="Item"/>
   </Attribute>
 
-  <Attribute itemName="email:file">
+  <Attribute itemName="file">
     <displayName>file</displayName>
     <description>the location of the attachment in the repository's reserved filesystem space</description>
     <cardinality>single</cardinality>
     <required/>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="email:Attachment">
+  <Kind itemName="Attachment">
     <displayName>Attachment</displayName>
     <examples>'Budget.doc'</examples>
     <description>
       An Attachment represents an e-mail attachment.
     </description>
     <issues>see http://lists.osafoundation.org/pipermail/design/2003-April/002400.html</issues>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="email:name"/>
     <attributes itemref="email:item"/>
     <attributes itemref="email:file"/>
   </Kind>
 
 <!-- Email Account -->
-  <Kind itemName="email:EmailAccount">
+  <Kind itemName="EmailAccount">
     <displayName>Email Account</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Email Message -->
-  <Attribute itemName="email:subject">
+  <Attribute itemName="subject">
     <displayName>subject</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:sent_to">
+  <Attribute itemName="sentTo">
     <displayName>sent to</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="email:EmailAddress"/>
   </Attribute>
 
-  <Attribute itemName="email:to_address">
+  <Attribute itemName="toAddress">
     <displayName>to address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="email:EmailAddress"/>
-    <superAttribute itemref="email:sent_to"/>
+    <superAttribute itemref="email:sentTo"/>
   </Attribute>
 
-  <Attribute itemName="email:cc_address">
+  <Attribute itemName="ccAddress">
     <displayName>cc address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="email:EmailAddress"/>
-    <superAttribute itemref="email:sent_to"/>
+    <superAttribute itemref="email:sentTo"/>
   </Attribute>
 
-  <Attribute itemName="email:bcc_address">
+  <Attribute itemName="bccAddress">
     <displayName>bcc address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="email:EmailAddress"/>
-    <superAttribute itemref="email:sent_to"/>
+    <superAttribute itemref="email:sentTo"/>
   </Attribute>
 
-  <Attribute itemName="email:reply_address">
+  <Attribute itemName="replyAddress">
     <displayName>reply address</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="email:EmailAddress"/>
   </Attribute>
 
-  <Attribute itemName="email:date_sent">
+  <Attribute itemName="dateSent">
     <displayName>date sent</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="email:date_received">
+  <Attribute itemName="dateReceived">
     <displayName>date received</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="email:delivery_receipt_requested">
+  <Attribute itemName="deliveryReceiptRequested">
     <displayName>delivery receipt requested</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Boolean"/>
+    <type itemref="Boolean"/>
   </Attribute>
 
-  <Attribute itemName="email:read_receipt_requested">
+  <Attribute itemName="readReceiptRequested">
     <displayName>read receipt requested</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Boolean"/>
+    <type itemref="Boolean"/>
   </Attribute>
 
-  <Attribute itemName="email:message_header">
+  <Attribute itemName="messageHeader">
     <displayName>message header</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:message_body">
+  <Attribute itemName="messageBody">
     <displayName>message body</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:related_messages">
+  <Attribute itemName="relatedMessages">
     <displayName>related messages</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
     <type itemref="email:EmailMessage"/>
   </Attribute>
 
-  <Attribute itemName="email:forwarded_in">
+  <Attribute itemName="forwardedIn">
     <displayName>forwarded in</displayName>
     <description>a list of other Email Messages that contain forwarded copies of this message</description>
     <cardinality>set</cardinality>
     <type itemref="email:EmailMessage"/>
-    <superAttribute itemref="email:related_messages"/>
+    <superAttribute itemref="email:relatedMessages"/>
   </Attribute>
 
-  <Attribute itemName="email:replied_to_in">
+  <Attribute itemName="repliedToIn">
     <displayName>replied to in</displayName>
     <description>a list of other Email Messages that are replies to this message</description>
     <cardinality>set</cardinality>
     <type itemref="email:EmailMessage"/>
-    <superAttribute itemref="email:related_messages"/>
+    <superAttribute itemref="email:relatedMessages"/>
   </Attribute>
 
-  <Attribute itemName="email:in_reply_to">
+  <Attribute itemName="inReplyTo">
     <displayName>in reply to</displayName>
     <description>the Email Message that this message is a reply to</description>
     <cardinality>single</cardinality>
     <type itemref="email:EmailMessage"/>
-    <superAttribute itemref="email:related_messages"/>
+    <superAttribute itemref="email:relatedMessages"/>
   </Attribute>
 
-  <Attribute itemName="email:attachments">
+  <Attribute itemName="attachments">
     <displayName>attachments</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="email:Attachment"/>
   </Attribute>
 
-  <Attribute itemName="email:language_encoding">
+  <Attribute itemName="languageEncoding">
     <displayName>language encoding</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:has_been_read">
+  <Attribute itemName="hasBeenRead">
     <displayName>has been read</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Boolean"/>
+    <type itemref="Boolean"/>
   </Attribute>
 
-  <Attribute itemName="email:status">
+  <Attribute itemName="status">
     <displayName>status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Status"/>
   </Attribute>
 
-  <Attribute itemName="email:priority">
+  <Attribute itemName="priority">
     <displayName>priority</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:PriorityLevel"/>
   </Attribute>
 
-  <Attribute itemName="email:download_account">
+  <Attribute itemName="downloadAccount">
     <displayName>download account</displayName>
     <description>used when sending the reply, to make the reply be 'from' the right account</description>
     <cardinality>single</cardinality>
     <type itemref="email:EmailAccount"/>
   </Attribute>
 
-  <Attribute itemName="email:persona_used">
+  <Attribute itemName="personaUsed">
     <displayName>persona used</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="email:server_status">
+  <Attribute itemName="serverStatus">
     <displayName>server status</displayName>
     <description>used for POP email somehow?</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="email:EmailMessage">
+  <Kind itemName="EmailMessage">
     <displayName>Email Message</displayName>
     <examples>'Repair your credit rating today!'</examples>
     <description>
@@ -239,82 +245,82 @@
     <issues>We might also want to add a few derived attributes, like 'message size' or 'has been forwarded'.</issues>
     <superKinds itemref="pim:InformationItem"/>
     <attributes itemref="email:subject"/>
-    <attributes itemref="email:sent_to"/>
-    <attributes itemref="email:to_address"/>
-    <attributes itemref="email:cc_address"/>
-    <attributes itemref="email:bcc_address"/>
-    <attributes itemref="email:reply_address"/>
-    <attributes itemref="email:date_sent"/>
-    <attributes itemref="email:date_received"/>
-    <attributes itemref="email:delivery_receipt_requested"/>
-    <attributes itemref="email:read_receipt_requested"/>
-    <attributes itemref="email:message_header"/>
-    <attributes itemref="email:message_body"/>
-    <attributes itemref="email:related_messages"/>
-    <attributes itemref="email:forwarded_in"/>
-    <attributes itemref="email:replied_to_in"/>
-    <attributes itemref="email:in_reply_to"/>
+    <attributes itemref="email:sentTo"/>
+    <attributes itemref="email:toAddress"/>
+    <attributes itemref="email:ccAddress"/>
+    <attributes itemref="email:bccAddress"/>
+    <attributes itemref="email:replyAddress"/>
+    <attributes itemref="email:dateSent"/>
+    <attributes itemref="email:dateReceived"/>
+    <attributes itemref="email:deliveryReceiptRequested"/>
+    <attributes itemref="email:readReceiptRequested"/>
+    <attributes itemref="email:messageHeader"/>
+    <attributes itemref="email:messageBody"/>
+    <attributes itemref="email:relatedMessages"/>
+    <attributes itemref="email:forwardedIn"/>
+    <attributes itemref="email:repliedToIn"/>
+    <attributes itemref="email:inReplyTo"/>
     <attributes itemref="email:attachments"/>
-    <attributes itemref="email:language_encoding"/>
-    <attributes itemref="email:has_been_read"/>
+    <attributes itemref="email:languageEncoding"/>
+    <attributes itemref="email:hasBeenRead"/>
     <attributes itemref="email:status"/>
     <attributes itemref="email:priority"/>
-    <attributes itemref="email:download_account"/>
-    <attributes itemref="email:persona_used"/>
-    <attributes itemref="email:server_status"/>
+    <attributes itemref="email:downloadAccount"/>
+    <attributes itemref="email:personaUsed"/>
+    <attributes itemref="email:serverStatus"/>
   </Kind>
 
 <!-- Phone Number -->
-  <Kind itemName="email:PhoneNumber">
+  <Kind itemName="PhoneNumber">
     <displayName>Phone Number</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Read Receipt -->
-  <Kind itemName="email:ReadReceipt">
+  <Kind itemName="ReadReceipt">
     <displayName>Read Receipt</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Response -->
-  <Kind itemName="email:Response">
+  <Kind itemName="Response">
     <displayName>Response</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Signature -->
-  <Kind itemName="email:Signature">
+  <Kind itemName="Signature">
     <displayName>Signature</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Style Sheet -->
-  <Kind itemName="email:StyleSheet">
+  <Kind itemName="StyleSheet">
     <displayName>Style Sheet</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Template -->
-  <Kind itemName="email:Template">
+  <Kind itemName="Template">
     <displayName>Template</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Message Thread -->
-  <Kind itemName="email:MessageThread">
+  <Kind itemName="MessageThread">
     <displayName>Message Thread</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Vacation Message -->
-  <Kind itemName="email:VacationMessage">
+  <Kind itemName="VacationMessage">
     <displayName>Vacation Message</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
-  <Kind itemName="email:EmailAddress">
+  <Kind itemName="EmailAddress">
     <displayName>Email Address</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 </Parcel>

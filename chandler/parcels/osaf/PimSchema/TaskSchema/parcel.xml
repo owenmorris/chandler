@@ -1,6 +1,12 @@
-<Parcel itemName="pim:TaskSchema"
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="TaskSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
         xmlns:pim="//Parcels/OSAF/PimSchema"
         xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema"
         xmlns:calendar="//Parcels/OSAF/PimSchema/CalendarSchema"
@@ -11,133 +17,133 @@
   <description>...add comment here...</description>
 
 <!-- Task -->
-  <Attribute itemName="task:name">
+  <Attribute itemName="name">
     <displayName>name</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:notes">
+  <Attribute itemName="notes">
     <displayName>notes</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:timeFrame">
+  <Attribute itemName="timeFrame">
     <displayName>time frame</displayName>
     <description>'short term' or 'long term'</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Boolean"/>
+    <type itemref="Boolean"/>
   </Attribute>
 
-  <Attribute itemName="task:reminders">
+  <Attribute itemName="reminders">
     <displayName>reminder</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
     <type itemref="calendar:Reminder"/>
   </Attribute>
 
-  <Attribute itemName="task:superTask">
+  <Attribute itemName="superTask">
     <displayName>super-task</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Task"/>
   </Attribute>
 
-  <Attribute itemName="task:subTasks">
+  <Attribute itemName="subTasks">
     <displayName>sub-tasks</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="task:Task"/>
   </Attribute>
 
-  <Attribute itemName="task:requiredResources">
+  <Attribute itemName="requiredResources">
     <displayName>required resources</displayName>
     <description>examples: 'hammer', 'ladder', 'flashlight'</description>
     <cardinality>list</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:dependencies">
+  <Attribute itemName="dependencies">
     <displayName>dependencies</displayName>
     <description>tasks that are preconditions for this task</description>
     <cardinality>set</cardinality>
     <type itemref="task:Task"/>
   </Attribute>
 
-  <Attribute itemName="task:dependentTasks">
+  <Attribute itemName="dependentTasks">
     <displayName>dependent tasks</displayName>
     <description>tasks that this task is a precondition for</description>
     <cardinality>set</cardinality>
     <type itemref="task:Task"/>
   </Attribute>
 
-  <Attribute itemName="task:priority">
+  <Attribute itemName="priority">
     <displayName>priority</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:PriorityLevel"/>
   </Attribute>
 
-  <Attribute itemName="task:status">
+  <Attribute itemName="status">
     <displayName>status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Status"/>
   </Attribute>
 
-  <Attribute itemName="task:workLocation">
+  <Attribute itemName="workLocation">
     <displayName>work location</displayName>
     <description>examples: 'work' or 'home'</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:dueDate">
+  <Attribute itemName="dueDate">
     <displayName>due date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="task:planToDoOnDate">
+  <Attribute itemName="planToDoOnDate">
     <displayName>plan to do on date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="task:tentativeStartDate">
+  <Attribute itemName="tentativeStartDate">
     <displayName>tentative start date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="task:timeEstimate">
+  <Attribute itemName="timeEstimate">
     <displayName>time estimate</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:TimeEstimate"/>
   </Attribute>
 
-  <Attribute itemName="task:taskType">
+  <Attribute itemName="taskType">
     <displayName>task type</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:TaskType"/>
   </Attribute>
 
-  <Attribute itemName="task:delegation">
+  <Attribute itemName="delegation">
     <displayName>delegation</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Delegation"/>
   </Attribute>
 
-  <Kind itemName="task:Task">
+  <Kind itemName="Task">
     <displayName>Task</displayName>
     <issues>possible alternate names: 'Action Item' or 'To Do Item'</issues>
     <issues>see also: TaskDataModelIssues</issues>
@@ -163,52 +169,52 @@
   </Kind>
 
 <!-- Task List -->
-  <Kind itemName="task:TaskList">
+  <Kind itemName="TaskList">
     <displayName>Task List</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 <!-- Time Estimate -->
-  <Attribute itemName="task:estimatedTime">
+  <Attribute itemName="estimatedTime">
     <displayName>estimated time</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTimeDelta"/>
+    <type itemref="DateTimeDelta"/>
   </Attribute>
 
-  <Attribute itemName="task:estimatedBy">
+  <Attribute itemName="estimatedBy">
     <displayName>estimated by</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
   </Attribute>
 
-  <Attribute itemName="task:confidence">
+  <Attribute itemName="confidence">
     <displayName>confidence</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:percentComplete">
+  <Attribute itemName="percentComplete">
     <displayName>percent complete</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Integer"/>
+    <type itemref="Integer"/>
   </Attribute>
 
-  <Attribute itemName="task:actualTime">
+  <Attribute itemName="actualTime">
     <displayName>actual time</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTimeDelta"/>
+    <type itemref="DateTimeDelta"/>
   </Attribute>
 
-  <Kind itemName="task:TimeEstimate">
+  <Kind itemName="TimeEstimate">
     <displayName>Time Estimate</displayName>
     <examples>'2 days'</examples>
     <examples>'1 hour'</examples>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="task:estimatedTime"/>
     <attributes itemref="task:estimatedBy"/>
     <attributes itemref="task:confidence"/>
@@ -217,107 +223,107 @@
   </Kind>
 
 <!-- Delegation -->
-  <Attribute itemName="task:assignedBy">
+  <Attribute itemName="assignedBy">
     <displayName>assigned by</displayName>
     <description>@@@ -- should be Person or Agent</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
   </Attribute>
 
-  <Attribute itemName="task:assignedTo">
+  <Attribute itemName="assignedTo">
     <displayName>assigned to</displayName>
     <description>@@@ -- should be Person or Group</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
   </Attribute>
 
-  <Attribute itemName="task:furtherDelegation">
+  <Attribute itemName="furtherDelegation">
     <displayName>further delegation</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Delegation"/>
   </Attribute>
 
-  <Kind itemName="task:Delegation">
+  <Kind itemName="Delegation">
     <displayName>Delegation</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="task:assignedBy"/>
     <attributes itemref="task:assignedTo"/>
     <attributes itemref="task:furtherDelegation"/>
   </Kind>
 
 <!-- Status -->
-  <Attribute itemName="task:name">
+  <Attribute itemName="name">
     <displayName>name</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:subStatus">
+  <Attribute itemName="subStatus">
     <displayName>sub-status</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
     <type itemref="task:Status"/>
   </Attribute>
 
-  <Attribute itemName="task:superStatus">
+  <Attribute itemName="superStatus">
     <displayName>super-status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:Status"/>
   </Attribute>
 
-  <Kind itemName="task:Status">
+  <Kind itemName="Status">
     <displayName>Status</displayName>
     <examples>'Open'</examples>
     <examples>'Closed'</examples>
     <examples>'Completed'</examples>
     <examples>'Underway'</examples>
     <examples>'Waiting on...'</examples>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:subStatus"/>
     <attributes itemref="task:superStatus"/>
   </Kind>
 
 <!-- Task Type -->
-  <Attribute itemName="task:name">
+  <Attribute itemName="name">
     <displayName>name</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="task:subTypes">
+  <Attribute itemName="subTypes">
     <displayName>sub-types</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
     <type itemref="task:TaskType"/>
   </Attribute>
 
-  <Attribute itemName="task:superType">
+  <Attribute itemName="superType">
     <displayName>super-type</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="task:TaskType"/>
   </Attribute>
 
-  <Kind itemName="task:TaskType">
+  <Kind itemName="TaskType">
     <displayName>Task Type</displayName>
     <examples>'Phone call'</examples>
     <examples>'Errand'</examples>
     <examples>'Send e-mail'</examples>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:subTypes"/>
     <attributes itemref="task:superType"/>
   </Kind>
 
 <!-- Priority Level -->
-  <Kind itemName="task:PriorityLevel">
+  <Kind itemName="PriorityLevel">
     <displayName>Priority Level</displayName>
-    <superKinds itemref="core:Item"/>
+    <superKinds itemref="Item"/>
   </Kind>
 
 </Parcel>

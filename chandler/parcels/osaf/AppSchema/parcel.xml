@@ -1,8 +1,12 @@
-<Parcel itemName="base:AppSchema"
-        xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
-        xmlns:base="//Parcels/OSAF"
-        xmlns:app="//Parcels/OSAF/AppSchema">
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="AppSchema"
+        xmlns="//Schema/Core">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>

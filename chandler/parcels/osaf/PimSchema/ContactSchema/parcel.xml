@@ -1,7 +1,12 @@
-<Parcel itemName="pim:ContactSchema"
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="ContactSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
-        xmlns:pim="//Parcels/OSAF/PimSchema"
         xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
 
   <displayName>Contact Schema</displayName>
@@ -11,43 +16,43 @@
 
   <!-- Attributes used in ContactName -->
 
-  <Attribute itemName="contact:fullname">
+  <Attribute itemName="fullname">
     <displayName>Full Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:sortname">
+  <Attribute itemName="sortname">
     <displayName>Sort Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:firstname">
+  <Attribute itemName="firstname">
     <displayName>First Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:middlename">
+  <Attribute itemName="middlename">
     <displayName>Middle Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:lastname">
+  <Attribute itemName="lastname">
     <displayName>Last Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:nickname">
+  <Attribute itemName="nickname">
     <displayName>Nickname</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:nameEntity">
+  <Attribute itemName="nameEntity">
     <displayName>Name Entity</displayName>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
@@ -56,7 +61,7 @@
 
   <!-- ContactName Item Definition -->
 
-  <Kind itemName="contact:ContactName">
+  <Kind itemName="ContactName">
     <displayName>Contact Name</displayName>
     <attributes itemref="contact:fullname"/>
     <attributes itemref="contact:sortname"/>
@@ -69,31 +74,31 @@
 
   <!-- Attributes used in ContactMethod -->
 
-  <Attribute itemName="contact:methodType">
+  <Attribute itemName="methodType">
     <displayName>Method Type</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:methodDescription">
+  <Attribute itemName="methodDescription">
     <displayName>Method Description</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:methodComment">
+  <Attribute itemName="methodComment">
     <displayName>Method Type</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:methodValue">
+  <Attribute itemName="methodValue">
     <displayName>Method Value</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:methodEntity">
+  <Attribute itemName="methodEntity">
     <displayName>Method Entity</displayName>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
@@ -102,7 +107,7 @@
 
   <!-- ContactMethod Item Definition -->
 
-  <Kind itemName="contact:ContactMethod">
+  <Kind itemName="ContactMethod">
     <displayName>Contact Method</displayName>
     <attributes itemref="contact:methodType"/>
     <attributes itemref="contact:methodDescription"/>
@@ -113,15 +118,15 @@
 
   <!-- Attributes used in PhoneContactMethod -->
 
-  <Attribute itemName="contact:phonenumber">
+  <Attribute itemName="phonenumber">
     <displayName>Phone Number</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <!-- PhoneContactMethod Item Definition -->
 
-  <Kind itemName="contact:PhoneContactMethod">
+  <Kind itemName="PhoneContactMethod">
     <displayName>Phone Contact Method</displayName>
     <attributes itemref="contact:phonenumber"/>
     <superKinds itemref="contact:ContactMethod"/>
@@ -129,15 +134,15 @@
 
   <!-- Attributes used in EmailContactMethod -->
 
-  <Attribute itemName="contact:emailaddress">
+  <Attribute itemName="emailaddress">
     <displayName>Email Address</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <!-- EmailContactMethod Item Definition -->
 
-  <Kind itemName="contact:EmailContactMethod">
+  <Kind itemName="EmailContactMethod">
     <displayName>Email Contact Method</displayName>
     <attributes itemref="contact:emailaddress"/>
     <superKinds itemref="contact:ContactMethod"/>
@@ -145,14 +150,14 @@
 
   <!-- Attributes used in JabberContactMethod -->
 
-  <Attribute itemName="contact:jabberAddress">
+  <Attribute itemName="jabberAddress">
     <displayName>Jabber ID</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <!-- JabberContactMethod Item Definition -->
-  <Kind itemName="contact:JabberContactMethod">
+  <Kind itemName="JabberContactMethod">
     <displayName>Jabber Contact Method</displayName>
     <attributes itemref="contact:jabberAddress"/>
     <superKinds itemref="contact:ContactMethod"/>
@@ -160,19 +165,19 @@
 
   <!-- Attributes used in ContactFormat -->
 
-  <Attribute itemName="contact:headerAttributes">
+  <Attribute itemName="headerAttributes">
     <displayName>Header Attributes</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:bodyAttributes">
+  <Attribute itemName="bodyAttributes">
     <displayName>Body Attributes</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:formatEntity">
+  <Attribute itemName="formatEntity">
     <displayName>Format Entity</displayName>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactEntity"/>
@@ -181,7 +186,7 @@
 
   <!-- ContactFormat Item Definition -->
 
-  <Kind itemName="contact:ContactFormat">
+  <Kind itemName="ContactFormat">
     <displayName>Contact Format</displayName>
     <attributes itemref="contact:headerAttributes"/>
     <attributes itemref="contact:bodyAttributes"/>
@@ -190,39 +195,39 @@
 
   <!-- Main Attributes used in ContactEntity -->
 
-  <Attribute itemName="contact:contactType">
+  <Attribute itemName="contactType">
     <displayName>Contact Type</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:contactName">
+  <Attribute itemName="contactName">
     <displayName>Contact Name</displayName>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactName"/>
     <inverseAttribute itemref="contact:nameEntity"/>
   </Attribute>
 
-  <Attribute itemName="contact:contactMethods">
+  <Attribute itemName="contactMethods">
     <displayName>Contact Methods</displayName>
     <cardinality>list</cardinality>
     <type itemref="contact:ContactMethod"/>
     <inverseAttribute itemref="contact:methodEntity"/>
   </Attribute>
 
-  <Attribute itemName="contact:contactPhotoURL">
+  <Attribute itemName="contactPhotoURL">
     <displayName>Contact Photo URL</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:contactGroups">
+  <Attribute itemName="contactGroups">
     <displayName>Contact Groups</displayName>
     <cardinality>list</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:contactFormat">
+  <Attribute itemName="contactFormat">
     <displayName>Contact Format</displayName>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactFormat"/>
@@ -231,51 +236,51 @@
 
   <!-- Other Attributes used in ContactEntity -->
 
-  <Attribute itemName="contact:companyName">
+  <Attribute itemName="companyName">
     <displayName>Company Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:jobTitle">
+  <Attribute itemName="jobTitle">
     <displayName>Job Title</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:occupation">
+  <Attribute itemName="occupation">
     <displayName>Occupation</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:relationship">
+  <Attribute itemName="relationship">
     <displayName>Relationship</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:age">
+  <Attribute itemName="age">
     <displayName>Age</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:Integer"/>
+    <type itemref="Integer"/>
   </Attribute>
 
-  <Attribute itemName="contact:gender">
+  <Attribute itemName="gender">
     <displayName>Gender</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="contact:sharing">
+  <Attribute itemName="sharing">
     <displayName>Sharing</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <!-- ContactEntity Item Definition -->
 
-  <Kind itemName="contact:ContactEntity">
+  <Kind itemName="ContactEntity">
     <displayName>Contact Entity</displayName>
     <attributes itemref="contact:contactType"/>
     <attributes itemref="contact:contactName"/>
