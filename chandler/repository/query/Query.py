@@ -33,24 +33,32 @@ class Query(Item.Item):
         super(Query, self).__init__(name, parent, kind)
 
         self._queryString = queryString
-        self._queryStringIsStale = True
         self.args = {}
         self._logical_plan = None
-        self._otherViewSubscribeCallbacks = {}
-        self._sameViewSubscribeCallbacks = {}
-        self._removedSinceCommit = []
-
-    def _warm_init(self):
+        self.__init()
+        
+    def __init(self):
+        """
+        __init is a private constructor method 
+        (following the convention in the rest of the repository)
+        """
+        # these attributes need to be setup after we reload
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
         self._removedSinceCommit = []
         self._queryStringIsStale = True
 
-    def onItemLoad(self, view):
-        self._warm_init()
-
-    def onItemCopy(self, original):
-        self._warm_init()
+    def _fillItem(self, name, parent, kind, **kwds):
+        """
+        Fill in the python attributes
+        """
+        # We're using _fillItem in lieu of onItemLoad and onItemCopy because there is
+        # a window during item loading where self.__init() will not get called until
+        # it is too late.
+        
+        # you must call super when using _fillItem
+        super(Query, self)._fillItem(name, parent, kind, **kwds)
+        self.__init()
 
     def getQueryString(self):
         return self._queryString
