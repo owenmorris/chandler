@@ -77,6 +77,17 @@ class ContactMethodItem(InformationItem):
         else:
             self.methodAddress.SetAttribute(attributeKey, attributeValue)
 
+    # change the type of the address item, setting up the passed-in attributes
+    def ChangeMethodType(self, newType, newAttributes):
+        if self.GetMethodType() == newType:
+            return
+
+        self.SetMethodType(newType)
+
+        methodAttributes = self.GetMethodAddress()
+        for attributeData in newAttributes:
+             methodAttributes.SetAttribute(attributeData[0], attributeData[1])
+
     # allocate the attributes object and initialize it from the passed in dictionary
     def InitMethodAddress(self, attributes):
         self.methodAddress = ContactMethodAttributes.CreateContactMethodAttributes(self.methodType)
