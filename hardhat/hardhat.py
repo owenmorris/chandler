@@ -63,7 +63,7 @@ if os.path.isfile("__hardhat__.py"):
         curmodulepath = relpath
 
     print "Project path: ", projectRoot
-    print "Module path:  ", curmodulepath
+    print "Module path:  ", os.path.join(projectRoot, curmodulepath)
     print "Module name:  ", curmodule.info['name']
     print "HardHat log:  ", os.path.join(projectRoot, "hardhat.log")
     print

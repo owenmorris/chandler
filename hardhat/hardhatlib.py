@@ -765,18 +765,6 @@ def setupEnvironment(buildenv):
 def quoteString(str):
     return "\'" + str + "\'"
 
-def escapeArgForWindows(str):
-    import re
-    if not re.search(r'[ "]', str):
-        return str
-    def repl(match):
-        if match.group(2):
-            return match.group(1) * 2 + '\"'
-        else:
-            return match.group(1) * 2
-    return '"' + re.sub(r'(\*)("|$)', repl, str) + '"'
-
-
 def escapeBackslashes(str):
     return str.replace("\\", "\\\\")
 
@@ -794,13 +782,19 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     else:
         showenv = "no"
 
-    # spawnl wants the name of the file we're executing twice; in this case
+    # spawnl wants the name of the file we're executing twice -- the first
+    # one is the full path, the second is just the filename; in this case
     # we're launching the same python we're running now; 
-    args[:0] = [sys.executable, sys.executable, wrapper, logfile, showenv]
+    args[:0] = [sys.executable, os.path.basename(sys.executable), wrapper, 
+     logfile, showenv]
     args = map(escapeBackslashes, args)
 
-    if buildenv['os'] == 'win' and sys.platform != "cygwin":
-        args = map(escapeArgForWindows, args)
+    if not os.path.exists(args[0]):
+        log(buildenv, HARDHAT_ERROR, name, "Program does not exist: " + \
+         args[0])
+        if not (flags & HARDHAT_NO_RAISE_ON_ERROR):
+            raise HardHatExternalCommandError
+        return 127 # standard not found exit code
 
     # all args need to be quoted
     args = map(quoteString, args)
@@ -844,12 +838,10 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
 
     setupEnvironment(buildenv)
 
-    # spawnl wants the name of the file we're executing twice
-    args[:0] = [ args[0] ]
+    # spawnl wants the name of the file we're executing twice -- the first
+    # one is the full path, the second is just the filename
+    args[1:0] = [ os.path.basename(args[0]) ]
     args = map(escapeBackslashes, args)
-
-    if buildenv['os'] == 'win':
-        args = map(escapeArgForWindows, args)
 
     # all args need to be quoted
     args = map(quoteString, args)
