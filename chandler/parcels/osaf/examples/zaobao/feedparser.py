@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 """Universal feed parser
 
-Visit http://diveintomark.org/projects/feed_parser/ for the latest version
-
 Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom feeds
+
+Visit http://feedparser.org/ for the latest version
+Visit http://feedparser.org/docs/ for the latest documentation
 
 Required: Python 2.1 or later
 Recommended: Python 2.3 or later
 Recommended: libxml2 <http://xmlsoft.org/python.html>
 """
 
-__version__ = "3.0-beta-22"
+__version__ = "3.0.1"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
@@ -21,7 +22,7 @@ _debug = 0
 _debug_never_use_libxml2 = 0
 
 # if you are embedding feedparser in a larger application, you should change this to your application name and URL
-USER_AGENT = "UniversalFeedParser/%s%s +http://diveintomark.org/projects/feed_parser/" % (__version__, _debug and "-debug" or "")
+USER_AGENT = "UniversalFeedParser/%s%s +http://feedparser.org/" % (__version__, _debug and "-debug" or "")
 
 # If you want feedparser to automatically run HTML markup through HTML Tidy, set this to 1.
 # This is off by default because of reports of crashing on some platforms.  If it crashes
@@ -86,6 +87,8 @@ except:
         data = data.replace(">", "&gt;")
         data = data.replace("<", "&lt;")
         return data
+#_XML_AVAILABLE = 0
+#sys.stderr.write("DEBUG: turned off XML support\n")
 
 # base64 support for Atom feeds that contain embedded binary data
 try:
@@ -96,6 +99,7 @@ except:
 # ---------- don't touch these ----------
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
 sgmllib.special = re.compile('<!')
+sgmllib.charref = re.compile('&#(x?[0-9A-Fa-f]+)[^0-9A-Fa-f]')
 
 SUPPORTED_VERSIONS = {'': 'unknown',
                       'rss090': 'RSS 0.90',
@@ -128,9 +132,26 @@ except NameError:
 from UserDict import UserDict
 class FeedParserDict(UserDict):
     def __getitem__(self, key):
-        if key == 'channel': key = 'feed'
-        if key == 'items': key = 'entries'
+        keymap = {'channel': 'feed',
+                  'items': 'entries',
+                  'guid': 'id',
+                  'date': 'modified',
+                  'date_parsed': 'modified_parsed'}
+        key = keymap.get(key, key)
         return UserDict.__getitem__(self, key)
+
+    def has_key(self, key):
+        return hasattr(self, key) or UserDict.has_key(self, key)
+        
+    def __getattr__(self, key):
+        try:
+            return self.__dict__[key]
+        except KeyError:
+            pass
+        try:
+            return self.__getitem__(key)
+        except:
+            raise AttributeError, "object has no attribute '%s'" % key
 
 class _FeedParserMixin:
     namespaces = {"": "",
@@ -221,7 +242,8 @@ class _FeedParserMixin:
     def unknown_starttag(self, tag, attrs):
         if _debug: sys.stderr.write('start %s with %s\n' % (tag, attrs))
         # normalize attrs
-        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        attrs = [(k.lower(), v) for k, v in attrs]
+#        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
         attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
         
         # track xml:base and xml:lang
@@ -232,6 +254,8 @@ class _FeedParserMixin:
             self.baseuri = baseuri
         lang = attrsD.get('xml:lang', attrsD.get('lang'))
         if lang:
+            if (tag in ('feed', 'rss', 'rdf:RDF')) and (not self.lang):
+                self.feeddata['language'] = lang
             self.lang = lang
         self.basestack.append(baseuri)
         self.langstack.append(lang)
@@ -268,6 +292,12 @@ class _FeedParserMixin:
         if prefix:
             prefix = prefix + '_'
 
+        # special hack for better tracking of empty textinput/image elements in illformed feeds
+        if (not prefix) and tag not in ('title', 'link', 'description', 'name'):
+            self.intextinput = 0
+        if (not prefix) and tag not in ('title', 'link', 'description', 'url', 'width', 'height'):
+            self.inimage = 0
+        
         # call special handler (if defined) or default handler
         methodname = '_start_' + prefix + suffix
         try:
@@ -333,7 +363,6 @@ class _FeedParserMixin:
         # called for each block of plain text, i.e. outside of any tag and
         # not containing any character or entity references
         if not self.elementstack: return
-#        if _debug: sys.stderr.write(text)
         if escape and self.contentparams.get('mode') == 'xml':
             text = _xmlescape(text)
         self.elementstack[-1][2].append(text)
@@ -377,22 +406,13 @@ class _FeedParserMixin:
         return urlparse.urljoin(self.baseuri or '', uri)
     
     def decodeEntities(self, element, data):
-        if self.contentparams.get('mode') == 'escaped':
-            data = data.replace('&lt;', '<')
-            data = data.replace('&gt;', '>')
-            data = data.replace('&amp;', '&')
-            data = data.replace('&quot;', '"')
-            data = data.replace('&apos;', "'")
         return data
-        
+
     def push(self, element, expectingText):
-#        while self.elementstack and self.elementstack[-1][1]:
-#            self.pop(self.elementstack[-1][0])
         self.elementstack.append([element, expectingText, []])
 
     def pop(self, element):
         if not self.elementstack: return
-#        while self.elementstack[-1][0] != element: self.pop(self.elementstack[-1][0])
         if self.elementstack[-1][0] != element: return
 
         element, expectingText, pieces = self.elementstack.pop()
@@ -417,12 +437,14 @@ class _FeedParserMixin:
         output = self.decodeEntities(element, output)
 
         # resolve relative URIs within embedded markup
-        if element in self.can_contain_relative_uris:
-            output = _resolveRelativeURIs(output, self.baseuri, self.encoding)
+        if self.contentparams.get('type', 'text/html') in self.html_types:
+            if element in self.can_contain_relative_uris:
+                output = _resolveRelativeURIs(output, self.baseuri, self.encoding)
         
         # sanitize embedded markup
-        if element in self.can_contain_dangerous_markup:
-            output = _sanitizeHTML(output, self.encoding)
+        if self.contentparams.get('type', 'text/html') in self.html_types:
+            if element in self.can_contain_dangerous_markup:
+                output = _sanitizeHTML(output, self.encoding)
 
         if type(output) == types.StringType:
             try:
@@ -542,8 +564,12 @@ class _FeedParserMixin:
     
     def _start_image(self, attrsD):
         self.inimage = 1
+        self.push('image', 0)
+        context = self._getContext()
+        context.setdefault('image', FeedParserDict())
             
     def _end_image(self):
+        self.pop('image')
         self.inimage = 0
                 
     def _start_textinput(self, attrsD):
@@ -597,6 +623,32 @@ class _FeedParserMixin:
             context = self._getContext()
             context['textinput']['name'] = value
 
+    def _start_width(self, attrsD):
+        self.push('width', 0)
+
+    def _end_width(self):
+        value = self.pop('width')
+        try:
+            value = int(value)
+        except:
+            value = 0
+        if self.inimage:
+            context = self._getContext()
+            context['image']['width'] = value
+
+    def _start_height(self, attrsD):
+        self.push('height', 0)
+
+    def _end_height(self):
+        value = self.pop('height')
+        try:
+            value = int(value)
+        except:
+            value = 0
+        if self.inimage:
+            context = self._getContext()
+            context['image']['height'] = value
+
     def _start_url(self, attrsD):
         self.push('url', 1)
     _start_homepage = _start_url
@@ -609,11 +661,11 @@ class _FeedParserMixin:
         elif self.incontributor:
             self._save_contributor('url', value)
         elif self.inimage:
-            # TODO
-            pass
+            context = self._getContext()
+            context['image']['url'] = value
         elif self.intextinput:
-            # TODO (map to link)
-            pass
+            context = self._getContext()
+            context['textinput']['link'] = value
     _end_homepage = _end_url
     _end_uri = _end_url
 
@@ -713,6 +765,11 @@ class _FeedParserMixin:
         self.entries.append(FeedParserDict())
         self.push('item', 0)
         self.inentry = 1
+        self.guidislink = 0
+        id = self._getAttribute(attrsD, 'rdf:about')
+        if id:
+            context = self._getContext()
+            context['id'] = id
         self._cdf_common(attrsD)
     _start_entry = _start_item
     _start_product = _start_item
@@ -766,8 +823,6 @@ class _FeedParserMixin:
         value = self.pop('modified')
         if _debug: sys.stderr.write('_end_dcterms_modified, value=' + value + '\n')
         parsed_value = _parse_date(value)
-        self._save('date', value)
-        self._save('date_parsed', parsed_value)
         self._save('modified_parsed', parsed_value)
     _end_modified = _end_dcterms_modified
     _end_dc_date = _end_dcterms_modified
@@ -820,10 +875,10 @@ class _FeedParserMixin:
         expectingText = self.infeed or self.inentry
         if self.inentry:
             self.entries[-1].setdefault('links', [])
-            self.entries[-1]['links'].append(attrsD)
+            self.entries[-1]['links'].append(FeedParserDict(attrsD))
         elif self.infeed:
             self.feeddata.setdefault('links', [])
-            self.feeddata['links'].append(attrsD)
+            self.feeddata['links'].append(FeedParserDict(attrsD))
         if attrsD.has_key('href'):
             expectingText = 0
             if attrsD.get('type', '') in self.html_types:
@@ -840,15 +895,17 @@ class _FeedParserMixin:
         if self.intextinput:
             context = self._getContext()
             context['textinput']['link'] = value
+        if self.inimage:
+            context = self._getContext()
+            context['image']['link'] = value
     _end_producturl = _end_link
 
     def _start_guid(self, attrsD):
         self.guidislink = (attrsD.get('ispermalink', 'true') == 'true')
-        self.push('guid', 1)
+        self.push('id', 1)
 
     def _end_guid(self):
-        value = self.pop('guid')
-        self._save('id', value)
+        value = self.pop('id')
         if self.guidislink:
             # guid acts as link, but only if "ispermalink" is not present or is "true",
             # and only if the item doesn't already have a link element
@@ -859,7 +916,6 @@ class _FeedParserMixin:
 
     def _end_id(self):
         value = self.pop('id')
-        self._save('guid', value)
             
     def _start_title(self, attrsD):
         self.incontent += 1
@@ -877,6 +933,9 @@ class _FeedParserMixin:
         if self.intextinput:
             context = self._getContext()
             context['textinput']['title'] = value
+        elif self.inimage:
+            context = self._getContext()
+            context['image']['title'] = value
     _end_dc_title = _end_title
 
     def _start_description(self, attrsD, default_content_type='text/html'):
@@ -897,6 +956,8 @@ class _FeedParserMixin:
         context = self._getContext()
         if self.intextinput:
             context['textinput']['description'] = value
+        elif self.inimage:
+            context['image']['description'] = value
         elif self.inentry:
             context['summary'] = value
         elif self.infeed:
@@ -934,6 +995,7 @@ class _FeedParserMixin:
         if value:
             self.elementstack[-1][2].append(value)
         self.pop('generator')
+        self.feeddata['generator_detail'] = FeedParserDict({"url": value})
 
     def _start_admin_errorreportsto(self, attrsD):
         self.push('errorreportsto', 1)
@@ -960,11 +1022,11 @@ class _FeedParserMixin:
     def _start_enclosure(self, attrsD):
         if self.inentry:
             self.entries[-1].setdefault('enclosures', [])
-            self.entries[-1]['enclosures'].append(attrsD)
+            self.entries[-1]['enclosures'].append(FeedParserDict(attrsD))
             
     def _start_source(self, attrsD):
         if self.inentry:
-            self.entries[-1]['source'] = attrsD
+            self.entries[-1]['source'] = FeedParserDict(attrsD)
         self.push('source', 1)
 
     def _end_source(self):
@@ -1096,13 +1158,16 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         data = re.sub(r'<(\S+)/>', r'<\1></\1>', data)
         data = data.replace('&#39;', "'")
         data = data.replace('&#34;', '"')
-        if type(data) == types.UnicodeType:
+        if self.encoding and (type(data) == types.UnicodeType):
             data = data.encode(self.encoding)
         sgmllib.SGMLParser.feed(self, data)
 
     def normalize_attrs(self, attrs):
         # utility method to be called by descendants
-        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        attrs = [(k.lower(), v) for k, v in attrs]
+#        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: unichr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        if self.encoding:
+            attrs = [(k, v.encode(self.encoding)) for k, v in attrs]
         attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
         return attrs
 
@@ -1189,6 +1254,25 @@ class _LooseFeedParser(_FeedParserMixin, _BaseHTMLProcessor):
         sgmllib.SGMLParser.__init__(self)
         _FeedParserMixin.__init__(self, baseuri, encoding)
 
+    def decodeEntities(self, element, data):
+        data = data.replace('&#60;', '&lt;')
+        data = data.replace('&#x3c;', '&lt;')
+        data = data.replace('&#62;', '&gt;')
+        data = data.replace('&#x3e;', '&gt;')
+        data = data.replace('&#38;', '&amp;')
+        data = data.replace('&#x26;', '&amp;')
+        data = data.replace('&#34;', '&quot;')
+        data = data.replace('&#x22;', '&quot;')
+        data = data.replace('&#39;', '&apos;')
+        data = data.replace('&#x27;', '&apos;')
+        if self.contentparams.get('mode') == 'escaped':
+            data = data.replace('&lt;', '<')
+            data = data.replace('&gt;', '>')
+            data = data.replace('&amp;', '&')
+            data = data.replace('&quot;', '"')
+            data = data.replace('&apos;', "'")
+        return data
+        
 class _RelativeURIResolver(_BaseHTMLProcessor):
     relative_uris = [('a', 'href'),
                      ('applet', 'codebase'),
@@ -1358,7 +1442,6 @@ def _open_resource(url_file_stream_or_string, etag=None, modified=None, agent=No
     if urlparse.urlparse(url_file_stream_or_string)[0] in ('http', 'https', 'ftp'):
         if not agent:
             agent = USER_AGENT
-        
         # try to open with urllib2 (to use optional headers)
         request = urllib2.Request(url_file_stream_or_string)
         request.add_header("User-Agent", agent)
@@ -1376,18 +1459,12 @@ def _open_resource(url_file_stream_or_string, etag=None, modified=None, agent=No
             request.add_header("Referer", referrer)
         if gzip:
             request.add_header("Accept-encoding", "gzip")
+        request.add_header("Accept", "application/atom+xml,application/rdf+xml,application/rss+xml,application/x-netcdf,application/xml;q=0.9,text/xml;q=0.2,*/*;q=0.1")
         opener = urllib2.build_opener(_FeedURLHandler())
         opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
         try:
             try:
                 return opener.open(request)
-#            except ValueError:
-#                # not a valid URL, but might be a valid filename
-#                pass
-#            except AssertionError:
-#                # under Python 2.1, non-URLs will fail with an AssertionError;
-#                # still might be a valid filename, so fall through
-#                pass
             except:
                 return _StringIO('')
         finally:
@@ -1678,6 +1755,9 @@ def _getCharacterEncoding(http_headers, xml_data):
             # dunno if this is malformed but it sure was hard to track down
             return content_type, ''
         import string
+        if not paramstr[0].count('='):
+            # malformed declaration like "text/xml; charset:utf-8" (note : instead of =)
+            return content_type, ''
         params = dict([map(string.lower, map(string.strip, p.strip().split('=', 1))) for p in paramstr])
         charset = params.get('charset')
         if not charset:
@@ -1705,7 +1785,7 @@ def _getCharacterEncoding(http_headers, xml_data):
             true_encoding = 'utf-8'
     elif (http_content_type == 'text/xml') or \
          (http_content_type == 'text/xml-external-parsed-entity') or \
-         (http_content_type.startswith('text/') and http_content_type.endswith('+xml')):
+         (http_content_type.startswith('text/')):# and http_content_type.endswith('+xml')):
         if http_encoding:
             true_encoding = http_encoding
         else:
@@ -1725,12 +1805,20 @@ def _changeEncodingDeclaration(data, encoding):
     #import cjkcodecs.aliases
     #import japanese
     data = unicode(data, encoding)
+    if _debug: sys.stderr.write('successfully converted %s data to unicode\n' % encoding)
     declmatch = re.compile(u'^<\?xml[^>]*?>')
-    newdecl = unicode("""<?xml version='1.0' encoding='%s'?>""" % encoding, encoding)
+    if _debug: sys.stderr.write('successfully created declmatch\n')
+#    newdecl = unicode("""<?xml version='1.0' encoding='%s'?>""" % encoding, encoding)
+    newdecl = """<?xml version='1.0' encoding='%s'?>""" % encoding
+    if _debug: sys.stderr.write('successfully created newdecl\n')
     if declmatch.search(data):
+        if _debug: sys.stderr.write('successfully searched, found previous encoding declaration\n')
         data = declmatch.sub(newdecl, data)
+        if _debug: sys.stderr.write('successfully replaced previous encoding\n')
     else:
+        if _debug: sys.stderr.write('successfully searched but found no previous encoding declaration\n')
         data = newdecl + u'\n' + data
+        if _debug: sys.stderr.write('successfully inserted new encoding declaration\n')
     return data.encode(encoding)
 
 def _stripDoctype(data):
@@ -1739,6 +1827,8 @@ def _stripDoctype(data):
     rss_version may be "rss091n" or None
     stripped_data is the same XML document, minus the DOCTYPE
     """
+    entity_pattern = re.compile(r'<!ENTITY([^>]*?)>', re.MULTILINE)
+    data = entity_pattern.sub('', data)
     doctype_pattern = re.compile(r'<!DOCTYPE([^>]*?)>', re.MULTILINE)
     doctype_results = doctype_pattern.findall(data)
     doctype = doctype_results and doctype_results[0] or ''
@@ -1749,47 +1839,40 @@ def _stripDoctype(data):
     data = doctype_pattern.sub('', data)
     return version, data
     
-def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None):
-    """Parse a feed from a URL, file, stream, or string"""
-    result = FeedParserDict()
-    f = _open_resource(url_file_stream_or_string, etag=etag, modified=modified, agent=agent, referrer=referrer)
-    data = f.read()
-    if hasattr(f, "headers"):
-        if gzip and f.headers.get('content-encoding', '') == 'gzip':
-            try:
-                data = gzip.GzipFile(fileobj=_StringIO(data)).read()
-            except:
-                # some feeds claim to be gzipped but they're not, so we get garbage
-                data = ''
-    if hasattr(f, "info"):
-        info = f.info()
-        result["etag"] = info.getheader("ETag")
-        last_modified = info.getheader("Last-Modified")
-        if last_modified:
-            result["modified"] = _parse_date(last_modified)
-    if hasattr(f, "url"):
-        result["url"] = f.url
-        result["status"] = 200 # default, may be overridden later
-    if hasattr(f, "status"):
-        result["status"] = f.status
-    if hasattr(f, "headers"):
-        result["headers"] = f.headers.dict
-    f.close()
-    if result.get("status", 0) == 304:
-        result['feed'] = FeedParserDict()
-        result['entries'] = []
-        result['debug_message'] = "The feed has not changed since you last checked, so the server sent no data.  This is a feature, not a bug!"
-        return result
-    result['encoding'], http_encoding, xml_encoding = _getCharacterEncoding(result.get("headers", {}), data)
-    result['version'], data = _stripDoctype(data)
-    baseuri = result.get('headers', {}).get('content-location', result.get('url'))
-    # try true XML parser first
-    if not _XML_AVAILABLE:
-        if _debug: sys.stderr.write('no xml libraries available\n')
-    use_strict_parser = _XML_AVAILABLE
+def _attempt_parse(data, result, baseuri, use_strict_parser, declared_encoding, proposed_encoding):
     if use_strict_parser:
+        # use real XML parser
         if _debug: sys.stderr.write('using xml library\n')
         result['bozo'] = 0
+
+        # If encoding specified in <?xml declaration is not the
+        # encoding we want, change the <?xml declaration.  If this
+        # sounds like a hack, that's because it is.  In an ideal world,
+        # you could just pass the character encoding into your SAX
+        # parser and tell it to override the declared encoding.
+        # Python 2.3 actually has a property for that, but no SAX
+        # parsers currently support it.
+        if declared_encoding != proposed_encoding:
+            try:
+                data = _changeEncodingDeclaration(data, proposed_encoding)
+            except Exception, bozo_exception:
+                if _debug: sys.stderr.write('character encoding is wrong\n')
+                raise bozo_exception
+
+        # The document is now in the encoding we want, and it declares
+        # in its <?xml declaration that it is the encoding we want.
+        # But if this wasn't the encoding originally specified, then
+        # we want to note this in the results as a CharacterEncodingOverride
+        # before continuing.
+        if proposed_encoding != result['encoding']:
+            try:
+                raise CharacterEncodingOverride, "document declared as %s, but parsed as %s" % (result['encoding'], proposed_encoding)
+            except CharacterEncodingOverride, bozo_exception:
+                result['bozo'] = 1
+                result['bozo_exception'] = bozo_exception
+            result['encoding'] = proposed_encoding
+
+        # initialize the SAX parser
         feedparser = _StrictFeedParser(baseuri, result['encoding'])
         if _debug and _debug_never_use_libxml2:
             sys.stderr.write('not using libxml2 (even if available)\n')
@@ -1804,39 +1887,12 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
             saxparser.setDTDHandler(feedparser)
         except xml.sax.SAXNotSupportedException:
             # libxml2 driver does not support DTDHandler
-            if _debug: sys.stderr.write('using an xml library that does not support DTDHandler (not a big deal)\n')
+            pass
         try:
             saxparser.setEntityResolver(feedparser)
         except xml.sax.SAXNotSupportedException:
             # libxml2 driver does not support EntityResolver
-            if _debug: sys.stderr.write('using an xml library that does not support EntityResolver (not a big deal)\n')
-        encoding_set = (result['encoding'] == xml_encoding)
-        if not encoding_set:
-            bozo_exception = None
-            proposed_encodings = [result['encoding'], xml_encoding, 'utf-8', 'iso-8859-1', 'windows-1252']
-            tried_encodings = []
-            for proposed_encoding in proposed_encodings:
-                if proposed_encodings in tried_encodings: continue
-                tried_encodings.append(proposed_encoding)
-                try:
-                    data = _changeEncodingDeclaration(data, proposed_encoding)
-                except Exception, bozo_exception:
-                    if _debug: sys.stderr.write('character encoding is wrong\n')
-                else:
-                    if proposed_encoding != result['encoding']:
-                        try:
-                            raise CharacterEncodingOverride, "document declared as %s, but parsed as %s" % (result['encoding'], proposed_encoding)
-                        except CharacterEncodingOverride, bozo_exception:
-                            result['bozo'] = 1
-                            result['bozo_exception'] = bozo_exception
-                    result['encoding'] = proposed_encoding
-                    encoding_set = 1
-                    break
-        if not encoding_set:
-            result['bozo'] = 1
-            result['bozo_exception'] = bozo_exception
-            use_strict_parser = 0
-    if use_strict_parser:
+            pass
         source = xml.sax.xmlreader.InputSource()
         source.setByteStream(_StringIO(data))
         if hasattr(saxparser, '_ns_stack'):
@@ -1846,21 +1902,111 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
         try:
             saxparser.parse(source)
         except Exception, e:
-            if _debug: sys.stderr.write('xml parsing failed\n')
+            if _debug:
+                import traceback
+                traceback.print_stack()
+                traceback.print_exc()
+                sys.stderr.write('xml parsing failed\n')
             feedparser.bozo = 1
             feedparser.bozo_exception = feedparser.exc or e
         if feedparser.bozo:
-            # feed is not well-formed XML, fall back on regex-based parser
-            result['bozo'] = 1
-            result['bozo_exception'] = feedparser.bozo_exception
-            use_strict_parser = 0
-    if not use_strict_parser:
+            raise feedparser.bozo_exception
+    else:
+        # use regular expression-based parser
         if _debug: sys.stderr.write('using regexes, now you have two problems\n')
+        result['encoding'] = proposed_encoding
         feedparser = _LooseFeedParser(baseuri, result['encoding'])
         feedparser.feed(data)
+    
     result['feed'] = feedparser.feeddata
     result['entries'] = feedparser.entries
     result['version'] = result['version'] or feedparser.version
+    return result
+
+def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None):
+    """Parse a feed from a URL, file, stream, or string"""
+    result = FeedParserDict()
+    result['feed'] = FeedParserDict()
+    result['entries'] = []
+
+    f = _open_resource(url_file_stream_or_string,
+                       etag=etag,
+                       modified=modified,
+                       agent=agent,
+                       referrer=referrer)
+    data = f.read()
+
+    # if feed is gzip-compressed, decompress it
+    if hasattr(f, "headers"):
+        if gzip and f.headers.get('content-encoding', '') == 'gzip':
+            try:
+                data = gzip.GzipFile(fileobj=_StringIO(data)).read()
+            except:
+                # Some feeds claim to be gzipped but they're not, so
+                # we get garbage.  Ideally, we should re-request the
+                # feed without the "Accept-encoding: gzip" header,
+                # but we don't.
+                data = ''
+
+    # save HTTP headers
+    if hasattr(f, "info"):
+        info = f.info()
+        result["etag"] = info.getheader("ETag")
+        last_modified = info.getheader("Last-Modified")
+        if last_modified:
+            result["modified"] = _parse_date(last_modified)
+    if hasattr(f, "url"):
+        result["url"] = f.url
+        result["status"] = 200
+    if hasattr(f, "status"):
+        result["status"] = f.status
+    if hasattr(f, "headers"):
+        result["headers"] = f.headers.dict
+    f.close()
+
+    # if server sent 304, we're done
+    if result.get("status", 0) == 304:
+        result['debug_message'] = "The feed has not changed since you last checked, " + \
+            "so the server sent no data.  This is a feature, not a bug!"
+        return result
+
+    # there are three encodings to keep track of:
+    # - xml_encoding is the encoding declared in the <?xml declaration
+    # - http_encoding is the encoding declared in the Content-Type HTTP header
+    # - result['encoding'] is the actual encoding, as specified by RFC 3023
+    result['encoding'], http_encoding, xml_encoding = \
+        _getCharacterEncoding(result.get("headers", {}), data)
+    result['version'], data = _stripDoctype(data)
+    baseuri = result.get('headers', {}).get('content-location', result.get('url'))
+
+    all_parse_params = []
+    if _XML_AVAILABLE:
+        all_parse_params.append({"use_strict_parser": 1, 'proposed_encoding': result['encoding']})
+        if xml_encoding and (xml_encoding != result['encoding']):
+            all_parse_params.append({"use_strict_parser": 1, 'proposed_encoding': xml_encoding})
+        if 'utf-8' not in (result['encoding'], xml_encoding):
+            all_parse_params.append({"use_strict_parser": 1, 'proposed_encoding': 'utf-8'})
+        if 'windows-1252' not in (result['encoding'], xml_encoding):
+            all_parse_params.append({"use_strict_parser": 1, 'proposed_encoding': 'windows-1252'})
+    all_parse_params.append({"use_strict_parser": 0, 'proposed_encoding': result['encoding']})
+    if xml_encoding and (xml_encoding != result['encoding']):
+        all_parse_params.append({"use_strict_parser": 0, 'proposed_encoding': xml_encoding})
+    if 'utf-8' not in (result['encoding'], xml_encoding):
+        all_parse_params.append({"use_strict_parser": 0, 'proposed_encoding': 'utf-8'})
+    if 'windows-1252' not in (result['encoding'], xml_encoding):
+        all_parse_params.append({"use_strict_parser": 0, 'proposed_encoding': 'windows-1252'})
+    all_parse_params.append({"use_strict_parser": 0, 'proposed_encoding': ''})
+
+    # try different combinations of parsing and encoding until one works
+    for parse_params in all_parse_params:
+        parse_params['baseuri'] = baseuri
+        parse_params['declared_encoding'] = xml_encoding
+        try:
+            result.update(apply(_attempt_parse, (data, result), parse_params))
+            break
+        except Exception, bozo_exception:
+            result['bozo'] = 1
+            result['bozo_exception'] = bozo_exception
     return result
 
 if __name__ == '__main__':
@@ -1877,9 +2023,6 @@ if __name__ == '__main__':
         pprint(result)
         print
 
-#TODO
-#- image
-#
 #REVISION HISTORY
 #1.0 - 9/27/2002 - MAP - fixed namespace processing on prefixed RSS 2.0 elements,
 #  added Simon Fell's test suite
@@ -2017,3 +2160,31 @@ if __name__ == '__main__':
 #  from Unicode to raw strings before feeding data to sgmllib.SGMLParser;
 #  convert each value in results to Unicode (if possible), even if using
 #  regex-based parsing
+#3.0b23 - 4/21/2004 - MAP - fixed UnicodeDecodeError for feeds that contain
+#  high-bit characters in attributes in embedded HTML in description (thanks
+#  Thijs van de Vossen); moved guid, date, and date_parsed to mapped keys in
+#  FeedParserDict; tweaked FeedParserDict.has_key to return True if asking
+#  about a mapped key
+#3.0fc1 - 4/23/2004 - MAP - made results.entries[0].links[0] and
+#  results.entries[0].enclosures[0] into FeedParserDict; fixed typo that could
+#  cause the same encoding to be tried twice (even if it failed the first time);
+#  fixed DOCTYPE stripping when DOCTYPE contained entity declarations;
+#  better textinput and image tracking in illformed RSS 1.0 feeds
+#3.0fc2 - 5/10/2004 - MAP - added and passed Sam's amp tests; added and passed
+#  my blink tag tests
+#3.0fc3 - 6/18/2004 - MAP - fixed bug in _changeEncodingDeclaration that
+#  failed to parse utf-16 encoded feeds; made source into a FeedParserDict;
+#  duplicate admin:generatorAgent/@rdf:resource in generator_detail.url;
+#  added support for image; refactored parse() fallback logic to try other
+#  encodings if SAX parsing fails (previously it would only try other encodings
+#  if re-encoding failed); remove unichr madness in normalize_attrs now that
+#  we're properly tracking encoding in and out of BaseHTMLProcessor; set
+#  feed.language from root-level xml:lang; set entry.id from rdf:about;
+#  send Accept header
+#3.0 - 6/21/2004 - MAP - don't try iso-8859-1 (can't distinguish between
+#  iso-8859-1 and windows-1252 anyway, and most incorrectly marked feeds are
+#  windows-1252); fixed regression that could cause the same encoding to be
+#  tried twice (even if it failed the first time)
+#3.0.1 - 6/22/2004 - MAP - default to us-ascii for all text/* content types;
+#  recover from malformed content-type header parameter with no equals sign
+#  ("text/xml; charset:iso-8859-1")
