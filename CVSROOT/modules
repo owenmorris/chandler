@@ -48,4 +48,6 @@ chandler-system -a \
     osaf/chandler/m2crypto \
     osaf/hardhat
 
+external external
+
 0.3 osaf/chandler/Chandler/distrib/docs
