@@ -72,7 +72,7 @@
     <menuLocation>FileMenu</menuLocation>
     <accel>N</accel>
     <helpString>Open a new blank tab</helpString>
-    <event itemref="events:NewTab"/>
+    <event itemref="events:New"/>
   </MenuItem>
   
   <MenuItem itemName="CloseTabItem">
@@ -80,7 +80,7 @@
     <menuLocation>FileMenu</menuLocation>
     <accel>W</accel>
     <helpString>Close the current tab</helpString>
-    <event itemref="events:CloseTab"/>
+    <event itemref="events:Close"/>
   </MenuItem>
   
   <MenuItem itemName="FileSeparator1">

@@ -50,7 +50,8 @@ class TabbedView(ControlBlocks.TabbedContainer):
         else:
             parent.InsertPage(self.activeTab, child, self.tabTitles[self.activeTab], True)
 
-    def OnNewTabEvent (self, notification):
+    def OnNewEvent (self, notification):
+        "Create a new tab"
         tabbedContainer = Globals.association[self.itsUUID]
         kind = Globals.repository.find("parcels/osaf/framework/blocks/HTML")
         self.activeTab = tabbedContainer.GetPageCount()
@@ -61,7 +62,8 @@ class TabbedView(ControlBlocks.TabbedContainer):
         item.parentBlock = self
         (page, parent, parentWindow) = item.render(tabbedContainer, tabbedContainer)
 
-    def OnCloseTabEvent (self, notification):
+    def OnCloseEvent (self, notification):
+        "Close the current tab"
         tabbedContainer = Globals.association[self.itsUUID]
         selection = tabbedContainer.GetSelection()
         self.tabTitles.remove(self.tabTitles[selection])
