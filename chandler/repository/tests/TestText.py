@@ -77,7 +77,7 @@ class TestText(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLER_HOME']
+        rootdir = os.environ['CHANDLERHOME']
         largeText = os.path.join(rootdir, 'Chandler', 'repository',
                                  'tests', 'data', 'world192.txt')
 
@@ -123,7 +123,7 @@ class TestText(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLER_HOME']
+        rootdir = os.environ['CHANDLERHOME']
         largeText = os.path.join(rootdir, 'Chandler', 'repository',
                                  'tests', 'data', 'world192.txt')
 
