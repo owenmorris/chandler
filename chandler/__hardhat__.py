@@ -1,4 +1,4 @@
-import os, hardhatlib
+import os, hardhatlib, errno
 
 info = {
         'name':'Chandler',
@@ -52,3 +52,61 @@ def removeRuntimeDir(buildenv):
 	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
 	     "Removing: " + path)
 	    hardhatlib.rmdir_recursive(path)
+
+def distribute(buildenv):
+
+
+    distDir = buildenv['root'] + os.sep + 'distrib'
+    buildenv['distdir'] = distDir
+
+    if os.access(distDir, os.F_OK):
+        hardhatlib.rmdir_recursive(distDir)
+
+    os.mkdir(distDir)
+    
+
+    if buildenv['os'] == 'win':
+
+
+        if buildenv['version'] == 'release':
+            manifestFile = "manifest.win"
+            handleManifest(buildenv, manifestFile)
+
+
+
+
+def handleManifest(buildenv, filename):
+    import fileinput
+    import shutil
+
+    before = "xyzzy"
+    after = "plugh"
+
+    for line in fileinput.input(filename):
+        line = line[:-1]
+        if line[0:1] == "!":
+            line = line[1:]
+            (before,after) = line.split(",")
+            blen = len(before)
+            print "before=", before
+        else:
+            print line
+            if line[0:blen] == before:
+                line2 = after + line[blen:]
+                source = buildenv['root'] + os.sep + line
+                dest = buildenv['distdir'] + os.sep + line2
+                print source, "->", dest
+                path = os.path.dirname(dest)
+                print path
+                mkdirs(path)
+                shutil.copy(source, dest)
+
+
+def mkdirs(newdir, mode=0777):
+    try: 
+        os.makedirs(newdir, mode)
+    except OSError, err:
+        # Reraise the error unless it's about an already existing directory 
+        if err.errno != errno.EEXIST or not os.path.isdir(newdir): 
+            raise
+
