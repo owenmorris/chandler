@@ -126,7 +126,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             os.chdir(moduleDir)
             print "seeing if we need to update", module
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "-qn", "update", cvsVintage])
+             [cvsProgram, "-qn", "update", "-D", cvsVintage])
             dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
                 print "YES"
@@ -136,7 +136,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
                 print "updating", module
                 log.write("updating: " + module + " with " + cvsVintage + "\n")
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [cvsProgram, "-q", "update", cvsVintage])
+                 [cvsProgram, "-q", "update", "-D", cvsVintage])
                 dumpOutputList(outputList, log)
                 if scrubAllModules.has_key(module):
                     print "we need to scrub everything"
