@@ -23,7 +23,6 @@ class SideBar(Persistent):
         SideBar (like which levels are expanded).
         """
         self.sideBarURLTree = PersistentDict()
-        self.uriDictMap = PersistentDict()
         self.ignoreChangeSelect = false
         
     def SynchronizeView(self):
@@ -64,14 +63,14 @@ class SideBar(Persistent):
 
             if not sideBarURLTree.has_key(instanceId):
                 itemId = wxWindow.AppendItem(parent, name)
-                self.uriDictMap[name] = itemId
+                wxWindow.uriDictMap[name] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarURLTree[instanceId] = URLTreeEntry(instance, false,
                                                           itemId, {}, false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parent, name)
-                    self.uriDictMap[name] = itemId
+                    wxWindow.uriDictMap[name] = itemId
                     sideBarURLTree[instanceId].wxId = itemId
                 else:
                     itemId = sideBarURLTree[instanceId].wxId
@@ -97,9 +96,9 @@ class SideBar(Persistent):
         """
         wxWindow = app.association[id(self)]
         self.ignoreChangeSelect = true
-        wxWindow.SelectItem(self.uriDictMap[uri])
+        wxWindow.SelectItem(wxWindow.uriDictMap[uri])
         self.ignoreChangeSelect = false
-        
+                
 class URLTreeEntry:
     """
       URLTreeEntry is just a container class for items inserted into the
@@ -138,6 +137,7 @@ class wxSideBar(wxTreeCtrl):
         wxPython object associated with each persistent object.
         """
         app.association[id(self.model)] = self
+        self.uriDictMap = {}
         """
            There isn't a EVT_DESTROY function, so we'll implement it do
         what the function would have done.
@@ -183,5 +183,6 @@ class wxSideBar(wxTreeCtrl):
           Remove from the association when the sidebar is destroyed.
         """
         del app.association[id(self.model)]
+            
     
      
