@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<resource version="2.4.0.0">
+
+  <object class="wxPanel" 
+          subclass="OSAF.repositoryviewer.RepositoryViewer.wxRepositoryViewer" 
+          name="RepositoryViewer">
+    <style>wxNO_FULL_REPAINT_ON_RESIZE</style>
+  </object>
+  
+  <object class="wxMenu" name="ViewerParcelMenu">
+    <label>Repository Viewer</label>
+  </object>
+
+</resource>

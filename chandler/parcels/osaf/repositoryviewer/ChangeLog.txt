@@ -1,0 +1,4 @@
+2003-08-19 Katie Capps Parlante <capps@osafoundation.org>
+   * Created new RepositoryViewer parcel, to use the new repository.
+     This parcel may be short lived, or only used for debugging purposes,
+     once we have the document architecture in place.
