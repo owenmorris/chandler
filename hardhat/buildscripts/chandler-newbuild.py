@@ -24,7 +24,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # find path to buildscripts
     hardhatDir = hardhatutil.findInPath(path,hardhatScript)
-    print "Directory of build script is " + hardhatDir + "\n"
+    print "Build script is " + hardhatDir + "\n"
+    thisScriptDir = os.join(os.dirname(hardhatDir), "buildscripts")
+    print "Build scripts dir is " + thisScriptDir + "\n"
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
@@ -87,7 +89,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                   #  log.write("Making external (debug) binaries\n")
                   #  outputList = hardhatutil.executeCommandReturnOutput(
                   #   [buildenv['make'], dbgStr, "binaries" ])
-                    initFile = os.path.join(hardhatDir, 'init.sh')
+                    initFile = os.path.join(thisScriptDir, 'init.sh')
                     log.write("Running init script from " + initFile + "\n")
                     outputList = hardhatutil.executeCommandReturnOutput(
                      [initFile] )
