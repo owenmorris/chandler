@@ -135,6 +135,15 @@ class wxViewerParcel(wxPanel):
         self.model = model
         self.resources = resources
         self.OnInit()
+        EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
+                
+    def OnEraseBackground (self, event):
+        """
+          Override OnEraseBackground to avoid erasing background. Instead
+        implement OnDrawBackground to draw/erase the background. This
+        design alternative will eliminate flicker
+        """
+        pass
 
     def Activate(self):
         """
