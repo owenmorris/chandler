@@ -30,7 +30,6 @@ import twisted.protocols.policies as policies
     so they do not get orphaned or delete previous errors a better idea perhaps
  17. Look in to what happens when you resend a message multiple times that succeeds each time
  19. May want to implement own timer
- 20. fix conectionLost to self.deferred.errback(err.value)
 """
 
 try:
@@ -43,7 +42,7 @@ class SMTPConstants(object):
 
 class ChandlerESMTPSender(smtp.ESMTPSender, policies.TimeoutMixin):
     """The number of seconds before calling C{self.timeout}"""
-    timeout = 25
+    timeout = 60
 
     def timeoutConnection(self):
         """Called by C{policies.TimeoutMixin} base class.

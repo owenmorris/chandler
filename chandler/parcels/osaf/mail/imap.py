@@ -48,7 +48,7 @@ class IMAPException(common.MailException):
 class ChandlerIMAP4Client(imap4.IMAP4Client, policies.TimeoutMixin):
 
     """The number of seconds before calling C{self.timeout}"""
-    timeout = 25 #seconds
+    timeout = 60 #seconds
 
     def __init__(self, contextFactory=None):
         imap4.IMAP4Client.__init__(self, contextFactory)
