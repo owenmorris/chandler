@@ -8,7 +8,7 @@ import libxml2, threading, heapq, logging
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
-from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler, ItemsHandler
 from repository.item.ItemRef import ItemStub, DanglingRefError
@@ -999,7 +999,9 @@ class AbstractRepositoryViewManager(object):
         assert self.callChain is False, "setViewCurrent called again before a restorePreviousView"
 
         assert self.prevView is None, "Nested prevView investigate"
-        self.prevView = self.view.setCurrentView()
+        self.prevView = self.getCurrentView()
+        self.repository.setCurrentView(self.view)
+
         self.callChain = True
 
 
@@ -1109,27 +1111,29 @@ class AbstractRepositoryViewManager(object):
 
          pass
 
-         #Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
-
-    def _viewCommitFailed(self):
+    def _viewCommitFailed(self, err):
          """
          Called by C{AbstractRepositoryViewManager.commitView} when a
          C{RepositoryView} raises an error on commited.
 
          Overide this method to handle any additional functionality needed
          when a C{RepositoryView} fails on commit.
+
+         @param err: A Python Exception instance to use for debugging and error message display
+         @type Exception
+
          @return: C{None}
          """
-
-         self.log.error("ViewCommitFailed")
+         str = "View Commit Failed: %s" % err
+         self.log.error(str)
 
     def __commitView(self):
         """
         Attempts to commit the view. Calls viewCommitSuccess or
         viewCommitFailed.  Need to sync with Andi on
-        what happens in the case of a conflict or 
-        failed commit. This is still being resolved 
-        by the repository team 
+        what happens in the case of a conflict or
+        failed commit. This is still being resolved
+        by the repository team
         """
 
         self.setViewCurrent()
@@ -1137,9 +1141,17 @@ class AbstractRepositoryViewManager(object):
         try:
            self.view.commit()
 
-        except RepositoryError:
+        except RepositoryError, e:
            """This condition needs to be flushed out more"""
-           self._viewCommitFailed()
+           self._viewCommitFailed(e)
+
+        except VersionConflictError, e1:
+           """This condition needs to be flushed out more"""
+           self._viewCommitFailed(e1)
+
+        except Exception, e2:
+           """Catch any unknown exceptions raised by the Repository"""
+           self._viewCommitFailed(e2)
 
         else:
            self._viewCommitSuccess()
