@@ -38,29 +38,32 @@
   <Attribute itemName="fontStyle">
     <type itemref="String"/> 
   </Attribute>
-  
+
   <Attribute itemName="fontName">
     <type itemref="String"/>
   </Attribute>
 
-  <Type itemName="ColorType" itemClass="OSAF.framework.blocks.DocumentTypes.ColorType">
-    <fields>red</fields>
-    <fields>green</fields>
-    <fields>blue</fields>
-    <fields>alpha</fields>
-  </Type>
+  <Struct itemName="ColorType" itemClass="OSAF.framework.blocks.DocumentTypes.ColorStruct">
+    <fields key="red"></fields>
+    <fields key="green"></fields>
+    <fields key="blue"></fields>
+    <fields key="alpha"></fields>
+    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.ColorType</implementationTypes>
+  </Struct>
  
-  <Type itemName="SizeType" itemClass="OSAF.framework.blocks.DocumentTypes.SizeType">
-    <fields>width</fields>
-    <fields>height</fields>
-  </Type>
+  <Struct itemName="SizeType" itemClass="OSAF.framework.blocks.DocumentTypes.SizeStruct">
+    <fields key="width"></fields>
+    <fields key="height"></fields>
+    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.SizeType</implementationTypes>
+  </Struct>
  
-  <Type itemName="RectType" itemClass="OSAF.framework.blocks.DocumentTypes.RectType">
-    <fields>top</fields>
-    <fields>left</fields>
-    <fields>bottom</fields>
-    <fields>right</fields>
-  </Type>
+  <Struct itemName="RectType" itemClass="OSAF.framework.blocks.DocumentTypes.RectStruct">
+    <fields key="top"></fields>
+    <fields key="left"></fields>
+    <fields key="bottom"></fields>
+    <fields key="right"></fields>
+    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.RectType</implementationTypes>
+  </Struct>
  
   <!--
     Chandler Query
@@ -158,6 +161,14 @@
     <attributes itemref="docSchema:Block/open"/>
   </Kind>
   
+  <!--
+    Controller
+  -->
+  <Kind itemName="Controller">
+    <classes key="python">OSAF.framework.blocks.Controller.Controller</classes>
+    <superKinds itemref="docSchema:Block"/>
+  </Kind>
+
   <!--
     ContainerChild is the most generic container
   -->

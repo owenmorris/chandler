@@ -10,21 +10,17 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 Don't add to the globals without reviewing the addition. 
 """
 
-__all__ = [ 'application',
-            'association',
-            'chandlerDirectory',
-            'repository',
-            'jabberClient',
-            'wxMainFrame' ]
-
-
-agentManager = None           # AgentManager
-notificationManager = None    # NotificationManager
+# Used only by application (the old version), so should go away.
 application = None            # The wxApplication object
+wxMainFrame = None            # Active wxChandlerWindow
+
 association = {}              # A dictionary mapping persistent object ids
                               #    to non-persistent wxPython counterparts
+agentManager = None           # AgentManager
 chandlerDirectory = None      # Directory containing chandler executable
-repository = None             # The repository
 jabberClient = None           # State of jabber client including presence dictionary
-wxMainFrame = None            # Active wxChandlerWindow
+notificationManager = None    # NotificationManager
+repository = None             # The repository
+topDocument = None            # The topmost Document
+
 

@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import gettext, os, sys
 from wxPython.wx import *
-import Globals, ChandlerJabber
+import Globals
 import repository.parcel.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
 from repository.persistence.XMLRepository import XMLRepository
@@ -154,6 +154,7 @@ class wxApplicationNew (wxApp):
         Globals.agentManager.Startup()
 
         #allocate the Jabber client, logging in if possible
+        #import ChandlerJabber
         # Globals.jabberClient = ChandlerJabber.JabberClient(self)
         
         # Globals.jabberClient.Login()

@@ -1,4 +1,5 @@
 
+import application.Globals as Globals
 from Block import Block
 from wxPython.wx import *
 from wxPython.gizmos import *
@@ -45,6 +46,12 @@ class Font(wxFont):
 class ContainerChild(Block):
     def Render (self, parent, parentWindow):
         (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
+        """
+          Store the wxWindows version of the object in the association, so
+        given the block we can find the associated wxWindows object.
+        """
+        assert (not Globals.association.has_key(self.getUUID()))
+        Globals.association[self.getUUID()] = parent
         for child in self.childrenBlocks:
             child.Render (parent, parentWindow)
 
