@@ -130,7 +130,15 @@ class JabberClient:
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             #self.Logout()
- 
+
+    # return all the status info about a given ID
+    def GetStatusInfo(self, jabberID):
+        name = self.roster.getName(jabberID)
+        status = roster.getStatus(id)
+        isOnline = roster.isOnline(id)
+    
+        return (name, status, isOnline)
+    
     # dump the roster, mainly for debugging
     def DumpRoster(self):
         print "resources ", self.resourceMap
@@ -158,7 +166,35 @@ class JabberClient:
         if self.connection != None:
             self.connection.process(0)			
             print "process idle"
+
+    # return a list of all the jabber_ids in the roster, with the
+    # active ones first.
+    # optionally, filter for Chandler clients only
+    def GetRosterIDs(self, chandlerOnly):
+        if self.connection == None:
+            return []
+
+        self.roster = self.connection.requestRoster()
+        ids = self.roster.getJIDs()
+        activeIDs = []
+        inactiveIDs = []
+        
+        for id in ids:
+            basicID = id.getStripped()
+            if chandlerOnly:
+                if not self.IsChandlerClient(id):
+                    continue
+                    
+            if self.roster.getOnline(id) == 'online':
+                activeIds.append(id)		
+            else:
+                inactiveIDs.append(id)
+        
+        for id in inactiveIDs:
+            activeIDs.append(id)
             
+        return activeIds
+        
     # return the list of jabber_ids of online members of roster
     # optionally, filter for Chandler clients only
     def GetActiveIDs(self, chandlerOnly):
