@@ -24,7 +24,7 @@
 
   <!-- ItemCollections -->
   <contentModel:ItemCollection itsName="calendarItemCollection">
-    <displayName>Calendar</displayName>
+    <displayName>Calendar Demo</displayName>
     <_rule value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
   </contentModel:ItemCollection>
 
