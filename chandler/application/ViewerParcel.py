@@ -53,7 +53,7 @@ class ViewerParcel (Parcel):
         
     Install = classmethod (Install)
 
-    def synchronizeView (self):
+    def SynchronizeView (self):
         wxMainFrame = app.association[id(app.model.mainFrame)]
         """
           If it isn't in the association we need to construct it and
@@ -98,6 +98,7 @@ class ViewerParcel (Parcel):
         if len (children) == 0 or children[0] != panel:
             for window in children:
                 if hasattr (window, "model"):
+                    app.association[id(window.model)].deactivate()
                     del app.association[id(window.model)]
             container.DestroyChildren ()
             """
@@ -105,6 +106,7 @@ class ViewerParcel (Parcel):
             which was temporarily hidden
             """
             app.applicationResources.AttachUnknownControl("ViewerParcel", panel)
+            panel.activate()
             panel.Show ()
 
 class wxViewerParcel(wxPanel):
@@ -130,3 +132,40 @@ class wxViewerParcel(wxPanel):
         self.resources = resources
         self.OnInit()
 
+    def activate(self):
+        """
+          Override to do tasks that need to happen just before your parcel is
+        displayed.
+        """
+        self.addViewParcelMenu ()
+    
+    def deactivate(self):
+        """
+          Override to do tasks that need to happen just before your parcel is
+        replaced with anoter.
+        """
+        self.removeViewParcelMenu ()
+    
+    def getMenuName(self):
+        """
+          Override to customize your parcel menu name.
+        """
+        return (self.model.displayName)
+
+    def removeViewParcelMenu(self):
+        menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
+        index = menuBar.FindMenu (self.getMenuName())
+        if index != wxNOT_FOUND:
+            oldMenu = menuBar.Remove (index)
+            del oldMenu
+
+    def addViewParcelMenu(self):
+        ignoreErrors = wxLogNull ()
+        viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
+        del ignoreErrors
+        if (viewerParcelMenu != None):
+            menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
+            index = menuBar.FindMenu (_('View'))
+            assert (index != wxNOT_FOUND)
+            menuBar.Insert (index + 1, viewerParcelMenu, self.getMenuName())
+            

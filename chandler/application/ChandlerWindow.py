@@ -109,11 +109,11 @@ class wxChandlerWindow(wxFrame):
     if __debug__:
         def OnToggleDebugMenu(self, event):
             menuBar = self.GetMenuBar ()
-            index = menuBar.FindMenu ('Debug')
+            index = menuBar.FindMenu (_('Debug'))
             if index == wxNOT_FOUND:
                 applicationResources = application.Application.app.applicationResources
                 debugMenu = applicationResources.LoadMenu ('DebugMenu')
-                menuBar.Append (debugMenu, 'Debug')
+                menuBar.Append (debugMenu, _('Debug'))
             else:
                 oldMenu = menuBar.Remove (index)
                 del oldMenu

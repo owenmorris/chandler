@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
 
-import os, sys, stat
+import os, sys, stat, gettext
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
@@ -28,7 +28,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 5
+    VERSION = 6
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -120,7 +120,8 @@ class wxApplication (wxApp):
         app = self;
 
         wxInitAllImageHandlers()
-        
+        gettext.install('Chandler')
+
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         resourceFile = "application" +\
                        os.sep + "application.xrc"
@@ -176,7 +177,7 @@ class wxApplication (wxApp):
                 """
                 assert (hasattr (parcel, 'displayName'))
                 if parcel.displayName == 'Calendar':
-                    parcel.synchronizeView ()
+                    parcel.SynchronizeView ()
                     return
         
         def OnTest2 (self, event):
@@ -186,7 +187,7 @@ class wxApplication (wxApp):
                 """
                 assert (hasattr (parcel, 'displayName'))
                 if parcel.displayName == 'Contacts':
-                    parcel.synchronizeView ()
+                    parcel.SynchronizeView ()
                     return
         
         def OnTest3 (self, event):
@@ -196,7 +197,7 @@ class wxApplication (wxApp):
                 """
                 assert (hasattr (parcel, 'displayName'))
                 if parcel.displayName == 'Test':
-                    parcel.synchronizeView ()
+                    parcel.SynchronizeView ()
                     return
         
     def OnQuit(self, event):
