@@ -178,9 +178,9 @@ class FileRepository(Repository):
         out.write('\n')
         out.close()
 
-    def createRefDict(self, item, name, otherName, ordered=False):
+    def createRefDict(self, item, name, otherName):
 
-        return FileRefDict(item, name, otherName, ordered)
+        return FileRefDict(item, name, otherName)
     
     def addTransaction(self, item):
 

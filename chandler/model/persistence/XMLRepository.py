@@ -146,7 +146,7 @@ class XMLRepository(OnDemandRepository):
         else:
             if args.get('verbose'):
                 print 'Saving', item.getItemPath()
-            
+
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
             generator.startDocument()
@@ -165,12 +165,13 @@ class XMLRepository(OnDemandRepository):
             print 'Removing', item.getItemPath()
             
         container = args['container']
-        for oldDoc in container.loadItem(item.getUUID()):
+        oldDoc = container.loadItem(item.getUUID())
+        if oldDoc is not None:
             container.deleteDocument(oldDoc)
 
-    def createRefDict(self, item, name, otherName, ordered=False):
+    def createRefDict(self, item, name, otherName):
 
-        return XMLRefDict(self, item, name, otherName, ordered)
+        return XMLRefDict(self, item, name, otherName)
 
     def addTransaction(self, item):
 
@@ -334,14 +335,14 @@ class XMLRefDict(RefDict):
                 super(XMLRefDict._log, self).append(value)
 
 
-    def __init__(self, repository, item, name, otherName, ordered):
+    def __init__(self, repository, item, name, otherName):
         
         self._log = XMLRefDict._log()
         self._item = None
         self._uuid = UUID()
         self._repository = repository
 
-        super(XMLRefDict, self).__init__(item, name, otherName, ordered)
+        super(XMLRefDict, self).__init__(item, name, otherName)
 
     def _changeRef(self, key):
 
@@ -374,15 +375,12 @@ class XMLRefDict(RefDict):
             raise NotImplementedError, "refName: %s, type: %s" %(key,
                                                                  type(key))
 
-        if self._ordered:
-            self._value.truncate(0)
-            self._value.seek(0)
-            self._value.write(uuid._uuid)
-            self._writeValue(previous)
-            self._writeValue(next)
-            value = self._value.getvalue()
-        else:
-            value = uuid._uuid
+        self._value.truncate(0)
+        self._value.seek(0)
+        self._value.write(uuid._uuid)
+        self._writeValue(previous)
+        self._writeValue(next)
+        value = self._value.getvalue()
             
         self._repository._refs.put(self._key.getvalue(), value)
 
@@ -412,7 +410,7 @@ class XMLRefDict(RefDict):
             return UUID(self._value.read(16))
 
         if code == '\1':
-            len = ('>H', self._value.read(2))
+            len, = unpack('>H', self._value.read(2))
             return self._value.read(len)
 
         if code == '\2':
@@ -451,17 +449,14 @@ class XMLRefDict(RefDict):
             else:
                 refName = val[0][33:]
 
-            if self._ordered:
-                self._value.truncate(0)
-                self._value.seek(0)
-                self._value.write(val[1])
-                self._value.seek(0)
-                uuid = UUID(self._value.read(16))
-                previous = self._readValue()
-                next = self._readValue()
-                yield (refName, uuid, previous, next)
-            else:
-                yield (refName, UUID(val[1]))
+            self._value.truncate(0)
+            self._value.seek(0)
+            self._value.write(val[1])
+            self._value.seek(0)
+            uuid = UUID(self._value.read(16))
+            previous = self._readValue()
+            next = self._readValue()
+            yield (refName, uuid, previous, next)
                 
             val = cursor.next()
 
@@ -484,8 +479,7 @@ class XMLRefDict(RefDict):
         self._key.write(uItem._uuid)
         self._key.write(uuid._uuid)
 
-        if self._ordered:
-            self._value = cStringIO.StringIO()
+        self._value = cStringIO.StringIO()
             
     def _xmlValues(self, generator, mode):
 
@@ -498,14 +492,9 @@ class XMLRefDict(RefDict):
     
                 if entry[0] == 0:
                     if value is not None:
-                        if self._ordered:
-                            ref = value._value
-                            previous = value._previous
-                            next = value._next
-                        else:
-                            ref = value
-                            previous = None
-                            next = None
+                        ref = value._value
+                        previous = value._previousKey
+                        next = value._nextKey
     
                         uuid = ref.other(self._item).getUUID()
                         self._writeRef(entry[1], uuid, previous, next)

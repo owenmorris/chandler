@@ -26,17 +26,19 @@ class LinkedMap(dict):
 
             if nextKey is None:
                 linkedMap._lastKey = key
+                linkedMap.linkChanged(self, None)
 
             self._nextKey = nextKey
-            linkedMap.linkChanged(self)
+            linkedMap.linkChanged(self, key)
 
         def _setPrevious(self, previousKey, key, linkedMap):
 
             if previousKey is None:
                 linkedMap._firstKey = key
+                linkedMap.linkChanged(self, None)
                 
             self._previousKey = previousKey
-            linkedMap.linkChanged(self)
+            linkedMap.linkChanged(self, key)
 
 
     def __init__(self, dictionary=None):
@@ -63,7 +65,7 @@ class LinkedMap(dict):
         finally:
             buffer.close()
 
-    def linkChanged(self, link):
+    def linkChanged(self, link, key):
         pass
 
     def update(self, dictionary):
@@ -71,12 +73,12 @@ class LinkedMap(dict):
         for key, value in dictionary.iteritems():
             self[key] = value
 
-    def _get(self, key):
+    def _get(self, key, load=True):
 
         try:
             return super(LinkedMap, self).__getitem__(key)
         except KeyError:
-            if self._load(key):
+            if load and self._load(key):
                 return super(LinkedMap, self).__getitem__(key)
             raise
 
@@ -88,25 +90,32 @@ class LinkedMap(dict):
 
         return LinkedMap.link(value)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key, load=True):
 
-        return self._get(key)._value
+        return self._get(key, load)._value
 
     def __setitem__(self, key, value, previousKey=None, nextKey=None):
 
-        link = self._makeLink(value)
+        link = super(LinkedMap, self).get(key)
 
-        if previousKey is None and nextKey is None:
-            previousKey = self._lastKey
-            if previousKey is not None and previousKey != key:
-                self._get(previousKey)._setNext(key, previousKey, self)
+        if link is not None:
+            link._value = value
+            self.linkChanged(link, key)
 
-        if previousKey is None or previousKey != key:
-            link._setPrevious(previousKey, key, self)
-        if nextKey is None or nextKey != key:
-            link._setNext(nextKey, key, self)
+        else:
+            link = self._makeLink(value)
 
-        return super(LinkedMap, self).__setitem__(key, link)
+            if previousKey is None and nextKey is None:
+                previousKey = self._lastKey
+                if previousKey is not None and previousKey != key:
+                    self._get(previousKey)._setNext(key, previousKey, self)
+
+            if previousKey is None or previousKey != key:
+                link._setPrevious(previousKey, key, self)
+            if nextKey is None or nextKey != key:
+                link._setNext(nextKey, key, self)
+
+            super(LinkedMap, self).__setitem__(key, link)
 
     def place(self, key, afterKey=None):
         "Move a key in this collection after another one."
@@ -168,10 +177,20 @@ class LinkedMap(dict):
                 
         super(LinkedMap, self).__delitem__(key)
 
-    def get(self, key, default=None):
+    def has_key(self, key, load=True):
+
+        has = super(LinkedMap, self).has_key(key)
+        if not has and load and self._load(key):
+            has = super(LinkedMap, self).has_key(key)
+
+        return has
+
+    def get(self, key, default=None, load=True):
 
         link = super(LinkedMap, self).get(key, default)
-
+        if link is default and load and self._load(key):
+            link = super(LinkedMap, self).get(key, default)
+            
         if link is not default:
             return link._value
 

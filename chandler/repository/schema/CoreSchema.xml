@@ -1563,10 +1563,10 @@
 
 
 <!-- Polyglot String -->
-  <Attribute itemName="core:langaugeStrings">
+  <Attribute itemName="core:languageStrings">
     <displayName>strings</displayName>
     <description>this is like a Python dictionary, with string translations keyed by language</description>
-    <cardinality>dict</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="core:UnicodeString"/>
   </Attribute>
 
@@ -1577,7 +1577,7 @@
       A Polyglot String represents a collection of related strings, with one string for each Language that the string has been translated into.
     </description>
     <superKinds itemref="core:Item"/>
-    <attributes itemref="core:langaugeStrings"/>
+    <attributes itemref="core:languageStrings"/>
   </Kind>
 
 </DomainSchema>

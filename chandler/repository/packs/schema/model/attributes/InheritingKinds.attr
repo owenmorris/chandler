@@ -5,7 +5,7 @@
   <kind type="path">//Schema/Model/Kinds/Attribute</kind>
   <class module="model.schema.Attribute">Attribute</class>
 
-  <attribute name="cardinality">dict</attribute>
+  <attribute name="cardinality">list</attribute>
   <attribute name="persist" type="bool">False</attribute>
   <attribute name="otherName">inheritedAttributes</attribute>
 </item>

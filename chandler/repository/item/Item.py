@@ -173,13 +173,13 @@ class Item(object):
             otherName = self._otherName(name)
             card = self.getAttributeAspect(name, 'cardinality', 'single')
 
-            if card == 'dict' or card == 'list':
-                refs = self._refDict(name, otherName, card == 'list')
+            if card == 'single':
+                value = ItemRef(self, name, value, otherName)
+            else:
+                refs = self._refDict(name, otherName)
                 value = ItemRef(self, name, value, otherName)
                 refs[value._getItem().refName(name)] = value
                 value = refs
-            else:
-                value = ItemRef(self, name, value, otherName)
 
             self._references[name] = value
 
@@ -312,20 +312,15 @@ class Item(object):
 
     def check(self):
 
-        for ref in self.iterAttributes(referencesOnly=True):
-            if isinstance(ref[1], RefDict):
-                refDict = ref[1]
-                if refDict._ordered:
-                    l = len(refDict)
-                    for other in refDict:
-                        l -= 1
-                        if l < 0:
-                            break;
-                    if l != 0:
-                        raise ValueError, "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self.getItemPath(), ref[0], l, len(refDict))
-                else:
-                    for other in refDict:
-                        pass
+        for key, value in self.iterAttributes(referencesOnly=True):
+            if isinstance(value, RefDict):
+                l = len(value)
+                for other in value:
+                    l -= 1
+                    if l < 0:
+                        break
+                if l != 0:
+                    raise ValueError, "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self.getItemPath(), key, l, len(value))
         
     def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'
@@ -384,7 +379,7 @@ class Item(object):
             elif card == 'list':
                 if isItem:
                     attrValue = self._refDict(attribute,
-                                              self._otherName(attribute), True)
+                                              self._otherName(attribute))
                 else:
                     _attrDict[attribute] = [ value ]
                     return
@@ -685,7 +680,7 @@ class Item(object):
         self._kind = kind
 
         if self._kind is not None:
-            ref = ItemRef(self, 'kind', self._kind, 'items', 'dict')
+            ref = ItemRef(self, 'kind', self._kind, 'items', 'list')
             self._references['kind'] = ref
 
     def getRepository(self):
@@ -728,10 +723,7 @@ class Item(object):
         if self.__dict__.has_key('_children'):
 
             loading = self.getRepository().isLoading()
-            if loading:
-                current = self._children.get(name)
-            else:
-                current = self.getItemChild(name)
+            current = self.getItemChild(name, not loading)
                 
             if current is not None:
                 if loading:
@@ -743,8 +735,7 @@ class Item(object):
 
         self._children.__setitem__(name, item, previous, next)
 
-        if (self.__dict__.has_key('_notChildren') and
-            self._notChildren.has_key(name)):
+        if '_notChildren' in self.__dict__ and name in self._notChildren:
             del self._notChildren[name]
             
         return self._root
@@ -758,7 +749,7 @@ class Item(object):
 
         child = None
         if self.__dict__.has_key('_children'):
-            child = self._children.get(name)
+            child = self._children.get(name, None, False)
 
         if load and child is None:
             hasNot = self.__dict__.has_key('_notChildren')
@@ -888,7 +879,7 @@ class Item(object):
         else:
             parentID = self.getRepository().ROOT_ID.str64()
 
-        if self.__dict__.has_key('_children'):
+        if '_children' in self.__dict__:
             children = self._children
             if children._firstKey is not None:
                 attrs['first'] = children._firstKey
@@ -908,25 +899,24 @@ class Item(object):
 
     def _xmlAttrs(self, generator, withSchema, mode):
 
-        for attr in self._values.iteritems():
-            if self.getAttributeAspect(attr[0], 'persist', True):
-                attrType = self.getAttributeAspect(attr[0], 'type')
-                attrCard = self.getAttributeAspect(attr[0], 'cardinality',
+        for key, value in self._values.iteritems():
+            if self.getAttributeAspect(key, 'persist', True):
+                attrType = self.getAttributeAspect(key, 'type')
+                attrCard = self.getAttributeAspect(key, 'cardinality',
                                                    'single')
-                ItemHandler.xmlValue(attr[0], attr[1], 'attribute',
+                ItemHandler.xmlValue(key, value, 'attribute',
                                      attrType, attrCard, generator,
                                      withSchema)
 
     def _xmlRefs(self, generator, withSchema, mode):
 
-        for attr in self._references.iteritems():
-            if self.getAttributeAspect(attr[0], 'persist', True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
+        for key, value in self._references.iteritems():
+            if self.getAttributeAspect(key, 'persist', True):
+                value._xmlValue(key, self, generator, withSchema, mode)
 
-    def _refDict(self, name, otherName, ordered=False):
+    def _refDict(self, name, otherName):
 
-        return self.getRepository().createRefDict(self, name,
-                                                  otherName, ordered)
+        return self.getRepository().createRefDict(self, name, otherName)
         
 
     def loadClass(cls, name, module=None):
@@ -971,9 +961,12 @@ class Children(LinkedMap):
         super(Children, self).__init__(dictionary)
         self._item = item
         
-    def linkChanged(self, link):
+    def linkChanged(self, link, key):
 
-        self._item.setDirty()
+        if key is None:
+            self._item.setDirty()
+        else:
+            link._value.setDirty()
     
     def __repr__(self):
 

@@ -44,9 +44,9 @@ class RemoteRepository(OnDemandRepository):
     def commit(self, purge=False, verbose=False):
         pass
     
-    def createRefDict(self, item, name, otherName, ordered=False):
+    def createRefDict(self, item, name, otherName):
 
-        return RefDict(item, name, otherName, ordered)
+        return RefDict(item, name, otherName)
     
     def addTransaction(self, item):
 

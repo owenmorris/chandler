@@ -46,13 +46,13 @@
 
   <Attribute itemName="cal:participant">
     <displayName>Participant</displayName>
-    <cardinality>dict</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="contacts:ContactEntity"/>
   </Attribute>
 
   <Attribute itemName="cal:participatingIn">
     <displayName>Participating In</displayName>
-    <cardinality>dict</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
   </Attribute>
 
@@ -65,7 +65,7 @@
 
   <Attribute itemName="cal:eventsAtLocation">
     <displayName>Calendar Events</displayName>
-    <cardinality>dict</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
     <inverseAttribute itemref="cal:location"/>
   </Attribute>

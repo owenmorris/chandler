@@ -106,9 +106,9 @@ class ItemHandler(xml.sax.ContentHandler):
 
             if cardinality != 'single':
                 otherName = self.getOtherName(name, attribute, attrs)
-                ordered = cardinality == 'list'
-                refDict = self.repository.createRefDict(None, name, otherName,
-                                                        ordered)
+                if cardinality == 'dict':
+                    print "Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead" %(name, self.name)
+                refDict = self.repository.createRefDict(None, name, otherName)
                 self.collections.append(refDict)
 
     def itemStart(self, itemHandler, attrs):
@@ -291,13 +291,9 @@ class ItemHandler(xml.sax.ContentHandler):
         otherCard = self.tagAttrs[-1].get('otherCard', None)
 
         for ref in refDict._dbRefs():
-            if refDict._ordered:
-                args = RefArgs(refDict._name, ref[0], ref[1],
-                               refDict._otherName, otherCard, refDict,
-                               ref[2], ref[3])
-            else:
-                args = RefArgs(refDict._name, ref[0], ref[1],
-                               refDict._otherName, otherCard, refDict)
+            args = RefArgs(refDict._name, ref[0], ref[1],
+                           refDict._otherName, otherCard, refDict,
+                           ref[2], ref[3])
 
             self.refs.append(args)
 

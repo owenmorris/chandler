@@ -8,10 +8,10 @@
     <class module="model.schema.Kind">Kind</class>
 
     <ref name="kind" otherName="items" 
-         type="path" otherCard="dict">/Model/Kinds/Kind</ref>
+         type="path" otherCard="list">/Model/Kinds/Kind</ref>
 
     <ref name="attributes" otherName="kinds"
-         cardinality="dict" otherCard="dict">
+         cardinality="list" otherCard="list">
       <ref type="path">/Model/Attributes/superKinds</ref>
       <ref type="path">/Model/Attributes/subKinds</ref>
       <ref type="path">/Model/Attributes/items</ref>
@@ -26,7 +26,7 @@
     </ref>
 
     <ref name="superKinds" cardinality="list"
-         otherName="subKinds" otherCard="dict">
+         otherName="subKinds" otherCard="list">
       <ref type="path">/Model/Kinds/Taxon</ref>
     </ref>
 
@@ -43,12 +43,12 @@
     <parent type="path">//Schema/Model/Kinds/Kind</parent>
 
     <ref name="kinds" otherName="attributes"
-         cardinality="dict" otherCard="dict">
+         cardinality="list" otherCard="list">
       <ref type="path">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="dict">/Model/Types/Symbol</ref>
+         type="path" otherCard="list">/Model/Types/Symbol</ref>
 
     <attribute name="cardinality">list</attribute>
     <attribute name="persist" type="bool">False</attribute>
@@ -61,11 +61,11 @@
     <parent type="path">//Schema/Model/Kinds/Kind</parent>
 
     <ref name="kinds" otherName="attributes"
-         cardinality="dict" otherCard="dict">
+         cardinality="list" otherCard="list">
       <ref type="path">..</ref>
     </ref>
 
-    <attribute name="cardinality">dict</attribute>
+    <attribute name="cardinality">list</attribute>
     <attribute name="persist" type="bool">False</attribute>
     <attribute name="otherName">inheritingKinds</attribute>
   </item>
@@ -77,12 +77,12 @@
     <parent type="path">//Schema/Model/Kinds/Kind</parent>
 
     <ref name="kinds" otherName="attributes"
-         cardinality="dict" otherCard="dict">
+         cardinality="list" otherCard="list">
       <ref type="path">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="dict">/Model/Types/UUID</ref>
+         type="path" otherCard="list">/Model/Types/UUID</ref>
 
     <attribute name="cardinality">dict</attribute>
     <attribute name="persist" type="bool">False</attribute>

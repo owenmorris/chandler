@@ -53,7 +53,7 @@ class Repository(object):
     def commit(self, purge=False):
         raise NotImplementedError, "Repository.commit"
     
-    def createRefDict(self, item, name, otherName, ordered=False):
+    def createRefDict(self, item, name, otherName):
         raise NotImplementedError, "Repository.createRefDict"
     
     def addTransaction(self, item):
@@ -122,7 +122,7 @@ class Repository(object):
 
     def hasRoot(self, name, load=True):
 
-        return self._roots.has_key(name)
+        return self.getRoot(name, load) is not None
 
     def getRoot(self, name, load=True):
         'Return the root as named or None if not found.'

@@ -5,7 +5,7 @@
   <kind type="path">//Schema/Model/Kinds/Kind</kind>
   <class module="model.schema.Kind">Kind</class>
 
-  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+  <ref name="attributes" otherName="kinds" cardinality="list" otherCard="list">
     <ref type="path">/Model/Attributes/displayName</ref>
     <ref type="path">/Model/Attributes/description</ref>
     <ref type="path">/Model/Attributes/typeFor</ref>
@@ -13,7 +13,7 @@
   </ref>
 
   <ref name="superKinds" cardinality="list"
-       otherName="subKinds" otherCard="dict">
+       otherName="subKinds" otherCard="list">
     <ref type="path">/Model/Kinds/Item</ref>
   </ref>
 </item>
