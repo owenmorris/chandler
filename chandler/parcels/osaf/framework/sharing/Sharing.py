@@ -1696,10 +1696,7 @@ def manualSubscribeToCollection(view):
 
     collection = share.contents
     mainView = Globals.views[0]
-    mainView.postEventByName("AddToSidebarWithoutCopying", {'items':[collection]})
-    view.commit()
-    mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-    mainView.postEventByName('SelectItemBroadcastInsideActiveView', {'item':collection})
+    mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
 
 def manualPublishCollection(view, collection):
     share = getShare(collection)
@@ -1757,13 +1754,7 @@ def loadDemoCalendar(view):
         share.get()
         collection = share.contents
         mainView = Globals.views[0]
-        mainView.postEventByName("AddToSidebarWithoutCopying",
-                                 {'items':[collection]})
-        view.commit()
-        mainView.postEventByName('RequestSelectSidebarItem',
-                                 {'item':collection})
-        mainView.postEventByName('SelectItemBroadcastInsideActiveView',
-                                 {'item':collection})
+        mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
     except SharingError, err:
         msg = "Error: %s" % err.message
         application.dialogs.Util.ok(wx.GetApp().mainFrame, "Error", msg)

@@ -64,21 +64,25 @@ application specific parcels here</description>
   <BlockEvent itsName="Copy">
     <blockName>Copy</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="Cut">
     <blockName>Cut</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="Remove">
     <blockName>Remove</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="New">
     <blockName>New</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="Open">
@@ -89,6 +93,7 @@ application specific parcels here</description>
   <BlockEvent itsName="Paste">
     <blockName>Paste</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="Preferences">

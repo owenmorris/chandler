@@ -1008,10 +1008,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
         mainView = application.Globals.views[0]
-        mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
-        self.itsView.commit()
-        mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-        mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+        mainView.postEventByName ("AddToSidebarWithoutCopyingAndSelect", {'items':[collection]})
 
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.

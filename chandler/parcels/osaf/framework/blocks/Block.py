@@ -308,11 +308,32 @@ class Block(Item):
                     operation = 'add'
                 else:
                     operation = 'remove'
+            if operation == 'add':
+                if event.disambiguateItemNames:
+                    displayName = item.displayName
+                    newDisplayName = displayName
+                    suffix = 1;
+                    while True:
+                        for contentsItem in self.contents:
+                            if contentsItem.displayName == newDisplayName:
+                                newDisplayName = displayName + u'-' + unicode (suffix)
+                                suffix += 1
+                                break
+                        else:
+                            break
+                    if displayName != newDisplayName:
+                        item.displayName = newDisplayName
+                if not event.arguments.has_key ('item'):
+                    event.arguments ['item'] = item
+
             method = getattr (type(self.contents), operation)
             method (self.contents, item)
 
+        assert not event.arguments.has_key ('item')
         if event.copyItems:
             userdata = self.findPath('//userdata')
+
+        assert (event.copyItems or not event.disambiguateItemNames), "Can't disabiguate names unless items are copied"
 
         for item in event.items:
             modifyContents (item)
@@ -323,7 +344,6 @@ class Block(Item):
         else:
             for item in items:
                 modifyContents (item)
-        self.itsView.commit()
 
     def synchronizeWidget (self):
         """
@@ -425,7 +445,6 @@ class Block(Item):
         return block.frame
 
     def dispatchEvent (theClass, event):
-
         
         def callMethod(block, methodName, event):
             """
@@ -504,7 +523,7 @@ class Block(Item):
         try:
             updateUI = event.arguments['UpdateUI']
         except KeyError:
-            pass
+            updateUI = False
         else:
             methodName += 'UpdateUI'
 
@@ -560,6 +579,9 @@ class Block(Item):
 
         elif __debug__:
             assert (False)
+
+        if (not updateUI) and event.commitAfterDispatch:
+            wx.GetApp().UIRepositoryView.commit()
     dispatchEvent = classmethod (dispatchEvent)
 
     # event profiler (class attributes)

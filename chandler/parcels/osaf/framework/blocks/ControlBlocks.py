@@ -884,6 +884,12 @@ class Table (RectangularChild):
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
 
+    def onModifyContentsEvent(self, event):
+        super (Table, self).onModifyContentsEvent (event)
+        if event.selectFirstItem:
+            self.onSelectItemEvent (event)
+            self.postEventByName ('SelectItemBroadcast', {'item':event.arguments ['item']})
+
     def onRemoveEvent (self, event):
         self.widget.DeleteSelection()
         

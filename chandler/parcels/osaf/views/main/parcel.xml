@@ -32,6 +32,25 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <copyItems>False</copyItems>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </ModifyContentsEvent>
+
+  <ModifyContentsEvent itsName="AddToSidebarWithoutCopyingOrCommiting">
+    <blockName>AddToSidebarWithoutCopyingOrCommiting</blockName>
+    <methodName>onModifyContentsEvent</methodName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <copyItems>False</copyItems>
+  </ModifyContentsEvent>
+
+  <ModifyContentsEvent itsName="AddToSidebarWithoutCopyingAndSelectFirst">
+    <blockName>AddToSidebarWithoutCopyingAndSelectFirst</blockName>
+    <methodName>onModifyContentsEvent</methodName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <copyItems>False</copyItems>
+    <selectFirstItem>True</selectFirstItem>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
 
   <BlockEvent itsName="EditAccountPreferences">
@@ -46,6 +65,7 @@
     <methodName>onNewEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewContact">
@@ -54,6 +74,7 @@
     <methodName>onNewEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </KindParameterizedEvent>
 
   <ModifyContentsEvent itsName="NewItemCollection">
@@ -62,12 +83,16 @@
     <items itemref="doc:untitledItemCollection"/>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <disambiguateItemNames>True</disambiguateItemNames>
+    <selectFirstItem>True</selectFirstItem>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
 
   <BlockEvent itsName="NewZaoBaoChannelEvent">
     <blockName>NewZaoBaoChannel</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
   
   <KindParameterizedEvent itsName="NewMailMessage">
@@ -76,6 +101,7 @@
     <methodName>onNewEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewNote">
@@ -84,6 +110,7 @@
     <methodName>onNewEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewTask">
@@ -92,6 +119,7 @@
     <methodName>onNewEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </KindParameterizedEvent>
 
   <BlockEvent itsName="RequestSelectSidebarItem">
@@ -155,6 +183,7 @@
     <blockName>ShareItem</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="ReminderTime">
@@ -172,6 +201,7 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="repository:CPIAView"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddDemoView">
@@ -180,6 +210,7 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
     
   <ModifyContentsEvent itsName="AddRepositoryView">
@@ -188,6 +219,7 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:RepositoryView"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddCPIAView">
@@ -196,6 +228,7 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:CPIAView"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
     
   <BlockEvent itsName="ChangeLayout">
@@ -213,6 +246,7 @@
     <blockName>ImportIcalendar</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
  <BlockEvent itsName="ExportIcalendar">
@@ -231,6 +265,7 @@
     <blockName>GenerateContentItems</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="StartProfiler">
@@ -249,6 +284,7 @@
     <blockName>GetNewMail</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="MimeTest">
@@ -297,6 +333,7 @@
     <blockName>EditCollectionRule</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="ShowPyCrust">
@@ -1175,6 +1212,8 @@
     <eventsForNamedDispatch itemref="doc:SendMail"/>
     <eventsForNamedDispatch itemref="doc:ShareItem"/>
     <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>
@@ -1328,6 +1367,8 @@
     <eventsForNamedDispatch itemref="doc:SendMail"/>
     <eventsForNamedDispatch itemref="doc:ShareItem"/>
     <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>

@@ -169,7 +169,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
             break
         
     if postToView is not None:
-        postToView.postEventByName ('AddToSidebarWithoutCopying', {'items': [ collection ] })
+        postToView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
     return collection
 
 

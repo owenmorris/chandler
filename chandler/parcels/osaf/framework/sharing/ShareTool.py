@@ -102,11 +102,7 @@ class ShareToolDialog(wx.Dialog):
             share.get()
             collection = share.contents
             mainView = Globals.views[0]
-            mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
-            self.view.commit()
-            # ...and selecting that view in the sidebar
-            mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-            mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+            mainView.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
         self._populateSharesList()
 
     def OnEditShare(self, evt):

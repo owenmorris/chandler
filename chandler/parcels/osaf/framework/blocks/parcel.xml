@@ -207,6 +207,11 @@
       <initialValue type="docSchema:BlockEvent/dispatchEnumType">SendToBlockByReference</initialValue>
     </Attribute>
 
+    <Attribute itsName="commitAfterDispatch">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">False</initialValue>
+    </Attribute>
+
     <Attribute itsName="destinationBlockReference">
       <type itemref="docSchema:Block"/>
     </Attribute>
@@ -285,6 +290,16 @@
     <Attribute itsName="copyItems">
       <type itemref="Boolean"/>
       <initialValue type="Boolean">True</initialValue>
+    </Attribute>
+
+    <Attribute itsName="selectFirstItem">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">False</initialValue>
+    </Attribute>
+
+    <Attribute itsName="disambiguateItemNames">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Cloud itsName="DefaultCloud">
