@@ -4,9 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import OSAF.framework.utils.indexer as indexer
 import Queue
-import re
 import threading
 import types
 
@@ -23,8 +21,7 @@ class NotSubscribed(Exception):
 class NotificationManager(object):
     def __init__(self):
         super(NotificationManager, self).__init__()
-        # XXX Ideally declIndex and declarations would be the same object
-        self.__declIndex = indexer.getIndex('events')
+        # XXX Ideally declarations would be a 'live' query
         self.declarations = LockableDict()
         self.subscriptions = LockableDict()
 
@@ -33,12 +30,14 @@ class NotificationManager(object):
         """ Start up the Notification Manager """
         self.declarations.acquire()
         try:
-            for item in self.__declIndex.items:
+            from repository.item.Query import KindQuery
+            eventKind = Globals.repository.find('//parcels/OSAF/framework/notifications/schema/Event')
+            for item in KindQuery().run([eventKind]):
                 self.declarations[item.getUUID()] = Declaration(item)
         finally:
             self.declarations.release()
 
-    def Subscribe(self, name, clientID, callback = None, *args):
+    def Subscribe(self, events, clientID, callback = None, *args):
         # make a subscription object
         self.subscriptions.acquire()
         try:
@@ -49,11 +48,11 @@ class NotificationManager(object):
             
         self.declarations.acquire()
         try:
-            if type(name) != types.ListType:
-                name = [name]
+            if type(events) != types.ListType:
+                events = [events]
             decls = []
-            for n in name:
-                decls.append(self.declarations[n.getUUID()])
+            for e in events:
+                decls.append(self.declarations[e.getUUID()])
 
             #print decls
 
@@ -73,19 +72,19 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
-    def Unsubscribe(self, name, clientID):
+    def Unsubscribe(self, event, clientID):
         # this function doesn't work correctly right now
         return
     
         self.declarations.acquire()
         try:
-            if not self.declarations.has_key(name):
-                raise NotDeclared, '%s %s' % (name, clientID)
+            if not self.declarations.has_key(event):
+                raise NotDeclared, '%s %s' % (event, clientID)
 
             # eventually if the subscriber isn't subscribed to anything
             # we should remove it from self.subscribers as well
             try:
-                del self.declarations[name].subscribers[clientID]
+                del self.declarations[event].subscribers[clientID]
             except KeyError:
                 # throw something here
                 return
