@@ -715,7 +715,7 @@ class ToolbarItem (Block.Block, DynamicChild):
         # splice in the tool as this item's widget
         # this isn't done automatically since ToolbarItems don't use
         # instantiateWidget
-        # DLDTBD - figure out a way to have the block instantiate a widget
+        # @@@DLD - figure out a way to have the block instantiate a widget
         # without having it show up anywhere until it gets added to the Toolbar.
         if tool is not None:
             self.widget = tool

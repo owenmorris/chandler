@@ -280,7 +280,7 @@ class MainView(View):
         sharedCollections = self.sharedWebDAVCollections ()
         enable = accountOK and len (sharedCollections) > 0
         notification.data ['Enable'] = enable
-        # DLDTBD set up the help string to let the user know why it's disabled
+        # @@@DLD set up the help string to let the user know why it's disabled
 
     def webDAVAccountIsSetup (self):
         # return True iff the webDAV account is set up
@@ -288,7 +288,7 @@ class MainView(View):
         
     def sharedWebDAVCollections (self):
         # return the list of all the shared collections
-        # DLDTBD - use new query, once it can handle method calls, or when our item.isShared
+        # @@@DLD - use new query, once it can handle method calls, or when our item.isShared
         #  attribute is correctly set.
         UseNewQuery = False
         if UseNewQuery:
@@ -492,7 +492,7 @@ class MainView(View):
           Called when the SMTP Send generated an error.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            """DLDTBD - Select the message in CPIA"""
+            """@@@DLD - Select the message in CPIA"""
     
             errorStrings = []
     

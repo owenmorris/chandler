@@ -415,8 +415,8 @@ class ContentItem(Item.Item):
         import osaf.contentmodel.contacts.Contacts as Contacts
         """
         return str(item.who)
-        DLDTBD - RefLists that have EmailAddress items should know how to do
-        this
+        @@@DLD - XMLRefDicts that have EmailAddress items should 
+                 know how to convert themselves to string
         """
         try:
             whoContacts = self.who # get redirected who list

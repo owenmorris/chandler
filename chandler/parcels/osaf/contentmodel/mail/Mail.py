@@ -652,7 +652,7 @@ class EmailAddress(Item.Item):
         email address, we could have that word in both the address and
         name variables.
         """
-        # DLDTBD - switch on the better queries
+        # @@@DLD - switch on the better queries
         # Need to override compare operators to use emailAddressesAreEqual, 
         #  deal with name=='' cases, name case sensitivity, etc
         useBetterQuery = False

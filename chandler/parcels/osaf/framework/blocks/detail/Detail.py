@@ -65,7 +65,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         the Item.  
           Notify container blocks before their children.
           
-          DLDTBD - find a better way to broadcast inside my boundary.
+          @@@DLD - find a better way to broadcast inside my boundary.
         """
         def reNotifyInside(block, item):
             notifyParent = False
@@ -130,7 +130,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
                 self.dumpShownHierarchy ('synchronizeWidget')
         
     def onDestroyWidget (self):
-        # Hack - DLDTBD - remove when wxWidgets issue is resolved.
+        # Hack - @@@DLD - remove when wxWidgets issue is resolved.
         # set ourself to be shown, to work around Windows DetailView garbage problem.
         def showReentrant (block):
             block.isShown = True
@@ -183,7 +183,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         # Called to resynchronize the whole Detail View
         # Called when an itemCollection gets new sharees,
         #  because the Notify button should then be enabled.
-        # DLDTBD - devise a block-dependency-notification scheme.
+        # @@@DLD - devise a block-dependency-notification scheme.
         item= self.selectedItem()
         self.synchronizeDetailView(item)
 
@@ -939,7 +939,7 @@ class EditTimeAttribute (EditRedirectAttribute):
                 # save the new Date/Time into the startTime attribute
                 item.ChangeStart (theDate)
             except:
-                # DLDTBD figure out reasonable exceptions to catch during conversion
+                # @@@DLD figure out reasonable exceptions to catch during conversion
                 dateString = dateString + '?'
             else:
                 dateString = theDate.strftime (self.timeFormat)

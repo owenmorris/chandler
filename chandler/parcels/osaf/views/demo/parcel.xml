@@ -67,7 +67,7 @@
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
-  <!-- DLDTBD - put the Menus back on the Block Demo once
+  <!-- @@@DLD - put the Menus back on the Block Demo once
                 our code works well with the new wxWidgets -->
 
   <!--
