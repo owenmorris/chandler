@@ -40,7 +40,7 @@
                     <object class="wxTextCtrl" name="uriBox">
                         <style>wxTE_PROCESS_ENTER</style>
                         <option>1</option>
-                        <size>160,18</size>
+                        <size>160,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -79,7 +79,7 @@
             </object>
         </object>
     </object>
-    
+
     <object class="wxMenuBar" name="MainMenuBar">
         <object class="wxMenu" name="FileMenu">
             <label>File</label>
@@ -151,7 +151,7 @@
             </object>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="DebugMenu">
         <object class="wxMenuItem" name="ImportItems">
             <label>Import Items from File...</label>
