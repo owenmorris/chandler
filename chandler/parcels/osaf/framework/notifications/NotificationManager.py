@@ -8,9 +8,12 @@ import OSAF.framework.utils.indexer as indexer
 import Queue
 import re
 import threading
+import types
 
 # Exceptions
 class AlreadyDeclared(Exception):
+    pass
+class AlreadySubscribed(Exception):
     pass
 class NotDeclared(Exception):
     pass
@@ -57,21 +60,36 @@ class NotificationManager(object):
 
     def Subscribe(self, name, clientID, callback = None, *args):
         # make a subscription object
+        self.subscriptions.acquire()
+        try:
+            if self.subscriptions.has_key(clientID):
+                raise AlreadySubscribed
+        finally:
+            self.subscriptions.release()
+            
         self.declarations.acquire()
         try:
-            if not self.declarations.has_key(name):
-                raise NotDeclared, '%s %s' % (name, clientID)
+            if type(name) == types.ListType:
+                decls = []
+                for n in name:
+                    decls = decls + self.__find(n)
+            else:
+                # look for all declarations matching name
+                decls = self.__find(name)
 
-            # look for all declarations matching name
-            decls = self.__find(name)
-            
+            print decls
+
             # make a new subscription object
             sub = Subscription(decls, callback, *args)
             for decl in decls:
                 # add the subscription to the declaration's list of subscribers
                 decl.subscribers[clientID] = sub
 
-            self.subscriptions[clientID] = sub
+            self.subscriptions.acquire()
+            try:
+                self.subscriptions[clientID] = sub
+            finally:
+                self.subscriptions.release()
 
             return clientID
             """
@@ -128,25 +146,30 @@ class NotificationManager(object):
         self.subscriptions.acquire()
         try:
             try:
-                return self.subscriptions[clientID].queue.get(False)
-            except (KeyError, Queue.Empty):
-                # KeyError: this clientID has never subscribed for anything
-                # Queue.Empty: empty queue
+                subscription = self.subscriptions[clientID]
+            except KeyError:
+                #raise NotSubscribed
                 return None
         finally:
             self.subscriptions.release()
+
+        try:
+            return subscription.get(False)
+        except Queue.Empty:
+            # Queue.Empty: empty queue
+            return None
 
     def WaitForNextNotification(self, clientID):
         self.subscriptions.acquire()
         try:
             try:
-                subscriber = self.subscriptions[clientID]
+                subscription = self.subscriptions[clientID]
             except KeyError:
                 raise NotSubscribed
         finally:
             self.subscriptions.release()
 
-        return subscriber.queue.get()
+        return subscription.get(True)
 
     def CancelNotification(self, notificationID, clientID = 0):
         # we need a way to remove the notification from all the queues its in
@@ -189,6 +212,11 @@ class Subscription(object):
         else:
             self.queue.put(notification)
 
+    def get(self, wait):
+        if callable(self.callback):
+            return None
+        return self.queue.get(wait)
+        
 
 class LockableDict(dict):
     def __init__(self, *args, **kwds):
