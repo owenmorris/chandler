@@ -95,11 +95,10 @@ class Importer:
         for object in self.processObjects(f):
             self.massageObject(object)
             objects=objects + 1
-            try:
-                Globals.repository.commit()
-            except:
-                raise CreationError, \
-                      ("Error commiting to repository", self.lineNumber)
+        try:
+            Globals.repository.commit()
+        except:
+            raise CreationError, "Error commiting to repository"
         f.close()
         return objects
 
