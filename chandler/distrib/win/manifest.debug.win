@@ -18,6 +18,8 @@ libdb_java42d.dll
 msvci70d.dll
 msvcp70d.dll
 msvcr70d.dll
+msvcp71d.dll
+msvcr71d.dll
 msvcrtd.dll
 python23_d.dll
 wxmsw24d.dll
