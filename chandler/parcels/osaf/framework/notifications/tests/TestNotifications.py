@@ -19,7 +19,6 @@ def MakeEvent():
     event = eventKind.newItem(None, Globals.repository)
     return event
 
-
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'History':
         eventPath = '//parcels/OSAF/framework/item_' + reason
@@ -30,8 +29,11 @@ def repositoryCallback(uuid, notification, reason, **kwds):
 
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
-    d = { 'uuid' : uuid }
+    note.threadid = id(threading.currentThread())
+    d = { 'uuid' : uuid, 'keywords' : kwds }
     note.SetData(d)
+
+    #print uuid, notification, reason, kwds
 
     Globals.notificationManager.PostNotification(note)
 
