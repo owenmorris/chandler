@@ -210,11 +210,20 @@ class Block(Item):
 
         for item in event.items:
             if event.copyItems:
-                item = item.copy(parent=userdata, cloudAlias='default')
+                copies = { } # This will contain all the copied items
+                item = item.copy(parent=userdata, cloudAlias='default',
+                 copies=copies)
+                Globals.notificationManager.PrepareSubscribers()
                 if collection is not None:
                     print "I am setting collection to", collection
-                    collection.displayName = "XYZZY"
                     item.contents = collection
+
+                    # @@@ Hack to also set the table's contents:
+                    tableKind = Globals.repository.findPath("//parcels/osaf/framework/blocks/Table")
+                    for copy in copies.values():
+                        if copy.isItemOf(tableKind):
+                            copy.contents = collection
+
                 """
                   Hack to work around Stuarts bug #1568 -- DJA
                 """
