@@ -152,7 +152,7 @@ def distribute(buildenv):
 
     if buildenv['version'] == 'debug':
 
-    compFile = None
+        compFile = None
 
         if buildenv['os'] == 'posix':
 
