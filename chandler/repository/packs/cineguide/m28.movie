@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">The Madwoman of Chaillot</attribute>
+    <attribute name="FrenchTitle">La Folle de Chaillot</attribute>
+    <attribute name="Released">1969-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/BForbes</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

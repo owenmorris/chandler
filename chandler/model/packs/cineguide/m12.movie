@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">Stagedoor Canteen</attribute>
+    <attribute name="FrenchTitle">Le Cabaret des Etoiles</attribute>
+    <attribute name="Released">1943-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/FBorzage</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

@@ -3,8 +3,12 @@
 <item>
     <kind type="path">//Schema/CineGuide/Movie</kind>
 
-    <ref name="Director" type="path">//CineGuide/GCukor</ref>
     <attribute name="Title">A Bill of Divorcement</attribute>
     <attribute name="FrenchTitle">Heritage</attribute>
     <attribute name="Released">1932-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/GCukor</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
 </item>

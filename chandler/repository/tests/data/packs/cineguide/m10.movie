@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">Woman of the Year</attribute>
+    <attribute name="FrenchTitle">La Femme de l'Annee</attribute>
+    <attribute name="Released">1942-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/GStevens</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

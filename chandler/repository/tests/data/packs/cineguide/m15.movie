@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">The Sea of Grass</attribute>
+    <attribute name="FrenchTitle">Le Maitre de la Prairie</attribute>
+    <attribute name="Released">1947-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/EKazan</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

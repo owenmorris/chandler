@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">Bringing Up Baby</attribute>
+    <attribute name="FrenchTitle">L'Impossible Monsieur Bebe</attribute>
+    <attribute name="Released">1938-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/HHawks</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">African Queen</attribute>
+    <attribute name="FrenchTitle">La Reine Africaine</attribute>
+    <attribute name="Released">1951-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/JHuston</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

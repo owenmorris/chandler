@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">Suddenly Last Summer</attribute>
+    <attribute name="FrenchTitle">Soudain l'Ete Dernier</attribute>
+    <attribute name="Released">1959-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/JLMankiewicz</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>

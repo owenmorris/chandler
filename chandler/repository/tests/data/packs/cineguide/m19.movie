@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <kind type="path">//Schema/CineGuide/Movie</kind>
+
+    <attribute name="Title">Pat and Mike</attribute>
+    <attribute name="FrenchTitle">Mademoiselle Gagne-Tout</attribute>
+    <attribute name="Released">1952-MM-DD</attribute>
+
+    <ref name="Director" type="path">//CineGuide/GCukor</ref>
+    <ref name="Actors">
+      <ref type="path">//CineGuide/KHepburn</ref>
+    </ref>
+</item>
