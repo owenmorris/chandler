@@ -25,3 +25,4 @@
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
 ALL /disk1/twisted/python/bin/loginfo  %{sVv}
+ALL $CVSROOT/CVSROOT/dolog.pl -r /usr/local/cvsrep bonsai-checkin-daemon@localhost
