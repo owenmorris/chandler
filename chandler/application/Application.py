@@ -350,7 +350,7 @@ class wxApplication (wxApp):
 
         # @@@ New parcel loading -- not tested on all platforms
         # import model.schema.LoadParcels as LoadParcels
-        # LoadParcels.LoadParcels('parcels', self.repository)
+        # LoadParcels.LoadParcels(parcelDir, self.repository)
         # self.repository.commit()
                                 
         """ Load the parcels """
