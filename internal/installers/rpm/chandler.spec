@@ -1,11 +1,8 @@
-Version: 0.4
-Release: 8
-Summary: Chandler - an Open Source Personal Information Manager
-Name: Chandler
-License: GPLv2
-Group: Office
-Vendor: Open Source Applications Foundation
-URL: http://www.osafoundation.org
+#
+# Remember to update the makeinstaller.sh script if you update
+# the Version or Release info - it sadly requires that info
+# so it can copy the generated .rpm file properly
+# 
 #
 # This spec file is very lightweight as most of the work
 # has already been done by the build process.
@@ -14,6 +11,15 @@ URL: http://www.osafoundation.org
 # why you don't see an install section below or even
 # a Source/Source0 entry)
 #
+
+Version: 0.4
+Release: 8
+Summary: Chandler - an Open Source Personal Information Manager
+Name: Chandler
+License: GPLv2
+Group: Office
+Vendor: Open Source Applications Foundation
+URL: http://www.osafoundation.org
 BuildRoot: %{_builddir}/OSAF
 Prefix: /usr/local
 AutoReqProv: no
@@ -25,18 +31,19 @@ notes, and instant messaging functions.
 #%install
 #cd $RPM_BUILD_ROOT
 #tar zxvf %{SOURCE0}
-%clean
-if [ -d "$RPM_BUILD_ROOT/usr/local/Chandler" ]; then
-rm -rf $RPM_BUILD_ROOT
-fi
+#%clean
+#if [ -d "$RPM_BUILD_ROOT/usr/local/Chandler" ]; then
+#rm -rf $RPM_BUILD_ROOT
+#fi
 #%post
 #if [ "$1" = 1 ]; then
 # add post-install script here
 #fi
-%preun
-if [ "$1" = 0 ]; then
-find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyc' -exec rm -f {} \;
-find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyo' -exec rm -f {} \;
-fi
+#%preun
+#if [ "$1" = 0 ]; then
+#find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyc' -exec rm -f {} \;
+#find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyo' -exec rm -f {} \;
+#fi
 %files
+%defattr(-,root,root)
 /usr/local/Chandler
