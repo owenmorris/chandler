@@ -4,11 +4,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gizmos", "..\..\contrib\bui
 		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xrc", "..\..\contrib\build\xrc\wxPythonXrc\wxPythonXrc.vcproj", "{0E3B3537-0CF7-47C7-B1EB-505658073014}"
-	ProjectSection(ProjectDependencies) = postProject
-		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stc", "..\..\contrib\build\stc\wxPythonStc\wxPythonStc.vcproj", "{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
@@ -33,10 +28,6 @@ Global
 		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Debug.Build.0 = Debug|Win32
 		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Release.ActiveCfg = Release|Win32
 		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Release.Build.0 = Release|Win32
-		{0E3B3537-0CF7-47C7-B1EB-505658073014}.Debug.ActiveCfg = Debug|Win32
-		{0E3B3537-0CF7-47C7-B1EB-505658073014}.Debug.Build.0 = Debug|Win32
-		{0E3B3537-0CF7-47C7-B1EB-505658073014}.Release.ActiveCfg = Release|Win32
-		{0E3B3537-0CF7-47C7-B1EB-505658073014}.Release.Build.0 = Release|Win32
 		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Debug.ActiveCfg = Debug|Win32
 		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Debug.Build.0 = Debug|Win32
 		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Release.ActiveCfg = Release|Win32
