@@ -255,7 +255,7 @@ class Kind(Item):
             elif isinstance(value, Item):
                 value = ItemRef(item, name, value, self.getOtherName(name))
             elif isinstance(value, PersistentCollection):
-                refDict = self._refDict(name, self.getOtherName(name))
+                refDict = item._refDict(name, self.getOtherName(name))
                 for other in value.itervalues():
                     refDict.append(other)
                 value = refDict
