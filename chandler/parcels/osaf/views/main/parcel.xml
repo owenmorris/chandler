@@ -25,7 +25,7 @@
   <core:version>0.3</core:version>
 
   <!--
-    Events
+    Block Events
   -->
 
   <BlockEvent itsName="ShowHideSidebar">
@@ -48,45 +48,21 @@
 
   <BlockEvent itsName="SyncAll">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onSyncAllEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="SyncWebDAV">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onSyncWebDAVEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <BlockEvent itsName="ShareOrManage">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onShareOrManageEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
-  <KindParameterizedEvent itsName="NewMailMessage">
-    <kindParameter itemref="mail:MailMessage"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onNewEvent</methodName>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </KindParameterizedEvent>
-
-  <KindParameterizedEvent itsName="NewTask">
-    <kindParameter itemref="tasks:Task"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onNewEvent</methodName>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </KindParameterizedEvent>
-
-  <KindParameterizedEvent itsName="NewCalendarEvent">
+  <KindParameterizedEvent itsName="NewCalendar">
     <kindParameter itemref="calendarModel:CalendarEvent"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onNewEvent</methodName>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </KindParameterizedEvent>
-
-  <KindParameterizedEvent itsName="NewNote">
-    <kindParameter itemref="contentModel:Note"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
@@ -99,22 +75,47 @@
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
 
-  <BlockEvent itsName="ShareCollection">
+  <ModifyContentsEvent itsName="NewItemCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:UntitledView"/>
+    <copyItems>True</copyItems>
+  </ModifyContentsEvent>
+
+  <KindParameterizedEvent itsName="NewMailMessage">
+    <kindParameter itemref="mail:MailMessage"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itsName="NewNote">
+    <kindParameter itemref="contentModel:Note"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <KindParameterizedEvent itsName="NewTask">
+    <kindParameter itemref="tasks:Task"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
+
+  <BlockEvent itsName="EditAccountPreferences">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
-  
-  <BlockEvent itsName="SyncCollection">
+
+  <BlockEvent itsName="ShowColumn">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
-  
-  <BlockEvent itsName="ResendSharingInvitationsEvent">
-    <methodName>onResendSharingInvitations</methodName>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </BlockEvent>
-  
+
+  <!-- Test Block Events -->
+
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -128,6 +129,13 @@
     <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
+  <ModifyContentsEvent itsName="AddContactsView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:ContactsView"/>
+  </ModifyContentsEvent>
+
   <ModifyContentsEvent itsName="AddDemoView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -135,11 +143,20 @@
     <items itemref="demo:BlockDemoView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddRepositoryView">
+  <ModifyContentsEvent itsName="AddKindViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="repository:RepositoryView"/>
+    <items itemref="content:NotesView"/>
+    <items itemref="content:TasksView"/>
+    <items itemref="content:MailView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddMailView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedView">
@@ -156,13 +173,13 @@
     <items itemref="content:NotesView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddContactsView">
+  <ModifyContentsEvent itsName="AddRepositoryView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:ContactsView"/>
+    <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
-
+  
   <ModifyContentsEvent itsName="AddTasksView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -170,21 +187,80 @@
     <items itemref="content:TasksView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddMailView">
+  <BlockEvent itsName="CheckRepository">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MailView"/>
-  </ModifyContentsEvent>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="CommitRepository">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="GenerateCalendarEventItems">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="GenerateContacts">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="GenerateContentItems">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="GenerateNotes">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="GetNewMail">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="LogRepositoryHistory">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="LogViewChanges">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ReloadParcels">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ResendSharingInvitations">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
   
-  <ModifyContentsEvent itsName="AddKindViews">
+  <BlockEvent itsName="ShareCollection">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NotesView"/>
-    <items itemref="content:TasksView"/>
-    <items itemref="content:MailView"/>
-  </ModifyContentsEvent>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+  
+  <BlockEvent itsName="SharingSubscribeToCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowPyCrust">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="SyncCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
   
   <!--
     Menus
@@ -281,11 +357,11 @@
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
-    <childrenBlocks itemref="doc:ResendSharingInvitations"/>
+    <childrenBlocks itemref="doc:ResendSharingInvitationsItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
-    <childrenBlocks itemref="doc:LogViewChanges"/>
-    <childrenBlocks itemref="doc:LogRepositoryHistory"/>
+    <childrenBlocks itemref="doc:LogViewChangesItem"/>
+    <childrenBlocks itemref="doc:LogRepositoryHistoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
@@ -352,7 +428,7 @@
     <blockName>NewEventItem</blockName>
     <title>Event</title>
     <helpString>Create a new Event</helpString>
-    <event itemref="doc:NewCalendarEvent"/>
+    <event itemref="doc:NewCalendar"/>
   </MenuItem>
   
   <MenuItem itsName="NewSeparator1">
@@ -385,7 +461,7 @@
     <blockName>NewItemCollectionItem</blockName>
     <title>New Item Collection</title>
     <helpString>Create a new Item Collection</helpString>
-    <event itemref="events:NewItemCollectionItem"/>
+    <event itemref="doc:NewItemCollection"/>
   </MenuItem>
 
   <MenuItem itsName="CloseTabItem">
@@ -441,7 +517,7 @@
     <blockName>SyncIMAPItem</blockName>
     <title>Mail</title>
     <helpString>Sync Mail</helpString>
-    <event itemref="events:GetNewMail"/>
+    <event itemref="doc:GetNewMail"/>
   </MenuItem>
   
   <MenuItem itsName="SyncWebDAVItem">
@@ -477,7 +553,7 @@
     <title>Accounts...</title>
     <!-- <accel>Ctrl+A</accel> -->
     <helpString>Account Preferences</helpString>
-    <event itemref="events:EditAccountPreferences"/>
+    <event itemref="doc:EditAccountPreferences"/>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
@@ -588,38 +664,38 @@
   <Menu itsName="ViewColumnsMenu">
     <blockName>ViewColumnsMenu</blockName>
     <title>Columns</title>
-    <childrenBlocks itemref="doc:ShowStampColumn"/>
-    <childrenBlocks itemref="doc:ShowWhoColumn"/>
-    <childrenBlocks itemref="doc:ShowAboutColumn"/>
-    <childrenBlocks itemref="doc:ShowDateColumn"/>
+    <childrenBlocks itemref="doc:ShowStampColumnItem"/>
+    <childrenBlocks itemref="doc:ShowWhoColumnItem"/>
+    <childrenBlocks itemref="doc:ShowAboutColumnItem"/>
+    <childrenBlocks itemref="doc:ShowDateColumnItem"/>
   </Menu>
 
-  <MenuItem itsName="ShowStampColumn">
+  <MenuItem itsName="ShowStampColumnItem">
     <blockName>ShowStampColumn</blockName>
     <title>stamp</title>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ShowColumn"/>
+    <event itemref="doc:ShowColumn"/>
   </MenuItem>
 
-  <MenuItem itsName="ShowWhoColumn">
+  <MenuItem itsName="ShowWhoColumnItem">
     <blockName>ShowWhoColumn</blockName>
     <title>who</title>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ShowColumn"/>
+    <event itemref="doc:ShowColumn"/>
   </MenuItem>
 
-  <MenuItem itsName="ShowAboutColumn">
+  <MenuItem itsName="ShowAboutColumnItem">
     <blockName>ShowAboutColumn</blockName>
     <title>about</title>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ShowColumn"/>
+    <event itemref="doc:ShowColumn"/>
   </MenuItem>
 
-  <MenuItem itsName="ShowDateColumn">
+  <MenuItem itsName="ShowDateColumnItem">
     <blockName>ShowDateColumn</blockName>
     <title>date</title>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ShowColumn"/>
+    <event itemref="doc:ShowColumn"/>
   </MenuItem>
 
   <Menu itsName="ViewSortByMenu">
@@ -742,28 +818,28 @@
   <MenuItem itsName="GenerateAllItem">
     <blockName>GenerateAllItem</blockName>
     <title>Generate Content Items</title>
-    <event itemref="events:GenerateContentItems"/>
+    <event itemref="doc:GenerateContentItems"/>
     <helpString>generates a few different kinds of content items</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateContactItem">
     <blockName>GenerateContactItem</blockName>
     <title>Generate Contacts</title>
-    <event itemref="events:GenerateContacts"/>
+    <event itemref="doc:GenerateContacts"/>
     <helpString>generates 10 sample contacts</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateCalendarItem">
     <blockName>GenerateCalendarItem</blockName>
     <title>Generate Calendar Event Items</title>
-    <event itemref="events:GenerateCalendarEventItems"/>
+    <event itemref="doc:GenerateCalendarEventItems"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateNoteItem">
     <blockName>GenerateNoteItem</blockName>
     <title>Generate Notes</title>
-    <event itemref="events:GenerateNotes"/>
+    <event itemref="doc:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
 
@@ -782,65 +858,65 @@
   </MenuItem>
 
   <MenuItem itsName="SharingSubscribeToCollectionItem">
-    <blockName>SharingSubscribeToCollection</blockName>
+    <blockName>SharingSubscribeToCollectionItem</blockName>
     <title>Subscribe to Collection...</title>
-    <event itemref="events:SharingSubscribeToCollection"/>
+    <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
   </MenuItem>
 
-  <MenuItem itsName="ResendSharingInvitations">
-    <blockName>ResendSharingInvitations</blockName>
+  <MenuItem itsName="ResendSharingInvitationsItem">
+    <blockName>ResendSharingInvitationsItem</blockName>
     <title>Resend Sharing Invitations</title>
-    <event itemref="doc:ResendSharingInvitationsEvent"/>
+    <event itemref="doc:ResendSharingInvitations"/>
     <helpString>Resend the invitations to share this collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">
     <blockName>GetNewMailItem</blockName>
     <title>Get Mail</title>
-    <event itemref="events:GetNewMail"/>
+    <event itemref="doc:GetNewMail"/>
     <helpString>Gets new email from IMAP server</helpString>
   </MenuItem>
 
   <MenuItem itsName="CheckRepositoryItem">
     <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
-    <event itemref="events:CheckRepository"/>
+    <event itemref="doc:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
   </MenuItem>
 
-  <MenuItem itsName="LogViewChanges">
+  <MenuItem itsName="LogViewChangesItem">
     <blockName>LogViewChanges</blockName>
     <title>Log View Changes</title>
-    <event itemref="events:LogViewChanges"/>
+    <event itemref="doc:LogViewChanges"/>
     <helpString>log the items changed in the current view</helpString>
   </MenuItem>
 
-  <MenuItem itsName="LogRepositoryHistory">
+  <MenuItem itsName="LogRepositoryHistoryItem">
     <blockName>LogRepositoryHistory</blockName>
     <title>Log Repository History</title>
-    <event itemref="events:LogRepositoryHistory"/>
+    <event itemref="doc:LogRepositoryHistory"/>
     <helpString>log the items that were changed and committed in other views since the current view's last commit</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShowPyCrustItem">
     <blockName>ShowPyCrustItem</blockName>
     <title>Show PyCrust Debugger...</title>
-    <event itemref="events:ShowPyCrust"/>
+    <event itemref="doc:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
 
   <MenuItem itsName="ReloadParcelsItem">
     <blockName>ReloadParcelsItem</blockName>
     <title>Reload Parcels</title>
-    <event itemref="events:ReloadParcels"/>
+    <event itemref="doc:ReloadParcels"/>
     <helpString>Reloads any parcels that have been modified</helpString>
   </MenuItem>
 
   <MenuItem itsName="CommitRepositoryItem">
     <blockName>CommitRepositoryItem</blockName>
     <title>Commit Repository</title>
-    <event itemref="events:CommitRepository"/>
+    <event itemref="doc:CommitRepository"/>
     <helpString>Performs a repository commit()</helpString>
   </MenuItem>
 
@@ -944,7 +1020,7 @@
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
-    <event itemref="events:AboutChandler"/>
+    <event itemref="events:About"/>
     <helpString>About Chandler...</helpString>
   </MenuItem>
 
@@ -1028,26 +1104,16 @@
     <event itemref="doc:ShareOrManage"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="SyncButton">
-    <blockName>SyncButton</blockName>
-    <title>Sync</title>
-    <label>Sync All</label>
-    <bitmap>application/images/toolbar_sync.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Get new Mail and synchronize with other Chandler users</helpString>
-    <event itemref="doc:SyncAll"/>
-  </ToolbarItem>
-
   <!--
     KindFilterBar
   -->
   <Toolbar itsName="KindFilterBar">
     <blockName>NavigationBar</blockName>
     <!-- Children -->
-    <childrenBlocks itemref="doc:KindFilterAll"/>
-    <childrenBlocks itemref="doc:KindFilterMessage"/>
-    <childrenBlocks itemref="doc:KindFilterEvent"/>
-    <childrenBlocks itemref="doc:KindFilterTask"/>
+    <childrenBlocks itemref="doc:KindFilterAllItem"/>
+    <childrenBlocks itemref="doc:KindFilterMessageItem"/>
+    <childrenBlocks itemref="doc:KindFilterEventItem"/>
+    <childrenBlocks itemref="doc:KindFilterTaskItem"/>
     
     <!-- Attributes -->
     <toolSize>20,20</toolSize>
@@ -1058,64 +1124,64 @@
   <!--
     KindFilterBar ToolbarItems
   -->
-  <ToolbarItem itsName="KindFilterAll">
+  <ToolbarItem itsName="KindFilterAllItem">
     <blockName>KindFilterAll</blockName>
     <title>All</title>
     <bitmap>application/images/KindFilterAll.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterAllEvent"/>
+    <event itemref="doc:KindFilterAll"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterAllEvent">
+  <KindParameterizedEvent itsName="KindFilterAll">
     <kindParameter itemref="core:None" />
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterMessage">
+  <ToolbarItem itsName="KindFilterMessageItem">
     <blockName>KindFilterMessage</blockName>
     <title>Messages</title>
     <bitmap>application/images/KindFilterMessage.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterMessageEvent"/>
+    <event itemref="doc:KindFilterMessage"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterMessageEvent">
+  <KindParameterizedEvent itsName="KindFilterMessage">
     <kindParameter itemref="mail:MailMessageMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterEvent">
+  <ToolbarItem itsName="KindFilterEventItem">
     <blockName>KindFilterEvent</blockName>
     <title>Calendar</title>
     <bitmap>application/images/KindFilterEvent.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterEventEvent"/>
+    <event itemref="doc:KindFilterEvent"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterEventEvent">
+  <KindParameterizedEvent itsName="KindFilterEvent">
     <kindParameter itemref="calendarModel:CalendarEventMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterTask">
+  <ToolbarItem itsName="KindFilterTaskItem">
     <blockName>KindFilterTask</blockName>
     <title>Taskpad</title>
     <bitmap>application/images/KindFilterTask.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterTaskEvent"/>
+    <event itemref="doc:KindFilterTask"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterTaskEvent">
+  <KindParameterizedEvent itsName="KindFilterTask">
     <kindParameter itemref="tasks:TaskMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
@@ -1286,34 +1352,50 @@
     <childrenBlocks itemref="doc:MainBoxContainer"/>
     
     <!-- Block Events -->
-
+    <subscribeWhenVisibleEvents itemref="doc:EditAccountPreferences"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewCalendar"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewItemCollection"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowColumn"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncWebDAV"/>
+    <!-- Test Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddContactsView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMailView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMixedView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddNotesView"/>    
-    <subscribeWhenVisibleEvents itemref="doc:AddContactsView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddTasksView"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterAllEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterEventEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterMessageEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterTaskEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
-    <subscribeWhenVisibleEvents itemref="doc:ResendSharingInvitationsEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:CheckRepository"/>
+    <subscribeWhenVisibleEvents itemref="doc:CheckRepository"/>
+    <subscribeWhenVisibleEvents itemref="doc:CommitRepository"/>
+    <subscribeWhenVisibleEvents itemref="doc:GenerateCalendarEventItems"/>    
+    <subscribeWhenVisibleEvents itemref="doc:GenerateContacts"/>
+    <subscribeWhenVisibleEvents itemref="doc:GenerateContentItems"/>
+    <subscribeWhenVisibleEvents itemref="doc:GenerateNotes"/>
+    <subscribeWhenVisibleEvents itemref="doc:GetNewMail"/>
+    <subscribeWhenVisibleEvents itemref="doc:LogRepositoryHistory"/>
+    <subscribeWhenVisibleEvents itemref="doc:LogViewChanges"/>
+    <subscribeWhenVisibleEvents itemref="doc:ReloadParcels"/>
+    <subscribeWhenVisibleEvents itemref="doc:ResendSharingInvitations"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareCollection"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
-    <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:SharingSubscribeToCollection"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowPyCrust"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
-    <subscribeWhenVisibleEvents itemref="doc:SyncWebDAV"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

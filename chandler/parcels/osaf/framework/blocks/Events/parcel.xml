@@ -13,44 +13,53 @@
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/main">
 
-  <description>Events, need to be defined in a different parcel than the schema because 
-of a limitation of the XML format, which will be eliminated</description>
+  <description>Events need to be defined in a different parcel than the schema because of a
+limitation of the XML format. Applicaiton specific events should not be located here. 
+Instead put them in a View in your application. Also don't put any references to 
+application specific parcels here</description>
   <version>0.3</version>
 
   <EventList itsName="GlobalEvents">
+    <!-- Don't add any events here unless your proposed event has been reviewed -->
+    <subscribeAlwaysEvents itemref="events:About"/>    
+    <subscribeAlwaysEvents itemref="events:Close"/>
+    <subscribeAlwaysEvents itemref="events:Copy"/>
+    <subscribeAlwaysEvents itemref="events:Cut"/>
+    <subscribeAlwaysEvents itemref="events:Delete"/>
     <subscribeAlwaysEvents itemref="events:New"/>
     <subscribeAlwaysEvents itemref="events:Open"/>
-    <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
-    <subscribeAlwaysEvents itemref="events:Close"/>
-    <subscribeAlwaysEvents itemref="events:Quit"/>
-    <subscribeAlwaysEvents itemref="events:Undo"/>
-    <subscribeAlwaysEvents itemref="events:Redo"/>
-    <subscribeAlwaysEvents itemref="events:Cut"/>
-    <subscribeAlwaysEvents itemref="events:Copy"/>
     <subscribeAlwaysEvents itemref="events:Paste"/>
-    <subscribeAlwaysEvents itemref="events:Delete"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
-    <subscribeAlwaysEvents itemref="events:SharingSubscribeToCollection"/>
-    <subscribeAlwaysEvents itemref="events:EditAccountPreferences"/>
-    <subscribeAlwaysEvents itemref="events:ShowColumn"/>
-    <subscribeAlwaysEvents itemref="events:GetNewMail"/>
+    <subscribeAlwaysEvents itemref="events:Quit"/>
+    <subscribeAlwaysEvents itemref="events:Redo"/>
+    <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
+    <subscribeAlwaysEvents itemref="events:Undo"/>
+
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
     <subscribeAlwaysEvents itemref="events:SelectionChangedInsideActiveView"/>
     <subscribeAlwaysEvents itemref="events:RequestSelectSidebarItem"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
-    <subscribeAlwaysEvents itemref="events:GenerateContentItems"/>
-    <subscribeAlwaysEvents itemref="events:GenerateContacts"/>
-    <subscribeAlwaysEvents itemref="events:GenerateNotes"/>
-    <subscribeAlwaysEvents itemref="events:GenerateCalendarEventItems"/>    
-    <subscribeAlwaysEvents itemref="events:CheckRepository"/>
-    <subscribeAlwaysEvents itemref="events:LogViewChanges"/>
-    <subscribeAlwaysEvents itemref="events:LogRepositoryHistory"/>
-    <subscribeAlwaysEvents itemref="events:ShowPyCrust"/>
-    <subscribeAlwaysEvents itemref="events:ReloadParcels"/>
-    <subscribeAlwaysEvents itemref="events:CommitRepository"/>
-    <subscribeAlwaysEvents itemref="events:AboutChandler"/>    
-    <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
   </EventList>
+
+  <BlockEvent itsName="About">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Close">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Copy">
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Cut">
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Delete">
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </BlockEvent>
 
   <BlockEvent itsName="New">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
@@ -60,43 +69,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <ModifyContentsEvent itsName="NewItemCollectionItem">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:UntitledView"/>
-    <copyItems>True</copyItems>
-  </ModifyContentsEvent>
-
-  <BlockEvent itsName="Close">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Quit">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Undo">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Redo">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Cut">
-    <dispatchEnum>FocusBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Copy">
-    <dispatchEnum>FocusBubbleUp</dispatchEnum>
-  </BlockEvent>
-
   <BlockEvent itsName="Paste">
-    <dispatchEnum>FocusBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="Delete">
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
@@ -104,21 +77,22 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="SharingSubscribeToCollection">
+  <BlockEvent itsName="Quit">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="EditAccountPreferences">
+  <BlockEvent itsName="Redo">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="ShowColumn">
+  <BlockEvent itsName="SelectedDateChanged">
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Undo">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="GetNewMail">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
 
   <BlockEvent itsName="SelectionChanged">
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
@@ -136,55 +110,6 @@ of a limitation of the XML format, which will be eliminated</description>
 
   <BlockEvent itsName="EnterPressed">
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="SelectedDateChanged">
-    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
-  </BlockEvent>
-
-  <!-- Test Events -->
-  <BlockEvent itsName="GenerateContentItems">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="GenerateContacts">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="GenerateNotes">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="GenerateCalendarEventItems">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="CheckRepository">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="LogViewChanges">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="LogRepositoryHistory">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="ShowPyCrust">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="ReloadParcels">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="CommitRepository">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="AboutChandler">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
 </core:Parcel>

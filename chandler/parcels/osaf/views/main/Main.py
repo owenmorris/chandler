@@ -28,6 +28,22 @@ class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
     """
+    def onAboutEvent(self, notification):
+        # The "Help | About Chandler..." menu item
+        """
+          Show the splash screen in response to the about command
+        """
+        import version
+        pageLocation = os.path.join ('application', 'welcome.html')
+        html = ''
+        for line in open(pageLocation):
+            if line.find('@@buildid@@') >= 0:
+                line = "<p>Build identifier: '%s'</p>" % version.build
+            html += line
+        splash = SplashScreen(None, _("About Chandler"), 
+                              None, html, False, False)
+        splash.Show(True)
+
     def onQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
 
@@ -50,41 +66,13 @@ class MainView(View):
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def onSharingSubscribeToCollectionEvent(self, notification):
-        # Triggered from "Tests | Subscribe to collection..."
-        Sharing.manualSubscribeToCollection()
-
     def onEditAccountPreferencesEvent (self, notification):
         # Triggered from "File | Prefs | Accounts..."
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
 
-    def onShowColumnEvent (self, notification):
-        pass
-
     def onShowColumnEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
         notification.data ['Check'] = True
-
-    def onGetNewMailEvent (self, notification):
-        # Triggered from "Test | Get Mail" menu
-
-        if not Sharing.isMailSetUp():
-            if application.dialogs.Util.okCancel( \
-             Globals.wxApplication.mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 Globals.wxApplication.mainFrame):
-                    return
-            else:
-                return
-
-        account = \
-         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
-
-        Globals.repository.commit()
-        IMAPDownloader (account).getMail()
-        Globals.repository.refresh()
 
     def onNewEvent (self, notification):
         # Create a new Content Item
@@ -108,6 +96,31 @@ class MainView(View):
         notification.data ['Enable'] = True
 
     # Test Methods
+
+    def onSharingSubscribeToCollectionEvent(self, notification):
+        # Triggered from "Tests | Subscribe to collection..."
+        Sharing.manualSubscribeToCollection()
+
+    def onGetNewMailEvent (self, notification):
+        # Triggered from "Test | Get Mail" menu
+
+        if not Sharing.isMailSetUp():
+            if application.dialogs.Util.okCancel( \
+             Globals.wxApplication.mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
+                 Globals.wxApplication.mainFrame):
+                    return
+            else:
+                return
+
+        account = \
+         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
+
+        Globals.repository.commit()
+        IMAPDownloader (account).getMail()
+        Globals.repository.refresh()
 
     def onGenerateContentItemsEvent(self, notification):
         # triggered from "Test | Generate Content Items" Menu
@@ -175,22 +188,6 @@ class MainView(View):
     def onCommitRepositoryEvent(self, notification):
         # Test menu item
         self.RepositoryCommitWithStatus ()
-
-    def onAboutChandlerEvent(self, notification):
-        # The "Help | About Chandler..." menu item
-        """
-          Show the splash screen in response to the about command
-        """
-        import version
-        pageLocation = os.path.join ('application', 'welcome.html')
-        html = ''
-        for line in open(pageLocation):
-            if line.find('@@buildid@@') >= 0:
-                line = "<p>Build identifier: '%s'</p>" % version.build
-            html += line
-        splash = SplashScreen(None, _("About Chandler"), 
-                              None, html, False, False)
-        splash.Show(True)
 
     def getSidebarSelectedCollection (self):
         """
@@ -417,7 +414,7 @@ class MainView(View):
         inviteeStringsList = self.SharingInvitees (itemCollection)
         MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
 
-    def onResendSharingInvitations (self, notification):
+    def onResendSharingInvitationsEvent (self, notification):
         """
           Resend the sharing invitations for the selected collection.
         The "Test | Resend Sharing Invitations" menu item
@@ -426,7 +423,7 @@ class MainView(View):
         url = self.SharingURL (itemCollection)
         self.SendSharingInvitations (itemCollection, url)
 
-    def onResendSharingInvitationsUpdateUI (self, notification):
+    def onResendSharingInvitationsEventUpdateUI (self, notification):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             isShared = Sharing.isShared (collection)
