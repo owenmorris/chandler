@@ -39,7 +39,7 @@ def SearchFile(filePath, searchPath):
         candidate = os.path.join(path, filePath)
         if os.path.exists(candidate):
             return os.path.abspath(candidate)
-    raise IOException, "File not found %s" % filePath
+    raise IOError, "File not found %s" % filePath
 
 def WalkParcels(parcel):
     yield parcel

@@ -23,7 +23,7 @@ import feedparser
 import posix
 
 
-RSS_HOME='data/rssfeeds/'
+RSS_HOME = _chandlerDir + '/repository/tests/data/rssfeeds/'
 
 _rssfiles = posix.listdir(RSS_HOME)
 

@@ -69,7 +69,8 @@ class Repository(object):
         else:
             self.logger.setLevel(logging.INFO)
         if '-stderr' in sys.argv or not self.logger.root.handlers:
-            self.logger.addHandler(logging.StreamHandler())
+            if not self.logger.handlers:
+                self.logger.addHandler(logging.StreamHandler())
             
     def _isRepository(self):
         return True
