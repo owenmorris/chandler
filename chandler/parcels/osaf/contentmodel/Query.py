@@ -4,7 +4,7 @@ import repository.query.Query as RepositoryQuery
 
 import logging
 log = logging.getLogger("ContentQuery")
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 class Query(Item.Item):
 
@@ -52,9 +52,9 @@ class Query(Item.Item):
         if name == 'data':
             log.debug("ContentQuery<%s>.setAttribute: setting 'data' to %s" % (self.itsUUID, value))
             self.__query.queryString = value
-            #self.__changed = True  @@@ should be able to do this but need some fixes in repo Query
+            self.__changed = True # @@@ should be able to do this but need some fixes in repo Query
             # so for now do refresh
-            self.__refresh()
+#            self.__refresh()
 
     def __iter__(self):
         """
@@ -72,7 +72,7 @@ class Query(Item.Item):
         """
         The notification callback handler for the repository level query's change notifications
         """
-        log.debug("ContentQuery<%s>.onQueryChange: %s:%s" % (self.itsUUID, notification.data['query'], notification.data['action']))
+        log.debug("ContentQuery<%s>.onQueryChange: %s %s:%s" % (self.itsUUID, self.__query.queryString, notification.data['query'], notification.data['action']))
         self.__changed = True
         self.__dirty()
 

@@ -24,16 +24,19 @@ class ItemCollection(Item.Item):
         # our result cache
         self.results = []
 
-        self.onItemLoad()
+        self.__subscribe()
 
     def onItemLoad(self):
         log.debug("ItemCollection<%s>.onItemLoad:" % (self.itsUUID))
+        self.__subscribe()
+        # refresh the result cache
+        self.__refresh()
+
+    def __subscribe(self):
         # subscribe to query_changed notifications incase our query changes
         events = [Globals.repository.findPath('//parcels/osaf/framework/rule_changed')]
         Globals.notificationManager.Subscribe(events, self.itsUUID, self._queryChangedCallback)
 
-        # refresh the result cache
-        self.__refresh()
 
     def onItemUnload(self):
         Globals.notificationManager.Unsubscribe(self.itsUUID)

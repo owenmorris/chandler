@@ -54,6 +54,7 @@ class Query:
         tools.timing.begin("Analyzing query")
         self._logical_plan = self.__analyze(self.ast)
         tools.timing.end("Analyzing query")
+#        tools.timing.results()
 
     def subscribe(self):
         """
@@ -81,9 +82,11 @@ class Query:
         @type notification: string
         """
         log.debug("RepoQuery.queryCallback for %s" % self.queryString)
-        if self.queryString is None:
+        if self._logical_plan is None and self.queryString is not None:
+            self.execute()
+        elif self.queryString is None:
             return
-        #@@@ should batch notifications here
+        changed = False
         for uuid, reason, kwds in changes:
             i = self.__rep.findUUID(uuid)
             #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
@@ -94,12 +97,15 @@ class Query:
                 else:
                     rightKind = i.itsKind is self._kind
                 if rightKind:
+                    changed = True
+                    #@@@ accumulate batch results
                     if eval(self._predicate):
                         action = "entered"
                     else:
                         action = "exited"
-                    log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
-                    self.__rep.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
+        if changed:
+            log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
+            self.__rep.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
 
     def __iter__(self):
         """
@@ -219,6 +225,7 @@ class Query:
 
             collection = lookup_source(iter_source)
             closure = compile_predicate(predicate)
+            self._predicate = closure
 
             log.debug("analyze_for: collection = %s, closure = %s" % (collection, closure))
             
