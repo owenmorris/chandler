@@ -5,8 +5,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 import re
-from application.agents.model.Action import Action
-from application.agents.model.Condition import Condition
+from OSAF.framework.agents.schema.Action import Action
+from OSAF.framework.agents.schema.Condition import Condition
 
 
 # this should come from the jabber client itself

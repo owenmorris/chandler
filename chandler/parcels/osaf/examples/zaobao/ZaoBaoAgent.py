@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
-from application.agents.model.Action import Action
+from OSAF.framework.agents.schema.Action import Action
 
 import feedparser
 
@@ -27,7 +27,7 @@ BASE_PATH = '//Parcels/OSAF/examples/zaobao'
 class UpdateAction(Action):
     def Execute(self, agent, notification):
         repository = self.getRepository()
-
+        #print 'Updating feeds...'
         for feed in self.__getFeeds():
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
@@ -39,6 +39,7 @@ class UpdateAction(Action):
             feed.Update(data)
 
         repository.commit()
+        #print 'Updated feeds'
 
     def __getFeeds(self):
         repository = self.getRepository()

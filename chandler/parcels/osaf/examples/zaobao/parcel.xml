@@ -3,7 +3,9 @@
 <Parcel itemName="zaobao"
         xmlns="//Schema/Core"
         xmlns:zaobao="//Parcels/OSAF/examples/zaobao"
-        xmlns:agent="//Parcels/OSAF/AppSchema/AgentSchema">
+        xmlns:foo="//Parcels/OSAF/framework"
+        xmlns:bar="//Parcels/OSAF/framework/agents"
+        xmlns:agent="//Parcels/OSAF/framework/agents/schema">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.2 release</description>
