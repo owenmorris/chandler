@@ -58,7 +58,7 @@ locale
 src=chandler/distrib/win
 README.win.txt
 
-src=chandler/debug
+src=chandler
 dest=
 chandlerDebug.exe
 

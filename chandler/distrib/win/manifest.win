@@ -58,7 +58,7 @@ src=chandler/distrib/win
 README.win.txt
 dest=
 
-src=chandler/release
+src=chandler
 dest=
 chandler.exe
 

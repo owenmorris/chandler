@@ -27,9 +27,9 @@ endif
 ifeq ($(OS),Cygwin)
 
 ifeq ($(DEBUG),1)
-LAUNCHER_FILES=$(SNAP)/chandlerDebug.exe $(SNAP)/bin/chandler.exe
+LAUNCHER_FILES=./chandlerDebug.exe $(SNAP)/bin/chandler.exe
 else
-LAUNCHER_FILES=$(SNAP)/chandler.exe $(SNAP)/bin/chandler.exe
+LAUNCHER_FILES=./chandler.exe $(SNAP)/bin/chandler.exe
 endif
 
 LIB_FILES=$(SNAP)/bin/ms*dll
