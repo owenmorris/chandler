@@ -2,6 +2,7 @@
         xmlns="//Schema/Core"
 	xmlns:core="//Schema/Core"
 	xmlns:pim="//Parcels/OSAF/PimSchema"
+	xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema"
 	xmlns:email="//Parcels/OSAF/PimSchema/EmailSchema">
 
   <displayName>Email</displayName>
@@ -30,7 +31,7 @@
     <description>the location of the attachment in the repository's reserved filesystem space</description>
     <cardinality>single</cardinality>
     <required/>
-    <type itemref="core:File"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Kind itemName="email:Attachment">
@@ -64,14 +65,14 @@
     <displayName>sent to</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:EmailAddress"/>
+    <type itemref="email:EmailAddress"/>
   </Attribute>
 
   <Attribute itemName="email:to_address">
     <displayName>to address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:EmailAddress"/>
+    <type itemref="email:EmailAddress"/>
     <superAttribute itemref="email:sent_to"/>
   </Attribute>
 
@@ -79,7 +80,7 @@
     <displayName>cc address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:EmailAddress"/>
+    <type itemref="email:EmailAddress"/>
     <superAttribute itemref="email:sent_to"/>
   </Attribute>
 
@@ -87,7 +88,7 @@
     <displayName>bcc address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:EmailAddress"/>
+    <type itemref="email:EmailAddress"/>
     <superAttribute itemref="email:sent_to"/>
   </Attribute>
 
@@ -95,7 +96,7 @@
     <displayName>reply address</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:EmailAddress"/>
+    <type itemref="email:EmailAddress"/>
   </Attribute>
 
   <Attribute itemName="email:date_sent">
@@ -182,7 +183,7 @@
     <displayName>language encoding</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Language"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:has_been_read">
@@ -196,14 +197,14 @@
     <displayName>status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Status"/>
+    <type itemref="task:Status"/>
   </Attribute>
 
   <Attribute itemName="email:priority">
     <displayName>priority</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:PriorityLevel"/>
+    <type itemref="task:PriorityLevel"/>
   </Attribute>
 
   <Attribute itemName="email:download_account">
@@ -217,7 +218,7 @@
     <displayName>persona used</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Persona"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:server_status">
@@ -308,6 +309,11 @@
 <!-- Vacation Message -->
   <Kind itemName="email:VacationMessage">
     <displayName>Vacation Message</displayName>
+    <superKinds itemref="core:Item"/>
+  </Kind>
+
+  <Kind itemName="email:EmailAddress">
+    <displayName>Email Address</displayName>
     <superKinds itemref="core:Item"/>
   </Kind>
 

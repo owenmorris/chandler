@@ -2,6 +2,7 @@
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
         xmlns:pim="//Parcels/OSAF/PimSchema"
+        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema"
         xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema">
 
   <displayName>Task</displayName>
@@ -76,7 +77,7 @@
     <displayName>priority</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:PriorityLevel"/>
+    <type itemref="task:PriorityLevel"/>
   </Attribute>
 
   <Attribute itemName="task:status">
@@ -178,7 +179,7 @@
     <displayName>estimated by</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:User"/>
+    <type itemref="contact:ContactEntity"/>
   </Attribute>
 
   <Attribute itemName="task:confidence">
@@ -219,14 +220,14 @@
     <displayName>assigned by</displayName>
     <description>@@@ -- should be Person or Agent</description>
     <cardinality>single</cardinality>
-    <type itemref="core:User"/>
+    <type itemref="contact:ContactEntity"/>
   </Attribute>
 
   <Attribute itemName="task:assigned_to">
     <displayName>assigned to</displayName>
     <description>@@@ -- should be Person or Group</description>
     <cardinality>single</cardinality>
-    <type itemref="core:User"/>
+    <type itemref="contact:ContactEntity"/>
   </Attribute>
 
   <Attribute itemName="task:further_delegation">
