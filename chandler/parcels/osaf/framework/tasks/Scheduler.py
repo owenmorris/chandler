@@ -6,7 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import threading
 import types
 import time as _time
-import logging
 
 __all__ = ['Scheduler']
 
@@ -122,7 +121,6 @@ class Scheduler(object):
         self.__running = False
         self.__waiting = False
         self.__condition = threading.Condition()
-        #self.log = logging.getLogger('Agent')
 
     def _scheduleEvent(self, event):
         #self.log.debug("event scheduled %s", event)
