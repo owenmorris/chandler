@@ -2,3 +2,7 @@
 
     * Enabled debug build of C launcher programs on Linux; the debug version
         sets __debug__ and turns on asserts.
+
+2003-08-22 Morgen Sagen
+
+    * Added a windows launcher program
