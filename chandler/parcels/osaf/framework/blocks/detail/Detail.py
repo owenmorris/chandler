@@ -21,6 +21,7 @@ import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
 import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
+import osaf.mail.message as MailMessage
 from repository.item.Item import Item
 from repository.item.Query import KindQuery
 import repository.item.Query as Query
@@ -993,7 +994,7 @@ class AttachmentTextField (EditTextAttribute):
 
 def _getSharingHeaderInfo(mailItem):
     """ Return the Chandler sharing header's values, split into a handy list. Throws if not present. """
-    sharingHeader = MailSharing.getChandlerSharingHeader()
+    sharingHeader = MailMessage.createChandlerHeader(MailConstants.SHARING_HEADER)
     divider = MailConstants.SHARING_DIVIDER
     urlAndCollectionName = mailItem.chandlerHeaders[sharingHeader].split(divider)            
     return urlAndCollectionName 
