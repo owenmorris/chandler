@@ -12,14 +12,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
     def testNotify(self):
         """ Test query notification """
-        import application
-        import application.Globals as Globals
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        from osaf.framework.notifications.NotificationManager import NotificationManager
         import osaf.contentmodel.ItemCollection as ItemCollection
-
-        Globals.repository = self.rep
-        Globals.notificationManager = NotificationManager()
 
         self.loadParcels(
          ['http://osafoundation.org/parcels/osaf/contentmodel/contacts',

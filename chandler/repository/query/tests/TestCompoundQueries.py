@@ -20,19 +20,10 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         results = self._executeQuery(u"intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
         #@@@ TODO better result check
 #        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
-        for i in results:
-            print i
 
     def testUnionQuery(self):
         """ Test a union query """
-        import application
-        import application.Globals as Globals
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        import osaf.contentmodel.ItemCollection as ItemCollection
-
-        Globals.repository = self.rep
-        Globals.notificationManager = NotificationManager()
 
         self.loadParcels(
          ['http://osafoundation.org/parcels/osaf/contentmodel']
@@ -44,8 +35,6 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         GenerateItems.GenerateContacts(10)
         self.rep.commit()
 
-        import logging
-        self.rep.logger.setLevel(logging.DEBUG)
         results = self._executeQuery('union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
         # these checks could be more robust
         # check twice to make sure generator restarts

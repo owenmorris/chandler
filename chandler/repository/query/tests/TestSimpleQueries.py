@@ -7,20 +7,24 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, unittest
 import repository.query.tests.QueryTestCase as QueryTestCase
 import tools.timing
-import osaf.contentmodel.mail.Mail as Mail
 
 class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
-    """
     def testOutBoxQueryWithMail(self):
+        self.loadParcels(
+         ['http://osafoundation.org/parcels/osaf/contentmodel/mail']
+        )
+
+        import osaf.contentmodel.mail.Mail as Mail
         # create an outbound Mail item
         aMessage = Mail.MailMessage()
+        aMessage.isInbound = True
+        self.rep.commit()
         # now run the query
-        print "testing with a Mail item"
-        qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where contains(i.isInbound,True)"
+
+        qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"
         results = self._executeQuery(qString)
-        self._checkQuery(lambda i: False, results)
-    """
+        self._checkQuery(lambda i: not i.isInbound is True, results)
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
@@ -75,15 +79,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testItemTraversalQuery(self):
         """ Test a multiple item path traversal in the query predicate """
-        tools.timing.reset()
-        tools.timing.begin("Setup Infrastructure")
-        import application
-        import application.Globals as Globals
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.repository = self.rep
-        Globals.notificationManager = NotificationManager()
-        tools.timing.end("Setup Infrastructure")
 
         tools.timing.begin("Load Contacts Parcel")
         self.loadParcels(
@@ -106,14 +102,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
     def testEnumerationQuery(self):
         """ Test an enumeration attribute in the query predicate """
         tools.timing.reset()
-        tools.timing.begin("Setup Infrastructure")
-        import application
-        import application.Globals as Globals
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.repository = self.rep
-        Globals.notificationManager = NotificationManager()
-        tools.timing.end("Setup Infrastructure")
 
         tools.timing.begin("Load Calendar Parcel")
         self.loadParcels(
@@ -145,6 +134,16 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         q.execute()
 
         self._checkQuery(lambda i: not 'ttributes' in i.itsName, q)
+
+    def testWhereVariableQuery(self):
+        """ Test using a variable in the where clause """
+        queryString= u'for i in "//Schema/Core/Kind" where contains(i.itsName,$0)'
+        import repository.query.Query as Query
+        q = Query.Query(self.rep, queryString)
+        pattern = 'arc'
+        q.args = [ pattern ]
+        q.execute()
+        self._checkQuery(lambda i: not pattern in i.itsName, q)
 
 if __name__ == "__main__":
 #    import hotshot
