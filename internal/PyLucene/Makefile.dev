@@ -28,7 +28,7 @@ JCC = $(GCJ_HOME)/bin/gcj
 JCCH = $(GCJ_HOME)/bin/gcjh
 
 LUCENE = $(SRCDIR)/lucene-$(VERSION)
-DB = $(SRCDIR)/../external/persistence/db/db-$(DBVERSION)
+DB = ../../external/persistence/db/db-$(DBVERSION)
 PYTHON = /Library/Frameworks/Python.framework/Versions/2.3
 
 PYTHON_INC = $(PYTHON)/include/python2.3
@@ -56,7 +56,7 @@ $(BINDIR)/db.o: $(BINDIR)/db_const.o
 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
 
 $(BINDIR)/libdb_java-4.2.jnilib:
-	$(CC) -shared -bundle -o $(BINDIR)/libdb_java-4.2.jnilib -O $(LDFLAGS) -I$(DB) -I$(DB)/build_$(mode) -I/usr/local/BerkeleyDB.4.2/include $(DB)/libdb_java/db_java_wrap.c ../../$(mode)/db/lib/libdb-4.2.dylib
+	$(CC) -shared -bundle -o $(BINDIR)/libdb_java-4.2.jnilib -O $(LDFLAGS) -I$(DB) -I$(DB)/build_$(mode) -I/usr/local/BerkeleyDB.4.2/include $(DB)/libdb_java/db_java_wrap.c ../../external/$(mode)/db/lib/libdb-4.2.dylib
 
 $(BINDIR)/store.o: $(BINDIR)/db.o $(BINDIR)/lucene.o
 	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) $(STORE_SRCS)
@@ -91,7 +91,7 @@ PyLucene_wrap.cxx: PyLucene.i $(BINDIR)/reader.java.o
 	swig -modern -I$(BINDIR)/classes -c++ -python PyLucene.i
 
 $(BINDIR)/_PyLucene.so: $(OBJS) PyLucene_wrap.cxx
-	$(CXX) -shared -bundle -o $(BINDIR)/_PyLucene.so $(CCFLAGS) -I$(CLASSES) -I$(PYTHON_INC) -I/usr/local/BerkeleyDB.4.2/include PyLucene_wrap.cxx $(BINDIR)/db_const.o $(BINDIR)/db.o $(BINDIR)/store.o $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o -lgcj -liconv -flat_namespace -multiply_defined suppress -undefined warning
+	$(CXX) -shared -bundle -o $(BINDIR)/_PyLucene.so $(CCFLAGS) -I$(CLASSES) -I$(PYTHON_INC) -I/usr/local/BerkeleyDB.4.2/include -I$(GCJ_HOME)/include PyLucene_wrap.cxx $(BINDIR)/db_const.o $(BINDIR)/db.o $(BINDIR)/store.o $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o -lgcj -liconv -flat_namespace -multiply_defined suppress -undefined warning
 
 all: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib PyLucene_wrap.cxx
 	echo build of $(BINDIR)/_PyLucene.so complete
@@ -101,6 +101,9 @@ install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib
 	install $(BINDIR)/_PyLucene.so $(PYTHON_SITE)
 	install $(BINDIR)/libdb_java-4.2.jnilib /usr/local/BerkeleyDB.4.2/lib
 	install libdb_java-4.2.la.osx /usr/local/BerkeleyDB.4.2/lib/libdb_java-4.2.la
+	install $(GCJ_HOME)/lib/libgcj.5.dylib $(RELDIR)/lib
+	install $(GCJ_HOME)/lib/libstdc++.6.dylib $(RELDIR)/lib
+	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(RELDIR)/lib
 
 clean:
 	rm -f PyLucene_wrap.cxx
