@@ -14,9 +14,39 @@ import OSAF.contentmodel.contacts.Contacts as Contacts
 import repository.item.Query as Query
 
 class ContentItemDetail(ControlBlocks.ItemDetail):
+    # @@@ This class is mostly scaffolding
+    # (+) We won't use HTML in the long run, but will use blocks
+    # (+) Need a data driven way to alternate the type of item detail
 
     def getHTMLText(self, item):
-        return "<html><body><h5>%s</h5></body></html>" % item.getAbout()
+
+        HTMLText = "<html><body>"
+        
+        kind = item.kind
+        if kind is Calendar.CalendarParcel.getCalendarEventKind():
+            HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
+            HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()
+            HTMLText += "<b>Date: </b> %s<br>" % item.getDate()
+            HTMLText += "<b>Duration: </b> %s<br>" % item.duration
+        elif kind is Notes.NotesParcel.getNoteKind():
+            HTMLText += "<b>Title: </b> %s<br>" % item.getAbout()
+        elif kind is Contacts.ContactsParcel.getContactKind():
+            HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
+            HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
+            for phone in item.homeSection.phoneNumbers:
+                HTMLText += "<b>Home phone: </b> %s<br>" % phone.phoneNumber
+            for phone in item.workSection.phoneNumbers:
+                HTMLText += "<b>Work phone: </b> %s<br>" % phone.phoneNumber
+            for email in item.homeSection.emailAddresses:
+                HTMLText += "<b>Home email: </b> %s<br>" % email.emailAddress
+            for email in item.workSection.emailAddresses:
+                HTMLText += "<b>Work email: </b> %s<br>" % email.emailAddress
+        else:
+            HTMLText += "BOGUS ITEM"
+                
+        HTMLText += "</body></html>"
+        
+        return HTMLText
 
 class QueryTreeDelegate:
 
@@ -40,14 +70,16 @@ class QueryTreeDelegate:
             return self.GetCellValues(element)
 
     def ElementHasChildren(self, element):
-        if element is self.GetRootKind():
-            return True
-        else:
-            return False
+        return (element is self.GetRootKind())
 
     def NeedsUpdate(self, notification):
         # @@@ Need observable queries!
-        pass
+        # the current simple strategy is to schedule an update if
+        # the item is of the kind we're interested in
+        item = Globals.repository.find(notification.data['uuid'])
+        if item.kind is self.GetRootKind():
+            self.scheduleUpdate = True
+            
 
 class MixedTreeDelegate(QueryTreeDelegate):
 
@@ -76,6 +108,12 @@ class MixedTreeDelegate(QueryTreeDelegate):
         return ["Who (%s)" % whoDisplay,
                 "About (%s)" % aboutDisplay,
                 "Date (%s)" % str(dateDisplay)]
+
+    def NeedsUpdate(self, notification):
+        item = Globals.repository.find(notification.data['uuid'])
+        if (item.kind is Notes.NotesParcel.getNoteKind() or
+            item.kind is Calendar.CalendarParcel.getCalendarEventKind()):
+            self.scheduleUpdate = True
     
 class CalendarTreeDelegate(QueryTreeDelegate):
     
