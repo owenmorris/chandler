@@ -307,7 +307,7 @@ class wxApplication (wxApp):
         # Load the calendar parcel
         if not self.repository.find('//Calendar'):
             calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                        'OSAF', 'calendar', 'schema',
+                                        'OSAF', 'calendar', 'model',
                                         'calendar.xml')
             loader.load(calendarPath)
 
