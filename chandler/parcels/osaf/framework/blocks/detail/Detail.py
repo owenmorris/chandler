@@ -197,6 +197,10 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         except AttributeError:
             pass
 
+    def detailRoot (self):
+        # return the detail root object
+        return self
+
 class DetailSynchronizer(object):
     """
       Mixin class that handles synchronizeWidget and
@@ -204,13 +208,21 @@ class DetailSynchronizer(object):
     Most client classes will only have to implement
     synchronizeItemDetail.
     """
-    def selectedItem (self):
+    def detailRoot (self):
         # delegate to our parent until we get outside our event boundary
-        return self.parentBlock.selectedItem()
+        return self.parentBlock.detailRoot()
+
+    def selectedItem (self):
+        # return the selected item
+        return self.detailRoot().selectedItem()
 
     def resynchronizeDetailView (self):
-        # delegate to our parent until we get to the DetailRoot.
-        self.parentBlock.resynchronizeDetailView ()
+        # resynchronize the whole detail view.
+        self.detailRoot().resynchronizeDetailView ()
+
+    def finishSelectionChanges (self):
+        # finish any changes in progress in editable text fields.
+        self.detailRoot().finishSelectionChanges ()
 
     def relayoutParents (self):
         # relayout the parent block
@@ -424,6 +436,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
 
     def onButtonPressed (self, notification):
         # Rekind the item by adding or removing the associated Mixin Kind
+        self.finishSelectionChanges () # finish changes to editable fields 
         tool = notification.data['sender']
         item = self.selectedItem()
         isANoteKind = item.isItemOf(ContentModel.ContentModel.getNoteKind())
@@ -437,10 +450,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
                 operation = 'remove'
             item.StampKind(operation, mixinKind)
             # notify the world that the item has a new kind.
-            block = self
-            while block.eventBoundary == False:
-                block = block.parentBlock
-            block.parentBlock.synchronizeWidget()
+            self.resynchronizeDetailView ()
 
     def onButtonPressedUpdateUI (self, notification):
         item = self.selectedItem()
@@ -637,12 +647,13 @@ class FromEditField (EditTextAttribute):
 
         if whoFrom is None:
             # Hack to set up whoFrom for Items with no value... like ItemCollections
-            # Can't set the whoFrom at creation time, because many start life in
-            # XML before the user account is setup.
+            # Can't set the whoFrom at creation time, because many start life at
+            # system startup before the user account is setup.
             if item.itsKind.hasAttribute ('whoFrom'):
-                meAddress = item.getCurrentMeEmailAddress ()
-                if meAddress is not None:
-                    item.whoFrom = meAddress
+                try:
+                    item.whoFrom = item.getCurrentMeEmailAddress ()
+                except AttributeError:
+                    pass
 
         try:
             whoString = item.ItemWhoFromString ()
@@ -662,7 +673,7 @@ class EditRedirectAttribute (EditTextAttribute):
         try:
             value = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
-            value = 'untitled'
+            value = _('untitled')
         widget.SetValue(value)
 
 class EditHeadlineRedirectAttribute (EditRedirectAttribute):
