@@ -190,7 +190,8 @@ class SharingTestCase(unittest.TestCase):
         Globals.repository = self.repos[0] # just in case (not needed?)
         self.share1.get()
 
-        self.assert_(changedItem.displayName == "meeting rescheduled")
+        self.assert_(changedItem.displayName == "meeting rescheduled",
+         "displayName is %s" % (changedItem.displayName))
 
     def Remove(self):
 
