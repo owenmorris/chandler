@@ -1,4 +1,4 @@
-from twisted.protocols.policies import ProtocolWrapper, WrappingFactory
+from twisted.protocols.policies import ProtocolWrapper
 from twisted.python.failure import Failure
 
 import M2Crypto # for M2Crypto.BIO.BIOError
@@ -10,15 +10,6 @@ debug = 0
 class _Null:
     def __init__(self, *args, **kw): pass
     def __call__(self, *args, **kw): return self
-
-# XXX Should maybe have a wrapping factory too, otherwise the real factory
-#     will not receive the real connectionLost() reason.
-#
-#class TLSWrappingFactory(WrappingFactory):
-#    def clientConnectionLost(self, connector, reason):
-#        if self.protocol.error:          # This won't work
-#            reason = self.protocol.error # ...
-#        WrappingFactory.clientConnectionLost(self, connector, reason)
 
 class TLSProtocolWrapper(ProtocolWrapper):
     """
@@ -54,7 +45,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.encrypted = '' # Encrypted data we need to decrypt and pass on
         self.tlsStarted = False # SSL/TLS mode or pass through
         self.checked = False # Post connection check done or not
-        self.error = None # Error to pass on to connectionLost()
         
         if hasattr(factory.wrappedFactory, 'getContext'):
             self.ctx = factory.wrappedFactory.getContext()
@@ -88,10 +78,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.data = ''
         self.encrypted = ''
         self.tlsStarted = False
-        self.checked = False
-        # Leave self.error untouched until we startTLS() again so that
-        # we can get at the error from the wrappingFactory.
-        
+        self.checked = False        
         # We can reuse self.ctx and it will be deleted automatically
         # when this instance dies
         
@@ -103,8 +90,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
         if self.tlsStarted:
             raise Exception, 'TLS already started'
 
-        self.error = None
-        
         self.internalBio = m2.bio_new(m2.bio_s_bio())
         m2.bio_set_write_buf_size(self.internalBio, 0)
         self.networkBio = m2.bio_new(m2.bio_s_bio())
@@ -114,8 +99,12 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.sslBio = m2.bio_new(m2.bio_f_ssl())
 
         self.ssl = m2.ssl_new(self.ctx.ctx)
-        
-        m2.ssl_set_connect_state(self.ssl) # XXX client only
+
+        if client:
+            m2.ssl_set_connect_state(self.ssl)
+        else:
+            m2.ssl_set_accept_state(self.ssl)
+            
         m2.ssl_set_bio(self.ssl, self.internalBio, self.internalBio)
         m2.bio_set_ssl(self.sslBio, self.ssl, 1)
 
@@ -143,16 +132,11 @@ class TLSProtocolWrapper(ProtocolWrapper):
         try:
             encryptedData = self._encrypt(data)
             ProtocolWrapper.write(self, encryptedData)
-        except:
-            raise
-        """
         except M2Crypto.BIO.BIOError, e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
             # for the error codes returned by SSL_get_error.
-            self.error = e
-            self.error.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
-            ProtocolWrapper.loseConnection(self)
-        """
+            e.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
+            raise e
 
     def writeSequence(self, data):
         if debug:
@@ -212,29 +196,16 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
                 if decryptedData == '' and encryptedData == '':
                     break
-        except:
-            raise
-        """
         except M2Crypto.BIO.BIOError, e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
             # for the error codes returned by SSL_get_error.
-            self.error = e
-            self.error.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
-            ProtocolWrapper.loseConnection(self)
-        except Checker.SSLVerificationError, e:
-            self.error = e
-            ProtocolWrapper.loseConnection(self)
-        """
+            e.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
+            raise e
 
     def connectionLost(self, reason):
         if debug:
             print 'MyProtocolWrapper.connectionLost'
-        if debug:
             print 'reason=', reason
-        if self.error:
-            reason = Failure(self.error)
-            if debug:
-                print 'reason=', reason
         self.clear()
         ProtocolWrapper.connectionLost(self, reason)
 
