@@ -3,7 +3,6 @@
 <item>
     <name>Required</name>
     <kind type="path">//Schema/Model/AttrDef</kind>
-    <class module="model.schema.AttrDef">AttrDef</class>
 
     <ref name="Type" type="path">//Schema/Model/Types/Bool</ref>
     <attribute name="Cardinality">single</attribute>

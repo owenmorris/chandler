@@ -3,14 +3,15 @@
 <item>
     <name>AttrDef</name>
     <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">Kind</class>
+    <class module="model.schema.Kind">KindKind</class>
 
-    <attribute name="AttrDefs" type="refs">
+    <refs name="AttrDefs">
         <ref name="Required" type="path">//Schema/Model/Attributes/Required</ref>
         <ref name="Cardinality" type="path">//Schema/Model/Attributes/Cardinality</ref>
         <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
         <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>
         <ref name="OtherName" type="path">//Schema/Model/Attributes/OtherName</ref>
         <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
-    </attribute>
+    </refs>
+    <attribute name="Class" type="class">model.schema.AttrDef.AttrDef</attribute>
 </item>

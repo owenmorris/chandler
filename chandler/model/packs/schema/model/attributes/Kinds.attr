@@ -3,7 +3,6 @@
 <item>
     <name>Kinds</name>
     <kind type="path">//Schema/Model/AttrDef</kind>
-    <class module="model.schema.AttrDef">AttrDef</class>
 
     <attribute name="Cardinality">dict</attribute>
     <attribute name="Required" type="bool">False</attribute>

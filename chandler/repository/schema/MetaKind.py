@@ -7,15 +7,18 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 class MetaKind(object):
 
-    def __init__(self, attrDefs):
+    def __init__(self, kindClass, attrDefs):
 
         super(MetaKind, self).__init__()
             
         self.AttrDefs = {}
+        self.Class = kindClass
+        
         for attrDef in attrDefs.iteritems():
             self.AttrDefs[attrDef[0]] = MetaKind.attr(attrDef[1])
 
     def getAttrDef(self, name):
+
         return self.AttrDefs.get(name)
 
 
@@ -26,3 +29,7 @@ class MetaKind(object):
             super(MetaKind.attr, self).__init__()
             for attr in attrs.iteritems():
                 setattr(self, attr[0], attr[1])
+
+        def getAspect(self, name, default=None):
+
+            return getattr(self, name, default)

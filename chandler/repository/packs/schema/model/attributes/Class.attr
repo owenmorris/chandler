@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Required</name>
+    <name>Class</name>
     <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <ref name="Type" type="path">//Schema/Model/Types/Bool</ref>
+    <ref name="Type" type="path">//Schema/Model/Types/Class</ref>
     <attribute name="Cardinality">single</attribute>
     <attribute name="Required" type="bool">False</attribute>
-    <attribute name="Default" type="bool">False</attribute>
 </item>

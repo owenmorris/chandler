@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 from ItemRef import ItemRef
 from ItemRef import RefDict
+from ItemRef import RefList
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -83,7 +84,7 @@ class Item(object):
         if self._kind is not None:
             attrDef = self._kind.getAttrDef(name)
             if attrDef is not None:
-                return getattr(attrDef, aspect, default)
+                return attrDef.getAspect(aspect, default)
 
         return default
 
@@ -265,65 +266,83 @@ class Item(object):
 
         repository.saveItem(self, **args)
 
-    def toXML(self, generator):
+    def toXML(self, generator, withSchema=False):
         'Generate the XML representation for this item.'
 
+        kind = self._kind
         generator.startElement('item', { 'uuid': str(self._uuid) })
 
-        generator.characters('\n    ')
-        generator.startElement('name', {})
-        generator.characters(self._name)
-        generator.endElement('name')
+        self._xmlTag('name', {}, self._name, generator)
 
-        if self._kind is not None:
-            generator.characters('\n    ')
-            generator.startElement('kind', { 'type': 'uuid' })
-            generator.characters(str(self._kind.getUUID()))
-            generator.endElement('kind')
+        if kind is not None:
+            self._xmlTag('kind', { 'type': 'uuid' },
+                         str(kind.getUUID()), generator)
+
+        if withSchema or kind is None or kind.Class is not type(self):
+            self._xmlTag('class', { 'module': self.__module__ },
+                         type(self).__name__, generator)
 
         if self._root is not self:
-            generator.characters('\n    ')
-            generator.startElement('parent', { 'type': 'uuid' })
-            generator.characters(str(self._parent.getUUID()))
-            generator.endElement('parent')
-            
-        generator.characters('\n    ')
-        generator.startElement('class', { 'module': self.__module__ })
-        generator.characters(type(self).__name__)
-        generator.endElement('class')
+            self._xmlTag('parent', { 'type': 'uuid' },
+                         str(self._parent.getUUID()), generator)
 
         for attr in self._attributes.iteritems():
-            self._xmlValue(attr[0], attr[1], 'attribute', '\n    ', generator)
+            attrType = self.getAttrAspect(attr[0], 'Type')
+            attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
+            self._xmlValue(attr[0], attr[1], 'attribute',
+                           attrType, attrCard, '\n    ', generator, withSchema)
 
         generator.characters('\n')
         generator.endElement('item')
 
-    def _xmlValue(self, name, value, tag, indent, generator):
+    def _xmlTag(self, tag, attrs, value, generator):
 
-        def _typeName(value):
+        generator.characters('\n    ')
+        generator.startElement(tag, attrs)
+        generator.characters(value)
+        generator.endElement(tag)
+
+    def _xmlValue(self, name, value, tag, attrType, attrCard,
+                  indent, generator, withSchema):
+
+        def typeName(value):
 
             if isinstance(value, UUID):
                 return 'uuid'
             elif isinstance(value, Path):
                 return 'path'
             elif isinstance(value, RefDict):
-                return 'refs'
+                return 'dict'
             else:
                 return type(value).__name__
             
         if isinstance(value, ItemRef):
-            self._xmlValue(name, value.other(self).getUUID(), 'ref', indent,
-                           generator)
+            self._xmlValue(name, value.other(self).getUUID(), 'ref',
+                           attrType, 'single', indent, generator, withSchema)
         else:
             attrs = {}
-
+            
             if name is not None:
                 attrs['name'] = str(name)
                 if not isinstance(name, str) and not isinstance(name, unicode):
-                    attrs['nameType'] = _typeName(value)
+                    attrs['nameType'] = typeName(value)
 
-            if not isinstance(value, str):
-                attrs['type'] = _typeName(value)
+            if tag != 'value':
+                if attrCard != 'single':
+                    attrs['cardinality'] = attrCard
+                if withSchema and tag == 'ref':
+                    attrs['otherName'] = self._otherName(name)
+
+            if isinstance(value, RefDict):
+                tag = 'refs'
+                if withSchema:
+                    attrs['otherName'] = self._otherName(name)
+                    withSchema = False
+            elif not isinstance(value, str):
+                if attrType is None:
+                    attrs['type'] = typeName(value)
+                elif withSchema:
+                    attrs['type'] = attrType.typeName()
 
             generator.characters(indent)
             generator.startElement(tag, attrs)
@@ -331,15 +350,21 @@ class Item(object):
             if isinstance(value, dict):
                 i = indent + '    '
                 for val in value.iteritems():
-                    self._xmlValue(val[0], val[1], 'value', i, generator)
+                    self._xmlValue(val[0], val[1], 'value', attrType, 'single',
+                                   i, generator, withSchema)
                 generator.characters(indent)
             elif isinstance(value, list):
                 i = indent + '    '
                 for val in value:
-                    self._xmlValue(None, val, 'value', i, generator)
+                    self._xmlValue(None, val, 'value', attrType, 'single',
+                                   i, generator, withSchema)
                 generator.characters(indent)
             else:
-                generator.characters(str(value))
+                if attrType is None:
+                    value = str(value)
+                else:
+                    value = attrType.serialize(value)
+                generator.characters(value)
 
             generator.endElement(tag)
 
@@ -359,21 +384,46 @@ class ItemHandler(xml.sax.ContentHandler):
         self.attributes = {}
         self.refs = []
         self.collections = []
+        self.attrDefs = []
         self.kind = None
+        self.cls = None
         
     def startElement(self, tag, attrs):
 
         self.data = ''
-        self.tagMethods.append(getattr(ItemHandler, tag + 'Tag'))
+        self.tagMethods.append(getattr(ItemHandler, tag + 'End'))
         self.tagAttrs.append(attrs)
 
+        method = getattr(ItemHandler, tag + 'Start', None)
+        if method is not None:
+            method(self, attrs)
+
+    def attributeStart(self, attrs):
+
+        attrDef = self.getAttrDef(attrs['name'])
+        self.attrDefs.append(attrDef)
+
+        cardinality = self.getCardinality(attrDef, attrs)
         typeName = attrs.get('type')
-        if typeName == 'dict':
+        
+        if cardinality == 'dict' or typeName == 'dict':
             self.collections.append({})
-        elif typeName == 'refs':
-            self.collections.append(RefDict(None, attrs['name']))
-        elif typeName == 'list':
+        elif cardinality == 'list' or typeName == 'list':
             self.collections.append([])
+
+    def refsStart(self, attrs):
+
+        name = attrs['name']
+        attrDef = self.getAttrDef(attrs['name'])
+        self.attrDefs.append(attrDef)
+
+        cardinality = self.getCardinality(attrDef, attrs)
+        otherName = self.getOtherName(name, attrDef, attrs)
+        
+        if cardinality == 'dict':
+            self.collections.append(RefDict(None, otherName))
+        elif cardinality == 'list':
+            self.collections.append(RefList(None, otherName))
                 
     def characters(self, data):
 
@@ -383,11 +433,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.tagMethods.pop()(self, self.tagAttrs.pop())
 
-    def itemTag(self, attrs):
+    def itemEnd(self, attrs):
 
-        self.item = item = self.cls(self.name, self.repository, self.kind,
-                                    _uuid = UUID(attrs.get('uuid')),
-                                    _attributes = self.attributes)
+        cls = self.cls or self.kind.Class
+        self.item = item = cls(self.name, self.repository, self.kind,
+                               _uuid = UUID(attrs.get('uuid')),
+                               _attributes = self.attributes)
 
         for value in item._attributes.itervalues():
             if isinstance(value, RefDict):
@@ -406,11 +457,12 @@ class ItemHandler(xml.sax.ContentHandler):
             other = item.find(ref[1])
 
             if len(ref) == 2:
-                otherName = item._otherName(ref[0])
+                name = ref[0][0]
+                otherName = ref[0][1]
                 valueDict = item._attributes
             else:
-                otherName = item._otherName(ref[2]._name)
-                item._attributes[ref[2]._name] = ref[2]
+                name = ref[0]
+                otherName = ref[2]._otherName
                 valueDict = ref[2]
                 valueDict._item = item
                 
@@ -421,7 +473,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 elif isinstance(value, ItemRef):
                     value._other = item
                 elif isinstance(value, RefDict):
-                    refName = item.refName(ref[0])
+                    refName = item.refName(otherName)
                     if value.has_key(refName):
                         value = value._getRef(refName)
                         value._other = item
@@ -429,10 +481,12 @@ class ItemHandler(xml.sax.ContentHandler):
                         value = ItemRef(item, other, otherName)
             else:
                 value = ItemRef(item, other, otherName)
+                self.repository.itemRefs.append((item, ref[1],
+                                                 otherName, value))
 
-            valueDict[ref[0]] = value
+            valueDict[name] = value
 
-    def kindTag(self, attrs):
+    def kindEnd(self, attrs):
 
         if attrs['type'] == 'uuid':
             kindRef = UUID(self.data)
@@ -443,52 +497,66 @@ class ItemHandler(xml.sax.ContentHandler):
         if self.kind is None:
             self.kindRef = kindRef
 
-    def classTag(self, attrs):
+    def classEnd(self, attrs):
 
         self.cls = getattr(__import__(attrs['module'], {}, {}, self.data),
                            self.data)
         if self.kind is None:
             self.kind = getattr(self.cls, 'kind', None)
 
-    def nameTag(self, attrs):
+    def nameEnd(self, attrs):
 
         self.name = self.data
 
-    def parentTag(self, attrs):
+    def parentEnd(self, attrs):
 
         if attrs['type'] == 'uuid':
             self.parentRef = UUID(self.data)
         else:
             self.parentRef = Path(self.data)
 
-    def attributeTag(self, attrs):
+    def attributeEnd(self, attrs):
 
-        typeName = attrs.get('type', 'str')
+        attrDef = self.attrDefs.pop()
+        cardinality = self.getCardinality(attrDef, attrs)
 
-        if typeName == 'dict' or typeName == 'list' or typeName == 'refs':
-            value = self.collections.pop()
+        if cardinality == 'single':
+            value = self.makeValue(attrDef, attrs.get('type', 'str'),
+                                   self.data)
         else:
-            value = self.makeValue(typeName, self.data)
+            value = self.collections.pop()
             
         self.attributes[attrs['name']] = value
 
-    def valueTag(self, attrs):
+    def refsEnd(self, attrs):
+
+        attrDef = self.attrDefs.pop()
+        cardinality = self.getCardinality(attrDef, attrs)
+
+        if cardinality == 'single':
+            raise ValueError, "Invalid cardinality type " + cardinality
+        else:
+            value = self.collections.pop()
+            
+        self.attributes[attrs['name']] = value
+
+    def valueEnd(self, attrs):
 
         typeName = attrs.get('type', 'str')
 
         if typeName == 'dict' or typeName == 'list':
             value = self.collections.pop()
         else:
-            value = self.makeValue(typeName, self.data)
+            value = self.makeValue(self.attrDefs[-1], typeName, self.data)
 
         name = attrs.get('name')
         if name is None:
             self.collections[-1].append(value)
         else:
-            name = self.makeValue(attrs.get('nameType', 'str'), name)
+            name = self.makeValue(None, attrs.get('nameType', 'str'), name)
             self.collections[-1][name] = value
 
-    def refTag(self, attrs):
+    def refEnd(self, attrs):
 
         typeName = attrs.get('type', 'path')
 
@@ -498,12 +566,54 @@ class ItemHandler(xml.sax.ContentHandler):
             ref = UUID(self.data)
 
         if self.collections:
-            name = self.makeValue(attrs.get('nameType', 'str'), attrs['name'])
+            name = self.makeValue(None, attrs.get('nameType', 'str'),
+                                  attrs['name'])
             self.refs.append((name, ref, self.collections[-1]))
         else:
-            self.refs.append((attrs['name'], ref))
+            name = attrs['name']
+            otherName = self.getOtherName(name, self.getAttrDef(name), attrs)
+            self.refs.append(((name, otherName), ref))
 
-    def makeValue(self, typeName, data):
+    def getCardinality(self, attrDef, attrs):
+
+        cardinality = attrs.get('cardinality')
+
+        if cardinality is None:
+            if attrDef is None:
+                cardinality = 'single'
+            else:
+                cardinality = attrDef.getAspect('Cardinality', 'single')
+
+        return cardinality
+
+    def getOtherName(self, name, attrDef, attrs):
+
+        otherName = attrs.get('otherName')
+
+        if otherName is None and attrDef is not None:
+            otherName = attrDef.getAspect('OtherName')
+
+        if otherName is None:
+            if name.endswith('__for'):
+                otherName = name[:-5]
+            else:
+                otherName = name + '__for'
+
+        return otherName
+
+    def getAttrDef(self, name):
+        
+        if self.kind is not None:
+            return self.kind.getAttrDef(name)
+        else:
+            return None
+
+    def makeValue(self, attrDef, typeName, data):
+
+        if attrDef is not None:
+            type = attrDef.getAspect('Type')
+            if type is not None:
+                return type.makeValue(data)
 
         if typeName == 'str':
             return data
@@ -516,6 +626,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if typeName == 'bool':
             return data != 'False'
+        
+        if typeName == 'class':
+            lastDot = data.rindex('.')
+            module = data[:lastDot]
+            name = data[lastDot+1:]
+            return getattr(__import__(module, {}, {}, name), name)
         
         return getattr(__import__('__builtin__', {}, {}, typeName),
                        typeName)(data)

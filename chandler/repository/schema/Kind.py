@@ -11,16 +11,30 @@ from MetaKind import MetaKind
 
 class Kind(Item):
 
-    kind = MetaKind({ 'SuperKind': { 'Required': False,
-                                    'Cardinality': 'dict',
-                                    'OtherName': 'SubKind' },
-                      'SubKind': { 'Required': False,
-                                   'Cardinality': 'dict',
-                                   'OtherName': 'SuperKind' },
-                      'AttrDefs': { 'Required': True,
-                                    'Cardinality': 'dict',
-                                    'OtherName': 'Kinds' } })
-    
     def getAttrDef(self, name):
 
         return self.AttrDefs.get(name)
+
+
+class KindKind(Kind):
+
+    def getAttrDef(self, name):
+
+        attrDef = super(KindKind, self).getAttrDef(name)
+        if attrDef is None:
+            attrDef = self.Class.kind.getAttrDef(name)
+
+        return attrDef
+    
+
+Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
+                                            'Cardinality': 'dict',
+                                            'OtherName': 'SubKind' },
+                             'SubKind': { 'Required': False,
+                                          'Cardinality': 'dict',
+                                          'OtherName': 'SuperKind' },
+                             'AttrDefs': { 'Required': True,
+                                           'Cardinality': 'dict',
+                                           'OtherName': 'Kinds' },
+                             'Class': { 'Required': False,
+                                        'Cardinality': 'single' } })

@@ -196,23 +196,36 @@ class Repository(object):
             raise ValueError, self._dir + " exists but is not a directory"
 
         contents = file(os.path.join(self._dir, 'contents.lst'), 'w')
-        
-        for root in self._roots.iteritems():
-            dir = os.path.join(self._dir, root[0])
+        hasSchema = self._roots.has_key('Schema')
 
-            if not os.path.exists(dir):
-                os.mkdir(dir)
-            elif not os.path.isdir(dir):
-                raise ValueError, dir + " exists but is not a directory"
-
-            rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-            root[1].save(self, contents=rootContents, encoding=encoding)
-            rootContents.close()
-
-            contents.write(root[0])
+        if hasSchema:
+            self._saveRoot(self.getRoot('Schema'), encoding, True)
+            contents.write('Schema')
             contents.write('\n')
-
+        
+        for root in self._roots.itervalues():
+            name = root.getName()
+            if name != 'Schema':
+                self._saveRoot(root, encoding, not hasSchema)
+                contents.write(name)
+                contents.write('\n')
+                
         contents.close()
+
+    def _saveRoot(self, root, encoding='iso-8859-1', withSchema=False):
+
+        name = root.getName()
+        dir = os.path.join(self._dir, name)
+
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        elif not os.path.isdir(dir):
+            raise ValueError, dir + " exists but is not a directory"
+
+        rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
+        root.save(self, contents=rootContents,
+                  encoding = encoding, withSchema = withSchema)
+        rootContents.close()
 
     def saveItem(self, item, **args):
 
@@ -224,7 +237,7 @@ class Repository(object):
                                                                 'iso-8859-1'))
 
         generator.startDocument()
-        item.toXML(generator)
+        item.toXML(generator, args.get('withSchema', False))
         generator.endDocument()
 
         args['contents'].write(uuid)
@@ -241,6 +254,7 @@ class Repository(object):
             self.repository = repository
             self.registry = []
             self.kindRefs = []
+            self.itemRefs = []
 
         def __iter__(self):
             return self.registry.__iter__()
@@ -268,6 +282,12 @@ class Repository(object):
                 del item._kindRef
                 item._kind = item.find(ref)
 
+        def _resolveRefs(self):
+
+            for ref in self.itemRefs:
+                if ref[3]._other is None:
+                    ref[3]._attach(ref[0], ref[0].find(ref[1]), ref[2])
+
         def find(self, spec):
             return self.repository.find(spec)
 
@@ -290,6 +310,7 @@ class PackHandler(xml.sax.ContentHandler):
     def endDocument(self):
 
         self.cover._resolveKinds()
+        self.cover._resolveRefs()
         
     def startElement(self, tag, attrs):
 

@@ -3,9 +3,10 @@
 <item>
     <name>Type</name>
     <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">Kind</class>
+    <class module="model.schema.Kind">KindKind</class>
 
-    <attribute name="AttrDefs" type="refs">
+    <refs name="AttrDefs">
         <ref name="TypeFor" type="path">//Schema/Model/Attributes/TypeFor</ref>
-    </attribute>
+    </refs>
+    <attribute name="Class" type="class">model.schema.Types.Type</attribute>
 </item>

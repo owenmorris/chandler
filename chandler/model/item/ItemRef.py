@@ -43,7 +43,7 @@ class ItemRef(object):
                     old[item.refName(name)] = self
                     return
             elif other.getAttrAspect(name, 'Cardinality', 'single') == 'dict':
-                old = RefDict(other, name)
+                old = RefDict(other, other._otherName(name))
                 other._attributes[name] = old
                 old[item.refName(name)] = self
                 return
@@ -52,11 +52,12 @@ class ItemRef(object):
 
     def _detach(self, item, other, name):
 
-        old = other.getAttribute(name)
-        if isinstance(old, RefDict):
-            old._removeRef(item.refName(name))
-        else:
-            other._removeRef(name)
+        if other is not None:
+            old = other.getAttribute(name)
+            if isinstance(old, RefDict):
+                old._removeRef(item.refName(name))
+            else:
+                other._removeRef(name)
 
     def _reattach(self, item, old, new, name):
 
@@ -76,20 +77,20 @@ class ItemRef(object):
 
 class RefDict(dict):
 
-    def __init__(self, item, name, refs=None):
+    def __init__(self, item, otherName, initialDict=None):
 
         super(RefDict, self).__init__()
 
         self._item = item
-        self._name = name
+        self._otherName = otherName
         
-        if refs is not None:
-            self.update(refs)
+        if initialDict is not None:
+            self.update(initialDict)
 
-    def update(self, dict):
+    def update(self, valueDict):
 
-        for pair in dict.iteritems():
-            self[pair[0]] = pair[1]
+        for value in valueDict.iteritems():
+            self[value[0]] = value[1]
 
     def __getitem__(self, key):
 
@@ -102,26 +103,25 @@ class RefDict(dict):
     def __setitem__(self, key, value):
 
         old = super(RefDict, self).get(key)
-        otherName = self._item._otherName(self._name)
         isItem = isinstance(value, Item.Item)
 
         if isinstance(old, ItemRef):
             if isItem:
                 old._reattach(self._item, old.other(self._item),
-                              value, otherName)
+                              value, self._otherName)
             else:
-                old._detach(self._item, old.other(self._item), otherName)
+                old._detach(self._item, old.other(self._item),
+                            self._otherName)
         else:
             if isItem:
-                value = ItemRef(self._item, value, otherName)
+                value = ItemRef(self._item, value, self._otherName)
             
             super(RefDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
         value = super(RefDict, self).__getitem__(key)
-        value._detach(self._item, value.other(self._item),
-                      self._item._otherName(self._name))
+        value._detach(self._item, value.other(self._item), self._otherName)
 
     def _removeRef(self, key):
 
@@ -138,3 +138,86 @@ class RefDict(dict):
             value = value.other(self._item)
 
         return value
+
+class RefList(list):
+
+    def __init__(self, item, otherName, initialList=None):
+
+        super(RefList, self).__init__()
+
+        self._item = item
+        self._otherName = otherName
+        
+        if initialList is not None:
+            self.extend(initialList)
+
+    def extend(self, valueList):
+
+        for value in valueList:
+            self.append(value)
+
+    def append(self, value):
+
+        if not self.__contains__(value):
+            super(RefList, self).append(value)
+
+    def __contains__(self, value):
+
+        if isinstance(value, Item):
+            for ref in self:
+                if ref.other(self._item) is value:
+                    return True
+        elif isinstance(value, ItemRef):
+            for ref in self:
+                if ref is value:
+                    return True
+
+        return False
+
+    def __getitem__(self, key):
+
+        value = super(RefList, self).__getitem__(key)
+        if isinstance(value, ItemRef):
+            value = value.other(self._item)
+
+        return value
+
+    def __setitem__(self, key, value):
+
+        old = super(RefList, self).get(key)
+        isItem = isinstance(value, Item.Item)
+
+        if isinstance(old, ItemRef):
+            if isItem:
+                old._reattach(self._item, old.other(self._item),
+                              value, self._otherName)
+            else:
+                old._detach(self._item, old.other(self._item),
+                            self._otherName)
+        else:
+            if isItem:
+                value = ItemRef(self._item, value, self._otherName)
+            
+            super(RefList, self).__setitem__(key, value)
+
+    def __delitem__(self, key):
+
+        value = super(RefList, self).__getitem__(key)
+        value._detach(self._item, value.other(self._item), self._otherName)
+
+    def _removeRef(self, key):
+
+        super(RefList, self).__delitem__(key)
+
+    def _getRef(self, key):
+
+        return super(RefList, self).get(key)
+
+    def get(self, key, default=None):
+
+        value = super(RefList, self).get(key, default)
+        if value is not default:
+            value = value.other(self._item)
+
+        return value
+

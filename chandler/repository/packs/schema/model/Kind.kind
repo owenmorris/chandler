@@ -3,11 +3,13 @@
 <item>
     <name>Kind</name>
     <kind type="path">//Schema/Model/Kind</kind>
-    <class module="model.schema.Kind">Kind</class>
+    <class module="model.schema.Kind">KindKind</class>
 
-    <attribute name="AttrDefs" type="refs">
+    <refs name="AttrDefs">
         <ref name="SuperKind" type="path">//Schema/Model/Attributes/SuperKind</ref>
         <ref name="SubKind" type="path">//Schema/Model/Attributes/SubKind</ref>
         <ref name="AttrDefs" type="path">//Schema/Model/Attributes/AttrDefs</ref>
-    </attribute>
+        <ref name="Class" type="path">//Schema/Model/Attributes/Class</ref>
+    </refs>
+    <attribute name="Class" type="class">model.schema.Kind.Kind</attribute>
 </item>

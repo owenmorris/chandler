@@ -33,7 +33,7 @@ class UUID(object):
     
     def __eq__(self, other):
 
-        return self._uuid == other._uuid
+        return isinstance(other, UUID) and self._uuid == other._uuid
 
     def __ge__(self, other):
 
