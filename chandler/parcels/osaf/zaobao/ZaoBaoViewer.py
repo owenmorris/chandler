@@ -76,9 +76,9 @@ class ZaoBaoViewer (ViewerParcel):
             
         
 class wxZaoBaoViewer(wxViewerParcel):
-    _titleFont = wxFont(16, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")
-
     def OnInit(self):
+        self.titleFont = wxFont(16, wxSWISS, wxNORMAL, 
+                                wxNORMAL, false, "Arial")
         
         #create splitter window
         self.twoPane = wxSplitterWindow(self, -1)
@@ -86,7 +86,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         
         #create main UI elements
         self.titleText = wxStaticText(self, -1, self.model.displayName)
-        self.titleText.SetFont(wxZaoBaoViewer._titleFont)
+        self.titleText.SetFont(self.titleFont)
         self.urlTextArea = wxTextCtrl(self, -1, "",style=wxTE_PROCESS_ENTER)
         self.addURLButton = wxButton(self, -1, _("Add"))
         self.addURLButton.SetSize((45, -1))
