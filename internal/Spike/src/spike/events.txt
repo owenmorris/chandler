@@ -289,6 +289,27 @@ But the argument can then be specified either positionally, or via a keyword::
     'Bar'
 
 
+Forwarding/Resending
+--------------------
+
+You can explicitly forward an already-created event to a specified target
+class' receivers, by using the ``send`` method of event classes::
+
+    >>> def printIt(event): print event
+    >>> events.Event.subscribe(sender,printIt)
+
+    >>> events.Event.send(evt)  # resend ``evt`` to ``Event`` receivers
+    <MessageRequired object at ...>
+
+``send`` is a classmethod, so you can also use it from an instance, and it will
+resend the event to the receivers registered for the applicable event class::
+
+    >>> evt.send(evt)   # no message, because 
+
+(Notice that because it's a classmethod, you still have to pass the instance in
+explicitly.)
+
+
 Event System Internals
 ======================
 

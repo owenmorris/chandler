@@ -64,6 +64,7 @@ class EventClass(type):
         except KeyError:
             pass
 
+
 class Event:
     """Base class for event types"""
 
@@ -76,20 +77,25 @@ class Event:
         self.consumed = False
         for k,v in args.items():
             setattr(self,k,v)
-        for rcv in list(self.getReceivers(sender)):
-            if self.consumed:
-                break
-            rcv(self)
+        self.send(self)
 
     def __setattr__(self,attr,value):
         if attr.startswith('_') or not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
                 % (attr,type(self).__name__))
         super(Event,self).__setattr__(attr,value)
-                
+
     @classmethod
     def getReceivers(cls,sender):
         return cls._receivers.get(id(sender),())
+
+    @classmethod
+    def send(cls,event):
+        """Send an event with a forced ``sender`` and/or target class"""
+        for rcv in list(cls.getReceivers(event.sender)):
+            if event.consumed:
+                break
+            rcv(event)
 
 
 class weak_sender(int):
