@@ -19,6 +19,8 @@ def test():
   ['fn', 'f', ['1', '2']]
   >>> print parse('value_expr','x.y.z')
   ['path', ['x', 'y', 'z'], None]
+  >>> print parse('value_expr','$22')
+  $22
 
   # negative tests
   >>> print parse('value_expr','+')
@@ -153,6 +155,8 @@ def test():
   ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]]]
   >>> print parse('for_stmt', u"for i in '//Schema/Core/Kind' where ftcontains(i.description,'\\"howard johnson\\" and pancakes')")
   ['for', u'i', u"'//Schema/Core/Kind'", ['fn', u'ftcontains', [['path', [u'i', u'description'], None], u'\\'"howard johnson" and pancakes\\'']]]
+  >>> print parse('for_stmt', u"for i in ftcontains('\\"howard johnson\\" and pancakes') where i.itsKind.itsName == 'Movie'")
+  ['for', u'i', ('ftcontains', [u'\\'"howard johnson" and pancakes\\'']), [u'==', ['path', [u'i', u'itsKind', u'itsName'], None], u"'Movie'"]]
 
   ### UNION_EXPR
   >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
