@@ -57,7 +57,7 @@ class ZaoBaoController(Block.Block):
         if url and url != "":
             try: 
                 # create the zaobao channel
-                channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
+                channel = RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
 
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
