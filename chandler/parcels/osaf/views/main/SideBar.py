@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
+import osaf.framework.blocks.Block as Block
 import wx
 
 
@@ -27,9 +28,28 @@ class SideBarDelegate (ControlBlocks.AttributeDelegate):
         attributeName = self.blockItem.columnData [column]
         item.setAttributeValue (attributeName, value)
         view.synchronizeWidget()
+        
 
+class wxSidebar(ControlBlocks.wxTable):
+    def OnRequestDrop(self, x, y):
+        self.dropRow = self.YToRow(y)
+        if self.dropRow == wx.NOT_FOUND:
+            return False
+        return True
+        
+    def AddItem(self, itemUUID):
+        item = Globals.repository.findUUID(itemUUID)
+        self.blockItem.contents[self.dropRow].contents.add(item)
+    
+    def OnItemDrag(self, event):
+        # @@@ You currently can't drag out of the sidebar
+        pass
 
+    
 class Sidebar (ControlBlocks.Table):
+    def instantiateWidget (self):
+        return wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
+
     def onKindParameterizedEvent (self, notification):
         kindParameter = notification.event.kindParameter
 
