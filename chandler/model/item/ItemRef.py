@@ -147,7 +147,7 @@ class RefDict(dict):
     def __getitem__(self, key):
 
         value = super(RefDict, self).__getitem__(key)
-        if isinstance(value, ItemRef):
+        if value is not None:
             value = value.other(self._item)
 
         return value

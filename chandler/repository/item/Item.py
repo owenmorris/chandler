@@ -98,6 +98,15 @@ class Item(object):
 
         return otherName
 
+    def hasAttrAspect(self, name, aspect):
+
+        if self._kind is not None:
+            attrDef = self._kind.getAttrDef(name)
+            if attrDef is not None:
+                return attrDef.hasAspect(aspect)
+
+        return False
+
     def getAttrAspect(self, name, aspect, default=None):
 
         if self._kind is not None:
@@ -163,10 +172,15 @@ class Item(object):
             self._attributes[name] = value
 
     def getAttribute(self, name, _attrDict=None, **kwds):
-        '''Return the named Chandler attribute value or raise AttributeError when not found.
+        """Return the named Chandler attribute value.
 
+        If the attribute is not set then attempt to inherit a value if the
+        attribute's InheritFrom aspect is set, attempt to return the value
+        of the optional 'default' keyword passed to this method, attempt to
+        return the value of its Default aspect if set, or finally raise 
+        AttributeError. 
         Calling this method is only required when there is a name ambiguity
-        between a python and a Chandler attribute, a situation best avoided.'''
+        between a python and a Chandler attribute, a situation best avoided."""
 
         try:
             if (_attrDict is self._attributes or
@@ -183,24 +197,21 @@ class Item(object):
         except KeyError:
             pass
 
-        value = None
-        
         inherit = self.getAttrAspect(name, 'InheritFrom', None)
         if inherit is not None:
             value = self
             for attr in inherit.split('.'):
-                value = value.getAttribute(attr, default=None)
+                value = value.getAttribute(attr)
 
-        if value is None:
-            value = self.getAttrAspect(name, 'Default', None)
-            if value is not None:
-                return value
-            elif kwds.has_key('default'):
-                return kwds['default']
-            else:
-                raise AttributeError, name
+            return value
 
-        return value
+        elif kwds.has_key('default'):
+            return kwds['default']
+
+        elif self.hasAttrAspect(name, 'Default'):
+            return self.getAttrAspect(name, 'Default')
+
+        raise AttributeError, name
 
     def removeAttribute(self, name, _attrDict=None):
         'Remove a Chandler attribute.'
@@ -317,7 +328,7 @@ class Item(object):
         return False
 
     def hasValue(self, attribute, value):
-        'Tell where a multi-valued attribute has a given value.'
+        'Tell whether a multi-valued attribute has a given value.'
 
         attrValue = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
@@ -378,14 +389,14 @@ class Item(object):
                 self._references.has_key(name))
     
     def delete(self):
-        '''Delete this item and disconnect all its item references.
+        """Delete this item and disconnect all its item references.
 
         If this item has children, they are recursively deleted first.
         If this item has references to other items and the references delete
         policy is 'cascade' then these other items are deleted last.
         A deleted item is no longer reachable through the repository or other
-        items. It is an error to access deleted item reference.'''
-        print "deleting", self._name
+        items. It is an error to access deleted item reference."""
+
         if not self._deleted and not hasattr(self, '_deleting'):
             self._deleting = True
             others = []
@@ -859,8 +870,12 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def classEnd(self, attrs):
 
-        self.cls = getattr(__import__(attrs['module'], {}, {}, self.data),
-                           self.data)
+        module = __import__(attrs['module'], {}, {}, self.data)
+        try:
+            self.cls = getattr(module, self.data)
+        except AttributeError:
+            raise ImportError, "Module %s does not have class %s" %(attrs['module'], self.data)
+
         if self.kind is None:
             self.kind = getattr(self.cls, 'kind', None)
 
@@ -1023,6 +1038,11 @@ class ItemHandler(xml.sax.ContentHandler):
             lastDot = data.rindex('.')
             module = data[:lastDot]
             name = data[lastDot+1:]
-            return getattr(__import__(module, {}, {}, name), name)
+
+            m = __import__(module, {}, {}, name)
+            try:
+                return getattr(m, name)
+            except AttributeError:
+                raise ImportError, "Module %s does not have class %s" %(module, name)
 
         raise ValueError, "Unknown type: " + typeName

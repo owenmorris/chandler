@@ -37,6 +37,10 @@ class AttrDef(Item):
 
         return super(AttrDef, self).refName(name)
 
+    def hasAspect(self, name):
+
+        return self.hasAttribute(name)
+
     def getAspect(self, name, default=None):
 
         if self.hasAttribute(name):
