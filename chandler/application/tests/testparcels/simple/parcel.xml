@@ -5,48 +5,48 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="simple"
+<Parcel itsName="simple"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:simple="http://testparcels.org/simple" >
 
   <namespace value="http://testparcels.org/simple" />
 
-  <displayName>Simple Parcel</displayName>
-  <description>Simple Parcel Loader Test Schema</description>
-  <version>0.1</version>
-  <author>Open Source Applications Foundation</author>
+  <displayName value="Simple Parcel" />
+  <description value="Simple Parcel Loader Test Schema" />
+  <version value="0.1" />
+  <author value="Open Source Applications Foundation" />
 
-  <Kind itemName="TestKind">
-    <displayName>Test Kind</displayName>
-    <attributes itemref="simple:TestAttribute"/>
-    <attributes itemref="simple:ListAttribute"/>
-    <attributes itemref="simple:DictAttribute"/>
-    <displayAttribute itemref="simple:TestAttribute"/>
+  <Kind itsName="TestKind">
+    <displayName value="Test Kind" />
+    <attributes ref="simple:TestAttribute"/>
+    <attributes ref="simple:ListAttribute"/>
+    <attributes ref="simple:DictAttribute"/>
+    <displayAttribute ref="simple:TestAttribute"/>
   </Kind>
 
-  <Kind itemName="SubKind">
-    <superKinds itemref="simple:TestKind"/>
-    <displayName>Subclass Test Kind</displayName>
+  <Kind itsName="SubKind">
+    <superKinds ref="simple:TestKind"/>
+    <displayName value="Subclass Test Kind" />
   </Kind>
 
-  <Attribute itemName="TestAttribute">
-    <displayName>Test Attribute</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-    <initialValue type="String">XYZZY</initialValue>
+  <Attribute itsName="TestAttribute">
+    <displayName value="Test Attribute" />
+    <cardinality value="single" />
+    <type ref="String"/>
+    <initialValue type="String" value="XYZZY" />
   </Attribute>
 
-  <Attribute itemName="ListAttribute">
-    <displayName>List Attribute</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
+  <Attribute itsName="ListAttribute">
+    <displayName value="List Attribute" />
+    <cardinality value="list" />
+    <type ref="String"/>
     <initialValue/>
   </Attribute>
 
-  <Attribute itemName="DictAttribute">
-    <displayName>Dict Attribute</displayName>
-    <cardinality>dict</cardinality>
-    <type itemref="String"/>
+  <Attribute itsName="DictAttribute">
+    <displayName value="Dict Attribute" />
+    <cardinality value="dict" />
+    <type ref="String"/>
     <initialValue/>
   </Attribute>
 
