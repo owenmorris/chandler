@@ -1,2 +1,4 @@
 rijndael.py
 rijndael_wrap.cpp
+*.pyc
+*.pyo
