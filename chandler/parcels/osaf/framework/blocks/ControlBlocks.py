@@ -441,12 +441,10 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
 
-                # Redraw headers
+                ## Redraw headers
                 gridTable = self.GetTable()
-                self.BeginBatch()
                 for columnIndex in xrange (gridTable.GetNumberCols()):
                     self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.EndBatch() 
 
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
