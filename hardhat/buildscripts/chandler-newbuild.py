@@ -398,12 +398,17 @@ def getVersion(fileToRead):
     input = open(fileToRead, "r")
     line = input.readline()
     while line:
-        m=re.match('VERSION=(.*)', line)
-        if not m == 'None':
-            version = m.group(1)
-            input.close()
-            return version
+        if line == "\n":
+            line = input.readline()
+            continue
+        else:
+            m=re.match('VERSION=(.*)', line)
+            if not m == 'None' or m == 'NoneType':
+                version = m.group(1)
+                input.close()
+                return version
             
         line = input.readline()
     input.close()
     return 'No Version'
+
