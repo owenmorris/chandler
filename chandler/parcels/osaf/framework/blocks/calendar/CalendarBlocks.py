@@ -37,9 +37,6 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                                         {'start': self.getSelectedDate()})
 
     def OnWXDoubleClick(self, event):
-        # Tell the sidebar we want to go to the All collection
-        self.blockItem.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
-
         # Select the calendar filter
         self.blockItem.postEventByName ('ApplicationBarEvent', {})
                                           
