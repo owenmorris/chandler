@@ -7,7 +7,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import posix, os, os.path, sys, unittest
+import os, os.path, sys, unittest
 
 from bsddb.db import DBNoSuchFileError
 from repository.persistence.XMLRepository import XMLRepository
@@ -24,7 +24,7 @@ import feedparser
 # You can obtain the files from http://aloha.osafoundation.org/~twl/rssfeeds.tar.gz
 RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
 if os.path.exists(RSS_HOME):
-    _rssfiles = posix.listdir(RSS_HOME)
+    _rssfiles = os.listdir(RSS_HOME)
 else:
     _rssfiles = []
 
