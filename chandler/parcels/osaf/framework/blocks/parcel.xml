@@ -489,6 +489,11 @@
       <defaultValue type="String"></defaultValue>
     </Attribute>
     
+    <Attribute itsName="disabled">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+    
     <attributes itemref="docSchema:DynamicChild/dynamicParent"/>
     <attributes itemref="docSchema:DynamicChild/title"/>
     <attributes itemref="docSchema:DynamicChild/operation"/>
@@ -994,7 +999,15 @@
   <Kind itsName="ContentItemDetail">
     <classes key="python">osaf.framework.blocks.ControlBlocks.ContentItemDetail</classes>
     <superKinds itemref="docSchema:SelectionContainer"/>
+    
+    <Attribute itsName="selectedItemsAttribute">
+      <description>Specifies which attribute of the selected Item should be associated with this block.</description>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="String"/>
+    </Attribute>
 
+    <attributes itemref="docSchema:ContentItemDetail/selectedItemsAttribute"/>
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 

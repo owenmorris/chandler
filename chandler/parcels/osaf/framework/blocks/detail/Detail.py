@@ -42,7 +42,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         super(DetailRoot, self).onSelectionChangedEvent(notification)
         item= self.selectedItem()
         assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
-        self.synchronizeDetailView(item)
+        self.synchronizeWidget()
 
     def synchronizeDetailView(self, item):
         """
@@ -58,21 +58,29 @@ class DetailRoot (ControlBlocks.SelectionContainer):
           DLDTBD - find a better way to broadcast inside my boundary.
         """
         def reNotifyInside(block, item):
-            try:
-                block.synchronizeItemDetail(item)
-            except AttributeError:
-                pass
+            notifyParent = False
             try:
                 for child in block.childrenBlocks:
-                    reNotifyInside(child, item)
+                    notify = reNotifyInside (child, item)
+                    notifyParent = notifyParent or notify
             except AttributeError:
                 pass
-        reNotifyInside(self, item)
+            try:
+                notify = block.synchronizeItemDetail(item)
+                notifyParent = notifyParent or notify
+            except AttributeError:
+                if notifyParent:
+                    block.synchronizeWidget()
+            return notifyParent
+        children = self.childrenBlocks
+        for child in children:
+            child.isShown = item is not None
+            reNotifyInside(child, item)
     
     def synchronizeWidget (self):
-        super(DetailRoot, self).synchronizeWidget ()
         item= self.selectedItem()
         self.synchronizeDetailView(item)
+        super(DetailRoot, self).synchronizeWidget ()
         
 class DetailSynchronizer(object):
     """
@@ -92,73 +100,94 @@ class DetailSynchronizer(object):
             block = block.parentBlock
             block.synchronizeWidget()
 
-    def synchronizeItemNone (self):
-        # called instead of synchronizeItemDetail when there is no selected item.
-        pass
-    
     def synchronizeItemDetail (self, item):
-        # override this method to draw your block's detail portion of this Item.
-        raise NotImplementedError, "%s.synchronizeItemDetail()" % (type(self))
-    
-class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
-    def synchronizeItemNone(self):
-        self.widget.SetLabel ('')  
-    
+        # if there is an item, we should show the From and To Area
+        shouldShow = item is not None
+        return self.show(shouldShow)
+        
+    def show(self, shouldShow):
+        # if the show status has changed, tell our widget, and our parent
+        if shouldShow != self.isShown:
+            try:
+                widget = self.widget
+            except AttributeError:
+                return False
+            # we have a widget
+            if shouldShow:
+                widget.Show(True)
+                self.isShown = True
+            else:
+                widget.Show(False)
+                self.isShown = False
+            return True
+        return False
+
+class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
+    def staticTextLabelValue (self, item):
+        """ Override to provide the value of the static text label """
+        raise NotImplementedError, "%s.staticTextLabelValue()" % (type(self))
+
+    def synchronizeLabel (self, value):
+        label = self.widget.GetLabel ()
+        relayout = label != value
+        if relayout:
+            self.widget.SetLabel (value)
+        return relayout
+
+    def synchronizeItemDetail (self, item):
+        return self.synchronizeLabel(self.staticTextLabelValue(item))
+
 class DateTimeBlock (StaticTextLabel):
     """
     Date and Time associated with the Content Item
     Currently this is static text, but soon it will need to be editable
     """
-    def synchronizeItemDetail (self, item):
+    def staticTextLabelValue (self, item):
         """
-          Display the item in the wxWidget.
+          return the item's date.
         """
-        widget = self.widget
         theDate = item.date # get the redirected date attribute
         theDate = str(theDate)
-        widget.SetLabel(theDate)
+        return theDate
 
-class Headline (StaticTextLabel):
-    """Headline, or Title field of the Content Item, as static text"""
-    def synchronizeItemDetail (self, item):
-        """
-          Display the item's HeadLine in the wxWidget.
-        """
-        self.widget.SetLabel (item.about)
-        
 class KindLabel (StaticTextLabel):
     """Shows the Kind of the Item as static text"""
-    def synchronizeItemDetail (self, item):
+    def staticTextLabelValue (self, item):
         """
           Display the item's Kind in the wxWidget.
         """
-        self.widget.SetLabel (item.itsKind.displayName)
+        return item.itsKind.displayName
+        
+class Headline (StaticTextLabel):
+    """Headline, or Title field of the Content Item, as static text"""
+    def staticTextLabelValue (self, item):
+        return item.about
         
 class StaticTextAttribute(StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
-    def synchronizeItemDetail (self, item):
-        whoRedirect = item.getAttributeAspect(self.whichAttribute(), 'redirectTo')
-        if whoRedirect is None:
-            whoRedirect = '  '
+    def staticTextLabelValue (self, item):
+        redirectAttr = item.getAttributeAspect(self.whichAttribute(), 'redirectTo')
+        if redirectAttr is None:
+            redirectAttr = '  '
         else:
-            whoRedirect = ' ' + whoRedirect + ': '
-        self.widget.SetLabel (whoRedirect)
-        # relayout the parent block
-        self.relayoutParents() 
+            redirectAttr = ' ' + redirectAttr + ': '
+        return redirectAttr
 
     def whichAttribute(self):
-        # override to define the attribute to be used
-        raise NotImplementedError, "%s.whichAttribute()" % (type(self))
+        # define the attribute to be used
+        return self.parentBlock.selectedItemsAttribute
 
-class ToString (StaticTextAttribute):
-    def whichAttribute(self):
-        return 'who'
-
-class FromString (StaticTextAttribute):
-    def whichAttribute(self):
-        return 'whoFrom'
+class LabeledTextAttributeBlock(ControlBlocks.ContentItemDetail):
+    def synchronizeItemDetail(self, item):
+        whichAttr = self.selectedItemsAttribute
+        try:
+            attr = item.getAttributeValue(whichAttr)
+            self.isShown = attr is not None
+        except AttributeError:
+            self.isShown = item.hasAttributeAspect(whichAttr, 'redirectTo')
+        self.synchronizeWidget()
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
@@ -166,9 +195,6 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     Doesn't need to synchronizeItemDetail, because
     the individual ToolbarItems synchronizeItemDetail.
     """
-    def synchronizeItemDetail (self, item):
-        pass
-    
     def onToolPressStub (self, notification):
         tool = notification.data['sender']
         if tool.itsName == 'SharingButton':
@@ -217,10 +243,7 @@ class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem)
         assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
                "Class/Kind mismatch for class %s, kind %s" % (item.__class__, item.itsKind)
         self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
-
-    def synchronizeItemNone (self):
-        # called instead of synchronizeItemDetail when there is no selected item.
-        self.synchronizeItemDetail (None)
+        return False
 
 class SharingButton (DetailStampButton):
     """
@@ -251,33 +274,7 @@ class TaskStamp (DetailStampButton):
 
     def stampMixinKind(self):
         return Task.TaskParcel.getTaskMixinKind()
-        
-class FromAndToArea (DetailSynchronizer, ControlBlocks.ContentItemDetail):
-    def synchronizeItemDetail (self, item):
-        # if there is an item, we should show the From and To Area
-        shouldShow = item is not None
-        self.show(shouldShow)
-        # relayout the parent block if it's safe to do so
-        
-    def synchronizeItemNone(self):
-        self.show(False)
-    
-    def show(self, shouldShow):
-        # if the show status has changed, tell our widget, and our parent
-        if shouldShow != self.isShown:
-            try:
-                widget = self.widget
-            except AttributeError:
-                return
-            # we have a widget
-            if shouldShow:
-                widget.Show(True)
-                self.isShown = True
-            else:
-                widget.Show(False)
-                self.isShown = False
-            self.relayoutParents()
-        
+
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
@@ -319,11 +316,8 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         self.saveTextValue()
 
     def synchronizeItemDetail (self, item):
-        self.widget.Show(True)
         self.loadTextValue(item)
-            
-    def synchronizeItemNone (self):
-        self.widget.Show(False)
+        return super(EditTextAttribute, self).synchronizeItemDetail(item)
             
     def saveAttributeFromWidget (self, item, widget):  
        # subclasses need to override this method
@@ -364,7 +358,11 @@ class ToEditField (EditTextAttribute):
         #  because it's really the contacts that are stored in the "who" attribute!
        
     def loadAttributeIntoWidget (self, item, widget):
-        whoContacts = item.who # get redirected who list
+        try:
+            whoContacts = item.who # get redirected who list
+        except AttributeError:
+            widget.SetValue('')
+            return
         try:
             numContacts = len(whoContacts)
         except:

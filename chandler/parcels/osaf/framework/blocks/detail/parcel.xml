@@ -72,11 +72,7 @@
     <childrenBlocks itemref="doc:MarkupBar1"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
-    <childrenBlocks itemref="doc:StampedEmailArea"/>
     <childrenBlocks itemref="doc:NotesArea"/>
-    <childrenBlocks itemref="doc:MessagesArea"/>
-    <childrenBlocks itemref="doc:SharingBar"/>
-    <childrenBlocks itemref="doc:LabelingArea"/>
     <!-- ToolbarItems -->
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
@@ -99,6 +95,7 @@
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
+    <isShown>False</isShown>
   </ContentItemDetail>
 
   <!-- MarkupBar -->
@@ -143,6 +140,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Decide when to do...</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Triage">
@@ -150,19 +148,21 @@
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
-    <toolbarItemKind>Combo</toolbarItemKind>
+    <toolbarItemKind>Choice</toolbarItemKind>
     <helpString>Mark Item to be done now or later, etc</helpString>
-    <prototype itemref="doc:TriageCombo"/>
+    <prototype itemref="doc:TriageChoice"/>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
   
   <!-- prototype for the above ToolbarItem -->
-  <ComboBox itemName="TriageCombo">
-    <selection>Processing</selection>
+  <Choice itemName="TriageChoice">
     <choices>Processing</choices>
     <choices>Defered until</choices>
     <choices>Processed</choices>
-  </ComboBox>
+    <choices>Junk</choices>
+    <choices>Trash</choices>
+  </Choice>
   
   <ToolbarItem itsName="SharingButton"
                itemClass="osaf.framework.blocks.detail.Detail.SharingButton">
@@ -220,6 +220,7 @@
     <toggle>True</toggle>
     <helpString>Needs a reply</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
@@ -239,6 +240,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>In the Out box</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="RepliedFlag">
@@ -250,6 +252,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>A reply has been sent</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardedFlag">
@@ -261,6 +264,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Has been forwarded</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="RedirectedFlag">
@@ -272,6 +276,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been redirected</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="DraftFlag">
@@ -283,6 +288,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message saved as a draft</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="QueuedFlag">
@@ -294,6 +300,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been queued</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
@@ -313,30 +320,33 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Make item Private</helpString>
     <event itemref="doc:DummyEvent"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <!-- FromAndToArea -->
-  <ContentItemDetail itsName="FromAndToArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.FromAndToArea">
+  <ContentItemDetail itsName="FromAndToArea">
     <childrenBlocks itemref="doc:FromArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
   </ContentItemDetail>
  
-  <ContentItemDetail itsName="FromArea">
+  <ContentItemDetail itsName="FromArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField1"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
   </ContentItemDetail>
 
   <StaticText itsName="FromString"
-              itemClass="osaf.framework.blocks.detail.Detail.FromString">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticTextAttribute">
     <title>From: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 20</minimumSize>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -346,21 +356,25 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>80, 20</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="ToArea">
+  <ContentItemDetail itsName="ToArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToEditField1"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>who</selectedItemsAttribute>
   </ContentItemDetail>
  
   <StaticText itsName="ToString"
-              itemClass="osaf.framework.blocks.detail.Detail.ToString">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticTextAttribute">
     <title>To: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 20</minimumSize>
   </StaticText>
   
   <EditText itsName="ToEditField1"
@@ -370,6 +384,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>80, 20</minimumSize>
   </EditText>
 
   <!-- CoreIndent -->
@@ -409,6 +424,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 20</minimumSize>
   </StaticText>
   
   <StaticText itsName="Headline"
@@ -417,6 +433,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 20</minimumSize>
   </StaticText>
   
   <StaticText itsName="DateTime"
@@ -425,42 +442,11 @@
     <characterStyle itemref="doc:TextStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-  </StaticText>
-  
-  <!-- StampedEmailArea -->
-  <ContentItemDetail itsName="StampedEmailArea">
-    <childrenBlocks itemref="doc:StampedEmailString"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StampedEmailString">
-    <title>Stamped Email</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 20</minimumSize>
   </StaticText>
   
   <!-- NotesArea -->
-  <ContentItemDetail itsName="NotesArea">
-    <childrenBlocks itemref="doc:NotesString"/>
-    <childrenBlocks itemref="doc:TheNotes"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>3</stretchFactor>
-  </ContentItemDetail>
-  
-  <StaticText itsName="NotesString">
-    <title>Notes</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>
-  
-  <EditText itsName="TheNotes"
+  <EditText itsName="NotesArea"
                    itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
@@ -468,53 +454,7 @@
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>1</stretchFactor>
+    <minimumSize>380, 120</minimumSize>
   </EditText>
 
-  <!-- MessagesArea -->
-  <ContentItemDetail itsName="MessagesArea">
-    <childrenBlocks itemref="doc:MessagesString"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>1</stretchFactor>
-  </ContentItemDetail>
-  
-  <StaticText itsName="MessagesString">
-    <title>Messages</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>2</stretchFactor>
-  </StaticText>
-  
-  <!-- SharingBar -->
-  <ContentItemDetail itsName="SharingBar">
-    <childrenBlocks itemref="doc:SharingString"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground2"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>0</stretchFactor>
-  </ContentItemDetail>
-  
-  <StaticText itsName="SharingString">
-    <title>Sharing Bar</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>
-  
-  <!-- LabelingArea -->
-  <ContentItemDetail itsName="LabelingArea">
-    <childrenBlocks itemref="doc:LabelingString"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>1.0</stretchFactor>
-  </ContentItemDetail>
-  
-  <StaticText itsName="LabelingString">
-    <title>See Also</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>
 </core:Parcel>

@@ -505,6 +505,9 @@ class wxToolbar(wx.ToolBar):
                 self.toolItems += item.addTool(self)
                 self.toolItemList.append(item)
             self.Realize()
+            # now disable any disabled items
+            for item in self.blockItem.dynamicChildren:
+                self.EnableTool(item.toolID, not item.disabled)
             
 class Toolbar(Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
@@ -599,7 +602,6 @@ class ToolbarItem(Block.Block, DynamicChild):
             choices = proto.choices
             tool = wx.Choice (wxToolbar,
                             -1,
-                            proto.selection, 
                             wx.DefaultPosition,
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            

@@ -569,6 +569,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the previous view</helpString>
     <event itemref="doc:GoBack"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="GoForwardButton">
@@ -579,6 +580,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the next view</helpString>
     <event itemref="doc:GoForward"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="SyncButton">
@@ -590,6 +592,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Synchronize this Item other Chandler users</helpString>
     <event itemref="doc:Sync"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer1">
@@ -625,6 +628,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
     <event itemref="doc:New"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="ReplyButton">
@@ -635,6 +639,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Send a reply</helpString>
     <event itemref="doc:Reply"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="DiscussButton">
@@ -646,6 +651,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Discuss this Item with other Chandler users</helpString>
     <event itemref="doc:Discuss"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardButton">
@@ -656,6 +662,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Forward this Item to other users</helpString>
     <event itemref="doc:Forward"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="DeleteButton">
@@ -667,6 +674,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Delete this Item</helpString>
     <event itemref="doc:Delete"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="JunkButton">
@@ -678,6 +686,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Mark this Item as Junk mail</helpString>
     <event itemref="doc:Junk"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="FontsButton">
@@ -689,6 +698,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Bring up the Fonts dialog</helpString>
     <event itemref="doc:Fonts"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="PrintButton">
@@ -700,6 +710,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Print this Item</helpString>
     <event itemref="doc:Print"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="SearchBox">
@@ -709,6 +720,7 @@
     <toolbarItemKind>Text</toolbarItemKind>
     <helpString>Enter text to search for</helpString>
     <event itemref="doc:Search"/>
+    <disabled>True</disabled>
   </ToolbarItem>
 
   <!--
