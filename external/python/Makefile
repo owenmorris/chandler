@@ -134,7 +134,7 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_DBG) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                      --enable-framework=$(PREFIX)/Library/Frameworks
 
 build: expand $(SRC)/$(BUILD)/Makefile apply

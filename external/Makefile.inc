@@ -46,6 +46,7 @@ MD5CHECK=$(MD5) -c
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+MACOSX_DEPLOYMENT_TARGET=10.3
 PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=macosx
