@@ -15,11 +15,14 @@ WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 # Special handlers referenced in the PANELS dictionary below:
 
 def IMAPSaveHandler(item, fields, values):
-    if values['IMAP_EMAIL_ADDRESS'] != item.emailAddress:
-        # we're changing the email address string, so we need to not modify
-        # the existing EmailAddress item and instead create a new one.
-        item.replyToAddress = Mail.EmailAddress(clone=item.replyToAddress)
-        Mail.EmailAddress.invalidateMeAddressCache()
+    newAddressString = values['IMAP_EMAIL_ADDRESS']
+    newFullName = values['IMAP_FULL_NAME']
+    # Use the getEmailAddress( ) factory method to retrieve the appropriate
+    # EmailAddress item (could be an existing one if the fields match, or
+    # a new one could be created)
+    item.replyToAddress = Mail.EmailAddress.getEmailAddress(newAddressString,
+     newFullName)
+    Mail.EmailAddress.invalidateMeAddressCache()
 
     # process as normal:
     for (field, desc) in fields.iteritems():
