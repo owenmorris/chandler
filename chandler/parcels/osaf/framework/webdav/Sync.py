@@ -265,7 +265,7 @@ def syncFromServer(item, davItem):
                 continue
             elif attr.cardinality == 'single':
                 try:
-                    otherItem = dav.DAV(nodes[0].content).get()
+                    otherItem = Dav.DAV(nodes[0].content).get()
                     item.setAttributeValue(name, otherItem)
                 except Dav.NotFound:
                     log.warning('Cant access %s' % (node.content))
