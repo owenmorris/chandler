@@ -41,8 +41,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         os.chdir(releaseModeDir)
         # Find out if the initialization was ever done
 
-        extModuleDir = os.path.join(modeDir, "external")
-        intModuleDir = os.path.join(modeDir, "internal")
+        extModuleDir = os.path.join(releaseModeDir, "external")
+        intModuleDir = os.path.join(releaseModeDir, "internal")
         version = getVersion(os.path.join(extModuleDir, "Makefile"))
         if not os.path.exists (extModuleDir, "sources-" + version + ".tar.gz"):
             print "checking out external"
