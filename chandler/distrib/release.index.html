@@ -36,21 +36,15 @@ There are a few different types of Chandler distribution files that are availabl
 <br>
 &nbsp;
 <br>
-<li> <b>Developers' source code distribution: </b> If you want to compile everything yourself, including the Python interpreter and all required libraries, this download contains the entire source tree. <b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>, and instructions for building Chandler are in the "hardhat/README.txt" within that tar file.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a> online.
-<br>
-&nbsp;
-<br>
-<li> <b>Developers' pre-compiled distributions: </b>  If you are interested in writing parcels or working with the Python portion of Chandler, but don't want
-to compile the interpreter and libraries Chandler
-depends on, this distribution contains the Chandler application source 
-(which can be kept up to date via CVS, unlike the end-users' distributions) and a directory full of our pre-built 
-versions of Python, wxPython, and other third-party projects, all 
-configured to run Chandler.  
-
+<li> <b>Developers' distributions: </b> If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  You can also use this distribution to develop your own parcels (see <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>ParcelLoading</a> for details on loading your own parcels).
 <b>Please select one of the following:</b>
 <a href=#devbinlinux>Linux</a> | 
 <a href=#devbinosx>Mac OSX</a> | 
 <a href=#devbinwin>Windows</a>
+<br>
+&nbsp;
+<br>
+<li> <b>Source code distribution: </b> If you want to compile everything yourself, including the Python interpreter and all required libraries, this download contains the entire source tree. <b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>, and instructions for building Chandler are in the "osaf/hardhat/README.txt" within that tar file.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a> online.
 <br>
 </ul>
 
@@ -108,7 +102,7 @@ Download <a href=Chandler_osx_XYZZY.dmg>Chandler_osx_XYZZY.dmg</a> to your deskt
 
 Download <a href=Chandler_win_XYZZY.zip>Chandler_win_XYZZY.zip</a>, open it by double-clicking it using Windows file explorer, and 
 extract all files to a directory on your computer.  Again, using the file
-explorer, double-click on Chandler.bat in the directory you extracted to.
+explorer, double-click on chandler.exe in the directory you extracted to.
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
@@ -123,17 +117,19 @@ explorer, double-click on Chandler.bat in the directory you extracted to.
 
 <hr>
 <a name=devbinlinux></a> &nbsp; <br>
-<h2>Developers' Pre-Compiled Distribution: <i>Linux</i></h2>
+<h2>Developers' Distribution: <i>Linux</i></h2>
 
-Download <a href=Chandler_linux_dev_debug_XYZZY.tar.gz>Chandler_linux_dev_debug_XYZZY.tar.gz</a> and save it to disk.  Change your shell's current directory to the location you saved the file and unpack the distribution via:
+Download <a href=Chandler_linux_debug_XYZZY.tar.gz>Chandler_linux_debug_XYZZY.tar.gz</a> and save it to disk.  Change your shell's current directory to the location you saved the file and unpack the distribution via:
 
-<pre>   tar zxf Chandler_linux_dev_debug_XYZZY.tar.gz</pre>
+<pre>   tar zxf Chandler_linux_debug_XYZZY.tar.gz</pre>
 
-This will create "Chandler" and "debug" directories.  <p>
-To run Chandler, cd into the "debug" directory and run the "RunDebug" shell script:
+This will create a Chandler_linux_debug_XYZZY subdirectory.  Cd into that directory:
 
-<pre>   cd debug 
-   ./RunDebug</pre>
+<pre>   cd Chandler_linux__debug_XYZZY</pre>
+
+Run Chandler:
+
+<pre>   ./chandler</pre>
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
@@ -144,23 +140,10 @@ To run Chandler, cd into the "debug" directory and run the "RunDebug" shell scri
 
 <hr>
 <a name=devbinosx></a> &nbsp; <br>
-<h2>Developers' Pre-Compiled Distribution: <i>Mac OSX</i></h2>
+<h2>Developers' Distribution: <i>Mac OSX</i></h2>
 
-<b>Control-click</b> this link: <a href=Chandler_osx_dev_debug_XYZZY.tar.gz>Chandler_osx_dev_debug_XYZZY.tar.gz</a>, select "Download..." or "Save link target..." in the pop-up menu, and save this file to your disk. <b>Make sure StuffIt doesn't unpack the file because it can cause problems; we're investigating why.</b>
-<p>
-Open up a Terminal window and cd to the directory you saved the file to. Some browsers will save the file as Chandler_osx_dev_debug_XYZZY.tar.gz and some will save it as Chandler_osx_dev_debug_XYZZY.tar.  If your file ends in .tar.gz type the following:
+Download <a href=Chandler_osx_debug_XYZZY.dmg>Chandler_osx_debug_XYZZY.dmg</a> to your desktop, double-click it, and it will unpack the Chandler application.
 
-<pre>   tar zxf Chandler_osx_dev_debug_XYZZY.tar.gz</pre>
-
-If your file ends in .tar type:
-
-<pre>   tar xf Chandler_osx_dev_debug_XYZZY.tar</pre>
-
-This will create "Chandler" and "debug" directories.<p>
-To run Chandler, cd into the "debug" directory and run the "RunDebug" shell script:
-
-<pre>   cd debug 
-   ./RunDebug</pre>
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
 <br>
@@ -169,12 +152,11 @@ To run Chandler, cd into the "debug" directory and run the "RunDebug" shell scri
 
 <hr>
 <a name=devbinwin></a> &nbsp; <br>
-<h2>Developers' Pre-Compiled Distribution: <i>Windows</i></h2>
+<h2>Developers' Distribution: <i>Windows</i></h2>
 
-Download <a href=Chandler_win_dev_debug_XYZZY.zip>Chandler_win_dev_debug_XYZZY.zip</a> and copy the "Chandler" and "debug" directories it contains to your disk.
-<p>
-To run Chandler, double-click the RunDebug.bat file in the "debug" directory.
-<p>
+Download <a href=Chandler_win_debug_XYZZY.zip>Chandler_win_debug_XYZZY.zip</a>, open it by double-clicking it using Windows file explorer, and 
+extract all files to a directory on your computer.  Again, using the file
+explorer, double-click on chandler.exe in the directory you extracted to.
 
 <br>
 <img src=http://www.osafoundation.org/images/spacer.gif width=1 height=1000> 
