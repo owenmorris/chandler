@@ -36,6 +36,7 @@
   <namespaceMap key="ParcelManager" value="//Schema/Core/ParcelManager" />
   <namespaceMap key="Path" value="//Schema/Core/Path" />
   <namespaceMap key="Principal" value="//Schema/Core/Principal" />
+  <namespaceMap key="Query" value="//Schema/Core/Query" />
   <namespaceMap key="RelativeDateTime" value="//Schema/Core/RelativeDateTime" />
   <namespaceMap key="SingleRef" value="//Schema/Core/SingleRef" />
   <namespaceMap key="String" value="//Schema/Core/String" />
