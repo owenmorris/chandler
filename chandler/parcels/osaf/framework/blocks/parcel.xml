@@ -468,14 +468,17 @@
     
     <Attribute itemName="menuLocation">
       <type itemref="String"/>
+      <defaultValue type="String"></defaultValue>
     </Attribute>
     
     <Attribute itemName="itemLocation">
       <type itemref="String"/>
+      <defaultValue type="String"></defaultValue>
     </Attribute>
     
     <Attribute itemName="helpString">
       <type itemref="String"/>
+      <defaultValue type="String"></defaultValue>
     </Attribute>
     
     <attributes itemref="docSchema:MenuEntry/title"/>
@@ -501,10 +504,12 @@
     
     <Attribute itemName="menuItemKind">
       <type itemref="docSchema:MenuItem/menuItemKindEnumType"/>
+      <defaultValue type="docSchema:MenuItem/menuItemKindEnumType">Normal</defaultValue>
     </Attribute>
     
     <Attribute itemName="accel">
       <type itemref="String"/>
+      <defaultValue type="String"></defaultValue>
     </Attribute>
     
     <attributes itemref="docSchema:MenuItem/menuItemKind"/>

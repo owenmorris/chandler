@@ -49,30 +49,18 @@
   -->
   <Menu itemName="FileMenu">
     <title>File</title>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
-    <helpString></helpString>
   </Menu>
 
   <Menu itemName="EditMenu">
     <title>Edit</title>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
-    <helpString></helpString>
   </Menu>
     
   <Menu itemName="ViewMenu">
     <title>View</title>
-    <menuLocation></menuLocation>
-    <itemLocation></itemLocation>
-    <helpString></helpString>
   </Menu>
 
   <Menu itemName="TestMenu">
     <title>Test</title>
-    <menuLocation/>
-    <itemLocation/>
-    <helpString/>
   </Menu>
 
   <!--
@@ -81,8 +69,6 @@
   <MenuItem itemName="QuitItem">
     <title>Quit</title>
     <menuLocation>FileMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>Q</accel>
     <helpString>Quit Chandler</helpString>
     <event itemref="events:Quit"/>
@@ -91,127 +77,87 @@
   <MenuItem itemName="UndoItem">
     <title>Undo</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>Z</accel>
-    <helpString></helpString>
     <event itemref="events:Undo"/>
   </MenuItem>
 
   <MenuItem itemName="RedoItem">
     <title>Redo</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>Y</accel>
-    <helpString></helpString>
     <event itemref="events:Redo"/>
   </MenuItem>
 
   <MenuItem itemName="EditSeparator1">
     <title></title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Separator</menuItemKind>
-    <accel></accel>
-    <helpString></helpString>
   </MenuItem>
   
   <MenuItem itemName="CutItem">
     <title>Cut</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>X</accel>
-    <helpString></helpString>
     <event itemref="events:Cut"/>
   </MenuItem>
 
   <MenuItem itemName="CopyItem">
     <title>Copy</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>C</accel>
-    <helpString></helpString>
     <event itemref="events:Copy"/>
   </MenuItem>
 
   <MenuItem itemName="PasteItem">
     <title>Paste</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
     <accel>V</accel>
-    <helpString></helpString>
     <event itemref="events:Paste"/>
   </MenuItem>
   
   <MenuItem itemName="EditSeparator2">
     <title></title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Separator</menuItemKind>
-    <accel></accel>
-    <helpString></helpString>
   </MenuItem>
   
   <MenuItem itemName="PreferencesItem">
     <title>Preferences</title>
     <menuLocation>EditMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
-    <accel></accel>
     <event itemref="events:Preferences"/>
-    <helpString></helpString>
   </MenuItem>
 
   <MenuItem itemName="ViewSideBarItem">
     <title>View Sidebar</title>
     <menuLocation>ViewMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
-    <accel></accel>
     <event itemref="events:ViewSideBar"/>
-    <helpString></helpString>
   </MenuItem>
 
   <MenuItem itemName="ViewNavigationBarItem">
     <title>View Navigation Bar</title>
     <menuLocation>ViewMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
-    <accel></accel>
     <event itemref="events:ViewNavigationBar"/>
-    <helpString></helpString>
   </MenuItem>
 
   <MenuItem itemName="ViewBookmarksBarItem">
     <title>View Bookmarks Bar</title>
     <menuLocation>ViewMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
-    <accel></accel>
     <event itemref="events:ViewBookmarksBar"/>
-    <helpString></helpString>
   </MenuItem>
 
   <MenuItem itemName="ViewStatusBarItem">
     <title>View Status Bar</title>
     <menuLocation>ViewMenu</menuLocation>
-    <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
-    <accel></accel>
     <event itemref="events:ViewStatusBar"/>
-    <helpString></helpString>
   </MenuItem>
 
   <MenuItem itemName="GenerateAllItem">
     <title>Generate Content Items</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:GenerateContentItems"/>
     <helpString>generates sample items: 5 contacts, 5 notes, 5 events</helpString>
   </MenuItem>
@@ -219,9 +165,6 @@
   <MenuItem itemName="GenerateContactItem">
     <title>Generate Contacts</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:GenerateContacts"/>
     <helpString>generates 10 sample contacts</helpString>
   </MenuItem>
@@ -229,9 +172,6 @@
   <MenuItem itemName="GenerateCalendarItem">
     <title>Generate Calendar Events</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:GenerateCalendarEvents"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
@@ -239,9 +179,6 @@
   <MenuItem itemName="GenerateNoteItem">
     <title>Generate Notes</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
@@ -249,9 +186,6 @@
   <MenuItem itemName="ImportContactItem">
     <title>Import Contacts from Outlook CSV</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:ImportContacts"/>
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
@@ -259,9 +193,6 @@
   <MenuItem itemName="CheckRepositoryItem">
     <title>Check Repository</title>
     <menuLocation>TestMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel/>
     <event itemref="events:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
   </MenuItem>
