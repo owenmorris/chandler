@@ -1,6 +1,5 @@
 <Parcel parcelName="pim:CalendarSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
 	xmlns:pim="//Parcels/OSAF/PimSchema"
         xmlns:cal="//Parcels/OSAF/PimSchema/CalendarSchema"
         xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
@@ -13,19 +12,19 @@
   <Attribute itemName="cal:startTime">
     <displayName>Start Time</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="cal:endTime">
     <displayName>End Time</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:DateTime"/>
+    <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="cal:headline">
     <displayName>Headline</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="cal:location">
@@ -85,14 +84,14 @@
   <Attribute itemName="cal:transparency">
     <displayName>Time Transparency</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <!-- @@@ temporary attribute, something for location and calendar -->
   <Attribute itemName="cal:name">
     <displayName>Name</displayName>
     <cardinality>single</cardinality>
-    <type itemref="core:String"/>
+    <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="cal:eventsAtLocation">
