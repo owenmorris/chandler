@@ -59,8 +59,7 @@ class Block(Item):
                 """
                 if __debug__ and Globals.association.has_key(UUID):
                     Globals.repository.find (UUID).itsPath
-                    logging.warn("Bug #1177: item %s doesn't remove it's widget from the association",
-                                 str (Globals.repository.find (UUID).itsPath))
+                    logging.warn("Bug #1177: item %s doesn't remove it's widget from the association", widget)
                 Globals.association[UUID] = widget
                 widget.blockUUID = UUID
                 """

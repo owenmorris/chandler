@@ -29,6 +29,9 @@ class wxBoxContainer (wxRectangularChild):
                                childBlock.Calculate_wxBorder())
         self.Layout()
 
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
 
 class BoxContainer (RectangularChild):
     def instantiateWidget (self, parent, parentWindow):

@@ -87,7 +87,10 @@ class wxEditText(wx.TextCtrl):
         block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/EnterPressed'),
                    {'text':self.GetValue()})
 
-            
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+
 class EditText(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
         style = 0
@@ -124,7 +127,11 @@ class EditText(RectangularChild):
 class wxHTML(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
-    
+
+    def __del__(self):
+        del Globals.association [self.blockUUID]
+
+
 class HTML(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         htmlWindow = wxHTML(parentWindow,
@@ -246,7 +253,6 @@ class wxList (wx.ListCtrl):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
         del Globals.association [self.blockUUID]
 
-
     def OnGetItemText (self, row, column):
         """
           OnGetItemText won't be called if it's in the delegate -- WxPython won't
@@ -357,7 +363,6 @@ class wxSummary(wx.grid.Grid):
                 self.ForceRefresh()
         event.Skip()
 
-
     def Reset(self): 
         """
           A Grid can't easily redisplay its contents, so we write the following
@@ -437,7 +442,6 @@ class wxSummary(wx.grid.Grid):
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
         del Globals.association [self.blockUUID]
-
 
     def OnGetItemText (self, row, column):
         """
@@ -841,6 +845,9 @@ class wxItemDetail(wx.html.HtmlWindow):
             self.SetPage(block.getHTMLText(block.selection))
         else:
             self.SetPage('<html><body></body></html>')
+
+    def __del__(self):
+        del Globals.association [self.blockUUID]
 
 
 class ItemDetail(RectangularChild):
