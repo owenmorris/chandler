@@ -170,10 +170,10 @@ def RotateDirectories(dir):
         hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
 _descriptions = {
-    enduser => ["End-User", "Description of end-user distro"],
-    developer => ["Developer", "Description of developer distro"],
-    release => ["Lazy Developer:  Release", "Description of release distro"],
-    debug => ["Lazy Developer:  Debug", "Description of debug distro"],
+    'enduser' : ["End-User", "Description of end-user distro"],
+    'developer' : ["Developer", "Description of developer distro"],
+    'release' : ["Lazy Developer:  Release", "Description of release distro"],
+    'debug' : ["Lazy Developer:  Debug", "Description of debug distro"],
 }
 
 def CreateIndex(outputDir, newDirName, nowString):
