@@ -279,6 +279,7 @@ class wxTabbedContainer(wx.Notebook):
         event.Skip()
           
     def wxSynchronizeWidget(self):
+        from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
         block = Globals.repository.find (self.blockUUID)
         assert(len(block.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
         assert(len(block.childrenBlocks) == len(block.tabNames)), "Improper number of tabs"
