@@ -12,6 +12,7 @@ dependencies = (
                 'persistence/pathan',
                 'persistence/dbxml',
                 'persistence/libxml2',
+                'persistence/PyLucene',
                 'egenix-mx',
                 'jabber-py',
                 'SOAPpy',
