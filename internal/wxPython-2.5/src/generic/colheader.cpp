@@ -619,6 +619,8 @@ long						deltaV;
 	itemRef2->m_ExtentX += deltaV;
 	itemRef2->m_OriginX = itemRef1->m_OriginX + itemRef1->m_ExtentX;
 
+	RefreshItem( itemIndex - 1 );
+	RefreshItem( itemIndex );
 	SetViewDirty();
 
 	return true;
@@ -1577,6 +1579,8 @@ void wxColumnHeaderItem::SetUIExtent(
 	long			originX,
 	long			extentX )
 {
+	wxUnusedVar( originX );
+
 	// NB: not currently permitted
 //	if ((originX >= 0) && (m_OriginX != originX))
 //		m_OriginX = originX;
