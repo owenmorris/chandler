@@ -621,9 +621,17 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     self.ProcessTableMessage (message) 
         self.currentRows = newRows
         self.currentColumns = newColumns
-        for columnIndex in xrange (newColumns):
+        # update all column widths but the last one
+        widthMinusLastColumn = 0
+        for columnIndex in xrange (newColumns - 1):
+            widthMinusLastColumn += self.blockItem.columnWidths[columnIndex]
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
+        # update the last column to fill the rest of the widget
+        remaining = self.GetSize().width - widthMinusLastColumn
+        if remaining > 0:
+            self.SetColSize(newColumns - 1, remaining)
+        
         self.ClearSelection()
         for range in self.blockItem.selection:
             if range [2]:
