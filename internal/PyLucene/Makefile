@@ -7,18 +7,37 @@ include $(BUILD_ROOT)/Makefile.inc
 
 ifeq ($(DEBUG),1)
 COMP_OPT=DEBUG=1
+SUFFIX=d
+_SUFFIX=_d
 else
 COMP_OPT=
+SUFFIX=
+_SUFFIX=
 endif
 
+ifeq ($(OS),Cygwin)
+OS_MAKE=Makefile.mingw
+MAKE=nmake
+else
 ifeq ($(OS),Darwin)
 OS_MAKE=Makefile.osx
 else
 OS_MAKE=Makefile.linux
 endif
+endif
 
 BUILD=build_$(SNAP)
 
+ifeq ($(OS),Cygwin)
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
+                  $(SNAP)/$(SITE)/PyLucene$(_SUFFIX).py \
+                  $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
+                  $(SNAP)/bin/libdb_java42$(SUFFIX).dll
+
+else
 
 ifeq ($(OS),Darwin)
 
@@ -47,11 +66,14 @@ snap:
 
 endif
 
+endif
+
 apply: patches
 	patch -Nup0 < patches; echo ok
 
 build: apply
-	$(MAKE) -f $(OS_MAKE) GCJ=$(GCJ_HOME) $(COMP_OPT) \
+	MAKEFLAGS=; \
+	$(MAKE) -f $(OS_MAKE) GCJ=`cygpath -aw $(GCJ_HOME)` $(COMP_OPT) \
                               DBVERSION=4.2.52 VERSION=$(VERSION) \
                               all install
 

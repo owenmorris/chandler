@@ -29,8 +29,8 @@ CXX = $(GCJ)\bin\g++
 JCC = $(GCJ)\bin\gcj
 JCCH = $(GCJ)\bin\gcjh
 
-LUCENE = $(SRCDIR)\lucene
-DB = $(SRCDIR)\..\db
+LUCENE = $(SRCDIR)\lucene-$(VERSION)
+DB = $(SRCDIR)\..\db\db-$(DBVERSION)
 
 PYTHON_INC = $(RELDIR)\bin\include
 PYTHON_SITE = $(RELDIR)\bin\Lib\site-packages
