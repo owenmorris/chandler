@@ -3,7 +3,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, logging, sys, traceback, threading
+import os, logging, sys, traceback, threading, string
 import application, repository, wx
 from osaf.examples.zaobao.RSSData import RSSChannel
 from twisted.web import resource
@@ -40,7 +40,7 @@ class InboundParcel(application.Parcel.Parcel):
             fileName = os.path.join(profileDir, 'inbound.txt')
             if os.path.isfile(fileName):
                 channelFile = file(fileName, "r")
-                channelList = channelFile.readlines()
+                channelList = map(string.strip, channelFile.readlines())
         except Exception, e:
             logger.exception(e)
 
