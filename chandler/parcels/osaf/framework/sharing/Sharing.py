@@ -8,6 +8,7 @@ import application.Parcel
 import osaf.mail.message
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 from chandlerdb.util.UUID import UUID
@@ -1224,6 +1225,7 @@ def newOutboundShare(view, collection, account=None):
                   contents=collection)
     share.displayName = collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
+    share.sharer = Contacts.Contact.getCurrentMeContact(view)
     return share
 
 
@@ -1249,8 +1251,7 @@ def newInboundShare(view, url):
     account = findMatchingWebDAVAccount(view, url)
 
     if account is None:
-        # @@@MOR must prompt user for account information (?)
-        # then create an account
+        # Prompt user for account information then create an account
 
         # Get the parent directory of the given path:
         # '/dev1/foo/bar' becomes ['dev1', 'foo']

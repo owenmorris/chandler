@@ -561,17 +561,14 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
         # find all the shared collections and sync them.
-        self.setStatusMessage (_("checking shared collections"))
-        collections = self.sharedWebDAVCollections ()
-        if len (collections) == 0:
+        self.setStatusMessage (_("Checking shared collections..."))
+        if Sharing.checkForActiveShares(self.itsView):
+            self.setStatusMessage (_("Synchronizing shared collections..."))
+            Sharing.syncAll(self.itsView)
+        else:
             self.setStatusMessage (_("No shared collections found"))
             return
-        for collection in collections:
-            self.setStatusMessage (_("synchronizing %s") % collection)
-            Sharing.syncCollection(collection)
-
-        # synch mail
-        self.setStatusMessage (_("Sharing synchronized."))
+        self.setStatusMessage (_("Shared collections synchronized"))
 
     def onSyncWebDAVEventUpdateUI (self, event):
         accountOK = Sharing.isWebDAVSetUp(self.itsView)
