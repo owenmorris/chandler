@@ -38,3 +38,8 @@
 2003-07-18 Morgen Sagen <morgen@osafoundation.org>
     * Parcels can now get loaded from an external directory using the PARCELDIR
       directory
+
+2003-07-24 Katie Capps Parlante <capps@osafoundation.org>
+   * Repository is loaded on init, globally accessible via app.repository.
+   * Repository is saved when main Chandler window closes.
+   * Calendar data parcel is loaded on init (currently hardcoded)
