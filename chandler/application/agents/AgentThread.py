@@ -52,7 +52,7 @@ class AgentThread(threading.Thread):
         # XXX Set up a scheduler to look for new notifications until the
         #     notification manager can give us callbacks
         notificationManager = app.model.notificationManager
-        self.scheduler.schedule(0.001, True, self._CheckForNotifications, notificationManager, agentItem)
+        self.scheduler.schedule(0.1, True, self._CheckForNotifications, notificationManager, agentItem)
 
         # Start the scheduler
         self.scheduler.start()
