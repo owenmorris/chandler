@@ -210,7 +210,7 @@
   
   <Button itemName="ImageButton">
     <buttonKind>Image</buttonKind>
-    <icon>application/images/Reload.png</icon>
+    <icon>application/images/refresh.png</icon>
     <contentSpec itemref="doc:myQuery"/>
     
     <open>True</open>
