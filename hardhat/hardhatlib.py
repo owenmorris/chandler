@@ -1413,7 +1413,8 @@ def createInstaller(buildenv, directory, distName):
         return distName + ".dmg"
 
     else:
-        return compressDirectory(buildenv, directory,
+        os.rename(directory, distName)
+        return compressDirectory(buildenv, distname,
          buildenv['module'] + "_" + buildenv['oslabel'] + "_" + \
           buildenv['releaseId'])
 
