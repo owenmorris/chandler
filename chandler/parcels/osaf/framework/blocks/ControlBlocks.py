@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import time
+import os
 import application.Globals as Globals
 from application.Application import mixinAClass
 from Block import *
@@ -28,7 +29,8 @@ class Button(RectangularChild):
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            image = wx.Image(self.icon, wx.BITMAP_TYPE_PNG)
+            image = wx.Image(os.path.join(Globals.chandlerDirectory, self.icon), 
+                             wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
             button = wx.BitmapButton(parentWindow, id, bitmap,
                               wx.DefaultPosition,
@@ -142,8 +144,8 @@ class HTML(RectangularChild):
                             (self.minimumSize.width,
                              self.minimumSize.height))
         if self.url:
-            htmlWindow.LoadPage(self.url)
-
+            htmlWindow.LoadPage(os.path.join(Globals.chandlerDirectory, self.url))
+            
         self.parentBlock.addToContainer(parent,
                                         htmlWindow,
                                         self.stretchFactor,
@@ -575,7 +577,8 @@ class ToolbarItem(RectangularChild):
         toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
         id = Block.getwxID(self)
         if self.toolbarItemKind == 'Button':
-            bitmap = wx.Image (self.bitmap, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+            bitmap = wx.Image (os.path.join(Globals.chandlerDirectory, self.bitmap), 
+                               wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
             parentWindow.Bind(wx.EVT_TOOL, toolbar.toolPressed, id=id)
