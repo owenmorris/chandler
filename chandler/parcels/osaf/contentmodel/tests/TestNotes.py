@@ -35,12 +35,17 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         self.assertEqual(Notes.NotesParcel.getNoteKind(),
                          self.rep.find(notesPath % 'Note'))
+        self.assertEqual(Notes.NotesParcel.getConversationKind(),
+                         self.rep.find(notesPath % 'Conversation'))
 
         # Construct sample items
         noteItem = Notes.Note("noteItem")
+        conversationItem = Notes.Conversation("conversationItem")
 
         # Double check kinds
         self.assertEqual(noteItem.kind, Notes.NotesParcel.getNoteKind())
+        self.assertEqual(conversationItem.kind,
+                         Notes.NotesParcel.getConversationKind())
 
         # Literal properties
         noteItem.title = "sample note"
@@ -56,6 +61,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         contentItemParent = self.rep.find("//userdata/contentitems")
         
         noteItem = contentItemParent.find("noteItem")
+        conversationItem = contentItemParent.find("conversationItem")
         
         _verifyNote(noteItem)
         

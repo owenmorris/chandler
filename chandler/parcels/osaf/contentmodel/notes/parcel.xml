@@ -55,6 +55,7 @@
     <attributes itemref="notes:title"/>
     <attributes itemref="notes:body"/>
     <attributes itemref="notes:attachedToItems"/>
+    <classes key="python">OSAF.contentmodel.notes.Notes.Note</classes>
   </Kind>
 
   <!-- Conversation -->
@@ -83,6 +84,7 @@
     <issues>A conversation should *not* have just a plain text 'body' attribute. Instead it should have a tree of tuples, where each tuple has {timestamp (a DateTime), text-line(a One-Line-String), author (a Contact)}.</issues>
     <attributes itemref="notes:body"/>
     <attributes itemref="notes:subjectItem"/>
+    <classes key="python">OSAF.contentmodel.notes.Notes.Conversation</classes>
   </Kind>
 
 </Parcel>

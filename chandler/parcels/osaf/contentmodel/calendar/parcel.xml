@@ -86,7 +86,14 @@
     <issues>Think about using the icalendar terminology</issues>
     <cardinality>single</cardinality>
     <type itemref="content:ContentItem"/>
-    <otherName>requestedTasks</otherName>
+    <inverseAttribute itemref="cal:requestedTasks"/>
+  </Attribute>
+
+  <Attribute itemName="requestedTasks">
+    <displayName>Requested Tasks</displayName>
+    <cardinality></cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:requestor"/>
   </Attribute>
 
   <Attribute itemName="requestee">
@@ -95,7 +102,15 @@
     <issues>Think about using the icalendar terminology</issues>
     <cardinality>single</cardinality>
     <type itemref="content:ContentItem"/>
-    <otherName>taskRequests</otherName>
+    <inverseAttribute itemref="cal:taskRequests"/>
+  </Attribute>
+
+  <Attribute itemName="taskRequests">
+    <displayName>Task Requests</displayName>
+    <description>List of tasks requested for the contact</description>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:requestee"/>
   </Attribute>
 
   <Attribute itemName="dependsOn">
@@ -153,7 +168,15 @@
     <cardinality>list</cardinality>
     <issues>@@@ type should be Contact</issues>
     <type itemref="content:ContentItem"/>
-    <otherName>participatingIn</otherName>
+    <inverseAttribute itemref="cal:participatingIn"/>
+  </Attribute>
+
+  <Attribute itemName="participatingIn">
+    <displayName>Participant in Events</displayName>
+    <description>A list of events that include this email address as one of the invitees.</description>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:participants"/>
   </Attribute>
 
   <Attribute itemName="organizer">

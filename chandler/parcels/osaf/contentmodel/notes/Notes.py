@@ -27,18 +27,34 @@ class NotesParcel(Parcel.Parcel):
         noteKind = self.find('Note')
         NotesParcel.noteKindID = noteKind.getUUID()
 
+        conversationKind = self.find('Conversation')
+        NotesParcel.conversationKindID = conversationKind.getUUID()
+
     def getNoteKind(cls):
         assert cls.noteKindID, "Note parcel not yet loaded"
         return Globals.repository[cls.noteKindID]
 
     getNoteKind = classmethod(getNoteKind)
 
+    def getConversationKind(cls):
+        assert cls.conversationKindID, "Note parcel not yet loaded"
+        return Globals.repository[cls.conversationKindID]
+
+    getConversationKind = classmethod(getConversationKind)
+
     noteKindID = None
+    conversationKindID = None
 
 class Note(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = NotesParcel.getNoteKind()
+        ContentModel.ContentItem.__init__(self, name, parent, kind)
+
+class Conversation(ContentModel.ContentItem):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = NotesParcel.getConversationKind()
         ContentModel.ContentItem.__init__(self, name, parent, kind)
 
 

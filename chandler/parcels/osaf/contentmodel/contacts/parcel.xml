@@ -11,6 +11,7 @@
         xmlns="//Schema/Core"
         xmlns:content="//parcels/OSAF/contentmodel"
 	xmlns:mail="//parcels/OSAF/contentmodel/mail"
+	xmlns:calendar="//parcels/OSAF/contentmodel/calendar"
         xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
   <displayName>Contact Content Model</displayName>
@@ -125,7 +126,7 @@
   <Kind itemName="Contact">
     <displayName>Contact</displayName>
     <description>An entry in an address book. Typically represents either a person or a company.</description>
-    <issues>We should also have attributes for 'Participates in Events' and 'Old Email Addresses'. And we might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
+    <issues>We might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
     <superKinds itemref="content:ContentItem"/>
     <displayAttribute itemref="contact:contactName"/>
     <attributes itemref="contact:contactName"/>
@@ -137,6 +138,9 @@
     <attributes itemref="contact:isCompany"/>
     <attributes itemref="contact:itemsCreated"/>
     <attributes itemref="contact:pastEmailAddresses"/>
+    <attributes itemref="calendar:participatingIn"/>
+    <attributes itemref="calendar:requestedTasks"/>
+    <attributes itemref="calendar:taskRequests"/>
     <classes key="python">OSAF.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 
