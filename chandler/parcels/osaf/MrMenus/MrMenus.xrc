@@ -37,7 +37,7 @@
     <object class="wxMenu" name="EditMenu">
         <label>Edit</label>
         <object class="wxMenuItem" name="EditMenu0">
-            <label></label>
+            <label>Placeholder</label>
             <insertBefore>Cut</insertBefore>
         </object>
         <object class="separator">
