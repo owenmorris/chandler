@@ -463,10 +463,24 @@ class wxApplication (wx.App):
 
         if event.GetEventType() == wx.wxEVT_COMMAND_TOOL_CLICKED:
             appBar = Block.findBlockByName("ApplicationBar")
+
+            # @@@MOR:
+            # Only change the focus if we're clicking one of the 'view selector'
+            # buttons (one of the first 4) since stealing focus from the DV
+            # breaks the Send button.  This hack on a hack should get removed
+            # when wx 2.5.4 is integrated.
+            numToCheck = 4
+
             for child in appBar.childrenBlocks:
+
+                if numToCheck == 0:
+                    break
+
                 if hasattr(child, "widget") and child.widget.GetId() == wxID:
                     Block.findBlockByName("Sidebar").widget.SetFocus()
                     break
+
+                numToCheck -= 1
 
 
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
