@@ -37,10 +37,6 @@ class RemoteRepository(OnDemandRepository):
             self.store.close()
             self._status &= ~self.OPEN
 
-    def call(self, method, *args):
-
-        return self.store.call(method, *args)
-
     def _createView(self):
 
         return self.viewClass(self)

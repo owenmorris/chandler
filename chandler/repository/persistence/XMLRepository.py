@@ -158,40 +158,42 @@ class XMLContainer(object):
         else:
             self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
 
-    def loadItem(self, view, uuid):
+    def loadItem(self, version, uuid):
 
+        store = self.store
         txnStarted = False
         try:
-            txnStarted = view._startTransaction()
-            docId = self.store._versions.getDocId(view, uuid, view.version)
+            txnStarted = store._startTransaction()
+            docId = store._versions.getDocId(uuid, version)
             if docId is not None:
-                return self._xml.getDocument(view._txn, docId, DB_DIRTY_READ)
+                return self._xml.getDocument(store.txn, docId, DB_DIRTY_READ)
         finally:
             if txnStarted:
-                view._abortTransaction()
+                store._abortTransaction()
 
         return None
             
-    def loadChild(self, view, uuid, name):
+    def loadChild(self, version, uuid, name):
 
         ctx = self.store.ctx
         ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
         ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-        ctx.setVariableValue("version", XmlValue(float(view.version)))
+        ctx.setVariableValue("version", XmlValue(float(version)))
 
         doc = None
         ver = 0
+        store = self.store
         txnStarted = False
 
         try:
-            txnStarted = view._startTransaction()
+            txnStarted = store._startTransaction()
             if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(view._txn,
+                results = self._xml.queryWithXPath(store.txn,
                                                    "/item[container=$uuid and name=$name and number(@version)<=$version]",
                                                    ctx, DB_DIRTY_READ)
                 try:
                     while True:
-                        result = results.next(view._txn).asDocument()
+                        result = results.next(store.txn).asDocument()
                         dv = self.getDocVersion(result)
                         if dv > ver:
                             ver = dv
@@ -200,7 +202,7 @@ class XMLContainer(object):
                     return doc
 
             if self.version == "1.1.1":
-                for value in self._xml.queryWithXPathExpression(view._txn,
+                for value in self._xml.queryWithXPathExpression(store.txn,
                                                                 self.store.containerExpr,
                                                                 DB_DIRTY_READ):
                     result = value.asDocument()
@@ -215,28 +217,30 @@ class XMLContainer(object):
 
         finally:
             if txnStarted:
-                view._abortTransaction()
+                store._abortTransaction()
 
-    def loadRoots(self, view):
+    def loadRoots(self, version):
 
         ctx = XmlQueryContext()
         ctx.setReturnType(XmlQueryContext.ResultDocuments)
         ctx.setEvaluationType(XmlQueryContext.Lazy)
         ctx.setVariableValue("uuid", XmlValue(Repository.ROOT_ID.str64()))
-        ctx.setVariableValue("version", XmlValue(float(view.version)))
+        ctx.setVariableValue("version", XmlValue(float(version)))
         nameExp = re.compile("<name>(.*)</name>")
         roots = {}
+        store = self.store
+        view = store.repository.view
         txnStarted = False
 
         try:
-            txnStarted = view._startTransaction()
+            txnStarted = store._startTransaction()
             if self.version == "1.1.0":
-                results = self._xml.queryWithXPath(view._txn,
+                results = self._xml.queryWithXPath(store.txn,
                                                    "/item[container=$uuid and number(@version)<=$version]",
                                                    ctx, DB_DIRTY_READ)
                 try:
                     while True:
-                        doc = results.next(view._txn).asDocument()
+                        doc = results.next(store.txn).asDocument()
                         xml = doc.getContent()
                         match = nameExp.match(xml, xml.index("<name>"))
                         name = match.group(1)
@@ -249,7 +253,7 @@ class XMLContainer(object):
                     pass
 
             elif self.version == "1.1.1":
-                for value in self._xml.queryWithXPath(view._txn,
+                for value in self._xml.queryWithXPath(store.txn,
                                                       "/item[container=$uuid and number(@version)<=$version]",
                                                       ctx, DB_DIRTY_READ):
                     doc = value.asDocument()
@@ -266,19 +270,19 @@ class XMLContainer(object):
 
         finally:
             if txnStarted:
-                view._abortTransaction()
+                store._abortTransaction()
 
         for name, (ver, doc) in roots.iteritems():
             if not name in view._roots:
                 view._loadDoc(doc)
 
-    def deleteDocument(self, view, doc):
+    def deleteDocument(self, doc):
 
-        self._xml.deleteDocument(view._txn, doc, self.store.updateCtx)
+        self._xml.deleteDocument(self.store.txn, doc, self.store.updateCtx)
 
-    def putDocument(self, view, doc):
+    def putDocument(self, doc):
 
-        return self._xml.putDocument(view._txn, doc, self.store.updateCtx)
+        return self._xml.putDocument(self.store.txn, doc, self.store.updateCtx)
 
     def close(self):
 
@@ -328,35 +332,35 @@ class DBContainer(object):
         self._db.close()
         self._db = None
 
-    def put(self, view, key, value):
+    def put(self, key, value):
 
-        self._db.put(key, value, txn=view._txn)
+        self._db.put(key, value, txn=self.store.txn)
 
-    def delete(self, view, key):
+    def delete(self, key):
 
         try:
-            self._db.delete(key, txn=view._txn)
+            self._db.delete(key, txn=self.store.txn)
         except DBNotFoundError:
             pass
 
-    def get(self, view, key):
+    def get(self, key):
 
-        return self._db.get(key, txn=view._txn)
+        return self._db.get(key, txn=self.store.txn)
 
-    def cursor(self, view):
+    def cursor(self):
 
-        return self._db.cursor(txn=view._txn)
+        return self._db.cursor(txn=self.store.txn)
 
 
 class RefContainer(DBContainer):
 
     # has to run within the commit() transaction
-    def deleteItem(self, view, item):
+    def deleteItem(self, item):
 
         cursor = None
             
         try:
-            cursor = self._db.cursor(txn=view._txn)
+            cursor = self._db.cursor(txn=self.store.txn)
             key = item.getUUID()._uuid
 
             try:
@@ -380,22 +384,21 @@ class VerContainer(DBContainer):
         if create:
             self._db.put(Repository.ROOT_ID._uuid, pack('>l', ~0), txn)
 
-    def getVersion(self, view):
+    def getVersion(self):
 
-        return ~unpack('>l', self.get(view, Repository.ROOT_ID._uuid))[0]
+        return ~unpack('>l', self.get(Repository.ROOT_ID._uuid))[0]
 
-    def setDocVersion(self, view, uuid, version, docId):
+    def setDocVersion(self, uuid, version, docId):
 
-        self.put(view, "%s%s" %(uuid._uuid, pack('>l', ~version)),
-                 pack('>l', docId))
+        self.put("%s%s" %(uuid._uuid, pack('>l', ~version)), pack('>l', docId))
 
-    def getDocVersion(self, view, uuid):
+    def getDocVersion(self, uuid):
 
         cursor = None
         txnStarted = False
         try:
-            txnStarted = view._startTransaction()
-            cursor = self.cursor(view)
+            txnStarted = self.store._startTransaction()
+            cursor = self.cursor()
                 
             try:
                 key = uuid._uuid
@@ -410,15 +413,15 @@ class VerContainer(DBContainer):
             if cursor:
                 cursor.close()
             if txnStarted:
-                view._abortTransaction()
+                self.store._abortTransaction()
 
-    def getDocId(self, view, uuid, version):
+    def getDocId(self, uuid, version):
 
         cursor = None
         txnStarted = False
         try:
-            txnStarted = view._startTransaction()
-            cursor = self.cursor(view)
+            txnStarted = self.store._startTransaction()
+            cursor = self.cursor()
 
             try:
                 key = uuid._uuid
@@ -441,24 +444,23 @@ class VerContainer(DBContainer):
             if cursor:
                 cursor.close()
             if txnStarted:
-                view._abortTransaction()
+                self.store._abortTransaction()
 
-    def deleteVersion(self, view, uuid):
+    def deleteVersion(self, uuid):
 
-        self.delete(view, uuid._uuid)
+        self.delete(uuid._uuid)
 
 
 class HistContainer(DBContainer):
 
-    def writeVersion(self, view, uuid, version, docId):
+    def writeVersion(self, uuid, version, docId):
 
-        self.put(view, "%s%s" %(pack('>l', version), uuid._uuid),
-                 pack('>l', docId))
+        self.put("%s%s" %(pack('>l', version), uuid._uuid), pack('>l', docId))
 
     # has to run within the commit transaction
-    def uuids(self, view, oldVersion, newVersion):
+    def uuids(self, oldVersion, newVersion):
 
-        cursor = self.cursor(view)
+        cursor = self.cursor()
 
         try:
             value = cursor.set_range(pack('>l', oldVersion + 1))
@@ -480,9 +482,9 @@ class XMLStore(Store):
 
     def __init__(self, repository):
 
-        super(XMLStore, self).__init__(repository)
         self._threaded = ThreadLocal()
-
+        super(XMLStore, self).__init__(repository)
+        
     def open(self, create=False):
 
         txn = None
@@ -505,17 +507,17 @@ class XMLStore(Store):
         self._versions.close()
         self._history.close()
 
-    def loadItem(self, view, uuid):
+    def loadItem(self, version, uuid):
 
-        return self._data.loadItem(view, uuid)
+        return self._data.loadItem(version, uuid)
     
-    def loadChild(self, view, uuid, name):
+    def loadChild(self, version, uuid, name):
 
-        return self._data.loadChild(view, uuid, name)
+        return self._data.loadChild(version, uuid, name)
 
-    def loadRoots(self, view):
+    def loadRoots(self, version):
 
-        self._data.loadRoots(view)
+        self._data.loadRoots(version)
 
     def parseDoc(self, doc, handler):
 
@@ -529,9 +531,44 @@ class XMLStore(Store):
 
         return self._data.getDocVersion(doc)
 
-    def getVersion(self, view):
+    def getVersion(self):
 
-        return self._versions.getVersion(view)
+        return self._versions.getVersion()
+
+    def _startTransaction(self):
+
+        if self._threaded.txn is None:
+            self._threaded.txn = self.repository._env.txn_begin(None,
+                                                                DB_DIRTY_READ)
+            return True
+
+        return False
+
+    def _commitTransaction(self):
+
+        if self._threaded.txn is not None:
+            self._threaded.txn.commit()
+            self._threaded.txn = None
+            return True
+
+        return False
+
+    def _abortTransaction(self):
+
+        if self._threaded.txn is not None:
+            self._threaded.txn.abort()
+            self._threaded.txn = None
+            return True
+
+        return False
+
+    def _getTxn(self):
+
+        try:
+            return self._threaded.txn
+        except AttributeError:
+            self._threaded.txn = None
+            return None
 
     def _getEnv(self):
 
@@ -578,3 +615,4 @@ class XMLStore(Store):
     ctx = property(_getCtx)
     updateCtx = property(_getUpdateCtx)
     containerExpr = property(_getContainerExpr)
+    txn = property(_getTxn)

@@ -30,6 +30,10 @@ class Transport(Store):
 
         self.call('loadRoots', view)
 
+    def loadRef(self, view, uItem, uuid, key):
+
+        return self.call('loadRef', view, uItem, uuid, key)
+
     def getVersion(self, view):
 
         return self.call('getVersion', view)

@@ -60,10 +60,6 @@ class FileRepositoryView(RepositoryView):
         else:
             return TransientRefDict(item, name, otherName)
     
-    def getVersion(self, uuid):
-
-        return 0L
-
     def _load(self):
         'Load items from the directory the repository was initialized with.'
 

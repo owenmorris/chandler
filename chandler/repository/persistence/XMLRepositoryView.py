@@ -25,22 +25,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def __init__(self, repository):
 
         super(XMLRepositoryView, self).__init__(repository)
-
         self._log = []
-        self.version = self.repository.store.getVersion(self)
-
-    def _startTransaction(self):
-
-        return False
-
-    def _abortTransaction(self):
-
-        return False
 
     def getRoots(self):
         'Return a list of the roots in the repository.'
 
-        self.repository.store.loadRoots(self)
+        self.repository.store.loadRoots(self.version)
         return super(XMLRepositoryView, self).getRoots()
 
     def logItem(self, item):
@@ -58,7 +48,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def cancel(self):
 
-        self._abortTransaction()
+        self.repository.store._abortTransaction()
 
         for item in self._log:
             if item.isDeleted():
@@ -73,34 +63,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
 class XMLRepositoryLocalView(XMLRepositoryView):
 
-    def __init__(self, repository):
-
-        self._txn = None
-        super(XMLRepositoryLocalView, self).__init__(repository)
-
     def createRefDict(self, item, name, otherName, persist):
 
         if persist:
             return XMLRefDict(self, item, name, otherName)
         else:
             return TransientRefDict(item, name, otherName)
-
-    def _startTransaction(self):
-
-        if self._txn is None:
-            self._txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
-            return True
-
-        return False
-
-    def _abortTransaction(self):
-
-        if self._txn is not None:
-            self._txn.abort()
-            self._txn = None
-            return True
-
-        return False
 
     def commit(self):
 
@@ -114,19 +82,19 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         before = datetime.now()
         count = len(self._log)
+        txnStarted = False
         lock = None
 
         while True:
             try:
-                self._txn = repository._env.txn_begin(None, DB_DIRTY_READ)
+                txnStarted = store._startTransaction()
 
-                newVersion = versions.getVersion(self)
+                newVersion = versions.getVersion()
                 if count > 0:
                     lock = env.lock_get(env.lock_id(), self.ROOT_ID._uuid,
                                         DB_LOCK_WRITE)
                     newVersion += 1
-                    versions.put(self, self.ROOT_ID._uuid,
-                                 pack('>l', ~newVersion))
+                    versions.put(self.ROOT_ID._uuid, pack('>l', ~newVersion))
                 
                     for item in self._log:
                         self._saveItem(item, newVersion,
@@ -134,9 +102,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
             except DBLockDeadlockError:
                 print 'restarting commit aborted by deadlock'
-                if self._txn:
-                    self._txn.abort()
-                    self._txn = None
+                if txnStarted:
+                    store._abortTransaction()
                 if lock:
                     env.lock_put(lock)
                     lock = None
@@ -144,9 +111,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 continue
             
             except:
-                if self._txn:
-                    self._txn.abort()
-                    self._txn = None
+                if txnStarted:
+                    store._abortTransaction()
                 if lock:
                     env.lock_put(lock)
 
@@ -160,14 +126,14 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 if verbose:
                     print 'refreshing view from version %d to %d' %(self.version,
-                                                                newVersion)
+                                                                    newVersion)
 
                 if newVersion > self.version:
                     try:
                         oldVersion = self.version
                         self.version = newVersion
 
-                        for uuid in history.uuids(self, oldVersion, newVersion):
+                        for uuid in history.uuids(oldVersion, newVersion):
                             item = self._registry.get(uuid)
                             if item is not None and item._version < newVersion:
                                 if verbose:
@@ -175,14 +141,12 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                                                          item.getItemPath())
                                 item._unloadItem()
                     except:
-                        if self._txn:
-                            self._txn.abort()
-                            self._txn = None
+                        if txnStarted:
+                            store._abortTransaction()
                         raise
             
-                if self._txn:
-                    self._txn.commit()
-                    self._txn = None
+                if txnStarted:
+                    store._commitTransaction()
 
                 if lock:
                     env.lock_put(lock)
@@ -199,7 +163,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             version = None
 
         else:
-            version = versions.getDocVersion(self, uuid)
+            version = versions.getDocVersion(uuid)
             if version is None:
                 raise ValueError, 'no version for %s' %(item.getItemPath())
             elif version > item._version:
@@ -212,8 +176,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if verbose:
                     print 'Removing version %d of %s' %(item._version,
                                                         item.getItemPath())
-                versions.setDocVersion(self, uuid, newVersion, 0)
-                history.writeVersion(self, uuid, newVersion, 0)
+                versions.setDocVersion(uuid, newVersion, 0)
+                history.writeVersion(uuid, newVersion, 0)
 
         else:
             if verbose:
@@ -229,9 +193,9 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             doc = XmlDocument()
             doc.setContent(out.getvalue())
             out.close()
-            docId = data.putDocument(self, doc)
-            versions.setDocVersion(self, uuid, newVersion, docId)
-            history.writeVersion(self, uuid, newVersion, docId)
+            docId = data.putDocument(doc)
+            versions.setDocVersion(uuid, newVersion, docId)
+            history.writeVersion(uuid, newVersion, docId)
 
 
 
@@ -271,19 +235,21 @@ class XMLRefDict(RefDict):
     def _loadRef(self, key):
 
         view = self.view
-
+        
         if view is not view.repository.view:
             raise RepositoryError, 'current thread is not owning thread'
 
         if key in self._deletedRefs:
             return None
 
+        store = view.repository.store
+        
         while True:
             cursor = None
             txnStarted = False
             try:
-                txnStarted = view._startTransaction()
-                cursor = view.repository.store._refs.cursor(view)
+                txnStarted = store._startTransaction()
+                cursor = store._refs.cursor()
 
                 try:
                     cursorKey = self._packKey(key)
@@ -294,7 +260,7 @@ class XMLRefDict(RefDict):
                     if cursor:
                         cursor.close()
                     if txnStarted:
-                        view._abortTransaction()
+                        store._abortTransaction()
 
                     continue
 
@@ -332,7 +298,7 @@ class XMLRefDict(RefDict):
                 if cursor:
                     cursor.close()
                 if txnStarted:
-                    view._abortTransaction()
+                    store._abortTransaction()
 
     def _changeRef(self, key):
 
@@ -364,8 +330,7 @@ class XMLRefDict(RefDict):
             self._writeValue(None)
         value = self._value.getvalue()
             
-        self.view.repository.store._refs.put(self.view,
-                                             self._packKey(key, version),
+        self.view.repository.store._refs.put(self._packKey(key, version),
                                              value)
 
     def _writeValue(self, value):
@@ -404,7 +369,7 @@ class XMLRefDict(RefDict):
 
     def _eraseRef(self, key):
 
-        self.view.repository.store._refs.delete(self.view, self._packKey(key))
+        self.view.repository.store._refs.delete(self._packKey(key))
 
     def _setItem(self, item):
 
@@ -490,7 +455,7 @@ class XMLClientRefDict(XMLRefDict):
             
     def _loadRef(self, key):
 
-        return self.view.repository.store.loadRef(self.view,
+        return self.view.repository.store.loadRef(self.view.version,
                                                   self._uItem, self._uuid, key)
 
     def _writeRef(self, key, version, uuid, previous, next, alias):

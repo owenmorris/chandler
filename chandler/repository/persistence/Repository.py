@@ -171,9 +171,6 @@ class RepositoryView(object):
     def createRefDict(self, item, name, otherName, persist):
         raise NotImplementedError, "RepositoryView.createRefDict"
     
-    def getVersion(self, uuid):
-        raise NotImplementedError, "RepositoryView.getVersion"
-
     def isLoading(self):
 
         return (self._status & RepositoryView.LOADING) != 0
@@ -485,16 +482,19 @@ class Store(object):
     def close(self):
         raise NotImplementedError, "Store.close"
 
-    def loadItem(self, view, uuid):
+    def getVersion(self):
+        raise NotImplementedError, "Store.getVersion"
+
+    def loadItem(self, version, uuid):
         raise NotImplementedError, "Store.loadItem"
     
-    def loadChild(self, view, uuid, name):
+    def loadChild(self, version, uuid, name):
         raise NotImplementedError, "Store.loadChild"
 
-    def loadRoots(self, view):
+    def loadRoots(self, version):
         raise NotImplementedError, "Store.loadRoots"
 
-    def loadRef(self, view, uItem, uuid, key):
+    def loadRef(self, version, uItem, uuid, key):
         raise NotImplementedError, "Store.loadRef"
 
     def parseDoc(self, doc, handler):
@@ -519,7 +519,9 @@ class OnDemandRepositoryView(RepositoryView):
     def __init__(self, repository):
         
         super(OnDemandRepositoryView, self).__init__(repository)
+
         self._hooks = None
+        self.version = repository.store.getVersion()
 
     def _loadDoc(self, doc):
 
@@ -566,7 +568,7 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            doc = self.repository.store.loadItem(self, uuid)
+            doc = self.repository.store.loadItem(self.version, uuid)
 
             if doc is not None:
                 if self.repository.verbose:
@@ -587,7 +589,7 @@ class OnDemandRepositoryView(RepositoryView):
             uuid = self.ROOT_ID
 
         store = self.repository.store
-        doc = store.loadChild(self, uuid, name)
+        doc = store.loadChild(self.version, uuid, name)
                 
         if doc is not None:
             uuid = store.getDocUUID(doc)
