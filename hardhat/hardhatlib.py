@@ -1152,10 +1152,10 @@ def buildComplete(buildenv):
      buildenv['tar'] and \
      (buildenv['os'] == 'win' and buildenv['zip'] or \
      buildenv['os'] != 'win' and buildenv['gzip'] ):
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
          "All required tools found, proceeding")
     else:
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+        log(buildenv, HARDHAT_MESSAGE, "HardHat",
          "Coudln't find all necessary tools in your path \
           (cvs, scp, tar, zip, gzip)")
         raise HardHatError
@@ -1173,7 +1173,7 @@ def buildComplete(buildenv):
             os.rename(os.path.join(buildenv['workroot'], "release"),
              os.path.join(buildenv['workroot'], "osaf", "chandler", "release"))
 
-            build(buildenv, buildenv['module'])
+            # build(buildenv, buildenv['module'])
             distribute(buildenv, buildenv['module'])
             os.chdir(buildenv['root'])
 
