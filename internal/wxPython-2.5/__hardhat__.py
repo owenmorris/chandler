@@ -168,19 +168,45 @@ def build(buildenv):
 
         os.putenv('WXWIN', os.getcwd())
 
-        os.chdir("wxPython")
-
         if version == 'release':
+            destination = os.path.join (buildenv['pythonlibdir'], 'site-packages', 'wx')
+            hardhatlib.copyFiles('lib/vc_dll', destination, ['*251_*.dll'])
 
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['python'], 'setup.py', 'build_ext', 
-             '--inplace', 'install'], "Building wxPython")
+            os.chdir("wxPython")
+            hardhatlib.executeCommand (buildenv,
+                                       info['name'],
+                                       [buildenv['python'],
+                                        'setup.py',
+                                        'build_ext', 
+                                        '--inplace',
+                                        'install',
+                                        'FINAL=1',
+                                        'HYBRID=0'],
+                                       "Building wxPython")
+
+            # _*.pyd also copies _*_d.pyd, which is unnecessary, however, the
+            # files that should have been created are _*.pyc, so when we fix that
+            # we should change '_*.pyd' to '_*.pyc' in the following line
+            hardhatlib.copyFiles('wx', destination, ['_*.pyd'])
 
         elif version == 'debug':
+            destination = os.path.join (buildenv['pythonlibdir_d'], 'site-packages', 'wx')
+            hardhatlib.copyFiles('lib/vc_dll', destination, ['*251d_*.dll'])
 
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['python_d'], 'setup.py', 'build_ext', 
-             '--inplace', '--debug', 'install'], "Building wxPython")
+            os.chdir("wxPython")
+            hardhatlib.executeCommand (buildenv,
+                                       info['name'],
+                                       [buildenv['python_d'],
+                                        'setup.py',
+                                        'build_ext', 
+                                        '--inplace',
+                                        '--debug',
+                                        'install',
+                                        'FINAL=1',
+                                        'HYBRID=0'],
+                                       "Building wxPython")
+
+            hardhatlib.copyFiles('wx', destination, ['_*_d.pyd'])
 
 def clean(buildenv):
 

@@ -503,34 +503,34 @@ if BUILD_IEWIN:
 # Define the ACTIVEX extension module (experimental)
 #----------------------------------------------------------------------
 
-# sources don't include activex, so I commented it out -- DJA
+# active x files are not in the release so this doesn't work -- DJA
 #if BUILD_ACTIVEX:
-#    msg('Preparing ACTIVEX...')
-#    location = 'contrib/activex'
-#    axloc = opj(location, "wxie")
-#
-#    swig_files = ['activex.i', ]
-#
-#    swig_sources = run_swig(swig_files, location, '', PKGDIR,
-#                            USE_SWIG, swig_force, swig_args, swig_deps +
-#                            [ '%s/_activex_ex.py' % location])
-#
-#
-#    ext = Extension('_activex', ['%s/IEHtmlWin.cpp' % axloc,
-#                                 '%s/wxactivex.cpp' % axloc,
-#                                 ] + swig_sources,
-#
-#                    include_dirs =  includes + [ axloc ],
-#                    define_macros = defines,
-#
-#                    library_dirs = libdirs,
-#                    libraries = libs,
-#
-#                    extra_compile_args = cflags,
-#                    extra_link_args = lflags,
-#                    )
+    #msg('Preparing ACTIVEX...')
+    #location = 'contrib/activex'
+    #axloc = opj(location, "wxie")
 
-    wxpExtensions.append(ext)
+    #swig_files = ['activex.i', ]
+
+    #swig_sources = run_swig(swig_files, location, '', PKGDIR,
+                            #USE_SWIG, swig_force, swig_args, swig_deps +
+                            #[ '%s/_activex_ex.py' % location])
+
+
+    #ext = Extension('_activex', ['%s/IEHtmlWin.cpp' % axloc,
+                                 #'%s/wxactivex.cpp' % axloc,
+                                 #] + swig_sources,
+
+                    #include_dirs =  includes + [ axloc ],
+                    #define_macros = defines,
+
+                    #library_dirs = libdirs,
+                    #libraries = libs,
+
+                    #extra_compile_args = cflags,
+                    #extra_link_args = lflags,
+                    #)
+
+    #wxpExtensions.append(ext)
 
 
 #----------------------------------------------------------------------
