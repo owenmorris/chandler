@@ -11,6 +11,7 @@ import email.Message as Message
 import email.Utils as Utils
 import os
 import mx.DateTime as DateTime
+import logging
 
 #Chandler imports
 import application.Globals as Globals
@@ -28,12 +29,12 @@ class Counter:
         return self.counter
 
 
-def loadMimeTortureTests(view):
+def loadMailTests(view, dir):
     import osaf.mail.message as message
     import osaf.contentmodel.mail.Mail as Mail
 
-    mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail', 
-                           'tests', 'mime_tests')
+    mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
+                           'tests', dir)
 
     files = os.listdir(mimeDir)
 
@@ -41,10 +42,16 @@ def loadMimeTortureTests(view):
         if not file.startswith('test_'):
             continue
 
+        if message.verbose():
+            logging.warn("Opening File: %s" % file)
+
         filename = os.path.join(mimeDir, file)
-        messageObject = email.message_from_file(open(filename))
-        mailMessage   = message.messageObjectToKind(view, messageObject)
-        #mailMessage.incomingMessage()
+
+        fp = open(filename)
+        messageText = fp.read()
+        fp.close()
+
+        mailMessage = message.messageTextToKind(view, messageText)
 
     view.commit()
 
@@ -152,15 +159,14 @@ def isString(var):
 
     return False
 
-def strToText(contentItem, attribute, string, indexText=False, encoding=constants.DEFAULT_CHARSET):
-    """Converts a C{str} or C{unicode} to C{Lob}.
+def strToText(contentItem, attribute, unicodeString, indexText=False, \
+              encoding=constants.DEFAULT_CHARSET):
+    """Converts a C{unicode}u string  to {Lob}.
     """
-    #XXX: Only unicode should be passed to this method
-    if not isString(string):
-        return None
+    assert isinstance(unicodeString, unicode), "Only Unicode string may be passed to this method"
 
     return contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(string, \
+                                          'type').makeValue(unicodeString, \
                                           indexed=indexText, encoding=encoding)
 
 
@@ -175,21 +181,32 @@ def textToStr(text):
 
     return uStr
 
-def dataToBinary(contentItem, attribute, data, indexText=False):
+def dataToBinary(contentItem, attribute, data, compression=None, indexText=False):
     """Converts non-string data to a C{TLob}
     """
-    return contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(data, \
+    binary =  contentItem.getAttributeAspect(attribute, \
+                                          'type').makeValue(None, \
                                           indexed=indexText, encoding=None)
 
+    if compression:
+        binaryStream = binary.getOutputStream(compression=compression)
 
-def binaryToData(data):
+    else:
+        binaryStream = binary.getOutputStream()
+
+    binaryStream.write(data)
+    binaryStream.close()
+
+    return binary
+
+
+def binaryToData(binary):
     """Converts a C{Lob} to data"""
-    assert isinstance(data, Lob), "Must pass a Lob instance"
-    assert data.encoding is None, "Encoding must be None for inputstreamr API"
+    assert isinstance(binary, Lob), "Must pass a Lob instance"
+    assert binary.encoding is None, "Encoding must be None for inputstreamr API"
 
-    input = data.getInputStream()
-    buffer = data.read()
-    data.close()
+    input = binary.getInputStream()
+    data = input.read()
+    input.close()
 
-    return buffer
+    return data

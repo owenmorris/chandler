@@ -212,8 +212,9 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         assert self.account is not None, "Account is None can not login client"
 
-        username = str(self.account.username)
-        password = str(self.account.password)
+        #XXX: These values will need to enocded from unicode
+        username = self.account.username.encode(constants.DEFAULT_CHARSET)
+        password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
         self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
         self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))

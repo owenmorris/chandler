@@ -8,8 +8,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 #python / mx imports
 import version
 
-#XXX: This will go away with internationalization
 DEFAULT_CHARSET = "utf-8"
+LF    = unicode("\n", DEFAULT_CHARSET)
+CR    = unicode("\r", DEFAULT_CHARSET)
+EMPTY = unicode("",   DEFAULT_CHARSET)
 
 CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"

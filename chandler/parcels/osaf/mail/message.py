@@ -22,17 +22,13 @@ import utils as utils
 
 """
 Notes:
-XXX: Do not check in till figure out repository error
+1. Need to pay attention for when setting values in Message.Message object as they must 
+   be of type str
+
 XXX: get_param() returns a tuple
 XXX: test_email.py, test_email_codecs.py in email package has good unicode examples
 XXX: Look at Scrubber.py in Mailman package
-
-   body = unicode(body, mcset).encode(lcset)
-           except (LookupError, UnicodeError):
-                       pass
-
-return unicode(s, charset, "replace").encode(GlobalOptions.default_charset, "replace")
-
+XXX: get_filename() unquotes the unicode value
 
 1. Encoding Email Address: Only encode name if present (I have example code)
 
@@ -40,8 +36,8 @@ To Do:
 -------
 1. Work with Apple Mail and see how it handle display of various message types and copy
 2. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
+3. Add i18n support to outbound message
 
-Look at Prologue, Echo and i18n text complete / date complete
 
 ARE THESES HANDLED BY THE EMAIL LIBRARY?
 --------------------------------------
@@ -80,12 +76,28 @@ def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
     try:
         decoded    = Header.make_header(Header.decode_header(header))
         unicodeStr = decoded.__unicode__()
-        line       = emailUtils.UEMPTYSTRING.join(unicodeStr.splitlines())
 
-        return line.encode(charset, 'replace')
+        return  constants.EMPTY.join(unicodeStr.splitlines())
 
     except(UnicodeError, LookupError):
-        return emailUtils.EMPTYSTRING.join(header.splitlines())
+        return unicode("".join(header.splitlines()), charset, 'replace')
+
+def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
+    assert isinstance(val, str), "The value to convert must be a string"
+    assert charset is not None, "A charset must be specified"
+
+    try:
+        return unicode(val, charset, 'replace')
+
+    except (LookupError, UnicodeError):
+        if charset != constants.DEFAULT_CHARSET:
+            logging.error("Unable to convert charset: %s trying %s" % \
+                          (charset, constants.DEFAULT_CHARSET))
+
+            return getUnicodeValue(val)
+
+        logging.error("Unable to convert charset: %s" % charset)
+        return constants.EMPTY
 
 def createChandlerHeader(postfix):
     """Creates a chandler header with postfix provided"""
@@ -104,37 +116,37 @@ def isChandlerHeader(header):
 
 def populateStaticHeaders(messageObject):
     """Populates the static mail headers"""
-    #XXX: Need to document method
-    #XXX: Will be expanded when i18n is in place
-
     if not messageObject.has_key('User-Agent'):
         messageObject['User-Agent'] = constants.CHANDLER_USERAGENT
 
     if not messageObject.has_key('MIME-Version'):
         messageObject['MIME-Version'] = "1.0"
 
+    #XXX: Will need to detect the charset when sending i18n messages
     if not messageObject.has_key('Content-Type'):
         messageObject['Content-Type'] = "text/plain; charset=us-ascii; format=flowed"
 
+    #XXX: Will need to detect the encoding when sending i18n messages
     if not messageObject.has_key('Content-Transfer-Encoding'):
        messageObject['Content-Transfer-Encoding'] = "7bit"
 
 
 def populateHeader(messageObject, param, var, type='String'):
-    #XXX: Need to document method
-
     if type == 'String':
         if utils.hasValue(var):
+            #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = var
 
     elif(type == 'EmailAddress'):
         if var is not None and utils.hasValue(var.emailAddress):
+            #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = Mail.EmailAddress.format(var)
 
 def populateHeaders(mailMessage, messageObject):
     keys = mailMessage.headers.keys()
 
     for key in keys:
+        #XXX: Willl need to detect i18n charset and encoded if needed
         messageObject[key] = mailMessage.headers[key]
 
 
@@ -142,6 +154,7 @@ def populateChandlerHeaders(mailMessage, messageObject):
     keys = mailMessage.chandlerHeaders.keys()
 
     for key in keys:
+        #XXX: Willl need to detect i18n charset and encoded if needed
         messageObject[key] = mailMessage.chandlerHeaders[key]
 
 
@@ -179,6 +192,7 @@ def messageTextToKind(view, messageText):
 
     return messageObjectToKind(view, email.message_from_string(messageText), messageText)
 
+
 def messageObjectToKind(view, messageObject, messageText=None):
     """
     This method converts a email message string to
@@ -195,21 +209,22 @@ def messageObjectToKind(view, messageObject, messageText=None):
     assert len(messageObject.keys()) > 0, \
            "messageObject data is not a valid RFC2882 message"
 
+    assert messageText is None or isinstance(messageText, str), \
+           "messageText can either be a string or None"
+
     m = Mail.MailMessage(view=view)
 
     # Save the original message text in a text blob
     if messageText is None:
         messageText = messageObject.as_string()
 
+    m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", messageText, 'bz2')
 
-    #XXX:Could compress at a later date
-    #XXX: Convert to unicode
-    m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
     counter = utils.Counter()
     bodyBuffer = []
     buf = None
 
-    if __verbose():
+    if verbose():
         if messageObject.has_key("Message-ID"):
             messageId = messageObject["Message-ID"]
         else:
@@ -223,13 +238,13 @@ def messageObjectToKind(view, messageObject, messageText=None):
     if len(m.mimeParts) > 0:
         m.hasMimeParts = True
 
-    #XXX: This will require i18n decoding
-    #XXX: All body part should already be encoded in utf-8
-    m.body = utils.strToText(m, "body", '\n'.join(bodyBuffer).replace("\r", ""))
+    body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
+
+    m.body = utils.strToText(m, "body", body)
 
     __parseHeaders(view, messageObject, m)
 
-    if __verbose():
+    if verbose():
         logging.warn("\n\n%s\n\n" % '\n'.join(buf))
 
     return m
@@ -285,7 +300,7 @@ def kindToMessageObject(mailMessage):
     return messageObject
 
 
-def kindToMessageText(mailMessage, saveMessage=False):
+def kindToMessageText(mailMessage, saveMessage=True):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -304,13 +319,9 @@ def kindToMessageText(mailMessage, saveMessage=False):
     messageObject = kindToMessageObject(mailMessage)
     messageText   = messageObject.as_string()
 
-    #XXX: Can compress as well
-    #XXX: Convert to utf-8
-    #XXX: I think we can reconstruct this structure at export and get rid of this
-    #     save
     if saveMessage:
-        mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", \
-                                                     messageText)
+        mailMessage.rfc2882Message = utils.dataToBinary(mailMessage, "rfc2822Message", \
+                                                        messageText, 'bz2')
 
     return messageText
 
@@ -368,63 +379,54 @@ def __parseHeaders(view, messageObject, m):
         del messageObject[key]
 
 def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=True):
+    header = messageObject.get(key)
 
-    try:
-        """ Test that a key exists and its value is not None """
-        if messageObject[key] is None:
-            return
-    except KeyError:
+    if header is None:
         return
 
     if decode:
-        messageObject.replace_header(key, decodeHeader(messageObject[key]))
+        header = decodeHeader(header)
 
     if type == "String":
-        setattr(kindVar, attr, messageObject[key])
+        setattr(kindVar, attr, header)
 
     # XXX: This logic will need to be expanded
     elif type == "StringList":
-        kindVar.append(messageObject[key])
+        kindVar.append(header)
 
     elif type == "EmailAddress":
-        keyArgs = {}
-        addr = emailUtils.parseaddr(messageObject[key])
+        name, addr = emailUtils.parseaddr(messageObject.get(key))
 
-        if utils.hasValue(addr[0]):
-            keyArgs['fullName'] = addr[0]
-
-        # Use any existing EmailAddress, but don't update them
-        #  because that will cause the item to go stale in the UI thread.
-        ea = Mail.EmailAddress.getEmailAddress(view, addr[1], **keyArgs)
+        ea = __getEmailAddress(view, decodeHeader(name), addr)
 
         if ea is not None:
             setattr(kindVar, attr, ea)
 
         elif __debug__:
-            #XXX: What should happen if we get to this point we need a reply address
-            logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr[1]))
+            logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr))
 
     elif type == "EmailAddressList":
-        for addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
-            keyArgs = {}
-
-            if utils.hasValue(addr[0]):
-                keyArgs['fullName'] = addr[0]
-
-            # Use any existing EmailAddress, but don't update them
-            #  because that will cause the item to go stale in the UI thread.
-            ea = Mail.EmailAddress.getEmailAddress(view, addr[1], **keyArgs)
+        for name, addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
+            ea = __getEmailAddress(view, decodeHeader(name), addr)
 
             if ea is not None:
                 kindVar.append(ea)
 
             elif __debug__:
-                #XXX: What should happen if we get to this point we need a reply address
-                logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr[1]))
-    else:
-        logging.error("__assignToKind: HEADER SLIPPED THROUGH")
+                logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr))
 
     del messageObject[key]
+
+
+def __getEmailAddress(view, name, addr):
+     keyArgs = {}
+
+     if utils.hasValue(name):
+          keyArgs['fullName'] = name
+
+     # Use any existing EmailAddress, but don't update them
+     #  because that will cause the item to go stale in the UI thread.
+     return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
 
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
@@ -449,7 +451,7 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
-    if __verbose():
+    if verbose():
         __trace("message/%s" % subtype, buf, level)
 
     """If the message is multipart then pass decode=False to
@@ -462,34 +464,30 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
             sub = mimePart.get_payload()[0]
             assert sub is not None, "__handleMessage sub is None"
 
-            tmp = []
+            tmp = [u'\n']
 
-            tmp.append("\n")
             __appendHeader(sub, tmp, "From")
             __appendHeader(sub, tmp, "Reply-To")
             __appendHeader(sub, tmp, "Date")
             __appendHeader(sub, tmp, "To")
             __appendHeader(sub, tmp, "Cc")
             __appendHeader(sub, tmp, "Subject")
-            tmp.append("\n")
 
-            #XXX: This will require unicode conversion
-            bodyBuffer.append(''.join(tmp))
+            tmp.append(u'\n')
+
+            bodyBuffer.append(constants.LF.join(tmp))
 
         else:
             logging.warn("******WARNING****** message/rfc822 part not Multipart investigate")
 
     elif subtype == "delivery-status":
-        #XXX: This is will need i18n decoding
         """Add the delivery status info to the message body """
-        #XXX: assume us-ascii then covert to utf-8
-        bodyBuffer.append(mimePart.as_string())
+        bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
         return
 
     elif subtype == "disposition-notification-to":
         """Add the disposition-notification-to info to the message body"""
-        #XXX: assume us-ascii then covert to utf-8
-        bodyBuffer.append(mimePart.as_string())
+        bodyBuffer.append(getUnicodeValue(mimePart.as_string()))
         return
 
     elif subtype == "external-body":
@@ -516,7 +514,7 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
-    if __verbose():
+    if verbose():
         __trace("multipart/%s" % subtype, buf, level)
 
     """If the message is multipart then pass decode=False to
@@ -545,7 +543,8 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
 
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
-                    __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+                    __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, \
+                                 counter, buf, level)
                 else:
                     __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level)
         else:
@@ -575,7 +574,7 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
 def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
     contype = mimePart.get_content_type()
 
-    if __verbose():
+    if verbose():
         __trace(contype, buf, level)
 
     # skip AppleDouble resource files per RFC1740
@@ -599,42 +598,45 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
        if result[0] is not None:
              mimeBinary.mimeType = result[0]
 
-    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body)
+    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body, 'bz2')
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
 
 def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
     subtype = mimePart.get_content_subtype()
 
-    if __verbose():
+    if verbose():
         __trace("text/%s" % subtype, buf, level)
 
     """Get the attachment data"""
     body = mimePart.get_payload(decode=1)
-    assert isinstance(body, str) , "__handleText body is not a String"
 
     size = len(body)
 
-    #XXX: If there is an encoding then decode first then store
-    content_charset = mimePart.get_content_charset(None)
+    charset = mimePart.get_content_charset(constants.DEFAULT_CHARSET)
+    lang    = mimePart.get("Content-language")
 
     if subtype == "plain" or subtype == "rfc822-headers":
-        #XXX: this requires i18n decoding
-        size > 0 and bodyBuffer.append(body)
+        #XXX: Will want to leverage the language to aid the GUI layer
+        size > 0 and bodyBuffer.append(getUnicodeValue(body, charset))
 
     else:
         mimeText = Mail.MIMEText(view=view)
 
         mimeText.mimeType = mimePart.get_content_type()
+        mimeText.charset  = charset
         mimeText.filesize = len(body)
         mimeText.filename = __getFileName(mimePart, counter)
-        mimeText.body = utils.strToText(mimeText, "body", body)
+
+        if lang:
+            mimeText.lang = lang
+
+        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset))
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True
 
 def __getFileName(mimePart, counter):
-    #XXX: Does this handle all Unicode decoding of filename as well?
     filename = mimePart.get_filename()
 
     if filename:
@@ -646,7 +648,7 @@ def __getFileName(mimePart, counter):
     if not ext:
        ext = '.bin'
 
-    return 'Attachment-%s%s' % (counter.nextValue(), ext)
+    return getUnicodeValue('Attachment-%s%s' % (counter.nextValue(), ext))
 
 def __checkForDefects(mimePart):
     if len(mimePart.defects) > 0:
@@ -676,10 +678,9 @@ def __checkForDefects(mimePart):
 
 def __appendHeader(mimePart, buffer, header):
     if mimePart.has_key(header):
-        #XXX: This will need i18n unicode encoding
-        buffer.append("%s: %s\n" % (header, decodeHeader(mimePart[header])))
+        buffer.append(u"%s: %s" % (getUnicodeValue(header), decodeHeader(mimePart[header])))
 
-def __verbose():
+def verbose():
     return __debug__ and constants.VERBOSE
 
 def __trace(contype, buf, level):
