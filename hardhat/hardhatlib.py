@@ -105,6 +105,8 @@ def init(root):
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
         devenv_file = os_win.find_exe( "devenv.exe", "7.0")
         if( devenv_file ):
+            # if sys.platform == 'cygwin':
+            #     devenv_file = toDosPath(devenv_file)
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
             buildenv['compiler'] = devenv_file
         else:
@@ -116,6 +118,8 @@ def init(root):
         nmake_file = os_win.find_exe( "nmake.exe", "7.0")
         if( nmake_file ):
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
+            # if sys.platform == 'cygwin':
+            #     nmake_file = toDosPath(nmake_file)
             buildenv['nmake'] = nmake_file
         else:
             log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
@@ -774,7 +778,8 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     args[:0] = [sys.executable, sys.executable, wrapper, logfile, showenv]
     args = map(escapeBackslashes, args)
 
-    if buildenv['os'] == 'win':
+    if buildenv['os'] == 'win' and sys.platform != "cygwin":
+        print "escaping for windows!"
         args = map(escapeArgForWindows, args)
 
     # all args need to be quoted
@@ -1256,6 +1261,21 @@ def toCygwinPath(path):
 	path = "/cygdrive/" + path
 	path = string.join(string.split(path, "\\"), "/")
     return path
+
+def toDosPath(path):
+
+    try:
+        cygpath = os.popen("/bin/cygpath -w \"" + path + "\"", "r")
+        path = cygpath.readline()
+        path = path[:-1]
+        cygpath.close()
+        return path
+    except Exception, e:
+        print e
+        print "Unable to call 'cygpath' to determine DOS-equivalent for OSAFROOT"
+        print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
+        print "of Python from http://python.org/, rather than the Cygwin Python"
+        raise HardHatError
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes

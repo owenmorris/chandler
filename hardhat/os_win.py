@@ -273,7 +273,7 @@ def find_exe (exe, version_number):
 	    fn = os.path.join (p, exe)
 	    fn = cygwin_path_convert(fn)
 	else:
-	    fn = os.path.join (os.path.abspath(p), exe)
+            fn = os.path.join (os.path.abspath(p), exe)
         if os.path.isfile(fn):
             return fn
 

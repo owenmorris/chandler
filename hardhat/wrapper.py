@@ -10,6 +10,15 @@ def escapeBackslashes(str):
 
 def executeCommand(logfile, showenv, args):
 
+    # print "incoming args:"
+    # for arg in args:
+    #     print arg
+
+    # if os.path.exists( args[0] ):
+    #     print args[0], "exists"
+    # else:
+    #     print args[0], "doesn't exist"
+
     args = map(escapeBackslashes, args)
 
     # since spawnl wants the name of the file we're executing twice, let's 
