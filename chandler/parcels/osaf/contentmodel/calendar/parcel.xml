@@ -41,16 +41,51 @@
     <type itemref="cal:Calendar"/>
   </Attribute>
 
-  <Attribute itemName="cal:participant">
-    <displayName>Participant</displayName>
+  <Attribute itemName="cal:participants">
+    <displayName>Participants</displayName>
     <cardinality>list</cardinality>
     <type itemref="contact:ContactEntity"/>
+    <inverseAttribute itemref="cal:participatingIn"/>
   </Attribute>
 
   <Attribute itemName="cal:participatingIn">
     <displayName>Participating In</displayName>
     <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="cal:participants"/>
+  </Attribute>
+
+  <Attribute itemName="cal:organizer">
+    <displayName>Meeting Organizer</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="contact:ContactEntity"/>
+    <superAttribute itemref="cal:participants"/>
+  </Attribute>
+
+  <Attribute itemName="cal:attendees">
+    <displayName>Meeting Attendee</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="contact:ContactEntity"/>
+    <superAttribute itemref="cal:participants"/>
+  </Attribute>
+
+  <Attribute itemName="cal:recurrence">
+    <displayName>Recurrence Patterns</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:RecurrencePattern"/>
+  </Attribute>
+
+  <Attribute itemName="cal:reminders">
+    <displayName>Reminder</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:Reminder"/>
+  </Attribute>
+
+  <!-- @@@ This may have an enum or type as a type, string temporarily -->
+  <Attribute itemName="cal:transparency">
+    <displayName>Time Transparency</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
   </Attribute>
 
   <!-- @@@ temporary attribute, something for location and calendar -->
@@ -73,6 +108,13 @@
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:endTime"/>
     <attributes itemref="cal:location"/>
+    <attributes itemref="cal:calendar"/>
+    <attributes itemref="cal:participants"/>
+    <attributes itemref="cal:organizer"/>
+    <attributes itemref="cal:attendees"/>
+    <attributes itemref="cal:recurrence"/>
+    <attributes itemref="cal:reminders"/>
+    <attributes itemref="cal:transparency"/>
     <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.PimSchema.CalendarSchema.CalendarEvent.CalendarEvent</classes>
   </Kind>
@@ -91,6 +133,14 @@
     <attributes itemref="cal:name"/>
     <displayAttribute itemref="cal:name"/>
     <classes key="python">OSAF.PimSchema.CalendarSchema.Calendar.Calendar</classes>
+  </Kind>
+
+  <Kind itemName="cal:RecurrencePattern">
+    <displayName>Recurrence Pattern</displayName>
+  </Kind>
+
+  <Kind itemName="cal:Reminder">
+    <displayName>Reminder</displayName>
   </Kind>
 
 </Parcel>
