@@ -12,6 +12,7 @@ from application.repository.Namespace import chandler
 
 from application.repository.Item import Item
 from application.repository.ContactName import ContactName
+from application.model.ContactFormat import ContactFormat
 
 _attributes = [{ chandler.url : chandler.contactType,
                  chandler.range : str,
