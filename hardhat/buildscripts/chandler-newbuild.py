@@ -197,21 +197,17 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("Building debug..." + "\n")
             os.chdir("../external")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
-             [buildenv['make'], "DEBUG=1", 
+             [buildenv['make'], "DEBUG=1" ],
              "Making external programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
-             [buildenv['make'], "DEBUG=1", "binaries" 
+             [buildenv['make'], "DEBUG=1", "binaries" ],
              "Making external binaries")
             os.chdir("../internal")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
-             [buildenv['make'], "DEBUG=1", 
+             [buildenv['make'], "DEBUG=1" ],
              "Making internal programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
-             [buildenv['make'], "DEBUG=1", "binaries" 
+             [buildenv['make'], "DEBUG=1", "binaries" ],
              "Making internal binaries")
 
         if mode == "release":
@@ -220,21 +216,20 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("Building release..." + "\n")
             os.chdir("../external")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
-             [buildenv['make'], ],
+             [buildenv['make'] ],
              "Making external programs")
             outputList = hardhatutil.executeCommandReturnOutput(
              buildenv, info['name'],
-             [buildenv['make'], "binaries" 
+             [buildenv['make'], "binaries" ],
              "Making external binaries")
             os.chdir("../internal")
             outputList = hardhatutil.executeCommandReturnOutput(
              buildenv, info['name'],
-             [buildenv['make'], 
+             [buildenv['make'] ],
              "Making internal programs")
             outputList = hardhatutil.executeCommandReturnOutput(
              buildenv, info['name'],
-             [buildenv['make'], "binaries" 
+             [buildenv['make'], "binaries" ],
              "Making internal binaries")
 
     except Exception, e:
