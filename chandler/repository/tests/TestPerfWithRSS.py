@@ -24,8 +24,10 @@ import posix
 
 RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
 
+# get all the RSS files in RSS_HOME
 _rssfiles = posix.listdir(RSS_HOME)
 
+# make them file URL's
 _defaultBlogs = [ "file://"+RSS_HOME+f for f in _rssfiles ]
 
 BASE_PATH = '//parcels/OSAF/examples/zaobao'
@@ -46,13 +48,16 @@ class TestPerfWithRSS(unittest.TestCase):
         LoadParcels.LoadParcels(parcelDir, self.rep)
         
         self.rep.commit()
-        self.rep.logger.info("Going to try: ",len(_defaultBlogs)," blogs")
+        self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
 
     def test(self):
+        """ grab a bunch of RSS data from disk and insert into the repository """
         repository = self.rep
 
+        itemCount = 0
         feeds = self.__getFeeds()
         for feed in feeds:
+            self.rep.logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
             if lastModified:
@@ -61,27 +66,19 @@ class TestPerfWithRSS(unittest.TestCase):
                 modified = None
             try:
                 data = feedparser.parse(feed.url, etag, modified)
-                self.rep.logger.info(feed.url)
-#                print data
+                itemCount += len(data['items'])
                 feed.Update(data)
-#                repository.commit()
             except Exception, e:
-                pass
-#                self.rep.logger.error(feed.url,":",e)
+                self.rep.logger.error("%s in %s" % (e,feed.url))
 
         try:
             repository.commit()
         except Exception, e:
             self.rep.logger.error("Final commit:",e)
-    
-#        for f in feeds:
-#            print f
-#            for a in f.iterAttributes():
-#                print a
-#            for i in f.iterChildren():
-#                print i.title
+        self.rep.logger.info("Processed %d items" % itemCount)
         
     def __getFeeds(self):
+        """Return a list of channel items"""
         repository = self.rep
         chanKind = repository.find(BASE_PATH + '/RSSChannel')
 
