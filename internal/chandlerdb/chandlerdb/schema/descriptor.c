@@ -32,7 +32,7 @@ static int t_descriptor_init(t_descriptor *self,
 static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args);
 static PyObject *countAccess(PyObject *self, t_item *item);
 
-static long _access = 0L;
+static long _lastAccess = 0L;
 static PyObject *PyExc_StaleItemError;
 static PyObject *_getRef_NAME;
 static PyObject *getAttributeValue_NAME;
@@ -208,7 +208,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
                 }
 
                 if (found)
-                    ((t_item *) obj)->lastAccess = ++_access;
+                    ((t_item *) obj)->lastAccess = ++_lastAccess;
                 else
                     value = PyObject_CallMethodObjArgs(obj, getAttributeValue_NAME, self->name, attrDict, attrID, NULL);
 
@@ -219,24 +219,26 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
             }
         }
 
-        PyObject *dict = PyObject_GetAttrString(obj, "__dict__");
-        PyObject *value = PyDict_GetItem(dict, self->name);
+        {
+            PyObject *dict = PyObject_GetAttrString(obj, "__dict__");
+            PyObject *value = PyDict_GetItem(dict, self->name);
 
-        Py_DECREF(dict);
-        Py_DECREF(kind);
+            Py_DECREF(dict);
+            Py_DECREF(kind);
 
-        if (value == NULL)
-            PyErr_SetObject(PyExc_AttributeError, self->name);
-        else
-            Py_INCREF(value);
+            if (value == NULL)
+                PyErr_SetObject(PyExc_AttributeError, self->name);
+            else
+                Py_INCREF(value);
 
-        return value;
+            return value;
+        }
     }
 }
 
 static PyObject *countAccess(PyObject *self, t_item *item)
 {
-    item->lastAccess = ++_access;
+    item->lastAccess = ++_lastAccess;
     Py_RETURN_NONE;
 }
 
