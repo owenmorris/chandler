@@ -49,11 +49,29 @@ ifeq ($(BUILD_ROOT),)
 	@echo BUILD_ROOT is not set && false
 else
 	@echo BUILD_ROOT is $(BUILD_ROOT)
+	@if [ ! -f $(BUILD_ROOT)/build_root ]; then \
+            echo BUILD_ROOT is incorrect; \
+            echo it needs to be set to the absolute path including 'external'; \
+            false; \
+        fi
 endif
 ifeq ($(GCJ_HOME),)
 	@echo GCJ_HOME is not set && false
 else
 	@echo GCJ_HOME is $(GCJ_HOME)
+ifeq ($(OS),Cygwin)
+	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
+            echo GCJ_HOME is incorrect; \
+            echo it needs to be set to the absolute gcc installation path; \
+            false; \
+        fi
+else
+	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
+            echo GCJ_HOME is incorrect; \
+            echo it needs to be set to the absolute gcc installation path; \
+            false; \
+        fi
+endif
 endif
 
 all: build
