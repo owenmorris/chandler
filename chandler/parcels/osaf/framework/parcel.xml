@@ -1,0 +1,12 @@
+<Parcel parcelName="base:AppSchema"
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:base="//Parcels/OSAF"
+        xmlns:app="//Parcels/OSAF/AppSchema">
+
+  <displayName>Application Schema</displayName>
+  <description>Schemas used by the Chandler Application</description>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+</Parcel>
