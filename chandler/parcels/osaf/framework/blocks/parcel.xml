@@ -27,12 +27,12 @@
    
   <Attribute itsName="fontFamily">
     <type itemref="docSchema:fontFamilyEnumType"/>
-    <defaultValue type="docSchema:fontFamilyEnumType">DefaultUIFont</defaultValue>
+    <initialValue type="docSchema:fontFamilyEnumType">DefaultUIFont</initialValue>
   </Attribute>
 
   <Attribute itsName="fontSize">
     <type itemref="Float"/>
-    <defaultValue type="Float">12.0</defaultValue>
+    <initialValue type="Float">12.0</initialValue>
   </Attribute>
 
   <!--
@@ -41,12 +41,12 @@
   -->
   <Attribute itsName="fontStyle">
     <type itemref="String"/> 
-    <defaultValue type="String"></defaultValue>
+    <initialValue type="String"></initialValue>
   </Attribute>
 
   <Attribute itsName="fontName">
     <type itemref="String"/>
-    <defaultValue type="String"></defaultValue>
+    <initialValue type="String"></initialValue>
   </Attribute>
 
   <Struct itsName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct">
@@ -79,7 +79,7 @@
     
   <Attribute itsName="textAlignmentEnum">
     <type itemref="docSchema:textAlignmentEnumType"/>
-    <defaultValue type="docSchema:textAlignmentEnumType">Left</defaultValue>
+    <initialValue type="docSchema:textAlignmentEnumType">Left</initialValue>
   </Attribute>
   
   <Enumeration itsName="orientationEnumType">
@@ -89,7 +89,7 @@
 
   <Attribute itsName="orientationEnum">
     <type itemref="docSchema:orientationEnumType"/>
-    <defaultValue type="docSchema:orientationEnumType">Horizontal</defaultValue>
+    <initialValue type="docSchema:orientationEnumType">Horizontal</initialValue>
   </Attribute>
 
   <Attribute itsName="columnHeadings">
@@ -111,7 +111,7 @@
 
   <Attribute itsName="elementDelegate">
     <type itemref="String"/>
-    <defaultValue type="String"></defaultValue>
+    <initialValue type="String"></initialValue>
   </Attribute>
 
   <Attribute itsName="event">
@@ -166,12 +166,12 @@
 
   <Attribute itsName="foregroundColor">
     <type itemref="docSchema:ColorType"/>
-    <defaultValue type="docSchema:ColorType">0,0,0,255</defaultValue>
+    <initialValue type="docSchema:ColorType">0,0,0,255</initialValue>
   </Attribute>
 
   <Attribute itsName="backgroundColor">
     <type itemref="docSchema:ColorType"/>
-    <defaultValue type="docSchema:ColorType">255,255,255,255</defaultValue>
+    <initialValue type="docSchema:ColorType">255,255,255,255</initialValue>
   </Attribute>
   
   <Attribute itsName="colorStyle">
@@ -243,12 +243,12 @@
 
     <Attribute itsName="operation">
       <type itemref="docSchema:ModifyContentsEvent/operationType"/>
-      <defaultValue type="docSchema:ModifyContentsEvent/operationType">add</defaultValue>
+      <initialValue type="docSchema:ModifyContentsEvent/operationType">add</initialValue>
     </Attribute>
 
     <Attribute itsName="copyItems">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <attributes itemref="docSchema:ModifyContentsEvent/items"/>
@@ -289,7 +289,7 @@
       <type itemref="docSchema:Block"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="docSchema:Block/childrenBlocks"/>
-      <defaultValue itemref="None"/>
+      <initialValue itemref="None"/>
     </Attribute>
   
     <Attribute itsName="childrenBlocks">
@@ -308,12 +308,12 @@
 
     <Attribute itsName="isShown">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">True</defaultValue>
+      <initialValue type="Boolean">True</initialValue>
     </Attribute>
 
     <Attribute itsName="eventBoundary">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Attribute itsName="blockName">
@@ -356,17 +356,17 @@
 
     <Attribute itsName="size">
       <type itemref="docSchema:SizeType"/>
-      <defaultValue type="docSchema:SizeType">0,0</defaultValue>
+      <initialValue type="docSchema:SizeType">0,0</initialValue>
     </Attribute>
 
     <Attribute itsName="minimumSize">
       <type itemref="docSchema:SizeType"/>
-      <defaultValue type="docSchema:SizeType">-1,-1</defaultValue>
+      <initialValue type="docSchema:SizeType">-1,-1</initialValue>
     </Attribute>
 
     <Attribute itsName="border">
       <type itemref="docSchema:RectType"/>
-      <defaultValue type="docSchema:RectType">0.0, 0.0, 0.0, 0.0</defaultValue>
+      <initialValue type="docSchema:RectType">0.0, 0.0, 0.0, 0.0</initialValue>
     </Attribute>
     
     <Enumeration itsName="alignmentEnumType">
@@ -385,12 +385,12 @@
 
     <Attribute itsName="alignmentEnum">
       <type itemref="docSchema:RectangularChild/alignmentEnumType"/>
-      <defaultValue type="docSchema:RectangularChild/alignmentEnumType">grow</defaultValue>
+      <initialValue type="docSchema:RectangularChild/alignmentEnumType">grow</initialValue>
     </Attribute>
 
     <Attribute itsName="stretchFactor">
       <type itemref="Float"/>
-      <defaultValue type="Float">1.0</defaultValue>
+      <initialValue type="Float">1.0</initialValue>
     </Attribute>
 
     <attributes itemref="docSchema:RectangularChild/size"/>
@@ -455,12 +455,12 @@
       <type itemref="docSchema:Block"/>
       <inverseAttribute itemref="docSchema:DynamicContainer/dynamicChildren"/>
       <required>False</required>
-      <defaultValue itemref="None"/>
+      <initialValue itemref="None"/>
     </Attribute>
     
     <Attribute itemName="title">
       <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Enumeration itsName="operationEnumType">
@@ -471,22 +471,22 @@
     
     <Attribute itemName="operation">
       <type itemref="docSchema:DynamicChild/operationEnumType"/>
-      <defaultValue type="docSchema:DynamicChild/operationEnumType">InsertBefore</defaultValue>
+      <initialValue type="docSchema:DynamicChild/operationEnumType">InsertBefore</initialValue>
     </Attribute>
     
     <Attribute itemName="location">
       <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Attribute itsName="itemLocation">
       <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Attribute itsName="helpString">
       <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Attribute itsName="disabled">
@@ -519,12 +519,12 @@
     
     <Attribute itsName="menuItemKind">
       <type itemref="docSchema:MenuItem/menuItemKindEnumType"/>
-      <defaultValue type="docSchema:MenuItem/menuItemKindEnumType">Normal</defaultValue>
+      <initialValue type="docSchema:MenuItem/menuItemKindEnumType">Normal</initialValue>
     </Attribute>
     
     <Attribute itsName="accel">
       <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <attributes itemref="docSchema:MenuItem/menuItemKind"/>
@@ -722,12 +722,12 @@
 
     <Attribute itsName="selectedColumn">
       <type itemref="String"/>
-      <defaultValue itemref="None"/>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Attribute itsName="hideColumnHeadings">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <attributes itemref="docSchema:columnHeadings"/>
@@ -749,17 +749,17 @@
 
     <Attribute itsName="hideRoot">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">True</defaultValue>
+      <initialValue type="Boolean">True</initialValue>
     </Attribute>
 
     <Attribute itsName="noLines">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">True</defaultValue>
+      <initialValue type="Boolean">True</initialValue>
     </Attribute>
 
     <Attribute itsName="useButtons">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">True</defaultValue>
+      <initialValue type="Boolean">True</initialValue>
     </Attribute>
 
     <Attribute itsName="openedContainers">
@@ -829,7 +829,7 @@
     
     <Attribute itsName="splitPercentage">
       <type itemref="Float"/>
-      <defaultValue type="Float">0.5</defaultValue>
+      <initialValue type="Float">0.5</initialValue>
     </Attribute>
     
     <attributes itemref="docSchema:orientationEnum"/>
@@ -901,17 +901,17 @@
     
     <Attribute itsName="separatorWidth">
       <type itemref="Integer"/>
-      <defaultValue type="Integer">5</defaultValue>
+      <initialValue type="Integer">5</initialValue>
     </Attribute>
     
     <Attribute itsName="buttons3D">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Attribute itsName="buttonsLabeled">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <attributes itemref="docSchema:Toolbar/buttons3D"/>
@@ -935,7 +935,7 @@
     
     <Attribute itsName="selectedBitmap">
       <type itemref="String"/>
-      <defaultValue type="String"/>
+      <initialValue type="String"/>
     </Attribute>
     
     <Enumeration itsName="toolbarItemKindEnumType">
@@ -960,13 +960,13 @@
     <Attribute itemName="label">
       <description>The label that goes under this ToolbarItem</description>
       <type itemref="String"/> 
-      <defaultValue type="String"></defaultValue>
+      <initialValue type="String"></initialValue>
     </Attribute>
     
     <Attribute itemName="toggle">
       <description>For Buttons, makes it stay pressed down until pressed again.</description>
       <type itemref="Boolean"/> 
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
     
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>

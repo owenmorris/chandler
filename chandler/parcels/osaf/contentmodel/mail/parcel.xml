@@ -52,7 +52,7 @@
     <displayName>Server Port</displayName>
     <cardinality>single</cardinality>
     <type itemref="Integer"/>
-    <defaultValue type="Integer">143</defaultValue>
+    <initialValue type="Integer">143</initialValue>
   </Attribute>
 
   <Attribute itsName="accountName">
@@ -73,7 +73,7 @@
     <description>The uid or number of the last message downloaded</description>
     <cardinality>single</cardinality>
     <type itemref="Long"/>
-    <defaultValue type="Long">0</defaultValue>
+    <initialValue type="Long">0</initialValue>
   </Attribute>
 
   <Attribute itsName="password">

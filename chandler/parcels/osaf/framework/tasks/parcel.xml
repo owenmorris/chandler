@@ -29,7 +29,7 @@
       <displayName>Action Type</displayName>
       <type itemref="sched:Action/ActionTypeEnum"/>
       <cardinality>single</cardinality>
-      <!-- <defaultValue>none</defaultValue> -->
+      <!-- <initialValue>none</initialValue> -->
     </Attribute>
   
     <Attribute itsName="actionScript">
@@ -54,21 +54,21 @@
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Attribute itsName="wxThreadFlag">
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
     
     <Attribute itsName="confirmFlag">
       <displayName>Request Confirmation Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Attribute itsName="actionPermissionRequest">
@@ -145,7 +145,7 @@
       <displayName>Enabled Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
-      <defaultValue type="Boolean">False</defaultValue>
+      <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
     <Attribute itsName="schedule">

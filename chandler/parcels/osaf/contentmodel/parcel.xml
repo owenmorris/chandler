@@ -48,7 +48,7 @@
     <core:description>This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="ImportanceEnum"/>
-    <core:defaultValue type="ImportanceEnum">normal</core:defaultValue>
+    <core:initialValue type="ImportanceEnum">normal</core:initialValue>
   </core:Attribute>
 
   <core:Enumeration itsName="ContextEnum">
@@ -106,7 +106,7 @@
 
   <core:Attribute itsName="processingStatus">
     <core:type itemref="processingStatusEnum"/>
-    <core:defaultValue type="processingStatusEnum">processing</core:defaultValue>
+    <core:initialValue type="processingStatusEnum">processing</core:initialValue>
   </core:Attribute>
 
   <core:Kind itsName="ProcessingItem">
@@ -315,7 +315,7 @@
 
   <core:Attribute itsName="queryEnum">
     <core:type itemref="queryEnumType"/>
-    <core:defaultValue type="queryEnumType">Kind</core:defaultValue>
+    <core:initialValue type="queryEnumType">Kind</core:initialValue>
   </core:Attribute>
 
   <core:Attribute itsName="data">
