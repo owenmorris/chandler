@@ -702,10 +702,10 @@
   </Kind>    
 
   <!--
-    SplitWindow
+    SplitterWindow
   -->
-  <Kind itemName="SplitWindow">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.SplitWindow</classes>
+  <Kind itemName="SplitterWindow">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.SplitterWindow</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="splitPercentage">
@@ -713,7 +713,7 @@
     </Attribute>
     
     <attributes itemref="docSchema:orientationEnum"/>
-    <attributes itemref="docSchema:SplitWindow/splitPercentage"/>
+    <attributes itemref="docSchema:SplitterWindow/splitPercentage"/>
   </Kind>  
 
   <!--

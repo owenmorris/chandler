@@ -113,7 +113,7 @@ class EmbeddedContainer(RectangularChild):
         Globals.notificationManager.Unsubscribe(id)
  
         
-class wxSplitWindow(wx.SplitterWindow):
+class wxSplitterWindow(wx.SplitterWindow):
 
     def __init__(self, *arguments, **keywords):
         wx.SplitterWindow.__init__ (self, *arguments, **keywords)
@@ -171,7 +171,7 @@ class wxSplitWindow(wx.SplitterWindow):
         self.Freeze()
         if not self.IsSplit() and shouldSplit:
             """
-              First time splitWindow creation with two windows or going between
+              First time SplitterWindow creation with two windows or going between
             a split with one window to a split with two windows
             """            
             if block.orientationEnum == "Horizontal":
@@ -183,7 +183,7 @@ class wxSplitWindow(wx.SplitterWindow):
             assert success
         elif not oldWindow1 and not oldWindow2 and not shouldSplit:
             """
-              First time splitWindow creation with one window.
+              First time splitterWindow creation with one window.
             """
             if window1:
                 self.Initialize (window1)
@@ -219,21 +219,21 @@ class wxSplitWindow(wx.SplitterWindow):
         del Globals.association [self.blockUUID]
 
  
-class SplitWindow(RectangularChild):
+class SplitterWindow(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        splitWindow = wxSplitWindow(parentWindow,
-                                    Block.getWidgetID(self), 
-                                    wx.DefaultPosition,
-                                    (self.size.width, self.size.height),
-                                    style=self.Calculate_wxStyle(parentWindow))
-        return splitWindow, splitWindow, splitWindow
+        splitterWindow = wxSplitterWindow(parentWindow,
+                                          Block.getWidgetID(self), 
+                                          wx.DefaultPosition,
+                                          (self.size.width, self.size.height),
+                                          style=self.Calculate_wxStyle(parentWindow))
+        return splitterWindow, splitterWindow, splitterWindow
                 
     def Calculate_wxStyle (self, parentWindow):
         style = wx.SP_LIVE_UPDATE
         parent = self.parentBlock
         while isinstance (parent, EmbeddedContainer):
             parent = parent.parentBlock
-        if isinstance (parent, SplitWindow):
+        if isinstance (parent, SplitterWindow):
             style |= wx.SP_3DSASH
         else:
             style |= wx.SP_3D

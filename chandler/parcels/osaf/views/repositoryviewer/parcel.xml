@@ -99,7 +99,7 @@
     <stretchFactor>1.0</stretchFactor>
   </ItemDetail>
 
-  <SplitWindow itemName="RepositoryBox">
+  <SplitterWindow itemName="RepositoryBox">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>
@@ -116,6 +116,6 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </SplitWindow>
+  </SplitterWindow>
   
 </core:Parcel>

@@ -496,7 +496,7 @@
     <stretchFactor>0.0</stretchFactor>
   </BookmarksBar>
 
-  <SplitWindow itemName="MainSplitter">
+  <SplitterWindow itemName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
     <childrenBlocks itemref="doc:TabbedView"/>
@@ -511,7 +511,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </SplitWindow>
+  </SplitterWindow>
   
   <BoxContainer itemName="BookmarksContainer">
     <!-- Layout children -->

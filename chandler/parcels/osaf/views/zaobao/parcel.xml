@@ -139,7 +139,7 @@
     <stretchFactor>1.0</stretchFactor>
   </HTML>
 
-  <SplitWindow itemName="ZaoBaoView">
+  <SplitterWindow itemName="ZaoBaoView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -153,7 +153,7 @@
 
     <childrenBlocks itemref="doc:ZaoBaoTree"/>
     <childrenBlocks itemref="doc:ItemViewBox"/>
-  </SplitWindow>
+  </SplitterWindow>
 
 
 
@@ -192,7 +192,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="ZaoBaoChannelView">
+  <SplitterWindow itemName="ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -206,7 +206,7 @@
 
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
   
 
 
@@ -238,7 +238,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="chandlerwiki_ZaoBaoChannelView">
+  <SplitterWindow itemName="chandlerwiki_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -252,7 +252,7 @@
 
     <childrenBlocks itemref="doc:chandlerwiki_ChannelList"/>
     <childrenBlocks itemref="doc:chandlerwiki_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
 
 
   <Tree itemName="junglewiki_ChannelList">
@@ -283,7 +283,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="junglewiki_ZaoBaoChannelView">
+  <SplitterWindow itemName="junglewiki_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -297,7 +297,7 @@
 
     <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
     <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
 
 
 
@@ -329,7 +329,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="ted_ZaoBaoChannelView">
+  <SplitterWindow itemName="ted_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -343,7 +343,7 @@
 
     <childrenBlocks itemref="doc:ted_ChannelList"/>
     <childrenBlocks itemref="doc:ted_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
   
 
 
@@ -375,7 +375,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="zaobao_ZaoBaoChannelView">
+  <SplitterWindow itemName="zaobao_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -389,7 +389,7 @@
 
     <childrenBlocks itemref="doc:zaobao_ChannelList"/>
     <childrenBlocks itemref="doc:zaobao_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
   
 
 
@@ -422,7 +422,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="chao_ZaoBaoChannelView">
+  <SplitterWindow itemName="chao_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -436,7 +436,7 @@
 
     <childrenBlocks itemref="doc:chao_ChannelList"/>
     <childrenBlocks itemref="doc:chao_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
   
 
 
@@ -469,7 +469,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="lessig_ZaoBaoChannelView">
+  <SplitterWindow itemName="lessig_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -483,7 +483,7 @@
 
     <childrenBlocks itemref="doc:lessig_ChannelList"/>
     <childrenBlocks itemref="doc:lessig_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
   
 
 
@@ -516,7 +516,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
-  <SplitWindow itemName="mark_ZaoBaoChannelView">
+  <SplitterWindow itemName="mark_ZaoBaoChannelView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
@@ -530,7 +530,7 @@
 
     <childrenBlocks itemref="doc:mark_ChannelList"/>
     <childrenBlocks itemref="doc:mark_ChannelItemDetail"/>
-  </SplitWindow>
+  </SplitterWindow>
 
 
 </core:Parcel>

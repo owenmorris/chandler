@@ -219,7 +219,7 @@
 
 
   <!-- Calendar View -->
-  <SplitWindow itemName="CalendarListView">
+  <SplitterWindow itemName="CalendarListView">
     <childrenBlocks itemref="view:CalendarList"/>
     <childrenBlocks itemref="view:CalendarEventDetail"/>
 
@@ -234,10 +234,10 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
   <!-- Notes View -->
-  <SplitWindow itemName="NoteListView">
+  <SplitterWindow itemName="NoteListView">
     <childrenBlocks itemref="view:NoteList"/>
     <childrenBlocks itemref="view:NoteDetail"/>
 
@@ -252,10 +252,10 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
   <!-- Contacts View -->
-  <SplitWindow itemName="ContactListView">
+  <SplitterWindow itemName="ContactListView">
     <childrenBlocks itemref="view:ContactList"/>
     <childrenBlocks itemref="view:ContactDetail"/>
 
@@ -270,10 +270,10 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
   <!-- Mixed View -->
-  <SplitWindow itemName="MixedListView">
+  <SplitterWindow itemName="MixedListView">
     <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="view:MixedItemDetail"/>
 
@@ -288,10 +288,10 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
   <!-- MonthView View -->
-  <SplitWindow itemName="MonthView">
+  <SplitterWindow itemName="MonthView">
     <childrenBlocks itemref="view:SummaryMonth"/>
     <childrenBlocks itemref="view:MonthItemDetail"/>
 
@@ -306,10 +306,10 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
   <!-- Week View -->
-  <SplitWindow itemName="WeekView">
+  <SplitterWindow itemName="WeekView">
     <childrenBlocks itemref="view:SummaryWeek"/>
     <childrenBlocks itemref="view:WeekItemDetail"/>
 
@@ -324,6 +324,6 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-  </SplitWindow>
+  </SplitterWindow>
 
 </core:Parcel>
