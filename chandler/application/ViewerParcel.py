@@ -59,6 +59,7 @@ class ViewerParcel (Parcel):
           If it isn't in the association we need to construct it and
         put it in the association.
         """
+        container = wxMainFrame.FindWindowByName("ViewerParcel_container")
         if not app.association.has_key(id(self)):
             module = sys.modules[self.__class__.__module__]
             modulename = os.path.basename (module.__file__)
@@ -68,11 +69,16 @@ class ViewerParcel (Parcel):
 
             """
               ViewerParcels must have a resource file with the same name as the
-            module with an .xrc extension
+            module with an .xrc extension. We'll freeze the wxMainFrame
+            while adding the panel, since it's temporarily owned by wxMainFrame
+            and would otherwise cause it to be temporarily displayed on the screen
             """
             assert (os.path.exists (path))
             resources = wxXmlResource(path)
+            wxMainFrame.Freeze ()
             panel = resources.LoadObject(wxMainFrame, modulename, "wxPanel")
+            panel.Show (FALSE)
+            wxMainFrame.Thaw ()
             assert (panel != None)
             
             app.association[id(self)] = panel
@@ -87,20 +93,24 @@ class ViewerParcel (Parcel):
             panel = app.association[id(self)]
         """
           We'll check to see if we've got a parcel installed in the view, and
-        if so we'll remove it from the association and destroy it. Shortcut
-        the case of setting the same window we've already set.
+        if so we'll remove it from the association and destroy it. Only windows
+        with the attribute "model" are removed from the association since on the
+        Mac there are some extra scrollbars added below the viewer parcel
+        container. Shortcut the case of setting the same window we've already set.
         """
         container = wxMainFrame.FindWindowByName("ViewerParcel_container")
         children = container.GetChildren ()
         if len (children) == 0 or children[0] != panel:
             for window in children:
-                if window.__dict__.has_key("model"):
+                if hasattr (window, "model"):
                     del app.association[id(window.model)]
             container.DestroyChildren ()
             """
-              Attach the new parcel to the view.
+              Attach the new parcel to the view. Don't forget to show the panel
+            which was temporarily hidden
             """
             app.applicationResources.AttachUnknownControl("ViewerParcel", panel)
+            panel.Show ()
 
 class wxViewerParcel(wxPanel):
     def __init__(self):
