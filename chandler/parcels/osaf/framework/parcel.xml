@@ -9,7 +9,8 @@
         itemName="framework"
         xmlns="//Schema/Core"
         xmlns:app="//parcels/OSAF/framework"
-        itemClass="OSAF.framework.AppSchema.AppSchema">
+        itemClass="OSAF.framework.AppSchema.AppSchema"
+        xmlns:events="//parcels/OSAF/framework/notifications/schema">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>
@@ -28,5 +29,12 @@
       <type itemref="UUID"/>
     </Attribute>
   </Kind>
+
+  <events:Event itemName="item_added"/>
+  <events:Event itemName="item_deleted"/>
+  <events:Event itemName="item_changed"/>
+  <events:Event itemName="collection_added"/>
+  <events:Event itemName="collection_deleted"/>
+  <events:Event itemName="collection_changed"/>
 
 </Parcel>

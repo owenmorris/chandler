@@ -27,6 +27,23 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.args = args
         self.lock = threading.Lock()
 
+def repositoryCallback(uuid, notification, reason):
+    if notification == 'ItemChanged':
+        eventPath = '//parcels/OSAF/test/item_' + reason
+    elif notification == 'CollectionChanged':
+        return
+    else:
+        assert(0)
+
+    event = Globals.repository.find(eventPath)
+
+    from OSAF.framework.notifications.Notification import Notification
+    note = Notification(event)
+    d = { 'uuid' : uuid }
+    note.SetData(d)
+
+    Globals.notificationManager.PostNotification(note)
+
 class MainFrame(wxFrame):
     def __init__(self, *arguments, **keywords):
         wxFrame.__init__ (self, *arguments, **keywords)
@@ -158,12 +175,17 @@ class wxApplicationNew (wxApp):
 
         LoadParcels.LoadParcels(parcelSearchPath, Globals.repository)
 
+        Globals.repository.commit()
+
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
         # Create and start the notification manager.
         from OSAF.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
+
+        # Set it up so that repository changes generate notifications
+        Globals.repository.addNotificationCallback(repositoryCallback)
 
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
