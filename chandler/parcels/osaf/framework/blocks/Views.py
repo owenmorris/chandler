@@ -84,7 +84,6 @@ class View(BoxContainer):
                     block = block.parentBlock
             elif __debug__:
                 assert (False)
-    
 
     def getFocusBlock (self):
         focusWindow = wxWindow_FindFocus()
@@ -95,7 +94,6 @@ class View(BoxContainer):
             except AttributeError:
                 focusWindow = focusWindow.GetParent()
         return Globals.mainView
-
     
     def onSetFocus (self):
         """
@@ -117,6 +115,9 @@ class View(BoxContainer):
             block = block.parentBlock
 
 
+    """
+      Some placeholders for handling events.
+    """
     def OnQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
         

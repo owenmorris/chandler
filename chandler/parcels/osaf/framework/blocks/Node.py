@@ -5,7 +5,9 @@ class BadURL(Exception):
     pass
 
 class Node(Item):
-
+    """
+      Used to store URL space
+    """
     def __init__(self, *arguments, **keywords):
         super (Node, self).__init__ (*arguments, **keywords)
         self.children = []

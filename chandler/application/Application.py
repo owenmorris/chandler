@@ -8,7 +8,6 @@ from wxPython.wx import *
 import Globals
 from repository.util.UUID import UUID
 import repository.parcel.LoadParcels as LoadParcels
-import repository.schema.AutoItem as AutoItem
 from repository.persistence.XMLRepository import XMLRepository
 
 """
@@ -28,6 +27,7 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.args = args
         self.lock = threading.Lock()
 
+
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'History':
         eventPath = '//parcels/OSAF/framework/item_' + reason
@@ -36,11 +36,13 @@ def repositoryCallback(uuid, notification, reason, **kwds):
 
     event = Globals.repository.find(eventPath)
 
+    # Postpone import to avoid circular imports
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
     note.SetData({'uuid' : uuid, 'keywords' : kwds})
     Globals.notificationManager.PostNotification(note)
+
 
 class MainFrame(wxFrame):
     def __init__(self, *arguments, **keywords):
@@ -63,6 +65,12 @@ class MainFrame(wxFrame):
         counterpart = Globals.repository.find (self.counterpartUUID)
         counterpart.size.width = self.GetSize().x
         counterpart.size.height = self.GetSize().y
+        """
+          size is a repository type that I defined. They seem harder
+        to define than necessary and they don't automatically dirty
+        themselves when modified. We need to improve this feature
+        of the repository -- DJA
+        """
         counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
@@ -91,18 +99,13 @@ class wxApplication (wxApp):
             sys.displayhook = _displayHook
 
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
-        assert (Globals.wxApplication == None) #We can have only one application
+        assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
 
-        assert not Globals.application   #More than one application object doesn't make sense
-        Globals.application = self
-
         wxInitAllImageHandlers()
-
         """
           Splash Screen
         """
-        
         splashFile = os.path.join(Globals.chandlerDirectory, 
                                   "application", "images", "splash.png")
         splashBitmap = wxImage(splashFile, wxBITMAP_TYPE_PNG).ConvertToBitmap()
@@ -111,14 +114,12 @@ class wxApplication (wxApp):
                                 6000, None, -1, wxDefaultPosition, wxDefaultSize,
                                 wxSIMPLE_BORDER|wxFRAME_NO_TASKBAR|wxSTAY_ON_TOP)
         splash.Show()
-        
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wxLANGUAGE_FRENCH
         """
         os.environ['LANGUAGE'] = 'en'
         self.locale = wxLocale(wxLANGUAGE_ENGLISH)
-
         """
           @@@ Sets the python locale, used by wxCalendarCtrl and mxDateTime
         for month and weekday names. When running on Linux, 'en' is not
@@ -128,11 +129,11 @@ class wxApplication (wxApp):
         wxLocale_AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog('Chandler.mo')
         gettext.install('Chandler', os.path.join (Globals.chandlerDirectory, 'locale'))
-        
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
         It's necessary to add the "parcels" directory to sys.path in order
-        to import parcels.
+        to import parcels. Making sure we modify the path as early as possible
+        in the initialization as possible minimizes the risk of bugs.
         """
         parcelDir = os.path.join(Globals.chandlerDirectory,
                                  self.PARCEL_IMPORT.replace ('.', os.sep))
@@ -149,7 +150,6 @@ class wxApplication (wxApp):
                 if path and os.path.exists(path):
                     debugParcelDir = path
                     sys.path.insert (2, debugParcelDir)
-
         """
           Open the repository.
         -create argument forces a new repository.
@@ -186,16 +186,20 @@ class wxApplication (wxApp):
         Globals.repository.commit()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
-        
-        # Create and start the notification manager.
+        """
+          Create and start the notification manager. Delay imports to avoid
+        circular references.
+        """
         from OSAF.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
 
         # Set it up so that repository changes generate notifications
         Globals.repository.addNotificationCallback(repositoryCallback)
-
-        # Create and start the agent manager.
+        """
+          Create and start the agent manager. Delay imports to avoid
+        circular references.
+        """
         from OSAF.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
@@ -206,7 +210,9 @@ class wxApplication (wxApp):
         EVT_IDLE(self, self.OnIdle)
 
         from OSAF.framework.blocks.Views import View
-        
+        """
+          Load and display the main chandler view.
+        """
         mainView = Globals.repository.find('//parcels/OSAF/views/main/MainView')
 
         if mainView:
@@ -222,7 +228,9 @@ class wxApplication (wxApp):
             EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
-
+            """
+              Subscribe to some global events and those belonging to the mainView.
+            """
             Globals.notificationManager.Subscribe (GlobalEvents.blockEvents,
                                                    UUID(),
                                                    Globals.mainView.dispatchEvent)
@@ -238,13 +246,14 @@ class wxApplication (wxApp):
             mainView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
-        return true                     #indicates we succeeded with initialization
-
+            return True                     #indicates we succeeded with initialization
+        return False                        #or failed.
 
     def OnCommand(self, event):
         """
           Catch commands and pass them along to the blocks.
         Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
+        Delay imports to avoid circular references.
         """
         from OSAF.framework.blocks.Block import Block, BlockEvent
         from OSAF.framework.notifications.Notification import Notification
@@ -312,7 +321,6 @@ class wxApplication (wxApp):
         event.lock.release()
         event.Skip()
 
-
     def PostAsyncEvent(self, callback, *args):
         """
           Post an asynchronous event that will call 'callback' with 'data'
@@ -322,12 +330,7 @@ class wxApplication (wxApp):
         wxPostEvent(self, evt)
         return evt.lock
 
-
     if __debug__:
-        def DebugRoutine(self, event):
-            i = 1
-            pass
-
         def ShowDebuggerWindow(self, event):
             from wx import py
             self.crustFrame = py.crust.CrustFrame()

@@ -2,29 +2,51 @@ import application.Globals as Globals
 from repository.item.Item import Item
 from OSAF.framework.notifications.schema.Event import Event
 from wxPython.wx import *
+import logging
 
 
 class Block(Item):
-
     def __init__(self, *arguments, **keywords):
         super (Block, self).__init__ (*arguments, **keywords)
+        """
+          We currently have to initialize this data here because of
+        limitations of our repository/XML parcel. We should fix
+        these limitations so we can initialize them in the parcel
+        XML -- DJA
+        """
         self.childrenBlocks = []
         self.parentBlock = None
         self.styles = []
- 
 
     def Post (self, event, args):
+        """
+          Events that are posted by the block pass along the block
+        that sent it.
+        """
         args['sender'] = self
         event.Post (args)
 
-
     def render (self, parent, parentWindow):
+        """
+          ContainerChild overrides render to recursively call
+        renderOneBlock on a tree of Blocks.
+        """
         pass
 
-
     def renderOneBlock(self, parent, parentWindow):
+        """
+          You should usually override renderOneBlock in your Block subclass
+        to create a platform specific counterpart for the block. The three
+        objects returned are:
+         - The platform specific counterpart created, e.g. wxPanel
+         - The platform specific counterpart for the Block's parent block
+         - The platform specific parent of the counterpart created, e.g.
+           wxPanel's platform specific parent.
+          We need to occasionally return all these arguments because our
+        blocks containers are included in our hierarchy of Blocks, where as
+        wxWindows sizers are not included in their hiearchy of windows.
+        """
         return None, None, None
-
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
@@ -39,7 +61,6 @@ class Block(Item):
         return Globals.repository.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
  
     wxIDToObject = classmethod (wxIDToObject)
-    
 
     def getwxID (theClass, object):
         """
@@ -50,7 +71,7 @@ class Block(Item):
         I will use the range starting at 2500 for our events.
           I'll store the ID for an event in the association and the
         wxApplication keeps a list, named commandIDs with allows us to
-        look up the UUID of a block given it's Id
+        look up the UUID of a block given it's Id -- DJA
         """
         UUID = object.getUUID()
         try:
@@ -65,7 +86,7 @@ class Block(Item):
         return id
     getwxID = classmethod (getwxID)
 
-    
+
 class ContainerChild(Block):
     def render (self, parent, parentWindow):
         (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
@@ -75,7 +96,18 @@ class ContainerChild(Block):
         """
         if window:
             UUID = self.getUUID()
-#            assert not Globals.association.has_key(UUID)
+            """
+              Currently not all wxWindows counterpart objects have a __del__
+            funcation to removed themselves from the association when they
+            are deleted. Howver, they should. Bug #1177. For now I'll comment
+            out the assert and log the bugs
+
+            assert not Globals.association.has_key(UUID)
+            """
+            if __debug__ and Globals.association.has_key(UUID):
+                Globals.repository.find (UUID).getItemPath()
+                logging.warn("Bug #1177: item %s doesn't remove it's counterpart from the association",
+                             str (Globals.repository.find (UUID).getItemPath()))
             Globals.association[UUID] = window
             window.counterpartUUID = UUID
             """
@@ -152,7 +184,7 @@ class RectangularChild(ContainerChild):
         
         return int (border)
 
-    
+
 class BlockEvent(Event):
     def __init__(self, *arguments, **keywords):
         super (BlockEvent, self).__init__ (*arguments, **keywords)

@@ -68,7 +68,7 @@ class wxAgentControl(wxPyControl):
         return False
 
     def _GetToolBar(self):
-        return Globals.application.wxMainFrame.navigationBar
+        return Globals.wxApplication.wxMainFrame.navigationBar
 
     def _GetStatus(self):
         status = self.agent.GetStatus('busyness')

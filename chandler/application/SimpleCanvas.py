@@ -36,8 +36,6 @@ class wxCanvasDragImage(wxFrame):
             # On wxMSW and wxMac the window has already been created, so go for it.
             self.SetWindowShape()
 
-
-
     def SetWindowShape(self, evt=None, hotspot=None):
         # Use the bitmap's mask to determine the region
         rgn = wxRegionFromBitmap(self.bmp)
@@ -48,7 +46,6 @@ class wxCanvasDragImage(wxFrame):
             rgn.SubtractRect(rect)
         self.SetShape(rgn)
 
-
     def BeginDrag(self, hotspot, window, *ignoreOthers):
         self.hotspot = wxPoint(hotspot[0], hotspot[1])
         if wxPlatform != "__WXGTK__":
@@ -57,14 +54,12 @@ class wxCanvasDragImage(wxFrame):
         if self.window:
             self.window.CaptureMouse()
 
-
     def EndDrag(self, doDestroy=True):
         if self.window and self.window.HasCapture():
             self.window.ReleaseMouse()
         self.Hide()
         if doDestroy:
             self.Destroy()
-
 
     def Move(self, pt):
         """
@@ -78,16 +73,13 @@ class wxCanvasDragImage(wxFrame):
             pt2 = self.window.ClientToScreen(pt)
         self.SetPosition(pt2 - self.hotspot)
 
-
     def Show(self):
         wxFrame.Show(self)
         self.Update()
 
-
     def OnPaint(self, evt):
         dc = wxPaintDC(self)
         dc.DrawBitmap(self.bmp, 0,0, True)
-
 
 
 class wxCanvasDropSource (wxDropSource):
@@ -120,6 +112,7 @@ class wxCanvasDropTarget (wxPyDropTarget):
             result = self.canvas.OnData (self.data, x, y, result)
         return result
 
+    
 class wxSimpleDrawableObject (wxEvtHandler):
     def __init__(self, canvas):
         wxEvtHandler.__init__ (self)
@@ -239,7 +232,6 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.dragImage.EndDrag()
         del self.dragImage
 
-
     def DrawMask (self, dc):
         """
           optionally implement this routine to draw a mask
@@ -250,11 +242,9 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.canvas.RefreshScrolledRect (self.bounds)
         self.bounds = dragRect
         self.canvas.RefreshScrolledRect (self.bounds)
-
     """
       You must implement the following functions
     """
-
     def Draw (self, dc):
         """
           You must implement this routine to do draw
@@ -293,6 +283,7 @@ class wxSimpleDrawableObject (wxEvtHandler):
         if (selected ^ self.selected):
             self.selected = selected
             self.canvas.RefreshScrolledRect (self.bounds);
+
 
 class wxSimpleCanvas (wxScrolledWindow):
 
@@ -534,11 +525,9 @@ class wxSimpleCanvas (wxScrolledWindow):
         that drawable objects are created by overriding this routine
         """
         return True
-
     """
       You must implement the following functions
     """
-
     def ConvertDataObjectToDrawableObject (self, dataObject, x, y, move):
         """
           You must implement this routine to convert a dataobject, used in

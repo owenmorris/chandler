@@ -3,15 +3,12 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import time
 import application.Globals as Globals
 from Block import *
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
 from wxPython.wx import *
-from wxPython.gizmos import *
-from wxPython.html import *
 
 
 class BoxContainer(RectangularChild):
@@ -50,7 +47,9 @@ class EmbeddedContainer(RectangularChild):
         sizer = wxBoxSizer(wxHORIZONTAL)
         panel = wxPanel(parentWindow, -1)
         panel.SetSizer(sizer)
-        self.getParentBlock(parentWindow).addToContainer(parent, panel, self.stretchFactor,
+        self.getParentBlock(parentWindow).addToContainer(parent,
+                                                         panel,
+                                                         self.stretchFactor,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         newChild = Globals.repository.find (self.contentSpec.data)
@@ -91,7 +90,6 @@ class EmbeddedContainer(RectangularChild):
                 self.RegisterEvents(newChild)
                 newChild.render (embeddedSizer, embeddedPanel)
                 embeddedSizer.Layout()
-        
 
     def RegisterEvents(self, block):
         try:
@@ -120,8 +118,9 @@ class wxSplitWindow(wxSplitterWindow):
     def __init__(self, *arguments, **keywords):
         wxSplitterWindow.__init__ (self, *arguments, **keywords)
         EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(), self.OnSplitChanged)
-        # Setting minimum pane size prevents unsplitting a window via
-        # double-clicking:
+        """
+          Setting minimum pane size prevents unsplitting a window by double-clicking
+        """
         self.SetMinimumPaneSize(20)
  
     def OnSplitChanged(self, event):
@@ -145,7 +144,10 @@ class wxSplitWindow(wxSplitterWindow):
         counterpart.size.height = self.GetSize().y
         counterpart.setDirty()   # Temporary repository hack -- DJA
 
+    def __del__(self):
+        del Globals.association [self.counterpartUUID]
 
+ 
 class SplitWindow(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         splitWindow = wxSplitWindow(parentWindow,
@@ -196,8 +198,8 @@ class SplitWindow(RectangularChild):
                                    int (round (width * self.splitPercentage)))
         self.childrenToAdd = []
         return window
-   
-    
+
+
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         try:
@@ -215,7 +217,7 @@ class TabbedContainer(RectangularChild):
             style = wxNB_RIGHT
         elif __debug__:
             assert (False)
-            
+
         tabbedContainer = wxNotebook(parentWindow, id, 
                                     wxDefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height),
@@ -223,12 +225,12 @@ class TabbedContainer(RectangularChild):
         self.getParentBlock(parentWindow).addToContainer(parent, tabbedContainer, self.stretchFactor, 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
-                
+
     def addToContainer(self, parent, child, weight, flag, border):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
-        
+
     def removeFromContainer(self, parent, child):
         # @@@ Must be implemented
         pass

@@ -7,7 +7,6 @@ import time
 import application.Globals as Globals
 from Block import *
 from ContainerBlocks import *
-from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
 from wxPython.wx import *
@@ -155,6 +154,9 @@ class HTML(RectangularChild):
 
     
 class wxListBlock(wxListCtrl):
+    """
+      Under construction
+    """
     def __init__(self, *arguments, **keywords):
         wxListCtrl.__init__(self, *arguments, **keywords)
         EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.On_wxSelectionChanged)
@@ -187,8 +189,7 @@ class wxListBlock(wxListCtrl):
 
 class List(RectangularChild):
     """
-      List is an abstract class. To use it, you must subclass it and
-    implement GetListData.
+      Under construction
     """
     def renderOneBlock (self, parent, parentWindow):
         list = wxListBlock(parentWindow, Block.getwxID(self), 
@@ -262,6 +263,9 @@ class StatusBar(RectangularChild):
     
 
 class ToolbarItem(RectangularChild):
+    """
+      Under construction
+    """
     def renderOneBlock (self, parent, parentWindow):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
         tool = None
@@ -543,7 +547,6 @@ class Tree(RectangularChild):
         wxCounterpart = Globals.association[self.getUUID()]
         wxCounterpart.GoToItem (notification.GetData()['item'])
 
-
     def Calculate_wxStyle (self):
         style = wxTR_DEFAULT_STYLE|wxNO_BORDER
         if self.hideRoot:
@@ -556,10 +559,12 @@ class Tree(RectangularChild):
             style |= wxTR_NO_BUTTONS
         return style
 
+
 class wxItemDetail(wxHtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
-        """ Clicking on an item changes the selection (post notification).
-            Clicking on a URL loads the page in a separate browser.
+        """
+          Clicking on an item changes the selection (post notification).
+          Clicking on a URL loads the page in a separate browser.
         """
         itemURL = wx_linkinfo.GetHref()
         item = Globals.repository.find(itemURL)
@@ -576,6 +581,7 @@ class wxItemDetail(wxHtmlWindow):
             self.SetPage(counterpart.getHTMLText(item))
         except TypeError:
             self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
+
 
 class ItemDetail(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):

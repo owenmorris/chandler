@@ -929,7 +929,7 @@
   </Kind>  
 
   <!--
-    Node
+    Node, used to store URL space in repository
   -->
   <Kind itemName="Node">
     <classes key="python">OSAF.framework.blocks.Node.Node</classes>

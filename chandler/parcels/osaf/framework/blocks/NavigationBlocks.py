@@ -13,6 +13,9 @@ from wxPython.wx import *
 
 
 class NavigationBar(Toolbar):
+    """
+      Under construction
+    """
     def renderOneBlock(self, parent, parentWindow):
         self.history = []
         self.future = []
@@ -38,7 +41,6 @@ class NavigationBar(Toolbar):
         else:
             self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
-
         
     def GoBack(self):
         if len(self.history) > 1:
@@ -77,10 +79,11 @@ class NavigationBar(Toolbar):
         wxURLBox = Globals.association[urlBox.getUUID()]
         wxURLBox.SetValue(path)
         
-
-        
         
 class wxBookmark(wxStaticText):
+    """
+      Under construction
+    """
     def __init__(self, parent, text, onClickMethod, userData, id=-1):
         wxStaticText.__init__(self, parent, id, text)
         self.onClickMethod = onClickMethod
@@ -90,8 +93,11 @@ class wxBookmark(wxStaticText):
     def onClick(self, event):
         self.onClickMethod(self.userData)
         
-        
+
 class BookmarksBar(RectangularChild):
+    """
+      Under construction
+    """
     def __init__(self, *arguments, **keywords):
         super (BookmarksBar, self).__init__ (*arguments, **keywords)
         self.bookmarksPath = None

@@ -101,7 +101,7 @@ class Instruction(Item):
             elif action.UseWxThread() or action.NeedsConfirmation():
                 actionProxy = DeferredAction(action.getUUID())
 
-                lock = Globals.application.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
+                lock = Globals.wxApplication.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
                 #while lock.locked():
                 #    yield 'wait', 1.0
                 #yield 'go', 0

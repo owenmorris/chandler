@@ -63,6 +63,7 @@ class RepositoryDelegate:
         if counterpart.openedContainers.has_key (parentUUID):
             self.scheduleUpdate = True
 
+
 class RepositoryItemDetail(ControlBlocks.ItemDetail):
 
     def getHTMLText(self, item):

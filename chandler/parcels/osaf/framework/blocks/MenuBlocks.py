@@ -27,7 +27,6 @@ class MenuEntry(Block):
             parent = block.parentBlock
             if (parent):
                 buildMenuList (parent, data)
-
             """
               Initialize data if it's empty
             """
@@ -120,7 +119,6 @@ class MenuEntry(Block):
             cls.deleteItem (wxMenuObject, index, oldItem)
     installMenu = classmethod (installMenu)
 
-    
     """
       wxWindows doesn't implement convenient menthods for dealing
     with menus, so we'll write our own: getMenuItems, deleteItem
@@ -144,7 +142,6 @@ class MenuEntry(Block):
         return menuList
     getMenuItems = classmethod (getMenuItems)
 
-
     def deleteItem (cls, wxMenuObject, index, oldItem):
         """
           Deletes an item from a wxMenuObject, where wxMenuObject can
@@ -159,7 +156,6 @@ class MenuEntry(Block):
             oldMenu = wxMenuObject.Remove (index)
             oldMenu.Destroy()
     deleteItem = classmethod (deleteItem)
-
  
     def getItemTitle (cls, wxMenuObject, index, item):
         """
@@ -179,7 +175,6 @@ class MenuEntry(Block):
             return title
     getItemTitle = classmethod (getItemTitle)
 
- 
     def setMenuItem (self, wxMenuObject, newItem, oldItem, index):
         """
           Sets an item in wxMenuObject, which can be either a menu or
