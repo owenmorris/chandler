@@ -38,6 +38,7 @@ class MainFrame(wxFrame):
         Globals.wxApplication.mainFrame = None
         self.Destroy()
 
+
 class wxApplicationNew (wxApp):
     """
       PARCEL_IMPORT defines the import directory containing parcels
@@ -145,9 +146,6 @@ class wxApplicationNew (wxApp):
 
         LoadParcels.LoadParcels(parcelSearchPath, Globals.repository)
 
-        # Commit any changes that have been loaded to the repository
-        Globals.repository.commit()
-                                
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
         # Create and start the notification manager.
@@ -170,16 +168,16 @@ class wxApplicationNew (wxApp):
         
         # Globals.jabberClient.Login()
 
-        from OSAF.framework.blocks.Block import Block
+        from OSAF.framework.blocks.View import View
         
-        topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
+        topView = Globals.repository.find('//parcels/OSAF/templates/top/TopView')
 
-        if topDocument:
+        if topView:
             self.mainFrame = MainFrame()
-            assert isinstance (topDocument, Block)
-            Globals.topController = topDocument.findController()
+            assert isinstance (topView, View)
+            Globals.topView = topView
             self.menuParent = None
-            self.mainFrame.counterpartUUID = topDocument.getUUID()
+            self.mainFrame.counterpartUUID = topView.getUUID()
 
             events = Globals.repository.find('//parcels/OSAF/framework/blocks/Events')
             names = []
@@ -187,10 +185,10 @@ class wxApplicationNew (wxApp):
                 names.append (child.name)
             
             Globals.notificationManager.Subscribe (names,
-                                                   Globals.topController.getUUID(),
-                                                   Globals.topController.dispatchEvent)
+                                                   Globals.topView.getUUID(),
+                                                   Globals.topView.dispatchEvent)
 
-            topDocument.render (self.mainFrame, self.mainFrame)
+            topView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
         return true                     #indicates we succeeded with initialization
@@ -201,7 +199,6 @@ class wxApplicationNew (wxApp):
           Catch commands and pass them along to the blocks.
         Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
         """
-        from OSAF.framework.blocks.Controller import Controller
         from OSAF.framework.blocks.Block import Block, BlockEvent
         from OSAF.framework.notifications.Notification import Notification
 
@@ -217,7 +214,7 @@ class wxApplicationNew (wxApp):
 
             notification = Notification(blockEvent.name, None, None)
             notification.SetData(data)
-            Globals.notificationManager.PostNotification(notification)
+            Globals.topView.dispatchEvent(notification)
             if event.GetEventType() == wxEVT_UPDATE_UI:
                 try:
                     event.Check (data ['Check'])
@@ -235,7 +232,7 @@ class wxApplicationNew (wxApp):
                     pass
 
     def OnSetFocus(self, event):
-        Globals.topController.onSetFocus()
+        Globals.topView.onSetFocus()
 
     def OnQuit(self):
         """

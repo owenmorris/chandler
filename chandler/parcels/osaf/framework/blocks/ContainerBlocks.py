@@ -43,7 +43,7 @@ class Font(wxFont):
                          underline,
                          characterStyle.fontName)
 
-        
+
 class ContainerChild(Block):
     def render (self, parent, parentWindow):
         (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
@@ -59,6 +59,7 @@ class ContainerChild(Block):
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
         return window
+
 
 class RectContainer(ContainerChild):
     def Calculate_wxFlag (self):
@@ -156,7 +157,8 @@ class Button(RectContainer):
             parent.Add(button, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
-    
+
+
 class Choice(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
@@ -168,6 +170,7 @@ class Choice(RectContainer):
             parent.Add(choice, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return choice, None, None
+
 
 class ComboBox(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
@@ -219,6 +222,7 @@ class EditText(RectContainer):
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return editText, None, None
 
+
 class HTML(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         id = 0
@@ -233,10 +237,12 @@ class HTML(RectContainer):
             parent.Add(htmlWindow, int(self.stretchFactor),
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return htmlWindow, None, None
-            
+
+
 class List(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
+
 
 class RadioBox(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
@@ -260,11 +266,13 @@ class RadioBox(RectContainer):
             parent.Add(radioBox, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
-         
+
+
 class ScrolledWindow(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
-    
+
+
 class SplitterWindow(RectContainer):
     # @@@ Right now this is unnecessary boiler plate that should be removed.  We
     #  need a better way to allow items to hook themselves into their parent
@@ -305,7 +313,8 @@ class SplitterWindow(RectContainer):
             parent.Add(splitter, int(self.stretchFactor), 
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return splitter, splitter, splitter
-        
+
+
 class StaticText(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
 #        assert isinstance (parent, wxSizerPtr) #must be in a container
@@ -329,9 +338,7 @@ class StaticText(RectContainer):
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return staticText, None, None
 
-    
-    
-    
+
 class TabbedContainer(RectContainer):
     # @@@ Right now this is unnecessary boiler plate that should be removed.  We
     #  need a better way to allow items to hook themselves into their parent
@@ -398,19 +405,21 @@ class Toolbar(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
+
 class ToolbarItem(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
 
+
 class Tree(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
-    
+
+
 class TreeNode:
     def __init__(self, nodeId, treeList):
         self.nodeId = nodeId
         self.treeList = treeList
-
 
     def AddChildNode (self, data, title, hasChildren):
         childNodeId = self.treeList.AppendItem (self.nodeId,
