@@ -27,9 +27,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         def _verifyCalendarEvent(event):
-            self.assertEqual(event.headline, "simple headline")
-            self.assertEqual(event.getAttributeValue('headline'),
-                              "simple headline")
+            self.assertEqual(event.displayName, "simple headline")
             self.assertEqual(event.getItemDisplayName(), "simple headline")
 
             self.assertEqual(event.importance, 'fyi')
@@ -69,7 +67,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         reminderItem = Calendar.Reminder("reminderItem")
 
         # CalendarEvent properties
-        calendarEventItem.headline = "simple headline"
+        calendarEventItem.displayName = "simple headline"
         calendarEventItem.importance = "fyi"
         calendarEventItem.transparency = "busy"
         _verifyCalendarEvent(calendarEventItem)

@@ -18,18 +18,6 @@
 
   <!-- Note -->
 
-  <Attribute itsName="title">
-    <displayName>Title</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="body">
-    <displayName>Body</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="Text"/>
-  </Attribute>
-
   <Attribute itsName="attachedNotes">
     <displayName>Contained Notes</displayName>
     <description>Notes contained in this content item.</description>
@@ -51,9 +39,6 @@
   <Kind itsName="Note">
     <displayName>Note</displayName>
     <superKinds itemref="content:ContentItem"/>
-    <displayAttribute itemref="notes:title"/>
-    <attributes itemref="notes:title"/>
-    <attributes itemref="notes:body"/>
     <attributes itemref="notes:attachedToItems"/>
     <classes key="python">osaf.contentmodel.notes.Notes.Note</classes>
   </Kind>

@@ -89,7 +89,6 @@ class CalendarEvent(ContentModel.ContentItem):
         self.endTime = DateTime.now()
         self.participants = []
         self.whoAttribute = "participants"
-        self.aboutAttribute = "headline"
         self.dateAttribute = "startTime"
 
     def GetDuration(self):

@@ -73,9 +73,14 @@ class ContentItemTest(ContentModelTestCase):
         # Set and test simple attributes
         genericContentItem.displayName = "Test Content Item"
         genericContentItem.context = "work"
-        
+        genericContentItem.body = "Notes appear in the body"
+
         self.assertEqual(genericContentItem.displayName, "Test Content Item")
         self.assertEqual(genericContentItem.context, "work")
+        self.assertEqual(genericContentItem.body, "Notes appear in the body")
+        self.assertEqual(genericContentItem.getItemDisplayName(), "Test Content Item")
+
+        # Test the about/who/date calculated attributes
         self.assertEqual(genericContentItem.getAbout(), "Test Content Item")
         self.assertEqual(genericContentItem.getWho(), ' ')
         self.assertEqual(genericContentItem.getDate(), ' ')

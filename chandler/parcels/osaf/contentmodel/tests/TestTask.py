@@ -28,9 +28,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         def _verifyTask(task):
             self.assert_(task != None)
-            self.assertEqual(task.headline, "test headline")
-            self.assertEqual(task.getAttributeValue('headline'),
-                              "test headline")
+            self.assertEqual(task.displayName, "test headline")
             self.assertEqual(task.getItemDisplayName(), "test headline")
 
             self.assertEqual(task.importance, 'important')
@@ -51,7 +49,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         # Construct A Sample Item
         taskItem = Task.Task("TestTask")
-        taskItem.headline = "test headline"
+        taskItem.displayName = "test headline"
         taskItem.importance = "important"
 
         self._reopenRepository()

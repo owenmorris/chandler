@@ -45,5 +45,4 @@ class Task(ContentModel.ContentItem):
         super(Task, self).__init__(name, parent, kind)
 
         self.whoAttribute = "requestor"
-        self.aboutAttribute = "headline"
         self.dateAttribute = "dueDate"

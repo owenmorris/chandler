@@ -32,17 +32,7 @@
     <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itsName="headline">
-    <displayName>Headline</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="body">
-    <displayName>Body</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="location">
+  <Attribute itemName="location">
     <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
     <displayName>Location</displayName>
     <type itemref="cal:Location"/>
@@ -133,25 +123,17 @@
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
     <superKinds itemref="content:ContentItem"/>
 
-    <!-- general -->
-    <attributes itemref="cal:headline"/>
     <attributes itemref="cal:startTime"/>
-    <attributes itemref="cal:body"/>
     <attributes itemref="cal:location"/>
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
     <attributes itemref="cal:resources"/>
-
-    <!-- calendar -->
     <attributes itemref="cal:endTime"/>
     <attributes itemref="cal:calendar"/>
     <attributes itemref="cal:participants"/>
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
-    <attributes itemref="content:importance"/>
-
-    <displayAttribute itemref="cal:headline"/>
 
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 

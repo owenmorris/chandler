@@ -26,7 +26,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/notes")
 
         def _verifyNote(note):
-            self.assertEqual(note.title, "sample note")
+            self.assertEqual(note.displayName, "sample note")
 
             reader = note.body.getReader()
             self.assertEqual(reader.read(),
@@ -51,7 +51,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
                          Notes.NotesParcel.getConversationKind())
 
         # Literal properties
-        noteItem.title = "sample note"
+        noteItem.displayName = "sample note"
 
         # Text property
         textType = self.rep.findPath("//Schema/Core/Text")

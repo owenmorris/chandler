@@ -102,7 +102,8 @@ class ContentItem(Item.Item):
 
     def getAbout(self):
         """Returns a string representation of the aboutAttribute"""
-        if not self.hasAttributeValue(self.aboutAttribute): return " "
+        if not self.hasAttributeValue(self.aboutAttribute):
+            return "No value for %s" % self.aboutAttribute
         
         aboutString = str(self.getAttributeValue(self.aboutAttribute))
         return aboutString

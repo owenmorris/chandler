@@ -22,7 +22,17 @@
   <core:author>Open Source Applications Foundation</core:author>
 
 <!-- Content Item -->
-  <core:Enumeration itsName="ImportanceEnum">
+  
+  <core:Attribute itemName="body">
+    <core:displayName>Body</core:displayName>
+    <core:type itemref="core:Text"/>
+    <core:description>All Content Items may have a body to contain notes.  It's not decided yet whether
+        this body would instead contain the payload for resource items such as presentations or 
+        spreadsheets -- resource items haven't been nailed down yet -- but the payload may be different
+        from the notes because payload needs to know MIME type, etc.</core:description>
+  </core:Attribute>
+
+  <core:Enumeration itemName="ImportanceEnum">
     <core:displayName>Importance Enum</core:displayName>
     <core:values>important</core:values>
     <core:values>normal</core:values>
@@ -36,6 +46,7 @@
     <core:description>This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="ImportanceEnum"/>
+    <core:defaultValue type="ImportanceEnum">normal</core:defaultValue>
   </core:Attribute>
 
   <core:Enumeration itsName="ContextEnum">
@@ -80,11 +91,12 @@
 
   <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
-    <core:displayName>Content Item</core:displayName>
+    <core:displayName>Default Content Item Display Name</core:displayName>
     <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
     <core:examples>a Contact -- 'Terry Smith'</core:examples>
     <core:examples>a Task -- 'mail 1040 to IRS'</core:examples>
     <core:description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</core:description>
+    <core:attributes itemref="body"/>
     <core:attributes itemref="importance"/>
     <core:attributes itemref="context"/>
     <core:attributes itemref="contact:creator"/>
@@ -97,7 +109,7 @@
     <core:attributes itemref="whoAttribute"/>
     <core:attributes itemref="aboutAttribute"/>
     <core:attributes itemref="dateAttribute"/>
-
+    
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 

@@ -17,7 +17,7 @@
   <core:version>0.3</core:version>
 
   <CalendarEvent itsName="LunchWTug">
-    <headline>Lunch with Tug</headline>
+    <displayName>Lunch with Tug</displayName>
     <transparency>busy</transparency>
   </CalendarEvent>
 
