@@ -65,6 +65,11 @@ class JabberClient:
         self.ReadAccountFromPreferences()
         self.Login()
 
+        # if there's a roster parcel, tell it to update the sidebar
+        # now that we've logged in
+        if self.rosterParcel != None:
+            self.rosterParcel.SynchronizePresence()
+            
     # set up the reference to the roster parcel by iterating through the
     # parcel list
     def FindRosterParcel(self):
@@ -437,6 +442,11 @@ class JabberClient:
         # decode the string from the body of the received message to an objectlist
         objectList = self.DecodePythonObject(body)
         
+        # give all the objects in the list an attribute indicating
+        # that they're remote
+        for item in objectList:
+            item.remoteAddress = fromAddress
+            
         # send the objects back to the relevant view
         self.application.AddObjectsToView(url, objectList, lastFlag)
                         
@@ -460,9 +470,10 @@ class JabberClient:
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
         message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)
-        result = tkMessageBox.askquestion('Subscription Request', message)
+        dialog = wxMessageDialog(self.application.wxMainFrame, message, _("Confirm Subscription"), wxYES_NO | wxICON_QUESTION)
+        result = dialog.ShowModal()
         
-        if result == 'yes':
+        if result == wxID_YES:
             if subscriptionType == 'subscribe':
                 self.connection.send(Presence(to=who, type='subscribed'))
                 self.connection.send(Presence(to=who, type='subscribe'))
