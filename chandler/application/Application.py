@@ -208,7 +208,8 @@ class wxApplication (wxApp):
 
         EVT_MENU(self, -1, self.OnMenuCommand)
         self.InMenuCommand = false      #used by OnMenuCommand
-        self.OpenStartingUri()
+        if wxPlatform != '__WXGTK__':
+            self.OpenStartingUri()
         return true  #indicates we succeeded with initialization
 
     if __debug__:
