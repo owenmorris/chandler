@@ -100,7 +100,7 @@ But you can also remove a subscription early, using ``unsubscribe()``::
     >>> events.Event.unsubscribe(sender1, receiver1)
     >>> evt = events.Event(sender1)   # nothing registered now, so no message
 
-Sometimes, though you want the event system to hold on to a receiver until the
+Sometimes, though, you want the event system to hold on to a receiver until the
 sender no longer exists.  For example, lambdas and closures used as receivers
 may get garbage collected immediately, so you can ask the event system to hold
 them for you::
@@ -129,6 +129,27 @@ unsubscribed.
     >>> receivers           # and the receiver set ends up empty
     set([])
 
+Of course, receivers aren't limited to being functions or lambdas; you can
+also use a method as a receiver::
+
+    >>> class ThingThatReceives:
+    ...     def foo(self,event): print "foo"
+    ...     def bar(self,event): print "bar"
+    >>> ob = ThingThatReceives()
+    >>> sender1 = Sender()
+    >>> events.Event.subscribe(sender1,ob.foo)
+    >>> events.Event.subscribe(sender2,ob.bar)
+    >>> evt = events.Event(sender2)
+    bar
+    >>> evt = events.Event(sender1)
+    foo
+
+For methods used as receivers, the subscription ends when the object that owns
+the method is garbage collected::
+
+    >>> del ob
+    >>> evt = events.Event(sender1)   # no message because ob.foo is gone
+
 
 Event Types
 -----------
@@ -148,7 +169,7 @@ other, even if the event types are subclasses of each other::
     >>> MyEvent.getReceivers(sender2)
     set([<function <lambda> at ...>])
     >>> events.Event.getReceivers(sender2)
-    ()
+    set([])
     >>> del sender2
 
 ``Event`` subclasses can define additional attributes besides ``sender`` that
@@ -201,7 +222,7 @@ and any attributes added by an ``Event` subclass::
     >>> evt.msg = "Help!"
     >>> evt.msg
     'Help!'
-    
+
 Note, however, that modifying an event by setting its attributes is usually
 only meaningful from within an event-receiving routine.  By the time the code
 creating the event instance has a reference to it, it has already been sent to
@@ -214,12 +235,13 @@ Because of this, it's important to set all needed attributes by the time the
 ``Event`` constructor is called.  The default constructor automatically sets
 attributes from any supplied keyword arguments, so this is sufficient for
 those attributes whose default is an immutable value, or attributes defined
-using the ``property`` builtin.  But some attributes may need to have mutable
-defaults, such as an empty list or dictionary.  To implement these, you should
-set them up in your subclass' ``__init__`` method, like this::
+using the ``property`` builtin or listed in ``__slots__``.  But some attributes
+may need to have mutable defaults, such as an empty list or dictionary.  To
+implement these, you should set them up in your subclass' ``__init__`` method,
+like this::
 
     >>> class EventWithList(events.Event):
-    ...     listAttr = None
+    ...     __slots__ = ['listAttr']
     ...     def __init__(self, *args, **kw):
     ...         self.listAttr = []
     ...         super(EventWithList,self).__init__(*args,**kw)
@@ -230,7 +252,10 @@ set them up in your subclass' ``__init__`` method, like this::
 Notice that you must:
 
 1. Define a default value or slot in the class body, so that the event system
-   knows that it's a valid attribute name.
+   knows that it's a valid attribute name.  (Note: don't mix the two; if you
+   use slots then *all* non-property attributes should be slots, and all the
+   class' base classes need to use slots also.  If you have any attributes that
+   can't be stored in slots, you should avoid using slots altogether.)
 
 2. Set the attribute(s) as the *first* step in your ``__init__`` method
 
@@ -241,10 +266,10 @@ If you want to make certain attributes required, or allow them to be specified
 positionally, you can also do that by overriding ``__init__``:
 
     >>> class MessageRequired(events.Event):
-    ...     message = None
-    ...     def __init__(self, sender, message, *args, **kw):
+    ...     __slots__ = ['message']
+    ...     def __init__(self, sender, message, **kw):
     ...         self.message = message
-    ...         super(MessageRequired,self).__init__(sender,*args,**kw)
+    ...         super(MessageRequired,self).__init__(sender,**kw)
 
 Then, creating an event of that type without specifying a value for the
 attribute will result in a ``TypeError``::
@@ -252,7 +277,7 @@ attribute will result in a ``TypeError``::
     >>> evt = MessageRequired(sender)
     Traceback (most recent call last):
     ...
-    TypeError: __init__() takes at least 3 arguments (2 given)
+    TypeError: __init__() takes exactly 3 arguments (2 given)
 
 But the argument can then be specified either positionally, or via a keyword::
 
@@ -264,19 +289,13 @@ But the argument can then be specified either positionally, or via a keyword::
     'Bar'
 
 
-TODO: add slots vs. properties how-to?
-
-TODO: demo using methods as receivers, discuss GC consequences briefly so you
-don't have to know how weak_receiver works.
-
-
 Event System Internals
 ======================
 
 From this point on, this document describes (and tests) internal operations
 of ``spike.events``.  If you just want to do the things already described
 above, you don't need to keep reading.  However, if you need to work on the
-``events`` module's internals, or wish to implement an another kind of event
+``events`` module's internals, or wish to implement another kind of event
 system, you may find this section helpful or interesting.
 
 
@@ -289,10 +308,11 @@ receiver is no longer usable.  These factories are ``weak_receiver()`` and
 ``weak_sender()``.
 
 You do not normally need to use these internal APIs, unless you are creating
-another event subsystem that also needs .
+another event subsystem that also needs this kind of garbage collection
+support.
 
 ``weak_receiver(receiver, callback=None)``
-    Wraps the callable `receiver` and return a callable object that will pass
+    Wraps the callable `receiver` and returns a callable object that will pass
     its arguments to `receiver` when called, assuming `receiver` is still a
     live object::
 
@@ -301,7 +321,7 @@ another event subsystem that also needs .
         >>> rcv(msg="hello!")
         hello!
 
-    When `receiver` is garbage collected, the `callback` (if
+    When the original `receiver` is garbage collected, the `callback` (if
     one was supplied) will be invoked, and it will receive a Python weak
     reference object as its sole parameter::
 
@@ -321,7 +341,7 @@ another event subsystem that also needs .
         >>> rcv("goodbye!")
 
     If `receiver` is not a weak-referenceable object, however, this routine
-    simply returns it unwrapped, and `callback` will never be called::
+    simply returns it unwrapped, and the `callback` will never be called::
 
         >>> class Uncollectable(object):
         ...     __slots__ = []  # avoid being weak-referenceable
@@ -340,16 +360,16 @@ another event subsystem that also needs .
         goodbye!
 
     If `receiver` is a method of an object, the returned callable will be bound
-    to the lifetime of the method's ``im_self`` and ``im_func``, rather than to
-    the lifetime of the method.  This is necessary because method objects are
+    to the lifetime of the method's ``im_self`` rather than to the lifetime of
+    the actual method object.  This is necessary because method objects are
     normally short-lived and would normally be garbage collected before they
     had a chance to receive any events::
 
-        >>> class Collectable:
+        >>> class Collectable(object):
         ...     def receive(self,msg): print msg
         >>> ob = Collectable()
         >>> rcv = events.weak_receiver(ob.receive,callback)
-        >>> rcv == ob.receive   # a wrapper is returned
+        >>> rcv is ob.receive   # a wrapper is returned
         False
         >>> rcv(msg="hello!")
         hello!
@@ -369,6 +389,34 @@ another event subsystem that also needs .
         >>> del ob
         >>> rcv(msg="goodbye!") # rcv is still ob.__call__
         goodbye!
+
+    Weak receivers always hash the same as the original `receiver`, or the
+    receiver's owner (``im_self``) if the receiver is a method and the owner
+    is weak-referenceable::
+
+        >>> def hello(msg): print msg
+        >>> rcv = events.weak_receiver(hello)
+        >>> hash(rcv) == hash(hello)
+        True
+
+        >>> ob = Collectable()
+        >>> rcv = events.weak_receiver(ob.receive)
+        >>> hash(rcv) == hash(ob)
+        True
+
+    Weak receivers compare equal to each other, if and only if they will
+    call the same object, or the same method of the same object::
+
+        >>> events.weak_receiver(ob.receive)==events.weak_receiver(ob.receive)
+        True
+        >>> events.weak_receiver(ob.receive)==events.weak_receiver(hello)
+        False
+
+        >>> Collectable.hello = hello   # add a hello() method to ob's class
+        >>> events.weak_receiver(ob.receive)==events.weak_receiver(ob.hello)
+        False
+        >>> events.weak_receiver(hello)==events.weak_receiver(ob.hello)
+        False
 
 
 ``weak_sender(sender, callback=None)``
@@ -394,7 +442,7 @@ another event subsystem that also needs .
         GC!
         >>> hash(sender) == hash(ob_id)     # hash still the same
         True
-        >>> sender == ob_id     # but objects not equal
+        >>> sender == ob_id     # but it no longer equals the id
         False
         >>> sender == sender    # it only equals itself
         True

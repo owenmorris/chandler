@@ -19,24 +19,29 @@ class EventClass(type):
         `receiver` will be kept, if possible.)
         """
         sender_id = id(sender)
-        if not hold:
-            receiver = weak_receiver(
-                receiver, lambda ref:cls._unsubscribe(sender_id,receiver)
+        if hold:
+            rcv = receiver
+        else:
+            # Keep weak receiver in a separate variable, so receiver can't
+            # get GC'd before we finish
+            rcv = weak_receiver(
+                receiver, lambda ref:cls._unsubscribe(sender_id,rcv)
             )
 
         if sender_id in cls._receivers:
             # Don't create another weak sender if one's already registered
-            cls._receivers[sender_id].add(receiver)
+            cls._receivers[sender_id].add(rcv)
             return
 
         ws = weak_sender(sender, lambda ref: cls._unsubscribe(ws,None))
 
         # setdefault here is for thread-safety, in case two threads
-        # add a subscriber for the same sender
-        cls._receivers.setdefault(ws,set()).add(receiver)
+        # add a subscriber for the same sender (i.e., it's not guaranteed
+        # that 'sender_id not in cls._receivers' still holds at this point)
+        cls._receivers.setdefault(ws,set()).add(rcv)
 
 
-    def unsubscribe(cls,sender,receiver=None):
+    def unsubscribe(cls,sender,receiver):
         """Stop sending events of this type from `sender` to `receiver`"""
         cls._unsubscribe(id(sender),receiver)
 
@@ -138,6 +143,10 @@ class weak_receiver(ref):
             return ref.__new__(cls,receiver,callback)
         except TypeError:
             return receiver
+
+    def __eq__(self,other):
+        return super(weak_receiver,self).__eq__(other) and \
+            self.func==getattr(other,'func',self.func)
 
     def __call__(self,*args,**kw):
         try:
