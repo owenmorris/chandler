@@ -16,15 +16,18 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
 class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
+    resizeBufferSize = 5
+    RESIZE_MODE_START = 1
+    RESIZE_MODE_END = 2
     def __init__(self, *arguments, **keywords):
         super(ColumnarCanvasItem, self).__init__(*arguments, **keywords)
         
         self._resizeLowBounds = wx.Rect(self.bounds.x,
-                                        self.bounds.y + self.bounds.height - 5,
-                                        self.bounds.width, 5)
+                                        self.bounds.y + self.bounds.height - self.resizeBufferSize,
+                                        self.bounds.width, self.resizeBufferSize)
         
         self._resizeTopBounds = wx.Rect(self.bounds.x, self.bounds.y,
-                                        self.bounds.width, 5)
+                                        self.bounds.width, self.resizeBufferSize)
 
     def isHitResize(self, point):
         """ Hit testing of a resize region.
@@ -38,22 +41,23 @@ class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
                 self._resizeLowBounds.Inside(point))
 
     def getResizeMode(self, point):
-        """ Returns the mode of the resize, either 'TOP' or 'LOW'.
+        """ Returns the mode of the resize, either RESIZE_MODE_START or
+        RESIZE_MODE_END.
 
-        The resize mode is 'TOP' if dragging from the top of the event,
-        and 'LOW' if dragging from the bottom of the event. None indicates
+        The resize mode is RESIZE_MODE_START if dragging from the top of the event,
+        and RESIZE_MODE_END if dragging from the bottom of the event. None indicates
         that we are not resizing at all.
 
         @param point: drag start position in uscrolled coordinates
         @type point: wx.Point
-        @return: resize mode, 'TOP', 'LOW' or None
+        @return: resize mode, RESIZE_MODE_START, RESIZE_MODE_END or None
         @rtype: string or None
         """
         
         if self._resizeTopBounds.Inside(point):
-            return "TOP"
+            return self.RESIZE_MODE_START
         if self._resizeLowBounds.Inside(point):
-            return "LOW"
+            return self.RESIZE_MODE_END
         return None
 
 
@@ -76,6 +80,17 @@ class CalendarEventHandler(object):
         self.blockItem.setRange(today)
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
+
+class ClosureTimer(wx.Timer):
+    """
+    Helper class because targets may need to recieve multiple different timers
+    """
+    def __init__(self, callback, *args, **kwargs):
+        super(ClosureTimer, self).__init__(*args, **kwargs)
+        self._callback = callback
+        
+    def Notify(self):
+        self._callback()
 
 class CalendarBlock(CollectionCanvas.CollectionBlock):
     """ Abstract block used as base Kind for Calendar related blocks.
@@ -638,8 +653,19 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.SetScrollRate(0, self._scrollYRate)
         self.Scroll(0, (40*7)/self._scrollYRate)
 
-    def ScaledScroll(self, scrollX, scrollY, buffer=0):
-        self.Scroll(scrollX, (scrollY / self._scrollYRate) + buffer)
+    def ScaledScroll(self, dx, dy):
+        (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
+        scrollX += dx
+        scrollY += dy
+        
+        # rounding ensures we scroll at least one unit
+        if dy < 0:
+            rounding = -self._scrollYRate
+        else:
+            rounding = self._scrollYRate
+
+        scaledY = (scrollY // self._scrollYRate) + rounding
+        self.Scroll(scrollX, scaledY)
         
     def _doDrawingCalculations(self):
         # @@@ magic numbers
@@ -849,6 +875,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             view.commit()
         return None
     
+    def OnBeginResizeItem(self):
+        self._lastUnscrolledPosition = self._dragStartUnscrolled
+        self.StartDragTimer()
+        pass
+        
+    def OnEndResizeItem(self):
+        self.StopDragTimer()
+        pass
+        
     def OnResizingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         item = self._currentDragBox.getItem()
@@ -857,16 +892,39 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
         # make sure we're changing by at least delta, and 
         # staying on the same day (we don't support resizing across days yet)
-        if (resizeMode == "LOW" and 
+        if (resizeMode == ColumnarCanvasItem.RESIZE_MODE_END and 
             newTime > (item.startTime + delta) and
             item.startTime.day == newTime.day):
             item.endTime = newTime
-        elif (resizeMode == "TOP" and 
+        elif (resizeMode == ColumnarCanvasItem.RESIZE_MODE_START and 
               newTime < (item.endTime - delta) and
               item.endTime.day == newTime.day):
             item.startTime = newTime
         self.Refresh()
     
+    def OnDragTimer(self):
+        """
+        This timer goes off while we're dragging/resizing
+        """
+        scrolledPosition = self.CalcScrolledPosition(self._dragCurrentUnscrolled)
+        self.ScrollIntoView(scrolledPosition)
+    
+    def StartDragTimer(self):
+        self.scrollTimer = ClosureTimer(self.OnDragTimer)
+        self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
+    
+    def StopDragTimer(self):
+        self.scrollTimer.Stop()
+        self.scrollTimer = None
+        
+    def OnBeginDragItem(self):
+        self.StartDragTimer()
+        pass
+        
+    def OnEndDragItem(self):
+        self.StopDragTimer()
+        pass
+        
     def OnDraggingItem(self, unscrolledPosition):
         # at the start of the drag, the mouse was somewhere inside the
         # dragbox, but not necessarily exactly at x,y
@@ -884,6 +942,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             item.ChangeStart(newTime)
             self.Refresh()
 
+    def GetResizeMode(self):
+        """
+        Helper method for drags
+        """
+        return self._originalDragBox.getResizeMode(self._dragStartUnscrolled)
+        
     def getDateTimeFromPosition(self, position):
         # bound the position by the available space that the user 
         # can see/scroll to

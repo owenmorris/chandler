@@ -368,13 +368,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         middleText = textExtent[0] / 2
         dc.DrawText(text, rect.x + middleRect - middleText, rect.y)
 
-    def GetResizeMode(self):
-        """
-        Helper method for drags
-        @@@ This belongs in CalendarCanvas! resize mode is calendar-specific
-        """
-        return self._originalDragBox.getResizeMode(self._dragStartUnscrolled)
-        
 
     # Mouse movement
 
@@ -405,13 +398,12 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # handle dragging
         if self._isDraggingItem:
             if event.Dragging() and event.LeftIsDown():
+                self._dragCurrentUnscrolled = unscrolledPosition
                 self.OnDraggingItem(unscrolledPosition)
-                
-                # this really should be happening on a timer
-                self.ScrollIntoView(self._currentDragBox.bounds, True, True)
                 
             else: # end the drag
                 self._isDraggingItem = False
+                self._dragCurrentUnscrolled = None
                 self.OnEndDragItem()
                 self.SetDragBox(None)
                 self._dragStart = None
@@ -420,17 +412,12 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # handle resizing
         elif self._isResizingItem:
             if event.Dragging() and event.LeftIsDown():
+                self._dragCurrentUnscrolled = unscrolledPosition
                 self.OnResizingItem(unscrolledPosition)
-                
-                # @@@ resizeMode is calendar-specific
-                resizeRect = self._currentDragBox.bounds
-                resizeMode = self.GetResizeMode()
-                
-                # this really should be happening on a timer
-                self.ScrollIntoView(resizeRect, resizeMode == "TOP", resizeMode == "LOW")
                 
             else: # end the drag
                 self._isResizingItem = False
+                self._dragCurrentUnscrolled = None
                 self.OnEndResizeItem()
                 self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
                 self._dragStart = None
@@ -486,6 +473,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 if (dx > tolerance or dy > tolerance):
                     if self._originalDragBox: 
                         resize = self._originalDragBox.isHitResize(self._dragStartUnscrolled)
+                        self._dragCurrentUnscrolled = self._dragStartUnscrolled
 
                         if resize: # start resizing
                             self._isResizingItem = True
@@ -509,31 +497,20 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                         else: # clear out the drag info, avoid creating more items
                             self._dragStart = None
                             self.SetDragBox(None)
-                            
-    def ScrollIntoView(self, rect, scrollUp, scrollDown):
-        # scroll the given rectangle into view
-        dy = 0
+
+    def ScrollIntoView(self, unscrolledPosition):
         clientSize = self.GetClientSize()
         
-        # now need to see if the box is outside of the visible area
-        tlPosition = self.CalcScrolledPosition(rect.GetTopLeft())
-        lrPosition = self.CalcScrolledPosition(rect.GetBottomRight())
-        (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
-
-        scrolled = False
-        
         # scrolling up
-        if scrollUp and tlPosition.y < 0:
+        if unscrolledPosition.y < 0:
             # rectangle goes off the top - scroll up
-            dy = tlPosition.y
-            self.ScaledScroll(scrollX, scrollY + dy, buffer=-1)
-            scrolled = True
+            self.ScaledScroll(0, unscrolledPosition.y)
             
         # scrolling down
-        if not scrolled and scrollDown and lrPosition.y > clientSize.y:
+        elif unscrolledPosition.y > clientSize.y:
             # rectangle goes off the bottom - scroll down
-            dy = lrPosition.y - clientSize.y
-            self.ScaledScroll(scrollY, scrollY + dy, buffer=1)
+            dy = unscrolledPosition.y - clientSize.y
+            self.ScaledScroll(0, dy)
                         
     def GrabFocusHack(self):
         pass
@@ -668,7 +645,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         """
         pass
 
-    def ScaledScroll(self, scrollX, scrollY, buffer=0):
+    def ScaledScroll(self, dx, dy):
         """
         Subclasses should scroll appropriately if they have
         changed the scroll rate with SetScrollRate
@@ -676,6 +653,11 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         above, no buffer space, or buffer space below the area being
         made visible
         """
+        (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
+        
+        scrollX += dx
+        scrollY += dy
+        
         self.Scroll(scrollX, scrollY)
  
     # selection
