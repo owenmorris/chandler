@@ -30,7 +30,7 @@ def SetAttributes(self, data, attributes, encoding=None):
 
 
 class RSSChannel(Item):
-    def __getParent(self):
+    def __getItemsParent(self):
         repository = self.getRepository()
         parent = repository.find('//userdata/contentitems')
         if parent:
@@ -72,8 +72,8 @@ class RSSChannel(Item):
         # make children
         itemKind = self.getRepository().find(RSSITEM_KIND_PATH)
         for itemData in items:
-            print 'new item'
-            item = itemKind.newItem(None, self.__getParent())
+            #print 'new item'
+            item = itemKind.newItem(None, self.__getItemsParent())
             item.Update(itemData, encoding)
             self.addValue('items', item)
 

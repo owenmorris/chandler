@@ -35,7 +35,7 @@ class UpdateAction(Action):
                 modified = lastModified.tuple()
             else:
                 modified = None
-            data = feedparser.parse(feed.link, etag, modified)
+            data = feedparser.parse(feed.url, etag, modified)
             feed.Update(data)
 
         repository.commit()
@@ -53,7 +53,7 @@ class UpdateAction(Action):
             item = repository.find(BASE_PATH + '/' + urlhash)
             if not item:
                 item = chanKind.newItem(urlhash, parent)
-                item.link = url
+                item.url = url
             feeds.append(item)
 
         return feeds

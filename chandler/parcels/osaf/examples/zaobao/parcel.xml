@@ -44,6 +44,12 @@
     <displayName>RSS Channel</displayName>
 
     <!-- Feed specific attributes -->
+    <Attribute itemName="url">
+      <displayName>URL</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+  
     <Attribute itemName="etag">
       <displayName>eTag</displayName>
       <cardinality>single</cardinality>
@@ -82,6 +88,7 @@
       <inverseAttribute itemref="zaobao:RSSItem/channel"/>
     </Attribute>
 
+    <attributes itemref="zaobao:RSSChannel/url"/>
     <attributes itemref="zaobao:RSSChannel/etag"/>
     <attributes itemref="zaobao:RSSChannel/lastModified"/>
 
