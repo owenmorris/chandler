@@ -225,4 +225,3 @@ def generateDocs(buildenv):
                           'repository/item',
                           'repository/util',
                           'repository/schema')
-
