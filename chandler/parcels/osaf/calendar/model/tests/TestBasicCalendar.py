@@ -7,6 +7,8 @@ from model.persistence.FileRepository import FileRepository
 
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
+from OSAF.calendar.model.Location import Location
+from OSAF.calendar.model.Location import LocationFactory
 
 from mx import DateTime
 
@@ -70,6 +72,23 @@ class SimpleTest(unittest.TestCase):
                          DateTime.DateTimeDelta(0, 1.5))
         self.assertEqual(item.startTime, 
                          DateTime.DateTime(2003, 3, 4, 12, 45))
+
+    def testLocation(self):
+        """Test location object"""
+        locationFactory = LocationFactory(self.rep)
+        location = locationFactory.NewItem()
+        location.name = "San Francisco"
+
+        self.assertEqual(location.name, "San Francisco")
+
+    def testEventLocation(self):
+        """Test location property on calendar event"""
+        item = self.factory.NewItem()
+        location = LocationFactory(self.rep).NewItem("Palo Alto")
+        item.setAttribute("location", location)
+
+        self.assertEqual(item.location, location)
+        self.assertEqual(item.location.name, "Palo Alto")
 
     def tearDown(self):
         # Note: to use for diagnosis if a test fails

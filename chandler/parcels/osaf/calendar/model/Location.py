@@ -14,9 +14,9 @@ class LocationFactory:
         self._container = rep.find("//Calendar")
         self._kind = rep.find("//Schema/CalendarSchema/Location")
         
-    def NewItem(self):
+    def NewItem(self, name=""):
         item = Location(None, self._container, self._kind)
-        item.setAttribute("locationName", "")
+        item.setAttribute("name", name)
 
         return item
 

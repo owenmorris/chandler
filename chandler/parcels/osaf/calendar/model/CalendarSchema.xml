@@ -30,7 +30,7 @@
   <name>location</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
-  <attribute name="Cardinality">set</attribute>
+  <attribute name="Cardinality">single</attribute>
   <attribute name="OtherName">usedAsLocation</attribute>
 </item>
 
@@ -38,16 +38,16 @@
   <name>usedAsLocation</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
   
-  <attribute name="Cardinality">set</attribute>
+  <attribute name="Cardinality">single</attribute>
   <attribute name="OtherName">location</attribute>
 </item>
 
 <item>
-  <name>locationName</name>
+  <name>name</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
   
   <ref name="Type" type="path">//Schema/Model/Types/String</ref>
-  <attribute name="Cardinality">set</attribute>
+  <attribute name="Cardinality">single</attribute>
 </item>
 
 <item>
@@ -55,7 +55,7 @@
   <kind type="path">//Schema/Model/Kind</kind>
   
   <ref name="AttrDefs">
-    <ref name="name" type="path">//Schema/CalendarSchema/locationName</ref>
+    <ref name="name" type="path">//Schema/CalendarSchema/name</ref>
   </ref>
 
   <ref name="SuperKind">

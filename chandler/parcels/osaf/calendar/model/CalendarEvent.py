@@ -14,10 +14,11 @@ class CalendarEventFactory:
         self._container = rep.find("//Calendar")
         self._kind = rep.find("//Schema/CalendarSchema/CalendarEvent")
         
-    def NewItem(self):
+    def NewItem(self, headline=""):
         item = CalendarEvent(None, self._container, self._kind)
         item.setAttribute("startTime", DateTime.now())
         item.setAttribute("endTime", DateTime.now())
+        item.setAttribute("headline", headline)
 
         return item
 
