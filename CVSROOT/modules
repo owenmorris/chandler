@@ -57,6 +57,7 @@ chandler-source -a \
     osaf/chandler/net/libiconv \
     osaf/chandler/net/libxml2 \
     osaf/chandler/net/roadrunner \
+    osaf/chandler/net/sc-db \
     osaf/chandler/net/rap
 
 rap -a \
@@ -67,4 +68,5 @@ rap -a \
     osaf/chandler/net/libiconv \
     osaf/chandler/net/libxml2 \
     osaf/chandler/net/roadrunner \
+    osaf/chandler/net/sc-db \
     osaf/chandler/net/rap
