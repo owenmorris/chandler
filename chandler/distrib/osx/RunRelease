@@ -1,0 +1,3 @@
+#!/bin/sh
+cd ../Chandler
+DYLD_LIBRARY_PATH=../release/lib DYLD_FRAMEWORK_PATH=../release/bin/Library/Frameworks exec ../release/bin/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/python Chandler.py
