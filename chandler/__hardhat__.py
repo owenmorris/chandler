@@ -425,12 +425,24 @@ def _createVersionFile(buildenv):
 
 def generateDocs(buildenv):
 
+    # Generate the content model docs
     xslDir = os.path.join("distrib","transforms")
-    targetDir = os.path.join("..",buildenv['version'],"docs")
+    targetDir = os.path.join("..",buildenv['version'],"docs","model")
     hardhatlib.copyFile(os.path.join(xslDir,"includes","schema.css"), targetDir)
     hardhatlib.copyFile(os.path.join("distrib", "docs", "automatic-docs-help.html"), targetDir)
     hardhatlib.copyFile(os.path.join("distrib", "docs", "repository-intro.html"), targetDir)
 
     args = [os.path.join(xslDir, "generateDocs.py"), targetDir, xslDir, "."]
     hardhatlib.executeScript(buildenv, args)
+
+    # Generate the epydocs
+    targetDir = os.path.join("..",buildenv['version'],"docs","api")
+    if buildenv['os'] != 'win' or sys.platform == 'cygwin':
+        hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
+                          '-o %s -v -n Chandler' % targetDir,
+                          '--inheritance listed',
+                          '--no-private',
+                          'parcels/OSAF/framework/notifications',
+                          'repository/item',
+                          'repository/schema')
 
