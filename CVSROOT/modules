@@ -42,6 +42,7 @@ dbxml-module -a \
     osaf/chandler/bsddb3
 
 chandler-source -a \
+    osaf/chandler/__hardhat__.py \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/zodb \
@@ -52,6 +53,7 @@ chandler-source -a \
     osaf/chandler/jabber-py \
     osaf/chandler/swig \
     osaf/chandler/pkgconfig \
+    osaf/chandler/net/__hardhat__.py \
     osaf/chandler/net/expat \
     osaf/chandler/net/gettext \
     osaf/chandler/net/glib \
@@ -64,6 +66,7 @@ chandler-source -a \
 rap -a \
     osaf/chandler/swig \
     osaf/chandler/pkgconfig \
+    osaf/chandler/net/__hardhat__.py \
     osaf/chandler/net/expat \
     osaf/chandler/net/gettext \
     osaf/chandler/net/glib \
