@@ -10,12 +10,12 @@ from time import time
 import wx, os
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
-import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.imap
 from application.SplashScreen import SplashScreen
 import application.Parcel
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
@@ -29,7 +29,6 @@ import osaf.mail.smtp as smtp
 import application.dialogs.ReminderDialog as ReminderDialog
 from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
-import osaf.framework.utils.imports.icalendar as ical
 import osaf.framework.sharing.ICalendar as ICalendar
 
 class MainView(View):
@@ -317,41 +316,36 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "Test | Import iCalendar" Menu
-        parent = self.findPath("//userdata/contentitems")
-
         self.setStatusMessage ("Importing from import.ics")
         try:
-            conduit = self.findPath("//userdata/fsconduit")
-            if conduit is None:
-                conduit = Sharing.FileSystemConduit(name="fsconduit",
-                 parent=parent, sharePath=".", shareName="import.ics",
-                                                    view=self.itsView)
-            format = self.findPath("//userdata/icalImportFormat")
-            if format is None:
-                format = ICalendar.ICalendarFormat(name="icalImportFormat",
-                 parent=parent, view=self.itsView)
-            share = self.findPath("//userdata/icalImportShare")
-            if share is None:
-                share = Sharing.Share(name="icalImportShare", parent=parent,
-                 conduit=conduit, format=format, view=self.itsView)
+            share = Sharing.OneTimeFileSystemShare('.', 'import.ics',
+                            ICalendar.ICalendarFormat, view=self.itsView)
             share.get()
             self.setStatusMessage ("Import completed")
         except Exception, e:
-            self.itsView.getLogger().info("Failed importFile, caught exception " + str(e))
+            self.itsView.getLogger().info("Failed importFile, "
+                                 "caught exception:\n " + print_error(e))
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
         # triggered from "Test | Export Events as iCalendar" Menu
-        logger = self.itsView.getLogger()
-        self.setStatusMessage ("Exporting to " + ical.OUTFILE)
+        self.itsView.getLogger().info("Trying exportFile")
+        eventKind = Calendar.CalendarEvent.getKind(self.itsView)
+        self.setStatusMessage ("Exporting to export.ics")
         try:
-            if ical.exportFile(ical.OUTFILE, self.itsView):
-                self.setStatusMessage ("Export completed")
-            else:
-                logger.info("Failed exportFile")
-                self.setStatusMessage("Export failed")
+            share = Sharing.OneTimeFileSystemShare('.', 'export.ics',
+                            ICalendar.ICalendarFormat, view=self.itsView)
+            collection = ItemCollection(view=self.itsView)
+            events = KindQuery().run([eventKind])
+            for event in events:
+                collection.add(event)
+                self.itsView.getLogger().info("event is %s" % str(event))
+            share.contents = collection
+            share.put()
+            self.setStatusMessage("Export completed")
         except Exception, e:
-            logger.info("Failed exportFile, caught exception " + str(e))
+            self.itsView.getLogger().info("Failed exportFile, "
+                                "caught exception:\n " + print_error(e))
             self.setStatusMessage("Export failed")
 
     def onCommitRepositoryEvent(self, event):

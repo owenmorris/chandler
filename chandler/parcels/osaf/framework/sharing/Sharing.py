@@ -104,6 +104,23 @@ class Share(ContentModel.ChandlerItem):
         return self.conduit.exists()
 
 
+class OneTimeShare(Share):
+    """Delete format, conduit, and share after the first get or put."""
+
+    def remove(self):
+        self.conduit.delete(True)
+        self.format.delete(True)
+        self.delete(True)
+
+    def put(self):
+        super(OneTimeShare, self).put()
+        self.remove()
+
+    def get(self):
+        super(OneTimeShare, self).get()
+        self.remove()
+
+
 class ShareConduit(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ShareConduit"
@@ -1675,3 +1692,12 @@ def manualPublishCollection(view, collection):
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     "Synchronization Error", msg)
 
+
+class OneTimeFileSystemShare(OneTimeShare):
+    def __init__(self, path, name, formatclass, kind=None, view=None,
+                 contents=None):
+        conduit = FileSystemConduit(kind=kind, view=view, sharePath=path,
+                                    shareName=name)
+        format  = formatclass(view=view)
+        super(OneTimeFileSystemShare, self).__init__(kind=kind, view=view,
+                 contents=contents, conduit=conduit, format=format)
