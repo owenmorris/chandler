@@ -73,6 +73,7 @@ zlib: zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
 
 
 build: expand apply compile installext
+	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 compile: $(SRC)/PCbuild/pcbuild.sln bzip2 zlib
 	cd $(SRC)/PCbuild; \
@@ -159,6 +160,7 @@ build: expand apply
 	cd $(SRC)/$(BUILD); \
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework; \
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
+	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 snap: 
 	cd $(BUILD_ROOT); \
@@ -193,6 +195,7 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
 	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
 	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) install
+	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 snap: 
 	cd $(BUILD_ROOT); \
