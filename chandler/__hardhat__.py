@@ -141,6 +141,7 @@ def build(buildenv):
             hardhatlib.copyFile("RunDebug.bat", buildenv['root'] + \
              os.sep + "debug")
 
+    # _transformFilesXslt(buildenv, "/home/morgen/xslt/transform", "/home/morgen/xslt", ["xyzzy/a", "xyzzy/b"])
 
 
 def clean(buildenv):
@@ -178,7 +179,7 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-    _CreateVersionFile(buildenv)
+    _createVersionFile(buildenv)
 
     buildVersionShort = \
      hardhatutil.RemovePunctuation(buildenv['buildVersion'])
@@ -380,10 +381,47 @@ def distribute(buildenv):
         hardhatlib.rmdir_recursive(distDir)
 
 
-def _CreateVersionFile(buildenv):
+def _createVersionFile(buildenv):
     versionFile = "version.py"
     if os.path.exists(versionFile):
         os.remove(versionFile)
     versionFileHandle = open(versionFile, 'w', 0)
     versionFileHandle.write("build = \"" + buildenv['buildVersion'] + "\"\n")
     versionFileHandle.close()
+
+
+def _transformFilesXslt(buildenv, transformFile, srcDir, fileList):
+    """ Run the list of files through an XSLT transform
+    """
+    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
+     "Running XSLT processor")
+
+    if buildenv['version'] == 'debug':
+        python = buildenv['python_d']
+        sitePkg = buildenv['pythonlibdir_d'] + os.sep + "site-packages"
+    if buildenv['version'] == 'release':
+        python = buildenv['python']
+        sitePkg = buildenv['pythonlibdir'] + os.sep + "site-packages"
+    xsltScript = os.path.join(sitePkg, "Ft", "Share", "Bin", "4xslt")
+    destDir = buildenv['root'] + os.sep + buildenv['version'] + os.sep + \
+     "docs"
+
+    if not os.path.exists(destDir):
+        os.mkdir(destDir)
+
+    for file in fileList:
+        srcFile = srcDir + os.sep + file
+        destFile = destDir + os.sep + file
+        try:
+            os.makedirs(os.path.dirname(destFile))
+        except Exception, e:
+            pass
+        if os.path.exists(srcFile):
+            hardhatlib.executeCommand( buildenv, info['name'], 
+             [python, xsltScript, 
+             "--outfile="+destDir+os.sep+file,
+             srcFile, transformFile 
+             ], 
+             "XSLT: " + file )
+
+    
