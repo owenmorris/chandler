@@ -1521,7 +1521,7 @@ const wxCoord		h = rect.height;
 #if defined(__WXMAC__)
 // static
 void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
-	const Rect		*boundsR )
+	const void			*boundsR )
 {
 ThemeButtonDrawInfo	drawInfo;
 Rect				qdBoundsR;
@@ -1529,11 +1529,11 @@ RgnHandle			savedClipRgn;
 OSStatus			errStatus;
 bool				bSelected;
 
-	if ((boundsR == NULL) || EmptyRect( boundsR ))
+	if ((boundsR == NULL) || EmptyRect( (const Rect*)boundsR ))
 		return;
 
 	bSelected = true;
-	qdBoundsR = *boundsR;
+	qdBoundsR = *(const Rect*)boundsR;
 
 	drawInfo.state = (bSelected ? kThemeStateActive: kThemeStateInactive);
 	drawInfo.value = (SInt32)bSelected;	// zero draws w/o theme background shading

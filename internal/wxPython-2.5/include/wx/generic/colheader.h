@@ -72,7 +72,7 @@ public:
 public:
 #if defined(__WXMAC__)
 	static void MacDrawThemeBackgroundNoArrows(
-		const Rect		*boundsR );
+		const void		*boundsR );
 #endif
 
 	static long ConvertJust(
