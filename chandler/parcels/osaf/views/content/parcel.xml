@@ -124,11 +124,53 @@
     <stretchFactor>1.0</stretchFactor>
   </Tree>
 
+  <ItemDetail itemName="ContentItemDetail"
+              itemClass="OSAF.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+  <ItemDetail itemName="CalendarEventDetail"
+              itemClass="OSAF.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+  <ItemDetail itemName="ContactDetail"
+              itemClass="OSAF.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+  <ItemDetail itemName="NoteDetail"
+              itemClass="OSAF.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+
   <!-- Calendar View -->
-  <BoxContainer itemName="CalendarListView">
+  <SplitWindow itemName="CalendarListView">
     <contentSpec itemref="view:calendarQuery"/>
 
     <childrenBlocks itemref="view:CalendarTree"/>
+    <childrenBlocks itemref="view:CalendarEventDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -139,14 +181,16 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
   <!-- Notes View -->
-  <BoxContainer itemName="NoteListView">
+  <SplitWindow itemName="NoteListView">
     <contentSpec itemref="view:notesQuery"/>
 
     <childrenBlocks itemref="view:NoteTree"/>
+    <childrenBlocks itemref="view:NoteDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -157,14 +201,16 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
   <!-- Contacts View -->
-  <BoxContainer itemName="ContactListView">
+  <SplitWindow itemName="ContactListView">
     <contentSpec itemref="view:contactQuery"/>
 
     <childrenBlocks itemref="view:ContactTree"/>
+    <childrenBlocks itemref="view:ContactDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -175,14 +221,16 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
   <!-- Mixed View -->
-  <BoxContainer itemName="MixedListView">
+  <SplitWindow itemName="MixedListView">
     <contentSpec itemref="view:mixedQuery"/>
 
     <childrenBlocks itemref="view:MixedTree"/>
+    <childrenBlocks itemref="view:ContentItemDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -193,8 +241,9 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
 
 </core:Parcel>

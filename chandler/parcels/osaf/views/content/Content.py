@@ -5,11 +5,18 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 
+import OSAF.framework.blocks.ControlBlocks as ControlBlocks
+
 import OSAF.contentmodel.calendar.Calendar as Calendar
 import OSAF.contentmodel.notes.Notes as Notes
 import OSAF.contentmodel.contacts.Contacts as Contacts
 
 import repository.item.Query as Query
+
+class ContentItemDetail(ControlBlocks.ItemDetail):
+
+    def getHTMLText(self, item):
+        return "<html><body><h5>%s</h5></body></html>" % item.getAbout()
 
 class QueryTreeDelegate:
 

@@ -12,7 +12,6 @@ import os, os.path, sys, unittest
 from bsddb.db import DBNoSuchFileError
 from repository.item.Query import KindQuery
 from repository.persistence.XMLRepository import XMLRepository
-from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 import repository.parcel.LoadParcels as LoadParcels
 import application.Globals as Globals
 
