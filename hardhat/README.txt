@@ -64,7 +64,7 @@ distribution from:
 
 Or, if you would like to fetch the source from our CVS repository:
 
-- Set your CVSROOT to 
+- Set your CVSROOT environment variable to:
   :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep
 
 - cvs login
