@@ -35,7 +35,6 @@ class TabbedView(ControlBlocks.TabbedContainer):
                 self.childrenBlocks.placeItem(item, previousChild)
                 item.render()                
                 item.widget.SetSize (self.widget.GetClientSize())                
-            Globals.mainView.onSetActiveView(item)
             self.synchronizeWidget()
 
     def onNewEvent (self, notification):
@@ -52,7 +51,6 @@ class TabbedView(ControlBlocks.TabbedContainer):
 
     def onCloseEvent (self, notification):
         "Close the current tab"
-
         selection = self.widget.GetSelection()
         self.tabNames.remove(self.tabNames[selection])
         page = self.widget.GetPage(selection)

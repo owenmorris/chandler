@@ -358,6 +358,8 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             self.AddPage (child.widget, self.blockItem.tabNames[index])
             index += 1
         self.SetSelection(self.selectedTab)
+        page = self.GetPage(self.selectedTab)
+        Globals.mainView.onSetActiveView(page.blockItem) 
         self.Thaw()
         
 
