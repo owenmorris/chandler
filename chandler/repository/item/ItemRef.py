@@ -797,14 +797,14 @@ class RefDict(LinkedMap):
             value = ItemRef(self._getItem(), self._name,
                             value, self._otherName)
 
-        super(RefDict, self).__setitem__(key, value,
-                                         previousKey, nextKey, alias)
+        link = super(RefDict, self).__setitem__(key, value,
+                                                previousKey, nextKey, alias)
 
         if not loading:
             self._count += 1
             if self._indexes:
                 for index in self._indexes.itervalues():
-                    index.insertKey(key, previousKey)
+                    index.insertKey(key, link._previousKey)
 
         return value
 
