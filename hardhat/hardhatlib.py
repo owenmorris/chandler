@@ -943,7 +943,7 @@ def setupEnvironment(buildenv):
     os.putenv('CHANDLERHOME', CHANDLERHOME)
     os.putenv('CHANDLERBIN', CHANDLERBIN)
 
-    path = [ os.path.join(CHANDLERHOME, buildenv['version'], 'bin'),
+    path = [ os.path.join(CHANDLERBIN, buildenv['version'], 'bin'),
              buildenv['path'] ]
     path = os.pathsep.join(path)
     os.putenv('BUILDMODE', buildenv['version'])
