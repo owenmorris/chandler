@@ -236,7 +236,7 @@
     <title>&amp;File</title>
     <childrenBlocks itemref="doc:NewItemMenu"/>
     <childrenBlocks itemref="doc:FileSeparator1"/>
-    <childrenBlocks itemref="doc:NewCollectionMenu"/>
+    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
     <childrenBlocks itemref="doc:FileSeparator2"/>
     <childrenBlocks itemref="doc:NewTabItem"/>
     <childrenBlocks itemref="doc:NewWindowItem"/>
@@ -368,16 +368,6 @@
     <childrenBlocks itemref="doc:NewContactItem"/>
   </Menu>
   
-  <Menu itsName="NewCollectionMenu">
-    <blockName>NewCollectionMenu</blockName>
-    <title>New collection</title>
-    <helpString>Create a new Collection</helpString>
-    <childrenBlocks itemref="doc:NewGenericCollectionItem"/>
-    <childrenBlocks itemref="doc:NewMailboxItem"/>
-    <childrenBlocks itemref="doc:NewCalendarItem"/>
-    <childrenBlocks itemref="doc:NewProjectItem"/>
-  </Menu>
-  
   <MenuItem itsName="NewNoteItem">
     <blockName>NewTabItem</blockName>
     <title>Note</title>
@@ -388,6 +378,7 @@
   <MenuItem itsName="NewMessageItem">
     <blockName>NewMessageItem</blockName>
     <title>Message</title>
+    <accel>M</accel>
     <helpString>Create a new Message</helpString>
     <event itemref="doc:NewMailMessage"/>
   </MenuItem>
@@ -418,34 +409,6 @@
     <event itemref="doc:NewContact"/>
   </MenuItem>
 
-  <MenuItem itsName="NewGenericCollectionItem">
-    <blockName>NewGenericCollectionItem</blockName>
-    <title>Generic collection</title>
-    <helpString>Create a new Generic collection</helpString>
-    <event itemref="events:NULL"/>
-  </MenuItem>
-  
-  <MenuItem itsName="NewMailboxItem">
-    <blockName>NewMailboxItem</blockName>
-    <title>Mailbox</title>
-    <helpString>Create a new Mailbox collection</helpString>
-    <event itemref="events:NULL"/>
-  </MenuItem>
-  
-  <MenuItem itsName="NewCalendarItem">
-    <blockName>NewCalendarItem</blockName>
-    <title>Calendar</title>
-    <helpString>Create a new Calendar collection</helpString>
-    <event itemref="events:NULL"/>
-  </MenuItem>
-  
-  <MenuItem itsName="NewProjectItem">
-    <blockName>NewProjectItem</blockName>
-    <title>Project</title>
-    <helpString>Create a new Project collection</helpString>
-    <event itemref="events:NULL"/>
-  </MenuItem>
-  
   <MenuItem itsName="NewTabItem">
     <blockName>NewTabItem</blockName>
     <title>New Tab</title>
@@ -558,6 +521,7 @@
   <MenuItem itsName="PrefsAccountsItem">
     <blockName>PrefsAccountsItem</blockName>
     <title>Accounts...</title>
+    <accel>A</accel>
     <helpString>Account Preferences</helpString>
     <event itemref="events:EditAccountPreferences"/>
   </MenuItem>
