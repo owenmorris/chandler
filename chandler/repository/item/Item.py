@@ -296,14 +296,22 @@ class Item(object):
         raise TypeError, "%s is not multi-valued" %(attribute)
 
     def setValue(self, attribute, value, key=None, _attrDict=None):
-        'Set a value for a multi-valued attribute, optionally for a given key.'
+        """Set a value for a multi-valued attribute, for an optional key.
+
+        When the cardinality of the attribute is 'list' and its type is a
+        literals, key must be an integer.
+        When the cardinality of the attribute is 'list' and its values are
+        references, key may be an integer or the refName of the item value
+        to set."""
+
+        self.setDirty()
 
         if _attrDict is None:
             if isinstance(value, Item):
                 _attrDict = self._references
             else:
                 _attrDict = self._attributes
-                
+
         attrValue = _attrDict.get(attribute, None)
             
         if attrValue is None:
@@ -315,14 +323,15 @@ class Item(object):
                     attrValue = self._refDict(attribute,
                                               self._otherName(attribute))
                 else:
-                    attrValue = { key: value }
+                    _attrDict[attribute] = { key: value }
                     return
+
             elif card == 'list':
                 if isItem:
                     attrValue = self._refDict(attribute,
                                               self._otherName(attribute), True)
                 else:
-                    attrValue = [ value ]
+                    _attrDict[attribute] = [ value ]
                     return
             else:
                 raise TypeError, "%s is not multi-valued" %(attribute)
@@ -332,7 +341,7 @@ class Item(object):
         attrValue[key] = value
 
     def addValue(self, attribute, value, key=None, _attrDict=None):
-        'Add a value for a multi-valued attribute for a given optional key.'
+        "Add a value for a multi-valued attribute for a given optional key."
 
         if _attrDict is None:
             if isinstance(value, Item):
@@ -344,15 +353,25 @@ class Item(object):
 
         if attrValue is None:
             self.setValue(attribute, value, key, _attrDict=_attrDict)
-        elif isinstance(attrValue, dict):
-            attrValue[key] = value
-        elif isinstance(attrValue, list):
-            attrValue.append(value)
+
         else:
-            self.setAttribute(attribute, value)
+            self.setDirty()
+
+            if isinstance(attrValue, dict):
+                attrValue[key] = value
+            elif isinstance(attrValue, list):
+                attrValue.append(value)
+            else:
+                raise TypeError, "%s is not multi-valued" %(attribute)
 
     def hasKey(self, attribute, key):
-        'Tell where a multi-valued attribute has a value for a given key.'
+        """Tell where a multi-valued attribute has a value for a given key.
+
+        When the cardinality of the attribute is 'list' and its type is a
+        literal, key must be an integer.
+        When the cardinality of the attribute is 'list' and its values are
+        references, key must be an integer or the refName of the item value
+        to remove."""
 
         value = (self._attributes.get(attribute, None) or
                  self._references.get(attribute, None))
@@ -372,22 +391,29 @@ class Item(object):
         attrValue = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(attrValue, dict):
+        if isinstance(attrValue, RefDict) or isinstance(attrValue, list):
+            return value in attrValue
+
+        elif isinstance(attrValue, dict):
             for v in attrValue.itervalues():
                 if v == value:
                     return True
-        elif isinstance(attrValue, list):
-            try:
-                return attrValue.index(value) >= 0
-            except ValueError:
-                return False
+
         elif attrValue is not None:
             raise TypeError, "%s is not multi-valued" %(attribute)
 
         return False
 
     def removeValue(self, attribute, key, _attrDict=None):
-        'Remove a value from multi-valued attribute for a given key.'
+        """Remove the value from a multi-valued attribute for a given key.
+
+        When the cardinality of the attribute is 'list' and its type is a
+        literal, key must be an integer.
+        When the cardinality of the attribute is 'list' and its values are
+        references, key must be an integer or the refName of the item value
+        to remove."""
+
+        self.setDirty()
 
         if _attrDict is not None:
             value = _attrDict.get(attribute, None)
@@ -395,18 +421,18 @@ class Item(object):
             value = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(value, dict):
+        card = self.getAttrAspect(attribute, 'Cardinality', 'single')
+        
+        if card == 'dict' or card == 'list':
             del value[key]
-        elif isinstance(value, list):
-            value.pop(key)
-        elif value is not None:
-            self.removeAttribute(attribute)
+        else:
+            raise TypeError, "%s is not multi-valued" %(attribute)
 
     def attach(self, attribute, item):
-        '''Attach an item to attribute.
+        """Attach an item to attribute.
 
         The item is added to the endpoint if it is multi-valued. The item
-        replaces the endpoint if it is single-valued.'''
+        replaces the endpoint if it is single-valued."""
 
         self.addValue(attribute, item, item.refName(attribute),
                       _attrDict = self._references)

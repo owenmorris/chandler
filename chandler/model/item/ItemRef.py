@@ -233,9 +233,16 @@ class RefDict(References):
     def __contains__(self, obj):
 
         if isinstance(obj, model.item.Item.Item):
-            return self.has_key(obj.refName(self._name))
+            return super(RefDict, self).has_key(obj.refName(self._name))
 
-        return self.has_key(obj)
+        return super(RefDict, self).has_key(obj)
+
+    def has_key(self, key):
+
+        if self._keyList is not None and isinstance(key, int):
+            return 0 <= key and key < len(self._keyList)
+
+        return super(RefDict, self).has_key(key)
 
     def update(self, valueDict):
 
@@ -305,7 +312,7 @@ class RefDict(References):
             value = ItemRef(self, self._getItem(), self._name,
                             value, self._otherName, loading=loading)
             
-        if self._keyList is not None and not self.has_key(key):
+        if self._keyList is not None and not super(RefDict, self).has_key(key):
             self._keyList.append(key)
             
         super(RefDict, self).__setitem__(key, value, loading)
