@@ -540,51 +540,70 @@ def distribute(buildenv, module_name, buildVersion):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Unit testing functions
 
-
-def recursiveTest(buildenv, path):
-    path = os.path.abspath(path)
-    os.chdir(path)
+def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
-        libdir = buildenv['pythonlibdir_d']
-    if buildenv['version'] == 'release':
+    elif buildenv['version'] == 'release':
         python = buildenv['python']
-        libdir = buildenv['pythonlibdir']
+
+    exit_code = executeCommand(buildenv, testFile, [ python, testFile, '-v' ],
+                               "Testing %s" %(fullPath),
+                               HARDHAT_NO_RAISE_ON_ERROR)
+    if exit_code != 0:
+        buildenv['failed_tests'].append(fullPath)
+        log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" %(fullPath))
+        
+def recursiveTest(buildenv, path):
+
+    path = os.path.abspath(path)
+    os.chdir(path)
 
     testFiles = glob.glob('Test*.py')
     for testFile in testFiles:
         fullTestFilePath = os.path.join(path, testFile)
-        exit_code = executeCommand( buildenv, testFile, [python, testFile,
-        "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
-        if exit_code != 0:
-            buildenv['test_failures'] = buildenv['test_failures'] + 1
-            buildenv['failed_tests'].append(fullTestFilePath)
-            log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % fullTestFilePath)
+        runTest(buildenv, testFile, fullTestFilePath)
+
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
         if os.path.isdir(full_name):
             recursiveTest(buildenv, full_name)
 
-
-def test(buildenv, dir):
+def test(buildenv, dir, *modules):
     """
     Given a directory, recursively find all files named "Test*.py" and run
-    them as unit tests.
+    them as unit tests, or run the test modules passed on the command line.
     """
 
-    buildenv['test_failures'] = 0
     buildenv['failed_tests'] = []
-    recursiveTest(buildenv, dir)
-    failures = buildenv['test_failures']
+    args = []
+    
+    if modules:
+        i = 0
+        for m in modules:
+            if m.startswith('-'):
+                args = list(modules[i:])
+                modules = modules[0:i]
+                break
+            else:
+                i += 1
 
+    if not modules:
+        recursiveTest(buildenv, dir)
+    else:
+        for module in modules:
+            runTest(buildenv, module, module)
+
+    failures = len(buildenv['failed_tests'])
     if failures == 0:
         log(buildenv, HARDHAT_MESSAGE, 'Tests', "All tests successful")
     else:
-        log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" % failures)
+        log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" %(failures))
         for testFile in buildenv['failed_tests']:
-            log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % testFile)
+            log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" %(testFile))
         raise HardHatUnitTestError
+
+    return args
 
 # end test()
 

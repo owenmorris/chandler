@@ -50,12 +50,14 @@ def usage():
 True = 1
 False = 0
 
-# Check the command line
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghij:lno:rsStuvx")
-except getopt.GetoptError:
-    usage()
-    sys.exit(1)
+def getOptsAndArgs(arglist):
+    try:
+        return getopt.getopt(arglist, "bBcCdD:eghij:lno:rsStuvx")
+    except getopt.GetoptError:
+        usage()
+        sys.exit(1)
+
+opts, args = getOptsAndArgs(sys.argv[1:])
 
 # Look for args that we can process before initializing hardhatlib:
 for opt, arg in opts:
@@ -207,8 +209,11 @@ try:
             hardhatlib.scrubDependencies(buildenv, curmodulepath)
 
         if opt == "-t":
-            hardhatlib.test(buildenv, curdir)
-
+            leftOver = hardhatlib.test(buildenv, curdir, *args)
+            loo, loa = getOptsAndArgs(leftOver)
+            opts.extend(loo)
+            args.extend(loa)
+            
         if opt == "-u":
             hardhatlib.cvsCheckout(buildenv, projectRoot)
 
