@@ -28,16 +28,19 @@ ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
+SWIG=$(PREFIX)/bin/swig/swig.exe
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
 PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python2.3/site-packages
 PLATFORM=macosx
+SWIG=$(PREFIX)/bin/swig
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python2.3/site-packages
 PLATFORM=linux
+SWIG=$(PREFIX)/bin/swig
 endif
 endif
 
