@@ -345,9 +345,8 @@ class JabberClient:
                 return	
         
         # it's a mainstream instant message (not one of our structured ones).
-        # FIXME: eventually, invoke our instant messaging client
-        message = _("Message from ") + str(fromAddress) + _(" about ") + str(subject) + ". Cant handle yet..."
-        wxMessageBox(message)
+        if self.rosterParcel != None:
+            self.rosterParcel.ReceivedMessage(fromAddress, subject, body)
         
     # handle incoming presence requests by automatically accepting them
     def HandlePresence(self, presenceElement):
