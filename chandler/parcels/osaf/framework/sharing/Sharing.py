@@ -9,9 +9,11 @@ import osaf.framework.webdav.Dav
 import osaf.mail.message
 from repository.util.UUID import UUID
 import application.dialogs.PublishCollection
+from repository.item.Query import KindQuery
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
 
 class Parcel(application.Parcel.Parcel):
 
@@ -27,10 +29,17 @@ class Parcel(application.Parcel.Parcel):
     def _sharingUpdateCallback(self, notification):
         # When we receive the event, display a dialog
         url = notification.data['share']
-        if application.dialogs.Util.promptYesNo( \
-         Globals.wxApplication.mainFrame, "Sharing Invitation",
-         "Subscribe to %s?" % url):
-            subscribeToWebDavCollection(url)
+        collection = collectionFromSharedUrl(url)
+        if collection is not None:
+            application.dialogs.Util.showAlert( \
+             Globals.wxApplication.mainFrame,
+             "Received an invite for an already subscribed collection:\n"
+             "%s\n%s" % (collection.displayName, url))
+        else:
+            if application.dialogs.Util.promptYesNo( \
+             Globals.wxApplication.mainFrame, "Sharing Invitation",
+             "Subscribe to %s?" % url):
+                subscribeToWebDavCollection(url)
 
     def _errorCallback(self, notification):
         # When we receive this event, display the error
@@ -43,18 +52,19 @@ def subscribeToWebDavCollection(url):
     """ Given a URL, tell the webdav subsystem to fetch the collection it
         points to, then add the collection to the sidebar. """
 
+    collection = collectionFromSharedUrl(url)
+    if collection is not None:
+        application.dialogs.Util.showAlert( \
+         Globals.wxApplication.mainFrame,
+         "Already subscribed to collection '%s':\n"
+         "%s" % (collection.displayName, url))
+        return
+
     collection = osaf.framework.webdav.Dav.DAV(url).get( )
     event = Globals.parcelManager.lookup(EVENTS,
      "NewItemCollectionItem")
     event.Post({'collection':collection})
     Globals.repository.commit()
-
-
-def sendInvites(addresses, url):
-    """ Tell the email subsystem to send a sharing invite to the given
-        addresses. """
-    # osaf.mail.sharing.<sendinvite>(address, url)
-    pass
 
 def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
@@ -71,13 +81,20 @@ def manualPublishCollection(collection):
      Globals.wxApplication.mainFrame, collection)
 
 def syncCollection(collection):
-    if collection.hasAttributeValue('sharedURL'):
+    if isShared(collection):
         print "Synchronizing", collection.sharedURL
         osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
-    else:
-        print "Collection hasn't been shared yet"
 
+def isShared(collection):
+    return collection.hasAttributeValue('sharedURL') and collection.sharedURL
 
+def collectionFromSharedUrl(url):
+    kind = Globals.parcelManager.lookup(CONTENT, "NamedCollection")
+    for item in KindQuery().run([kind]):
+        if isShared(item):
+            if str(item.sharedURL) == (url):
+                return item
+    return None
 
 # Non-blocking methods that the mail thread can call to post events to the
 # main thread:

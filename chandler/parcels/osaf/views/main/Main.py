@@ -244,14 +244,14 @@ class MainView(View):
         Update the menu to reflect the selected collection name
         """
         collection = self.getSidebarSelectedCollection ()
-        if collection is not None and collection.hasAttributeValue('sharedURL'):
-            notification.data ['Enable'] = True
+        if collection is not None:
+            menuTitle = 'Sync collection "%s"' % collection.displayName
+            if osaf.framework.sharing.Sharing.isShared(collection):
+                notification.data['Enable'] = True
+            else:
+                notification.data['Enable'] = False
         else:
-            notification.data ['Enable'] = False
-        if collection:
-            menuTitle = 'Sync collection "%s"' \
-                    % collection.displayName
-        else:
+            notification.data['Enable'] = False
             menuTitle = 'Sync a collection'
         notification.data ['Text'] = menuTitle
 
