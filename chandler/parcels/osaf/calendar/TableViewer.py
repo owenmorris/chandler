@@ -85,10 +85,10 @@ class wxTableViewer(wxPanel):
         self.grid.ClearGrid()
         index = 0
         for item in self.eventList:
-            if (self.model.isDateInRange(item.CalendarStartTime)):
-                self.grid.SetCellValue(index, 0, str(item.CalendarStartTime))
-                self.grid.SetCellValue(index, 1, str(item.CalendarDuration))
-                self.grid.SetCellValue(index, 2, item.CalendarHeadline)
+            if (self.model.isDateInRange(item.startTime)):
+                self.grid.SetCellValue(index, 0, str(item.startTime))
+                self.grid.SetCellValue(index, 1, str(item.duration))
+                self.grid.SetCellValue(index, 2, item.headline)
                 index = index + 1
         
     def OnSize(self, event):

@@ -197,7 +197,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.Freeze()
         self.editor.ClearItem()
         for columnarItem in self.zOrderedDrawableObjects:
-            if self.model.isDateInRange(columnarItem.item.CalendarStartTime):
+            if self.model.isDateInRange(columnarItem.item.startTime):
                 columnarItem.PlaceItemOnCalendar()
                 columnarItem.Show(True)
             else:
@@ -274,8 +274,8 @@ class wxColumnarTimeView(wxColumnarSubView):
             item.ChangeStart(newTime)
         else:
             newItem = CalendarEventFactory(app.repository).NewItem()
-            newItem.CalendarDuration = item.CalendarDuration
-            newItem.setAttribute("CalendarHeadline", item.CalendarHeadline)
+            newItem.duration = item.duration
+            newItem.setAttribute("headline", item.headline)
             newItem.ChangeStart(newTime)
             
             item = newItem
@@ -297,7 +297,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         
         newItem = CalendarEventFactory(app.repository).NewItem()
         
-        newItem.setAttribute("CalendarHeadline", "")
+        newItem.setAttribute("headline", "")
         self.Freeze()
         newEventObject = ColumnarItem(self, newItem)
         newEventObject.SizeDrag(dragRect, startDrag, endDrag)

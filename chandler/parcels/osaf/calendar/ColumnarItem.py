@@ -91,9 +91,9 @@ class ColumnarItem(wxSimpleDrawableObject):
         # @@@ Scaffolding, draw the time and headline for show
         dc.SetTextForeground(wxBLACK)
         dc.SetFont(wxSWISS_FONT)
-        time = self.item.CalendarStartTime
+        time = self.item.startTime
         dc.DrawText(time.Format('%I:%M %p'), 10, 0)
-        self.DrawWrappedText(dc, self.item.CalendarHeadline, self.bounds.width - 1)
+        self.DrawWrappedText(dc, self.item.headline, self.bounds.width - 1)
         
     def DrawWrappedText(self, dc, text, wrapLength):
         # @@@ hack hack hack 
@@ -147,16 +147,16 @@ class ColumnarItem(wxSimpleDrawableObject):
         return (self.visible and reSizeBounds.Inside((x,y)))
         
     def SizeDrag(self, dragRect, startDrag, endDrag):
-        self.item.CalendarStartTime = self.model.getDateTimeFromPos(dragRect.GetPosition())
+        self.item.startTime = self.model.getDateTimeFromPos(dragRect.GetPosition())
  
         endHour, endMin = self.model.getTimeFromPos(dragRect.GetBottom())
-        self.item.CalendarEndTime = DateTime.DateTime(self.item.CalendarStartTime.year,
-                                                      self.item.CalendarStartTime.month,
-                                                      self.item.CalendarStartTime.day,
+        self.item.endTime = DateTime.DateTime(self.item.startTime.year,
+                                                      self.item.startTime.month,
+                                                      self.item.startTime.day,
                                                       endHour, endMin)
         
-        if (self.item.CalendarDuration.hours < self.model.minHours):
-            self.item.CalendarDuration = DateTime.TimeDelta(self.model.minHours)
+        if (self.item.duration.hours < self.model.minHours):
+            self.item.duration = DateTime.TimeDelta(self.model.minHours)
         
         self.PlaceItemOnCalendar()
     
@@ -174,8 +174,8 @@ class ColumnarItem(wxSimpleDrawableObject):
         
     def PlaceItemOnCalendar(self):
         width = self.model.dayWidth
-        height = int(self.item.CalendarDuration.hours * self.model.hourHeight)
-        position = self.model.getPosFromDateTime(self.item.CalendarStartTime)
+        height = int(self.item.duration.hours * self.model.hourHeight)
+        position = self.model.getPosFromDateTime(self.item.startTime)
         bounds = wxRect(position.x, position.y, width, height)
         self.SetBounds(bounds)
         self.SetEditorBounds()

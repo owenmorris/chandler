@@ -25,7 +25,7 @@ class ColumnarItemEditor(wxTextCtrl):
         
     def SetItem(self, drawableItem):
         self.drawableItem = drawableItem
-        self.SetValue(drawableItem.item.CalendarHeadline)
+        self.SetValue(drawableItem.item.headline)
 
         self.OnSize()
 
@@ -51,7 +51,7 @@ class ColumnarItemEditor(wxTextCtrl):
         
     def OnText(self, event):
         if (self.drawableItem):
-            self.drawableItem.item.CalendarHeadline = self.GetValue()
+            self.drawableItem.item.headline = self.GetValue()
                     
     def OnKillFocus(self, event):
         self.ClearItem()

@@ -12,12 +12,12 @@ from mx import DateTime
 class CalendarEventFactory:
     def __init__(self, rep):
         self._container = rep.find("//Calendar")
-        self._kind = rep.find("//Schema/CalendarEvent")
+        self._kind = rep.find("//Schema/CalendarSchema/CalendarEvent")
         
     def NewItem(self):
         item = CalendarEvent(None, self._container, self._kind)
-        item.setAttribute("CalendarStartTime", DateTime.now())
-        item.setAttribute("CalendarEndTime", DateTime.now())
+        item.setAttribute("startTime", DateTime.now())
+        item.setAttribute("endTime", DateTime.now())
 
         return item
 
@@ -28,9 +28,9 @@ class CalendarEvent(Item):
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""
         
-        if (self.hasAttribute('CalendarStartTime') and
-            self.hasAttribute('CalendarEndTime')):
-            return self.CalendarEndTime - self.CalendarStartTime
+        if (self.hasAttribute("startTime") and
+            self.hasAttribute("endTime")):
+            return self.endTime - self.startTime
         else:
             return None
 
@@ -39,10 +39,10 @@ class CalendarEvent(Item):
         
         endTime is updated based on the new duration, startTime remains fixed
         """
-        if (self.CalendarStartTime != None):
-            self.CalendarEndTime = self.CalendarStartTime + dateTimeDelta
+        if (self.startTime != None):
+            self.endTime = self.startTime + dateTimeDelta
 
-    CalendarDuration = property(GetDuration, SetDuration,
+    duration = property(GetDuration, SetDuration,
                                 doc="mxDateTimeDelta: the length of an event")
 
     def ChangeStart(self, dateTime):
@@ -51,9 +51,9 @@ class CalendarEvent(Item):
         Setting startTime directly will effectively change the duration,
         because the endTime is not affected. This method changes the endTime"""
 
-        duration = self.CalendarDuration
-        self.CalendarStartTime = dateTime
-        self.CalendarEndTime = self.CalendarStartTime + duration
+        duration = self.duration
+        self.startTime = dateTime
+        self.endTime = self.startTime + duration
         
     def IsRemote(self):
         return False

@@ -30,8 +30,8 @@ class SimpleTest(unittest.TestCase):
     def testFactoryBasics(self):
         """Test that the basic factory method worked"""
         item = self.factory.NewItem()
-        item.CalendarStartTime
-        item.CalendarEndTime
+        item.startTime
+        item.endTime
         foundItem = self.rep.find(item.getPath())
         self.assert_(foundItem)
         self.assertEqual(foundItem.getUUID(), item.getUUID())
@@ -39,36 +39,36 @@ class SimpleTest(unittest.TestCase):
     def testEventBasics(self):
         """Test basic features of CalendarEvent class"""
         item = self.factory.NewItem()
-        item.setAttribute("CalendarHeadline", "Test Event")
-        self.assertEqual(item.CalendarHeadline, "Test Event")
+        item.setAttribute("headline", "Test Event")
+        self.assertEqual(item.headline, "Test Event")
         self.assertEqual(item.IsRemote(), False)
 
     def testGetDuration(self):
         """Test the duration property, GET"""
         item = self.factory.NewItem()
-        item.CalendarStartTime = DateTime.DateTime(2003, 1, 1, 10)
-        item.CalendarEndTime = DateTime.DateTime(2003, 1, 1, 11, 30)
-        self.assertEqual(item.CalendarDuration, DateTime.DateTimeDelta(0, 1.5))
+        item.startTime = DateTime.DateTime(2003, 1, 1, 10)
+        item.endTime = DateTime.DateTime(2003, 1, 1, 11, 30)
+        self.assertEqual(item.duration, DateTime.DateTimeDelta(0, 1.5))
 
     def testSetDuration(self):
         """Test the duration property, SET"""
         item = self.factory.NewItem()
-        item.CalendarStartTime = DateTime.DateTime(2003, 2, 2, 10)
-        item.CalendarDuration = DateTime.DateTimeDelta(0, 1.5)
-        self.assertEqual(item.CalendarEndTime, 
+        item.startTime = DateTime.DateTime(2003, 2, 2, 10)
+        item.duration = DateTime.DateTimeDelta(0, 1.5)
+        self.assertEqual(item.endTime, 
                          DateTime.DateTime(2003, 2, 2, 11, 30))
 
     def testChangeStartTime(self):
         """Test ChangeStartTime"""
         item = self.factory.NewItem()
-        item.CalendarStartTime = DateTime.DateTime(2003, 3, 3, 10)
-        item.CalendarEndTime = DateTime.DateTime(2003, 3, 3, 11, 30)
-        self.assertEqual(item.CalendarDuration, 
+        item.startTime = DateTime.DateTime(2003, 3, 3, 10)
+        item.endTime = DateTime.DateTime(2003, 3, 3, 11, 30)
+        self.assertEqual(item.duration, 
                          DateTime.DateTimeDelta(0, 1.5))
         item.ChangeStart(DateTime.DateTime(2003, 3, 4, 12, 45))
-        self.assertEqual(item.CalendarDuration, 
+        self.assertEqual(item.duration, 
                          DateTime.DateTimeDelta(0, 1.5))
-        self.assertEqual(item.CalendarStartTime, 
+        self.assertEqual(item.startTime, 
                          DateTime.DateTime(2003, 3, 4, 12, 45))
 
     def tearDown(self):

@@ -237,9 +237,9 @@ class wxMonthViewer(wxSimpleCanvas):
                 dc.SetTextBackground(wxColor(180, 192, 121))
             else:
                 dc.SetTextBackground(wxColor(180, 192, 159))
-            if (item.CalendarStartTime > date and item.CalendarStartTime < nextDay):
+            if (item.startTime > date and item.startTime < nextDay):
                 count += 1
-                monthHeadline = item.CalendarStartTime.Format('%I%p ').lower() + item.CalendarHeadline.replace('\n', ' ')
+                monthHeadline = item.startTime.Format('%I%p ').lower() + item.headline.replace('\n', ' ')
                 #if monthHeadline[0] == '0':
                 dc.DrawText(monthHeadline, x + 5, y + count * 15)
         dc.SetFont(wxFont(8, wxSWISS, wxNORMAL, wxBOLD))

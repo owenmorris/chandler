@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0"?>
 
 <items>
 
 <item>
-  <name>CalendarStartTime</name>
+  <name>startTime</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
   <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
@@ -11,7 +11,7 @@
 </item>
 
 <item>
-  <name>CalendarEndTime</name>
+  <name>endTime</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
   <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
@@ -19,7 +19,7 @@
 </item>
 
 <item>
-  <name>CalendarHeadline</name>
+  <name>headline</name>
   <kind type="path">//Schema/Model/AttrDef</kind>
 
   <ref name="Type" type="path">//Schema/Model/Types/String</ref>  
@@ -27,22 +27,61 @@
 </item>
 
 <item>
+  <name>location</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+
+  <attribute name="Cardinality">set</attribute>
+  <attribute name="OtherName">usedAsLocation</attribute>
+</item>
+
+<item>
+  <name>usedAsLocation</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+  
+  <attribute name="Cardinality">set</attribute>
+  <attribute name="OtherName">location</attribute>
+</item>
+
+<item>
+  <name>locationName</name>
+  <kind type="path">//Schema/Model/AttrDef</kind>
+  
+  <ref name="Type" type="path">//Schema/Model/Types/String</ref>
+  <attribute name="Cardinality">set</attribute>
+</item>
+
+<item>
+  <name>Location</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  
+  <ref name="AttrDefs">
+    <ref name="name" type="path">//Schema/CalendarSchema/locationName</ref>
+  </ref>
+
+  <ref name="SuperKind">
+    <ref type="path">//Schema/Model/Item</ref>
+  </ref>
+
+  <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.Location.Location</attribute>
+
+</item>
+
+<item>
   <name>CalendarEvent</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="AttrDefs">
-    <ref name="CalendarHeadline" type="path">//Schema/CalendarHeadline</ref>
-    <ref name="CalendarStartTime" type="path">//Schema/CalendarStartTime</ref>
-    <ref name="CalendarEndTime" type="path">//Schema/CalendarEndTime</ref>
+    <ref name="headline" type="path">//Schema/CalendarSchema/headline</ref>
+    <ref name="startTime" type="path">//Schema/CalendarSchema/startTime</ref>
+    <ref name="endTime" type="path">//Schema/CalendarSchema/endTime</ref>
+    <ref name="location" type="path">//Schema/CalendarSchema/location</ref>
   </ref>
 
   <ref name="SuperKind">
-    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
-	 type="path">/Model/Item</ref>
+    <ref type="path">//Schema/Model/Item</ref>
   </ref>
 
   <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.CalendarEvent.CalendarEvent</attribute>
-
 </item>
 
 </items>
