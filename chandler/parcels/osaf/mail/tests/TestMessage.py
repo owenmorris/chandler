@@ -151,9 +151,6 @@ This is the body"""
         self.assertEquals(mOne.contentTransferEncoding, mTwo.contentTransferEncoding)
         self.assertEquals(mOne.mimeVersion, mTwo.mimeVersion)
         self.assertEquals(mOne.inReplyTo, mTwo.inReplyTo)
-        ##Need to fix list compare logic
-        #self.assertListEquals(mOne.received, mTwo.received)
-        #self.assertListEquals(mOne.references, mTwo.references)
         self.assertEquals(message.textToStr(mOne.body), message.textToStr(mTwo.body))
         self.assertEquals(message.textToStr(mOne.rfc2822Message), message.textToStr(mTwo.rfc2822Message))
 
@@ -170,9 +167,6 @@ This is the body"""
         self.assertEquals(mOne['Content-Type'], mTwo['Content-Type'])
         self.assertEquals(mOne['Content-Transfer-Encoding'], mTwo['Content-Transfer-Encoding'])
         self.assertEquals(mOne['Mime-Version'], mTwo['Mime-Version'])
-        ## A tab is getting inserted causing to fali need to look in to
-        #self.assertEquals(mOne['Received'], mTwo['Received'])
-        #self.assertEquals(mOne['References'], mTwo['References'])
         self.assertEquals(mOne['In-Reply-To'], mTwo['In-Reply-To'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
 
@@ -237,11 +231,10 @@ This is the body"""
         self.__compareMessageObjects(messageObject, self.__getMessageObject())
 
     def testEmailValidation(self):
-         self.assertEquals(message.isValidEmailAddress(self.__addresses[0]), False)
-         self.assertEquals(message.isValidEmailAddress(self.__addresses[1]), False)
-         self.assertEquals(message.isValidEmailAddress(self.__addresses[2]), False)
-         self.assertEquals(message.isValidEmailAddress(self.__addresses[3]), False)
-         self.assertEquals(message.isValidEmailAddress(self.__addresses[4]), True)
+         self.assertEquals(Mail.EmailAddress.isValidEmailAddress(self.__addresses[1]), False)
+         self.assertEquals(Mail.EmailAddress.isValidEmailAddress(self.__addresses[2]), False)
+         self.assertEquals(Mail.EmailAddress.isValidEmailAddress(self.__addresses[3]), False)
+         self.assertEquals(Mail.EmailAddress.isValidEmailAddress(self.__addresses[4]), True)
 
     def setUp(self):
         super(MessageTest, self).setUp()

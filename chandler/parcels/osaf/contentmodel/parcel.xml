@@ -216,6 +216,10 @@
     <core:Attribute itsName="date">
       <redirectTo>createdOn</redirectTo>
     </core:Attribute>
+
+    <core:Attribute itsName="duration">
+      <core:type itemref="core:DateTime"/>
+    </core:Attribute>
   </core:Kind>
   
   <!-- Conversation -->

@@ -3,8 +3,7 @@
 <Parcel itsName="mail"
              xmlns="http://osafoundation.org/parcels/core"
              xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-             xmlns:mail="http://osafoundation.org/parcels/osaf/mail"
-             xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks">
+             xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
 
   <content:IMAPAccount itsName="IMAPAccountOne">
     <displayName>IMAP</displayName>
@@ -20,28 +19,4 @@
   <content:SMTPAccount itsName="SMTPAccountOne">
     <displayName>SMTP</displayName>
   </content:SMTPAccount>
-
-
-  <task:Task itsName="IMAPMailClient">
-    <task:Schedule itsName="MailSchedule">
-      <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
-      <task:repeatFlag>True</task:repeatFlag>
-      <task:repeatDelay>00:00:00:30</task:repeatDelay>
-    </task:Schedule>
-    <!--task:Action itsName="GetMail" itemClass="osaf.mail.MailTasks.IMAPDownloadAction"/>
-    <task:schedule itemref="mail:IMAPMailClient/MailSchedule"/>
-    <task:actions itemref="mail:IMAPMailClient/GetMail"/-->
-  </task:Task>
-
-
-  <task:Task itsName="SMTPMailClient">
-    <task:Schedule itsName="MailSchedule">
-      <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
-      <task:repeatFlag>True</task:repeatFlag>
-      <task:repeatDelay>00:00:01:00</task:repeatDelay>
-    </task:Schedule>
-    <!--task:Action itsName="sendMail" itemClass="osaf.mail.MailTasks.SMTPSendAction"/>
-    <task:schedule itemref="mail:SMTPMailClient/MailSchedule"/>
-    <task:actions itemref="mail:SMTPMailClient/sendMail"/-->
-  </task:Task>
 </Parcel>

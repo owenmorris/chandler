@@ -7,7 +7,7 @@ import application.Globals as Globals
 import application.Parcel
 import osaf.framework.webdav.Dav
 import osaf.mail.message
-import osaf.mail.imap
+import osaf.contentmodel.mail.Mail as Mail
 from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
@@ -173,7 +173,7 @@ def getWebDavAccount():
 def isMailSetUp():
 
     # Find imap account, and make sure email address is valid
-    imap = osaf.mail.imap.getIMAPAccount()
+    imap = Mail.MailParcel.getIMAPAccount()
     if not imap.emailAddress:
         return False
 

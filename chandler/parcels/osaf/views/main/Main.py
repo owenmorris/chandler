@@ -11,9 +11,10 @@ import os
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
+import osaf.mail.imap
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
-import osaf.mail.imap
+import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
@@ -197,7 +198,7 @@ class MainView(View):
     
         # get default SMTP account
         item = notification.data ['item']
-        account = item.defaultSMTPAccount ()
+        account = Mail.MailParcel.getSMTPAccount()[0]
 
         # put a sending message into the status bar
         self.setStatusMessage ('Sending mail...')
@@ -344,10 +345,10 @@ class MainView(View):
             else:
                 return
 
-        account = osaf.mail.imap.getIMAPAccount()
+        account = Mail.MailParcel.getIMAPAccount()
 
         Globals.repository.commit()
-        osaf.mail.imap.IMAPDownloader (account).getMail()
+        osaf.mail.imap.IMAPDownloader(account).getMail()
         Globals.repository.refresh()
 
     def onLogRepositoryHistoryEvent(self, notification):

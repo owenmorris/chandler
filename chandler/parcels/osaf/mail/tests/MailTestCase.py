@@ -24,7 +24,3 @@ class MailTestCase(RepositoryTestCase.RepositoryTestCase):
         super(MailTestCase, self)._openRepository(self)
 
         Globals.repository = self.rep
-
-        # Notification manager is now needed for Item Collections(?):
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()

@@ -10,60 +10,9 @@ import mx.DateTime as DateTime
 import email as email
 import email.Message as Message
 import email.Utils as Utils
-import re as re
 import common as common
 import logging as logging
 
-"""
-NOTES:
--------
-1. There will be memory / performance problems with very large emails however emails over 10mb's are
-   rare so can deal with optimization at a later date
-"""
-
-
-def isValidEmailAddress(emailAddress):
-    """
-    This method tests an email address for valid syntax as defined RFC 822.
-    The method validates addresses in the form 'John Jones <john@test.com>'
-    and 'john@test.com'
-
-    @param emailAddress: A string containing a email address to validate.
-    @type addr: C{String}
-    @return: C{Boolean}
-    """
-    if not __isString(emailAddress):
-        return False
-
-    #XXX: Strip any name information. i.e. John test <john@test.com>`from the email address
-    emailAddress = Utils.parseaddr(emailAddress)[1]
-
-    return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
-
-def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
-    """
-    This method tests whether two email addresses are the same.
-    Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
-    The method strips off the username and <> brakets if they exist and just compares
-    the actual email addresses for equality. It will not look to see if each
-    address is RFC 822 compliant only that the strings match. Use C{message.isValidEmailAddress}
-    to test for validity.
-
-    @param emailAddressOne: A string containing a email address to compare.
-    @type emailAddressOne: C{String}
-    @param emailAddressTwo: A string containing a email address to compare.
-    @type emailAddressTwo: C{String}
-    @return: C{Boolean}
-    """
-
-    #XXX: There are bugs here because of the weakness of the parseaddr API
-    if not __isString(emailAddressOne) or not __isString(emailAddressTwo):
-        return False
-
-    emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
-    emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
-
-    return emailAddressOne.lower() == emailAddressTwo.lower()
 
 def dateTimeToRFC2882Date(dateTime):
     """Converts a C{mx.DateTime} objedt ot a
@@ -76,28 +25,31 @@ def dateTimeToRFC2882Date(dateTime):
     """
     return Utils.formatdate(dateTime.ticks(), True)
 
-def format_addr(emailAddress):
-    """Formats a sting version of a Chandler EmailAddress instance
-       @param emailAddress: A Chandler EmailAddress instance
-       @type emailAddress: C{Mail.EmailAddress}
-
-       @return: String in the format 'Name <EmailAddress>' if the
-                emailAddress has a name associated of 'EmailAddress'
-                otherwise.
-    """
-
-    if not isinstance(emailAddress, Mail.EmailAddress):
-        return None
-
-    if hasValue(emailAddress.fullName):
-        return emailAddress.fullName + " <" + emailAddress.emailAddress + ">"
-
-    return emailAddress.emailAddress
-
 def createMessageID():
     """Creates a unique message id
        @return: String containing the unique message id"""
     return Utils.make_msgid()
+
+def getToAddressesFromMailMessage(mailMessage):
+    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
+    to_addrs = []
+
+    for address in mailMessage.toAddress:
+        to_addrs.append(address.emailAddress)
+
+    return to_addrs
+
+def getFromAddressFromMailMessage(mailMessage):
+    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
+
+    if mailMessage.replyToAddress is not None:
+        return mailMessage.replyToAddress.emailAddress
+
+    elif mailMessage.fromAddress is not None:
+        return mailMessage.fromAddress.emailAddress
+
+    return None
+
 
 def hasValue(value):
     """
@@ -109,10 +61,8 @@ def hasValue(value):
     @type value: C{String}
     @return: C{Boolean}
     """
-    if __isString(value):
-        test = value.strip()
-        if len(test) > 0:
-            return True
+    if __isString(value) and len(value.strip()) > 0:
+        return True
 
     return False
 
@@ -123,25 +73,20 @@ def isPlainTextContentType(contentType):
 
        @return bool: True if content-type='text/plain'
     """
-    if __isString(contentType):
-        contentType = contentType.lower().strip()
-
-        if contentType == common.MIME_TEXT_PLAIN:
-            return True
+    if __isString(contentType) and contentType.lower().strip() == common.MIME_TEXT_PLAIN:
+        return True
 
     return False
 
 def createChandlerHeader(postfix):
     """Creates a chandler header with postfix provided"""
-    if not hasValue(postfix):
-        return None
+    assert hasValue(postfix), "You must pass a String"
 
     return common.CHANDLER_HEADER_PREFIX + postfix
 
 def isChandlerHeader(header):
     """Returns true if the header is Chandler defined header"""
-    if not hasValue(header):
-        return False
+    assert hasValue(header), "You must pass a String"
 
     if header.startswith(common.CHANDLER_HEADER_PREFIX):
         return True
@@ -158,8 +103,7 @@ def messageTextToKind(messageText):
     @return: C{Mail.MailMessage}
     """
 
-    if not isinstance(messageText, str):
-        raise TypeError("messageText must be a String")
+    assert isinstance(messageText, str), "messageText must be a String"
 
     return messageObjectToKind(email.message_from_string(messageText), messageText)
 
@@ -173,21 +117,17 @@ def messageObjectToKind(messageObject, messageText=None):
     @return: C{Mail.MailMessage}
     """
 
-    if not isinstance(messageObject, Message.Message):
-        raise TypeError("messageObject must be a Python email.Message.Message instance")
+    assert isinstance(messageObject, Message.Message), "messageObject must be a Python email.Message.Message instance"
 
     m = Mail.MailMessage()
 
-    if messageText is None or type(messageText) != str:
+    assert m is not None, "Repository returned a MailMessage that was None"
+
+    if messageText is None:
         messageText = messageObject.as_string()
 
     # Save the original message text in a text blob
     m.rfc2822Message = strToText(m, "rfc2822Message", messageText)
-
-    # XXX: Will ned to manually extract the received header and references
-
-    if m is None:
-        raise TypeError("Repository returned a MailMessage that was None")
 
     date = messageObject['Date']
 
@@ -199,7 +139,7 @@ def messageObjectToKind(messageObject, messageText=None):
             if __debug__:
                 logging.warn("Message contains a Non-RFC Compliant Date format")
 
-            m.dateSent = common.getEmptyDate() 
+            m.dateSent = common.getEmptyDate()
 
         else:
             m.dateSent = DateTime.mktime(parsed)
@@ -208,7 +148,7 @@ def messageObjectToKind(messageObject, messageText=None):
         del messageObject['Date']
 
     else:
-        m.dateSent = common.getEmptyDate() 
+        m.dateSent = common.getEmptyDate()
         m.dateSentString = ""
 
     m.dateReceived = DateTime.now()
@@ -276,11 +216,11 @@ def kindToMessageObject(mailMessage):
 
     @param messageObject: A C{email.Message} object representation of a mail message
     @type messageObject: C{email.Message}
-    @return: C{Mail.MailMessage}
+
+    @return: C{Message.Message}
     """
 
-    if not isinstance(mailMessage, Mail.MailMessageMixin):
-        raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
+    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
 
     #XXX: To do figure out in relpy to / recieved  / references logic
     messageObject = Message.Message()
@@ -308,11 +248,15 @@ def kindToMessageObject(mailMessage):
     if len(mailMessage.received) > 0:
         messageObject['Received'] = " ".join(mailMessage.received)
 
-    for (key, val) in mailMessage.chandlerHeaders:
-        messageObject[key] = val
+    keys = mailMessage.chandlerHeaders.keys()
 
-    for (key, val) in mailMessage.additionalHeaders:
-        messageObject[key] = val
+    for key in keys:
+        messageObject[key] = mailMessage.chandlerHeaders[key]
+
+    keys = mailMessage.additionalHeaders.keys()
+
+    for key in keys:
+        messageObject[key] = mailMessage.additionalHeaders[key]
 
     try:
         payload = mailMessage.body
@@ -329,7 +273,7 @@ def kindToMessageObject(mailMessage):
 
     for address in mailMessage.toAddress:
         if hasValue(address.emailAddress):
-            to.append(format_addr(address))
+            to.append(Mail.EmailAddress.format(address))
 
     if len(to) > 0:
         messageObject['To'] = ", ".join(to)
@@ -338,7 +282,7 @@ def kindToMessageObject(mailMessage):
 
     for address in mailMessage.ccAddress:
         if hasValue(address.emailAddress):
-            cc.append(format_addr(address))
+            cc.append(Mail.EmailAddress.format(address))
 
     if len(cc) > 0:
         messageObject['Cc'] = ", ".join(cc)
@@ -347,7 +291,7 @@ def kindToMessageObject(mailMessage):
 
     for address in mailMessage.bccAddress:
         if hasValue(address.emailAddress):
-             bcc.append(format_addr(address))
+             bcc.append(Mail.EmailAddress.format(address))
 
     if len(bcc) > 0:
         messageObject['Bcc'] = ", ".join(bcc)
@@ -355,22 +299,28 @@ def kindToMessageObject(mailMessage):
     return messageObject
 
 
-def kindToMessageText(mailMessage):
+def kindToMessageText(mailMessage, saveMessage=True):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
 
     @param messageObject: A C{email.Message} object representation of a mail message
     @type messageObject: C{email.Message}
-    @return: C{Mail.MailMessage}
+    @param saveMessage: save the message text converted from the C{email.Message} in the mailMessage.rfc2882Message
+                        attribute
+    @type saveMessage: C{Boolean}
+    @return: C{str}
     """
 
-    if not isinstance(mailMessage, Mail.MailMessageMixin):
-        raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
-
+    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
     messageObject = kindToMessageObject(mailMessage)
 
-    return messageObject.as_string()
+    messageText = messageObject.as_string()
+
+    if saveMessage:
+        mailMessage.rfc2882Message = strToText(mailMessage, "rfc2822Message", messageText)
+
+    return messageText
 
 
 def strToText(contentItem, attribute, string):
@@ -384,8 +334,7 @@ def strToText(contentItem, attribute, string):
 
 def textToStr(text):
     """Converts a C{Text} to a C{str}"""
-    if not isinstance(text, XMLRepositoryView.XMLText):
-        return False
+    assert isinstance(text, XMLRepositoryView.XMLText), "Must pass a XMLRepositoryView.XMLText instance"
 
     reader = text.getReader()
     string = reader.read()
@@ -395,8 +344,7 @@ def textToStr(text):
 
 def getMailMessage(UUID):
     """Returns a C{MailMessage} from its C{UUID}"""
-    if not isinstance(UUID, UUID.UUID):
-        return None
+    assert isinstance(UUID, UUID.UUID), "Must pass a UUID.UUID object"
 
     mailMessageKind = Mail.MailParcel.getMailMessageKind()
     return Mail.mailMessageKind.findUUID(UUID)
@@ -410,7 +358,7 @@ def __populateParam(messageObject, param, var, type='String'):
 
     elif(type == 'EmailAddress'):
         if var is not None and hasValue(var.emailAddress):
-            messageObject[param] = format_addr(var)
+            messageObject[param] = Mail.EmailAddress.format(var)
 
 
 def __assignToKind(kindVar, messageObject, key, type, attr = None):
@@ -434,8 +382,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
             # Use any existing EmailAddress, but don't update them
             #  because that will cause the item to go stale in the UI thread.
-            ea = Mail.EmailAddress.getEmailAddress(addr[1],
-                                                   **keyArgs)
+            ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
 
             if ea is not None:
                 setattr(kindVar, attr, ea)
@@ -452,8 +399,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
                 # Use any existing EmailAddress, but don't update them
                 #  because that will cause the item to go stale in the UI thread.
-                ea = Mail.EmailAddress.getEmailAddress(addr[1],
-                                                       **keyArgs)
+                ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
                 if ea is not None:
                     kindVar.append(ea)
 
@@ -469,7 +415,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
         logging.error("in osaf.mail.message.__assignToKind: KEY ERROR")
 
 def __isString(var):
-    if isinstance(var, str) or isinstance(var, unicode):
+    if isinstance(var, (str, unicode)):
         return True
 
     return False

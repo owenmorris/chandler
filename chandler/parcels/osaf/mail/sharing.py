@@ -1,26 +1,18 @@
-import twisted.mail.smtp as smtp
 import application.Globals as Globals
 import twisted.internet.reactor as reactor
-import twisted.internet.error as error
 import twisted.internet.defer as defer
 import twisted.internet.ssl as ssl
 import email.Message as Message
 import logging as logging
 import smtp as smtp
 import common as common
-import errors as errorCode
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
-import repository.persistence.RepositoryView as RepositoryView
+import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import chandlerdb.util.UUID as UUID
 import mx.DateTime as DateTime
 import osaf.framework.sharing as chandlerSharing
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
+import cStringIO as StringIO
 
 def receivedInvitation(url, collectionName, fromAddress):
     """
@@ -33,22 +25,13 @@ def receivedInvitation(url, collectionName, fromAddress):
        @type collectionName: C{str}
 
        @param fromAddress: The email address of the person sending the invite
-       @type: C{str} or C{EmailAddress}
+       @type: C{str}
     """
-    if not isinstance(url, str):
-        raise SharingException("URL must be a String")
-
-    if not isinstance(collectionName, str):
-        raise SharingException("collectionName must be a String")
-
-    if isinstance(fromAddress, Mail.EmailAddress):
-        fromAddress = message.format_addr(fromAddress)
-
-    elif not isinstance(fromAddress, str):
-        raise SharingException("fromAddress must be a String or a Mail.EmailAddress")
+    assert isinstance(url, str), "URL must be a String"
+    assert isinstance(collectionName, str), "collectionName must be a String"
+    assert isinstance(fromAddress, str), "fromAddress  must be a String"
 
     chandlerSharing.Sharing.announceSharingInvitation(url.strip(), collectionName.strip(), fromAddress.strip())
-
 
 def sendInvitation(url, collectionName, sendToList):
     """Sends a sharing invitation via SMTP to a list of recipients
@@ -64,42 +47,20 @@ def sendInvitation(url, collectionName, sendToList):
     """
     SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
 
-def NotifyUIAsync(message, **keys):
-    """Temp method for posting a event to the CPIA layer. This
-       method will be refactored soon"""
-    if Globals.wxApplication is not None: # test framework has no wxApplication
-        Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
-                                                  'setStatusMessage',
-                                                   message, **keys)
 
-class SharingConstants(object):
-    """Contants used by the sharing code"""
-    SHARING_HEADER  = "Sharing-URL"
-    SHARING_DIVIDER = ";"
-
-class SharingException(Exception):
-    """Base class for all Chqndler Sharing related exceptions"""
-    pass
-
-class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
+class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends an invitation via SMTP. Use the osaf.mail.sharing.sendInvitation
        method do not call this class directly"""
 
     def __init__(self, url, collectionName, sendToList, account=None):
-        if account is not None and not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
-            raise SharingException("You must pass a SMTPAccount instance")
 
-        if not isinstance(url, str):
-            raise SharingException("URL must be a String")
+        assert isinstance(url, str), "URL must be a String"
+        assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
 
         if isinstance(collectionName, unicode):
             collectionName = str(collectionName)
 
-        elif not isinstance(collectionName, str):
-            raise SharingException("collectionName must be a String or Unicode")
-
-        if not isinstance(sendToList, list):
-            raise SharingException("sendToList must be of a list of email addresses")
+        assert isinstance(collectionName, str), "collectionName must be a String or Unicode"
 
         viewName = "SMTPInvitationSender_%s" % str(UUID.UUID())
 
@@ -111,66 +72,53 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         self.collectionName = collectionName
         self.sendToList = sendToList
         self.accountUUID = None
-        self.factory = None
 
         if account is not None:
-            self.accountUUID = account.itsUUID
+             self.accountUUID = account.itsUUID
 
     def sendInvitation(self):
         if __debug__:
             self.printCurrentView("sendInvitation")
 
-        reactor.callFromThread(self.__sendInvitation)
+        reactor.callFromThread(self.execInView, self.__sendInvitation)
 
     def __sendInvitation(self):
-        self.setViewCurrent()
 
-        try:
-            if __debug__:
-                self.printCurrentView("__sendInvitation")
+        if __debug__:
+            self.printCurrentView("__sendInvitation")
 
-            self.__getData()
+        self.__getData()
 
+        username     = None
+        password     = None
+        authRequired = False
+        sslContext   = None
+        heloFallback = True
+
+        if self.account.useAuth:
             username     = self.account.username
             password     = self.account.password
-            host         = self.account.host
-            port         = self.account.port
-            useSSL       = self.account.useSSL
-            useAuth      = self.account.useAuth
-            retries      = self.account.numRetries
             authRequired = True
-            sslContext   = None
             heloFallback = False
 
-            if not useAuth:
-                authRequired = False
-                heloFallback = True
-                username     = None
-                password     = None
+        if self.account.useSSL:
+            sslContext = ssl.ClientContextFactory(useM2=1)
 
-            if useSSL:
-                sslContext = ssl.ClientContextFactory(useM2=1)
+        messageText = self.__createMessageText()
 
-            messageText = self.__createMessageText()
+        d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
+        msg = StringIO.StringIO(messageText)
 
-            d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
-            msg = StringIO(messageText)
+        factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr,
+                                                  self.sendToList, msg, d, self.account.numRetries, common.TIMEOUT,
+                                                  sslContext, heloFallback, authRequired,
+                                                  self.account.useSSL)
 
-        finally:
-            self.restorePreviousView()
-
-        self.factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr,
-                                                       self.sendToList, msg, d, retries,
-                                                       sslContext, heloFallback, authRequired, 
-                                                       useSSL, useSSL)
-
-        reactor.connectTCP(host, port, self.factory)
+        reactor.connectTCP(self.account.host, self.account.port, factory)
 
     def __invitationSuccessCheck(self, result):
         if __debug__:
             self.printCurrentView("__invitationSuccessCheck")
-
-        self.factory.done = True
 
         if result[0] == len(result[1]):
             addrs = []
@@ -187,26 +135,21 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
                 email, code, str = recipient
 
                 """If the recipient was accepted skip"""
-                if code == smtp.SMTPConstants.SUCCESS:
+                if code == common.SMTPConstants.SUCCESS:
                     continue
 
-                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName, 
+                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName,
                                                                                self.url, 
                                                                                email, code, str)
                 errorText.append(e)
 
             err = '\n'.join(errorText)
 
-            self.log.error(err)
-            NotifyUIAsync(_(err), alert=True)
-
-        self.__cleanup()
+            common.NotifyUIAsync(_(err), self.log.error, alert=True)
 
     def __invitationFailure(self, result):
         if __debug__:
             self.printCurrentView("__invitationFailure")
-
-        self.factory.done = True
 
         try:
             desc = result.value.resp
@@ -215,19 +158,11 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
 
         e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url,
                                                              desc)
-        self.log.error(e)
-        NotifyUIAsync(e, alert=True)
-        self.__cleanup()
 
-    def __cleanup(self):
-        self.account = None
-        self.url = None
-        self.collectionName = None
-        self.from_addr = None
-        self.sendToList = None
+        common.NotifyUIAsync(e, self.log.error, alert=True)
 
     def __createMessageText(self):
-        sendStr = "%s%s%s" % (self.url, SharingConstants.SHARING_DIVIDER, self.collectionName)
+        sendStr = "%s%s%s" % (self.url, common.SharingConstants.SHARING_DIVIDER, self.collectionName)
 
         messageObject = common.getChandlerTransportMessage()
         messageObject[getChandlerSharingHeader()] = sendStr
@@ -239,10 +174,10 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         return messageObject.as_string()
 
     def __getData(self):
-        """If accountUUID is None will return the first SMTPAccount found""" 
-        self.account, replyToAddress = smtp.getSMTPAccount(self.accountUUID)
+        """If accountUUID is None will return the first SMTPAccount found"""
+        self.account, replyToAddress = Mail.MailParcel.getSMTPAccount(self.accountUUID)
         self.from_addr = replyToAddress.emailAddress
 
 
 def getChandlerSharingHeader():
-    return message.createChandlerHeader(SharingConstants.SHARING_HEADER)
+    return message.createChandlerHeader(common.SharingConstants.SHARING_HEADER)

@@ -5,15 +5,18 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains common functionality shared across the Mail Domain (SMTP, IMAP4, POP3) """
 
+#XXX: This is a bad import in the GUI layer. Will remove when notifications figured out
+import application.Globals as Globals
 
 import email as email
 import email.Message as Message
 import email.Utils as Utils
 import mx.DateTime as DateTime
+import version
 
-CHANDLER_USERAGENT = "Chandler/.4B Release"
+CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
-ATTACHMENT_BODY_WARNING = "\tThe body of this message consists of Multiple Mime Parts.\n\tFor .4B Chandler does not support MIME Parts"
+ATTACHMENT_BODY_WARNING = "\tThe body of this message consists of Multiple Mime Parts.\n\t%s does not support MIME Parts" % CHANDLER_USERAGENT
 
 """MIME TYPE SPECS"""
 
@@ -25,10 +28,14 @@ MIME_SECURITY = ["encrypted", "signed"]
 MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "digest"]
 
 DATE_IS_EMPTY = -57600
+TIMEOUT = 60
 
-class MailException(Exception):
-    """Base class for all Chandler mail related exceptions"""
-    pass
+class SharingConstants:
+    SHARING_HEADER  = "Sharing-URL"
+    SHARING_DIVIDER = ";"
+
+class SMTPConstants:
+    SUCCESS = 250
 
 def getChandlerTransportMessage():
     """Returns the skeleton of a mail message populated with the subject
@@ -42,9 +49,7 @@ This message is used for Chandler to Chandler communication and is
 not intended to be viewed by the user. Please do not delete this message
 as Chandler will manage this email automatically for you.
 """
-
     return email.message_from_string(message)
-
 
 def getEmptyDate():
     """Returns a DateTime object set to 0 ticks.
@@ -83,3 +88,13 @@ def disableTwistedTLS(items):
     return items
 
 
+def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
+    """Temp method for posting a event to the CPIA layer. This
+       method will be refactored soon"""
+
+    if logger is not None:
+        logger(message)
+
+    if Globals.wxApplication is not None: # test framework has no wxApplication
+        Globals.wxApplication.CallItemMethodAsync(Globals.mainView, callable,
+                                                   message, **keys)

@@ -14,8 +14,29 @@ import application.Globals as Globals
 import repository.query.Query as Query
 import repository.item.Query as ItemQuery
 import chandlerdb.util.UUID as UUID
+import email.Utils as Utils
+import re as re
 
 from repository.util.Path import Path
+
+"""
+   Notes:
+      1. if message is marked already as inbound do not sent
+      2. Need to revisit inbound outbound logic
+      3. What should and should not be in this layer (Meeting with CPIA and Service Team)
+      4. Seems like email address logic is not performant
+      5. If not moving email logic here then
+         create address api class to handle all email address
+         parsing and look up
+
+Design Issues:
+      1. Is account type really needed
+      2. Is delivery type really needed
+      3. Is tries really needed
+      4. Are the specific headers really needed or can we just lookup (Save space)
+      5. Date sent string could probally be gotten rid of
+      6. Can isOutbound isInbound can be replaced by the collection it is in
+"""
 
 
 class MailParcel(application.Parcel.Parcel):
@@ -26,20 +47,20 @@ class MailParcel(application.Parcel.Parcel):
         repository = self.itsView
         itemKind = repository.findPath('//Schema/Core/Item')
         contentitemsPath = ContentModel.ContentModel.contentitemsPath
-        
+
         def makeContainer(parent, name, child):
             if child is None:
                 return itemKind.newItem(name, parent)
             else:
                 return child
-        
+
         repository.walk(Path(contentitemsPath, 'inboundMailItems'),
                         makeContainer)
         repository.walk(Path(contentitemsPath, 'outboundMailItems'),
                         makeContainer)
-            
+
         self._setUUIDs()
-        
+
     def getMailItemParent(cls, inbound=False):
 
         parent = ContentModel.ContentModel.getContentItemParent()
@@ -65,6 +86,7 @@ class MailParcel(application.Parcel.Parcel):
         MailParcel.smtpAccountKindID = smtpAccountKind.itsUUID
 
         mailDeliveryErrorKind = self['MailDeliveryError']
+
         MailParcel.mailDeliveryErrorKindID = mailDeliveryErrorKind.itsUUID
 
         mailDeliveryBaseKind = self['MailDeliveryBase']
@@ -217,13 +239,100 @@ class MailParcel(application.Parcel.Parcel):
     mimeSecurityKindID = None
     emailAddressKindID = None
 
+
+    def getSMTPAccount(cls, UUID=None):
+        """
+            This method returns a tuple containing:
+            1. An C{SMTPAccount} account in the Repository.
+            2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
+               parent which will either be a POP or IMAP Acccount.
+
+        The method will throw a C{SMTPException} if:
+        1. No C{SMTPAccount} in the Repository
+        2. No parent account associated with the C{SMTPAccount}
+        3. The replyToAddress of the parent account is None
+
+        @param UUID: The C{UUID} of the C{SMTPAccount}. If no C{UUID} passed will return
+                     the default (first) C{SMTPAccount}
+        @type UUID: C{UUID}
+        @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
+        """
+
+        accountKind = MailParcel.getSMTPAccountKind()
+        account = None
+        replyToAddress = None
+
+        if UUID is not None:
+            assert isinstance(UUID.UUID), "The UUID argument must be of type UUID.UUID"
+            account = accountKind.findUUID(UUID)
+
+        else:
+            """Get the first SMTP Account"""
+            for acc in ItemQuery.KindQuery().run([accountKind]):
+                account = acc
+                if account.isDefault:
+                    break
+
+        assert account is not None, "No SMTP Account found"
+
+        accList = account.accounts
+
+        assert accList is not None, "No Parent Accounts associated with the SMTP account. Can not get replyToAddress."
+
+        """Get the first IMAP Account"""
+        for parentAccount in accList:
+            replyToAddress = parentAccount.replyToAddress
+            break
+
+        assert replyToAddress is not None, "No replyToAddress found for IMAP Account"
+
+        return(account, replyToAddress)
+
+    getSMTPAccount = classmethod(getSMTPAccount)
+
+    def getIMAPAccount(cls, UUID=None):
+        """
+        This method returns a C{IMAPAccount} in the Repository. If UUID is not
+        None will try and retrieve the C{IMAPAccount} that has the UUID passed.
+        Otherwise the method will try and retrieve the first C{IMAPAccount}
+        found in the Repository.
+
+        It will throw a C{IMAPException} if there is either no C{IMAPAccount}
+        matching the UUID passed or if there is no C{IMAPAccount}
+        at all in the Repository.
+
+        @param UUID: The C{UUID} of the C{IMAPAccount}. If no C{UUID} passed will return
+                 the first C{IMAPAccount}
+        @type UUID: C{UUID}
+        @return C{IMAPAccount}
+        """
+
+        accountKind = MailParcel.getIMAPAccountKind()
+        account = None
+
+        if UUID is not None:
+            account = accountKind.findUUID(UUID)
+
+        else:
+            for acc in ItemQuery.KindQuery().run([accountKind]):
+                account = acc
+                if account.isDefault:
+                    break
+
+        assert account is not None, "No IMAP Account exists in Repository"
+
+        return account
+
+    getIMAPAccount = classmethod(getIMAPAccount)
+
+
 class AccountBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getAccountBaseKind()
-        super (AccountBase, self).__init__(name, parent, kind)
+        super(AccountBase, self).__init__(name, parent, kind)
 
 class SMTPAccount(AccountBase):
     def __init__(self, name=None, parent=None, kind=None):
@@ -231,8 +340,10 @@ class SMTPAccount(AccountBase):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getSMTPAccountKind()
-        super (SMTPAccount, self).__init__(name, parent, kind)
+        super(SMTPAccount, self).__init__(name, parent, kind)
 
+
+        #XXX: Is account type really needed
         self.accountType = "SMTP"
 
 class IMAPAccount(AccountBase):
@@ -241,8 +352,9 @@ class IMAPAccount(AccountBase):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getIMAPAccountKind()
-        super (IMAPAccount, self).__init__(name, parent, kind)
+        super(IMAPAccount, self).__init__(name, parent, kind)
 
+        #XXX: Is account type really needed
         self.accountType = "IMAP"
 
 
@@ -252,7 +364,7 @@ class MailDeliveryError(Item.Item):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailDeliveryErrorKind()
-        super (MailDeliveryError, self).__init__(name, parent, kind)
+        super(MailDeliveryError, self).__init__(name, parent, kind)
 
     def __str__(self):
         if self.isStale():
@@ -268,41 +380,32 @@ class MailDeliveryBase(Item.Item):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailDeliveryBaseKind()
-        super (MailDeliveryBase, self).__init__(name, parent, kind)
+        super(MailDeliveryBase, self).__init__(name, parent, kind)
 
 
 class SMTPDelivery(MailDeliveryBase):
-    """
-    SMTP Delivery Notification Class
-    Some of these methods are called from Twisted, some from 
-    the UI Thread.
-    """
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getSMTPDeliveryKind()
-        super (SMTPDelivery, self).__init__(name, parent, kind)
+        super(SMTPDelivery, self).__init__(name, parent, kind)
 
+
+        #XXX: Is account type really needed
         self.deliveryType = "SMTP"
         self.state = "DRAFT"
 
-    #XXX: Will want to expand state to an object with error or sucess code 
-    #     desc string, and date
     def sendFailed(self):
         """
           Called from the Twisted thread to log errors in Send.
         """
         self.history.append("FAILED")
         self.state = "FAILED"
+
+        #XXX: Not sure we need this
         self.tries += 1
 
-        # announce to the UI thread that an error occurred
-        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
-                                                   'displaySMTPSendError',
-                                                   self.mailMessage)
-
-    #XXX: See comments above
     def sendSucceeded(self):
         """
           Called from the Twisted thread to log successes in Send.
@@ -311,11 +414,6 @@ class SMTPDelivery(MailDeliveryBase):
         self.state = "SENT"
         self.tries += 1
 
-        # announce to the UI thread that an error occurred
-        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
-                                                   'displaySMTPSendSuccess',
-                                                   self.mailMessage)
-
 
 class IMAPDelivery(MailDeliveryBase):
     def __init__(self, name=None, parent=None, kind=None):
@@ -323,7 +421,8 @@ class IMAPDelivery(MailDeliveryBase):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getIMAPDeliveryKind()
-        super (IMAPDelivery, self).__init__(name, parent, kind)
+
+        super(IMAPDelivery, self).__init__(name, parent, kind)
 
         self.deliveryType = "IMAP"
 
@@ -333,7 +432,8 @@ class MIMEBase(Item.Item):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEBaseKind()
-        super (MIMEBase, self).__init__(name, parent, kind)
+
+        super(MIMEBase, self).__init__(name, parent, kind)
 
 class MIMENote(Notes.Note, MIMEBase):
     def __init__(self, name=None, parent=None, kind=None):
@@ -341,7 +441,8 @@ class MIMENote(Notes.Note, MIMEBase):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMENoteKind()
-        super (MIMENote, self).__init__(name, parent, kind)
+
+        super(MIMENote, self).__init__(name, parent, kind)
 
 class MIMEContainer(MIMEBase):
     def __init__(self, name=None, parent=None, kind=None):
@@ -349,7 +450,8 @@ class MIMEContainer(MIMEBase):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEContainerKind()
-        super (MIMEContainer, self).__init__(name, parent, kind)
+
+        super(MIMEContainer, self).__init__(name, parent, kind)
 
 class MailMessageMixin(MIMEContainer):
     """
@@ -361,19 +463,20 @@ class MailMessageMixin(MIMEContainer):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailMessageMixinKind()
-        super (MailMessageMixin, self).__init__(name, parent, kind)
+
+        super(MailMessageMixin, self).__init__(name, parent, kind)
 
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
         try:
-            super(MailMessageMixin, self).InitOutgoingAttributes ()
+            super(MailMessageMixin, self).InitOutgoingAttributes()
         except AttributeError:
             pass
-        MailMessageMixin._initMixin (self) # call our init, not the method of a subclass
+        MailMessageMixin._initMixin(self) # call our init, not the method of a subclass
 
-    def _initMixin (self):
+    def _initMixin(self):
         """ 
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
@@ -382,39 +485,39 @@ class MailMessageMixin(MIMEContainer):
 
         # default the fromAddress to any super class "whoFrom" definition
         try:
-            self.fromAddress = self.getAnyWhoFrom ()
+            self.fromAddress = self.getAnyWhoFrom()
         except AttributeError:
             pass # no from address
 
         # default the toAddress to any super class "who" definition
         try:
             # need to shallow copy the list
-            self.toAddress = self.getAnyWho ()
+            self.toAddress = self.getAnyWho()
         except AttributeError:
             pass
 
         # default the subject to any super class "about" definition
         try:
-            self.subject = self.getAnyAbout ()
+            self.subject = self.getAnyAbout()
         except AttributeError:
             pass
 
         self.outgoingMessage() # default to outgoing message
 
-    def getAnyAbout (self):
+    def getAnyAbout(self):
         """
         Get any non-empty definition for the "about" attribute.
         """
         try:
-            subject = self.subject
             # don't bother returning our default: an empty string 
-            if subject:
-                return subject
+            if self.subject:
+                return self.subject
+
         except AttributeError:
             pass
-        return super (MailMessageMixin, self).getAnyAbout ()
-    
-    def getAnyWho (self):
+        return super(MailMessageMixin, self).getAnyAbout()
+
+    def getAnyWho(self):
         """
         Get any non-empty definition for the "who" attribute.
         """
@@ -422,9 +525,10 @@ class MailMessageMixin(MIMEContainer):
             return self.toAddress
         except AttributeError:
             pass
-        return super (MailMessageMixin, self).getAnyWho ()
-    
-    def getAnyWhoFrom (self):
+
+        return super(MailMessageMixin, self).getAnyWho()
+
+    def getAnyWhoFrom(self):
         """
         Get any non-empty definition for the "whoFrom" attribute.
         """
@@ -432,63 +536,55 @@ class MailMessageMixin(MIMEContainer):
             return self.fromAddress
         except AttributeError:
             pass
-        return super (MailMessageMixin, self).getAnyWhoFrom ()
 
-    def defaultSMTPAccount (self):
-        import osaf.mail.smtp as smtp
+        return super(MailMessageMixin, self).getAnyWhoFrom()
 
-        try:
-            account, replyAddress = smtp.getSMTPAccount ()
-        except:
-            account = None
-        return account
+
 
     def outgoingMessage(self, type="SMTP", account=None):
-        if type != "SMTP":
-            raise TypeError("Only SMTP currently supported")
+        assert type == "SMTP", "Only SMTP currently supported"
 
         if account is None:
-            account = self.defaultSMTPAccount ()
+            account, replyAddress = MailParcel.getSMTPAccount()
 
-        #XXX:SAdd test to make sure it is an item
-        elif not account.isItemOf(MailParcel.getSMTPAccountKind()):
-            raise TypeError("Only SMTP Accounts Supported")
+        assert account.isItemOf(MailParcel.getSMTPAccountKind()), "Only SMTP Accounts Supported"
 
-        self.deliveryExtension = SMTPDelivery()
+        if self.deliveryExtension is None:
+            self.deliveryExtension = SMTPDelivery()
+
         self.isOutbound = True
         self.parentAccount = account
 
     def incomingMessage(self, type="IMAP", account=None):
-        if type != "IMAP":
-            raise TypeError("Only IMAP currently supported")
+        assert type == "IMAP", "Only IMAP currently supported"
 
         if account is None:
-            import osaf.mail.imap as imap
-            account = imap.getIMAPAccount ()
+            account = MailParcel.getIMAPAccount()
 
-        #XXX:SAdd test to make sure it is an item
-        elif not account.isItemOf(MailParcel.getIMAPAccountKind()):
-            raise TypeError("Only IMAP Accounts Supported")
+        assert account.isItemOf(MailParcel.getIMAPAccountKind()), "Only IMAP Accounts Supported"
 
-        self.deliveryExtension = IMAPDelivery()
+        if self.deliveryExtension is None:
+            self.deliveryExtension = IMAPDelivery()
+
         self.isInbound = True
         self.parentAccount = account
 
-    def shareSend (self):
+    def shareSend(self):
         """
-          Share this item, or Send if it's an Email
+        Share this item, or Send if it's an Email
         We assume we want to send this MailMessage here.
         """
         # message the main view to do the work
-        targetView = self.itsView.findPath ('//parcels/osaf/views/main/MainView')
-        targetView.PostEventByName ('SendMail', {'item': self})
+        targetView = self.itsView.findPath('//parcels/osaf/views/main/MainView')
+        targetView.PostEventByName('SendMail', {'item': self})
 
 class MailMessage(MailMessageMixin, Notes.Note):
-    
+
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()
-        super (MailMessage, self).__init__(name, parent, kind)
+
+        super(MailMessage, self).__init__(name, parent, kind)
 
 class MIMEBinary(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):
@@ -496,7 +592,8 @@ class MIMEBinary(MIMENote):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEBinaryKind()
-        super (MIMEBinary, self).__init__(name, parent, kind)
+
+        super(MIMEBinary, self).__init__(name, parent, kind)
 
 class MIMEText(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):
@@ -504,7 +601,8 @@ class MIMEText(MIMENote):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMETextKind()
-        super (MIMEText, self).__init__(name, parent, kind)
+
+        super(MIMEText, self).__init__(name, parent, kind)
 
 
 class MIMESecurity(MIMEContainer):
@@ -513,7 +611,8 @@ class MIMESecurity(MIMEContainer):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMESecurityKind()
-        super (MIMESecurity, self).__init__(name, parent, kind)
+
+        super(MIMESecurity, self).__init__(name, parent, kind)
 
 class EmailAddress(Item.Item):
     def __init__(self, name=None, parent=None, kind=None, clone=None):
@@ -521,7 +620,8 @@ class EmailAddress(Item.Item):
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getEmailAddressKind()
-        super (EmailAddress, self).__init__(name, parent, kind)
+
+        super(EmailAddress, self).__init__(name, parent, kind)
 
         # copy the attributes if a clone was supplied
         if clone is not None:
@@ -534,7 +634,7 @@ class EmailAddress(Item.Item):
             except AttributeError:
                 pass
 
-    def __str__ (self):
+    def __str__(self):
         """
           User readable string version of this address
         """
@@ -542,20 +642,21 @@ class EmailAddress(Item.Item):
             return super(EmailAddress, self).__str__()
             # Stale items shouldn't go through the code below
 
-        if self is self.getCurrentMeEmailAddress():
-            fullName = 'me'
-        else:
-            try:
+        try:
+            if self is self.getCurrentMeEmailAddress():
+                fullName = 'me'
+            else:
                 fullName = self.fullName
-            except AttributeError:
-                fullName = ''
-        if fullName is not None and len (fullName) > 0:
+        except AttributeError:
+            fullName = ''
+
+        if fullName is not None and len(fullName) > 0:
             if self.emailAddress:
                 return fullName + ' <' + self.emailAddress + '>'
             else:
                 return fullName
         else:
-            return self.getItemDisplayName ()
+            return self.getItemDisplayName()
 
         """
         Factory Methods
@@ -568,17 +669,17 @@ class EmailAddress(Item.Item):
         gets a reasonable emailaddress filled in when a send is done.
         This code needs to be reworked!
         """
-        
-    def getEmailAddress (cls, nameOrAddressString, fullName=''):
+
+    def getEmailAddress(cls, nameOrAddressString, fullName=''):
         """
           Lookup or create an EmailAddress based on the supplied string.
         If a matching EmailAddress object is found in the repository, it
         is returned.  If there is no match, then a new item is created
-        and returned.  
+        and returned.
         There are two ways to call this method:
             1) with something the user typed in nameOrAddressString, which
                  will be parsed, and no fullName is needed
-            2) with an plain email address in the nameOrAddressString, and a 
+            2) with an plain email address in the nameOrAddressString, and a
                  full name in the fullName field
         If a match is found for both name and address then it will be used.
         If there is no name specified, a match on address will be returned.
@@ -594,37 +695,35 @@ class EmailAddress(Item.Item):
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
                not a valid email address.
         """
-        import osaf.mail.message as message # avoid circularity
-
         # @@@DLD remove when we better sort out creation of "me" address w/o an account setup
         if nameOrAddressString is None:
             nameOrAddressString = ''
 
         # strip the address string of whitespace and question marks
-        address = nameOrAddressString.strip ().strip ('?')
+        address = nameOrAddressString.strip ().strip('?')
 
         # check for "me"
         if address == 'me':
-            return cls.getCurrentMeEmailAddress ()
+            return cls.getCurrentMeEmailAddress()
 
         # if no fullName specified, parse apart the name and address if we can
         if fullName != '':
             name = fullName
         else:
             try:
-                address.index ('<')
+                address.index('<')
             except ValueError:
                 name = address
             else:
-                name, address = address.split ('<')
-                address = address.strip ('>').strip ()
-                name = name.strip ()
+                name, address = address.split('<')
+                address = address.strip('>').strip()
+                name = name.strip()
                 # ignore a name of "me"
                 if name == 'me':
                     name = ''
 
         # check if the address looks like a valid emailAddress
-        isValidAddress = message.isValidEmailAddress (address)
+        isValidAddress = cls.isValidEmailAddress(address)
         if not isValidAddress:
             address = None
 
@@ -640,28 +739,29 @@ class EmailAddress(Item.Item):
         # Need to override compare operators to use emailAddressesAreEqual, 
         #  deal with name=='' cases, name case sensitivity, etc
         useBetterQuery = False
+
         if useBetterQuery:
 
             # get all addresses whose emailAddress or fullName match the param
             queryString = u'for i in "//parcels/osaf/contentmodel/mail/EmailAddress" \
                           where i.emailAddress =="$0" or i.fullName =="$1"'
-            addrQuery = Query.Query (Globals.repository, queryString)
+            addrQuery = Query.Query(Globals.repository, queryString)
             addrQuery.args = [ address, name ]
             addresses = addrQuery
 
         else:
             # old slow query method
-            emailAddressKind = MailParcel.getEmailAddressKind ()
+            emailAddressKind = MailParcel.getEmailAddressKind()
             allAddresses = ItemQuery.KindQuery().run([emailAddressKind])
             addresses = []
             for candidate in allAddresses:
                 if isValidAddress:
-                    if message.emailAddressesAreEqual(candidate.emailAddress, address):
+                    if cls.emailAddressesAreEqual(candidate.emailAddress, address):
                         # found an existing address!
-                        addresses.append (candidate)
+                        addresses.append(candidate)
                 elif name != '' and name == candidate.fullName:
                     # full name match
-                    addresses.append (candidate)
+                    addresses.append(candidate)
 
         # process the result(s)
         # Hope for a match of both name and address
@@ -670,7 +770,7 @@ class EmailAddress(Item.Item):
         nameMatch = None
         for candidate in addresses:
             if isValidAddress:
-                if message.emailAddressesAreEqual(candidate.emailAddress, address):
+                if cls.emailAddressesAreEqual(candidate.emailAddress, address):
                     # found an existing address match
                     addressMatch = candidate
             if name != '' and name == candidate.fullName:
@@ -695,16 +795,74 @@ class EmailAddress(Item.Item):
                 return newAddress
             else:
                 return None
-    getEmailAddress = classmethod (getEmailAddress)
+
+    getEmailAddress = classmethod(getEmailAddress)
+
+    def format(cls, emailAddress):
+        assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"
+
+        if emailAddress.fullName is not None and len(emailAddress.fullName.strip()) > 0:
+            return emailAddress.fullName + " <" + emailAddress.emailAddress + ">"
+
+        return emailAddress.emailAddress
+
+    format = classmethod(format)
 
 
-    def getCurrentMeEmailAddress (cls):
+    def isValidEmailAddress(cls, emailAddress):
+        """
+        This method tests an email address for valid syntax as defined RFC 822.
+        The method validates addresses in the form 'John Jones <john@test.com>'
+        and 'john@test.com'
+
+        @param emailAddress: A string containing a email address to validate.
+        @type addr: C{String}
+        @return: C{Boolean}
+        """
+
+        assert isinstance(emailAddress, (str, unicode)), "Email Address must be in string or unicode format"
+
+        #XXX: Strip any name information. i.e. John test <john@test.com>`from the email address
+        emailAddress = Utils.parseaddr(emailAddress)[1]
+
+        return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
+
+
+    isValidEmailAddress = classmethod(isValidEmailAddress)
+
+    def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
+        """
+        This method tests whether two email addresses are the same.
+        Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
+        The method strips off the username and <> brakets if they exist and just compares
+        the actual email addresses for equality. It will not look to see if each
+        address is RFC 822 compliant only that the strings match. Use C{EmailAddress.isValidEmailAddress}
+        to test for validity.
+
+        @param emailAddressOne: A string containing a email address to compare.
+        @type emailAddressOne: C{String}
+        @param emailAddressTwo: A string containing a email address to compare.
+        @type emailAddressTwo: C{String}
+        @return: C{Boolean}
+        """
+        assert isinstance(emailAddressOne, (str, unicode)), "Email Address must be in string or unicode format"
+        assert isinstance(emailAddressTwo, (str, unicode)), "Email Address must be in string or unicode format"
+
+        emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
+        emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
+
+        return emailAddressOne.lower() == emailAddressTwo.lower()
+
+    emailAddressesAreEqual = classmethod(emailAddressesAreEqual)
+
+    def getCurrentMeEmailAddress(cls):
         """
           Lookup the "me" EmailAddress.
-        The "me" EmailAddress is whichever entry is the current IMAP default 
+        The "me" EmailAddress is whichever entry is the current IMAP default
         address.
         """
-        import osaf.mail.imap as imap
+        return MailParcel.getIMAPAccount().replyToAddress
 
-        return imap.getIMAPAccount().replyToAddress
-    getCurrentMeEmailAddress = classmethod (getCurrentMeEmailAddress)
+    getCurrentMeEmailAddress = classmethod(getCurrentMeEmailAddress)
+
+

@@ -4,7 +4,6 @@ import wx.xrc
 import application.Globals
 from application.Globals import repository as repo
 from repository.item.Query import KindQuery
-import osaf.mail.message
 import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
 
@@ -17,7 +16,7 @@ WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
 def IMAPValidationHandler(item, fields, values):
     """ Return False if any invalid fields, True otherwise """
-    if not osaf.mail.message.isValidEmailAddress(values['IMAP_EMAIL_ADDRESS']):
+    if not Mail.EmailAddress.isValidEmailAddress(values['IMAP_EMAIL_ADDRESS']):
         application.dialogs.Util.ok(application.Globals.wxApplication.mainFrame,
          "Invalid Email Address", "The email address, '%s', is invalid" % \
          (values['IMAP_EMAIL_ADDRESS']))
