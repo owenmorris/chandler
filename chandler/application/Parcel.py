@@ -736,6 +736,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     _DELAYED_REFERENCE = 0
     _DELAYED_LITERAL   = 1
     _DELAYED_UUIDOF    = 2
+    _DELAYED_RESET     = 3
 
     def saveErrorState(self, message, file=None, line=None):
         if not file:
@@ -796,7 +797,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     def characters(self, content):
         """SAX2 callback for character content within the tag"""
 
-        (uri, local, element, item, references) = self.tags[-1]
+        (uri, local, element, item, references, reloading) = self.tags[-1]
 
         if element == 'Attribute' or element == 'Dictionary':
             self.currentValue += content
@@ -824,10 +825,45 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 classString = attrs.getValue((None, 'itemClass'))
             else:
                 classString = None
-            self.currentItem = self.createItem(uri, local,
-                                               nameString, classString)
-            self.itemsCreated.append(self.currentItem)
+
+            # Find the kind represented by the tag (uri, local). The
+            # parser has already mapped the prefix to the namespace (uri).
+            kind = self.findItem(uri, local, self.locator.getLineNumber())
+            if kind is None:
+                raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
+                 (uri, local))
+
+            # If we have the document root, use the parcel parent.
+            # Otherwise, the currentItem is the parent.
+            if len(self.tags) > 0:
+                parent = self.currentItem
+            else:
+                parent = self.parcelParent
+
             self.currentAssigments = []
+
+            # If the item already exists, we're reloading the item
+            self.currentItem = parent.getItemChild(nameString)
+
+            if self.currentItem is not None:
+                # In preparation for reloading, remember to reset this item
+                # before making any assignments
+                assignment = {
+                   "assignType" : self._DELAYED_RESET,
+                   "reloading"  : True,
+                   "attrName"   : None,
+                   "kind"       : kind,
+                   "file"       : self.locator.getSystemId(),
+                   "line"       : self.locator.getLineNumber()
+                }
+                self.currentAssigments.append(assignment)
+                self.reloadingCurrentItem = True
+            else:
+                self.currentItem = self.createItem(kind, parent,
+                                                   nameString, classString)
+
+                self.itemsCreated.append(self.currentItem)
+                self.reloadingCurrentItem = False
 
         elif attrs.has_key((None, 'uuidOf')):
             # We need to get the UUID of the target item and assign it
@@ -901,7 +937,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # Add the tag to our context stack
         self.tags.append((uri, local, element,
-                          self.currentItem, self.currentAssigments))
+                          self.currentItem, self.currentAssigments,
+                          self.reloadingCurrentItem))
 
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
@@ -911,7 +948,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         elementUri = uri
         elementLocal = local
 
-        (uri, local, element, currentItem, currentAssigments) = self.tags[-1]
+        (uri, local, element, currentItem, currentAssigments,
+         reloadingCurrentItem) = self.tags[-1]
 
         # Is the current item part of the core schema?
         isSchemaItem = (currentItem.itsKind.itsRoot.itsName == 'Schema')
@@ -921,6 +959,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             (namespace, name) = self.getNamespaceName(self.currentValue)
             assignment = {
                "assignType" : self._DELAYED_REFERENCE,
+               "reloading"  : reloadingCurrentItem,
                "attrName"   : local,
                "namespace"  : namespace,
                "name"       : name,
@@ -937,6 +976,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             (namespace, name) = self.getNamespaceName(self.currentValue)
             assignment = {
                "assignType" : self._DELAYED_UUIDOF,
+               "reloading"  : reloadingCurrentItem,
                "attrName"   : local,
                "namespace"  : namespace,
                "name"       : name,
@@ -985,6 +1025,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentAssigments.append(
                  {
                    "assignType" : self._DELAYED_LITERAL,
+                   "reloading"  : reloadingCurrentItem,
                    "attrName"   : local,
                    "typePath"   : self.currentType,
                    "value"      : self.currentValue,
@@ -1005,6 +1046,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentAssigments.append(
                  {
                    "assignType" : self._DELAYED_LITERAL,
+                   "reloading"  : reloadingCurrentItem,
                    "attrName"   : local,
                    "typePath"   : self.currentType,
                    "value"      : self.currentValue,
@@ -1024,6 +1066,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             if len(self.tags) >= 2:
                 self.currentItem = self.tags[-2][3]
                 self.currentAssigments = self.tags[-2][4]
+                self.reloadingCurrentItem = self.tags[-2][5]
 
         self.tags.pop()
 
@@ -1148,56 +1191,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         return (namespace, name)
 
-    def createItem(self, uri, local, name, className):
+    def createItem(self, kind, parent, name, className):
         """ Create a new item, with the kind defined by the tag.
             The new item's namespace is derived from nameString.
             The new item's kind is derived from (uri, local).
         """
 
-        # If we have the document root, use the parcel parent.
-        # Otherwise, the currentItem is the parent.
-        if len(self.tags) > 0:
-            parent = self.currentItem
-        else:
-            parent = self.parcelParent
-
-        # Find the kind represented by the tag (uri, local). The
-        # parser has already mapped the prefix to the namespace (uri).
-        kind = self.findItem(uri, local,
-                             self.locator.getLineNumber())
-
-        if kind is None:
-            raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
-             (uri, local))
-
-
-        # If the item already exists, we're reloading the item
-        try:
-            item = parent.getItemChild(name)
-            if item is not None:
-
-                # Two ways to "reset" an item; option "A" nukes all literal
-                # and reference attributes, while option "B" retains the
-                # references.
-                option = "B"
-
-                if option == "A":
-                    # Setting itsKind to None removes all the item's values
-                    item.itsKind = None
-                    # Setting itsKind to a kind also sets all initialValues
-                    item.itsKind = kind
-
-                if option == "B":
-                    item.itsKind = kind
-                    item._values.clear()
-                    item._kind.getInitialValues(item, item._values, {})
-                    item.setDirty()
-
-                return item
-
-        except Exception, e:
-            self.saveErrorState(str(e))
-            raise
 
         if timing: tools.timing.begin("Creating items")
 
@@ -1223,18 +1222,37 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     def completeAssignments(self, item, assignments):
         """ Add all of the references in the list to the item """
 
-
         for assignment in assignments:
 
-            if timing: tools.timing.begin("Attribute assignments")
-
             attributeName = assignment["attrName"]
+            reloading = assignment["reloading"]
             line = assignment["line"]
             file = assignment["file"]
             if assignment.has_key("key"):
                 key = assignment["key"]
             else:
                 key = None
+
+            if assignment["assignType"] == self._DELAYED_RESET:
+                # Reset this item
+                # print "Before reloading:"
+                # PrintItem(item.itsPath, self.repository)
+                kind = assignment["kind"]
+                # item._values.clear()
+                item.itsKind = kind
+                item._kind.getInitialValues(item, item._values, item._references)
+                item.setDirty()
+                # print "After reloading:"
+                # PrintItem(item.itsPath, self.repository)
+                continue
+
+            # Our preliminary parcel reloading support will only touch
+            # cardinality-single attributes:
+            if reloading and item.getAttributeAspect(attributeName,
+             "cardinality") != "single":
+                continue
+
+            if timing: tools.timing.begin("Attribute assignments")
 
             if assignment["assignType"] == self._DELAYED_REFERENCE:
 
@@ -1256,6 +1274,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                 # @@@ Special cases to resolve
                 if copyName:
+                    # We may be reloading, so if the copy is already there,
+                    # remove it and re-copy
+                    existingCopy = item.findPath(copyName)
+                    if existingCopy is not None:
+                        existingCopy.delete(recursive=True)
+                    # Copy the item
                     copy = reference.copy(copyName, item)
                     item.addValue(attributeName, copy)
                 elif attributeName == 'inverseAttribute':
@@ -1293,6 +1317,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 except:
                     raise self.saveErrorState("Couldn't add value to item ",
                      file, line)
+
 
             if timing: tools.timing.end("Attribute assignments")
 
@@ -1467,9 +1492,10 @@ def __test():
     rep.commit()
     rep.close()
 
-    if timing: 
+    if timing:
         print "\nTiming results:"
         tools.timing.results()
+
 
 if __name__ == "__main__":
     __test()

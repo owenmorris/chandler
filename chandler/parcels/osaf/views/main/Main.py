@@ -9,6 +9,7 @@ from osaf.framework.notifications.Notification import Notification
 import wx
 import os
 from application.SplashScreen import SplashScreen
+from application.Parcel import Manager as ParcelManager
 
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
@@ -72,6 +73,9 @@ class MainView(View):
 
     def onShowPyCrustEvent(self, notification):
         Globals.wxApplication.ShowDebuggerWindow()
+
+    def onReloadParcelsEvent(self, notification):
+        ParcelManager.getManager().loadParcels()
 
     def onAddAllAdditionalViewsEvent(self, notification):
         self.onAddDemoViewEvent(notification)

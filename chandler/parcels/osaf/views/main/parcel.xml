@@ -289,6 +289,13 @@
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
 
+  <MenuItem itsName="ReloadParcelsItem">
+    <title>Reload Parcels</title>
+    <location>TestMenu</location>
+    <event itemref="events:ReloadParcels"/>
+    <helpString>Reloads any parcels that have been modified</helpString>
+  </MenuItem>
+
   <Menu itsName="AddAdditionalViewsItem">
     <title>Add Additional Views</title>
     <location>TestMenu</location>
@@ -658,6 +665,7 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
     <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
     <childrenBlocks itemref="doc:TestSeparator1"/>
