@@ -38,7 +38,7 @@ clean:
 	fi
 
 expand:    swigwin-1.3.21.zip
-	unzip swigwin-1.3.21.zip SWIG-1.3.21/swig.exe -d $(BUILD_ROOT)/$(SNAP)/bin/
+	unzip -o swigwin-1.3.21.zip SWIG-1.3.21/swig.exe -d $(BUILD_ROOT)/$(SNAP)/bin/
 
 else
 
