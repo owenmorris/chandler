@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.3.1-11
+RELVER=2.5.3.1-12
 SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
 
