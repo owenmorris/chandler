@@ -25,11 +25,6 @@
     <queryEnum>ListOfItems</queryEnum>
   </Query>
 
-  <Query itemName="mainViewerQuery">
-    <queryEnum>ListOfItems</queryEnum>
-    <data itemref="doc:AboutChandlerHTML"/>
-  </Query>  
-
   <!--
     Styles
   -->
@@ -66,6 +61,28 @@
   <!--
     Menu Items
   -->
+  <MenuItem itemName="NewTabItem">
+    <title>New Tab</title>
+    <menuLocation>FileMenu</menuLocation>
+    <accel>N</accel>
+    <helpString>Open a new blank tab</helpString>
+    <event itemref="events:NewTab"/>
+  </MenuItem>
+  
+  <MenuItem itemName="CloseTabItem">
+    <title>Close Tab</title>
+    <menuLocation>FileMenu</menuLocation>
+    <accel>W</accel>
+    <helpString>Close the current tab</helpString>
+    <event itemref="events:CloseTab"/>
+  </MenuItem>
+  
+  <MenuItem itemName="FileSeparator1">
+    <title></title>
+    <menuLocation>FileMenu</menuLocation>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
   <MenuItem itemName="QuitItem">
     <title>Quit</title>
     <menuLocation>FileMenu</menuLocation>
@@ -398,16 +415,30 @@
   <!--
     Layout blocks
   -->
-  <EmbeddedContainer itemName="MainViewer">
-    <!-- Attributes -->
-    <contentSpec itemref="doc:mainViewerQuery"/>
+  <HTML itemName="EmptyPanel">
+    <url></url>
+    <eventBoundary>True</eventBoundary>
     <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </HTML>
+
+  <TabbedContainer itemName="TabbedView"
+                   itemClass="OSAF.views.main.TabbedView.TabbedView">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:AboutChandlerHTML"/>
+
+    <!-- Attributes -->
+    <tabPosEnum>Top</tabPosEnum>
+    <tabNames>About Chandler</tabNames>
+    
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </EmbeddedContainer>  
+  </TabbedContainer>  
 
   <Tree itemName="Sidebar"
         itemClass="OSAF.views.main.SideBar.SideBar">
@@ -445,7 +476,7 @@
   <SplitWindow itemName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
-    <childrenBlocks itemref="doc:MainViewer"/>
+    <childrenBlocks itemref="doc:TabbedView"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -481,6 +512,9 @@
         itemClass="OSAF.views.main.Main.MainView">
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
+    <childrenBlocks itemref="doc:NewTabItem"/>
+    <childrenBlocks itemref="doc:CloseTabItem"/>
+    <childrenBlocks itemref="doc:FileSeparator1"/>
     <childrenBlocks itemref="doc:QuitItem"/>
     <childrenBlocks itemref="doc:EditMenu"/>
     <childrenBlocks itemref="doc:UndoItem"/>

@@ -231,8 +231,11 @@ class wxSplitWindow(wx.SplitterWindow):
                     assert (result)
                     oldWindow1.Destroy()
         self.Thaw()
-        self.GetParent().GetSizer().Layout()
-
+        if self.GetParent().GetSizer():
+            self.GetParent().GetSizer().Layout()
+        else:
+            pass # @@@ FIXME: We cannot assume that a SplitterWindow lives in a window with a sizer
+        
     def __del__(self):
         del Globals.association [self.counterpartUUID]
 
@@ -278,13 +281,29 @@ class SplitWindow(RectangularChild):
     def handleChildren(self, window):
         pass
 
+    
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
+        self.tabIndex = 0
         try:
             id = Block.getwxID(self.selectionChanged)
         except AttributeError:
             id = 0
             
+        tabbedContainer = wx.Notebook(parentWindow, id, 
+                                      wx.DefaultPosition,
+                                      (self.minimumSize.width, self.minimumSize.height),
+                                      style = self.Calculate_wxStyle())
+        
+        self.parentBlock.addToContainer(parent, tabbedContainer, self.stretchFactor, 
+                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+
+        tabbedContainer.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging)
+        tabbedContainer.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnSelectionChanged)
+
+        return tabbedContainer, tabbedContainer, tabbedContainer
+
+    def Calculate_wxStyle(self):
         if self.tabPosEnum == "Top":
             style = 0
         elif self.tabPosEnum == "Bottom":
@@ -295,32 +314,17 @@ class TabbedContainer(RectangularChild):
             style = wx.NB_RIGHT
         elif __debug__:
             assert (False)
-
-        tabbedContainer = wx.Notebook(parentWindow, id, 
-                                    wx.DefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height),
-                                     style = style)
-        self.parentBlock.addToContainer(parent, tabbedContainer, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return tabbedContainer, tabbedContainer, tabbedContainer
+        return style
 
     def addToContainer(self, parent, child, weight, flag, border, append=True):
-        if not hasattr(self, 'childrenToAdd'):
-            self.childrenToAdd = []
-        self.childrenToAdd.append(child)
+        assert self.tabIndex < len(self.tabNames)
+        parent.AddPage(child, self.tabNames[self.tabIndex])
+        self.tabIndex += 1
 
     def removeFromContainer(self, parent, child, doDestroy=True):
         # @@@ Must be implemented
         pass
-
-    def handleChildren(self, window):
-        if len (self.childrenToAdd) > 0:
-            childNameIndex = 0
-            for child in self.childrenToAdd:
-                window.AddPage(child, self.tabNames[childNameIndex])
-                childNameIndex = childNameIndex + 1
-        self.childrenToAdd = []
-
+    
     def OnChooseTabEvent (self, notification):
         tabbedContainer = Globals.association[self.itsUUID]
         choice = notification.event.choice
@@ -329,7 +333,13 @@ class TabbedContainer(RectangularChild):
                 tabbedContainer.SetSelection (index)
                 break
 
+    def OnSelectionChanging (self, event):
+        event.Skip()
 
+    def OnSelectionChanged (self, event):
+        event.Skip()
+
+        
 class Toolbar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)

@@ -16,6 +16,8 @@ of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
 
   <EventData itemName="GlobalEvents">
+    <blockEvents itemref="events:NewTab"/>
+    <blockEvents itemref="events:CloseTab"/>
     <blockEvents itemref="events:Quit"/>
     <blockEvents itemref="events:Undo"/>
     <blockEvents itemref="events:Redo"/>
@@ -36,6 +38,16 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:GenerateCalendarEvents"/>    
     <blockEvents itemref="events:CheckRepository"/>
   </EventData>
+
+  <BlockEvent itemName="NewTab">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+    <methodName>OnNewTabEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="CloseTab">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+    <methodName>OnCloseTabEvent</methodName>
+  </BlockEvent>
 
   <BlockEvent itemName="Quit">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
