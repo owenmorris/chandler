@@ -32,8 +32,8 @@ class Manager(Item):
     The Parcel Manager, responsible for loading items from XML files into
     the repository and providing a namespace --> item mapping function.
 
-    To use the parcel manager, retrieve a (singleton) instance of it by
-    using the class method getManager()::
+    To use the parcel manager, retrieve an instance of it by using the class
+    method getManager()::
 
         import application
         mgr = application.Parcel.Manager.getManager(repository=rep, path=parcelSearchPath)
@@ -44,16 +44,12 @@ class Manager(Item):
     will use os.path.join(Globals.chandlerDirectory, "parcels").
     """
 
-    __instanceUUID = None            # Stores UUID of the parcel manager object
-    __repository = None              # Stores the repository object
-
     def getManager(cls, repository=None, path=None):
         """
         Class method for getting an instance of the parcel manager.
 
-        If there is an instance already, that will be returned.  Otherwise
-        one will be retrieved from the repository (or created there if not
-        found), and its "wakeup" method will be called.
+        If there is a manager item already already in this repository, that
+        will be returned.  Otherwise one will be created.
 
         @param repository: The repository object to load items into.  If
         no repository is passed in, "Globals.repository" will be used.
@@ -66,43 +62,50 @@ class Manager(Item):
         @return: parcel manager object
         """
 
-        # Use the repository that was passed in, the previously passed in
-        # repository, or a default one (from Globals)
-        if repository is not None:
-            cls.__repository = repository
-        elif cls.__repository is None:
-            cls.__repository = Globals.repository
+        if repository is None:
+            repository = Globals.repository
 
-        if cls.__instanceUUID is not None:
-            # We already have an instance; find it via UUID
-            instance = cls.__repository.findUUID(cls.__instanceUUID)
-            if instance is None:
-                # This case can happen when the repository gets swapped
-                # out from below us (during unit test runs, for example)
-                # so let's bootstrap another manager
-                cls.__instanceUUID = None
-
-        if cls.__instanceUUID is None:
-            # Ensure that //parcels is sufficiently bootstrapped
-            instance = cls.__bootstrap(cls.__repository)
-
-            # Wake up the parcel manager (set any non-persistent data)
-            instance.__wakeUp(cls.__repository)
-
-            # Store the UUID in case someone calls getManager() again
-            cls.__instanceUUID = instance.itsUUID
+        manager = repository.findPath("//parcels/manager")
+        if manager is None:
+            parcelKind = repository.findPath("//Schema/Core/Parcel")
+            parcelRoot = repository.findPath("//parcels")
+            if parcelRoot is None:
+                parcelRoot = parcelKind.newItem("parcels", repository)
+                parcelRoot.namespace = NS_ROOT
+            manager = parcelRoot.findPath("manager")
+            if manager is None:
+                managerKind = repository.findPath("//Schema/Core/ParcelManager")
+                manager = managerKind.newItem("manager", parcelRoot)
 
         if path:
-            # Passing a path in overrides default or previous path
-            instance.path = path
-        elif not instance.path:
-            # If no path has been set, assign to default ("chandler/parcels")
-            instance.path = \
-             [os.path.join(Globals.chandlerDirectory, "parcels")]
+            manager.path = path
+        elif not manager.path:
+            manager.path = [os.path.join(Globals.chandlerDirectory, "parcels")]
 
-        return instance
+        return manager
 
     getManager = classmethod(getManager)
+
+    def __init__(self, name, parent, kind):
+        super(Manager, self).__init__(name, parent, kind)
+        self.onItemLoad(self.itsView)
+
+    def onItemLoad(self, view):
+
+        # Get the logger
+        self.log = logging.getLogger('Parcel')
+        self.log.setLevel(logging.INFO)
+
+        # Initialize any attributes that aren't persisted:
+        self.repo = view
+        self.currentXMLFile = None
+        self.currentXMLLine = None
+        self.currentExplanation = None
+        self.kindUUID = view.findPath("//Schema/Core/Kind").itsUUID
+        self.itemUUID = view.findPath("//Schema/Core/Item").itsUUID
+        self.attrUUID = view.findPath("//Schema/Core/Attribute").itsUUID
+        self.registryLoaded = False
+        self.log.info("Parcel Manager initialized")
 
     def getParentParcel(cls, item):
         parent = item.itsParent
@@ -113,49 +116,6 @@ class Manager(Item):
         return parent
 
     getParentParcel = classmethod(getParentParcel)
-
-    def __bootstrap(cls, repo):
-        """
-        Make sure that various the //parcels and //parcels/manager items
-        are created
-        """
-        parcelKind = repo.findPath("//Schema/Core/Parcel")
-
-        parcelRoot = repo.findPath("//parcels")
-        if parcelRoot is None:
-            parcelRoot = parcelKind.newItem("parcels", repo)
-            parcelRoot.namespace = NS_ROOT
-
-        manager = parcelRoot.findPath("manager")
-        if manager is None:
-            managerKind = repo.findPath("//Schema/Core/ParcelManager")
-            manager = managerKind.newItem("manager", parcelRoot)
-
-        return manager
-
-    __bootstrap = classmethod(__bootstrap)
-
-
-
-    def __wakeUp(self, repository):
-        """
-        Method to be called by start() once per application session in order
-        to set up non-persisted things like logging.
-        """
-
-        # Get the logger
-        self.log = logging.getLogger()
-        self.log.setLevel(logging.INFO)
-
-        # Initialize any attributes that aren't persisted:
-        self.repo = repository
-        self.currentXMLFile = None
-        self.currentXMLLine = None
-        self.currentExplanation = None
-        self.kindUUID = repository.findPath("//Schema/Core/Kind").itsUUID
-        self.itemUUID = repository.findPath("//Schema/Core/Item").itsUUID
-        self.attrUUID = repository.findPath("//Schema/Core/Attribute").itsUUID
-        self.log.info("Parcel Manager initialized")
 
 
     def lookup(self, namespace, name=None):
@@ -203,6 +163,9 @@ class Manager(Item):
         """
 
         self.log.debug("lookup: args (%s) (%s)" % (namespace, name))
+
+        if not self.registryLoaded:
+            self.__refreshRegistry()
 
         if namespace is None:
             self.log.warning("lookup: no namespace provided")
@@ -274,6 +237,30 @@ class Manager(Item):
              repoPath)
             return self.repo.findPath(repoPath)
 
+    def __refreshRegistry(self):
+        # Dictionaries used for quick lookup of mappings between namespace,
+        # repository path, and parcel file name.  Populated first by looking
+        # at existing parcel items, then overriden by newer parcel.xml files
+        self._ns2parcel = { }  # namespace -> "parcel descriptor" (see below)
+        self._repo2ns = { }    # repository path -> namespace
+        self._file2ns = { }    # file path -> namespace
+
+        # Do a Parcel-kind query for existing parcels; populate a dictionary
+        # of "parcel descriptors" (pDesc) which cache parcel information.
+        # After reading info from existing parcel items, this info may be
+        # overriden from parcel.xml files further down.
+        parcelKind = self.repo.findPath("//Schema/Core/Parcel")
+        for parcel in KindQuery().run([parcelKind]):
+            pDesc = {
+             "time" : parcel.modifiedOn.ticks(),
+             "path" : str(parcel.itsPath),
+             "file" : parcel.file,
+             "aliases" : parcel.namespaceMap,
+            }
+            self._ns2parcel[parcel.namespace] = pDesc
+            self._repo2ns[pDesc["path"]] = parcel.namespace
+
+        self.registryLoaded = True
 
     def __scanParcels(self):
         """
@@ -305,27 +292,7 @@ class Manager(Item):
                             value = attrs.getValue((None, 'value'))
                             self.aliases[key] = value
 
-        # Dictionaries used for quick lookup of mappings between namespace,
-        # repository path, and parcel file name.  Populated first by looking
-        # at existing parcel items, then overriden by newer parcel.xml files
-        self._ns2parcel = { }  # namespace -> "parcel descriptor" (see below)
-        self._repo2ns = { }    # repository path -> namespace
-        self._file2ns = { }    # file path -> namespace
-
-        # Do a Parcel-kind query for existing parcels; populate a dictionary
-        # of "parcel descriptors" (pDesc) which cache parcel information.
-        # After reading info from existing parcel items, this info may be
-        # overriden from parcel.xml files further down.
-        parcelKind = self.repo.findPath("//Schema/Core/Parcel")
-        for parcel in KindQuery().run([parcelKind]):
-            pDesc = {
-             "time" : parcel.modifiedOn.ticks(),
-             "path" : str(parcel.itsPath),
-             "file" : parcel.file,
-             "aliases" : parcel.namespaceMap,
-            }
-            self._ns2parcel[parcel.namespace] = pDesc
-            self._repo2ns[pDesc["path"]] = parcel.namespace
+        self.__refreshRegistry()
 
         handler = MappingHandler()
         parser = xml.sax.make_parser(["drv_libxml2"])

@@ -15,6 +15,7 @@
     xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
     xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
     xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
     >
 
     <displayName>Chandler Content Model</displayName>
@@ -22,10 +23,59 @@
     <version>0.5</version>
     <author>Open Source Applications Foundation</author>
 
+    <!-- Chandler Item -->
+
+    <Kind itsName="ChandlerItem">
+        <superKinds itemref="Item"/>
+        <classes key="python">osaf.contentmodel.ContentModel.ChandlerItem</classes>
+        <Attribute itsName="externalUUID">
+            <type itemref="String"/>
+        </Attribute>
+
+        <Attribute itsName="itemCollectionInclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
+        </Attribute>
+
+        <Attribute itsName="itemCollectionExclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
+        </Attribute>
+
+        <Attribute itsName="itemCollectionResults">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_results"/>
+        </Attribute>
+
+        <Attribute itsName="contentsOwner">
+            <type itemref="blocks:Block"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="blocks:Block/contents"/>
+        </Attribute>
+
+        <Attribute itsName="createdOn">
+            <displayName>Created On</displayName>
+            <description>DateTime this item was created</description>
+            <type itemref="DateTime"/>
+        </Attribute>
+
+        <!-- Sharing Cloud -->
+        <Cloud itsName="SharingCloud">
+          <Endpoint itsName="externalUUID">
+            <attribute value="externalUUID"/>
+          </Endpoint>
+          <endpoints itemref="cm:ChandlerItem/SharingCloud/externalUUID"/>
+        </Cloud>
+        <clouds alias="sharing" itemref="cm:ChandlerItem/SharingCloud"/>
+    </Kind>
+
     <!-- Content Item -->
 
     <Kind itsName="ContentItem">
-        <superKinds itemref="Item"/>
+        <superKinds itemref="cm:ChandlerItem"/>
         <classes key="python">osaf.contentmodel.ContentModel.ContentItem</classes>
         <displayName>Default Content Item Display Name</displayName>
         <examples>an Calendar Event -- 'Lunch with Tug'</examples>
@@ -70,35 +120,6 @@
 
         </Attribute>
 
-        <Attribute itsName="itemCollectionInclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionExclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionResults">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_results"/>
-        </Attribute>
-
-        <Attribute itsName="contentsOwner">
-            <type itemref="blocks:Block"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="blocks:Block/contents"/>
-        </Attribute>
-
-        <Attribute itsName="createdOn">
-            <displayName>Created On</displayName>
-            <description>DateTime this item was created</description>
-            <type itemref="DateTime"/>
-        </Attribute>
 
         <Attribute itsName="modifiedOn">
             <displayName>Last Modified On</displayName>
@@ -146,18 +167,20 @@
             <initialValue type="Boolean">False</initialValue>
         </Attribute>
 
+        <!-- @@@ will go away -->
         <Attribute itsName="sharer">
             <description value="The person who initially published this item" />
-            <issues value="Eventually this will point to a Contact or equivalent" />
+            <issues value="This will soon be removed, replaced by Share kind's attributes" />
             <type itemref="contact:Contact" />
             <cardinality value="single" />
             <initialValue itemref="None" />
             <inverseAttribute itemref="contact:Contact/sharerOf" />
         </Attribute>
 
+        <!-- @@@ will go away -->
         <Attribute itsName="sharees">
             <description value="The people who were invited to share in this item" />
-            <issues value="Eventually this will point to a Contact or equivalent" />
+            <issues value="This will soon be removed, replaced by Share kind's attributes" />
             <type itemref="contact:Contact" />
             <cardinality value="list" />
             <initialValue />
@@ -169,6 +192,38 @@
             <type itemref="Item"/>
             <cardinality value="list" />
         </Attribute>
+
+
+        <!-- Sharing Cloud -->
+        <Cloud itsName="SharingCloud">
+          <Endpoint itsName="issues">
+            <attribute value="issues"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/issues"/>
+          <!--
+          <Endpoint itsName="body">
+            <attribute value="body"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/body"/>
+          -->
+          <Endpoint itsName="createdOn">
+            <attribute value="createdOn"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/createdOn"/>
+          <Endpoint itsName="displayName">
+            <attribute value="displayName"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/displayName"/>
+          <!--
+          <Endpoint itsName="creator">
+            <attribute value="creator"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="sharing"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/creator"/>
+          -->
+        </Cloud>
+        <clouds alias="sharing" itemref="cm:ContentItem/SharingCloud"/>
 
   </Kind>
 
@@ -308,14 +363,14 @@
     <Attribute itsName="_inclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionInclusions"/>
+      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionInclusions"/>
       <initialValue/>
     </Attribute>
 
     <Attribute itsName="_exclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionExclusions"/>
+      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionExclusions"/>
       <initialValue/>
     </Attribute>
 
@@ -328,7 +383,7 @@
     <Attribute itsName="_results">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionResults"/>
+      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionResults"/>
       <initialValue/>
     </Attribute>
 
@@ -347,6 +402,11 @@
       <initialValue type="String">__adhoc__</initialValue>
     </Attribute>
 
+    <Attribute itsName="shares">
+      <type itemref="share:Share"/>
+      <cardinality value="list" />
+      <inverseAttribute itemref="share:Share/contents"/>
+    </Attribute>
 
     <!-- redirections -->
     <Attribute itsName="who">

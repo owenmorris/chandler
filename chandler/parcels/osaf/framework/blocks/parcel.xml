@@ -297,8 +297,8 @@
     <superKinds itemref="Item"/>
 
     <Attribute itsName="contents">
-      <type itemref="contentModel:ContentItem"/>
-      <inverseAttribute itemref="contentModel:ContentItem/contentsOwner"/>
+      <type itemref="contentModel:ChandlerItem"/>
+      <inverseAttribute itemref="contentModel:ChandlerItem/contentsOwner"/>
     </Attribute>
 
     <Attribute itsName="whichAttribute">
@@ -342,9 +342,9 @@
 
     <attributes itemref="docSchema:blockName"/>
     <attributes itemref="docSchema:eventsForNamedDispatch"/>
-    <attributes itemref="contentModel:ContentItem/itemCollectionInclusions"/>
-    <attributes itemref="contentModel:ContentItem/itemCollectionExclusions"/>
-    <attributes itemref="contentModel:ContentItem/itemCollectionResults"/>
+    <attributes itemref="contentModel:ChandlerItem/itemCollectionInclusions"/>
+    <attributes itemref="contentModel:ChandlerItem/itemCollectionExclusions"/>
+    <attributes itemref="contentModel:ChandlerItem/itemCollectionResults"/>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="contents">

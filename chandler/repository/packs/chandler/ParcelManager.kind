@@ -9,7 +9,7 @@
     <ref name="attributes">
       <!-- 
          - plus local attributes below:
-         -     registry
+         -     path
         -->
     </ref>
 
@@ -20,20 +20,6 @@
     <attribute name="classes">
       <value name="python">application.Parcel.Manager</value>
     </attribute>
-  </item>
-
-  <item>
-    <name>registry</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <parent type="path">//Schema/Core/ParcelManager</parent>
-
-    <ref name="kinds">
-      <ref type="path">..</ref>
-    </ref>
-
-    <ref name="type" type="path">//Schema/Core/SingleRef</ref>
-    <attribute name="cardinality">dict</attribute>
-    <attribute name="initialValue" type="dict"><values /></attribute>
   </item>
 
   <item>

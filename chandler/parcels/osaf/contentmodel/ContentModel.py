@@ -63,6 +63,7 @@ class ChandlerItem(Item.Item):
     """
 
     myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/ChandlerItem"
 
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

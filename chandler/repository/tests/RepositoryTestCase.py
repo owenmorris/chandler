@@ -83,6 +83,10 @@ class RepositoryTestCase(TestCase):
                                                  '__repository__'))
             self.rep.open()
 
+        self.manager = \
+         ParcelManager.getManager(repository=self.rep, \
+         path=[os.path.join(self.rootdir, 'parcels')])
+
     def _find(self, path):
         return self.rep.findPath(path)
 

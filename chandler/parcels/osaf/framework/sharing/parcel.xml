@@ -7,7 +7,10 @@
 
 <Parcel itsName="sharing"
     xmlns="http://osafoundation.org/parcels/core"
+    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
     xmlns:webdav="http://osafoundation.org/parcels/osaf/framework/webdav"
+    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
     itemClass="osaf.framework.sharing.Sharing.Parcel"
     >
 
@@ -28,4 +31,152 @@
         -->
     </webdav:WebDAVAccount>
 
+    <Kind itsName="ImportExportFormat">
+        <superKinds itemref="cm:ChandlerItem"/>
+        <displayName value="Import/Export Format Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.ImportExportFormat"/>
+
+        <Attribute itsName="share">
+            <type itemref="share:Share"/>
+            <inverseAttribute itemref="share:Share/conduit"/>
+            <cardinality value="single"/>
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="ICalendarFormat">
+        <superKinds itemref="share:ImportExportFormat"/>
+        <displayName value="iCalendar Import/Export Format Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.ICalendarFormat"/>
+    </Kind>
+
+    <Kind itsName="CloudXMLFormat">
+        <superKinds itemref="share:ImportExportFormat"/>
+        <displayName value="Cloud XML Import/Export Format Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.CloudXMLFormat"/>
+
+        <Attribute itsName="cloudAlias">
+            <type itemref="String"/>
+        </Attribute>
+    </Kind>
+
+    <Kind itsName="Share">
+        <superKinds itemref="cm:ChandlerItem"/>
+        <displayName value="Share Kind"/>
+        <description value="Represents a shared collection" />
+        <classes key="python" value="osaf.framework.sharing.Sharing.Share"/>
+
+        <Attribute itsName="contents">
+            <type itemref="cm:ItemCollection"/>
+            <inverseAttribute itemref="cm:ItemCollection/shares"/>
+            <cardinality value="single"/>
+        </Attribute>
+
+        <Attribute itsName="conduit">
+            <type itemref="share:ShareConduit"/>
+            <inverseAttribute itemref="share:ShareConduit/share"/>
+            <cardinality value="single"/>
+        </Attribute>
+
+        <Attribute itsName="format">
+            <type itemref="share:ImportExportFormat"/>
+            <inverseAttribute itemref="share:ImportExportFormat/share"/>
+            <cardinality value="single"/>
+        </Attribute>
+
+        <Attribute itsName="sharer">
+            <description value="The contact who initially published this share" />
+            <type itemref="contact:Contact" />
+            <cardinality value="single" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="contact:Contact/sharerOf" />
+        </Attribute>
+
+        <Attribute itsName="sharees">
+            <description value="The people who were invited to this share" />
+            <type itemref="contact:Contact" />
+            <cardinality value="list" />
+            <initialValue />
+            <inverseAttribute itemref="contact:Contact/shareeOf" />
+        </Attribute>
+
+        <!-- Sharing Cloud -->
+        <Cloud itsName="SharingCloud">
+          <Endpoint itsName="contents">
+            <attribute value="contents"/>
+            <includePolicy value="byCloud"/>
+          </Endpoint>
+          <endpoints itemref="share:Share/SharingCloud/contents"/>
+          <Endpoint itsName="sharer">
+            <attribute value="sharer"/>
+            <includePolicy value="byCloud"/>
+          </Endpoint>
+          <endpoints itemref="share:Share/SharingCloud/sharer"/>
+          <Endpoint itsName="sharees">
+            <attribute value="sharees"/>
+            <includePolicy value="byCloud"/>
+          </Endpoint>
+          <endpoints itemref="share:Share/SharingCloud/sharees"/>
+        </Cloud>
+        <clouds alias="sharing" itemref="share:Share/SharingCloud"/>
+
+    </Kind>
+
+    <Kind itsName="ShareConduit">
+        <superKinds itemref="cm:ChandlerItem"/>
+        <displayName value="Share Conduit Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.ShareConduit"/>
+
+        <Attribute itsName="share">
+            <type itemref="share:Share"/>
+            <inverseAttribute itemref="share:Share/conduit"/>
+            <cardinality value="single"/>
+        </Attribute>
+
+        <Attribute itsName="sharePath">
+            <type itemref="String"/>
+            <description value="The parent 'directory' of the share" />
+        </Attribute>
+
+        <Attribute itsName="shareName">
+            <type itemref="String"/>
+            <description value="The 'directory' name of the share, relative to 'sharePath'" />
+        </Attribute>
+
+        <Attribute itsName="manifest">
+            <description value="Keeps track of 'remote' item information, such as last modified date or ETAG" />
+            <type itemref="Dictionary"/>
+            <cardinality value="dict" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="FileSystemConduit">
+        <superKinds itemref="share:ShareConduit"/>
+        <displayName value="File System Share Conduit Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.FileSystemConduit"/>
+    </Kind>
+
+    <Kind itsName="WebDAVConduit">
+        <superKinds itemref="share:ShareConduit"/>
+        <displayName value="WebDAV Share Conduit Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.WebDAVConduit"/>
+
+        <Attribute itsName="host">
+            <type itemref="String"/>
+        </Attribute>
+
+        <Attribute itsName="port">
+            <type itemref="Integer"/>
+        </Attribute>
+
+        <Attribute itsName="username">
+            <type itemref="String"/>
+        </Attribute>
+
+        <Attribute itsName="password">
+            <type itemref="String"/>
+        </Attribute>
+
+    </Kind>
 </Parcel>

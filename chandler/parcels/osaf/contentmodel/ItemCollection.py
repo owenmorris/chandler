@@ -11,9 +11,6 @@ class ItemCollection(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/ItemCollection"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (ItemCollection, self).__init__(name, parent, kind)
-
     def subscribe (self, callbackItem=None, callbackMethodName=None):
         """
           Subscribed ItemCollections will automatically results up to date. Optionally,
