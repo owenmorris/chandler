@@ -180,6 +180,10 @@ class AccountPreferencesDialog(wx.Dialog):
          id=wx.xrc.XRCID("ACCOUNTS_LIST"))
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
+        # Setting focus to the accounts list let's us "tab" to the first
+        # text field (without this, on the mac, tabbing doesn't work)
+        self.accountsList.SetFocus()
+
     def __PopulateAccountsList(self, account):
         """ Find all AccountBase items and put them in the list; also build
             up a data structure with the applicable attribute values we'll
@@ -246,7 +250,9 @@ class AccountPreferencesDialog(wx.Dialog):
             # Get current form data and tuck it away
             self.__StoreFormData(self.currentPanelType, self.currentPanel,
              self.data[self.currentIndex]['values'])
-            self.currentPanel.Destroy()
+            self.innerSizer.Detach(self.currentPanel)
+            self.currentPanel.Hide()
+            wx.CallAfter(self.currentPanel.Destroy)
 
         self.currentIndex = index
         self.currentPanelType = self.data[index]['item'].accountType
@@ -257,7 +263,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         self.outerSizer.Fit(self)
-        self.accountsList.SetFocus()
 
         # When a text field receives focus, call the handler.
         for field in PANELS[self.currentPanelType]['fields'].keys():
