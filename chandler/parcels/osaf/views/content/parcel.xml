@@ -259,10 +259,6 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <ItemDetail itsName="NewCalendarItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
   <ItemDetail itsName="NewContactItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
@@ -343,10 +339,11 @@
   <!-- New Calendar View -->
   <SplitterWindow itsName="NewCalendarListView">
     <childrenBlocks itemref="view:NewCalendarList"/>
-    <childrenBlocks itemref="view:NewCalendarItemDetail"/>
+    <childrenBlocks itemref="calendarDetail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
   <!-- New Contact View -->
