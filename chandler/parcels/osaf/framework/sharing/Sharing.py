@@ -38,6 +38,17 @@ def subscribeToWebDavCollection(url):
     event.Post({'collection':collection})
     Globals.repository.commit()
 
+def publishWebDavCollection(collection):
+    """ Given a collection, tell the webdav subsystem to publish it, and
+        return the url for it. """
+    return ""
+
+def sendInvites(addresses, url):
+    """ Tell the email subsystem to send a sharing invite to the given
+        addresses. """
+    for address in addresses:
+        print address
+
 def announceSharingUrl(url):
     """ Call this method to announce that an inbound sharing invitation has
         arrived. """
@@ -49,8 +60,19 @@ def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
         subscribe to.  """
 
-    url =  application.dialogs.Util.promptUser( \
+    url = application.dialogs.Util.promptUser( \
      Globals.wxApplication.mainFrame, "Subscribe to Collection...",
      "Collection URL:", "http://code-bear.com/dav/test_item_collection")
     if url is not None:
         subscribeToWebDavCollection(url)
+
+def manualPublishCollection(collection):
+    print 'Share collection "%s"' % collection.displayName
+    addresses = application.dialogs.Util.promptUser( \
+     Globals.wxApplication.mainFrame, "Publish Collection...",
+     "Email address to send invites: (comma separated)", "")
+    url = publishWebDavCollection(collection)
+    if addresses is not None:
+        addresses = addresses.split(",")
+        sendInvites(addresses, url)
+

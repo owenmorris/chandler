@@ -215,13 +215,10 @@ class MainView(View):
         return selectionContents
 
     def onShareCollectionEvent (self, notification):
-        """
-        Stub for Lisa - Share the collection selected
-        in the sidebar.
-        """
+        # Triggered from "Test | Share collection..."
         collection = self.getSidebarSelectedCollection ()
-        if collection:
-            print 'Share collection "%s"' % collection.displayName
+        if collection is not None:
+            osaf.framework.sharing.Sharing.manualPublishCollection(collection)
 
     def onShareCollectionEventUpdateUI (self, notification):
         """
