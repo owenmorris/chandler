@@ -19,6 +19,10 @@ Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
     * Fixed bug with tabs being unregistered in the background.
     * Added drag and drop framework. 
     * Addition of swig to our build environment
+    * Added defaults to block XML.
+    * Large amounts of refactoring of blocks to simplify, eliminate deadwood,
+      generalize.
+    * Added SummaryBlock 
 
 Milestone 0.3.16 (CVS tag CHANDLER_0_3_16) 2004-05-18
     * Upgraded to wxWidgets 2.5.
