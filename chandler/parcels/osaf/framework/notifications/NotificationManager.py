@@ -77,7 +77,7 @@ class NotificationManager(object):
         self.subscriptions.acquire()
         try:
             if self.subscriptions.has_key(clientID):
-                raise AlreadySubscribed
+                raise AlreadySubscribed, 'client ID %d on events %s is already subscribed' % (clientID, events)
         finally:
             self.subscriptions.release()
             
