@@ -17,13 +17,14 @@ from wxPython.xrc import *
 import sys
 import os
 
+from ComponentInterface import ComponentInterface
 from MenuBar import MenuBar
 from LocationBar import LocationBar
 from ActionsBar import ActionsBar
 from SideBar import SideBar
 
-DEFAULT_WINDOW_WIDTH = 1000
-DEFAULT_WINDOW_HEIGHT = 800
+DEFAULT_WINDOW_WIDTH = -1 #1000
+DEFAULT_WINDOW_HEIGHT = -1 #800
 STATUS_WELCOME_MESSAGE = "Welcome!"
 
 class ChandlerWindow(wxFrame):
@@ -57,6 +58,7 @@ class ChandlerWindow(wxFrame):
         self.bodyPanelSizer = wxBoxSizer(wxHORIZONTAL)
         self.sideBar = SideBar(self.bodyPanel, self)
         
+        self.componentInterface = ComponentInterface(self)
         self.components = self.__LoadComponents(componentStrings, self.bodyPanel)
         
         self.displayPanel = wxPanel(self, -1)
@@ -67,55 +69,77 @@ class ChandlerWindow(wxFrame):
         self.bodyPanel.SetSizer(self.bodyPanelSizer)
         self.actionsBarSizer.Add(self.bodyPanel, 1, wxEXPAND)
 
-        self.menuBar = MenuBar(self, self.components)
-        self.sideBar.PopulateSideBar(self.components)
+        orderedComponents = self.__OrderComponents(self.components)
+
+        self.menuBar = MenuBar(self, orderedComponents)
+        self.sideBar.PopulateSideBar(orderedComponents)
 
         self.SetAutoLayout(true)
         self.SetSizer(self.actionsBarSizer)
-        
-        if len(self.components) > 0:
-            defaultComponent = self.components[0]
-            self.GoToUri(defaultComponent, defaultComponent.GetDefaultUri())
-        
-        EVT_CLOSE(self, self.OnCloseWindow)
+
+        if len(orderedComponents) > 0:
+            defaultUri = orderedComponents[0].data["DefaultUri"]
+            self.GoToUri(defaultUri)
+
+        EVT_CLOSE(self, self.__OnCloseWindow)
 
     def __LoadComponents(self, componentStrings, parent):
         """This method takes the list of components that was supplied by the
-        application and one-by-one, imports each of them and allocates their
-        corresponding loader.  The loaders are then returned as a list so
-        that the window can access them when needed to switch among
-        components."""
-        components = []
+        application and one-by-one, imports each of them and starts their
+        loading.  The components are then returned as a list so that the
+        window can access them when needed to switch among components."""
+        components = {}
         for componentString in componentStrings:
             try:
-                loaderName, path = componentString
+                componentName, path = componentString
                 exec('from ' + path + ' import *')
-                exec('loader = ' + loaderName + '(parent, self)')
-                components.append(loader)
+                exec('component = ' + componentName + '()')
+                component.Load(parent, self, self.componentInterface)
+                name = component.data["ComponentName"]
+                components[name] = component
             except:
-                print "Failed to load component"
+                print "Failed to load component from " + componentName
         return components
+    
+    def __OrderComponents(self, components):
+        """Takes the dictionary of components and gives them some ordering as
+        to how they should be displayed both in the sidebar and in the menu.
+        Right now, it is just makes sure that the Calendar comes first."""
+        orderedList = []
+        # This is only to make it so that the Calendar displays first while it
+        # is the only real component we have.  Once we actually have real
+        # components alongside the Calendar, we can remove this.
+        if components.has_key('Calendar'):
+            orderedList.append(components['Calendar'])
+        for key in components.keys():
+            if key != 'Calendar':
+                orderedList.append(components[key])
+        return orderedList
  
-    def GoToUri(self, component, uri, doAddToHistory = true):
-        """Select the view (indicated by the uri) from the supplied
+    def GoToUri(self, uri, doAddToHistory = true):
+        """Select the view (indicated by the uri) from the proper
         component.  This method first retrieves the proper view, then replaces
         the current view within the display panel of the window with this new
         view.  It also updates the menubar (if the component being selected is
         different from the current one - since it will have it's own menu) and
         selects the proper item in the sidebar."""
+        uriFields = uri.split("/")
+        componentName = uriFields[0]
+        viewName = uriFields.pop()
+        component = self.components[componentName]
         if doAddToHistory:
-            self.locationBar.AddLocationHistory(component, uri)
+            self.locationBar.AddLocationHistory(uri)
         self.locationBar.SetUri(uri) #displays the uri in the location bar
-        newView = component.GetViewFromUri(uri)
+        newView = component.data["View"][viewName]
         # Actually display the view
         if newView != self.displayPanel:
             self.bodyPanelSizer.Remove(self.displayPanel)
             self.displayPanel.Hide()
-            self.displayPanel = component.GetViewFromUri(uri)
+            self.displayPanel = newView
             self.bodyPanelSizer.Add(self.displayPanel, 1, wxEXPAND)
             self.displayPanel.Show()
             self.bodyPanelSizer.Layout()
-            self.menuBar.SelectComponent(component.GetComponentName())
+            self.menuBar.SelectComponent(component.data["ComponentName"])
         else:
             self.displayPanel.Hide()
             self.displayPanel.Show()
@@ -178,7 +202,7 @@ class ChandlerWindow(wxFrame):
             statusBar.Show(doShow)
             self.Layout()
     
-    def OnCloseWindow(self, event):
+    def __OnCloseWindow(self, event):
         """Closing a window requires that the window notify the application
         that it is going away.  Once that is done, we may destroy the 
         window."""

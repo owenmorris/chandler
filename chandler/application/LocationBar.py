@@ -27,42 +27,48 @@ class LocationBar:
         self.locationBar = self.resources.LoadToolBar(self.parent, 
                                                       LOCATION_BAR_NAME)
         self.parent.SetToolBar(self.locationBar)
+
         id = XRCID("uriBox")
-        # For some reason the line below causes asserts to be raised.
-        # It seems as though each toolbar item is being queried, and
-        # for every one that isn't a control (the buttons?) an assert
-        # is raised.
         self.uriBox = self.locationBar.FindWindowById(id)
+
         self.history = []
         self.future = []
         
-        EVT_TOOL(self.parent, XRCID("prev"), self.GoPrev)
-        EVT_TOOL(self.parent, XRCID("next"), self.GoNext)
-        EVT_TOOL(self.parent, XRCID("stop"), self.DoStop)
-        EVT_TOOL(self.parent, XRCID("reload"), self.DoReload)
-        EVT_TOOL(self.parent, XRCID("home"), self.GoHome)
+        EVT_TOOL(self.parent, XRCID("prev"), self.__GoPrev)
+        EVT_TOOL(self.parent, XRCID("next"), self.__GoNext)
+        EVT_TOOL(self.parent, XRCID("stop"), self.__DoStop)
+        EVT_TOOL(self.parent, XRCID("reload"), self.__DoReload)
+        EVT_TOOL(self.parent, XRCID("home"), self.__GoHome)
         
-        EVT_TEXT_ENTER(self.parent, XRCID("uriBox"), self.GoToUri)
+        EVT_TEXT_ENTER(self.parent, XRCID("uriBox"), self.__GoToUri)
         
-    def AddLocationHistory(self, component, uri):
+    def AddLocationHistory(self, uri):
         """Add the given view to the toolbar's history list.  The history
         contains the past views that have been visited as well as the view
         that is currently active (in the last position).  Adding a view to
         the history will clear the future list (used by the Next button)."""
         self.future = []
-        tuple = (component, uri)
-        self.history.append(tuple)
+        self.history.append(uri)
         
     def SetUri(self, uri):
         """Sets the text of the uri text field in the location bar to reflect
         the current view."""
         self.uriBox.SetValue(uri)
         
-    def GoToUri(self, event):
-        uri = self.uriBox.GetValue()
-#        self.parent.GoToUri(component, uri)
+    def __GoToUri(self, event):
+        """When the user enters a location in the uri text box of the toolbar,
+        we navigate to that uri.  If switching to that uri fails (because of
+        a typo or because that uri does not exist), then we simply reset the
+        text box to the current uri."""
+        oldUri = self.history[len(self.history) - 1]
+        newUri = self.uriBox.GetValue()
+        try:
+            self.parent.GoToUri(newUri)
+        except:
+            print "Failed to navigate to " + newUri
+            self.uriBox.SetValue(oldUri)
 
-    def GoPrev(self, event):
+    def __GoPrev(self, event):
         """Change to the most recent past view.  This moves you back one
         in the history of views that you have visited.  It causes the view
         that you are currently on to be added to the future list (for use
@@ -75,26 +81,25 @@ class LocationBar:
             currentLocation = self.history.pop()
             self.future.append(currentLocation)
             newLocationIndex = len(self.history) - 1
-            newComponent, newUri = self.history[newLocationIndex]
-            self.parent.GoToUri(newComponent, newUri, false)
+            newUri = self.history[newLocationIndex]
+            self.parent.GoToUri(newUri, false)
 
-    def GoNext(self, event):
+    def __GoNext(self, event):
         """Change to the next view in your future list.  The Next button
         will only have an effect if the last navigation you did was to 
         use the Prev button.  If so, then the last item added to the future
         list will be popped off, added to the history list, and you will
         navigate to that view."""
         if len(self.future) > 0:
-            newLocation = self.future.pop()
-            self.history.append(newLocation)
-            newComponent, newUri = newLocation
-            self.parent.GoToUri(newComponent, newUri, false)
+            newUri = self.future.pop()
+            self.history.append(newUri)
+            self.parent.GoToUri(newUri, false)
 
-    def DoStop(self, event):
+    def __DoStop(self, event):
         pass
     
-    def DoReload(self, event):
+    def __DoReload(self, event):
         pass
     
-    def GoHome(self, event):
+    def __GoHome(self, event):
         pass

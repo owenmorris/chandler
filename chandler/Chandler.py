@@ -43,7 +43,8 @@ class osafApp(wxApp):
         components.  In order for a component to be successfully loaded, it
         must have it's own folder in the components directory of Chandler, 
         that folder must contain an __init__.py file, and it must have a file
-        that subclasses ComponentLoader and is named 'Foldername'Loader.py.
+        that subclasses Component and is named the same as the package name,
+        but with a capitalized first letter.
 
         Returns a list of tuples, with each tuple containing the information
         necessary to load a single component.  The first item in the tuple is
@@ -54,10 +55,10 @@ class osafApp(wxApp):
 
         componentStrings = []
         for package in componentDirectory:
-            if package != 'CVS':                
-                loaderName = string.capwords(package) + 'Loader'
-                path = package + '.' + loaderName
-                componentStrings.append((loaderName, path))
+            if package != 'CVS':
+                componentName = string.capwords(package)
+                path = package + '.' + componentName
+                componentStrings.append((componentName, path))
         return componentStrings    
     
     def OpenNewViewer(self, location):
