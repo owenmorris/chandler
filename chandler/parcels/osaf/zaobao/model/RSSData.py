@@ -25,6 +25,7 @@ FEED_CHANGED_NOTIFICATION = 'zaobao/feedsChanged'
 rssDict = None
 _defaultBlogs = (
     "http://blogs.osafoundation.org/news/index.rdf",
+    "http://blogs.osafoundation.org/devnews/index.rdf",
     "http://blogs.osafoundation.org/zaobao/index.rdf",
     "http://blogs.osafoundation.org/mitch/index.rdf",
     "http://blogs.osafoundation.org/chao/index.rdf",
@@ -135,7 +136,7 @@ class RSSChannel(Item):
         self.setAttributeValue("creator",
                                unicode(channel.get('creator',''),encoding))
         self.setAttributeValue("description",
-                               unicode(channel.get('description','')))
+                               unicode(channel.get('description',''),encoding))
         self.setAttributeValue("link",channel.get('link',''))
         self.setAttributeValue("title",
                                unicode(channel.get('title',''),encoding))
@@ -221,16 +222,17 @@ class RSSChannel(Item):
                 lastModified = apply(mx.DateTime.DateTime,modifiedDate[0:3]) #@@@ FIXME, need to store the whole date
             else:
                 self.removeAttributeValue('lastModified')
+                return
         self.setAttributeValue('lastModified',lastModified)
         
     def getModifiedDateString(self):
-        date = self.lastModified
+        date = self.getAttributeValue('lastModified',default=None)
         if (date):
             return date.localtime().strftime('%a %m/%d %I:%M %p')
         else: return ''
     
     def getModifiedDateTuple(self):
-        date = self.lastModified
+        date = self.getAttributeValue('lastModified',default=None)
         if (date):
             return date.localtime().tuple()
         else: return None
