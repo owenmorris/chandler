@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import gettext, os, sys
 from wxPython.wx import *
 import Globals, ChandlerJabber
-import repository.schema.LoadParcels as LoadParcels
+import repository.parcel.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
 import application.agents.Notifications.NotificationManager as NotificationManager
 
@@ -172,7 +172,7 @@ class wxApplicationNew (wxApp):
         
         from OSAF.AppSchema.DocumentSchema.Block import Block
         
-        topDocument = Globals.repository.find('//Parcels/OSAF/templates/top/TopDocument')
+        topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
         if topDocument:
             self.testFrame = TestFrame()
             assert isinstance (topDocument, Block)

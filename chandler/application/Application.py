@@ -17,7 +17,7 @@ from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
 
-import repository.schema.LoadParcels as LoadParcels
+import repository.parcel.LoadParcels as LoadParcels
 
 import Globals
 
