@@ -1208,6 +1208,7 @@ long					resultV;
 	itemData.mask = HDI_FORMAT | HDI_WIDTH;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
+	// add string reference
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = (LPSTR)(itemRef->m_LabelTextRef.c_str());
 	itemData.cxy = (int)(itemRef->m_ExtentX);
@@ -1215,6 +1216,16 @@ long					resultV;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 	itemData.fmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
+	// add bitmap reference as needed
+	if ((itemRef->m_ImageRef != NULL) && itemRef->m_ImageRef->Ok())
+	{
+		itemData.mask |= HDI_BITMAP;
+		itemData.fmt |= HDF_BITMAP;
+		itemData.fmt &= ~HDF_STRING;
+		itemData.hbm = (HBITMAP)(itemRef->m_ImageRef->GetHBITMAP());
+	}
+
+	// add sort arrows as needed
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
 	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
 		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
