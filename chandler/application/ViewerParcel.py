@@ -63,12 +63,9 @@ class ViewerParcel (Parcel):
             module = sys.modules[self.__class__.__module__]
             modulename = os.path.basename (module.__file__)
             modulename = os.path.splitext (modulename)[0]
-	    path = module.__file__.split(os.sep)
-	    path = path[:-1]
-	    path = os.sep.join(path)
-	    path = path + os.sep + modulename + ".xrc"
-	    
-            #path = self.path + os.sep + modulename + ".xrc"
+            path = os.sep.join(module.__name__.split("."))
+            path = path + ".xrc"
+
             """
               ViewerParcels must have a resource file with the same name as the
             module with an .xrc extension
