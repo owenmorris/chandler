@@ -45,14 +45,17 @@ def OnInit(loader):
         notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
                                                 NotificationManager.SYSTEM_CLIENT,
                                                 'unknown','')
-        #threading.Thread(target=_loadInitialFeeds).start()
-        _loadInitialFeeds()
+        threading.Thread(target=_loadInitialFeeds).start()
+        #_loadInitialFeeds()
         
 def _loadInitialFeeds():
     global rssDict
     rssDict = {}
     for rssURL in _defaultBlogs:
-        item = getNewRSSChannel(rssURL)
+        try:
+            item = getNewRSSChannel(rssURL)
+        except Exception,e: #ignore all errors for default feeds
+            pass
   
 def loadLocalObjects():
     global rssDict
@@ -127,12 +130,17 @@ class RSSChannel(Item):
         self.setChannel(parseData,rssURL)
         
     def setChannel(self,parserData,rssURL):
+        encoding = parserData.get('encoding','latin_1')
         channel = parserData['channel']
-        self.setAttributeValue("creator",channel.get('creator',''))
-        self.setAttributeValue("description",channel.get('description',''))
+        self.setAttributeValue("creator",
+                               unicode(channel.get('creator',''),encoding))
+        self.setAttributeValue("description",
+                               unicode(channel.get('description','')))
         self.setAttributeValue("link",channel.get('link',''))
-        self.setAttributeValue("title",channel.get('title',''))
-        self.setAttributeValue("category",channel.get('category',''))
+        self.setAttributeValue("title",
+                               unicode(channel.get('title',''),encoding))
+        self.setAttributeValue("category",
+                               unicode(channel.get('category',''),encoding))
         self.setAttributeValue("language",channel.get('language','en-us'))
         self.setAttributeValue("encoding",channel.get('encoding',''))
         self.setAttributeValue("etag",parserData.get('etag',''))
@@ -163,7 +171,7 @@ class RSSChannel(Item):
                     self.setAttributeValue(key,value)
 
     def getItemsFromParseData(self,parseData):
-        encoding = parseData.get('encoding', 'ascii')
+        encoding = parseData.get('encoding', 'latin_1')
         items = [RSSItemFactory(app.repository).newItem(itemData, encoding)
                  for itemData in parseData['items']]
         return items
@@ -266,17 +274,15 @@ class RSSItemFactory:
     
 class RSSItem(Item):
     def initAttributes(self, itemData, encoding):
-        self.setAttributeValue('creator', unicode(itemData.get('creator',''),
-                                                  encoding))
+        self.setAttributeValue('creator',
+                               unicode(itemData.get('creator',''),encoding))
         self.setAttributeValue('description',
-                               unicode(itemData.get('description',''),
-                                       encoding))
-        self.setAttributeValue('link', unicode(itemData.get('link',''),
-                                               encoding))
-        self.setAttributeValue('title', unicode(itemData.get('title',''),
-                                                encoding))
-        self.setAttributeValue('category', unicode(itemData.get('category',''),
-                                                   encoding))
+                               unicode(itemData.get('description',''),encoding))
+        self.setAttributeValue('link', itemData.get('link',''))
+        self.setAttributeValue('title',
+                               unicode(itemData.get('title',''),encoding))
+        self.setAttributeValue('category',
+                               unicode(itemData.get('category',''),encoding))
         try:
             date = itemData['date']
             self.setAttributeValue('lastModified',mx.DateTime.DateTimeFrom(date))
