@@ -259,6 +259,9 @@ class JabberClient:
 
     # return true if the passed-in ID is subscribed to
     def IsSubscribed(self, jabberID):
+        if self.roster == None:
+            return false
+        
         realIDs = self.roster.getJIDs()
         searchID = str(jabberID).lower()
         for realID in realIDs:
