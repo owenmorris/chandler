@@ -466,12 +466,12 @@ like::
 
     class inheritance(schema.Relationship):
         """Subclass/superclass relationship"""
-        subclass   = schema.Many()
-        superclass = schema.Many()
+        subclasses   = schema.Many()
+        superclasses = schema.Many()
 
     class Kind(schema.Entity):
-         subclasses = schema.Many(inheritance.subclass)
-         superclasses = schema.Many(inheritance.superclass)
+         subclasses = inheritance.subclasses
+         superclasses = inheritance.superclasses
 
 thus allowing bidirectional relationships to be defined without needing to
 explicitly specify the type.  (Possible downside: if multiple types allowed to

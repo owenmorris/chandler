@@ -209,7 +209,7 @@ Likewise, you can't directly set an undefined attribute on event instances::
     TypeError: '_foo' is not a public attribute of 'Message' objects
 
 But you can modify declared event attributes, such as ``sender``, ``consumed``,
-and any attributes added by an ``Event` subclass::
+and any attributes added by an ``Event`` subclass::
 
     >>> evt.sender = None
     >>> print evt.sender

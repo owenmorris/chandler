@@ -24,17 +24,20 @@ type.
 
 Entities are normally compared (and hashed) by identity, so that two entities
 are only equal if they are the same entity.  After all, what would it mean
-to say that two people are "equal"?  (Not to be confused with having equal
-rights, which is to say ``aPerson.rights == otherPerson.rights``, as opposed to
-``aPerson == otherPerson``!)  This identity-based comparison is Python's
-default behavior for user-defined classes, unless overridden.
+to say that two people are "equal"?  The phrase "all men are created equal
+actually refers to equal *rights*, which is to say something like
+``aPerson.rights == otherPerson.rights``, which is quite different from saying
+``aPerson == otherPerson``!
 
-Values, on the other hand, are normally hashed and compared by their value,
-because more than one object can exist with the same value.  For example, one
-could create the string ``"A"`` and the string ``chr(65)``, and although these
-strings may be stored at different memory locations, their *values* are equal.
-Many Python built-in types are value types, including numbers, strings, tuples,
-unicode objects, and date/time values.
+This identity-based comparison is Python's default behavior for user-defined
+classes, unless you override special methods like ``__hash__`` and ``__eq__``.
+
+Values, on the other hand, are normally hashed and compared by their *content*,
+because more than one value object can exist with the same contnet.  For
+example, one could create the string ``"A"`` and the string ``chr(65)``, and
+although these strings may be stored at different memory locations, their
+*content* is equal.  Many Python built-in types are value types, including
+numbers, strings, tuples, unicode objects, and date/time values.
 
 Here's a quick summary of the differences between entity and value types:
 
@@ -52,14 +55,15 @@ all, what would it mean to "change" the number 1?)  Because they can't be
 changed, they can't directly participate in bidirectional relationships, or
 be observed (listened to for changes).
 
-Of course, not all objects fit neatly into one category or the other.  Python's
-list objects, for example, are compared by value, but are mutable and are not
-hashable.
+Of course, not all objects fit neatly into one category or the other.  For
+example, Python's list objects are compared by value, but are mutable and are
+not hashable.
 
 Spike, however, can only properly manage data that is either an entity, a
-value, or an observable collection thereof.  You cannot simply use Python
-lists or dictionaries, because these do not provide any way for Spike's storage
-and UI facilities to be notified when their contents are changed.
+value, or an observable collection of entities or values.  You cannot simply
+use Python lists or dictionaries, because these do not provide any way for
+Spike's storage and UI facilities to be notified when their contents are
+changed.
 
 Spike can't absolutely enforce this rule, though. It will give you warnings or
 errors when it detects something amiss, but it can't read your code or examine
@@ -111,7 +115,7 @@ you will literally create role objects called ``parents`` and ``children``.
 These objects represent the *idea* of parents and children, not a specific
 set of parents or children.  If you define these objects within the ``Person``
 class, then ``Person`` instances will have attributes named ``parents`` and
-``children`` that can be used to access the sets containing the person's
+``children`` that can be used to access the sets containing that person's
 parents and children.
 
 However, you are not restricted to only defining roles within an entity class.
@@ -129,35 +133,49 @@ needing to change Chandler's source code.
 To Do
 -----
 
-Entity Classes
-
-* EntityClass sets name and parent class for embedded Roles
-
-
 Roles
 
 * Role can retrieve itself for an Entity  (``aRole.of(anEntity)``)
 
 * Role classes exist for each cardinality (initially: One & Many)
 
-* Roles are descriptors
+* Roles are descriptors (__get__, __set__, __delete__)
 
 * Roles have a way to set name/parent class, and they do not change once set
 
-* Roles __reduce__ as global objects (so they don't get pickled)
+* Activating a role adds the containing class to the inverse role's allowed
+  classes (using self.inverse.addType)
 
-* Role synchronizes (update-and-replace) if given another role instead of a
-  type
+* Roles __reduce__ as global objects (so they don't get pickled)
 
 * Setting ``aRole.inverse`` ensures that ``aRole.inverse.inverse is aRole``
 
 * Role knows how to create a default set of the right type for its cardinality
+  (and notices if it has no valid types defined)
 
 * Role subscribes created set so that its inverse reference is
   automatically updated, if it has one (Q: should we do this for
   "unidirectional" relationships too?  or let the repository handle it?)
 
-* Role knows its required type, requiredness, and other metadata (policies?)
+* Role knows its required type(s), requiredness, and other metadata (policies?)
+
+* Role.addType()  (should flatten arbitrary type tuples, reject non-types, and
+  ignore duplicates)
+
+* Role.__setattr__ doesn't allow setting unless current value is None/unset, or
+  new value equals old value  (addType should bypass using __set__)
+
+* Role.__init__ sets attrs via keywords
+
+
+
+Entity Classes
+
+* EntityClass sets name and parent class for embedded Roles
+
+* Entity.__setattr__ only allows setting class-defined, non-method attributes
+
+* Entity.__init__ sets attrs via keywords
 
 
 Relationships
