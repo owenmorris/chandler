@@ -1,4 +1,7 @@
 
+# Copyright (c) 2004 Open Source Applications Foundation
+# License: http://osafoundation.org/Chandler_0.1_license_terms.htm
+#
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/internal
 # When a version changes, the ARCHIVES lists below needs to be updated.
