@@ -86,7 +86,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
         os.chdir(chanDir)
     
-# build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
+        # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
         for releaseMode in ('release', 'debug'):
             doInstall(releaseMode, workingDir, log)
             #   Create end-user, developer distributions
@@ -112,12 +112,18 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
         print "Checking CVS for updates"
         log.write("Checking CVS for updates\n")
-        if changesInCVS(chanDir, workingDir, cvsVintage, log):
-            log.write("Changes in CVS, do an install\n")
+        (makeInstall, makeDistribution) = changesInCVS(chanDir, workingDir, cvsVintage, log, 'Makefile')
+        
+        if makeInstall:
+            log.write("Changes in CVS require install\n")
             changes = "-changes"
             for releaseMode in ('debug', 'release'):        
                 doInstall(releaseMode, workingDir, log)
                 
+        if makeDistribution:
+            log.write("Changes in CVS require making distributions\n")
+            changes = "-changes"
+            for releaseMode in ('debug', 'release'):        
                 #   Create end-user, developer distributions
                 print "Making distribution files for " + releaseMode
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
@@ -131,11 +137,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                  [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
                 hardhatutil.dumpOutputList(outputList, log)
                     
-        else:
-            log.write("No changes, install skipped\n")
+        if not makeInstall and not makeDistribution:
+            log.write("No changes\n")
             changes = "-nochanges"
 
-        # do tests after checking CVS
+        # do tests
         for releaseMode in ('debug', 'release'):   
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
@@ -186,9 +192,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
 
     return "success"  # end of Do( )
 
-def changesInCVS(moduleDir, workingDir, cvsVintage, log):
-
+def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
     changesAtAll = False
+    filenameChanged = False
 #     print "Examining CVS"
 #     log.write("Examining CVS\n")
     for module in cvsModules:
@@ -201,9 +207,9 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-qn", "update", "-d", cvsVintage])
         # hardhatutil.dumpOutputList(outputList, log)
-        if NeedsUpdate(outputList):
+        (filenameChanged, changesAtAll) = NeedsUpdate(outputList, filename)
+        if changesAtAll:
             print "" + module + " needs updating"
-            changesAtAll = True
             # update it
             print "Getting changed sources"
             log.write("Getting changed sources\n")
@@ -218,7 +224,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
 
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
-    return changesAtAll
+    return (filenameChanged, changesAtAll)
 
 def doInstall(buildmode, workingDir, log):
 # for our purposes, we do not really do a build
@@ -230,15 +236,20 @@ def doInstall(buildmode, workingDir, log):
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr + " install\n"
-    log.write("Doing make " + dbgStr + " install\n")
+    print "Doing make " + dbgStr + " clean install\n"
+    log.write("Doing make " + dbgStr + " clean install\n")
 
     outputList = hardhatutil.executeCommandReturnOutput(
      [buildenv['make'], dbgStr, "clean", "install" ])
     hardhatutil.dumpOutputList(outputList, log)
 
 
-def NeedsUpdate(outputList):
+def NeedsUpdate(outputList, filename):
+    """
+    @return: Returns a tuple of booleans. The first is true if filename is
+             empty and there were some changes or the filename was changed.
+             The second is true if there were any changes.
+    """
     for line in outputList:
         if line.lower().find("ide scripts") != -1:
             # this hack is for skipping some Mac-specific files that
@@ -249,14 +260,14 @@ def NeedsUpdate(outputList):
             continue
         if line[0] == "U":
             print "needs update because of", line
-            return True
+            return ((not filename or line[2:-1] == filename), True)
         if line[0] == "P":
             print "needs update because of", line
-            return True
+            return ((not filename or line[2:-1] == filename), True)
         if line[0] == "A":
             print "needs update because of", line
-            return True
-    return False
+            return ((not filename or line[2:-1] == filename), True)
+    return (False, False)
 
 def CopyLog(file, fd):
     input = open(file, "r")
