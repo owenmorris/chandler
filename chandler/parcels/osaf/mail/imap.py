@@ -529,6 +529,11 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         for invite in invites:
             url, collectionName, fromAddress = invite
+
+            if __debug__:
+                s = "url: %s collectionName: %s fromAddress: %s" % (url, collectionName, fromAddress)
+                self.log.info(s)
+
             sharing.receivedInvitation(url, collectionName, fromAddress)
 
     def __getLastUID(self):

@@ -35,7 +35,6 @@ def receivedInvitation(url, collectionName, fromAddress):
        @param fromAddress: The email address of the person sending the invite
        @type: C{str} or C{EmailAddress}
     """
-
     if not isinstance(url, str):
         raise SharingException("URL must be a String")
 
@@ -48,7 +47,7 @@ def receivedInvitation(url, collectionName, fromAddress):
     elif not isinstance(fromAddress, str):
         raise SharingException("fromAddress must be a String or a Mail.EmailAddress")
 
-    chandlerSharing.Sharing.announceSharingInvitation(url, collectionName, fromAddress)
+    chandlerSharing.Sharing.announceSharingInvitation(url.strip(), collectionName.strip(), fromAddress.strip())
 
 
 def sendInvitation(url, collectionName, sendToList):
