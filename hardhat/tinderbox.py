@@ -191,36 +191,40 @@ def main():
                 timestamp = timestamp.replace(":", "")
                 timestamp = timestamp.replace(" ", "")
 
-                if os.name == 'nt' or sys.platform == 'cygwin':
-                    platform = 'windows'
-                elif sys.platform == 'darwin':
-                    platform = 'macosx'
+                if not os.path.isdir(timestamp):
+                    print "skipping rsync to staging area, no dir", timestamp
+                    log.write("skipping rsync to staging area, no dir")
                 else:
-                    platform = 'linux'
-                    
-                print "Rsyncing to staging area..."
-                log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
-                          options.rsyncServer + ':staging/' +
-                          platform)
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", "ssh", "-avzp",
-                 timestamp, 
-                 options.rsyncServer + ":staging/" + platform])
-                hardhatutil.dumpOutputList(outputList, log)
+                    if os.name == 'nt' or sys.platform == 'cygwin':
+                        platform = 'windows'
+                    elif sys.platform == 'darwin':
+                        platform = 'macosx'
+                    else:
+                        platform = 'linux'
 
-                completedFile = timestamp + os.sep + "completed"
-                open(completedFile, "w").close()
+                    print "Rsyncing to staging area..."
+                    log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
+                              options.rsyncServer + ':staging/' +
+                              platform)
+                    outputList = hardhatutil.executeCommandReturnOutputRetry(
+                     [rsyncProgram, "-e", "ssh", "-avzp",
+                     timestamp, 
+                     options.rsyncServer + ":staging/" + platform])
+                    hardhatutil.dumpOutputList(outputList, log)
 
-                log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
-                          options.rsyncServer + ':staging/' +
-                          platform + "/" + timestamp)
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", "ssh", "-avzp",
-                 completedFile, 
-                 options.rsyncServer + ":staging/" + platform + "/" + timestamp])
-                hardhatutil.dumpOutputList(outputList, log)
+                    completedFile = timestamp + os.sep + "completed"
+                    open(completedFile, "w").close()
 
-                hardhatutil.rmdirRecursive(timestamp)
+                    log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
+                              options.rsyncServer + ':staging/' +
+                              platform + "/" + timestamp)
+                    outputList = hardhatutil.executeCommandReturnOutputRetry(
+                     [rsyncProgram, "-e", "ssh", "-avzp",
+                     completedFile, 
+                     options.rsyncServer + ":staging/" + platform + "/" + timestamp])
+                    hardhatutil.dumpOutputList(outputList, log)
+
+                    hardhatutil.rmdirRecursive(timestamp)
 
         elif ret[:12] == "build_failed":
             print "The build failed"
