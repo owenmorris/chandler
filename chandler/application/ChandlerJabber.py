@@ -16,6 +16,7 @@ from wxPython.wx import *
 import string
 import time
 import cPickle
+import base64
 
 import xmlstream
 from jabber import *
@@ -408,12 +409,14 @@ class JabberClient:
     
     # encode an objectlist into a text string, using cPickle and base64 encoding
     def EncodeObjectList(self, objectList):
-        return ''
+        viewStr = cPickle.dumps(objectList)		
+        return base64.encodestring(viewStr)
     
     # decode an objectlist from a text string, using base65 and cPickle
-    def DecodeObjectList(self, objectList):
-        return []
-    
+    def DecodeObjectList(self, objectStr):
+        pickledStr = base64.decodestring(objectStr)
+        objectList = cPickle.loads(pickledStr)	
+        
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
         message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)
