@@ -171,11 +171,12 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                         label = _("Send to new")
             elif isinstance(item, Mail.MailMessageMixin):
                 # It's mail. Has it been sent already?
+                sent = False
                 try:
-                    dateSent = item.dateSent
+                    sent = item.isOutbound and item.deliveryExtension.state == "SENT"
                 except AttributeError:
-                    dateSent = None
-                if dateSent is not None:
+                    pass
+                if sent:
                     label = _("Sent")
                 else:
                     # Not sent yet - do we have valid addressees?
@@ -993,20 +994,13 @@ class AttachmentTextField (EditTextAttribute):
         # It's read-only, but we have to override this method.
         pass
     
-
-def _getSharingHeaderInfo(mailItem):
-    """ Return the Chandler sharing header's values, split into a handy list. Throws if not present. """
-    sharingHeader = MailMessage.createChandlerHeader(MailConstants.SHARING_HEADER)
-    divider = MailConstants.SHARING_DIVIDER
-    urlAndCollectionName = mailItem.chandlerHeaders[sharingHeader].split(divider)            
-    return urlAndCollectionName 
-
+    
 class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         showIt = False
-        if item is not None:
+        if item is not None and item.isInbound:
             try:
-                _getSharingHeaderInfo(item)
+                MailSharing.getSharingHeaderInfo(item)
             except:       
                 pass
             else:
@@ -1015,7 +1009,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
         return showIt
     
     def onAcceptShareEvent(self, event):
-        url, collectionName = _getSharingHeaderInfo(self.selectedItem())
+        url, collectionName = MailSharing.getSharingHeaderInfo(self.selectedItem())
         wx.Yield()
         share = Sharing.newInboundShare(self.itsView, url)
         share.get()
@@ -1032,7 +1026,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
         # If we're already sharing it, we should disable the button and change the text.
         enabled = True
         try:
-            url, collectionName = _getSharingHeaderInfo(item)
+            url, collectionName = MailSharing.getSharingHeaderInfo(item)
             existingSharedCollection = Sharing.findMatchingShare(self.itsView, url)
         except:
             enabled = True

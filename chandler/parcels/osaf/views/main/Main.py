@@ -65,6 +65,20 @@ class MainView(View):
         """
         if mailMessage is not None and mailMessage.isOutbound:
             self.setStatusMessage (_('Mail "%s" sent.') % mailMessage.about)
+        
+        # If this was a sharing invitation, find its collection and remove the
+        # successfully-notified addressees from the invites list.
+        try:
+            (url, collectionName) = MailSharing.getSharingHeaderInfo(mailMessage)
+        except KeyError:
+            pass
+        else:
+            share = Sharing.findMatchingShare(self.itsView, url)
+            itemCollection = share.contents
+            
+            for addresseeContact in mailMessage.toAddress:
+                if addresseeContact in itemCollection.invitees:
+                    itemCollection.invitees.remove(addresseeContact)
 
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
@@ -264,10 +278,6 @@ class MainView(View):
         MailSharing.sendInvitation(itemCollection.itsView.repository, share.conduit.getLocation(), 
                                    itemCollection, inviteeList)
         
-        # Forget the invitees, now that we've successfully invited them
-        # @@@ BJS: Move this to the success callback
-        itemCollection.invitees = []
-
         # Done
         self.setStatusMessage (_("Sharing initiated."))
 

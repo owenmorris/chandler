@@ -90,9 +90,6 @@ class SMTPInvitationSender:
     def __createMessage(self):
         self.repository.view.refresh()
 
-        #XXX: Tnis needs to be base 64 encoded
-        sendStr = "%s%s%s" % (self.url, constants.SHARING_DIVIDER, self.collectionName)
-
         m = Mail.MailMessage(view=self.repository.view)
 
         #XXX: Try commenting out see what happens
@@ -102,6 +99,7 @@ class SMTPInvitationSender:
         m.subject = self.__createSubject()
         m.fromAddress = self.fromAddress
 
+        sendStr = makeSharingHeaderValue(self.url, self.collectionName)
         m.chandlerHeaders[message.createChandlerHeader(constants.SHARING_HEADER)] = sendStr
 
         for address in self.sendToList:
@@ -122,3 +120,22 @@ class SMTPInvitationSender:
             name = self.FromAddress.emailAddress
 
         return "%s has invited you to share the %s collection" % (name, self.collectionName)
+
+def makeSharingHeaderValue(url, collectionName):
+    #XXX: Tnis needs to be base 64 encoded; also, see below.
+    return "%s%s%s" % (url, constants.SHARING_DIVIDER, collectionName)
+
+def getSharingHeaderInfo(mailItem):
+    """ 
+    Return the Chandler sharing header's values, split into a handy list: (url, collectionName)
+    Throws KeyError if not present. 
+    Used by Main and the detail view.
+    """
+    sharingHeaderName = message.createChandlerHeader(constants.SHARING_HEADER)
+
+    #XXX: Tnis needs to be base 64 unencoded; also, see above.
+    sharingHeaderValue = mailItem.chandlerHeaders[sharingHeaderName]
+    
+    urlAndCollectionName = sharingHeaderValue.split(constants.SHARING_DIVIDER)            
+    return urlAndCollectionName 
+

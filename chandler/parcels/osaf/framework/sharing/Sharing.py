@@ -1433,9 +1433,9 @@ def findMatchingShare(view, url):
     (useSSL, host, port, path, query, fragment) = __spliturl(url)
 
     # '/dev1/foo/bar' becomes 'bar'
-    shareName = path.strip("/").split("/")[-1:]
+    shareName = path.strip("/").split("/")[-1]
 
-    for conduits in account.conduits:
+    for conduit in account.conduits:
         if conduit.shareName == shareName:
             if conduit.share.hidden == False:
                 return conduit.share
