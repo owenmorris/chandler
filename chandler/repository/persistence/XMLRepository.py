@@ -428,6 +428,9 @@ class XMLRefDict(RefDict):
 
     def _loadRef(self, key):
 
+        if self.view is not self.view.repository.view:
+            raise RepositoryError, 'current thread is not owning thread'
+
         if key in self._deletedRefs:
             return None
 
