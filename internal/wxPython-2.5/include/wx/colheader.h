@@ -1,4 +1,15 @@
-#ifndef _WX_COLUMNHEADER_H
+///////////////////////////////////////////////////////////////////////////////
+// Name:		wx/colheader.h
+// Purpose:	definitions for a native-appearance column header
+// Author:	David Surovell
+// Modified by:
+// Created:	01.01.2005
+// RCS-ID:
+// Copyright:
+// License:
+///////////////////////////////////////////////////////////////////////////////
+
+#if !defined(_WX_COLUMNHEADER_H)
 #define _WX_COLUMNHEADER_H
 
 #include "wx/defs.h"
@@ -6,18 +17,13 @@
 // #if wxUSE_COLUMNHEADER
 
 #include "wx/control.h"			// the base class
-#include "wx/dcclient.h"		// for wxPaintDC
 #include "wx/font.h"
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader flags and constants
 // ----------------------------------------------------------------------------
 
-#if defined(__WXMSW__)
-#define wxColumnHeaderNameStr		_T(WC_HEADER)
-#else
 #define wxColumnHeaderNameStr		_T("ColumnHeader")
-#endif
 
 
 typedef enum
@@ -38,7 +44,7 @@ wxColumnHeaderFlagAttr;
 
 typedef enum
 {
-	wxCOLUMNHEADER_HITTEST_NoPart			= -1,	// outside of everything
+	wxCOLUMNHEADER_HITTEST_NoPart			= -1,	// not within a known sub-item (but within the client bounds)
 	wxCOLUMNHEADER_HITTEST_ItemZero		= 0		// any other (non-negative) value is a sub-item
 }
 wxColumnHeaderHitTestResult;

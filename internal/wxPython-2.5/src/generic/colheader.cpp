@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+// Name:		generic/colheader.cpp
+// Purpose:	generic implementation of a native-appearance column header
+// Author:	David Surovell
+// Modified by:
+// Created:	01.01.2005
+// RCS-ID:
+// Copyright:
+// License:
+///////////////////////////////////////////////////////////////////////////////
+
 // ============================================================================
 // declarations
 // ============================================================================
@@ -18,12 +29,12 @@
 #endif
 
 #if !defined(WX_PRECOMP)
-	#include "wx/dcclient.h"
+//	#include "wx/dcclient.h"
 	#include "wx/settings.h"
 	#include "wx/brush.h"
 	#include "wx/listbox.h"
-	#include "wx/stattext.h"
-	#include "wx/textctrl.h"
+//	#include "wx/stattext.h"
+//	#include "wx/textctrl.h"
 #endif // WX_PRECOMP
 
 //#if wxUSE_COLUMNHEADER
@@ -165,19 +176,20 @@ bool wxColumnHeader::Create(
 	long				style,
 	const wxString		&name )
 {
-bool	bResultV;
+wxString		localName;
+bool			bResultV;
 
 #if defined(__WXMSW__)
-	// FIXME: will almost certainly get mangled by wxControl::Create
-	// does the class need to be registered?
-	style |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
+	localName = _T(WC_HEADER);
+#else
+	localName = name;
 #endif
 
 	bResultV =
 		wxControl::Create(
 			parent, id, pos, size,
 			style | wxCLIP_CHILDREN,
-			wxDefaultValidator, name );
+			wxDefaultValidator, localName );
 
 	if (bResultV)
 	{
@@ -212,11 +224,7 @@ bool	bResultV;
 	return bResultV;
 }
 
-// ----------------------------------------------------------------------------
-// forward wxWin functions to subcontrols
-// NB: useful for debugging, but anything else?
-// ----------------------------------------------------------------------------
-
+// virtual
 bool wxColumnHeader::Destroy( void )
 {
 bool		bResultV;
@@ -226,6 +234,7 @@ bool		bResultV;
 	return bResultV;
 }
 
+// virtual
 bool wxColumnHeader::Show(
 	bool		bShow )
 {
@@ -236,6 +245,7 @@ bool	bResultV;
 	return bResultV;
 }
 
+// virtual
 bool wxColumnHeader::Enable(
 	bool		bEnable )
 {
@@ -373,7 +383,7 @@ long		itemIndex;
 	default:
 		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 		{
-			OnClick_DemoSortToggle( itemIndex );
+			OnClick_SelectOrToggleSort( itemIndex );
 			break;
 		}
 
@@ -391,6 +401,7 @@ wxVisualAttributes
 wxColumnHeader::GetClassDefaultAttributes(
 	wxWindowVariant		variant )
 {
+	// FIXME: is this dependency necessary?
 	// use the same color scheme as wxListBox
 	return wxListBox::GetClassDefaultAttributes( variant );
 }
@@ -728,9 +739,10 @@ wxColumnHeaderHitTestResult		resultV;
 
 #if defined(__WXMSW__)
 RECT		boundsR;
+HWND	targetViewRef;
 long		itemCount, i;
 
-	HWND	targetViewRef = GetHwnd();
+	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
 		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
@@ -749,6 +761,7 @@ long		itemCount, i;
 		}
 	}
 #else
+
 	for (long i=0; i<m_ItemCount; i++)
 		if (m_ItemList[i] != NULL)
 			if (m_ItemList[i]->HitTest( locationPt ) != 0)
@@ -813,6 +826,19 @@ long		originX, i;
 #endif
 
 #if defined(__WXMSW__)
+// virtual
+WXDWORD wxColumnHeader::MSWGetStyle(
+	long			style,
+	WXDWORD			*exstyle ) const
+{
+WXDWORD		msStyle;
+
+	msStyle = wxControl::MSWGetStyle( style, exstyle );
+	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
+
+	return msStyle;
+}
+
 long wxColumnHeader::Win32ItemInsert(
 	long			iInsertAfter,
 	long			nWidth,
@@ -968,7 +994,7 @@ void wxColumnHeader::GetDefaultRect(
 }
 #endif
 
-void wxColumnHeader::OnClick_DemoSortToggle(
+void wxColumnHeader::OnClick_SelectOrToggleSort(
 	long				itemIndex )
 {
 long			curSelectionIndex;
@@ -1317,6 +1343,33 @@ OSStatus				errStatus;
 
 	return (long)errStatus;
 #else
+
+#if 0		// copied from generic wxRenderer
+const int			kCorner = 1;
+const wxCoord		x = rect.x;
+const wxCoord		y = rect.y;
+const wxCoord		w = rect.width;
+const wxCoord		h = rect.height;
+
+	dc.SetBrush( *wxTRANSPARENT_BRUSH );
+
+	// (outer) right and bottom
+	dc.SetPen( m_penBlack );
+	dc.DrawLine( x + w + 1 - kCorner, y, x + w, y + h );
+	dc.DrawRectangle( x, y+h, w+1, 1 );
+
+	// (inner) right and bottom
+	dc.SetPen( m_penDarkGrey );
+	dc.DrawLine( x + w - kCorner, y, x + w - 1, y + h );
+	dc.DrawRectangle( x + 1, y + h - 1, w - 2, 1 );
+
+	// (outer) top and left
+	dc.SetPen( m_penHighlight );
+	dc.DrawRectangle( x, y, w + 1 - kCorner, 1 );
+	dc.DrawRectangle( x, y, 1, h );
+	dc.DrawLine( x, y + h - 1, x + 1, y + h - 1 );
+	dc.DrawLine( x + w - 1, y, x + w - 1, y + 1 );
+#endif
 
 	// FIXME: GTK - need implementation
 	return (-1);

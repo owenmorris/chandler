@@ -1,34 +1,25 @@
+///////////////////////////////////////////////////////////////////////////////
+// Name:		generic/colheader.h
+// Purpose:	generic definitions for a native-appearance column header
+// Author:	David Surovell
+// Modified by:
+// Created:	01.01.2005
+// RCS-ID:
+// Copyright:
+// License:
+///////////////////////////////////////////////////////////////////////////////
+
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 	#pragma interface "colheader.h"
 #endif
 
-#ifndef _WX_GENERIC_COLUMNHEADER_H
+#if !defined(_WX_GENERIC_COLUMNHEADER_H)
 #define _WX_GENERIC_COLUMNHEADER_H
 
 #include "wx/control.h"			// the base class
-#include "wx/dcclient.h"		// for wxPaintDC
+#include "wx/font.h"
 
 class WXDLLEXPORT wxStaticText;
-
-#if defined(__WXMSW__)
-#if !defined(WC_HEADER)
-#define WC_HEADERNOWIN32        "SysHeader"
-#define WC_HEADERA              "SysHeader32"
-#define WC_HEADERW              L"SysHeader32"
-
-#if defined(UNICODE)
-#define WC_HEADER               WC_HEADERW
-#elif defined(_WIN32)
-#define WC_HEADER               WC_HEADERA
-#else
-#define WC_HEADER               WC_HEADERNOWIN32
-#endif
-#endif
-
-#define wxColumnHeaderNameStr		_T(WC_HEADER)
-#else
-#define wxColumnHeaderNameStr		_T("ColumnHeader")
-#endif
 
 
 // forward decls
@@ -167,6 +158,12 @@ public:
 	virtual bool Show(
 		bool			bShow = true );
 
+#if defined(__WXMSW__)
+	virtual WXDWORD MSWGetStyle(
+		long		style,
+		WXDWORD		*exstyle ) const;
+#endif
+
 	virtual wxVisualAttributes GetDefaultAttributes( void ) const
 		{ return GetClassDefaultAttributes( GetWindowVariant() ); }
 
@@ -178,7 +175,7 @@ protected:
 		const wxColumnHeaderItem		*itemList,
 		long							itemCount );
 
-	void OnClick_DemoSortToggle(
+	void OnClick_SelectOrToggleSort(
 		long				itemIndex );
 
 	bool GetItemData(
