@@ -684,7 +684,10 @@ class Kind(Item):
             return True
 
         if isinstance(value, SingleRef):
-            return self.itsView[value.itsUUID].isItemOf(self)
+            item = self.itsView.find(value.itsUUID)
+            if item is not None:
+                return item.isItemOf(self)
+            return True
 
         if isinstance(value, Item):
             return value.isItemOf(self)

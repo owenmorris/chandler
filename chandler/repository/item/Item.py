@@ -102,6 +102,11 @@ class Item(object):
 
         self._setParent(parent)
 
+        if self._parent is None or self._parent.isStale():
+            raise AssertionError, 'stale or None parent'
+        if self._root is None or self._root.isStale():
+            raise AssertionError, 'stale or None root'
+
     def __iter__(self):
         """
         (deprecated) Use L{iterChildren} instead.
@@ -1600,7 +1605,6 @@ class Item(object):
     def _setRoot(self, root, oldView):
 
         if root is not self._root:
-
             self._root = root
             newView = self.getRepositoryView()
 
@@ -1617,6 +1621,9 @@ class Item(object):
 
             for child in self.iterChildren(load=False):
                 child._setRoot(root, oldView)
+
+        elif root is not None:
+            root.itsView._registerItem(self)
 
     def __getParent(self):
 
@@ -1876,6 +1883,9 @@ class Item(object):
     def _isRepository(self):
         return False
 
+    def _isView(self):
+        return False
+
     def _isItem(self):
         return True
 
@@ -1893,6 +1903,10 @@ class Item(object):
                     parent = parent.view
                 self._parent = parent
                 self._setRoot(parent._addItem(self, previous, next), oldView)
+            elif parent._isView():
+                self._setRoot(self, oldView)
+            else:
+                self._setRoot(parent.itsRoot, oldView)
         else:
             self._parent = None
 
@@ -1904,8 +1918,7 @@ class Item(object):
             if name is not None:
                 loading = self.getRepositoryView().isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
-                    if not loading:
-                        raise ChildNameError, (self, item._name)
+                    raise ChildNameError, (self, item._name)
 
         else:
             self._children = self.getRepositoryView()._createChildren(self,
@@ -2163,13 +2176,12 @@ class Item(object):
         if self._status & Item.DIRTY:
             raise DirtyItemError, self
 
+        view = self.getRepositoryView()
+
         if hasattr(type(self), 'onItemUnload'):
-            self.onItemUnload(self.getRepositoryView())
+            self.onItemUnload(view)
 
         if not self._status & Item.STALE:
-            repository = self.getRepositoryView()
-
-            self._status |= Item.DIRTY
 
             if self._values:
                 self._values._unload()
@@ -2182,7 +2194,7 @@ class Item(object):
                 self._children._item = None
                 self._children = None
 
-            repository._unregisterItem(self, reloadable)
+            view._unregisterItem(self, reloadable)
 
             if not reloadable:
                 self._parent = None

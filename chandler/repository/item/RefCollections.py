@@ -931,3 +931,16 @@ class TransientRefList(RefList):
 
     def _setDirty(self, noMonitors=False):
         pass
+
+    def _unloadRef(self, item):
+
+        key = item._uuid
+
+        if self.has_key(key, load=False):
+            link = self._get(key, load=False)
+            if link is not None:
+                if link._alias is not None:
+                    del self._aliases[link._alias]
+                    self._remove(key)                   
+            else:
+                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())

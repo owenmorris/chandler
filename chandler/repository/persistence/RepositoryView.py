@@ -72,6 +72,10 @@ class RepositoryView(object):
 
         return False
 
+    def _isView(self):
+
+        return True
+
     def _isItem(self):
 
         return False
@@ -108,6 +112,10 @@ class RepositoryView(object):
             self._status |= RepositoryView.REFCOUNTED
         
         self.repository.store.attachView(self)
+
+    def __len__(self):
+
+        return len(self._registry)
 
     def _setChildren(self, children):
 

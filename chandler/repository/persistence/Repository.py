@@ -113,6 +113,10 @@ class Repository(object):
 
         return True
 
+    def _isView(self):
+
+        return False
+
     def _isItem(self):
 
         return False
@@ -545,12 +549,7 @@ class RepositoryNotifications(dict):
 
     def changed(self, uuid, reason, **kwds):
 
-        value = self.get(uuid, Item.Nil)
-
-        if value is not Item.Nil:
-            value.append((reason, kwds))
-        else:
-            self[uuid] = [ (reason, kwds) ]
+        self[uuid] = (reason, kwds)
 
     def history(self, uuid, reason, **kwds):
 

@@ -306,9 +306,6 @@ class DBRefList(RefList, PersistentRefs):
 
             else:                     # error
                 raise ValueError, op
-
-        if self._changedRefs:
-            self.view._notifications.changed(self._item._uuid, self._name)
         
     def _clearDirties(self):
 
