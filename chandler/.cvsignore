@@ -1,4 +1,9 @@
 __repository__
-Chandler-project.wpu Chandler-project-debug.wpu
-*.pyc *.pyo
-stdout.log chandler.log agent.log 
+Chandler-project.wpu
+Chandler-project-debug.wpu
+*.pyc
+*.pyo
+*.log
+debug
+release
+
