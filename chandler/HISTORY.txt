@@ -38,6 +38,8 @@ Release 0.3 (CVS tag CHANDLER_0_3) 2004-2-24
 
     * Added Zaobao CPIA views for various RSS feeds
 
+    * Documentation for repository, parcels, CPIA, agents
+
 Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
 
     Content Model:
