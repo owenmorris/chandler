@@ -46,8 +46,10 @@ class ZaoBaoListDelegate:
         return False
 
     def NeedsUpdate(self, notification):
-        return True
-
+        chanUUID = Globals.repository[self.counterpartUUID].rootPath.getUUID()
+        changedUUID = notification.data['uuid']
+        if chanUUID == changedUUID:
+            self.scheduleUpdate = True
 
 class ZaoBaoTreeDelegate:
     def ElementParent(self, element):
@@ -83,7 +85,9 @@ class ZaoBaoTreeDelegate:
         return False
 
     def NeedsUpdate(self, notification):
-        return True
+        item = Globals.repository.find(notification.data['uuid'])
+        if item.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            self.scheduleUpdate = True
 
 
 # XXX need to relocate this somewhere...
