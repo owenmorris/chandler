@@ -9,6 +9,7 @@ import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
+from application.SplashScreen import SplashScreen
 from persistence import Persistent 
 from persistence.list import PersistentList
 import application.ChandlerWindow
@@ -29,7 +30,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 13
+    VERSION = 14
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -58,9 +59,25 @@ class Application(Persistent):
         that they need to synchronize themselves to match their
         peristent counterpart.
         """
+        self.DisplayChandlerDialog()
         self.mainFrame.SynchronizeView()
         app.association[id(self.mainFrame)].Show()
 
+    def DisplayChandlerDialog(self):
+        """
+          We want to set expectations for the first release.  The first two
+        times the user runs Chandler, that user will be presented with a 
+        dialog explaining the current field of play.  Once Chandler has
+        grown past this initial stage, this dialog will be removed.
+        """
+        if hasattr(self, 'splashWasShown'):
+            self.splashWasShown += 1
+        else:
+            self.splashWasShown = 0
+        if self.splashWasShown < 2:
+            splash = SplashScreen('Welcome to Chandler')
+            splash.Show(true)
+            
     def __setstate__(self, dict):
         """
           Data often lives a long time, even longer than code and we may need
@@ -81,7 +98,7 @@ class Application(Persistent):
             self.__init__ ()
             if __debug__ and createNewRepository:
                 self.CreateNewRepository = 1
-
+                
             
 class wxApplication (wxApp):
     """
