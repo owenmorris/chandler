@@ -66,7 +66,6 @@ public:
 
     void SetSize(const wxSize& size) ;
     void SetPosition( const wxPoint& position ) ;
-    
     wxSize GetSize() const
     {
         if ( IsControl() )
@@ -89,7 +88,6 @@ public:
     {
         return wxPoint(m_x, m_y);
     }    
-    bool DoEnable( bool enable ) ;
 private :
     void Init() 
     {
@@ -123,10 +121,9 @@ static pascal OSStatus wxMacToolBarToolControlEventHandler( EventHandlerCallRef 
                 wxToolBarTool* tbartool = (wxToolBarTool*)data ;
                 if ( tbartool->CanBeToggled() )
                 {
-                    tbartool->Toggle( GetControl32BitValue( (ControlRef) tbartool->GetControlHandle() ) ) ;
+                    ((wxToolBar*)tbartool->GetToolBar())->ToggleTool(tbartool->GetId(), GetControl32BitValue((ControlRef)tbartool->GetControlHandle()));
                 }
                 ((wxToolBar*)tbartool->GetToolBar())->OnLeftClick( tbartool->GetId() , tbartool -> IsToggled() ) ;
-
                 result = noErr; 
             }
             break ;
@@ -161,28 +158,6 @@ DEFINE_ONE_SHOT_HANDLER_GETTER( wxMacToolBarToolEventHandler )
 // wxToolBarTool
 // ----------------------------------------------------------------------------
 
-bool wxToolBarTool::DoEnable(bool enable)
-{
-    if ( IsControl() )
-    {
-        GetControl()->Enable( enable ) ;
-    }
-    else if ( IsButton() )
-    {
-#if TARGET_API_MAC_OSX
-        if ( enable )
-            EnableControl( m_controlHandle ) ;
-        else
-            DisableControl( m_controlHandle ) ;
-#else
-        if ( enable )
-            ActivateControl( m_controlHandle ) ;
-        else
-            DeactivateControl( m_controlHandle ) ;
-#endif
-    }
-    return true ;
-}
 void wxToolBarTool::SetSize(const wxSize& size)
 {
     if ( IsControl() )
@@ -264,6 +239,8 @@ wxToolBarTool::wxToolBarTool(wxToolBar *tbar,
         GetEventTypeCount(eventList), eventList, this,NULL);
         
     UMAShowControl( m_controlHandle ) ;
+    if ( !IsEnabled() )
+        DisableControl( m_controlHandle ) ;
 
     if ( CanBeToggled() && IsToggled() )
         ::SetControl32BitValue( m_controlHandle , 1 ) ;
@@ -335,7 +312,7 @@ bool wxToolBar::Realize()
     int maxToolHeight = 0;
 
     // Find the maximum tool width and height
-    wxToolBarToolsList::compatibility_iterator node = m_tools.GetFirst();
+    wxToolBarToolsList::Node *node = m_tools.GetFirst();
     while ( node )
     {
         wxToolBarTool *tool = (wxToolBarTool *)node->GetData();
@@ -349,12 +326,32 @@ bool wxToolBar::Realize()
         node = node->GetNext();
     }
 
+    bool lastWasRadio = FALSE;
     node = m_tools.GetFirst();
     while (node)
     {
         wxToolBarTool *tool = (wxToolBarTool *)node->GetData();
         wxSize cursize = tool->GetSize() ;
         
+        bool isRadio = FALSE;
+
+        if ( tool->GetKind() == wxITEM_RADIO )
+        {
+            if ( !lastWasRadio )
+            {
+                if (tool->Toggle(true))
+                {
+                    DoToggleTool(tool, true);
+                }
+            }
+            isRadio = TRUE;
+        }
+        else
+        {
+            isRadio = FALSE;
+        }
+        lastWasRadio = isRadio;
+
         // for the moment we just do a single row/column alignement
         if ( x + cursize.x > maxWidth )
             maxWidth = x + cursize.x ;
@@ -399,7 +396,6 @@ bool wxToolBar::Realize()
     }
     
     SetSize( maxWidth, maxHeight );
-    InvalidateBestSize();
     
     return TRUE;
 }
@@ -434,7 +430,7 @@ void wxToolBar::MacSuperChangedPosition()
 
 wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord x, wxCoord y) const
 {
-    wxToolBarToolsList::compatibility_iterator node = m_tools.GetFirst();
+    wxToolBarToolsList::Node *node = m_tools.GetFirst();
     while (node)
     {
         wxToolBarTool *tool = (wxToolBarTool *)node->GetData() ;
@@ -465,7 +461,18 @@ void wxToolBar::DoEnableTool(wxToolBarToolBase *t, bool enable)
     if (!IsShown())
         return ;
 
-    ((wxToolBarTool*)t)->DoEnable( enable ) ;
+    wxToolBarTool *tool = (wxToolBarTool *)t;
+    if ( tool->IsControl() )
+    {
+        tool->GetControl()->Enable( enable ) ;
+    }
+    else if ( tool->IsButton() )
+    {
+        if ( enable )
+            UMAActivateControl( (ControlRef) tool->GetControlHandle() ) ;
+        else
+            UMADeactivateControl( (ControlRef) tool->GetControlHandle() ) ;
+    }
 }
 
 void wxToolBar::DoToggleTool(wxToolBarToolBase *t, bool toggle)
@@ -485,7 +492,6 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
 {
     // nothing special to do here - we relayout in Realize() later
     tool->Attach(this);
-    InvalidateBestSize();
 
     return TRUE;
 }
@@ -497,7 +503,7 @@ void wxToolBar::DoSetToggle(wxToolBarToolBase *WXUNUSED(tool), bool WXUNUSED(tog
 
 bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *tool)
 {
-    wxToolBarToolsList::compatibility_iterator node;
+    wxToolBarToolsList::Node *node;
     for ( node = m_tools.GetFirst(); node; node = node->GetNext() )
     {
         wxToolBarToolBase *tool2 = node->GetData();
@@ -532,7 +538,6 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *tool)
         tool2->SetPosition( pt ) ;
     }
     
-    InvalidateBestSize();
     return TRUE ;
 }
 
@@ -551,41 +556,8 @@ void wxToolBar::OnPaint(wxPaintEvent& event)
     if ( toolbarrect.top < 0 )
         toolbarrect.top = 0 ;
 */
-    if ( !MacGetTopLevelWindow()->MacGetMetalAppearance() )
-    {
-        UMADrawThemePlacard( &toolbarrect , IsEnabled() ? kThemeStateActive : kThemeStateInactive) ;
-    }
-    else
-    {
-#if TARGET_API_MAC_OSX
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_2
-    if ( UMAGetSystemVersion() >= 0x1030 )
-    {
-        HIRect hiToolbarrect = CGRectMake( dc.YLOG2DEVMAC(0) , dc.XLOG2DEVMAC(0) , 
-        dc.YLOG2DEVREL(h) , dc.XLOG2DEVREL(w) );
-        CGContextRef cgContext ;
-        Rect bounds ;
-        GetPortBounds( (CGrafPtr) dc.m_macPort , &bounds ) ;
-        QDBeginCGContext( (CGrafPtr) dc.m_macPort , &cgContext ) ;
-        CGContextTranslateCTM( cgContext , 0 , bounds.bottom - bounds.top ) ;
-        CGContextScaleCTM( cgContext , 1 , -1 ) ;
+    UMADrawThemePlacard( &toolbarrect , IsEnabled() ? kThemeStateActive : kThemeStateInactive) ;
 
-        {
-            HIThemeBackgroundDrawInfo drawInfo ;
-            drawInfo.version = 0 ;
-            drawInfo.state = kThemeStateActive ;
-            drawInfo.kind = kThemeBackgroundMetal ;
-            HIThemeApplyBackground( &hiToolbarrect, &drawInfo , cgContext,kHIThemeOrientationNormal) ;
-        }
-        QDEndCGContext( (CGrafPtr) dc.m_macPort , &cgContext ) ;
-    }
-    else
-#endif
-    {
-        UMADrawThemePlacard( &toolbarrect , IsEnabled() ? kThemeStateActive : kThemeStateInactive) ;
-    }
-#endif
-    }
     event.Skip() ;
 }
 
