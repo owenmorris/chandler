@@ -50,7 +50,7 @@ morgen -a \
     osaf/chandler/hardhat \
     osaf/chandler/wxpython
 
-rap -a \        
+rap -a \
     osaf/chandler/net/expat-win \
     osaf/chandler/net/gettext-darwin \
     osaf/chandler/net/glib \
