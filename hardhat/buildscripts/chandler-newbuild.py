@@ -79,7 +79,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 os.chdir(extModuleDir)
                 log.write("Environment variables: \n")
                 log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
-                os.environ["BUILD_ROOT"]="extModuleDir"
+                os.environ["BUILD_ROOT"] = extModuleDir
                 log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
                 
                 print "Building " + relStr
