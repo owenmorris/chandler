@@ -81,7 +81,7 @@ def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
 
         return  constants.EMPTY.join(unicodeStr.splitlines())
 
-    except(UnicodeError, LookupError):
+    except(UnicodeError, UnicodeDecodeError, LookupError):
         return unicode("".join(header.splitlines()), charset, 'replace')
 
 def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
@@ -91,7 +91,7 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
     try:
         return unicode(val, charset, 'replace')
 
-    except (LookupError, UnicodeError):
+    except(UnicodeError, UnicodeDecodeError, LookupError):
         if charset != constants.DEFAULT_CHARSET:
             logging.error("Unable to convert charset: %s trying %s" % \
                           (charset, constants.DEFAULT_CHARSET))
@@ -216,7 +216,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     m = Mail.MailMessage(view=view)
 
-    # Save the original message text in a text blob
+    """Save the original message text in a text blob"""
     if messageText is None:
         messageText = messageObject.as_string()
 
@@ -243,7 +243,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
 
-    m.body = utils.strToText(m, "body", body, indexText=True)
+    m.body = utils.strToText(m, "body", body, indexText=False)
 
     __parseHeaders(view, messageObject, m)
 
@@ -342,7 +342,7 @@ def __parseHeaders(view, messageObject, m):
             if __debug__:
                 logging.warn("Message contains a Non-RFC Compliant Date format")
 
-            #Set the sent date to the current Date
+            """Set the sent date to the current Date"""
             m.dateSent = DateTime.now()
 
         else:
@@ -363,7 +363,7 @@ def __parseHeaders(view, messageObject, m):
     __assignToKind(view, m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
     __assignToKind(view, m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
 
-    # Do not decode the message ID as it requires no i18n processing
+    """Do not decode the message ID as it requires no i18n processing"""
     __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False)
 
     m.chandlerHeaders = {}
@@ -427,8 +427,8 @@ def __getEmailAddress(view, name, addr):
      if utils.hasValue(name):
           keyArgs['fullName'] = name
 
-     # Use any existing EmailAddress, but don't update them
-     #  because that will cause the item to go stale in the UI thread.
+     """ Use any existing EmailAddress, but don't update them
+         because that will cause the item to go stale in the UI thread."""
      return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
 
 
@@ -585,7 +585,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
     if verbose():
         __trace(contype, buf, level)
 
-    # skip AppleDouble resource files per RFC1740
+    """skip AppleDouble resource files per RFC1740"""
     if contype == "application/applefile":
         return
 
@@ -641,7 +641,7 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
 
         #XXX: This may cause issues since Note no longer a parent
         mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset), \
-                                        indexText=True)
+                                        indexText=False)
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True
