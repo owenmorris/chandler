@@ -109,7 +109,7 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
-    <items itemref="content:MixedListView"/>
+    <items itemref="content:MixedTableView"/>
     <items itemref="stockQuote:StockQuoteView"/>
     <items itemref="content:NoteTableView"/>
     <items itemref="content:TaskTableView"/>
@@ -130,11 +130,11 @@
     <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddMixedListView">
+  <ModifyContentsEvent itsName="AddMixedTableView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MixedListView"/>
+    <items itemref="content:MixedTableView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddStockQuoteView">
@@ -852,7 +852,7 @@
   <MenuItem itsName="AddMixedViewItem">
     <blockName>AddMixedViewItem</blockName>
     <title>Add Mixed View</title>
-    <event itemref="doc:AddMixedListView"/>
+    <event itemref="doc:AddMixedTableView"/>
     <helpString>Adds the mixed list view to the sidebar</helpString>
   </MenuItem>
 
@@ -1275,7 +1275,7 @@
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMixedListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMixedTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>

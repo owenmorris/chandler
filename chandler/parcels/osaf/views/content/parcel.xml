@@ -74,6 +74,10 @@
     <data value="union(for i in '//parcels/osaf/contentmodel/Note' where True, for i in '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
   </contentModel:Query>
 
+  <contentModel:Query itsName="allQuery">
+    <data value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
+  </contentModel:Query>
+
   <contentModel:NamedCollection itsName="mixedItemCollection">
     <displayName>Mixed</displayName>
     <rule itemref="view:mixedQuery"/>
@@ -89,7 +93,7 @@
 
   <contentModel:NamedCollection itsName="allItemCollection">
     <displayName>All</displayName>
-    <rule itemref="view:mixedQuery"/>
+    <rule itemref="view:allQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
@@ -149,8 +153,8 @@
     <daysPerView>1</daysPerView>
   </calendarBlocks:CanvasWeek>
 
-  <!-- Mixed List -->
-  <List itsName="MixedList">
+  <!-- Mixed Table -->
+  <Table itsName="MixedTable">
     <contents itemref="view:mixedItemCollection"/>
 
     <columnHeadings>date</columnHeadings>
@@ -164,7 +168,7 @@
     <columnWidths>170</columnWidths>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
-  </List>
+  </Table>
 
   <!-- All Summary View -->
   <BoxContainer itsName="AllSummary">
@@ -400,34 +404,6 @@
     <columnWidths>150</columnWidths>
   </Table>
 
-  <ItemDetail itsName="MixedItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="ContactItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="JunkItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="TrashItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="MonthItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="WeekItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="DayItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
   <!-- Note View -->
   <SplitterWindow itsName="NoteTableView">
     <contents itemref="view:notesItemCollection"/>
@@ -465,10 +441,10 @@
   </SplitterWindow>
 
   <!-- Mixed View -->
-  <SplitterWindow itsName="MixedListView">
+  <SplitterWindow itsName="MixedTableView">
     <contents itemref="view:mixedItemCollection"/>
 
-    <childrenBlocks itemref="view:MixedList"/>
+    <childrenBlocks itemref="view:MixedTable"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -528,7 +504,7 @@
     <contents itemref="view:contactItemCollection"/>
 
     <childrenBlocks itemref="view:ContactTable"/>
-    <childrenBlocks itemref="view:ContactItemDetail"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -539,7 +515,7 @@
     <contents itemref="view:junkItemCollection"/>
 
     <childrenBlocks itemref="view:JunkSummary"/>
-    <childrenBlocks itemref="view:JunkItemDetail"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -550,7 +526,7 @@
     <contents itemref="view:trashItemCollection"/>
 
     <childrenBlocks itemref="view:TrashSummary"/>
-    <childrenBlocks itemref="view:TrashItemDetail"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
