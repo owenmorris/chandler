@@ -60,28 +60,28 @@
   -->
   
   <BlockEvent itsName="ButtonPressed">
-    <eventName>ButtonPressed</eventName>
-    <dispatchToBlock itemref="doc:MarkupBar"/>
+    <blockName>ButtonPressed</blockName>
+    <destinationBlockReference itemref="doc:MarkupBar"/>
   </BlockEvent>
     
   <BlockEvent itsName="TogglePrivate">
-    <eventName>TogglePrivate</eventName>
-    <dispatchToBlock itemref="doc:MarkupBar"/>
+    <blockName>TogglePrivate</blockName>
+    <destinationBlockReference itemref="doc:MarkupBar"/>
   </BlockEvent>
   
   <BlockEvent itsName="ToggleAllDay">
-    <eventName>ToggleAllDay</eventName>
-    <dispatchToBlock itemref="doc:EditAllDay"/>
+    <blockName>ToggleAllDay</blockName>
+    <destinationBlockReference itemref="doc:EditAllDay"/>
   </BlockEvent>
   
   <BlockEvent itsName="ReminderChanged">
-    <eventName>ReminderChanged</eventName>
-    <dispatchToBlock itemref="doc:EditReminder"/>
+    <blockName>ReminderChanged</blockName>
+    <destinationBlockReference itemref="doc:EditReminder"/>
   </BlockEvent>
   
   <BlockEvent itsName="SendShareItem">
-    <eventName>SendShareItem</eventName>
-    <dispatchToBlock itemref="doc:DetailRootTemplate"/>
+    <blockName>SendShareItem</blockName>
+    <destinationBlockReference itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 
   <!--
@@ -93,7 +93,6 @@
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <blockName value="DetailRootTemplate"/>
     <childrenBlocks itemref="doc:DetailTrunk"/>
-    <subscribeWhenVisibleEvents itemref="doc:SendShareItem"/>
   </SelectionContainer>
 
   <ContentItemDetail itsName="DetailTrunk">
@@ -134,8 +133,6 @@
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
-    <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
-    <subscribeWhenVisibleEvents itemref="doc:TogglePrivate"/>
     <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
@@ -568,7 +565,6 @@
     <size>60,24</size>
     <minimumSize>60,24</minimumSize>
     <border>0.0, 10.0, 0.0, 0.0</border>
-    <subscribeWhenVisibleEvents itemref="doc:ToggleAllDay"/>
     <event itemref="doc:ToggleAllDay"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -594,7 +590,6 @@
     <choices>30 minutes</choices>
     <choices>60 minutes</choices>
     <choices>90 minutes</choices>
-    <subscribeWhenVisibleEvents itemref="doc:ReminderChanged"/>
     <event itemref="doc:ReminderChanged"/>
     <minimumSize>100, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
@@ -646,13 +641,13 @@
     TREES OF BLOCKS
   -->
   <BlockEvent itsName="ButtonPressed1">
-    <eventName>ButtonPressed1</eventName>
-    <dispatchToBlock itemref="doc:MarkupBar1"/>
+    <blockName>ButtonPressed1</blockName>
+    <destinationBlockReference itemref="doc:MarkupBar1"/>
   </BlockEvent>
 
   <BlockEvent itsName="SendShareItem1">
-    <eventName>SendShareItem1</eventName>
-    <dispatchToBlock itemref="doc:EmailRootTemplate"/>
+    <blockName>SendShareItem1</blockName>
+    <destinationBlockReference itemref="doc:EmailRootTemplate"/>
   </BlockEvent>
 
   <!-- EMAIL TREE Root Template -->
@@ -660,7 +655,6 @@
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <blockName value="EmailRootTemplate"/>
     <childrenBlocks itemref="doc:EmailTrunk"/>
-    <subscribeWhenVisibleEvents itemref="doc:SendShareItem1"/>
   </SelectionContainer>
 
   <ContentItemDetail itsName="EmailTrunk">
@@ -693,7 +687,6 @@
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
-    <subscribeWhenVisibleEvents itemref="doc:ButtonPressed1"/>
     <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
@@ -941,8 +934,8 @@
   <!-- CALENDAR TREE Root Template -->
   
   <BlockEvent itsName="ButtonPressed2">
-    <eventName>ButtonPressed2</eventName>
-    <dispatchToBlock itemref="doc:MarkupBar2"/>
+    <blockName>ButtonPressed2</blockName>
+    <destinationBlockReference itemref="doc:MarkupBar2"/>
   </BlockEvent>
 
   <SelectionContainer itsName="CalendarRootTemplate"
@@ -980,7 +973,6 @@
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
-    <subscribeWhenVisibleEvents itemref="doc:ButtonPressed2"/>
     <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 

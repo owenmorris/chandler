@@ -276,13 +276,13 @@ class wxApplication (wx.App):
                                        size=(mainView.size.width, mainView.size.height),
                                        style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
-            
-            GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
               Register to some global events for name lookup.
             """
+            globalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             from osaf.framework.blocks.Block import Block
-            Block.addEventsToEventNameToItemUUID (GlobalEvents.subscribeAlwaysEvents)
+            Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
+                                                 Block.eventNameToItemUUID)
 
             self.ignoreSynchronizeWidget = False
             self.RenderMainView ()
@@ -353,8 +353,6 @@ class wxApplication (wx.App):
                 """
                   Ignore blocks that don't have events.
                 """
-                if not updateUIEvent:
-                    pass
                 assert updateUIEvent
             else:
                 arguments = {'wxEvent':event}

@@ -40,9 +40,9 @@ class TabbedView(ContainerBlocks.TabbedContainer):
     def onNewEvent (self, event):
         "Create a new tab"
         originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
-        name = self._getUniqueName("Untitled")
-        newItem = originalItem.copy(name, self)
-        newItem.contents.displayName = name
+        userdata = Globals.repository.findPath('//userdata')
+        newItem = originalItem.copy(parent=userdata, cloudAlias='default')
+        newItem.contents.displayName = self._getUniqueName("Untitled")
         
         self.widget.selectedTab = self.widget.GetPageCount()
         newItem.parentBlock = self

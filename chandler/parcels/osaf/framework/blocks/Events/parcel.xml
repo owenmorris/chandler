@@ -18,118 +18,119 @@ Instead put them in a View in your application. Also don't put any references to
 application specific parcels here</description>
   <version>0.3</version>
 
+  <!-- Block Events dispatched by name -->
   <EventList itsName="GlobalEvents">
     <!-- Don't add any events here unless your proposed event has been reviewed -->
-    <subscribeAlwaysEvents itemref="events:About"/>    
-    <subscribeAlwaysEvents itemref="events:Close"/>
-    <subscribeAlwaysEvents itemref="events:PrintPreview"/>
-    <subscribeAlwaysEvents itemref="events:Print"/>
-    <subscribeAlwaysEvents itemref="events:Copy"/>
-    <subscribeAlwaysEvents itemref="events:Cut"/>
-    <subscribeAlwaysEvents itemref="events:Delete"/>
-    <subscribeAlwaysEvents itemref="events:New"/>
-    <subscribeAlwaysEvents itemref="events:Open"/>
-    <subscribeAlwaysEvents itemref="events:Paste"/>
-    <subscribeAlwaysEvents itemref="events:Preferences"/>
-    <subscribeAlwaysEvents itemref="events:Quit"/>
-    <subscribeAlwaysEvents itemref="events:Redo"/>
-    <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
-    <subscribeAlwaysEvents itemref="events:SelectItemBroadcast"/>
-    <subscribeAlwaysEvents itemref="events:SelectItemBroadcastInsideActiveView"/>
-    <subscribeAlwaysEvents itemref="events:Undo"/>
+    <eventsForNamedDispatch itemref="events:About"/>    
+    <eventsForNamedDispatch itemref="events:Close"/>
+    <eventsForNamedDispatch itemref="events:PrintPreview"/>
+    <eventsForNamedDispatch itemref="events:Print"/>
+    <eventsForNamedDispatch itemref="events:Copy"/>
+    <eventsForNamedDispatch itemref="events:Cut"/>
+    <eventsForNamedDispatch itemref="events:Delete"/>
+    <eventsForNamedDispatch itemref="events:New"/>
+    <eventsForNamedDispatch itemref="events:Open"/>
+    <eventsForNamedDispatch itemref="events:Paste"/>
+    <eventsForNamedDispatch itemref="events:Preferences"/>
+    <eventsForNamedDispatch itemref="events:Quit"/>
+    <eventsForNamedDispatch itemref="events:Redo"/>
+    <eventsForNamedDispatch itemref="events:SelectedDateChanged"/>
+    <eventsForNamedDispatch itemref="events:SelectItemBroadcast"/>
+    <eventsForNamedDispatch itemref="events:SelectItemBroadcastInsideActiveView"/>
+    <eventsForNamedDispatch itemref="events:Undo"/>
 
-    <subscribeAlwaysEvents itemref="events:EnterPressed"/>
+    <eventsForNamedDispatch itemref="events:EnterPressed"/>
   </EventList>
 
   <BlockEvent itsName="About">
-    <eventName>About</eventName>
+    <blockName>About</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Close">
-    <eventName>Close</eventName>
+    <blockName>Close</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="PrintPreview">
-    <eventName>PrintPreview</eventName>
+    <blockName>PrintPreview</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Print">
-    <eventName>Print</eventName>
+    <blockName>Print</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Copy">
-    <eventName>Copy</eventName>
+    <blockName>Copy</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Cut">
-    <eventName>Cut</eventName>
+    <blockName>Cut</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Delete">
-    <eventName>Delete</eventName>
+    <blockName>Delete</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="New">
-    <eventName>New</eventName>
+    <blockName>New</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Open">
-    <eventName>Open</eventName>
+    <blockName>Open</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Paste">
-    <eventName>Paste</eventName>
+    <blockName>Paste</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Preferences">
-    <eventName>Preferences</eventName>
+    <blockName>Preferences</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Quit">
-    <eventName>Quit</eventName>
+    <blockName>Quit</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Redo">
-    <eventName>Redo</eventName>
+    <blockName>Redo</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectedDateChanged">
-    <eventName>SelectedDateChanged</eventName>
+    <blockName>SelectedDateChanged</blockName>
     <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectItemBroadcast">
-    <eventName>SelectItemBroadcast</eventName>
+    <blockName>SelectItemBroadcast</blockName>
     <methodName>onSelectItemEvent</methodName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectItemBroadcastInsideActiveView">
-    <eventName>SelectItemBroadcastInsideActiveView</eventName>
+    <blockName>SelectItemBroadcastInsideActiveView</blockName>
     <methodName>onSelectItemEvent</methodName>
     <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Undo">
-    <eventName>Undo</eventName>
+    <blockName>Undo</blockName>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="EnterPressed">
-    <eventName>EnterPressed</eventName>
+    <blockName>EnterPressed</blockName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 

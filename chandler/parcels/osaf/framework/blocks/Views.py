@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
+from osaf.framework.blocks.Block import Block
 from ContainerBlocks import BoxContainer
 import wx
 
@@ -55,7 +56,7 @@ class View(BoxContainer):
         try:
             methodName = event.methodName
         except AttributeError:
-                methodName = 'on' + event.eventName + 'Event'
+            methodName = 'on' + event.blockName + 'Event'
 
         try:
             updateUI = event.arguments['UpdateUI']
@@ -65,8 +66,13 @@ class View(BoxContainer):
             methodName += 'UpdateUI'
 
         dispatchEnum = event.dispatchEnum
-        if dispatchEnum == 'SendToBlock':
-            callMethod (event.dispatchToBlock, methodName, event)
+        if dispatchEnum == 'SendToBlockByReference':
+            callMethod (event.destinationBlockReference, methodName, event)
+
+        elif dispatchEnum == 'SendToBlockByName':
+            assert Block.blockNameToItemUUID.has_key (event.dispatchToBlockName), "Block name " + event.dispatchToBlockName + " not found"
+            list = Block.blockNameToItemUUID [event.dispatchToBlockName]
+            callMethod (Globals.repository.find (list[0]), methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']

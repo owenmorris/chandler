@@ -181,6 +181,10 @@
     <type itemref="docSchema:ColorStyle"/>
   </Attribute>
 
+  <Attribute itsName="blockName">
+    <type itemref="String"/>
+  </Attribute>
+    
   <!--
     Block Events
   -->
@@ -189,31 +193,34 @@
     <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="Item"/>
 
-    <Attribute itsName="eventName">
-      <type itemref="String"/>
-    </Attribute>
-    
     <Enumeration itsName="dispatchEnumType">
       <values>BroadcastInsideMyEventBoundary</values>
       <values>BroadcastInsideActiveViewEventBoundary</values>
       <values>BroadcastEverywhere</values>
       <values>FocusBubbleUp</values>
       <values>ActiveViewBubbleUp</values>
-      <values>SendToBlock</values>
+      <values>SendToBlockByReference</values>
+      <values>SendToBlockByName</values>
     </Enumeration>
 
     <Attribute itsName="dispatchEnum">
       <type itemref="docSchema:BlockEvent/dispatchEnumType"/>
-      <initialValue type="docSchema:BlockEvent/dispatchEnumType">SendToBlock</initialValue>
+      <initialValue type="docSchema:BlockEvent/dispatchEnumType">SendToBlockByReference</initialValue>
     </Attribute>
 
-    <Attribute itsName="dispatchToBlock">
+    <Attribute itsName="destinationBlockReference">
       <type itemref="docSchema:Block"/>
+    </Attribute>
+
+    <Attribute itsName="dispatchToBlockName">
+      <type itemref="String"/>
     </Attribute>
 
     <Attribute itsName="methodName">
       <type itemref="String"/>
     </Attribute>
+
+    <attributes itemref="docSchema:blockName"/>    
   </Kind>
 
   <Kind itsName="ChoiceEvent">
@@ -263,19 +270,14 @@
     </Attribute>
   </Kind>
 
-  <Attribute itsName="subscribeWhenVisibleEvents">
-    <type itemref="docSchema:BlockEvent"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-
-  <Attribute itsName="subscribeAlwaysEvents">
+  <Attribute itsName="eventsForNamedDispatch">
     <type itemref="docSchema:BlockEvent"/>
     <cardinality>list</cardinality>
   </Attribute>
 
   <Kind itsName="EventList">
     <superKinds itemref="Item"/>
-    <attributes itemref="docSchema:subscribeAlwaysEvents"/>
+    <attributes itemref="docSchema:eventsForNamedDispatch"/>
   </Kind>
 
   <!--
@@ -326,16 +328,12 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
-    <Attribute itsName="blockName">
-      <type itemref="String"/>
-    </Attribute>
-    
     <Attribute itsName="contextMenu">
       <type itemref="docSchema:ContextMenu"/>
     </Attribute>
 
-    <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
-    <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
+    <attributes itemref="docSchema:blockName"/>    
+    <attributes itemref="docSchema:eventsForNamedDispatch"/>    
     <attributes itemref="contentModel:itemCollectionInclusions"/>
     <attributes itemref="contentModel:itemCollectionExclusions"/>
     <attributes itemref="contentModel:itemCollectionResults"/>
@@ -354,18 +352,12 @@
             <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:Block/DefaultCloud/childrenBlocks"/>
-        <Endpoint itsName="subscribeAlwaysEvents">
-            <attribute value="subscribeAlwaysEvents"/>
-            <includePolicy value="byMethod"/>
-            <method value="includePolicyMethod"/>
+        <Endpoint itsName="eventsForNamedDispatch">
+            <attribute value="eventsForNamedDispatch"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
-        <endpoints itemref="docSchema:Block/DefaultCloud/subscribeAlwaysEvents"/>
-        <Endpoint itsName="subscribeWhenVisibleEvents">
-            <attribute value="subscribeWhenVisibleEvents"/>
-            <includePolicy value="byMethod"/>
-            <method value="includePolicyMethod"/>
-        </Endpoint>
-        <endpoints itemref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
+        <endpoints itemref="docSchema:Block/DefaultCloud/eventsForNamedDispatch"/>
     </Cloud>
     <!-- Link this cloud with the Block kind -->
     <clouds alias="default" itemref="docSchema:Block/DefaultCloud"/>
@@ -547,6 +539,15 @@
     </Attribute>
     
     <attributes itemref="docSchema:event"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:MenuItem/DefaultCloud/event"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:MenuItem/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -606,6 +607,11 @@
             <includePolicy value="byRef"/>
         </Endpoint>
         <endpoints itemref="docSchema:Button/DefaultCloud/characterStyle"/>
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Button/DefaultCloud/event"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:Button/DefaultCloud"/>
   </Kind>
@@ -622,6 +628,15 @@
       <type itemref="String"/>
       <cardinality>list</cardinality>
     </Attribute>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Choice/DefaultCloud/event"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:Choice/DefaultCloud"/>
   </Kind>
 
  <!--
@@ -635,6 +650,15 @@
     <Attribute itsName="title">
       <type itemref="String"/>
     </Attribute>     
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:CheckBox/DefaultCloud/event"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:CheckBox/DefaultCloud"/>
   </Kind>
   
   <!--
@@ -688,6 +712,14 @@
     </Attribute>
     
     <attributes itemref="docSchema:event"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:ContextMenuItem/DefaultCloud/event"/>
+    </Cloud>
   </Kind>
   <!--
     EditText
@@ -863,6 +895,15 @@
     </Attribute>
 
     <attributes itemref="docSchema:event"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:RadioBox/DefaultCloud/event"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:RadioBox/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -1031,12 +1072,16 @@
             <includePolicy value="byRef"/>
         </Endpoint>
         <endpoints itemref="docSchema:ToolbarItem/DefaultCloud/prototype"/>
+        <Endpoint itsName="event">
+            <attribute value="event"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:ToolbarItem/DefaultCloud/event"/>
     </Cloud>
     <!-- Link this cloud with the ToolbarItem kind -->
     <clouds alias="default" itemref="docSchema:ToolbarItem/DefaultCloud"/>
-
   </Kind>
-  
+
   <!-- Detail Block contains detail views of various summary views  -->
 
   <Kind itsName="DetailBlock">
@@ -1066,7 +1111,7 @@
      references that are implemented as UUIDs and clean up unreferenced views.
      -->
     <Attribute itsName="kindUUIDToViewUUID">
-      <type itemref="String"/>
+      <type itemref="UUID"/>
       <cardinality>dict</cardinality>
       <initialValue/>
     </Attribute>

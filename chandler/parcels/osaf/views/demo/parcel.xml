@@ -30,43 +30,43 @@
     Events
   -->
   <ChoiceEvent itsName="ChooseIntroTab">
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <destinationBlockReference itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Intro</choice>
   </ChoiceEvent>  
   
   <ChoiceEvent itsName="ChooseButtonsTab">
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <destinationBlockReference itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
   <ChoiceEvent itsName="ChooseControlsTab">
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <destinationBlockReference itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
   
   <ChoiceEvent itsName="ChooseHTMLTab">
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <destinationBlockReference itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>HTML</choice>
   </ChoiceEvent>
 
   <BlockEvent itsName="ReloadText">
-    <eventName>ReloadText</eventName>
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <blockName>ReloadText</blockName>
+    <destinationBlockReference itemref="doc:Tabs"/>
   </BlockEvent>
 
   <BlockEvent itsName="AddText">
-    <eventName>AddText</eventName>
-    <dispatchToBlock itemref="doc:Tabs"/>
+    <blockName>AddText</blockName>
+    <destinationBlockReference itemref="doc:Tabs"/>
   </BlockEvent>
 
   <BlockEvent itsName="CycleTabs">
-    <eventName>CycleTabs</eventName>
+    <blockName>CycleTabs</blockName>
     <methodName>onCycleTabsEvent</methodName>
-    <dispatchToBlock itemref="doc:BlockDemoToolbarButton"/>
+    <destinationBlockReference itemref="doc:BlockDemoToolbarButton"/>
   </BlockEvent>
 
   <!--
@@ -185,7 +185,6 @@
     <event itemref="doc:CycleTabs"/>
     <!-- ToolbarItems must use subscribeAlways because they are not true wx widgets -->
     <!--  but we'll only get the event when pressed, which will only happen when visible. -->
-    <subscribeWhenVisibleEvents itemref="doc:CycleTabs"/>
   </ToolbarItem>
  
   <!--
@@ -447,14 +446,6 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Tabs"/>
-
-    <!-- Block Events -->
-    <subscribeWhenVisibleEvents itemref="doc:ChooseButtonsTab"/>
-    <subscribeWhenVisibleEvents itemref="doc:ChooseControlsTab"/>
-    <subscribeWhenVisibleEvents itemref="doc:ChooseHTMLTab"/>
-    <subscribeWhenVisibleEvents itemref="doc:ChooseIntroTab"/>
-    <subscribeWhenVisibleEvents itemref="doc:ReloadText"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddText"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

@@ -19,47 +19,56 @@ class Block(Item):
           Events that are posted by the block pass along the block
         that sent it.
         """
-        arguments ['sender'] = self
-        event.arguments = arguments
-        Globals.mainView.dispatchEvent (event)
-        del event.arguments
+        try:
+            try:
+                stackedArguments = event.arguments
+            except AttributeError:
+                pass
+            arguments ['sender'] = self
+            event.arguments = arguments
+            Globals.mainView.dispatchEvent (event)
+        finally:
+            try:
+                event.arguments = stackedArguments
+            except UnboundLocalError:
+                delattr (event, 'arguments')
 
     def PostEventByName (self, eventName, args):
-        assert self.eventNameToItemUUID.has_key (eventName), "Block Event name " + eventName + " not subscribed"
+        assert self.eventNameToItemUUID.has_key (eventName), "Event name " + eventName + " not found"
         list = self.eventNameToItemUUID [eventName]
         self.Post (Globals.repository.find (list [0]), args)
 
-    subscribedBlocks = {}              # A dictionary mapping block UUIDS to event subscription clientIDs
-    eventNameToItemUUID = {}           # A dictionary mapping subscribed block event names to block event UUIDS
+    eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
+    blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
 
-    def addEventsToEventNameToItemUUID (theClass, eventList):
-        for event in eventList:
+    def addToNameToItemUUIDDictionary (theClass, list, dictionary):
+        for item in list:
             try:
-                eventName = event.eventName
+                name = item.blockName
             except AttributeError:
                 pass
             else:
                 try:
-                    list = theClass.eventNameToItemUUID [eventName]
+                    list = dictionary [name]
                 except KeyError:
-                    theClass.eventNameToItemUUID [eventName] = [event.itsUUID, 1]
+                    dictionary [name] = [item.itsUUID, 1]
                 else:
                     list [1] = list [1] + 1 #increment the reference count
-    addEventsToEventNameToItemUUID = classmethod (addEventsToEventNameToItemUUID)
+    addToNameToItemUUIDDictionary = classmethod (addToNameToItemUUIDDictionary)
 
-    def removeEventsToEventNameToItemUUID (theClass, eventList):
-        for event in eventList:
+    def removeFromNameToItemUUIDDictionary (theClass, list, dictionary):
+        for item in list:
             try:
-                eventName = event.eventName
+                name = item.blockName
             except AttributeError:
                 pass
             else:
-                list = theClass.eventNameToItemUUID [eventName]
-                if list [0] == event.itsUUID:
+                list = dictionary [name]
+                if list [0] == item.itsUUID:
                     list [1] = list [1] - 1 #decrement the reference count
                     if list [1] == 0:
-                        del theClass.eventNameToItemUUID [eventName]
-    removeEventsToEventNameToItemUUID = classmethod (removeEventsToEventNameToItemUUID)
+                        del dictionary [name]
+    removeFromNameToItemUUIDDictionary = classmethod (removeFromNameToItemUUIDDictionary)
 
     def render (self):
         try:
@@ -108,15 +117,17 @@ class Block(Item):
                     else:
                         subscribeMethod (contents, self, "onCollectionChanged")
                 """
-                  For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
-                we need to subscribe to them.
+                  Add events to name lookup dictionary.
                 """
                 try:
-                    subscribeWhenVisibleEvents = self.subscribeWhenVisibleEvents
+                    eventsForNamedDispatch = self.eventsForNamedDispatch
                 except AttributeError:
                     pass
                 else:
-                    self.addEventsToEventNameToItemUUID (subscribeWhenVisibleEvents)
+                    self.addToNameToItemUUIDDictionary (eventsForNamedDispatch,
+                                                        self.eventNameToItemUUID)
+                self.addToNameToItemUUIDDictionary ([self],
+                                                    self.blockNameToItemUUID)
 
                 try:
                     method = getattr (type (self.widget), 'Freeze')
@@ -187,12 +198,14 @@ class Block(Item):
             else:
                 unsubscribe (contents, self)
         try:
-            subscribeWhenVisibleEventsUUID = self.widget.subscribeWhenVisibleEventsUUID
+            eventsForNamedDispatch = self.widget.eventsForNamedDispatch
         except AttributeError:
             pass
         else:
-            self.removeEventsToEventNameToItemUUID (self.subscribeWhenVisibleEvents)
-            delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
+            self.removeFromNameToItemUUIDDictionary (eventsForNamedDispatch,
+                                                     self.eventNameToItemUUID)
+        self.removeFromNameToItemUUIDDictionary ([self],
+                                                 self.blockNameToItemUUID)
 
         delattr (self, 'widget')
         assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
@@ -464,9 +477,9 @@ class DetailViewCache (Item):
     def GetViewForItem (self, item):
         view = None
         if not item is None:
-            kindUUIDString = str (item.itsUUID)
+            kindUUID = item.itsUUID
             try:
-                viewUUIDString = self.kindUUIDToViewUUID [kindUUIDString]
+                viewUUID = self.kindUUIDToViewUUID [kindUUID]
             except KeyError:
                 kindString = str (item.itsKind.itsName)
                 try:
@@ -478,7 +491,7 @@ class DetailViewCache (Item):
                     template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
                     view = template.copy (parent = Globals.repository.findPath ("//userdata"),
                                           cloudAlias="default")
-                    self.kindUUIDToViewUUID [kindUUIDString] = str (view.itsUUID)
+                    self.kindUUIDToViewUUID [kindUUID] = view.itsUUID
             else:
-                view = Globals.repository.findUUID (UUID (viewUUIDString))
+                view = Globals.repository.findUUID (viewUUID)
         return view
