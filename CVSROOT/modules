@@ -50,6 +50,15 @@ chandler-system -a \
     osaf/chandler/net/sc-db \
     osaf/chandler/net/rap
 
+chandler-small -a \
+    hardhat \
+    osaf/chandler/Chandler \
+    osaf/chandler/python \
+    osaf/chandler/zodb \
+    osaf/chandler/distutils \
+    osaf/chandler/egenix-mx \
+    osaf/chandler/wxpython \
+    osaf/chandler/jabber-py
 
 # chandler-system -o /disk1/cvs-scripts/count-checkouts
 # chandler-system -u /disk1/cvs-scripts/count-checkouts
