@@ -13,6 +13,7 @@ from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
+from osaf.examples.zaobao.RSSData import RSSChannel
 
 # get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
@@ -28,9 +29,9 @@ else:
     _rssfiles = []
 
 # make them file URL's
-_defaultBlogs = [ "%s%s%s" %("file://", RSS_HOME, f) for f in _rssfiles ]
+_defaultBlogs = [ "%s%s%s" %("", RSS_HOME, f) for f in _rssfiles ]
 
-BASE_PATH = Path('//parcels/osaf/examples/zaobao')
+BASE_PATH = Path('//parcels/osaf/examples/zaobao/schema')
 
 class TestPerfWithRSS(RepositoryTestCase):
     """ Simple performance tests """
@@ -78,7 +79,7 @@ class TestPerfWithRSS(RepositoryTestCase):
                 data = feedparser.parse(feed.url, etag, modified)
                 itemCount += len(data['items'])
                 feedCount += 1
-                feed.Update()
+                feed.Update(data)
                 if commitInsideLoop:
                     self.rep.logger.info('%0.5d committing %s, %0.6d',
                                          feedCount, feed.url, itemCount)
@@ -112,7 +113,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             urlhash = str(hash(url))
             item = repository.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = chanKind.newItem(urlhash, parent)
+                item = RSSChannel(view = repository.view)
                 item.url = url
             feeds.append(item.itsUUID)
 
@@ -145,7 +146,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         self.rep.delete()
 
 if __name__ == "__main__":
-    import hotshot
+#    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestPerfWithRss.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
