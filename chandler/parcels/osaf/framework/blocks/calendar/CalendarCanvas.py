@@ -1036,7 +1036,7 @@ class wxInPlaceEditor(wx.TextCtrl):
         parent.Bind(wx.EVT_SIZE, self.OnSize)
 
     def SaveItem(self):
-        if self.item != None:
+        if ((self.item != None) and (not self.IsBeingDeleted())):
             self.item.displayName = self.GetValue()
         
     def OnTextEnter(self, event):

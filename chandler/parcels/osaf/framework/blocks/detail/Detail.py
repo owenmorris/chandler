@@ -275,7 +275,16 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         except AttributeError:
             pass
 
-
+    def onCollectionChanged (self, action):
+        """
+        When our item collection has changed, we need to synchronize ourselves.
+        (We suppress this if we're in the midst of stamping; our item's in an 
+        inconsistent state.)
+        """
+        if not getattr(self, "ignoreCollectionChangedWhileStamping", False):
+            # Block.logger.debug("DetailRoot: onCollectionChanged")
+            self.synchronizeWidget()
+    
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
     Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
@@ -391,7 +400,11 @@ class DetailSynchronizer(Item):
         if shouldShow != widget.IsShown():
             # we have a widget
             # make sure widget shown state is what we want
-            widget.Show (shouldShow)
+            if shouldShow:
+                widget.Show (shouldShow)
+            else:
+                widget.SetMinSize(wx.Size(0,0))
+                widget.Hide()
             self.isShown = shouldShow
             return True
         return False
@@ -563,7 +576,13 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             operation = 'add'
         else:
             operation = 'remove'
+        
+        # Suppress our on-change processing to avoid issues with 
+        # notifications midway through stamping. See bug 2739.
+        self.detailRoot().ignoreCollectionChangedWhileStamping = True
         item.StampKind(operation, mixinKind)
+        del self.detailRoot().ignoreCollectionChangedWhileStamping
+        
         # notify the world that the item has a new kind.
         self.resynchronizeDetailView ()
 
