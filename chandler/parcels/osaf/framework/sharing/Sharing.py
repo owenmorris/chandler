@@ -7,6 +7,7 @@ import application.Globals as Globals
 import application.Parcel
 import osaf.framework.webdav.Dav
 import osaf.mail.message
+import osaf.mail.imap
 from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
@@ -15,6 +16,7 @@ import wx
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
 CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
+WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
 class Parcel(application.Parcel.Parcel):
 
@@ -145,24 +147,34 @@ def collectionFromSharedUrl(url):
     return None
 
 def getWebDavPath():
-    acct = Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
-    if acct.host:
+    acct = getWebDavAccount()
+    if acct and acct.host:
         return "http://%s/%s" % (acct.host, acct.path)
     else:
         return None
 
 def getWebDavAccount():
+    webDavAccountKind = application.Globals.parcelManager.lookup(WEBDAV_MODEL,
+     "WebDAVAccount")
+
+    account = None
+    for item in KindQuery().run([webDavAccountKind]):
+        account = item
+        if item.isDefault:
+            break
+    return account
+
     return Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
 
 def isMailSetUp():
 
     # Find imap account, and make sure email address is valid
-    imap = Globals.repository.findPath("//parcels/osaf/mail/IMAPAccountOne")
+    imap = osaf.mail.imap.getIMAPAccount()
     if not imap.emailAddress:
         return False
 
     # Find smtp account, and make sure server field is set
-    smtp = Globals.repository.findPath("//parcels/osaf/mail/SMTPAccountOne")
+    smtp = imap.defaultSMTPAccount
     if not smtp.host:
         return False
 

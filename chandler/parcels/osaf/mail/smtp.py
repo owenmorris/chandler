@@ -526,7 +526,8 @@ def getSMTPAccount(UUID=None):
         """Get the first SMTP Account"""
         for acc in Query.KindQuery().run([accountKind]):
             account = acc
-            break
+            if account.isDefault:
+                break
 
     if account is None:
         raise SMTPException("No SMTP Account found")

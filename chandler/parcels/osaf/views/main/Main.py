@@ -13,7 +13,7 @@ import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
-from osaf.mail.imap import IMAPDownloader
+import osaf.mail.imap
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
@@ -21,7 +21,6 @@ import repository.query.Query as Query
 from repository.item.Query import KindQuery
 from repository.item.Item import Item
 import osaf.mail.sharing as MailSharing
-
 
 
 class MainView(View):
@@ -303,11 +302,10 @@ class MainView(View):
             else:
                 return
 
-        account = \
-         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
+        account = osaf.mail.imap.getIMAPAccount()
 
         Globals.repository.commit()
-        IMAPDownloader (account).getMail()
+        osaf.mail.imap.IMAPDownloader (account).getMail()
         Globals.repository.refresh()
 
     def onLogRepositoryHistoryEvent(self, notification):

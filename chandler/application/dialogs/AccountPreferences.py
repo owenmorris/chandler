@@ -230,10 +230,35 @@ class AccountPreferencesDialog(wx.Dialog):
         repo.refresh()
 
         accountIndex = 0 # which account to select first
-        accountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "AccountBase")
+        imapAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "IMAPAccount")
+        smtpAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "SMTPAccount")
         webDavAccountKind = application.Globals.parcelManager.lookup(WEBDAV_MODEL, "WebDAVAccount")
+
+        accounts = []
+
+        imapAccount = None
+        for item in KindQuery().run([imapAccountKind]):
+            imapAccount = item
+            if item.isDefault:
+                break
+        accounts.append(imapAccount)
+
+        smtpAccount = None
+        for item in KindQuery().run([smtpAccountKind]):
+            smtpAccount = item
+            if item.isDefault:
+                break
+        accounts.append(smtpAccount)
+
+        webdavAccount = None
+        for item in KindQuery().run([webDavAccountKind]):
+            webdavAccount = item
+            if item.isDefault:
+                break
+        accounts.append(webdavAccount)
+
         i = 0
-        for item in KindQuery().run([accountKind, webDavAccountKind]):
+        for item in accounts:
             if account == item:
                 accountIndex = i
             values = { }

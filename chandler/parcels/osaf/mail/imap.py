@@ -514,7 +514,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         NotifyUIAsync(self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
 
-        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+        # assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
         self.account = None
 
     def _expunge(self, result):
@@ -545,7 +545,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
     def __getAccount(self):
 
         self.account = getIMAPAccount(self.accountUUID)
-        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+        # assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
 
     def __printInfo(self, info):
 
@@ -586,7 +586,8 @@ def getIMAPAccount(UUID=None):
     else:
         for acc in Query.KindQuery().run([accountKind]):
             account = acc
-            break
+            if account.isDefault:
+                break
 
     if account is None:
         message = _("No IMAP Account exists in Repository")
