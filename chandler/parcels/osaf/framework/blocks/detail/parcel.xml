@@ -197,6 +197,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="FromEditField"
@@ -260,6 +261,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="ToMailEditField"
@@ -292,6 +294,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="ToCollectionEditField"
@@ -325,6 +328,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 32</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditHeadline"
@@ -649,6 +653,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -671,6 +676,7 @@
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
+    <border>2.0, 2.0, 2.0, 2.0</border>
   </ContentItemDetail>
  
   <StaticText itsName="ToString1"
@@ -681,6 +687,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="ToMailEditField1"
@@ -714,6 +721,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 32</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditHeadline1"
@@ -933,6 +941,7 @@
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 32</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditHeadline2"

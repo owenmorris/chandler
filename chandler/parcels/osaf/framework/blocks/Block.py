@@ -377,8 +377,26 @@ class wxRectangularChild (wx.Panel):
             flag = wx.ALIGN_BOTTOM | wx.ALIGN_LEFT
         elif block.alignmentEnum == 'alignBottomRight':
             flag = wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT
+
+        # @@@ Temporary solution to allow for borders on a single side
+        numBordersSpecified = 0
+        if block.border.top != 0:
+            flag |= wx.TOP
+            numBordersSpecified += 1
+        if block.border.left != 0:
+            flag |= wx.LEFT
+            numBordersSpecified += 1
+        if block.border.bottom != 0:
+            flag |= wx.BOTTOM
+            numBordersSpecified += 1
+        if block.border.right != 0:
+            flag |= wx.RIGHT
+            numBordersSpecified += 1
+        if numBordersSpecified > 1:
+            flag |= wx.ALL
+
         return flag
-    CalculateWXFlag = classmethod(CalculateWXFlag)
+    CalculateWXFlag = classmethod(CalculateWXFlag)    
     
 
 class RectangularChild(Block):

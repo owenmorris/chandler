@@ -198,7 +198,7 @@
     <title>Demo View</title>
 
     <minimumSize>400,50</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -211,7 +211,7 @@ It is used as an example for developers new to Chandler to see the kinds of bloc
     </title>
     <size>600,200</size>
     <minimumSize>400,200</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
 
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
@@ -225,7 +225,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     </title>
     <size>600,200</size>
     <minimumSize>400,50</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -240,7 +240,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <displayName>Intro</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <StaticText itsName="ButtonHeader">
@@ -251,7 +251,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -262,7 +262,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>80,30</size>
     <minimumSize>80,30</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <event itemref="doc:AddText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -275,7 +275,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <event itemref="doc:ReloadText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -288,7 +288,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
@@ -302,7 +302,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <!-- Attributes -->
     <size>200,40</size>
     <minimumSize>200,40</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
   
   <EditText itsName="ButtonText">
@@ -314,7 +314,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>100,100</size>
     <minimumSize>100,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </EditText>
 
   <BoxContainer itsName="ButtonsTab">
@@ -328,7 +328,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <displayName>Buttons</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
   
   <RadioBox itsName="RadioExample">
@@ -344,7 +344,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
   </RadioBox>
   
@@ -357,7 +357,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
   </ComboBox>
 
@@ -368,7 +368,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <!-- Attributes -->
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
   
   <BoxContainer itsName="ComboSizer">
@@ -378,7 +378,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <!-- Attributes -->
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <BoxContainer itsName="ControlsTab">
@@ -391,7 +391,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <displayName>Controls</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <HTML itsName="HTMLExample">
@@ -400,7 +400,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
     <size>200,200</size>
     <minimumSize>200,200</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </HTML>
 
   <BoxContainer itsName="HTMLTab">
@@ -411,7 +411,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <displayName>HTML</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <TabbedContainer itsName="Tabs"
@@ -427,7 +427,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </TabbedContainer>
   
   <BoxContainer itsName="BlockDemoView">
@@ -462,7 +462,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <eventBoundary>True</eventBoundary>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
     
 </core:Parcel>

@@ -1305,7 +1305,7 @@
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
     
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </TabbedContainer>  
 
   <calendar:MiniCalendar itsName="MiniCalendar"/>
@@ -1318,7 +1318,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <contentModel:ItemCollection itsName="sidebarItemCollection">
@@ -1363,7 +1363,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.25</splitPercentage>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </SplitterWindow>
   
   <BoxContainer itsName="MainBoxContainer">
@@ -1373,7 +1373,7 @@
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </BoxContainer>
 
   <View itsName="MainView"
@@ -1437,7 +1437,7 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <size>800,650</size>
-    <border>10.0, 10.0, 10.0, 10.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </View>
 
   <contentModel:Note itsName="WelcomeNote">

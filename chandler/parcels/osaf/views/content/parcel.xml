@@ -417,7 +417,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -429,7 +429,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -441,7 +441,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -453,7 +453,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -465,7 +465,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -477,7 +477,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -489,7 +489,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -501,7 +501,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -513,7 +513,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
@@ -525,7 +525,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </SplitterWindow>
 
 </core:Parcel>

@@ -58,7 +58,7 @@
   <EditText itsName="NewChannel">
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <stretchFactor>0.0</stretchFactor>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -69,7 +69,7 @@
   <BoxContainer itsName="ItemViewBox">
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
     <orientationEnum>Vertical</orientationEnum>
 
     <childrenBlocks itemref="doc:ItemDetail"/>
@@ -82,14 +82,14 @@
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
-    <border>1.0, 1.0, 1.0, 1.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
   </HTML>
 
   <SplitterWindow itsName="ZaoBaoView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
 
     <childrenBlocks itemref="doc:ZaoBaoTree"/>
     <childrenBlocks itemref="doc:ItemViewBox"/>
@@ -119,7 +119,7 @@
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
 
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
@@ -148,7 +148,7 @@
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
 
     <childrenBlocks itemref="doc:chandlerwiki_ChannelList"/>
     <childrenBlocks itemref="doc:chandlerwiki_ChannelItemDetail"/>
@@ -177,7 +177,7 @@
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
+    <border>0.0, 0.0, 0.0, 0.0</border>
 
     <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
     <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
