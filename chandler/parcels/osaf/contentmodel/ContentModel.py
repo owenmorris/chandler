@@ -243,38 +243,7 @@ class ContentItem(Item.Item):
                 except AttributeError:
                     pass
                 else:
-                    destItem.setAttributeValue (name, self.copyValue (value))
-
-    def copyValue (self, value):
-        # don't need to clone single items
-        # @@@DLD - find out if there's a better way to copy an attribute value
-        if not isinstance (value, RefList):
-            return value
-
-        # check the first item to see if it has an alias
-        try:
-            alias = value.getAlias(value[0])
-        except:
-            hasAlias = False
-        else:
-            hasAlias = alias is not None
-
-
-        # create the clone
-        if hasAlias:
-            clone = {}
-        else:
-            clone = []
-
-        # copy each item, using alias if available
-        for item in value:
-            if hasAlias:
-                alias = value.getAlias(item)
-                clone[alias] = item
-            else:
-                clone.append(item)
-        
-        return clone
+                    destItem.setAttributeValue (name, value)
 
     """
       STAMPING TARGET-KIND DETERMINATION

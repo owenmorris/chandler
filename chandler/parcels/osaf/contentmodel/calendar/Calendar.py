@@ -143,7 +143,7 @@ class CalendarEventMixin(Item.Item):
         # set participants to any existing "who"
         try:
             # need to shallow copy the list
-            self.participants = self.copyValue (self.getAnyWho ())
+            self.participants = self.getAnyWho ()
         except AttributeError:
             pass # no participants yet
 

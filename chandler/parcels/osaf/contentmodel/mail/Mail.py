@@ -392,7 +392,7 @@ class MailMessageMixin(MIMEContainer):
         # default the toAddress to any super class "who" definition
         try:
             # need to shallow copy the list
-            self.toAddress = self.copyValue (self.getAnyWho ())
+            self.toAddress = self.getAnyWho ()
         except AttributeError:
             pass
 

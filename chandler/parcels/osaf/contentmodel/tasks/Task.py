@@ -102,7 +102,7 @@ class TaskMixin(Item.Item):
         # default the requestee to any super class "who" definition
         try:
             # shallow copy the list
-            self.requestee = self.copyValue (self.getAnyWho ())
+            self.requestee = self.getAnyWho ()
         except AttributeError:
             pass
 
