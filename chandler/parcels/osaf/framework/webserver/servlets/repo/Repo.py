@@ -20,31 +20,53 @@ class RepoResource(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
 
+        cookies = request.received_cookies
+        
         try: # Outer try to render any exceptions
 
             try: # Inner try/finally to handle restoration of current view
 
                 mode = request.args.get('mode', [None])[0]
+                
+                # First check args, then check cookie for view to use:
+                viewName = request.args.get('view', [cookies.get('view', None)])[0]
 
                 # The Server item will give us the repositoryView during
                 # startup.  Set it to be the current view and restore the
                 # previous view when we're done.
                 repoView = self.repositoryView
+                
+                # See if we need to override, using a different view
+                if viewName:
+                    for view in repoView.views:
+                        if view.name == viewName:
+                            repoView = view
+                            break
+                        
+                request.addCookie("view", repoView.name, path="/repo")
+                
                 prevView = repoView.setCurrentView()
 
                 if not request.postpath or not request.postpath[0]:
                     path = "//"
                 else:
                     path = "//%s" % ("/".join(request.postpath))
+                    
                 result = "<html><head><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
                 result += "<body>"
 
+                
+                result += "<p class=footer>Repository view: <b>%s</b> | <a href=/repo/?mode=views>switch</a></p>" % repoView.name
+                
                 if mode == "kindquery":
                     item = repoView.findPath(path)
                     result += "<div>"
                     result += RenderKindQuery(repoView, item)
                     result += "</div>"
 
+                elif mode == "views":
+                    result = RenderViews(repoView)
+                    
                 elif mode == "search":
                     text = request.args.get('text', [None])[0]
                     result += RenderSearchResults(repoView, text)
@@ -136,6 +158,25 @@ def RenderRoots(repoView):
     result += "<div class='tree'>"
     for child in repoView.iterRoots():
         result += "<a href=%s>//%s</a> &nbsp;  " % (toLink(child.itsPath), child.itsName)
+    result += "</div>"
+    result += "</td></tr></table>\n"
+    return result
+
+def RenderViews(repoView):
+    result = ""
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td><b>Repository Views:</b></td>\n"
+    result += "</tr>\n"
+
+    result += "<tr class='oddrow'>\n"
+    result += "<td>"
+    result += "<div class='tree'>"
+    for view in repoView.views:
+        if repoView == view:
+            result += "<b>%s</b> &nbsp;  " % (view.name)
+        else:
+            result += "<a href=/repo/?view=%s>%s</a> &nbsp;  " % (view.name, view.name)
     result += "</div>"
     result += "</td></tr></table>\n"
     return result
