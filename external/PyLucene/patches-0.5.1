@@ -63,3 +63,26 @@
  endif
  endif
  endif
+--- PyLucene-0.5.1/Makefile	2004-08-23 16:51:22.000000000 -0700
++++ PyLucene-0.5.1-patched/Makefile	2004-08-23 16:53:05.000000000 -0700
+@@ -364,6 +364,9 @@
+ ifdef DB
+ 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
+ endif
++	install $(GCJ_HOME)/lib/libgcj.so.5 $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
+ else
+ 
+ ifeq ($(OS),Cygwin)
+@@ -408,8 +411,8 @@
+ 	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
+ endif
+ 	mkdir -p $(DISTRIB)/gcj
+-	install $(GCJ_HOME)/lib/libgcj.so.4 $(DISTRIB)/gcj
+-	install $(GCJ_HOME)/lib/libstdc++.so.5 $(DISTRIB)/gcj
++	install $(GCJ_HOME)/lib/libgcj.so.5 $(DISTRIB)/gcj
++	install $(GCJ_HOME)/lib/libstdc++.so.6 $(DISTRIB)/gcj
+ 	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(DISTRIB)/gcj
+ else
+ 

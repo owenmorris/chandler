@@ -40,8 +40,8 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
          $(SNAP)/db/lib/libdb_java-4.2.so \
          $(SNAP)/lib/libgcc_s.so.1 \
-         $(SNAP)/lib/libgcj.so.4 \
-         $(SNAP)/lib/libstdc++.so.5
+         $(SNAP)/lib/libgcj.so.5 \
+         $(SNAP)/lib/libstdc++.so.6
 endif
 endif
 endif
