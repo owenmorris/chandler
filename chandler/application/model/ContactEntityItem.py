@@ -94,10 +94,6 @@ class ContactEntityItem(InformationItem):
         newItem = ContactMethodItem(addressType, addressLocation, attributes)
         self.contactMethods.append(newItem)
         self.SetContactMethods(self.contactMethods)
-        
-        # commit the changes
-        repository = LocalRepository()
-        repository.addObject(newItem)
 
         return newItem
          
