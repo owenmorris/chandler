@@ -350,13 +350,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         selectedDate = self.parent.blockItem.selectedDate
         startDate = self.parent.blockItem.rangeStart
         
-        if self.parent.blockItem.dayMode:
-            label = selectedDate.Format("%B %d %Y")
-        else:
-            label = selectedDate.Format("%B %Y")
-
-
-        self.monthButton.SetLabel(label)
+        self.monthButton.SetLabel(selectedDate.Format("%B %Y"))
         self.monthButton.UpdateSize()
         self.todayButton.UpdateSize()
 
