@@ -23,6 +23,7 @@ dependencies = (
                 'Chandler/repository'
                )
 
+
 def build(buildenv):
 
     # Build the linux launcher program
@@ -77,10 +78,11 @@ def build(buildenv):
     os.chdir("distrib")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
-        if buildenv['os'] == 'posix':
-            os.chdir("linux")
         if buildenv['os'] == 'osx':
             os.chdir("osx")
+        elif buildenv['os'] == 'posix':
+            os.chdir("linux")
+
         if buildenv['version'] == 'release':
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying RunRelease to release")
@@ -221,27 +223,6 @@ def distribute(buildenv):
 
     if buildenv['version'] == 'debug':
 
-        if buildenv['os'] == 'posix':
-
-            distName = 'Chandler_linux_debug_' + buildVersionShort
-            distDir = buildenv['root'] + os.sep + distName
-            buildenv['distdir'] = distDir
-            if os.access(distDir, os.F_OK):
-                hardhatlib.rmdir_recursive(distDir)
-            os.mkdir(distDir)
-
-            manifestFile = "distrib/linux/manifest.debug.linux"
-            hardhatlib.handleManifest(buildenv, manifestFile)
-            os.chdir(buildenv['root'])
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
-             distName)
-
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["debug"],
-             "Chandler_linux_dev_debug_" + buildVersionShort)
-            os.chdir(buildenv['root'])
-
         if buildenv['os'] == 'osx':
 
             distName = 'Chandler_osx_debug_' + buildVersionShort
@@ -277,7 +258,28 @@ def distribute(buildenv):
              ["debug"],
              "Chandler_osx_dev_debug_" + buildVersionShort)
 
-        if buildenv['os'] == 'win':
+        elif buildenv['os'] == 'posix':
+
+            distName = 'Chandler_linux_debug_' + buildVersionShort
+            distDir = buildenv['root'] + os.sep + distName
+            buildenv['distdir'] = distDir
+            if os.access(distDir, os.F_OK):
+                hardhatlib.rmdir_recursive(distDir)
+            os.mkdir(distDir)
+
+            manifestFile = "distrib/linux/manifest.debug.linux"
+            hardhatlib.handleManifest(buildenv, manifestFile)
+            os.chdir(buildenv['root'])
+            compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
+             distName)
+
+            os.chdir(buildenv['root'])
+            compFile2 = hardhatlib.compressDirectory(buildenv, 
+             ["debug"],
+             "Chandler_linux_dev_debug_" + buildVersionShort)
+            os.chdir(buildenv['root'])
+
+       elif buildenv['os'] == 'win':
 
             distName = 'Chandler_win_debug_' + buildVersionShort
             distDir = buildenv['root'] + os.sep + distName
