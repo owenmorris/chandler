@@ -9,6 +9,8 @@ from model.item.Item import Item
 from model.schema.Kind import Kind
 from model.schema.Types import Type
 from model.schema.Attribute import Attribute
+from model.util.PersistentList import PersistentList
+from model.util.PersistentDict import PersistentDict
 
 
 class AutoKind(object):
@@ -72,7 +74,12 @@ class AutoKind(object):
                        where the countPolicy is set to 'count'. By default,
                        the countPolicy is 'none'.
 
-    To specify the initial value of an attribute use the 'value' keyword.
+    To specify the initial value of an single-valued attribute use the 'value'
+    keyword.
+    To specify one or several initial values, or an empty collection, for a
+    multi-valued attribute use the 'values' keyword instead. If 'values' is
+    specified but 'cardinality' is not, the latter defaults to the type of
+    'values', either 'list' or 'dict'.
     It is an error to redefine aspects on an existing attribute. That is,
     createAttribute() can be called repeatedly with the same attribute name
     as long as no existing aspects change.
@@ -88,17 +95,44 @@ class AutoKind(object):
         item.createAttribute('foo', value=5, cardinality='list',
                               type=repository.find('//Schema/Core/Integer'))
 
+        - create a list valued Integer typed attributed named 'foo' and assign
+          it the initial values 5, 6 and 7.
+        item.createAttribute('foo', values=[5,6,7],
+                              type=repository.find('//Schema/Core/Integer'))
+
+        - create a dict valued Integer typed attributed named 'foo' and assign
+          it the initial mapping values 'a': 5, 'b': 6 and 'c': 7.
+        item.createAttribute('foo', values={'a':5,'b':6,'c':7},
+                              type=repository.find('//Schema/Core/Integer'))
+
         - create a reference from i1 to i2 attaching it to 'foo' on i1 and
           'bar' on i2.
         i1.createAttribute('foo', value=i2, otherName='bar')
 
-        - create a list reference from i1 to i2 attaching it to 'foo' on i1 and
-          'bar' on i2.
+        - create a multi-valued reference from i1 to i2 attaching it to
+          'foo' on i1 and  'bar' on i2.
+        i1.createAttribute('foo', values=[i2], otherName='bar')
+
+        - create a multi-valued reference from i1 to i2 attaching it to
+          'foo' on i1 and 'bar' on i2.
         i1.createAttribute('foo', value=i2, otherName='bar',
                             cardinality='list')
 
-        - create a list reference from i1 to i2 attaching it to 'foo' on i1 and
-          a multi-valued attribute 'bar' on i2.
+        - create a single-valued reference attribute 'foo' on i1 that
+          will attach to 'bar' on the other endpoint when set.
+        i1.createAttribute('foo', otherName='bar')
+
+        - create a multi-valued reference attribute 'foo' on i1 that
+          will attach to 'bar' on the other endpoint when set.
+        i1.createAttribute('foo', otherName='bar', cardinality='list')
+
+        - create a multi-valued reference attribute 'foo' on i1 that
+          will attach to 'bar' on the other endpoint when set, initializing
+          its value to an empty collection.
+        i1.createAttribute('foo', values=[], otherName='bar')
+
+        - create a multi-valued reference from i1 to i2 attaching it to
+          'foo' on i1 and a multi-valued attribute 'bar' on i2.
         i1.createAttribute('foo', value=i2, otherName='bar',
                             cardinality='list', otherCardinality='list')
     """
@@ -122,6 +156,8 @@ class AutoKind(object):
 
         if 'value' in kwds:
             self._setValue(name, attribute, kwds['value'], kwds)
+        elif 'values' in kwds:
+            self._setValues(name, attribute, kwds['values'], kwds)
 
         return attribute
 
@@ -153,8 +189,18 @@ class AutoKind(object):
         attribute = Attribute(name, kind, attrKind)
 
         for aspect, value in kwds.iteritems():
-            if aspect != 'value' and aspect != 'otherCardinality':
+            if (aspect != 'value' and aspect != 'values' and
+                aspect != 'otherCardinality'):
                 attribute.setAttributeValue(aspect, value)
+
+        if 'cardinality' not in kwds and 'values' in kwds:
+            values = kwds['values']
+            if isinstance(values, list):
+                attribute.setAttributeValue('cardinality', 'list')
+            elif isinstance(values, dict):
+                attribute.setAttributeValue('cardinality', 'dict')
+            else:
+                raise TypeError, 'type of initial values, %s, not supported' %(type(values))
 
         if 'type' not in kwds and 'value' in kwds:
             value = kwds['value']
@@ -172,7 +218,8 @@ class AutoKind(object):
     def _verifyAttribute(self, name, attribute, kwds):
 
         for aspect, value in kwds.iteritems():
-            if aspect != 'value' and aspect != 'otherCardinality':
+            if (aspect != 'value' and aspect != 'values' and 
+                aspect != 'otherCardinality'):
                 current = attribute.getAspect(aspect)
                 if current != value:
                     raise ValueError, "redefining existing attribute %s's %s aspect from %s to %s" %(name, aspect, current, value)
@@ -192,3 +239,32 @@ class AutoKind(object):
                 raise ValueError, "%s's otherName doesn't match %s's otherName" %(name, otherName)
                 
         self.setValue(name, value)
+
+    def _setValues(self, name, attribute, values, kwds):
+
+        cardinality = attribute.getAspect('cardinality', default='single')
+        
+        if isinstance(values, list):
+            if cardinality == 'list':
+                if values == []:
+                    if 'otherName' in kwds:
+                        self._references[name] = self._refDict(name)
+                    else:
+                        self._values[name] = PersistentList(self)
+                else:
+                    self._setValue(name, attribute, values[0], kwds)
+                    for value in values[1:]:
+                        self.addValue(name, value)
+            else:
+                raise TypeError, "Specified a list of initial values but cardinality of attribute %s is %s" %(name, cardinality)
+
+        elif isinstance(values, dict):
+            if cardinality == 'dict':
+                if 'otherName' in kwds:
+                    raise ValueError, "Cardinality 'dict' not supported for references, use 'list' instead."
+                self._values[name] = PersistentDict(self, **values)
+            else:
+                raise TypeError, "Specified a dictionary of initial values but cardinality of attribute %s is %s" %(name, cardinality)
+
+        else:
+            raise TypeError, 'type of initial values, %s, not supported' %(type(values))

@@ -124,5 +124,9 @@ class PackHandler(xml.sax.ContentHandler):
         if self.verbose:
             print file
             
-        return self.repository._loadItemFile(file, parent,
-                                             afterLoadHooks=self.hooks[-1])
+        items = self.repository._loadItemsFile(file, parent,
+                                               afterLoadHooks=self.hooks[-1])
+        for item in items:
+            item._status |= item.NEW
+
+        return items[0]

@@ -22,6 +22,9 @@ class Kind(Item):
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refDict
 
+        # will allow schema items to live anywhere
+        self._status |= Item.SCHEMA
+
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
@@ -31,6 +34,9 @@ class Kind(Item):
         refDict = self._refDict('inheritedAttributes',
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refDict
+
+        # will allow schema items to live anywhere
+        self._status |= Item.SCHEMA
 
     def newItem(self, name, parent):
         """Create an item of this kind.

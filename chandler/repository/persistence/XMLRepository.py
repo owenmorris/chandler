@@ -10,13 +10,14 @@ from xml.sax import parseString
 from datetime import datetime
 from struct import pack, unpack
 from sys import exc_info
+from threading import currentThread, RLock
 
 from model.util.UUID import UUID
 from model.item.Item import Item
 from model.item.ItemRef import ItemRef, ItemStub, RefDict, TransientRefDict
+from model.persistence.Repository import Repository, RepositoryError
 from model.persistence.Repository import OnDemandRepository, Store
 from model.persistence.Repository import OnDemandRepositoryView
-from model.persistence.Repository import RepositoryError
 
 from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_TXN_NOWAIT
@@ -123,6 +124,8 @@ class XMLRepository(OnDemandRepository):
                 
             self._refs = XMLRepository.refContainer(self, "__refs__",
                                                     txn, create)
+            self._versions = XMLRepository.verContainer(self, "__versions__",
+                                                        txn, create)
             self._store = XMLRepository.xmlContainer(self, "__data__",
                                                      txn, create)
         finally:
@@ -133,6 +136,7 @@ class XMLRepository(OnDemandRepository):
 
         if self.isOpen():
             self._refs.close()
+            self._versions.close()
             self._store.close()
             self._env.close()
             self._env = None
@@ -153,6 +157,9 @@ class XMLRepository(OnDemandRepository):
             self.repository = repository
             self._xml = XmlContainer(repository._env, name)
             self._filename = name
+            self.version = "%d.%d.%d" %(self._xml.get_version_major(),
+                                        self._xml.get_version_minor(),
+                                        self._xml.get_version_patch())
             
             if create:
                 self._xml.open(txn, DB_CREATE | DB_DIRTY_READ)
@@ -167,63 +174,101 @@ class XMLRepository(OnDemandRepository):
             else:
                 self._xml.open(txn, DB_DIRTY_READ)
 
-            self._ctx = XmlQueryContext()
-            self._ctx.setReturnType(XmlQueryContext.ResultDocuments)
-            self._ctx.setEvaluationType(XmlQueryContext.Lazy)
-            self._updateCtx = XmlUpdateContext(self._xml)
+        def loadItem(self, view, uuid):
 
-        def loadItem(self, uuid):
+            view.ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
 
-            self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-            results = self._xml.queryWithXPath(self.repository.view._txn,
-                                               "/item[@uuid=$uuid]",
-                                               self._ctx, DB_DIRTY_READ)
-            try:
-                return results.next(self.repository.view._txn).asDocument()
-            except StopIteration:
+            if self.version == "1.1.0":
+                results = self._xml.queryWithXPath(view._txn,
+                                                   "/item[@uuid=$uuid]",
+                                                   view.ctx, DB_DIRTY_READ)
+                try:
+                    return results.next(view._txn).asDocument()
+                except StopIteration:
+                    return None
+
+            if self.version == "1.1.1":
+                for value in self._xml.queryWithXPathExpression(view._txn,
+                                                                view.uuidExpr,
+                                                                DB_DIRTY_READ):
+                    return value.asDocument()
+
                 return None
+
+            raise ValueError, "dbxml %s not supported" %(self.version)
             
-        def loadChild(self, uuid, name):
+        def loadChild(self, view, uuid, name):
 
-            self._ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
-            self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-            results = self._xml.queryWithXPath(self.repository.view._txn,
-                                               "/item[container=$uuid and name=$name]",
-                                               self._ctx, DB_DIRTY_READ)
-            try:
-                return results.next(self.repository.view._txn).asDocument()
-            except StopIteration:
+            view.ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
+            view.ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
+
+            if self.version == "1.1.0":
+                results = self._xml.queryWithXPath(view._txn,
+                                                   "/item[container=$uuid and name=$name]",
+                                                   view.ctx, DB_DIRTY_READ)
+                try:
+                    return results.next(view._txn).asDocument()
+                except StopIteration:
+                    return None
+
+            if self.version == "1.1.1":
+                for value in self._xml.queryWithXPathExpression(view._txn,
+                                                                view.containerExpr,
+                                                                DB_DIRTY_READ):
+                    return value.asDocument()
+
                 return None
 
-        def loadroots(self, repository):
+            raise ValueError, "dbxml %s not supported" %(self.version)
+
+        def loadroots(self, view):
 
             ctx = XmlQueryContext()
             ctx.setReturnType(XmlQueryContext.ResultDocuments)
             ctx.setEvaluationType(XmlQueryContext.Lazy)
-            ctx.setVariableValue("uuid", XmlValue(repository.ROOT_ID.str64()))
+            ctx.setVariableValue("uuid", XmlValue(Repository.ROOT_ID.str64()))
             nameExp = re.compile("<name>(.*)</name>")
-            results = self._xml.queryWithXPath(self.repository.view._txn,
-                                               "/item[container=$uuid]",
-                                               ctx, DB_DIRTY_READ)
-            try:
-                while True:
-                    xml = results.next(self.repository.view._txn).asDocument()
+
+            if self.version == "1.1.0":
+                results = self._xml.queryWithXPath(view._txn,
+                                                   "/item[container=$uuid]",
+                                                   ctx, DB_DIRTY_READ)
+                try:
+                    while True:
+                        xml = results.next(view._txn).asDocument()
+                        xmlString = xml.getContent()
+                        match = nameExp.match(xmlString,
+                                              xmlString.index("<name>"))
+                        name = match.group(1)
+
+                        if not name in view._roots:
+                            view._loadXML(xml)
+                except StopIteration:
+                    return
+
+            if self.version == "1.1.1":
+                for value in self._xml.queryWithXPath(view._txn,
+                                                      "/item[container=$uuid]",
+                                                      ctx, DB_DIRTY_READ):
+                    xml = value.asDocument()
                     xmlString = xml.getContent()
                     match = nameExp.match(xmlString, xmlString.index("<name>"))
                     name = match.group(1)
 
-                    if not name in repository._roots:
-                        repository._loadXML(xml)
-            except StopIteration:
-                pass
+                    if not name in view._roots:
+                        view._loadXML(xml)
 
-        def deleteDocument(self, doc):
+                return
 
-            self._xml.deleteDocument(self.repository.view._txn, doc, self._updateCtx)
+            raise ValueError, "dbxml %s not supported" %(self.version)
 
-        def putDocument(self, doc):
+        def deleteDocument(self, view, doc):
 
-            self._xml.putDocument(self.repository.view._txn, doc, self._updateCtx)
+            self._xml.deleteDocument(view._txn, doc, view.updateCtx)
+
+        def putDocument(self, view, doc):
+
+            self._xml.putDocument(view._txn, doc, view.updateCtx)
 
         def close(self):
 
@@ -241,11 +286,11 @@ class XMLRepository(OnDemandRepository):
 
             return UUID(xmlString[index:xmlString.index('"', index)])
 
-    class refContainer(object):
+    class dbContainer(object):
 
         def __init__(self, repository, name, txn, create):
 
-            super(XMLRepository.refContainer, self).__init__()
+            super(XMLRepository.dbContainer, self).__init__()
 
             self.repository = repository
             self._db = DB(repository._env)
@@ -265,31 +310,33 @@ class XMLRepository(OnDemandRepository):
             self._db.close()
             self._db = None
 
-        def put(self, key, value):
+        def put(self, view, key, value):
 
-            self._db.put(key, value, txn=self.repository.view._txn)
+            self._db.put(key, value, txn=view._txn)
 
-        def delete(self, key):
+        def delete(self, view, key):
 
             try:
-                self._db.delete(key, txn=self.repository.view._txn)
+                self._db.delete(key, txn=view._txn)
             except DBNotFoundError:
                 pass
 
-        def get(self, key):
+        def get(self, view, key):
 
-            return self._db.get(key, txn=self.repository.view._txn)
+            return self._db.get(key, txn=view._txn)
 
-        def cursor(self):
+        def cursor(self, view):
 
-            return self._db.cursor(txn=self.repository.view._txn)
+            return self._db.cursor(txn=view._txn)
 
-        def deleteItem(self, item):
+    class refContainer(dbContainer):
+
+        def deleteItem(self, view, item):
 
             cursor = None
             
             try:
-                cursor = self._db.cursor(txn=self.repository.view._txn)
+                cursor = self._db.cursor(txn=view._txn)
                 key = item.getUUID()._uuid
 
                 try:
@@ -304,6 +351,45 @@ class XMLRepository(OnDemandRepository):
                 if cursor is not None:
                     cursor.close()
 
+    class verContainer(dbContainer):
+
+        def __init__(self, repository, name, txn, create):
+
+            super(XMLRepository.verContainer, self).__init__(repository, name,
+                                                             txn, create)
+            if create:
+                self._db.put(Repository.ROOT_ID._uuid, pack('>L', 0), txn)
+
+            self.lock = RLock()
+
+        def incrementVersion(self, view, uuid):
+
+            try:
+                self.lock.acquire()
+                version, = unpack('>I', self.get(view, uuid._uuid))
+                version += 1
+                self.put(view, uuid._uuid, pack('>I', version))
+            finally:
+                self.lock.release()
+
+            return version
+
+        def setVersion(self, view, uuid, version):
+
+            self.put(view, uuid._uuid, pack('>I', version))
+
+        def getVersion(self, view, uuid):
+
+            version = self.get(view, uuid._uuid)
+            if version is None:
+                return None
+            
+            return unpack('>I', version)[0]
+
+        def deleteVersion(self, view, uuid):
+
+            self.delete(view, uuid._uuid)
+
 
 class XMLRepositoryView(OnDemandRepositoryView):
 
@@ -313,6 +399,54 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         self._log = []
         self._txn = None
+
+    def getVersion(self, uuid):
+
+        return self.repository._versions.getVersion(self, uuid)
+
+    def _getCtx(self):
+
+        try:
+            return self._ctx
+
+        except AttributeError:
+            self._ctx = XmlQueryContext()
+            self._ctx.setReturnType(XmlQueryContext.ResultDocuments)
+            self._ctx.setEvaluationType(XmlQueryContext.Lazy)
+
+            return self._ctx
+
+    def _getUpdateCtx(self):
+
+        try:
+            return self._updateCtx
+
+        except AttributeError:
+            self._updateCtx = XmlUpdateContext(self.repository._store._xml)
+
+            return self._updateCtx
+
+    def _getUUIDExpr(self):
+
+        try:
+            return self._uuidExpr
+        except AttributeError:
+            xml = self.repository._store._xml
+            xpath = "/item[@uuid=$uuid]"
+            self._uuidExpr = xml.parseXPathExpression(None, xpath,
+                                                      self.ctx)
+            return self._uuidExpr
+
+    def _getContainerExpr(self):
+
+        try:
+            return self._containerExpr
+        except AttributeError:
+            xml = self.repository._store._xml
+            xpath = "/item[container=$uuid and name=$name]"
+            self._containerExpr = xml.parseXPathExpression(None, xpath,
+                                                           self.ctx)
+            return self._containerExpr
 
     def createRefDict(self, item, name, otherName, persist):
 
@@ -350,9 +484,14 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
             if self._log:
                 count = len(self._log)
+                store = repository._store
+                versions = repository._versions
+                newVersion = versions.incrementVersion(self,
+                                                       Repository.ROOT_ID)
+                                                                     
                 for item in self._log:
-                    self._saveItem(item, container = repository._store,
-                                   verbose = repository.verbose)
+                    self._saveItem(item, newVersion, store, versions,
+                                   repository.verbose)
 
         except:
             if self._txn:
@@ -365,42 +504,60 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._txn.commit()
                 self._txn = None
 
-            for item in self._log:
-                item.setDirty(False)
-            del self._log[:]
+            if self._log:
+                for item in self._log:
+                    item._setSaved(newVersion)
+                del self._log[:]
 
             after = datetime.now()
             print 'committed %d items in %s' %(count, after - before)
 
-    def _saveItem(self, item, **args):
+    def _saveItem(self, item, newVersion, store, versions, verbose):
 
-        container = args['container']
         uuid = item.getUUID()
-        oldDoc = container.loadItem(uuid)
-        if oldDoc is not None:
-            container.deleteDocument(oldDoc)
-
-        if item.isDeleted():
-            if args.get('verbose'):
-                print 'Removing', item.getItemPath()
-            del self._deletedRegistry[uuid]
-            self.repository._refs.deleteItem(item)
+        if item.isNew():
+            version = None
 
         else:
-            if args.get('verbose'):
+            version = versions.getVersion(self, uuid)
+            if version is None:
+                raise ValueError, 'no version for %s' %(item.getItemPath())
+            else:
+                if version > item._version:
+                    raise ValueError, '%s is out of date' %(item.getItemPath())
+                oldDoc = store.loadItem(self, uuid)
+                if oldDoc is not None:
+                    store.deleteDocument(self, oldDoc)
+
+        if item.isDeleted():
+
+            del self._deletedRegistry[uuid]
+            if version is not None:
+                if verbose:
+                    print 'Removing', item.getItemPath()
+                self.repository._refs.deleteItem(self, item)
+                versions.deleteVersion(self, uuid)
+
+        else:
+            if verbose:
                 print 'Saving', item.getItemPath()
 
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
             generator.startDocument()
-            item._saveItem(generator)
+            item._saveItem(generator, newVersion)
             generator.endDocument()
 
             doc = XmlDocument()
             doc.setContent(out.getvalue())
             out.close()
-            container.putDocument(doc)
+            store.putDocument(self, doc)
+            versions.setVersion(self, uuid, newVersion)
             
+    ctx = property(_getCtx)
+    updateCtx = property(_getUpdateCtx)
+    uuidExpr = property(_getUUIDExpr)
+    containerExpr = property(_getContainerExpr)
     
 
 class XMLRefDict(RefDict):
@@ -438,7 +595,7 @@ class XMLRefDict(RefDict):
         self._key.seek(0, 2)
         self._key.write(key._uuid)
 
-        value = self.view.repository._refs.get(self._key.getvalue())
+        value = self.view.repository._refs.get(self.view, self._key.getvalue())
         if value is None:
             return None
 
@@ -484,7 +641,7 @@ class XMLRefDict(RefDict):
         self._writeValue(alias)
         value = self._value.getvalue()
             
-        self.view.repository._refs.put(self._key.getvalue(), value)
+        self.view.repository._refs.put(self.view, self._key.getvalue(), value)
 
     def _writeValue(self, value):
         
@@ -526,12 +683,12 @@ class XMLRefDict(RefDict):
         self._key.seek(0, 2)
         self._key.write(key._uuid)
 
-        self.view.repository._refs.delete(self._key.getvalue())
+        self.view.repository._refs.delete(self.view, self._key.getvalue())
 
     def _dbRefs(self):
 
         self._key.truncate(32)
-        cursor = self.view.repository._refs.cursor()
+        cursor = self.view.repository._refs.cursor(self.view)
 
         try:
             key = self._key.getvalue()

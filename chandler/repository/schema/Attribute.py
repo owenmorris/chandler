@@ -10,7 +10,17 @@ from model.schema.Kind import Kind
 
 
 class Attribute(Item):
+    
+    def __init__(self, name, parent, kind):
 
+        super(Attribute, self).__init__(name, parent, kind)
+        self._status |= Item.SCHEMA
+
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(Attribute, self)._fillItem(name, parent, kind, **kwds)
+        self._status |= Item.SCHEMA
+        
     def hasAspect(self, name):
 
         return self.hasAttributeValue(name)

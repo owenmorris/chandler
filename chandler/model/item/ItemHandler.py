@@ -158,10 +158,8 @@ class ItemHandler(xml.sax.ContentHandler):
         item._fillItem(self.name, self.parent, self.kind, uuid = self.uuid,
                        values = self.values, references = self.references,
                        previous = self.previous, next = self.next,
-                       afterLoadHooks = self.afterLoadHooks)
-
-        if self.withSchema or item.getRoot().getItemName() == 'Schema':
-            item._status |= item.SCHEMA
+                       afterLoadHooks = self.afterLoadHooks,
+                       version = long(attrs.get('version', '0')))
 
         if self.first or self.last:
             item._children = model.item.Item.Children(item)
@@ -598,7 +596,7 @@ class ItemsHandler(xml.sax.ContentHandler):
     def startDocument(self):
 
         self.itemHandler = None
-        self.item = None
+        self.items = []
         
     def startElement(self, tag, attrs):
 
@@ -621,7 +619,6 @@ class ItemsHandler(xml.sax.ContentHandler):
             self.itemHandler.endElement(tag)
             
         if tag == 'item':
-            if self.item is None:
-                self.item = self.itemHandler.item
+            self.items.append(self.itemHandler.item)
             self.itemHandler.endDocument()
             self.itemHandler = None

@@ -116,6 +116,7 @@ class Repository(object):
 
         self.view.check()
 
+    ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     OPEN = 0x1
     view = property(_getView)
 
@@ -141,6 +142,9 @@ class RepositoryView(object):
     def createRefDict(self, item, name, otherName, persist):
         raise NotImplementedError, "RepositoryView.createRefDict"
     
+    def getVersion(self, uuid):
+        raise NotImplementedError, "RepositoryView.getVersion"
+
     def isLoading(self):
 
         return (self._status & RepositoryView.LOADING) != 0
@@ -258,8 +262,8 @@ class RepositoryView(object):
 
             self._stubs.pop(i)
         
-    def _loadItemFile(self, path, parent=None, verbose=False,
-                      afterLoadHooks=None):
+    def _loadItemsFile(self, path, parent=None, verbose=False,
+                       afterLoadHooks=None):
 
         if verbose:
             print path
@@ -267,7 +271,7 @@ class RepositoryView(object):
         handler = ItemsHandler(self, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
-        return handler.item
+        return handler.items
 
     def _loadItemString(self, string, parent=None, verbose=False,
                         afterLoadHooks=None):
@@ -385,7 +389,11 @@ class RepositoryView(object):
         if not self.isLoading():
             self._stubs.append(stub)
 
-    ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    def _getRootID(self):
+
+        return Repository.ROOT_ID
+
+    ROOT_ID = property(_getRootID)
     LOADING = 0x1
     
 
@@ -397,11 +405,14 @@ class Store(object):
     def close(self):
         raise NotImplementedError, "Store.close"
 
-    def loadItem(self, uuid):
+    def loadItem(self, view, uuid):
         raise NotImplementedError, "Store.loadItem"
     
-    def loadChild(self, parent, name):
+    def loadChild(self, view, parent, name):
         raise NotImplementedError, "Store.loadChild"
+
+    def loadroots(self, view):
+        raise NotImplementedError, "Store.loadRoots"
 
     def parseXML(self, xml, handler):
         raise NotImplementedError, "Store.parseXML"
@@ -460,7 +471,7 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            xml = self.repository._store.loadItem(uuid)
+            xml = self.repository._store.loadItem(self, uuid)
 
             if xml is not None:
                 if self.repository.verbose:
@@ -481,7 +492,7 @@ class OnDemandRepositoryView(RepositoryView):
             uuid = self.ROOT_ID
 
         store = self.repository._store
-        xml = store.loadChild(uuid, name)
+        xml = store.loadChild(self, uuid, name)
                 
         if xml is not None:
             uuid = store.getUUID(xml)

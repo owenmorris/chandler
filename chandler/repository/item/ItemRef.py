@@ -553,28 +553,27 @@ class RefDict(LinkedMap):
                     raise NotImplementedError, "%s, type: %s" %(value,
                                                                 type(value))
 
-        if len(self) > 0:
+        if withSchema:
+            for other in self:
+                break
 
-            if withSchema:
-                for other in self:
-                    break
+        attrs = { 'name': name }
+        if withSchema:
+            otherName = item._otherName(name)
+            otherCard = other.getAttributeAspect(otherName, 'cardinality',
+                                                 default='single')
+            attrs['cardinality'] = 'list'
+            attrs['otherName'] = otherName
+            attrs['otherCard'] = otherCard
 
-            attrs = { 'name': name }
-            if withSchema:
-                otherName = item._otherName(name)
-                otherCard = other.getAttributeAspect(otherName, 'cardinality',
-                                                     default='single')
-                attrs['cardinality'] = 'list'
-                attrs['otherName'] = otherName
-                attrs['otherCard'] = otherCard
+        addAttr(attrs, 'first', self._firstKey)
+        addAttr(attrs, 'last', self._lastKey)
+        attrs['count'] = str(self._count)
 
-            addAttr(attrs, 'first', self._firstKey)
-            addAttr(attrs, 'last', self._lastKey)
-            attrs['count'] = str(self._count)
+        generator.startElement('ref', attrs)
+        self._xmlValues(generator, mode)
+        generator.endElement('ref')
 
-            generator.startElement('ref', attrs)
-            self._xmlValues(generator, mode)
-            generator.endElement('ref')
 
     def _xmlValues(self, generator, mode):
 

@@ -60,6 +60,10 @@ class FileRepositoryView(RepositoryView):
         else:
             return TransientRefDict(item, name, otherName)
     
+    def getVersion(self, uuid):
+
+        return 0L
+
     def _load(self):
         'Load items from the directory the repository was initialized with.'
 
@@ -85,9 +89,9 @@ class FileRepositoryView(RepositoryView):
         
         contents = file(os.path.join(dbHome, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
-            self._loadItemFile(os.path.join(dbHome, dir,
-                                            uuid[:-1] + '.item'),
-                               verbose=verbose, afterLoadHooks=hooks)
+            self._loadItemsFile(os.path.join(dbHome, dir,
+                                             uuid[:-1] + '.item'),
+                                verbose=verbose, afterLoadHooks=hooks)
         contents.close()
 
         for hook in hooks:
@@ -198,7 +202,7 @@ class FileRepositoryView(RepositoryView):
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
 
         generator.startDocument()
-        item._saveItem(generator)
+        item._saveItem(generator, 0L)
         generator.endDocument()
 
         out.write('\n')

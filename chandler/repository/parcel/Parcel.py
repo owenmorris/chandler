@@ -5,36 +5,25 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from model.schema.AutoKind import AutoKind
 from model.item.Item import Item
 from model.schema.Kind import Kind
 
-class Parcel(Item, AutoKind):
+class Parcel(Item):
 
     def setupParcels(repository):
         # @@@ bootstrapping for parcels
         itemKind = repository.find('//Schema/Core/Item')
-        schemaContainer = repository.find('//Schema')
 
-        parcelsContainer = Item('Parcels', repository, itemKind)
-
-        # @@@ need to handle this more generally
-        osafSchemaContainer = Item('OSAF', schemaContainer, itemKind)
-        osafParcelsContainer = Item('OSAF', parcelsContainer, itemKind)
+        if not repository.find('//Parcels'):
+            parcels = Item('Parcels', repository, itemKind)
+            osaf = Item('OSAF', parcels, itemKind)
 
     setupParcels = staticmethod(setupParcels)
 
     def __init__(self, name, parent, kind):
-        Item.__init__(self, name, parent, kind)
-        
-        repository = self.getRepository()
-        stringType = repository.find('//Schema/Core/String')
-        
-        self.createAttribute('author', type=stringType)
-        self.createAttribute('publisher', type=stringType)
-        self.createAttribute('status', type=stringType)
-        self.createAttribute('displayName', type=stringType)
-        self.createAttribute('summary', type=stringType)
-        self.createAttribute('description', type=stringType)
-        self.createAttribute('icon', type=stringType)
-        self.createAttribute('version', type=stringType)
+        super(Parcel, self).__init__(name, parent, kind)
+        self._status |= Item.SCHEMA
+
+    def _fillItem(self, name, parent, kind, **kwds):
+        super(Parcel, self)._fillItem(name, parent, kind, **kwds)
+        self._status |= Item.SCHEMA

@@ -23,20 +23,24 @@ class TypeKind(Kind):
         that is specific to the category of matching types.
         For example, Integer < Long < Float or String < Symbol."""
 
-        matches = []
-        # kludge
-        for item in self.getItemParent():
-            if item._kind is self:
-                if item.recognizes(value):
-                    matches.append(item)
-
+        matches = [item for item in self.getItemParent() if item._kind is self and item.recognizes(value)]
         if matches:
             matches.sort(lambda x, y: x._compareTypes(y))
 
         return matches
-    
+
 
 class Type(Item):
+
+    def __init__(self, name, parent, kind):
+
+        super(Type, self).__init__(name, parent, kind)
+        self._status |= Item.SCHEMA
+
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(Type, self)._fillItem(name, parent, kind, **kwds)
+        self._status |= Item.SCHEMA
 
     def makeValue(cls, data):
         raise NotImplementedError, "Type.makeValue()"

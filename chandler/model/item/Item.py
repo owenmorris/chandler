@@ -36,7 +36,8 @@ class Item(object):
         
         super(Item, self).__init__()
 
-        self._status = 0
+        self._status = Item.NEW
+        self._version = 0L
         self._uuid = UUID()
 
         self._values = Values(self)
@@ -56,6 +57,7 @@ class Item(object):
         self._kind = None
         self._root = None
         self._status = 0
+        self._version = kwds['version']
 
         kwds['values']._setItem(self)
         self._values = kwds['values']
@@ -572,6 +574,10 @@ class Item(object):
 
         return (self._status & Item.DELETING) != 0
     
+    def isNew(self):
+
+        return (self._status & Item.NEW) != 0
+    
     def isDeleted(self):
 
         return (self._status & Item.DELETED) != 0
@@ -596,6 +602,12 @@ class Item(object):
             self._status &= ~Item.DIRTY
 
         return False
+
+    def _setSaved(self, version):
+
+        self._version = version
+        self._status &= ~Item.NEW
+        self.setDirty(False)
 
     def delete(self, recursive=False):
         """Delete this item and detach all its item references.
@@ -709,9 +721,9 @@ class Item(object):
         return path
 
     def getRoot(self):
-        '''Return this item's repository root.
+        """Return this item's repository root.
 
-        All single-slash rooted paths are expressed relative to this root.'''
+        All single-slash rooted paths are expressed relative to this root."""
         
         return self._root
 
@@ -733,12 +745,6 @@ class Item(object):
                 newRepository._registerItem(self)
 
                 self.setDirty()
-
-        if root:
-            if root.getItemName() == 'Schema':
-                self._status |= Item.SCHEMA
-            else:
-                self._status &= ~Item.SCHEMA
 
         for child in self.iterChildren(load=False):
             child._setRoot(root)
@@ -939,13 +945,15 @@ class Item(object):
             if out is not None:
                 out.close()
 
-    def _saveItem(self, generator):
+    def _saveItem(self, generator, version):
 
         self._xmlItem(generator,
                       withSchema = (self._status & Item.SCHEMA) != 0,
+                      version = version,
                       mode = 'save')
 
-    def _xmlItem(self, generator, withSchema=False, mode='serialize'):
+    def _xmlItem(self, generator, withSchema=False, mode='serialize',
+                 version=None):
 
         def xmlTag(tag, attrs, value, generator):
 
@@ -957,6 +965,8 @@ class Item(object):
         attrs = { 'uuid': self._uuid.str64() }
         if withSchema:
             attrs['withSchema'] = 'True'
+        if version is not None:
+            attrs['version'] = str(version)
         generator.startElement('item', attrs)
 
         xmlTag('name', {}, self._name, generator)
@@ -1064,6 +1074,7 @@ class Item(object):
     RAW       = 0x08
     ATTACHING = 0x10
     SCHEMA    = 0x20
+    NEW       = 0x40
 
 
 class Children(LinkedMap):
