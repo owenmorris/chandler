@@ -1,0 +1,2 @@
+#!/bin/sh
+cvs update -d Chandler/__hardhat__.py PyXML/__hardhat__.py Python-2.2.2/__hardhat__.py ZODB4/__hardhat__.py distutils/__hardhat__.py egenix-mx-base-2.0.4/__hardhat__.py hardhat wxWindows-2.4/__hardhat__.py

@@ -1,0 +1,5 @@
+Notes about Linux build issues:
+
+- I found that my RedHat 8.0 install didn't have the gtk-devel package 
+installed, and that includes a required file /usr/bin/gtk-config.  Make
+sure you have that before building wxWindows.

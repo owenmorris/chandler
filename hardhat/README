@@ -1,0 +1,150 @@
+HardHat README
+
+Build Instructions
+------------------
+
+- Make sure you have Python installed on your system.
+- cvs checkout chandler-source
+- cd osaf/chandler
+- set OSAFROOT = /path/to/osaf/chandler  (optional; if you don't set 
+                                this variable be sure to run the python 
+				commands below while in the osaf/chandler 
+				directory)
+
+* Building entire release tree *
+python hardhat/hardhat.py -B Chandler
+
+* Running unit tests *
+python hardhat/hardhat.py -t Chandler
+
+* Cleaning entire release tree *
+python hardhat/hardhat.py -C Chandler
+
+* Building entire debug tree *
+python hardhat/hardhat.py -dB Chandler
+
+* Running unit tests *
+python hardhat/hardhat.py -dt Chandler
+
+* Cleaning entire debug tree *
+python hardhat/hardhat.py -dC Chandler
+
+* Executing release *
+python hardhat/hardhat.py -x Chandler
+
+* Executing debug *
+python hardhat/hardhat.py -dx Chandler
+
+
+
+HardHat commandline options
+---------------------------
+
+Choose one of:
+-d              use debug
+-r              use release (this is the default)
+
+Choose one of:
+-b MODULE       build MODULE
+-B MODULE       build MODULE and dependencies
+-c MODULE       clean MODULE
+-C MODULE       clean MODULE and dependencies
+-x MODULE       execute MODULE
+-t MODULE       run unit tests for MODULE
+-a MODULE       delete runtime directory (osaf/release or osaf/debug, depending on whether -d or -r was specified)
+
+If you want to run an aribtrary python script via the release or debug
+version of python (as opposed to your system's installed python), do the
+following:
+
+python hardhat/hardhat.py myscript.py
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Q: What is HardHat?
+A: HardHat is a Python script which builds a collection of subsystems in
+   a modular fashion.  Each subsystem directory contains a python file
+   implementing build, clean, and execution methods.  HardHat sets up 
+   the environment appropriately and calls each of these methods as 
+   needed.  This approach allows each subsystem to use whatever particular
+   build technology is required (make, distutils, VisualStudio solution),
+   and provides a uniform interface for invoking them.  A message log is
+   also maintained which can be displayed at the end of the build.  Since
+   HardHat is itself a Python module wrapped by a Python command-line
+   script, the module could be embedded in another application such as an 
+   automated build system, or perhaps a nice GUI.
+   
+
+Q: Why not use distutils?
+A: Distutils is meant for building and installing python packages and
+   modules, while we're building an application (python) and several 
+   libraries,
+   
+
+Q: Why not use make?
+A: At first I was under the impression that make might not be a great 
+   cross-platform tool (differences between windows and unix makes).
+   Perhaps this isn't an issue and we might want to look at creating
+   Makefiles for every subsystem in the future.
+
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+                              Build status
+
+
+           Windows             Mac                 Linux
+          -------------------------------------------------------------
+          |  Debug  : Release |  Debug  : Release |  Debug  : Release |
+          -------------------------------------------------------------
+          |  B : C  :  B : C  |  B : C  :  B : C  |  B : C  :  B : C  |
+          -------------------------------------------------------------
+Python    | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
+wxWindows | OK : 3  : OK : 3  |    :    : OK : OK | OK : OK : OK : OK |
+distutils | OK : 4  : OK : 4  |    :    : OK : OK | OK : OK : OK : OK |
+egenix    | OK : 5  : OK : 5  |    :    : OK : OK | OK :    : OK :    |
+ZODB4     | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
+pyXML     | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
+          -------------------------------------------------------------
+
+
+2) *FIXED* returns exit code of 1, issuing a warning instead of error for now
+3) wxWindows/wxPython/wxPython/*.py don't get cleaned
+4) distutils/distutils/*.pyc don't get cleaned
+5) egenix-mx-base-2.0.4/mxBASE.pyc and mxSetup.pyc don't get cleaned
+6) *FIXED* At runtime, wxPython (importing wxc) tries to load non-debug version
+   of libwx_gtk.  
+7) Build on mac returns exit code 2, but appears to work anyway
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+                            Execution status
+
+
+           Windows             Mac                 Linux
+          -------------------------------------------------------------
+          |  Debug  : Release |  Debug  : Release |  Debug  : Release |
+          -------------------------------------------------------------
+Chandler  |    2    :   OK    |         :   OK    |  2      :   OK    |
+          -------------------------------------------------------------
+
+
+1) *FIXED* Exception:  Access Violation reading location 0 in 
+   _Py_ForgetReference()
+2) Memory leaks, but it does run, Linux version throws asserts
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ToDo:
+
+- Capture stdout/stderr of each step to a log, rather than always dumping 
+  to the screen
+
+- Ensure this works with older Pythons (1.5?)  Replace True/False?
