@@ -4,6 +4,7 @@ from twisted.protocols import basic
 from twisted.internet import reactor
 import sys
 import os
+import time
 
 """
 TODO:
@@ -14,6 +15,8 @@ TODO:
 PORT = 2500
 FROM_ACCEPT_LIST = ["brian@test.com", "osafuser@code-bear.com"]
 TO_ACCEPT_LIST = ["brian@test.com", "osafuser@code-bear.com"]
+
+DIR = "testbox"
 
 """Base 64 encoding of username: testuser password: testuser
 [0] = username\0password form
@@ -73,6 +76,7 @@ class SMTPTestServer(basic.LineReceiver):
 
     def __init__(self):
         self.in_data = False
+        self.data = []
         self.caps = None
 
     def sendCapabilities(self, helo=False):
@@ -122,6 +126,12 @@ class SMTPTestServer(basic.LineReceiver):
             if TERMINATOR == line:
                 self.in_data = False
                 self.sendLine(OK_STRING)
+                self.writeMessage("\r\n".join(self.data))
+                self.data = []
+
+            else:
+                self.data.append(line)
+
             return
 
         """SMTP Commands"""
@@ -203,6 +213,17 @@ class SMTPTestServer(basic.LineReceiver):
 
     def disconnect(self):
         self.transport.loseConnection()
+
+    def writeMessage(self, message):
+        global DIR
+
+        fileName = "./%s/%s.message" % (DIR, time.time())
+        print "Filename: ", fileName
+
+        out = open(fileName, "w")
+        out.write(message)
+        out.close()
+
 
 
 def config(ehlo, ssl, auth):
@@ -303,8 +324,19 @@ def processArgs():
         print usage
         sys.exit()
 
+def dirCheck():
+    found = False
+
+    for root, dirs, files in  os.walk("."):
+        if DIR in dirs:
+            found = True
+
+    if not found: 
+        d = os.mkdir(DIR)
+
 def main():
     processArgs()
+    dirCheck()
 
     f = Factory()
     f.protocol = SMTPTestServer
