@@ -85,7 +85,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
             if (sidebar.filterKind is self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin") and
-                keyItem.displayName == u"All filtered by Calendar Event Mixin Kind"):
+                keyItem.displayName != u"In filtered by Calendar Event Mixin Kind" and
+                keyItem.displayName != u"Out filtered by Calendar Event Mixin Kind"):
                 templatePath = self.calendarTemplatePath
             else:
                 templatePath = self.tableTemplatePath
