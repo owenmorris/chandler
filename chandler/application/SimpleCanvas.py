@@ -28,7 +28,7 @@ class wxCanvasDragImage(wx.Frame):
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-        if wx.Platform == "__WXGTK__":
+        if "__WXGTK__" in wx.PlatformInfo:
             # wxGTK requires that the window be created before you can
             # set its shape, so delay the call to SetWindowShape until
             # this event.
@@ -49,7 +49,7 @@ class wxCanvasDragImage(wx.Frame):
 
     def BeginDrag(self, hotspot, window, *ignoreOthers):
         self.hotspot = wx.Point(hotspot[0], hotspot[1])
-        if wx.Platform != "__WXGTK__":
+        if "__WXGTK__" not in wx.PlatformInfo:
             self.SetWindowShape(hotspot = self.hotspot)
         self.window = window
         if self.window:
@@ -200,7 +200,7 @@ class wxSimpleDrawableObject (wx.EvtHandler):
 
         memoryDC.SelectObject (wx.NullBitmap)
 
-        if wx.Platform == "__WXMAC__":  # workaround for wxMac bug
+        if "__WXMAC__" in wx.PlatformInfo:  # workaround for wxMac bug
             offscreenBuffer.SetMask (wx.MaskColour(maskBitmap, wx.BLACK))
         else:
             offscreenBuffer.SetMask (wx.Mask(maskBitmap))
@@ -208,11 +208,11 @@ class wxSimpleDrawableObject (wx.EvtHandler):
         """
           Create the dragImage and begin dragging
         """
-        if wx.Platform == "__WXGTK__":
+        if "__WXGTK__" in wx.PlatformInfo:
             # The "hole punching" trick dosen't work on wxGTK, move the hostspot
             # to be just outside the image
             x, y = -1, -1
-        self.dragImage = wx.CanvasDragImage (offscreenBuffer)
+        self.dragImage = wxCanvasDragImage (offscreenBuffer)
 
         self.dragImage.BeginDrag(wx.Point (x,y), self.canvas, True)
         self.dragImage.Move (self.ConvertToCanvasDeviceCoordinates (x, y))
@@ -220,11 +220,11 @@ class wxSimpleDrawableObject (wx.EvtHandler):
 
         """
           We need to keep a reference to the dataObject, rather than create
-        it in the construction because wx.CanvasDropSource doesn't own the
+        it in the construction because wxCanvasDropSource doesn't own the
         data so the garbage collector will delete it.
         """
         dataObject = self.ConvertDrawableObjectToDataObject(x, y)
-        dropSource = wx.CanvasDropSource (self, dataObject)
+        dropSource = wxCanvasDropSource (self, dataObject)
 
         self.canvas.internalDnDItem = self
         result = dropSource.DoDragDrop (wx.Drag_AllowMove)

@@ -8,7 +8,10 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import wx.calendar
+import cPickle
 from mx import DateTime
+
+import osaf.contentmodel.calendar.Calendar as Calendar
 
 import application.SimpleCanvas as SimpleCanvas
 import osaf.framework.blocks.Block as Block
@@ -19,56 +22,183 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
         super (CalendarItem, self).__init__ (canvas)
         self.item = item
 
-    def PlaceItemOnCalendar(self):
-        block = self.canvas.blockItem
-        width = block.dayWidth
-        height = int(self.item.duration.hours * block.hourHeight)
-        position = block.getPosFromDateTime(self.item.startTime)
-        bounds = wx.Rect(position.x, position.y, width, height)
-        self.SetBounds(bounds)
+    def OnMouseEvent(self, event):
+        x, y = event.GetPositionTuple()
+        if event.ButtonDown() and self.SelectedHitTest (x, y) :
+            # self.canvas.editor.ClearItem()
+            self.canvas.DeSelectAll()
+            self.SetSelected()
+            self.canvas.Update()
+        
+        if event.ButtonDown():
+
+            if event.ButtonDown() and self.ReSizeHitTest(x, y):
+                self.canvas.dragStart = wx.Point (self.bounds.x, self.bounds.y)
+                self.canvas.CaptureMouse()
+                self.canvas.dragCreateDrawableObject = self
+                return True
+            
+            if event.ButtonDown() and self.DragHitTest(x, y):
+                self.DoDrag(x, y)
+                return True
+        
+            if event.ButtonDown() and self.EditHitTest(x, y):
+                # self.canvas.editor.SetItem(self)
+                return True
+        
+        event.Skip()
+        return False
 
     def Draw(self, dc):
         # @@@ Scaffolding
-        dc.SetBrush(wx.Brush(wx.Color(180, 121)))
-        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.Brush(wx.Color(180, 192, 159)))
+        if self.selected:
+            dc.SetPen(wx.BLACK_PEN)
+        else:
+            dc.SetPen(wx.TRANSPARENT_PEN)
         
         dc.DrawRoundedRectangle((1, 1),
                                 (self.bounds.width - 1,
                                  self.bounds.height - 1),
-                                radius=10)
+                                radius = 10)
 
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(wx.SWISS_FONT)
+        dc.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, face="Verdana"))
         time = self.item.startTime
         dc.DrawText(time.Format('%I:%M %p ') + self.item.displayName, (10, 0))
 
     def DragHitTest(self, x, y):
-        return False
+        return self.visible
+        #return (self.visible and not self.EditHitTest(x, y))
 
     def SelectedHitTest(self, x, y):
-        return False
+        return self.visible
 
     def EditHitTest(self, x, y):
         return False
 
     def ReSizeHitTest(self, x, y):
-        return False
+        reSizeBounds = wx.Rect(0, self.bounds.height - 20,
+                               self.bounds.width, self.bounds.height)
+        return self.visible and reSizeBounds.Inside((x,y))
 
+    def DrawMask(self, dc):
+        dc.SetBrush(wx.WHITE_BRUSH)
+        dc.SetPen(wx.WHITE_PEN)
+        dc.DrawRoundedRectangle((1, 1),
+                                (self.bounds.width - 1,
+                                self.bounds.width - 1),
+                                radius = 10)
+   
+    def ConvertDrawableObjectToDataObject(self, x, y):
+        dataFormat = wx.CustomDataFormat("ChandlerItem")
+        dragDropData = wx.CustomDataObject(dataFormat)
+        data = cPickle.dumps((self.item.itsUUID, x, y), True)
+        dragDropData.SetData(data)
+        return dragDropData
 
-class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
+    def SizeDrag(self, dragRect, startDrag, endDrag):
+        position = dragRect.GetPosition()
+        blockItem = self.canvas.blockItem
+        self.item.startTime = blockItem.getDateTimeFromPosition(position.x,
+                                                                position.y)
+
+        endHour, endMin = blockItem.getTimeFromPosition(dragRect.GetBottom())
+        self.item.endTime = DateTime.DateTime(self.item.startTime.year,
+                                              self.item.startTime.month,
+                                              self.item.startTime.day,
+                                              endHour, endMin)
+        if (self.item.duration.hours < .5):
+            self.item.duration = DateTime.TimeDelta(.5)
+
+        self.canvas.PlaceItemOnCalendar(self)
+
+class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
-        super (wxWeekBlock, self).__init__ (*arguments, **keywords)
+        super (wxCalendarBlock, self).__init__(*arguments, **keywords)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.SetScrollRate(0,0)
+        self._initNavigationButtons()
+
+        dataFormat = wx.CustomDataFormat("ChandlerItem")
+        dropTargetDataObject = wx.CustomDataObject(dataFormat)
+        dropTarget = SimpleCanvas.wxCanvasDropTarget(self, dropTargetDataObject)
+        self.SetDropTarget(dropTarget)
+
+    def _initNavigationButtons(self):
+        today = DateTime.today()
+        
+        self.prevButton = wx.Button(self, -1, "prev")
+        self.nextButton = wx.Button(self, -1, "next")
+        self.todayButton = wx.Button(self, -1, today.Format("%B %d, %Y"))
+        self.monthButton = wx.Button(self, -1, "September 8888")
+
+        self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
+        self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
+        self.Bind(wx.EVT_BUTTON, self.OnToday, self.todayButton)
+
+    def displayItems(self):
+        self.Freeze()
+
+        for drawableObject in self.zOrderedDrawableObjects:
+            if (self.blockItem.isDateInRange(drawableObject.item.startTime) and
+                drawableObject.item.startTime.hour >= 6 and
+                drawableObject.item.startTime.hour < 22):
+                
+                self.PlaceItemOnCalendar(drawableObject)
+                drawableObject.Show(True)
+            else:
+                drawableObject.Show(False)
+        self.Thaw()
+
+    def renderDateChanged(self):
+        self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
+        self.displayItems()
+        self.Refresh()
 
     def wxSynchronizeWidget(self):
+        today = DateTime.today()
+        self.todayButton.SetLabel(today.Format("%B %d, %Y"))
+        self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
+
         # populate canvas with drawable items for each event on the calendar
         for item in self.blockItem.contents:
-            if self.blockItem.isDateInRange(item.startTime):
-                drawableObject = CalendarItem(self, item)
-                self.zOrderedDrawableObjects.append(drawableObject)
-                drawableObject.PlaceItemOnCalendar()
+            drawableObject = CalendarItem(self, item)
+            self.zOrderedDrawableObjects.append(drawableObject)
+        self.displayItems()
+        self._positionNavigationButtons()
+        self.blockItem.postDateChanged()
+
+
+    # Events
+
+    def OnPrev(self, event):
+        self.blockItem.decrementRange()
+        self.blockItem.postDateChanged()
+        self.renderDateChanged()
+
+    def OnNext(self, event):
+        self.blockItem.incrementRange()
+        self.blockItem.postDateChanged()
+        self.renderDateChanged()
+
+    def OnToday(self, event):
+        today = DateTime.today()
+        self.blockItem.updateRange(today)
+        self.blockItem.postDateChanged()
+        self.renderDateChanged()
+
+    def _positionNavigationButtons(self):
+        (width, height) = self.monthButton.GetSize()
+        x = (self.blockItem.size.width - width)/2
+        self.monthButton.Move((x, 0))
+        self.nextButton.Move((x + width, 0))
+        (width, height) = self.prevButton.GetSize()
+        self.prevButton.Move((x - width, 0))
+        
+        (width, height) = self.todayButton.GetSize()
+        self.todayButton.Move((self.blockItem.size.width - width, 0))        
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -76,10 +206,77 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height
             self.SetVirtualSize(newSize)
-            for drawableObject in self.zOrderedDrawableObjects:
-                drawableObject.PlaceItemOnCalendar()
+            self.displayItems()                        
+            self._positionNavigationButtons()
             self.Refresh()
         event.Skip()
+
+    def ConvertDataObjectToDrawableObject(self, dataObject, x, y, move):
+        (uuid, hotx, hoty) = cPickle.loads(dataObject.GetData())
+        item = Globals.repository.find(uuid)
+        newTime = self.blockItem.getDateTimeFromPosition(x, y - hoty)
+        
+        if (move):
+            item.ChangeStart(newTime)
+        else: # copy
+            pass
+
+        newDrawableObject = CalendarItem(self, item)
+        self.PlaceItemOnCalendar(newDrawableObject)
+
+        Globals.repository.commit()
+        
+        return newDrawableObject
+
+    def CreateNewDrawableObject(self, dragRect, startDrag, endDrag):
+        newItem = Calendar.CalendarEvent()
+        newItem.displayName = "NEW ITEM"
+        newDrawableObject = CalendarItem(self, newItem)
+        newDrawableObject.SizeDrag(dragRect, startDrag, endDrag)
+
+        Globals.repository.commit()
+        
+        return newDrawableObject
+
+class CalendarBlock(Block.RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super(CalendarBlock, self).__init__(*arguments, **keywords)
+
+    # notification
+
+    def onSelectedDateChangedEvent(self, notification):
+        self.updateRange(notification.data['start'])
+        self.widget.displayItems()
+        self.widget.Refresh()
+
+    def postDateChanged(self):
+        self.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
+                  {'start':self.rangeStart})
+
+    # date methods
+
+    def isDateInRange(self, date):
+        begin = self.rangeStart
+        end = begin + self.rangeIncrement
+        return ((date > begin) and (date < end))
+
+    def incrementRange(self):
+        self.rangeStart += self.rangeIncrement
+
+    def decrementRange(self):
+        self.rangeStart -= self.rangeIncrement
+    
+
+class wxWeekBlock(wxCalendarBlock):
+    def __init__(self, *arguments, **keywords):
+        super (wxWeekBlock, self).__init__ (*arguments, **keywords)
+
+    def PlaceItemOnCalendar(self, drawableObject):
+        width = self.blockItem.dayWidth
+        height = int(drawableObject.item.duration.hours * self.blockItem.hourHeight)
+        x, y = self.blockItem.getPosFromDateTime(drawableObject.item.startTime)
+        bounds = wx.Rect(x, y, width, height)
+        drawableObject.SetBounds(bounds)
 
     def DrawBackground(self, dc):
         # Use the transparent pen for painting the background
@@ -98,27 +295,35 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         dc.SetPen(wx.Pen(wx.Colour(183, 183, 183)))
 
         # horizontal lines separating hours + hour legend
-        year = DateTime.today()
+        hour = DateTime.today() + DateTime.RelativeDateTime(hours=6)
         for j in range (self.blockItem.hoursPerView):
-            dc.DrawText (year.Format("%I %p"), (2, j * self.blockItem.hourHeight))
+            dc.DrawText (hour.Format("%I"),
+                         (2, j * self.blockItem.hourHeight + self.blockItem.offset))
             dc.SetPen (wx.Pen(wx.Colour(204, 204, 204)))
-            dc.DrawLine ((self.blockItem.offset, j * self.blockItem.hourHeight),
-                         (self.blockItem.size.width, j * self.blockItem.hourHeight))
+            dc.DrawLine ((self.blockItem.offset,
+                          j * self.blockItem.hourHeight + self.blockItem.offset),
+                         (self.blockItem.size.width, j * self.blockItem.hourHeight + self.blockItem.offset))
             dc.SetPen(wx.Pen(wx.Colour(230, 230, 230)))
-            dc.DrawLine ((self.blockItem.offset, j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2)),
+            dc.DrawLine ((self.blockItem.offset,
+                          j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2) + self.blockItem.offset),
                          (self.blockItem.size.width,
-                          j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2)))
-            year += DateTime.RelativeDateTime(hours=1)
+                          j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2) + self.blockItem.offset))
+            hour += DateTime.RelativeDateTime(hours=1)
 
         dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+
+        startDay = self.blockItem.rangeStart + DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
         
         # Draw lines between the days
         for i in range (self.blockItem.daysPerView):
-            dc.DrawLine ((self.blockItem.offset + self.blockItem.dayWidth * i, 0),
+            currentDate = startDay + DateTime.RelativeDateTime(days=i)
+            dc.DrawText (currentDate.Format("%b %d"), (self.blockItem.offset + self.blockItem.dayWidth * i,
+                                                       self.blockItem.offset - 20))
+            dc.DrawLine ((self.blockItem.offset + self.blockItem.dayWidth * i, self.blockItem.offset),
                          (self.blockItem.offset + self.blockItem.dayWidth * i, self.blockItem.size.height))
         
 
-class WeekBlock(Block.RectangularChild):
+class WeekBlock(CalendarBlock):
     def __init__(self, *arguments, **keywords):
         super (WeekBlock, self).__init__(*arguments, **keywords)
         
@@ -126,112 +331,65 @@ class WeekBlock(Block.RectangularChild):
         self.updateRange(DateTime.today() + self.rangeIncrement)
 
     def instantiateWidget(self):
-        return wxWeekBlock(self.parentBlock.widget, Block.Block.getWidgetID(self))
+        widget = wxWeekBlock(self.parentBlock.widget,
+                             Block.Block.getWidgetID(self))
+        # @@@ hack hack??
+        widget.autoCreateDistance = self.hourHeight * .5
+        return widget
 
     # Derived attributes
     
     def getHourHeight(self):
-        return self.size.height / self.hoursPerView
+        #return self.size.height / self.hoursPerView
+        return (self.size.height - self.offset) / self.hoursPerView
 
     def getDayWidth(self):
-        return self.size.width / self.daysPerView
+        return (self.size.width - self.offset) / self.daysPerView
 
     dayWidth = property(getDayWidth)
     hourHeight = property(getHourHeight)
 
     # date methods
     
-    def isDateInRange(self, date):
-        begin = self.rangeStart
-        end = begin + self.rangeIncrement
-        return ((date > begin) and (date < end))
-
     def updateRange(self, date):
         delta = DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
         self.rangeStart = date + delta
 
-    def incrementRange(self):
-        self.rangeStart += self.rangeIncrement
+    def getTimeFromPosition(self, y):
+        hour = (y - self.offset) / self.hourHeight
+        minutes = (((y - self.offset) % self.hourHeight) * 60) / self.hourHeight
+        minutes = int(minutes/30) * 30
+        return (hour + 6, minutes)
 
-    def decrementRange(self):
-        self.rangeStart -= self.rangeIncrement
+    def getDateFromPosition(self, x):
+        daysFromStart = (x - self.offset) / self.dayWidth
+        delta = DateTime.RelativeDateTime(days=daysFromStart)
+        date = self.rangeStart + delta
+        return (date.year, date.month, date.day)
+
+    def getDateTimeFromPosition(self, x, y):
+        year, month, day = self.getDateFromPosition(x)
+        hour, minutes = self.getTimeFromPosition(y)
+        datetime = DateTime.DateTime(year, month, day, hour, minutes)
+        return datetime
 
     def getPosFromDateTime(self, datetime):
         delta = datetime - self.rangeStart
         x = (self.dayWidth * delta.day) + self.offset
-        y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
-        return wx.Point(x, y)
+        y = int(self.hourHeight * (datetime.hour - 6 + datetime.minute/float(60))) + self.offset
+        return (x, y)
 
-class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
+class wxMonthBlock(wxCalendarBlock):
     def __init__(self, *arguments, **keywords):
         super (wxMonthBlock, self).__init__ (*arguments, **keywords)
 
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.SetScrollRate(0,0)
-
-        today = DateTime.today()
+    def PlaceItemOnCalendar(self, drawableObject):
+        width = self.blockItem.dayWidth
+        height = 15
+        x, y = self.blockItem.getPosFromDateTime(drawableObject.item.startTime)
         
-        self.prevButton = wx.Button(self, -1, "prev")
-        self.nextButton = wx.Button(self, -1, "next")
-        self.todayButton = wx.Button(self, -1, today.Format("%B %d, %Y"))
-        self.monthButton = wx.Button(self, -1, today.Format("%B %Y"))
-
-        self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
-        self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
-        self.Bind(wx.EVT_BUTTON, self.OnToday, self.todayButton)
-
-    def updateRange(self):
-        today = DateTime.today()
-        self.todayButton.SetLabel(today.Format("%B %d, %Y"))
-        self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
-
-    def wxSynchronizeWidget(self):
-        self.updateRange()
-        
-        # populate canvas with drawable items for each event on the calendar
-        for item in self.blockItem.contents:
-            if self.blockItem.isDateInRange(item.startTime):
-                drawableObject = CalendarItem(self, item)
-                self.zOrderedDrawableObjects.append(drawableObject)
-
-    # Events
-
-    def OnPrev(self, event):
-        self.blockItem.decrementRange()
-        self.blockItem.postDateChanged()
-        self.Refresh()
-
-    def OnNext(self, event):
-        self.blockItem.incrementRange()
-        self.blockItem.postDateChanged()
-        self.Refresh()
-
-    def OnToday(self, event):
-        today = DateTime.today()
-        self.blockItem.updateRange(today)
-        self.blockItem.postDateChanged()
-        self.Refresh()
-
-    def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            newSize = self.GetSize()
-            self.blockItem.size.width = newSize.width
-            self.blockItem.size.height = newSize.height
-            self.SetVirtualSize(newSize)
-
-            # @@@ hack, clean up
-            (width, height) = self.monthButton.GetSize()
-            x = (self.blockItem.size.width - width)/2
-            self.monthButton.Move((x, 0))
-            self.nextButton.Move((x + width, 0))
-            (width, height) = self.prevButton.GetSize()
-            self.prevButton.Move((x - width, 0))
-            
-            (width, height) = self.todayButton.GetSize()
-            self.todayButton.Move((self.blockItem.size.width - width, 0))
-
-            self.Refresh()
-        event.Skip()
+        bounds = wx.Rect(x, y, width, height)
+        drawableObject.SetBounds(bounds)
 
     def DrawBackground(self, dc):
         # Use the transparent pen for drawing the background rectangles
@@ -314,10 +472,11 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         (width, height) = dc.GetTextExtent(text)
         dc.DrawText(text, (self.blockItem.size.width - width, 0))
 
-class MonthBlock(Block.RectangularChild):
+class MonthBlock(CalendarBlock):
 
     def __init__(self, *arguments, **keywords):
         super (MonthBlock, self).__init__(*arguments, **keywords)
+        
         self.rangeIncrement = DateTime.RelativeDateTime(months=1)
         self.updateRange(DateTime.today())
 
@@ -336,31 +495,43 @@ class MonthBlock(Block.RectangularChild):
     dayWidth = property(getDayWidth)
     dayHeight = property(getDayHeight)
 
-    def onSelectedDateChangedEvent(self, notification):
-        self.updateRange(notification.data['start'])
-        self.widget.Refresh()
-
-    # notification
-    def postDateChanged(self):
-        self.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
-                  {'start':self.rangeStart})
-
-    # date methods
-
-    def isDateInRange(self, date):
-        begin = self.rangeStart
-        end = begin + self.rangeIncrement
-        return ((date > begin) and (date < end))
-
     def updateRange(self, date):
         self.rangeStart = DateTime.DateTime(date.year, date.month)
 
-    def incrementRange(self):
-        self.rangeStart += self.rangeIncrement
+    def getDateTimeFromPosition(self, x, y):
+        # the first day displayed in the month view
+        startDay = self.rangeStart + \
+                   DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
 
-    def decrementRange(self):
-        self.rangeStart -= self.rangeIncrement
-    
+        # the number of days over
+        deltaDays = x / self.dayWidth
+
+        # the number of weeks down
+        deltaWeeks = (y - self.offset) / self.dayHeight
+
+        selectedDay = startDay + DateTime.RelativeDateTime(days=deltaDays,
+                                                           weeks=deltaWeeks)
+        return selectedDay
+
+    def getPosFromDateTime(self, datetime):
+        # the first day displayed in the month view
+        startDay = self.rangeStart + \
+                   DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
+
+        # the number of days separating the first day in the view
+        # from the selected day
+        dayDelta = datetime - startDay
+
+        # place the event partway down the day, based on time
+        timeDelta = ((float(datetime.hour)/24) * (self.dayHeight - 15))
+
+        # count the number of days over
+        x = self.dayWidth * (dayDelta.day % 7)
+
+        # cound the number of weeks down, add header offset and time of day offset
+        y = (self.dayHeight * (dayDelta.day / 7)) + self.offset + timeDelta
+
+        return (x, y)
 
 
 class wxMiniCalendar(wx.calendar.CalendarCtrl):
@@ -375,8 +546,7 @@ class wxMiniCalendar(wx.calendar.CalendarCtrl):
 
     def OnWXSelectionChanged(self, event):
         self.blockItem.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
-                            {'start': self.getSelectedDate(),
-                             'item': self.blockItem })
+                            {'start': self.getSelectedDate()})
 
     def getSelectedDate(self):
         wxdate = self.GetDate()
@@ -426,4 +596,5 @@ class MiniCalendar(Block.RectangularChild):
 
     def onSelectedDateChangedEvent(self, notification):
         self.widget.setSelectedDate(notification.data['start'])
+
 

@@ -136,8 +136,8 @@
     <contents itemref="view:calendarItemCollection"/>
 
     <daysPerView>7</daysPerView>
-    <hoursPerView>24</hoursPerView>
-    <offset>40</offset>
+    <hoursPerView>16</hoursPerView>
+    <offset>60</offset>
 
     <characterStyle itemref="view:CalendarTitle"/>
   </calendarBlocks:WeekBlock>
