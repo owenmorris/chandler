@@ -6,27 +6,13 @@ M2CRYPTO=$(INTERNAL)/m2crypto
 
 BUILD=build_$(SNAP)
 
-ifeq ($(OS),Cygwin)
-
 build: $(PYTHON)
-	PATH=$(BUILD_ROOT)/$(SNAP)/bin/swig:$(PATH) \
-	$(PYTHON) setup.py \
-		build_ext --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
-			--include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
-		build --build-base=$(BUILD) $(DIST_OPT) \
-		install --force
-
-else
-
-build: $(PYTHON)
-	PATH=$(BUILD_ROOT)/$(SNAP)/bin:$(BUILD_ROOT)/$(SNAP)/bin/swig:$(PATH) \
+	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(BUILD_ROOT)/$(SNAP)/bin/swig:$(PATH)" \
 	$(PYTHON) setup.py \
 		build_ext --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
 			--include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
 		build --build-base=$(BUILD) $(DIST_OPT) \
 		install --force
-
-endif
 
 snap: 
 	cd $(BUILD_ROOT); \
