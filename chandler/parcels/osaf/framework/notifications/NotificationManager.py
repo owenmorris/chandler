@@ -77,7 +77,7 @@ class NotificationManager(object):
                 # look for all declarations matching name
                 decls = self.__find(name)
 
-            print decls
+            #print decls
 
             # make a new subscription object
             sub = Subscription(decls, callback, *args)
