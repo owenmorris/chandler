@@ -36,7 +36,7 @@ src=release/dbxml
 lib
 
 # Grab Chandler.py and others
-src=Chandler
+src=chandler
 dest=Contents/Resources
 Chandler.py
 version.py
@@ -54,12 +54,12 @@ repository
 locale
 
 # Grab the bundle files
-src=Chandler/distrib/osx/bundle
+src=chandler/distrib/osx/bundle
 dest=Contents
 Info.plist
 dest=Contents/Resources
 Chandler.icns
 
-src=Chandler/distrib/osx/bundle/debug
+src=chandler/distrib/osx/bundle/debug
 dest=Contents/MacOS
 RunChandler

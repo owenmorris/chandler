@@ -15,9 +15,6 @@ PathanD.dll
 libdb42d.dll
 libdbxml12d.dll
 libdb_java42d.dll
-msvci70d.dll
-msvcp70d.dll
-msvcr70d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
@@ -33,7 +30,7 @@ DLLs
 Lib
 
 # Grab Chandler.py and others
-src=Chandler
+src=chandler
 dest=
 Chandler.py
 version.py
@@ -52,18 +49,17 @@ glob=*
 repository
 locale
 
-# Grab the launcher and README
-src=Chandler/distrib/win
+# Grab the launcher and windows README
+src=chandler/distrib/win
 README.win.txt
-src=Chandler/distrib/win/launcher/winlaunch/Debug
+src=debug
 chandler.exe
 
 # Grab the overall README
-src=Chandler/distrib
+src=chandler/distrib
 README.txt
 
 # Grab the MS runtime DLL
-src=Chandler/distrib/win
+src=chandler/distrib/win
 dest=bin
-msvcr70d.dll
 msvcr71d.dll

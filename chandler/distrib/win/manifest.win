@@ -14,9 +14,6 @@ dest=
 libdb42.dll
 libdbxml12.dll
 libdb_java42.dll
-msvci70.dll
-msvcp70.dll
-msvcr70.dll
 msvcp71.dll
 msvcr71.dll
 Pathan.dll
@@ -33,7 +30,7 @@ DLLs
 Lib
 
 # Grab Chandler.py and others
-src=Chandler
+src=chandler
 dest=
 Chandler.py
 version.py
@@ -51,13 +48,13 @@ glob=*
 repository
 locale
 
-# Grab the launcher and linux README
-src=Chandler/distrib/win
+# Grab the launcher and windows README
+src=chandler/distrib/win
 README.win.txt
 
-src=Chandler/distrib/win/launcher/winlaunch/Release
+src=release
 chandler.exe
 
 # Grab the overall README
-src=Chandler/distrib
+src=chandler/distrib
 README.txt

@@ -69,7 +69,7 @@ libstdc++.so.5.0.5
 libgcc_s.so.1
 
 # Grab Chandler.py, and others
-src=Chandler
+src=chandler
 dest=
 Chandler.py
 version.py
@@ -90,7 +90,7 @@ locale
 
 
 # Grab the linux README
-src=Chandler/distrib/linux
+src=chandler/distrib/linux
 README.linux.txt
 
 # Grab the launcher programs
@@ -101,5 +101,5 @@ dest=lib
 chandler_bin
 
 # Grab the overall README
-src=Chandler/distrib
+src=chandler/distrib
 README.txt
