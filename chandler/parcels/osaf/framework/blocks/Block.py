@@ -20,7 +20,6 @@ class Block(Item):
         XML -- DJA
         """
         self.childrenBlocks = []
-        self.parentBlock = None
         self.styles = []
 
     def Post (self, event, args):

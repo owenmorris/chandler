@@ -15,17 +15,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Styles
-  -->
-  <CharacterStyle itemName="HeaderCharacterStyle">
-    <fontStyle>bold</fontStyle>
-  </CharacterStyle>  
-
-  <!--
-    Events
-  -->
-
-  <!--
     Menus
   -->
   <Menu itemName="RepositoryMenu">

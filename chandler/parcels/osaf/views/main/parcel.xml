@@ -19,13 +19,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Styles
-  -->
-  <CharacterStyle itemName="HeaderCharacterStyle">
-    <fontStyle>bold</fontStyle>
-  </CharacterStyle>  
-
-  <!--
     Events
   -->
 
@@ -518,6 +511,8 @@
 
   <View itemName="MainView"
         itemClass="osaf.views.main.Main.MainView">
+    <parentBlock itemref="core:None"/>
+
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:NewTabItem"/>

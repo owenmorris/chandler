@@ -35,8 +35,6 @@
     <data itemref="noteModel:Note"/>
   </ItemCollection>
 
-  <!-- Styles -->
-
   <!-- Calendar List -->
   <List itemName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
