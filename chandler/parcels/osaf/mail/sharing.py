@@ -137,7 +137,7 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
             self.restorePreviousView()
 
         factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr, self.sendToList, msg, d,
-                                                  retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
+                                                  self.log, retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
 
         reactor.connectTCP(host, port, factory)
 
