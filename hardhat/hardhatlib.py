@@ -48,8 +48,8 @@ def init(buildenv):
             - os: win, posix, unknown
             - path: system executable search path
             - compiler: full path to C compiler (currently windows only)
-            - python: full path to release verion of python we are building
-            - python_d: full path to debug verion of python we are building
+            - python: full path to release version of python we are building
+            - python_d: full path to debug version of python we are building
             - verbose: 0 for quiet, > 0 for messages displayed to stdout
             - log: a time-ordered list of log entries
             - version: 'debug' or 'release'
@@ -118,8 +118,8 @@ def init(buildenv):
     buildenv['gzip'] = findInPath(buildenv['path'], "gzip")
     buildenv['zip']  = findInPath(buildenv['path'], "zip")
     buildenv['cvs']  = findInPath(buildenv['path'], "cvs")
+    #buildenv['perl']  = findInPath(buildenv['path'], "perl")
 
-    
     # set OS-specific variables
     if buildenv['os'] == 'win':
 

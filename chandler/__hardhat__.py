@@ -19,6 +19,7 @@ dependencies = (
                 'jabber-py',
                 'SOAPpy',
                 'pychecker',
+                #'m2crypto',
                 'Chandler/repository'
                )
 

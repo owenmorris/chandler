@@ -39,7 +39,9 @@ def executeCommand(logfile, showenv, args):
     args[:0] = [args[0]]  
 
     # ...but strip out the path of the executable in args[1]
-    args[1] = os.path.basename(args[1]) 
+    if os.path.basename(args[1]) != 'do_masm.bat' and \
+       os.path.basename(args[1]) != 'test.bat': # XXX openssl build hacks
+        args[1] = os.path.basename(args[1]) 
 
     # all args need to be quoted
     args = map(quoteString, args)
