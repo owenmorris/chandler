@@ -15,12 +15,14 @@ class Preferences (Persistent):
         self.windowSize['width'] = 850
         self.windowSize['height'] = 650
         
+        self.attributes = PersistentDict()
+        
     def GetPreferenceValue(self, preferenceKey):
-        if hasattr(self, preferenceKey):
-            return self.__dict__[preferenceKey]
+        if self.attributes.has_key(preferenceKey):
+            return self.attributes[preferenceKey]
         return None
     
     def SetPreferenceValue(self, preferenceKey, preferenceValue):
-        self.__dict__[preferenceKey] = preferenceValue
+        self.attributes[preferenceKey] = preferenceValue
       
 

@@ -68,10 +68,12 @@ def LoadPreferencesMetadata(filePath):
     return metaDataDictionary
         
 class PreferencesDialog(wxDialog):
-    def __init__(self, parent, title, preferencesData):    
+    def __init__(self, parent, title, preferencesData, default=None):    
         wxDialog.__init__(self, parent, -1, title)
         
         self.preferencesData = preferencesData
+        self.defaultSection = default
+            
         metadataPath = "application" + os.sep + "preferencesMetadata.xml"
         self.preferencesMetadata = LoadPreferencesMetadata(metadataPath)
         
@@ -101,7 +103,16 @@ class PreferencesDialog(wxDialog):
         # add the section list box and wire it up
         self.listbox = wxListBox(self, self.eventID, wxDefaultPosition, wxSize(100, 120),
                        sectionList, wxLB_SINGLE)
-        self.listbox.SetSelection(0)
+        
+        # set up the default section
+        if self.defaultSection == None:
+            defaultIndex = 0
+        else:
+            try:
+                defaultIndex = sectionList.index(self.defaultSection)
+            except ValueError:
+                defaultIndex = 0
+        self.listbox.SetSelection(defaultIndex)
         
         hBox.Add(self.listbox, 0, wxNORTH | wxWEST | wxSOUTH, 8)  
         self.eventID += 1

@@ -2,10 +2,10 @@
 <PreferencesMetaData>
 
 <Preferences section="Identity">
-    <PreferenceItem key="username" label="Your Name" type="string" description="" />
-    <PreferenceItem key="emailaddress" label="Email Address" type="string" description="" />
-    <PreferenceItem key="jabberID" label="Jabber ID" type="string" description="" />
-    <PreferenceItem key="jabberpassword" label="Jabber Password" type="password" description="" />
+    <PreferenceItem key="chandler/identity/username" label="Your Name" type="string" description="" />
+    <PreferenceItem key="chandler/identity/emailaddress" label="Email Address" type="string" description="" />
+    <PreferenceItem key="chandler/identity/jabberID" label="Jabber ID" type="string" description="" />
+    <PreferenceItem key="chandler/identity/jabberpassword" label="Jabber Password" type="password" description="" />
 </Preferences>
 
 </PreferencesMetaData>
