@@ -27,6 +27,12 @@ def main():
         handler.setFormatter(formatter)
         root = logging.getLogger()
         root.addHandler(handler)
+
+        # Also send twisted output to chandler.log, per bug 1997
+        # @@@ Probably not a good long term solution(?)
+        import twisted.python.log
+        twisted.python.log.startLogging(file('chandler.log', 'a+'), 0)
+
         """
           Don't redirect stdio to a file. useBestVisual, uses best screen
         resolutions on some old computers. See wxApp.SetUseBestVisual

@@ -141,24 +141,8 @@ class Manager(Item):
         to set up non-persisted things like logging.
         """
 
-        # Set up the parcel manager logger
-        self.log = logging.getLogger("parcel")
-        # Piggy-back on Chandler's handler unless we're outside of Chandler
-        if len(self.log.handlers) == 0:
-            # No matter our cwd, or sys.argv[0], locate the chandler directory:
-            chandler = os.path.dirname(
-             os.path.dirname(
-              os.path.abspath(application.__file__)
-             )
-            )
-            logHandler = logging.FileHandler(
-             os.path.join(chandler,"chandler.log")
-            )
-            # logHandler.setFormatter(
-            #  logging.Formatter('%(asctime)s %(levelname)s %(message)s',
-            #   "%m/%d %H:%M:%S")
-            # )
-            self.log.addHandler(logHandler)
+        # Get the logger
+        self.log = logging.getLogger()
         self.log.setLevel(logging.INFO)
 
         # Initialize any attributes that aren't persisted:
@@ -510,9 +494,9 @@ class Manager(Item):
         parcelParent = self.repo.findPath(parentRepoPath)
         if parcelParent is None:
             parentUri = self._repo2ns[parentRepoPath]
-            for i in range(globalDepth):
-                print " ",
-            print "(%s waiting for parent)" % namespace
+            # for i in range(globalDepth):
+            #     print " ",
+            # print "(%s waiting for parent)" % namespace
             self.__loadParcel(parentUri)
 
         # make sure we're not already loaded (as a side effect of loading
@@ -525,9 +509,10 @@ class Manager(Item):
             globalDepth = globalDepth - 1
             return parcel
 
-        for i in range(globalDepth):
-            print " ",
-        print str(namespace)
+        # for i in range(globalDepth):
+        #     print " ",
+        # print str(namespace)
+        self.log.info(str(namespace))
 
         # prepare the handler
         handler = ParcelItemHandler()
@@ -610,27 +595,27 @@ class Manager(Item):
 
         try:
             self.resetState()
-            print "Scanning parcels..."
+            self.log.info("Scanning parcels...")
             self.__scanParcels()
-            print "...done"
+            self.log.info("...done")
 
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
 
             self.resetState()
             if namespaces:
-                print "Loading parcels..."
+                self.log.info("Loading parcels...")
                 for namespace in namespaces:
                     parcel = self.__loadParcel(namespace)
                     parcel.modifiedOn = DateTime.now()
-                print "...done"
+                self.log.info("...done")
 
             self.resetState()
-            print "Starting parcels..."
+            self.log.info("Starting parcels...")
             root = self.repo.findPath("//parcels")
             for parcel in self.__walkParcels(root):
                 parcel.startupParcel()
-            print "...done"
+            self.log.info("...done")
             self.resetState()
 
         except:
