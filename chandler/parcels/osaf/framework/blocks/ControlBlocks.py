@@ -533,16 +533,10 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message) 
 
-        # The scroll bars aren't resized (at least on windows) 
-        # Jiggling the size of the window rescales the scrollbars 
-        w,h = self.GetSize() 
-        self.SetSize ((w+1, h)) 
-        self.SetSize ((w, h)) 
         self.ForceRefresh () 
 
     def wxSynchronizeWidget(self):
         self.Reset()
-        selection = self.blockItem.selection
         self.GoToItem (self.blockItem.selection)
 
     def GoToItem(self, item):

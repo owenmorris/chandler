@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import osaf.contentmodel.ContentModel as ContentModel
 import repository.query.Query as RepositoryQuery
+from repository.item.ItemRef import NoSuchIndexError
 
 class ItemCollection(ContentModel.ContentItem):
 
@@ -214,23 +215,26 @@ class ItemCollection(ContentModel.ContentItem):
         return item in self.results
 
     def __getitem__ (self, index):
-        iterator = iter(self.results)
         try:
-            item = iterator.next()
-            for count in xrange (index):
-                item = iterator.next()
-            return item
-        except StopIteration:
-            raise IndexError
+            return self.results.getByIndex (self.indexName, index)
+        except NoSuchIndexError:
+            self.createIndex()
+            return self._results.getByIndex (self.indexName, index)
 
     def __delitem__(self, index):
         self.remove (self.results [index])
 
+    def createIndex (self):
+        if self.indexName == "__adhoc__":
+            self._results.addIndex (self.indexName, 'numeric')
+        else:
+            self._results.addIndex (self.indexName, 'attribute', attribute=self.indexName)
+
     def index (self, item):
-        index = 0
-        for testItem in self.results:
-            if testItem is item:
-                return index
-            index += 1
-        raise IndexError
+        try:
+            return self.results.getIndexPosition (self.indexName, item)
+        except NoSuchIndexError, e:
+            self.createIndex()
+            return self._results.getIndexPosition (self.indexName, item)
+
 
