@@ -1,0 +1,416 @@
+===================
+Event Subscriptions
+===================
+
+Spike uses an event model that is somewhat similar to PyDispatcher (see
+http://pydispatcher.sf.net/ ).  That is, it is a loosely-coupled system that
+does not require individual objects to manage their own subscribers.  However,
+it also differs in some important respects.  First, Spike's event system
+doesn't include the concept of listening to "any" object, or listening for
+"any" event.  Avoiding "any object" subscriptions avoids having events leak
+into different threads (thus simplifying event receiver code), and avoiding
+"any event" subscriptions eliminates the need to introspect subscriber
+signatures the way PyDispatcher does.  Another key difference is that Spike
+represents events as mutable objects with state, and allows publication of an
+event to stop once it has been "consumed".
+
+However, like PyDispatcher, Spike's event system allows garbage collection of
+both senders and receivers of events, by using weak references where possible.
+
+>>> from spike import events
+
+
+The Event API
+=============
+
+The Spike event API consists of event types, event instances, and
+subscriptions.  Event types define the data associated with a particular kind
+of event, and subscriptions allow "receivers" to be called with events from
+a particular "sender".
+
+A "sender" can be any object, while a "receiver" must be a callable object,
+that will be passed a single argument: an event instance.  For our examples,
+we'll use a couple of arbitrary objects as senders, and some simple functions
+for the receivers::
+
+    >>> class Sender: pass
+    >>> sender1 = Sender()
+    >>> sender2 = Sender()
+
+    >>> def receiver1(event):
+    ...     print "Received event!"
+    >>> def receiver2(event):
+    ...     print "Got this:", event
+
+To send an event, one simply creates an instance of the desired event type,
+passing in the sender (which becomes the ``sender`` attribute of the event
+instance)::
+
+    >>> evt = events.Event(sender1)
+    >>> evt.sender is sender1
+    True
+
+If there are no subscribers for the given event type and sender, nothing
+happens besides the creation of an event instance.  However, if a receiver
+is registered for a given event type and sender::
+
+    >>> events.Event.subscribe(sender1, receiver1)
+
+then as part of the event instance's creation, it is first passed to all
+registered receivers for that event type and event sender::
+
+    >>> evt = events.Event(sender1)
+    Received event!
+    >>> evt = events.Event(sender2) # nothing registered, so no message
+
+After any receivers are notified, the newly-created event instance is returned
+to the caller, in case the caller needs to retrieve data that was added to the
+event by the receiver(s).
+
+Note, however, that if a receiver (or the creator of the event) sets the event
+instance's ``consumed`` flag, no further receivers will be passed the event::
+
+    >>> evt = events.Event(sender1, consumed=True)  # no message, event is over
+
+You can find out what receivers an event type has for a given sender using
+the ``getReceivers()`` class method::
+
+    >>> events.Event.getReceivers(sender1)
+    set([<weakref at ...; to 'function' at ... (receiver1)>])
+    >>> events.Event.getReceivers(sender2)
+    ()
+
+Receivers can of course be registered for any sender/receiver pairs, with
+multiple receivers for a given sender or vice versa::
+
+    >>> events.Event.subscribe(sender1, receiver2)
+    >>> evt = events.Event(sender1)
+    Received event!
+    Got this: <spike.events.Event object at 0x...>
+
+And if a receiver is garbage collected, it will no longer receive events it
+was registered for::
+
+    >>> del receiver2
+    >>> evt = events.Event(sender1)   # only receiver1 gets called here
+    Received event!
+
+But you can also remove a subscription early, using ``unsubscribe()``::
+
+    >>> events.Event.unsubscribe(sender1, receiver1)
+    >>> evt = events.Event(sender1)   # nothing registered now, so no message
+
+Sometimes, though you want the event system to hold on to a receiver until the
+sender no longer exists.  For example, lambdas and closures used as receivers
+may get garbage collected immediately, so you can ask the event system to hold
+them for you::
+
+    >>> import sys
+    >>> events.Event.subscribe(
+    ...     sender1, lambda evt: sys.stdout.write("got it!")
+    ... )
+    >>> evt = events.Event(sender1)   # lambda already GC'd, so no message
+
+    >>> events.Event.subscribe(
+    ...     sender1, lambda evt: sys.stdout.write("got it!"),
+    ...     hold = True     # ask Event to hold on until sender1 goes away
+    ... )
+    >>> evt = events.Event(sender1)   # lambda is held, so message appears
+    got it!
+
+Receivers subscribed with the ``hold`` flag set, are retained until the
+corresponding sender is garbage-collected, or the receiver is explicitly
+unsubscribed.
+
+    >>> receivers = events.Event.getReceivers(sender1)
+    >>> receivers
+    set([<function <lambda> at ...>])
+    >>> del evt, sender1    # get rid of all refs to sender1,
+    >>> receivers           # and the receiver set ends up empty
+    set([])
+
+
+Event Types
+-----------
+
+Event types are defined using Python classes, by subclassing the ``Event``
+class in ``spike.events``::
+
+    >>> class MyEvent(events.Event):
+    ...     """A trivial example of an event class"""
+
+Subscriptions for different event types are entirely independent from each
+other, even if the event types are subclasses of each other::
+
+    >>> MyEvent.subscribe(
+    ...     sender2, lambda evt: sys.stdout.write("got it!"), hold = True
+    ... )
+    >>> MyEvent.getReceivers(sender2)
+    set([<function <lambda> at ...>])
+    >>> events.Event.getReceivers(sender2)
+    ()
+    >>> del sender2
+
+``Event`` subclasses can define additional attributes besides ``sender`` that
+can be specified when an event instance is created::
+
+    >>> sender = Sender()
+
+    >>> class Message(events.Event):
+    ...     """An event with data"""
+    ...     msg = "Default message"
+
+    >>> evt = Message(sender)
+    >>> evt.msg
+    'Default message'
+
+    >>> evt = Message(sender, msg="Hello, world!")
+    >>> evt.msg
+    'Hello, world!'
+
+In order for this to work, you must either use an immutable default value in
+the class definition (such as ``None``, or a number, string, or unicode value),
+or else define a property or slot.  Then, you can pass a matching-named keyword
+argument to the event constructor.  Passing an undefined argument name, or
+a name beginning with an ``_`` will not work; it will result in a ``TypeError``
+at runtime::
+
+    >>> evt = Message(sender, foo="bar")
+    Traceback (most recent call last):
+    ...
+    TypeError: 'foo' is not a public attribute of 'Message' objects
+
+Likewise, you can't directly set an undefined attribute on event instances::
+
+    >>> evt._foo = "bar"
+    Traceback (most recent call last):
+    ...
+    TypeError: '_foo' is not a public attribute of 'Message' objects
+
+But you can modify declared event attributes, such as ``sender``, ``consumed``,
+and any attributes added by an ``Event` subclass::
+
+    >>> evt.sender = None
+    >>> print evt.sender
+    None
+
+    >>> evt.consumed = True
+    >>> evt.consumed
+    True
+
+    >>> evt.msg = "Help!"
+    >>> evt.msg
+    'Help!'
+    
+Note, however, that modifying an event by setting its attributes is usually
+only meaningful from within an event-receiving routine.  By the time the code
+creating the event instance has a reference to it, it has already been sent to
+all available receivers, so there's little point in changing its attributes
+any more.  It's normally more useful for the event creator to read result
+attributes from the event instance, in order to receive information added to
+the instance by the event receivers.
+
+Because of this, it's important to set all needed attributes by the time the
+``Event`` constructor is called.  The default constructor automatically sets
+attributes from any supplied keyword arguments, so this is sufficient for
+those attributes whose default is an immutable value, or attributes defined
+using the ``property`` builtin.  But some attributes may need to have mutable
+defaults, such as an empty list or dictionary.  To implement these, you should
+set them up in your subclass' ``__init__`` method, like this::
+
+    >>> class EventWithList(events.Event):
+    ...     listAttr = None
+    ...     def __init__(self, *args, **kw):
+    ...         self.listAttr = []
+    ...         super(EventWithList,self).__init__(*args,**kw)
+    >>> evt = EventWithList(sender)
+    >>> evt.listAttr
+    []
+
+Notice that you must:
+
+1. Define a default value or slot in the class body, so that the event system
+   knows that it's a valid attribute name.
+
+2. Set the attribute(s) as the *first* step in your ``__init__`` method
+
+3. Call ``super(...).__init__`` as the *last* step in your method, so that
+   the event will only be broadcast after all attributes are initialized.
+
+If you want to make certain attributes required, or allow them to be specified
+positionally, you can also do that by overriding ``__init__``:
+
+    >>> class MessageRequired(events.Event):
+    ...     message = None
+    ...     def __init__(self, sender, message, *args, **kw):
+    ...         self.message = message
+    ...         super(MessageRequired,self).__init__(sender,*args,**kw)
+
+Then, creating an event of that type without specifying a value for the
+attribute will result in a ``TypeError``::
+
+    >>> evt = MessageRequired(sender)
+    Traceback (most recent call last):
+    ...
+    TypeError: __init__() takes at least 3 arguments (2 given)
+
+But the argument can then be specified either positionally, or via a keyword::
+
+    >>> evt = MessageRequired(sender,message="Foo")
+    >>> evt.message
+    'Foo'
+    >>> evt = MessageRequired(sender,"Bar")
+    >>> evt.message
+    'Bar'
+
+
+TODO: add slots vs. properties how-to?
+
+TODO: demo using methods as receivers, discuss GC consequences briefly so you
+don't have to know how weak_receiver works.
+
+
+Event System Internals
+======================
+
+From this point on, this document describes (and tests) internal operations
+of ``spike.events``.  If you just want to do the things already described
+above, you don't need to keep reading.  However, if you need to work on the
+``events`` module's internals, or wish to implement an another kind of event
+system, you may find this section helpful or interesting.
+
+
+Garbage Collection
+------------------
+
+The ``spike.events`` public API uses two internal factories that wrap senders
+and receivers so that their subscriptions can be deleted when the sender or
+receiver is no longer usable.  These factories are ``weak_receiver()`` and
+``weak_sender()``.
+
+You do not normally need to use these internal APIs, unless you are creating
+another event subsystem that also needs .
+
+``weak_receiver(receiver, callback=None)``
+    Wraps the callable `receiver` and return a callable object that will pass
+    its arguments to `receiver` when called, assuming `receiver` is still a
+    live object::
+
+        >>> def hello(msg): print msg
+        >>> rcv = events.weak_receiver(hello)
+        >>> rcv(msg="hello!")
+        hello!
+
+    When `receiver` is garbage collected, the `callback` (if
+    one was supplied) will be invoked, and it will receive a Python weak
+    reference object as its sole parameter::
+
+        >>> def callback(ref): print "GC!"
+        >>> rcv = events.weak_receiver(hello,callback)
+        >>> rcv("hello!")
+        hello!
+        >>> del hello
+        GC!
+
+    (Note, by the way, that this weak reference object isn't useful for
+    anything; it's strictly an implementation artifact and should be ignored.)
+
+    After a weak receiver's target is garbage collected, calling the wrapper
+    does nothing::
+
+        >>> rcv("goodbye!")
+
+    If `receiver` is not a weak-referenceable object, however, this routine
+    simply returns it unwrapped, and `callback` will never be called::
+
+        >>> class Uncollectable(object):
+        ...     __slots__ = []  # avoid being weak-referenceable
+        ...     def __call__(self,msg):
+        ...         print msg
+        >>> ob = Uncollectable()
+        >>> ob("hello!")
+        hello!
+        >>> rcv = events.weak_receiver(ob,callback)
+        >>> rcv is ob
+        True
+        >>> rcv("hello!")
+        hello!
+        >>> del ob
+        >>> rcv("goodbye!") # rcv is the same object that ob was
+        goodbye!
+
+    If `receiver` is a method of an object, the returned callable will be bound
+    to the lifetime of the method's ``im_self`` and ``im_func``, rather than to
+    the lifetime of the method.  This is necessary because method objects are
+    normally short-lived and would normally be garbage collected before they
+    had a chance to receive any events::
+
+        >>> class Collectable:
+        ...     def receive(self,msg): print msg
+        >>> ob = Collectable()
+        >>> rcv = events.weak_receiver(ob.receive,callback)
+        >>> rcv == ob.receive   # a wrapper is returned
+        False
+        >>> rcv(msg="hello!")
+        hello!
+        >>> del ob
+        GC!
+        >>> rcv("goodbye!")     # no effect
+
+    But, if the object owning the method is not weak-referenceable, then the
+    passed-in receiver is returned::
+
+        >>> ob = Uncollectable()
+        >>> rcv = events.weak_receiver(ob.__call__,callback)
+        >>> rcv == ob.__call__   # not a wrapper, since ob is not weakrefable
+        True
+        >>> rcv("hello!")
+        hello!
+        >>> del ob
+        >>> rcv(msg="goodbye!") # rcv is still ob.__call__
+        goodbye!
+
+
+``weak_sender(sender, callback=None)``
+    Wrap an arbitrary `sender` object, and return an object that hashes and
+    compares equal to ``id(sender)`` as long as `sender` is a live object::
+
+        >>> ob = Collectable()
+        >>> ob_id = id(ob)
+        >>> sender = events.weak_sender(ob, callback)
+        >>> sender == ob_id
+        True
+        >>> hash(sender) == hash(ob_id)
+        True
+
+    When `sender` is garbage collected, invoke `callback` (if supplied),
+    passing in a Python weak reference object.  (Note: this weak reference
+    object is not useful for anything; it is strictly an implementation
+    artifact and should be ignored.)  After this occurs, the weak sender should
+    still have the same hash as the dead object's ``id()``, but should no
+    longer compare equal except to itself::
+
+        >>> del ob
+        GC!
+        >>> hash(sender) == hash(ob_id)     # hash still the same
+        True
+        >>> sender == ob_id     # but objects not equal
+        False
+        >>> sender == sender    # it only equals itself
+        True
+
+    If `sender` is not a weak-referenceable object, however, then the
+    `callback` will not be invoked, and the weak sender will hold a
+    reference to the original sender indefinitely::
+
+        >>> ob = Uncollectable()
+        >>> ob_id = id(ob)
+        >>> sender = events.weak_sender(ob, callback)
+        >>> sender == ob_id
+        True
+        >>> hash(sender) == hash(ob_id)
+        True
+        >>> del ob
+        >>> sender == ob_id
+        True
+

@@ -1,4 +1,4 @@
-"""Repository -> Python code generation utilities"""
+"""Repository -> Python code generation utilities (see codegen.txt for docs)"""
 
 import sys
 

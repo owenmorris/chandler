@@ -158,13 +158,14 @@ are no longer needed.  The PyDispatcher model also eliminates the need for
 individual objects to keep track of their own subscriptions, which makes it
 very easy to add event support to an object.
 
-Spike may not actually use PyDispatcher itself, however, as there may be some
+Spike does not actually use PyDispatcher itself, however, as there are some
 areas where a slightly different mechanism or policy is needed.  For example,
-Spike may need to be able to mark events as "consumed", which is something
+Spike needs to be able to mark events as "consumed", which is something
 PyDispatcher doesn't natively provide.  Also, PyDispatcher offers some
 convenience features that Spike may not need and which could be detrimental for
-performance, given Spike's high event volume.  So, a simpler implementation may
-be preferable.
+performance, given Spike's high event volume.  So, Spike uses a simpler
+implementation, which is found in ``spike.events``, and its documentation can
+be found in ``events.txt`` in the ``spike`` package directory.
 
 
 Two Worlds
@@ -347,5 +348,6 @@ Misc.:
 * inverse links
 * atomic operations (rollback current operation on error)
 * undo log via event listeners?
+* event aggregation?  suppression?
 
 
