@@ -1,4 +1,4 @@
-import os, hardhatlib, errno, sys
+import os, hardhatlib, hardhatutil, errno, sys
 
 info = {
         'name':'Chandler',
@@ -114,30 +114,102 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-    distDir = buildenv['root'] + os.sep + 'distrib'
-    buildenv['distdir'] = distDir
+    _CreateVersionFile(buildenv)
 
-    if os.access(distDir, os.F_OK):
-        hardhatlib.rmdir_recursive(distDir)
+    buildVersionShort = \
+     hardhatutil.RemovePunctuation(buildenv['buildVersion'])
 
-    os.mkdir(distDir)
 
-    if buildenv['os'] == 'posix':
+    if buildenv['version'] == 'debug':
 
-        if buildenv['version'] == 'release':
+        if buildenv['os'] == 'posix':
+
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "debug", 
+             "Chandler_linux_dev_debug_" + buildVersionShort)
+
+        if buildenv['os'] == 'osx':
+
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "debug",
+             "Chandler_osx_dev_debug" + buildVersionShort)
+
+        if buildenv['os'] == 'win':
+
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "debug", 
+             "Chandler_win_dev_debug_" + buildVersionShort)
+
+
+
+    if buildenv['version'] == 'release':
+
+        if buildenv['os'] == 'posix':
+
+            distName = 'Chandler_linux_' + buildVersionShort
+            distDir = buildenv['root'] + os.sep + distName
+            buildenv['distdir'] = distDir
+            if os.access(distDir, os.F_OK):
+                hardhatlib.rmdir_recursive(distDir)
+            os.mkdir(distDir)
+
             manifestFile = "distrib/linux/manifest.linux"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, distName, distName)
 
-    if buildenv['os'] == 'osx':
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "release", 
+             "Chandler_linux_dev_release_" + buildVersionShort)
+            os.chdir(buildenv['root'])
 
-        if buildenv['version'] == 'release':
+        if buildenv['os'] == 'osx':
+
+            distName = 'Chandler_osx_' + buildVersionShort
+            distDirParent = buildenv['root'] + os.sep + distName
+            distDir = distDirParent + os.sep + distName + ".app"
+            buildenv['distdir'] = distDir
+            if os.access(distDirParent, os.F_OK):
+                hardhatlib.rmdir_recursive(distDirParent)
+            os.mkdir(distDirParent)
+            os.mkdir(distDir)
+
             manifestFile = "distrib/osx/manifest.osx"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            makeDiskImage = buildenv['hardhatroot'] + os.sep + \
+             "makediskimage.sh"
+            os.chdir(buildenv['root'])
+            hardhatlib.executeCommand(buildenv, "HardHat",
+             [makeDiskImage, distName], 
+             "Creating disk image from " + distName)
 
-    if buildenv['os'] == 'win':
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "release",
+             "Chandler_osx_dev_release_" + buildVersionShort)
 
-        if buildenv['version'] == 'release':
+        if buildenv['os'] == 'win':
+
+            distName = 'Chandler_win_' + buildVersionShort
+            distDir = buildenv['root'] + os.sep + distName
+            buildenv['distdir'] = distDir
+            if os.access(distDir, os.F_OK):
+                hardhatlib.rmdir_recursive(distDir)
+            os.mkdir(distDir)
+
             manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, distName, distName)
+
+            os.chdir(buildenv['root'])
+            hardhatlib.compressDirectory(buildenv, "release", 
+             "Chandler_win_dev_release_" + buildVersionShort)
 
 
+def _CreateVersionFile(buildenv):
+    versionFile = "version.py"
+    if os.path.exists(versionFile):
+        os.remove(versionFile)
+    versionFileHandle = open(versionFile, 'w', 0)
+    versionFileHandle.write("build = \"" + buildenv['buildVersion'] + "\"\n")
+    versionFileHandle.close()
