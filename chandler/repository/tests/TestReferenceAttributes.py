@@ -7,12 +7,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import RepositoryTestCase, os, unittest
+import AttributeTestCase, os, unittest
 
 from repository.item.Item import Item
 from repository.schema.Attribute import Attribute
 
-class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
+class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
     """ Test Reference Attributes """
 
     def testReferenceAttributes(self):
@@ -116,21 +116,7 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
     def testListReferenceAttributes(self):
         """Test list valued bidirectional references"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
-        attrKind = itemKind.getAttribute('kind').kind
-
-        managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees',managerKind, attrKind)
-        employeesAttribute.cardinality = 'list'
-        employeesAttribute.otherName = 'manager'
-        managerKind.addValue('attributes',
-                             employeesAttribute,alias='employees')
-        employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager',employeeKind, attrKind)
-        managerAttribute.otherName = 'employees'
-        employeeKind.addValue('attributes',
-                              managerAttribute,alias='manager')
+        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('list')
 
         # now write what we've done and read it back
         self._reopenRepository()
@@ -183,28 +169,14 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
     def testDictReferenceAttributes(self):
         """Test dictionary valued bidirectional references"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
-        attrKind = itemKind.getAttribute('kind').kind
-
-        managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees', managerKind, attrKind)
-        employeesAttribute.cardinality = 'list'
-        employeesAttribute.otherName = 'manager'
-        managerKind.addValue('attributes',
-                             employeesAttribute, alias='employees')
-        employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager', employeeKind, attrKind)
-        managerAttribute.otherName = 'employees'
-        employeeKind.addValue('attributes',
-                              managerAttribute, alias='manager')
+        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('dict')
 
         # now write what we've done and read it back
         self._reopenRepository()
         managerKind = self.rep.find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assert_(employeesAttribute is not None)
-        self.assertEquals(employeesAttribute.cardinality, 'list')
+        self.assertEquals(employeesAttribute.cardinality, 'dict')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')        
         employeeKind = self.rep.find('//employee')

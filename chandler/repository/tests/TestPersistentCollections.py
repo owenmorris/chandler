@@ -7,13 +7,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import RepositoryTestCase, os, unittest
+import AttributeTestCase, os, unittest
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
 
-
-class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
+class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
     """Test Persistent Collection"""
     
     # The big thing to be tested is persisting ordinary python collections and dicts
@@ -35,21 +34,7 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
             
     def testPersistingPythonList(self):
         """Test making a regular Python list persistent"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
-        attrKind = itemKind.getAttribute('kind').kind
-
-        managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees', managerKind, attrKind)
-        employeesAttribute.cardinality = 'list'
-        employeesAttribute.otherName = 'manager'
-        managerKind.addValue('attributes',
-                             employeesAttribute, alias='employees')
-        employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager', employeeKind, attrKind)
-        managerAttribute.otherName = 'employees'
-        employeeKind.addValue('attributes',
-                              managerAttribute, alias='manager')
+        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('list')
 
         manager = managerKind.newItem('boss', self.rep)
 
@@ -70,23 +55,9 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
         self._checkManagerAndEmployeesList(manager, emps)
         
     
-    def testPersistingPythonDict(self):
-        """Test making a regular Python dict persistent"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
-        attrKind = itemKind.getAttribute('kind').kind
-
-        managerKind = kind.newItem('manager', self.rep)
-        employeesAttribute = Attribute('employees', managerKind, attrKind)
-        employeesAttribute.cardinality = 'list'
-        employeesAttribute.otherName = 'manager'
-        managerKind.addValue('attributes',
-                             employeesAttribute, alias='employees')
-        employeeKind = kind.newItem('employee', self.rep)
-        managerAttribute = Attribute('manager', employeeKind, attrKind)
-        managerAttribute.otherName = 'employees'
-        employeeKind.addValue('attributes',
-                              managerAttribute, alias='manager')
+    def testPersistingPythonDictByAssignment(self):
+        """Test making a regular Python dict persistent by using assignment"""
+        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('dict')
 
         manager = managerKind.newItem('boss', self.rep)
         
@@ -106,7 +77,34 @@ class PersistentCollectionsTest(RepositoryTestCase.RepositoryTestCase):
             emp = self.rep.find(Path('//', e))
             emps[str(emp.getUUID())] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
+
+    def testPersistingPythonDictByUpdate(self):
+        """Test making a regular Python dict persistent by using dict update method"""
+        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('dict')
+
+        manager = managerKind.newItem('boss', self.rep)
         
+        emps = {}
+        empNames = ['employee1','employee2','employee3','employee4']
+        for e in empNames:
+            emp = employeeKind.newItem(e, self.rep)
+            emps[str(emp.getUUID())] = emp
+
+        for k, v in emps.items():
+            print k,v
+        manager.employees.update(emps)
+        for k, v in manager.employees.items():
+            print k,v
+        self._checkManagerAndEmployeesDict(manager, emps)
+        
+        self._reopenRepository()
+        manager = self.rep.find('//boss')
+        emps = {}
+        for e in empNames:
+            emp = self.rep.find((Path('//', e)))
+            emps[str(emp.getUUID())] = emp
+        self._checkManagerAndEmployeesDict(manager,emps)
+       
                   
 if __name__ == "__main__":
 #    import hotshot
