@@ -131,6 +131,8 @@ main(int argc, char **argv)
     printf("exeDir:  [%s]\n", exeDir);
     printf("libDir:  [%s]\n", libDir);
     SetLibraryPath(libDir);
+    unsetenv("PYTHONPATH");
+    unsetenv("PYTHONHOME");
     chdir(exeDir);
     free(exePath);
     exePath = malloc((strlen(libDir)+strlen(PROG_BIN)+2) * sizeof(char));
