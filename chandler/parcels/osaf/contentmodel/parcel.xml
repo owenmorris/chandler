@@ -14,7 +14,7 @@
     <displayName>projects</displayName>
     <description>What project does this item belong to?</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Project"/>
+    <type itemref="pim:Project"/>
     <inverseAttribute itemref="pim:items"/>
   </Attribute>
 
@@ -22,7 +22,7 @@
     <displayName>folders</displayName>
     <description>What folders is this item filed in?</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Folder"/>
+    <type itemref="pim:Folder"/>
     <inverseAttribute itemref="pim:items"/>
   </Attribute>
   
@@ -46,7 +46,7 @@
       Everything is a type of Item.
     </description>
     <issues>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issues>
-    <superKinds itemref="pim:Item"/>
+    <superKinds itemref="core:Item"/>
     <abstract/>
     <attributes itemref="pim:projects"/>
     <attributes itemref="pim:folders"/>
@@ -58,7 +58,7 @@
     <displayName>parent project</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Project"/>
+    <type itemref="pim:Project"/>
     <inverseAttribute itemref="pim:subProjects"/>
   </Attribute>
 
@@ -66,7 +66,7 @@
     <displayName>sub projects</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Project"/>
+    <type itemref="pim:Project"/>
     <inverseAttribute itemref="pim:parentProject"/>
   </Attribute>
 
@@ -80,7 +80,7 @@
 
   <Kind itemName="pim:Project">
     <displayName>Project</displayName>
-    <superKinds itemref="pim:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="pim:name"/>
     <attributes itemref="core:description"/>
     <attributes itemref="pim:parentProject"/>
@@ -119,7 +119,7 @@
     <description>
       A Folder represents a folder of e-mail messages (a mailbox) or a folder of any other type of Item.
     </description>
-    <superKinds itemref="pim:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="pim:name"/>
     <attributes itemref="core:description"/>
     <attributes itemref="pim:items"/>
