@@ -56,7 +56,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
     # make sure workingDir is absolute, remove it if it exists, and create it
     workingDir = os.path.abspath(workingDir)
-    chanDir = os.path.join(workingDir, "chandler")
+    chanDir = os.path.join(workingDir, mainModule)
     if os.path.exists(workingDir):
         if os.path.exists(chanDir):
             hardhatutil.rmdirRecursive(chanDir)
@@ -76,7 +76,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     outputList = hardhatutil.executeCommandReturnOutputRetry(
      [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
     hardhatutil.dumpOutputList(outputList, log)
-    os.chdir("./chandler")
+    os.chdir(chanDir)
 
     for releaseMode in ('debug', 'release'):
 
@@ -84,8 +84,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             dbgStr = "DEBUG=1"
         else:
             dbgStr = ""
+            
         print "Doing make " + dbgStr + "install"
-
         log.write("Doing make " + dbgStr + "install with " + cvsVintage + "\n")
 
         outputList = hardhatutil.executeCommandReturnOutput(
@@ -106,12 +106,15 @@ cvsModules = (
     'chandler',
 )
 
-# If any of these modules have changed, scrub everything before building
-scrubAllModules = {
-    'internal/wxPython-2.5':1,
-    'internal/UUIDext':1,
-    'internal/PyLucene':1,
-    'external/Makefile':1,
+    moduleData = {}
+
+# If any of these modules have changed, download and replace before testing
+tarballModules = {
+    'wxPython-':2.5-2,
+    'UUIDext-':0.3-1,
+    'PyLucene-':0.3-1,
+    'Launchers-':0.3-2,
+    '':0.3-3,   # the main module including "external" has no leading name
 }
 
 
@@ -123,7 +126,16 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     log.write("Performing " + mode + " build, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-    log.write("( " + mode + " build skipped)\n")
+    
+    if changesInCVS(testDir):
+        log.write("Changes in CVS, do a " + mode + " install\n")
+        doInstall(mode)
+#     elif changesInModules(mode):
+#         log.write("Changes in module tarballs, updating modules\n")
+#         getChangedModules(mode)
+#         doBuild(mode)
+    else:
+        log.write("No changes< " + mode + " build skipped\n")
 
     os.chdir(testDir)
 
@@ -163,6 +175,76 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     return "success"  # end of Do( )
 
+def changesInModules(mode):
+# assume nothing changed
+# get the directory where the modules are fetched from/to
+    sourceURL = "http://builds.osafoundation.org/external" + environ['os']
+    return false
+
+def changesInCVS(moduleDir):
+
+    changesAtAll = False
+    print "Examining CVS"
+    log.write("Examining CVS\n")
+    for module in cvsModules:
+        print module, "..."
+        log.write("- - - - " + module + " - - - - - - -\n")
+        moduleData[module] = {}
+        moduleDir = os.path.join(workingDir, module)
+        os.chdir(moduleDir)
+        # print "seeing if we need to update", module
+        log.write("Seeing if we need to update " + module + "\n")
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+         [cvsProgram, "-qn", "update", "-d", cvsVintage])
+        # hardhatutil.dumpOutputList(outputList, log)
+        if NeedsUpdate(outputList):
+            print "" + module + " needs updating"
+            changesAtAll = True
+            moduleData[module]["changed"] = 1
+            # update it
+            print "Getting changed sources"
+            log.write("Getting changed sources\n")
+            
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+            [cvsProgram, "-q", "update"])
+            hardhatutil.dumpOutputList(outputList, log)
+        
+        else:
+            # print "NO, unchanged"
+            log.write("Module unchanged" + "\n")
+            moduleData[module]["changed"] = 0
+
+    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write("Done with CVS\n")
+    return changesAtAll
+
+def getChangedModules(tarballModules):
+# dummy for now
+    return false
+
+def doInstall(buildmode):
+# for our purposes, we do not really do a build
+# we will update chandler from CVS, and grab new tarballs when they appear
+    if buildmode == "debug":
+        dbgStr = "DEBUG=1"
+        dashR = '-d'
+    else:
+        dbgStr = ""
+        dashR = '-r'
+
+    moduleDir = os.path.join(workingDir, mainModule)
+    os.chdir(moduleDir)
+    print "Doing make " + dbgStr 
+    log.write("Doing make " + dbgStr + "\n")
+
+    outputList = hardhatutil.executeCommandReturnOutput(
+     [buildenv['make'], dbgStr, "install" ])
+    hardhatutil.dumpOutputList(outputList, log)
+
+    # make a distribution
+#     outputList = hardhatutil.executeCommandReturnOutput(
+#      [hardhatScript, "-o", outputDir, dashR, 
+#      "-D", buildVersionEscaped])
 
 
 def NeedsUpdate(outputList):
