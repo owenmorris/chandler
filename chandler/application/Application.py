@@ -137,7 +137,14 @@ class wxApplication (wx.App):
             
             sys.displayhook = _displayHook
 
-        Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        """
+          Find the directory that Chandler lives in by looking up the file that
+        the application module lives in.
+        """
+        pathComponents = sys.modules['application'].__file__.split (os.sep)
+        assert len (pathComponents) > 3
+        Globals.chandlerDirectory = os.sep.join(pathComponents[0:-2])
+
         os.chdir (Globals.chandlerDirectory)
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
