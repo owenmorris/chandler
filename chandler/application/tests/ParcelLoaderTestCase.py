@@ -29,4 +29,5 @@ class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
         # Notification manager is now needed for Item Collections(?):
         from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
+        Globals.parcelManager = application.Parcel.Manager.getManager()
 
