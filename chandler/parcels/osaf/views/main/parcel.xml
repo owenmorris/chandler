@@ -1215,7 +1215,7 @@
   <TabbedContainer itsName="TabbedView"
                    itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="content:InTableView"/>
+    <childrenBlocks itemref="content:AllTableView"/>
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
@@ -1247,7 +1247,7 @@
 
   <Table itsName="Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
-    <selection itemref="content:InTableView"/>
+    <selection itemref="content:AllTableView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnAttributeNames>displayName</columnAttributeNames>
