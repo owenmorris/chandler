@@ -69,11 +69,13 @@ class AgentManager:
         if self.IsRegistered(agentItem):
             return
 
+        repository = agentItem.getRepository()
+
         if not self.model:
-            self.model = findAgentManager(application.Application.app.repository)
+            self.model = findAgentManager(repository)
 
         self.model.addValue('items', agentItem)
-        application.Application.app.repository.commit()
+        repository.commit()
 
         agentID = agentItem.getUUID()
         self.agentMap[agentID] = Agent(agentID)
@@ -84,7 +86,7 @@ class AgentManager:
             raise KeyError, 'Agent Not Registered'
 
         self.model.removeValue('items', agentItem)
-        application.Application.app.repository.commit()
+        agentItem.getRepository().commit()
 
         agentID = agentItem.getUUID()
         del self.agentMap[agentID]
