@@ -94,7 +94,8 @@ class RSSChannelFactory:
         self._kind = rep.find("//Schema/RSSSchema/RSSChannel")
         
     def newItem(self,rssURL):
-        item = RSSChannel(rssURL,None,self._container,self._kind)
+        item = RSSChannel(None,self._container,self._kind)
+        item.initAttributes(rssURL)
         return item
     
 class RSSChannelException(exceptions.Exception):
@@ -115,9 +116,11 @@ class RSSChannel(Item,Observable1):
         - isUnread; does this feed contain new items not viewed yet by user
     """
 
-    def __init__(self,rssURL,name,parent,kind,**_kwds):
+    def __init__(self,name,parent,kind,**_kwds):
         Item.__init__(self,name,parent,kind,**_kwds)
         Observable1.__init__(self)
+    
+    def initAttributes(rssURL):
         parserData = feedparser.parse(rssURL)
         if (parserData['channel'] == {}):
             self.delete() #@@@ verify it's ok to delete an object before __init__ is completed
@@ -253,11 +256,11 @@ class RSSItemFactory:
         
     def newItem(self, itemData):
         item = RSSItem(itemData, itemData.get('title',''),self._container,self._kind)
-        item.updateAttributes(itemData)
+        item.initAttributes(itemData)
         return item
     
 class RSSItem(Item):
-    def updateAttributes(self, itemData):
+    def initAttributes(self, itemData):
         self.setAttribute('creator',itemData.get('creator',''))
         self.setAttribute('description',itemData.get('description',''))
         self.setAttribute('link',itemData.get('link',''))
