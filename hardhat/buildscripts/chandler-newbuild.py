@@ -36,6 +36,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
      buildVersion, clobber, log)
 
     if ret == "no_changes" or ret =="build_failed" or ret == "test_failed":
+        closeLog()
         pass # return ret
 
     # do release
@@ -149,38 +150,50 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
     mainModuleDir = os.path.join(modeDir, mainModule)
+    extModuleDir = os.path.join(modeDir, "external")
+    intModuleDir = os.path.join(modeDir, "internal")
 
     if not changesAtAll:
         return "no_changes"
 
-#     if needToScrubAll:
-#         os.chdir(mainModuleDir)
-#         print "Scrubbing all"
-#         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-#         log.write("Scrubbing all modules" + "\n")
-#         try:
-#             outputList = hardhatutil.executeCommandReturnOutput(
-#              [hardhatScript, "-nS"])
-#         except Exception, e:
-#             log.write("***Error during scrub***" + "\n")
-#             CopyLog(os.path.join(modeDir, logPath), log)
-#             raise e
-# 
-#         libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
-#         if os.path.exists(libraryDir):
-#             hardhatutil.rmdirRecursive(libraryDir)
-#     else:
-#         os.chdir(mainModuleDir)
-#         print "scrubbing only Chandler"
-#         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-#         log.write("Scrubbing only Chandler" + "\n")
-#         try:
-#             outputList = hardhatutil.executeCommandReturnOutput(
-#              [hardhatScript, "-ns"])
-#         except Exception, e:
-#             log.write("***Error during scrub***" + "\n")
-#             CopyLog(os.path.join(modeDir, logPath), log)
-#             raise e
+    if needToScrubAll:
+        print "Scrubbing all"
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Scrubbing all modules" + "\n")
+        try:
+            if mode == "debug":
+                os.chdir(extModuleDir)
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], "DEBUG=1", "clean" ],
+                 "Cleaning external")
+                os.chdir(intModuleDir)
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], "DEBUG=1", "clean" ],
+                 "Cleaning internal")
+                os.chdir(mainModuleDir)
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], "DEBUG=1", "clean" ],
+                 "Cleaning chandler")
+        except Exception, e:
+            log.write("***Error during scrub***" + "\n")
+            CopyLog(os.path.join(modeDir, logPath), log)
+            raise e
+
+        libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
+        if os.path.exists(libraryDir):
+            hardhatutil.rmdirRecursive(libraryDir)
+    else:
+        os.chdir(mainModuleDir)
+        print "scrubbing only Chandler"
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Scrubbing only Chandler" + "\n")
+        try:
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-ns"])
+        except Exception, e:
+            log.write("***Error during scrub***" + "\n")
+            CopyLog(os.path.join(modeDir, logPath), log)
+            raise e
 
     os.chdir(mainModuleDir)
 
@@ -195,14 +208,14 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building debug..." + "\n")
-            os.chdir("../external")
+            os.chdir(extModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], "DEBUG=1" ],
              "Making external programs")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], "DEBUG=1", "binaries" ],
              "Making external binaries")
-            os.chdir("../internal")
+            os.chdir(intModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], "DEBUG=1" ],
              "Making internal programs")
@@ -214,7 +227,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             print "Building release"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building release..." + "\n")
-            os.chdir("../external")
+            os.chdir(extModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'] ],
              "Making external programs")
@@ -222,7 +235,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              buildenv, info['name'],
              [buildenv['make'], "binaries" ],
              "Making external binaries")
-            os.chdir("../internal")
+            os.chdir(intModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
              buildenv, info['name'],
              [buildenv['make'] ],
