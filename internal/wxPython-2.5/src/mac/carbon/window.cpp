@@ -545,7 +545,8 @@ void wxAssociateControlWithMacControl(ControlRef inControl, wxWindow *control)
 
 void wxRemoveMacControlAssociation(wxWindow *control)
 {
-    wxWinMacControlList.DeleteObject(control);
+    while ( wxWinMacControlList.DeleteObject( control ) )
+    {}
 }
 
 // UPP functions
