@@ -96,7 +96,10 @@ crypto
 recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
+# XXX parcels depend on contentmodel tests
+exclude=CVS,*.pyo,*.pyc
 parcels
+exclude=CVS,tests,*.pyo,*.pyc
 tools
 
 glob=*
