@@ -4,7 +4,6 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
-from application.Application import app
 from application.agents.model.Action import Action
 
 import feedparser
@@ -18,15 +17,16 @@ _defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
                   "http://blogs.osafoundation.org/pieter/index.rdf", \
                   "http://blogs.osafoundation.org/blogotomy/index.rdf", \
                   "http://lessig.org/blog/index.xml", \
-                  "http://diveintomark.org/xml/rss.xml", \
-                  "http://rss.news.yahoo.com/rss/topstories", \
-                  "http://rss.news.yahoo.com/rss/world"]
+                  "http://diveintomark.org/xml/rss.xml",
+                  "http://slashdot.org/index.rss",
+                  "http://www.scripting.com/rss.xml",
+                  "http://xml.newsisfree.com/feeds/15/2315.xml"]
 
 BASE_PATH = '//Parcels/OSAF/examples/zaobao'
 
 class UpdateAction(Action):
     def Execute(self, agent, notification):
-        repository = app.repository
+        repository = self.getRepository()
 
         for feed in self.__getFeeds():
             etag = feed.getAttributeValue('etag', default=None)
@@ -41,7 +41,7 @@ class UpdateAction(Action):
         repository.commit()
 
     def __getFeeds(self):
-        repository = app.repository
+        repository = self.getRepository()
         feedKind = repository.find(BASE_PATH + '/RSSFeed')
 
         feeds = []
