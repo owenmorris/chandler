@@ -89,7 +89,9 @@ clean: env
 	done
 
 realclean:
-	rm -rf release debug sources-$(VERSION)-expanded
+	rm -rf release debug \
+		release-*.tar.gz debug-*.tar.gz \
+		sources-*.tar sources-*-expanded
 	@for system in $(SYSTEMS); \
 	do \
 	    echo making _realclean in $$system; \
