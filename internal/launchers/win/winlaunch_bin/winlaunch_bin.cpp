@@ -103,6 +103,11 @@ int APIENTRY WinMain (HINSTANCE hInstance,
         MySetDllDirectory   (pathToExe);
     }
     /*
+     * PYTHONCASEOK must be removed because we treat import paths as
+		 * case sensitive.
+     */
+		_putenv(_T("PYTHONCASEOK="));
+    /*
      * PYTHONHOME must be set because that's what Python
      * uses to to find Lib, the module directory
      */
