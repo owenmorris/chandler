@@ -10,14 +10,15 @@ from wxPython.xrc import *
 import string
 
 import application.Application
-"""Ideally we'd prefer to do a "from application.Application import app", however,
-because Application imports ChandlerWindow (the mutually recursive import problem),
-app isn't defined yet. Further attempt postpone the include of ChandlerWindow after
-app is setup lead to hairballs
+"""Ideally we'd prefer to do a "from application.Application import app", 
+however, because Application imports ChandlerWindow (the mutually recursive 
+import problem), app isn't defined yet. Further attempt postpone the include
+of ChandlerWindow after app is setup lead to hairballs
 """
 from persistence import Persistent
 from persistence.dict import PersistentDict
 
+import version
 
 class ChandlerWindow(Persistent):
     """
@@ -46,7 +47,8 @@ class ChandlerWindow(Persistent):
         """
         app = application.Application.app
         if not app.association.has_key(id(self)):
-            wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
+            wxWindow = app.applicationResources.LoadFrame (None, 
+                                                           "ChandlerWindow")
             assert (wxWindow != None)
             wxWindow.OnInit (self)
             app.association[id(self)] = wxWindow
@@ -77,7 +79,8 @@ class wxChandlerWindow(wxFrame):
     def OnActivate(self, event):
         """
            The Application keeps a copy of the last persistent window openn
-        so that the next time we run the application we can open the same window
+        so that the next time we run the application we can open the same 
+        window.
         """
         app = application.Application.app
         app.wxMainFrame = self
@@ -87,13 +90,18 @@ class wxChandlerWindow(wxFrame):
     def OnInit(self, model):
         """
           There's a tricky problem here. We need to postpone wiring up OnMove,
-        OnSize, etc. after __init__, otherwise OnMove, etc. will get called before
-        we've had a chance to set the windows size using the value in our model.
+        OnSize, etc. after __init__, otherwise OnMove, etc. will get called 
+        before we've had a chance to set the windows size using the value in 
+        our model.
         """
         self.model = model
-
+        
         self.CreateStatusBar ()
-        self.SetStatusText ("Welcome!")
+        statusBar = self.GetStatusBar()
+        statusBar.SetFieldsCount(2)
+        statusBar.SetStatusWidths([-1, 200])
+        self.SetStatusText("Welcome!", 0)
+        self.SetStatusText(version.build, 1)
 
         self.SetBackgroundColour(wxColor(236, 233, 216))
         
@@ -109,19 +117,22 @@ class wxChandlerWindow(wxFrame):
         assert (self.navigationBar != None)
         self.splitterWindow = self.FindWindowByName("SplitterWindow")
         assert (self.splitterWindow != None)
+        
         if __debug__:
             """
               In the debugging version, we add a command key combination that
             toggles a debug menu. We currently default to having it on.
             """
             toggleDebugMenuId = wxNewId()
-            aTable = wxAcceleratorTable([(wxACCEL_CTRL | wxACCEL_SHIFT | wxACCEL_ALT,
+            aTable = wxAcceleratorTable([(wxACCEL_CTRL | wxACCEL_SHIFT |\
+                                          wxACCEL_ALT,
                                           ord('D'), toggleDebugMenuId)])
             self.SetAcceleratorTable(aTable)
             EVT_MENU (self, toggleDebugMenuId, self.OnToggleDebugMenu)
 
             # turn on the debug menu if necessary
-            debugFlag = application.Application.app.model.preferences.GetPreferenceValue('chandler/debugging/debugmenu')
+            debugFlag = application.Application.app.model.preferences.\
+                      GetPreferenceValue('chandler/debugging/debugmenu')
             if debugFlag == None:
                 debugFlag = 0
             self.ShowOrHideDebugMenu(debugFlag)
@@ -130,7 +141,8 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
-        EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), self.OnSplitterSashChanged)
+        EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), 
+                                      self.OnSplitterSashChanged)
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
 
     if __debug__:
@@ -154,8 +166,8 @@ class wxChandlerWindow(wxFrame):
                 debugMenu = applicationResources.LoadMenu('DebugMenu')
                 index = menuBar.GetMenuCount()
                 """
-                  On Macintosh the debug menu is owned by the system so you can't
-                add an item after it.
+                  On Macintosh the debug menu is owned by the system so you 
+                can't add an item after it.
                 """
                 if wxPlatform == '__WXMAC__':
                     index -= 1
@@ -168,7 +180,8 @@ class wxChandlerWindow(wxFrame):
             hasMenu = self.HasDebugMenu()
             self.ShowOrHideDebugMenu(not hasMenu)
             preferences = application.Application.app.model.preferences
-            preferences.SetPreferenceValue('chandler/debugging/debugmenu', not hasMenu)
+            preferences.SetPreferenceValue('chandler/debugging/debugmenu', 
+                                           not hasMenu)
             
     def OnMove(self, event):
         """
@@ -195,10 +208,9 @@ class wxChandlerWindow(wxFrame):
         del application.Application.app.association[id(self.model)]
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         self.Destroy()
-
+        
     def OnSplitterSashChanged(self, event):
         self.model.sashSize = event.GetSashPosition ()
-
 
     def MoveOntoScreen(self):
         """
@@ -274,19 +286,21 @@ class wxChandlerWindow(wxFrame):
             return false
 
         parcelname, remoteaddress, localurl = self.ParseURL(url)
-        parcel = application.Application.app.model.URLTree.URLExists(parcelname)
+        parcel =\
+               application.Application.app.model.URLTree.URLExists(parcelname)
         if parcel == None:
             return false
         
         """
-          give the parcel a chance to redirect the url to another parcel.  This allows
-          the roster to offer links to other parcels, for example
+          give the parcel a chance to redirect the url to another parcel.  
+        This allows the roster to offer links to other parcels, for example
         """
         mappedURL = parcel.RedirectURL(url)
         if mappedURL != url:
             url = mappedURL
             parcelname, remoteaddress, localurl = self.ParseURL(url)
-            parcel = application.Application.app.model.URLTree.URLExists(parcelname)
+            parcel =\
+              application.Application.app.model.URLTree.URLExists(parcelname)
             if parcel == None:
                 return false
         
