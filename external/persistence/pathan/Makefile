@@ -33,7 +33,7 @@ install:
 	(cd $(SRC)/lib; tar -cf - *.dll) | (cd $(PREFIX)/bin; tar xvf - )
 	(cd $(SRC)/lib; tar -cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf - )
 
-build: compile install
+build: apply compile install
 
 clean:
 	cd $(SRC); \
@@ -60,7 +60,7 @@ $(SRC)/$(BUILD)/Makefile.defs:
         XERCESCROOT=$(XERCESC)/$(BUILD) \
 	./runConfigure --prefix=$(PREFIX) $(CONF_DBG)
 
-build: $(SRC)/$(BUILD)/Makefile.defs
+build: apply $(SRC)/$(BUILD)/Makefile.defs
 	cd $(SRC)/$(BUILD); \
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE); \
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE) install
@@ -73,6 +73,10 @@ clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 endif
+
+
+apply: patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 expand: libpathan-$(VERSION)-2-src.tar.gz
 	tar xvzf libpathan-$(VERSION)-2-src.tar.gz

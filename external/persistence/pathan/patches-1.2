@@ -1,0 +1,20 @@
+--- libpathan-1.2/src/DOMutils/v2Utils.cpp	Tue Sep  2 05:24:46 2003
++++ libpathan-1.2-patched/src/DOMutils/v2Utils.cpp	Wed Aug  4 15:05:15 2004
+@@ -978,7 +978,7 @@
+         result.appendLiteral(" ");
+         result.append(attribute->getNodeName());
+         result.appendLiteral("=\"");
+-        result.append(escapeString(attribute->getNodeValue(), true));
++        result.appendAndDelete(escapeString(attribute->getNodeValue(), true));
+         result.appendLiteral("\"");
+     }//for
+ 
+@@ -1018,7 +1018,7 @@
+   }
+ 
+   case XERCES_CPP_NAMESPACE_QUALIFIER DOMNode::TEXT_NODE: {
+-      result.append(escapeString(nodeValue, true));
++      result.appendAndDelete(escapeString(nodeValue, true));
+     break;
+   }//case
+ 
