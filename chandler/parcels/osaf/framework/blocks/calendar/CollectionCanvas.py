@@ -306,21 +306,19 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     # DropReceiveWidget
     
     def OnRequestDrop(self, x, y):
-        print "OnRequestDrop"
         return False
 
     def AddItem(self, itemUUID):
-        print "Add Item"
         item = Globals.repository.findUUID(itemUUID)
         
 
     def OnHover(self, x, y):
-        print "On Hover"
+        pass
 
     # DraggableWidget
 
     def RemoveItem(self, itemUUID):
-        print "Remove Item"
+        pass
 
 class CollectionBlock(Block.RectangularChild):
     def __init__(self, *arguments, **keywords):
