@@ -264,8 +264,9 @@ def syncFromServer(item, davItem):
                 mergeList(item, name, nodes, True)
                 continue
             elif attr.cardinality == 'single':
+                node = nodes[0]
                 try:
-                    otherItem = Dav.DAV(nodes[0].content).get()
+                    otherItem = Dav.DAV(node.content).get()
                     item.setAttributeValue(name, otherItem)
                 except Dav.NotFound:
                     log.warning('Cant access %s' % (node.content))
