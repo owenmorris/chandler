@@ -13,4 +13,4 @@ export PYTHONPATH
 PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.3"
 export PYTHONHOME
 cd ${resdir}
-exec "${executable}" "${main}" "$@"
+exec "${executable}" -O "${main}" "$@"
