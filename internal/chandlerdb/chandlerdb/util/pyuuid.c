@@ -5,24 +5,19 @@
 
 #include <Python.h>
 #include "structmember.h"
+#include "fns.h"
 #include "uuid.h"
 
-typedef struct {
-    PyObject_HEAD
-    PyObject *uuid;
-    int hash;
-} UUID;
+static void t_uuid_dealloc(t_uuid *self);
+static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds);
+static int t_uuid_hash(t_uuid *self);
+static PyObject *t_uuid_str(t_uuid *self);
+static PyObject *t_uuid_repr(t_uuid *self);
+static int t_uuid_cmp(t_uuid *o1, t_uuid *o2);
+static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid);
 
-static void UUID_dealloc(UUID *self);
-static PyObject *UUID_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
-static int UUID_init(UUID *self, PyObject *args, PyObject *kwds);
-static int UUID_hash(UUID *self);
-static PyObject *UUID_str(UUID *self);
-static PyObject *UUID_repr(UUID *self);
-static int UUID_cmp(UUID *o1, UUID *o2);
-static PyObject *UUID_richcmp(UUID *o1, UUID *o2, int opid);
-
-static PyObject *format64(UUID *self);
+static PyObject *format64(t_uuid *self);
 static PyObject *hash(PyObject *self, PyObject *args);
 static PyObject *combine(PyObject *self, PyObject *args);
 static PyObject *_isUUID(PyObject *self);
@@ -30,14 +25,14 @@ static PyObject *_isItem(PyObject *self);
 static PyObject *_isRefList(PyObject *self);
 
 
-static PyMemberDef UUID_members[] = {
-    { "_uuid", T_OBJECT, offsetof(UUID, uuid), READONLY, "UUID bytes" },
-    { "_hash", T_INT, offsetof(UUID, hash), READONLY, "UUID hash" },
+static PyMemberDef t_uuid_members[] = {
+    { "_uuid", T_OBJECT, offsetof(t_uuid, uuid), READONLY, "UUID bytes" },
+    { "_hash", T_INT, offsetof(t_uuid, hash), READONLY, "UUID hash" },
     { NULL, 0, 0, 0, NULL }
 };
 
-static PyMethodDef UUID_methods[] = {
-    { "str16", (PyCFunction) UUID_str, METH_NOARGS,
+static PyMethodDef t_uuid_methods[] = {
+    { "str16", (PyCFunction) t_uuid_str, METH_NOARGS,
       "format uuid in standard syntax" },
     { "str64", (PyCFunction) format64, METH_NOARGS,
       "format uuid in abbreviated base 64 syntax" },
@@ -57,54 +52,54 @@ static PyTypeObject UUIDType = {
     PyObject_HEAD_INIT(NULL)
     0,                           /* ob_size */
     "chandlerdb.util.uuid.UUID", /* tp_name */
-    sizeof(UUID),                /* tp_basicsize */
+    sizeof(t_uuid),              /* tp_basicsize */
     0,                           /* tp_itemsize */
-    (destructor)UUID_dealloc,    /* tp_dealloc */
+    (destructor)t_uuid_dealloc,  /* tp_dealloc */
     0,                           /* tp_print */
     0,                           /* tp_getattr */
     0,                           /* tp_setattr */
-    (cmpfunc)UUID_cmp,           /* tp_compare */
-    (reprfunc)UUID_repr,         /* tp_repr */
+    (cmpfunc)t_uuid_cmp,         /* tp_compare */
+    (reprfunc)t_uuid_repr,       /* tp_repr */
     0,                           /* tp_as_number */
     0,                           /* tp_as_sequence */
     0,                           /* tp_as_mapping */
-    (hashfunc)UUID_hash,         /* tp_hash  */
+    (hashfunc)t_uuid_hash,       /* tp_hash  */
     0,                           /* tp_call */
-    (reprfunc)UUID_str,          /* tp_str */
+    (reprfunc)t_uuid_str,        /* tp_str */
     0,                           /* tp_getattro */
     0,                           /* tp_setattro */
     0,                           /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,          /* tp_flags */
-    "UUID objects",              /* tp_doc */
+    "t_uuid objects",            /* tp_doc */
     0,                           /* tp_traverse */
     0,                           /* tp_clear */
-    (richcmpfunc)UUID_richcmp,   /* tp_richcompare */
+    (richcmpfunc)t_uuid_richcmp, /* tp_richcompare */
     0,                           /* tp_weaklistoffset */
     0,                           /* tp_iter */
     0,                           /* tp_iternext */
-    UUID_methods,                /* tp_methods */
-    UUID_members,                /* tp_members */
+    t_uuid_methods,              /* tp_methods */
+    t_uuid_members,              /* tp_members */
     0,                           /* tp_getset */
     0,                           /* tp_base */
     0,                           /* tp_dict */
     0,                           /* tp_descr_get */
     0,                           /* tp_descr_set */
     0,                           /* tp_dictoffset */
-    (initproc)UUID_init,         /* tp_init */
+    (initproc)t_uuid_init,       /* tp_init */
     0,                           /* tp_alloc */
-    (newfunc)UUID_new,           /* tp_new */
+    (newfunc)t_uuid_new,         /* tp_new */
 };
 
 
-static void UUID_dealloc(UUID *self)
+static void t_uuid_dealloc(t_uuid *self)
 {
     Py_XDECREF(self->uuid);
     self->ob_type->tp_free((PyObject *) self);
 }
 
-static PyObject *UUID_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    UUID *self = (UUID *) type->tp_alloc(type, 0);
+    t_uuid *self = (t_uuid *) type->tp_alloc(type, 0);
 
     if (self)
     {
@@ -115,7 +110,7 @@ static PyObject *UUID_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *) self;
 }
 
-static int UUID_init(UUID *self, PyObject *args, PyObject *kwds)
+static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 {
     unsigned char uuid[16];
     unsigned char *text;
@@ -155,12 +150,12 @@ static int UUID_init(UUID *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static int UUID_hash(UUID *self)
+static int t_uuid_hash(t_uuid *self)
 {
     return self->hash;
 }
 
-static PyObject *UUID_str(UUID *self)
+static PyObject *t_uuid_str(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
     unsigned char buf[36];
@@ -170,7 +165,7 @@ static PyObject *UUID_str(UUID *self)
     return PyString_FromStringAndSize(buf, sizeof(buf));
 }
 
-static PyObject *UUID_repr(UUID *self)
+static PyObject *t_uuid_repr(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
     unsigned char buf[44];
@@ -182,7 +177,7 @@ static PyObject *UUID_repr(UUID *self)
     return PyString_FromStringAndSize(buf, sizeof(buf));
 }
 
-static int UUID_cmp(UUID *o1, UUID *o2)
+static int t_uuid_cmp(t_uuid *o1, t_uuid *o2)
 {
     if (!PyObject_TypeCheck(o1, &UUIDType))
     {
@@ -199,7 +194,7 @@ static int UUID_cmp(UUID *o1, UUID *o2)
     return PyObject_Compare(o1->uuid, o2->uuid);
 }
 
-static PyObject *UUID_richcmp(UUID *o1, UUID *o2, int opid)
+static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid)
 {
     if (!PyObject_TypeCheck(o1, &UUIDType) ||
         !PyObject_TypeCheck(o2, &UUIDType))
@@ -211,7 +206,7 @@ static PyObject *UUID_richcmp(UUID *o1, UUID *o2, int opid)
     return PyObject_RichCompare(o1->uuid, o2->uuid, opid);
 }
 
-static PyObject *format64(UUID *self)
+static PyObject *format64(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
     unsigned char buf[22];
@@ -258,6 +253,12 @@ static PyObject *_isRefList(PyObject *self)
 }
 
 
+int PyUUID_Check(PyObject *obj)
+{
+    return obj->ob_type == &UUIDType;
+}
+
+
 void inituuid(void)
 {
     if (PyType_Ready(&UUIDType) >= 0)
@@ -266,8 +267,13 @@ void inituuid(void)
                                      "UUID generation utility");
         if (m)
         {
+            PyObject *cobj;
+
             Py_INCREF(&UUIDType);
             PyModule_AddObject(m, "UUID", (PyObject *) &UUIDType);
+
+            cobj = PyCObject_FromVoidPtr(PyUUID_Check, NULL);
+            PyModule_AddObject(m, "PyUUID_Check", cobj);
         }
     }
 }

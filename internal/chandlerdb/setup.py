@@ -9,12 +9,15 @@ from distutils.core import setup, Extension
 
 def main():
 
+    DB = os.environ['DB']
+    
     extensions = []
     modules = ['chandlerdb.__init__',
                'chandlerdb.util.__init__',
                'chandlerdb.schema.__init__',
                'chandlerdb.item.__init__',
-               'chandlerdb.item.ItemError']
+               'chandlerdb.item.ItemError',
+               'chandlerdb.persistence.__init__']
 
     extensions.append(Extension('chandlerdb.util.uuid',
                                 sources=['chandlerdb/util/uuid.c',
@@ -30,6 +33,12 @@ def main():
 
     extensions.append(Extension('chandlerdb.item.item',
                                 sources=['chandlerdb/item/item.c']))
+
+    extensions.append(Extension('chandlerdb.persistence.container',
+                                sources=['chandlerdb/persistence/container.c'],
+                                library_dirs=[os.path.join(DB, 'lib')],
+                                include_dirs=[os.path.join(DB, 'include')],
+                                libraries=['db-4.3']))
 
     if os.name in ('nt','posix'):
         modules.append('chandlerdb.util.lock')

@@ -4,7 +4,7 @@
  * http://www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt
  */
 
-#include "uuid.h"
+#include "fns.h"
 
 #include <stdio.h>
 #include <stdlib.h>
