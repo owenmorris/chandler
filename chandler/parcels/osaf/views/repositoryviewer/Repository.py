@@ -18,7 +18,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
 
     def GetElementChildren(self, element):
         if element:
-            return element
+            return element.iterChildren()
         else:
             return Globals.repository.view
 
