@@ -1268,37 +1268,6 @@ Attribute Editor Block
 
 This Block uses the type of the attribute to determine how to display itself. 
 
-Notes
------
-* This block is under construction!  Some details of the AE Block and Attribute
-    Editors (AEs) in general, are still being worked out.
-
-* Presentation Style is passed into the Attribute Editor, so it can provide
-    multiple presentations for a given type.
-
-* Type Conversion.  Each AEs provides a GetAttribute (and optional SetAttribute) method
-    that does any type conversion needed by that editor.  For example, the DateTime
-    AE converts to/from String because it uses the StringAttribute editor to
-    display the value in a TextCtrl.
-
-* Attribute Editors can be made to work with Python properties, as well as 
-    Python attributes.  See the wiki for more information.
-
-* We rebind the editor with each call to wxAEBlock.wxSynchronize, in order to 
-    get the best binding to the current attribute value.
-
-* The default Attribute Editor is RepositoryAttributeEditor, which can edit any 
-    type of data the repository knows about in a text contro, by using the 
-    repository's methods to convert to and from String.
-
-Tasks
------
-* Move some of these notes to the wiki.
-
-* Improve List handling.  We don't have any direct support for cardinality=list.  
-    We're thinking we could look for an AE that explicityl handles lists of the 
-    given type first, then fall back on the type-general AE.
-
 Issues
 ------
 * Item Location.  I'm trying to use the "contents" attribute on Block to find 
@@ -1310,16 +1279,6 @@ Issues
 * Finalization.  We're relying on EVT_KILL_FOCUS to know when to end editing.  We 
     know the Detail View doesn't always operate in ways that cause this to be reliable,
     but I think these problems can be fixed there.
-
-* Validation. It's up to the attribute editors to validate, but they could probably
-    use some help from the AE framework. 
-    
-
-Investigations
---------------
-* Can we use AE's in an arbitrary canvas, like in the calendar?  Probably will need
-    to update the API for this, so the rect of the AE gets passed in to Create(), 
-    etc.
 
 """
 

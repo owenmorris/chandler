@@ -40,7 +40,7 @@ class MainView(View):
           Called when the SMTP Send generated an error.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            """@@@DLD - Select the message in CPIA"""
+            """ Maybe we should select the message in CPIA? """
     
             errorStrings = []
     
@@ -384,7 +384,6 @@ class MainView(View):
     def onReloadParcelsEvent(self, event):
         # Test menu item
         ParcelManager.getManager().loadParcels()
-        # @@@DLD figure out why rerender fails on the new wxWidgets
         Globals.wxApplication.UnRenderMainView ()
         Globals.wxApplication.RenderMainView ()
 
