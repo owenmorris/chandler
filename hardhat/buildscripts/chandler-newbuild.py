@@ -80,7 +80,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
                 log.write("Expanding external sources\n")
                 outputList = hardhatutil.executeCommandReturnOutput(
-                 [[buildenv['make'], "expand" ])
+                 [buildenv['make'], "expand" ])
                 hardhatutil.dumpOutputList(outputList, log)
                 outputList = hardhatutil.executeCommandReturnOutput(
                  [buildenv['make'], dbgStr ])
