@@ -423,7 +423,7 @@
 
     <open>True</open>
     <size>125,600</size>
-    <minimumSize>125,600</minimumSize>
+    <minimumSize>10,10</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
@@ -449,7 +449,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.15</splitPercentage>
+    <splitPercentage>0.25</splitPercentage>
     
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>

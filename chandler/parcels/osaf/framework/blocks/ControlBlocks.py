@@ -201,7 +201,7 @@ class wxListBlock(wx.ListCtrl):
 
     def OnSize(self, event):
         if not Globals.wxApplication.insideSynchronizeFramework:
-            size = event.GetSize()
+            size = self.GetClientSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
             for column in xrange (self.GetColumnCount() - 1):
@@ -209,7 +209,7 @@ class wxListBlock(wx.ListCtrl):
             lastColumnWidth = size.width - widthMinusLastColumn
             if lastColumnWidth > 0:
                 self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-            event.Skip()
+        event.Skip()
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.insideSynchronizeFramework:
@@ -627,8 +627,8 @@ class wxTreeAndList:
 
     def OnSize(self, event):
         if not Globals.wxApplication.insideSynchronizeFramework:
-            size = event.GetSize()
             if isinstance (self, wx.gizmos.TreeListCtrl):
+                size = self.GetClientSize()
                 widthMinusLastColumn = 0
                 assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
                 for column in xrange (self.GetColumnCount() - 1):
@@ -638,8 +638,7 @@ class wxTreeAndList:
                     self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
             else:
                 assert isinstance (self, wx.TreeCtrl), "We're assuming the only other choice is a wx.Tree"
-                self.SetSize (size)
-            event.Skip()
+        event.Skip()
 
     def OnExpanding(self, event):
         self.LoadChildren(event.GetItem())
