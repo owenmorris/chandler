@@ -208,6 +208,9 @@ def NeedsUpdate(outputList):
             # this hack is for skipping some Mac-specific files that
             # under Windows always appear to be needing an update
             continue
+        if line.find("XercesSamples") != -1:
+            # same type of hack as above
+            continue
         if line[0] == "U":
             return 1
         if line[0] == "P":
