@@ -143,7 +143,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         # preflight the send/share request
         # mail items and collections need their recievers set up
         try:
-            whoTo = item.whoTo
+            whoTo = item.who
         except AttributeError:
             whoTo = []
         if len (whoTo) == 0:
