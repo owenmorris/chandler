@@ -122,13 +122,13 @@
  !if "$(DEBUG)" == "1"
 -CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7
 -LDFLAGS = $(LDFLAGS) /DEBUG
-+CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7 /I..\..\..\libxml2\libxml2-2.6.3\win32\debug\include
-+LDFLAGS = $(LDFLAGS) /DEBUG /LIBPATH:..\..\..\libxml2\libxml2-2.6.3\win32\debug\lib
++CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7 /I..\..\..\libxml2\libxml2-2.6.10\win32\debug\include
++LDFLAGS = $(LDFLAGS) /DEBUG /LIBPATH:..\..\..\libxml2\libxml2-2.6.10\win32\debug\lib
  !else
 -CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 
 -LDFLAGS = $(LDFLAGS) /OPT:NOWIN98
-+CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 /I..\..\..\libxml2\libxml2-2.6.3\win32\release\include
-+LDFLAGS = $(LDFLAGS) /OPT:NOWIN98 /LIBPATH:..\..\..\libxml2\libxml2-2.6.3\win32\release\lib
++CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 /I..\..\..\libxml2\libxml2-2.6.10\win32\release\include
++LDFLAGS = $(LDFLAGS) /OPT:NOWIN98 /LIBPATH:..\..\..\libxml2\libxml2-2.6.10\win32\release\lib
  !endif
  
  # Libxslt object files.

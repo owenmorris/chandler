@@ -26,11 +26,11 @@ def missing(file):
 
 # those are examined to find 
 # - libxml/tree.h
-includes = [ os.path.abspath('..'), os.path.abspath('../../../libxml2/libxml2-2.6.3/win32/@prefix@/include') ];
+includes = [ os.path.abspath('..'), os.path.abspath('../../../libxml2/libxml2-2.6.10/win32/@prefix@/include') ];
 
 
 # those are added in the linker search path for libraries
-libdirs = [ os.path.abspath(os.path.join(ROOT, 'lib')), os.path.abspath('../../../libxml2/libxml2-2.6.3/win32/@prefix@/lib') ]
+libdirs = [ os.path.abspath(os.path.join(ROOT, 'lib')), os.path.abspath('../../../libxml2/libxml2-2.6.10/win32/@prefix@/lib') ]
 
 
 xslt_files = ["libxslt-api.xml", "libxslt-python-api.xml",
