@@ -258,6 +258,17 @@
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
 
+  <MenuItem itemName="CheckRepositoryItem">
+    <title>Check Repository</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:CheckRepository"/>
+    <helpString>run check() on the current view</helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
@@ -529,6 +540,7 @@
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
+    <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     
     <!-- Toolbar -->
     <childrenBlocks itemref="doc:NavigationBar"/>

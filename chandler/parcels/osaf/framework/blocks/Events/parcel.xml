@@ -32,6 +32,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:GenerateContacts"/>
     <blockEvents itemref="events:GenerateNotes"/>
     <blockEvents itemref="events:GenerateCalendarEvents"/>    
+    <blockEvents itemref="events:CheckRepository"/>
   </EventData>
 
   <BlockEvent itemName="Quit">
@@ -123,6 +124,11 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itemName="GenerateNotes">
     <dispatchEnum>BubbleUp</dispatchEnum>
     <methodName>OnGenerateNotes</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="CheckRepository">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnCheckRepository</methodName>
   </BlockEvent>
 
 </core:Parcel>

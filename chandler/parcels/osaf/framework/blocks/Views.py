@@ -151,3 +151,11 @@ class View(BoxContainer):
         GenerateItems.GenerateNotes(10)
         Globals.repository.commit()
 
+    def OnCheckRepository(self, notification):
+
+        repository = Globals.repository
+        repository.logger.info('Checking repository...')
+        if repository.check():
+            repository.logger.info('Check completed successfully')
+        else:
+            repository.logger.info('Check completed with errors')
