@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
+from DynamicContainerBlocks import Toolbar as Toolbar
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
@@ -56,7 +57,6 @@ class wxChoiceContainer(wxBoxContainer):
         super (wxChoiceContainer, self).__init__ (*arguments, **keywords)
             
     def wxSynchronizeWidget(self, *arguments, **keywords):
-        from DynamicContainerBlocks import Toolbar as Toolbar
         selectedChoice = self._getSelectedChoice()
         if selectedChoice != self.blockItem.selection:
             for childBlock in self.blockItem.childrenBlocks:
@@ -81,7 +81,6 @@ class wxChoiceContainer(wxBoxContainer):
             self.Layout()    
 
     def _getSelectedChoice(self):
-        from DynamicContainerBlocks import Toolbar as Toolbar
         index = 0
         for childBlock in self.blockItem.childrenBlocks:
             if isinstance(childBlock, Toolbar):
@@ -89,9 +88,8 @@ class wxChoiceContainer(wxBoxContainer):
                     if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
                         return index
                     index += 1
-        # I commented this assert out because it fires on the mac when you
-        # visit the Calendar view.
-        # assert False, "There should always be something selected"
+        # @@@ On the Mac, the radio buttons are not given a default selection.
+        # This is a bug in wxWidgets that should be fixed.
         return 0
             
 
@@ -112,6 +110,20 @@ class ChoiceContainer(BoxContainer):
         return widget
 
     def onButtonPressed(self, notification):
+        # @@@ On the Mac, radio buttons do not work as radio
+        # buttons, but rather they behave as individual toggle
+        # buttons.  As a workaround, we deselect the other 
+        # radio buttons.
+        if '__WXMAC__' in wx.PlatformInfo:
+            for childBlock in self.childrenBlocks:
+                if isinstance(childBlock, Toolbar):
+                    for toolbarItem in childBlock.widget.toolItemList:
+                        if toolbarItem != notification.data['sender']:
+                            if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):                                
+                                childBlock.widget.ToggleTool(toolbarItem.widget.GetId(), False)
+                        else:
+                            if not childBlock.widget.GetToolState(toolbarItem.widget.GetId()):                                
+                                childBlock.widget.ToggleTool(toolbarItem.widget.GetId(), True)                            
         try:
             self.widget.wxSynchronizeWidget()    
         except AttributeError:
