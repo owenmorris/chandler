@@ -117,26 +117,26 @@
     Menus
   -->  
   <Menu itsName="FileMenu">
-    <title>File</title>
+    <title>&amp;File</title>
     <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="EditMenu">
-    <title>Edit</title>
+    <title>&amp;Edit</title>
     <location>MenuBar</location>
   </Menu>
     
   <Menu itsName="ViewMenu">
-    <title>View</title>
+    <title>&amp;View</title>
     <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="TestMenu">
-    <title>Test</title>
+    <title>&amp;Test</title>
   </Menu>
   
   <Menu itsName="HelpMenu">
-    <title>Help</title>
+    <title>&amp;Help</title>
   </Menu>
  
   <!-- the Menu Bar -->
