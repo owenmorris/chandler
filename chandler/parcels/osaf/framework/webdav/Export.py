@@ -56,8 +56,9 @@ def putItem(dav, item):
 
                     data = data + '<itemref>' + unicode(durl) + '</itemref>'
                 else:
+                    # add literal list stuff here
                     pass
-                data = data + ']]></osaf:%s>' % (name)
+            data = data + ']]></osaf:%s>' % (name)
         else:
             if isinstance(value, Item):
                 durl = dav.url.join(i.itsUUID.str16())

@@ -40,7 +40,7 @@ def getItem(dav):
         pass
 
     kind = di.itsKind
-    newItem = kind.newItem(None, repository.findPath('//userdata/zaobaoitems'))
+    newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
 
     # XXX hack...
     itemMap[origUUID] = newItem.itsUUID
@@ -53,7 +53,7 @@ def getItem(dav):
 
         print 'Getting:', name, '(' + attr.type.itsName + ')'
 
-        #if type(attr.type) == kindType:
+        # see if its an ItemRef or not
         if isinstance(attr.type, Kind):
             # time for some xml parsing! yum!
             nodes = makeAndParse(value)

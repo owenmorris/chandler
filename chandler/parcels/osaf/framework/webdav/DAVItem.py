@@ -78,6 +78,7 @@ class DAVItem(object):
             return None
 
         # Do I need to free the context?
+
         return node.content
 
     #def __getattr__(self, name):
