@@ -25,25 +25,40 @@ class Type(Item):
 
     def typeXML(self, value, generator):
 
-#        fields = self.Fields
-#        if fields:
-#            generator.startElement('fields', {})
-#            for field in fields:
-#                fieldValue = getattr(value, field)
-#                attrs = { 'name': field,
-#                          'type': ItemHandler.typeName(fieldValue) }
-#                generator.startElement('field', attrs)
-#                generator.characters(type(self).makeString(fieldValue))
-#                generator.endElement('field')
-#            generator.endElement('fields')
-#
-#        else:
-#            generator.characters(type(self).makeString(value))
-    
-         generator.characters(type(self).makeString(value))
-         
+        fields = self.Fields
+        if fields:
+            generator.startElement('fields', {})
+            for field in fields:
+                self._fieldXML(value, field, generator)
+            generator.endElement('fields')
+        else:
+            generator.characters(type(self).makeString(value))
+
+    def _fieldXML(self, value, field, generator):
+
+        fieldValue = getattr(value, field)
+        attrs = { 'name': field,
+                  'type': ItemHandler.typeName(fieldValue) }
+        generator.startElement('field', attrs)
+        generator.characters(type(self).makeString(fieldValue))
+        generator.endElement('field')
+          
     def unserialize(self, data):
         raise NotImplementedError, "Type.unserialize()"
+
+    def getValue(self, itemHandler, data):
+        return self.unserialize(data)
+
+    def fieldsStart(self, itemHandler, attrs):
+        itemHandler.fields = {}
+
+    def fieldEnd(self, itemHandler, attrs):
+
+        name = attrs['name']
+        typeName = attrs['type']
+        value = itemHandler.makeValue(typeName, itemHandler.data)
+
+        itemHandler.fields[name] = value
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
@@ -193,11 +208,28 @@ class DateTime(Type):
     def unserialize(self, data):
         return DateTime.makeValue(data)
 
+    def getValue(self, itemHandler, data):
+
+        flds = itemHandler.fields
+        if flds is None:
+            return self.unserialize(data)
+        else:
+            itemHandler.fields = None
+        
+        return mx.DateTime.DateTime(flds['year'],
+                                    flds['month'],
+                                    flds['day'],
+                                    flds['hour'],
+                                    flds['minute'],
+                                    flds['second'])
+
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
 
 
 class DateTimeDelta(Type):
+
+    defaults = { 'day': 0.0, 'hour': 0.0, 'minute': 0.0, 'second': 0.0 }
 
     def makeValue(cls, data):
         return mx.DateTime.DateTimeDeltaFrom(str(data))
@@ -205,16 +237,72 @@ class DateTimeDelta(Type):
     def unserialize(self, data):
         return DateTimeDelta.makeValue(data)
 
+    def _fieldXML(self, value, field, generator):
+
+        default = RelativeDateTime.defaults[field]
+        fieldValue = getattr(value, field, default)
+        if default != fieldValue:
+            super(RelativeDateTime, self)._fieldXML(value, field, generator)
+          
+    def getValue(self, itemHandler, data):
+
+        flds = itemHandler.fields
+        if flds is None:
+            return self.unserialize(data)
+        else:
+            itemHandler.fields = None
+        
+        return mx.DateTime.DateTimeDeltaFrom(days=flds.get('day', 0.0),
+                                             hours=flds.get('hour', 0.0),
+                                             minutes=flds.get('minute', 0.0),
+                                             seconds=flds.get('second', 0.0))
+
     makeValue = classmethod(makeValue)
 
 
 class RelativeDateTime(Type):
+
+    defaults = { 'years': 0, 'months': 0, 'days': 0,
+                 'year': None, 'month': None, 'day': None,
+                 'hours': 0, 'minutes': 0, 'seconds': 0,
+                 'hour': None, 'minute': None, 'second': None,
+                 'weekday': None, 'weeks': 0 }
 
     def makeValue(cls, data):
         return mx.DateTime.RelativeDateTimeFrom(str(data))
 
     def unserialize(self, data):
         return RelativeDateTime.makeValue(data)
+
+    def _fieldXML(self, value, field, generator):
+
+        default = RelativeDateTime.defaults[field]
+        fieldValue = getattr(value, field, default)
+        if default != fieldValue:
+            super(RelativeDateTime, self)._fieldXML(value, field, generator)
+          
+    def getValue(self, itemHandler, data):
+
+        flds = itemHandler.fields
+        if flds is None:
+            return self.unserialize(data)
+        else:
+            itemHandler.fields = None
+
+        return mx.DateTime.RelativeDateTime(years=flds.get('years', 0),
+                                            months=flds.get('months', 0),
+                                            days=flds.get('days', 0),
+                                            year=flds.get('year', None),
+                                            month=flds.get('month', None),
+                                            day=flds.get('day', None),
+                                            hours=flds.get('hours', 0),
+                                            minutes=flds.get('minutes', 0),
+                                            seconds=flds.get('seconds', 0),
+                                            hour=flds.get('hour', None),
+                                            minute=flds.get('minute', None),
+                                            second=flds.get('second', None),
+                                            weekday=flds.get('weekday', None),
+                                            weeks=flds.get('weeks', 0))
 
     makeValue = classmethod(makeValue)
     

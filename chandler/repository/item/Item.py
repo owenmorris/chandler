@@ -777,7 +777,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tagAttrs = []
         self.tags = []
         self.delegates = []
-        self.values = []
+        self.fields = None
         
     def startElement(self, tag, attrs):
 
@@ -805,10 +805,7 @@ class ItemHandler(xml.sax.ContentHandler):
         if self.delegates:
             delegate = self.delegates.pop()
             if not self.delegates:
-                if not self.values:
-                    value = delegate.unserialize(self.data)
-                else:
-                    value = self.values.pop()
+                value = delegate.getValue(self, self.data)
                 withValue = True
 
         if self.delegates:
@@ -830,7 +827,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.data += data
 
-    def attributeStart(self, contentHandler, attrs):
+    def attributeStart(self, itemHandler, attrs):
 
         attrDef = self.getAttrDef(attrs['name'])
         self.attrDefs.append(attrDef)
@@ -845,7 +842,7 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             self.setupTypeDelegate(attrs)
 
-    def refStart(self, contentHandler, attrs):
+    def refStart(self, itemHandler, attrs):
 
         if self.tags[-1] == 'item':
             name = attrs['name']
@@ -862,7 +859,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 elif cardinality == 'list':
                     self.collections.append(RefList(None, name, otherName))
 
-    def itemStart(self, contentHandler, attrs):
+    def itemStart(self, itemHandler, attrs):
 
         self.attributes = {}
         self.references = {}
@@ -873,7 +870,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.kind = None
         self.cls = None
                 
-    def itemEnd(self, contentHandler, attrs):
+    def itemEnd(self, itemHandler, attrs):
 
         cls = (self.cls or
                self.kind and getattr(self.kind, 'Class', Item) or
@@ -939,7 +936,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 self.repository._appendRef(item, attrName,
                                            ref[1], otherName, otherCard, value)
 
-    def kindEnd(self, contentHandler, attrs):
+    def kindEnd(self, itemHandler, attrs):
 
         if attrs['type'] == 'uuid':
             kindRef = UUID(self.data)
@@ -950,22 +947,22 @@ class ItemHandler(xml.sax.ContentHandler):
         if self.kind is None:
             raise ValueError, "Kind %s not found" %(str(kindRef))
 
-    def classEnd(self, contentHandler, attrs):
+    def classEnd(self, itemHandler, attrs):
 
         self.cls = Item.loadClass(self.data, attrs['module'])
 
-    def nameEnd(self, contentHandler, attrs):
+    def nameEnd(self, itemHandler, attrs):
 
         self.name = self.data
 
-    def parentEnd(self, contentHandler, attrs):
+    def parentEnd(self, itemHandler, attrs):
 
         if attrs['type'] == 'uuid':
             self.parentRef = UUID(self.data)
         else:
             self.parentRef = Path(self.data)
 
-    def attributeEnd(self, contentHandler, attrs, **kwds):
+    def attributeEnd(self, itemHandler, attrs, **kwds):
 
         attrDef = self.attrDefs.pop()
         cardinality = self.getCardinality(attrDef, attrs)
@@ -979,7 +976,7 @@ class ItemHandler(xml.sax.ContentHandler):
             
         self.attributes[attrs['name']] = value
 
-    def refEnd(self, contentHandler, attrs):
+    def refEnd(self, itemHandler, attrs):
 
         if self.tags[-1] == 'item':
             attrDef = self.attrDefs.pop()
@@ -1014,11 +1011,11 @@ class ItemHandler(xml.sax.ContentHandler):
             value = self.collections.pop()
             self.references[attrs['name']] = value
 
-    def valueStart(self, contentHandler, attrs):
+    def valueStart(self, itemHandler, attrs):
 
         self.setupTypeDelegate(attrs)
 
-    def valueEnd(self, contentHandler, attrs, **kwds):
+    def valueEnd(self, itemHandler, attrs, **kwds):
 
         typeName = attrs.get('type', 'str')
 
