@@ -298,7 +298,11 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
                                      os.sep+distro)
 
         index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
-                 _descriptions[distro][0] + '</a>: <br>\n' +\
+                 _descriptions[distro][0] + '</a> (' +\
+                 hardhatutil.fileSize(outputDir + os.sep +\
+                                      newDirName +\
+                                      os.sep + actualDistroFile) +\
+                                      '): <br>\n' +\
                  ' MD5 checksum: ' + hardhatutil.MD5sum(outputDir + os.sep +\
                                                         newDirName +\
                                             os.sep + actualDistroFile) +\

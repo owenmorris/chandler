@@ -1,4 +1,5 @@
 import os, sys, time, sha, md5
+from stat import *
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
@@ -205,3 +206,22 @@ def SHAsum(filename):
     """Compute SHA-1 checksum for the file
     """
     return _checksum(sha.new(), filename)
+
+
+def fileSize(filename, humanReadable=1):
+    """
+    Get file size, and return it as string either directly converted to
+    string or in "human readable" format where we return the file size in
+    megabytes, kilobytes or bytes depending on the file size.
+
+    Size of 0 will be reported for directories.
+    """
+    size = os.stat(filename)[ST_SIZE]
+    if not humanReadable:
+        return str(size)
+    
+    if size > 1024*1000:
+        return '%.1f MB' % (size / (1024 * 1000.0))
+    elif size > 1024:
+        return '%.1f KB' % (size / 1024.0)
+    return '%d B' % size
