@@ -312,11 +312,14 @@ class XMLRepository(Repository):
 
             cursor = self._db.cursor()
             key = item.getUUID()._uuid
-            
-            val = cursor.set_range(key)
-            while val is not None and val[0].startswith(key):
-                cursor.delete()
-                val = cursor.next()
+
+            try:
+                val = cursor.set_range(key)
+                while val is not None and val[0].startswith(key):
+                    cursor.delete()
+                    val = cursor.next()
+            except DBNotFoundError:
+                pass
 
             cursor.close()
 
