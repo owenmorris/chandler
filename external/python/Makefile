@@ -118,8 +118,8 @@ clean:
 snap: 
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f
 	find $(BUILD_ROOT)/$(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f
-	tar -C $(BUILD_ROOT) \
-            -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
                   $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
             --exclude site-packages \
