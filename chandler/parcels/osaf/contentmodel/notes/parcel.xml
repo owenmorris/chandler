@@ -32,17 +32,16 @@
   </Attribute>
 
   <Attribute itemName="attachedToItems">
-    <displayName>Attached to Items</displayName>
-    <description>List of items this "note" is attached to.</description>
-    <issues>This attribute belongs on Note, not Content Item.</issues>
+    <displayName>Contained in Item</displayName>
+    <description>If this Note is a free-standing independent item, then this attribute will be empty. If this Note is contained in some other item, then this attribute will point to that item.</description>
     <cardinality>single</cardinality>
+    <required>False</required>
     <type itemref="content:ContentItem"/>
     <otherName>attachedNotes</otherName>
   </Attribute>
 
   <Kind itemName="Note">
     <displayName>Note</displayName>
-    <issues>The attribute 'attachedToItems' is currently on ContentItem, although it really belongs here on Note.</issues>
     <superKinds itemref="content:ContentItem"/>
     <displayAttribute itemref="notes:title"/>
     <attributes itemref="notes:title"/>
@@ -50,34 +49,23 @@
     <attributes itemref="notes:attachedToItems"/>
   </Kind>
 
-  <!-- Bookmark -->
+  <!-- Conversation -->
 
-  <Attribute itemName="url">
-    <displayName>URL</displayName>
+  <Attribute itemName="subjectItem">
+    <displayName>Subject Item</displayName>
+    <description>If this Conversation is a free-standing independent item, then this attribute will be empty. If this Conversation is contained in some other item, then this attribute will point to that item.</description>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <required>False</required>
+    <type itemref="content:ContentItem"/>
+    <otherName>conversations</otherName>
   </Attribute>
 
-  <Kind itemName="Bookmark">
-    <displayName>Bookmark</displayName>
+  <Kind itemName="Conversation">
+    <displayName>Conversation</displayName>
     <superKinds itemref="content:ContentItem"/>
-    <attributes itemref="content:name"/>
-    <attributes itemref="notes:url"/>
-  </Kind>
-
-  <!-- Document -->
-  
-  <Attribute itemName="filePath">
-    <displayName>File Name</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Kind itemName="Document">
-    <displayName>Document</displayName>
-    <superKinds itemref="content:ContentItem"/>
-    <attributes itemref="content:name"/>
-    <attributes itemref="notes:filePath"/>
+    <issues>A conversation should *not* have just a plain text 'body' attribute. Instead it should have a tree of tuples, where each tuple has {timestamp (a DateTime), text-line(a One-Line-String), author (a Contact)}.</issues>
+    <attributes itemref="notes:body"/>
+    <attributes itemref="notes:subjectItem"/>
   </Kind>
 
 </Parcel>
