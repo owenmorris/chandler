@@ -138,7 +138,6 @@
             <initialValue ref="None" />
             <inverseAttribute ref="mail:EmailAddress/accounts" />
         </Attribute>
-
     </Kind>
 
     <Kind itsName="SMTPAccount">
@@ -176,12 +175,6 @@
             <initialValue type="Integer" value="3" />
         </Attribute>
 
-        <Attribute itsName="fullName">
-            <displayName value="Full Name" />
-            <description value="A first and last name which will get included in the From: header of outgoing mail" />
-            <type ref="String" />
-            <initialValue ref="None" />
-        </Attribute>
 
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
@@ -471,6 +464,12 @@
             <initialValue type="String" value="" />
         </Attribute>
 
+        <Attribute itsName="inReplyTo">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+
         <Attribute itsName="toAddress">
             <type ref="mail:EmailAddress" />
             <cardinality value="list" />
@@ -656,6 +655,13 @@
             <description value="An RFC 822 email address." />
             <type ref="String" />
             <initialValue ref="None" />
+        </Attribute>
+
+        <Attribute itsName="fullName">
+            <displayName value="Full Name" />
+            <description value="A first and last name associated with this email address" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="vcardType">
