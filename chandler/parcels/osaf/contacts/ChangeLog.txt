@@ -1,5 +1,9 @@
 # ChangeLog for Contacts Parcel
 
+2003-07-10 john@osafoundation.org
+
+   * Moved from parcels directory to parcels/OSAF.
+
 2003-03-09 Andy Hertzfeld <andy@differnet.com>
 
     This initial entry describes work since the .02 release:

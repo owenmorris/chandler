@@ -1,0 +1,12 @@
+2003-07-10 john@osafoundation.org
+
+   * Moved from parcels directory to parcels/OSAF.
+
+2003-04-13 Katie Capps Parlante <capps@osafoundation.org>
+
+   * Changed the repository viewer to work better with the new data model.
+     Creates a tree:
+        <python class of thing>   :    <thing uri>
+           <attribute uri>        :    <attribute value>
+     If <attribute value> is a thing, will recursively add a subtree.
+     If <attribute value> is a dict or a list, will add subtree.
