@@ -91,7 +91,9 @@ def main():
         except Exception, e:
             print e
             print "something failed"
-            log.write("Failed; exception: " + e + "\n")
+            log.write("Failed:\n")
+            log.write(e)
+            log.write("\n")
             status = "build_failed"
         else:
             if ret:
