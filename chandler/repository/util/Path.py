@@ -32,8 +32,9 @@ class Path(object):
 
             if arg.endswith('/'):
                 arg = arg[:-1]
-                
-            self._names.extend(arg.split('/'))
+
+            if not arg == '':
+                self._names.extend(arg.split('/'))
 
     def __repr__(self):
 
@@ -73,3 +74,7 @@ class Path(object):
         'Concatenate two paths. Leading '/' are not stripped.'
 
         self._names.extend(path._names)
+
+    def pop(self, i=-1):
+
+        return self._names.pop(i)

@@ -7,6 +7,7 @@ import sys
 from model.util.UUID import UUID
 from model.util.Path import Path
 from Item import ItemHandler
+from Container import Container
 
 
 class Repository(object):
@@ -161,6 +162,21 @@ class Repository(object):
                     uuid = UUID(item[:-5])
                     if not self._registry.has_key(uuid):
                         os.remove(os.path.join(self._dir, item))
+
+    def dir(self, item=None, path=None):
+        'Print out a listing of each item in the repository or under item.'
+        
+        if item is None:
+            path = Path('//')
+            for root in self._roots.itervalues():
+                self.dir(root, path)
+        else:
+            path.append(item.getName())
+            print path
+            if isinstance(item, Container):
+                for child in item:
+                    self.dir(child, path)
+            path.pop()
         
     def save(self, encoding='iso-8859-1'):
         '''Save all items into the directory the repository was created with.
