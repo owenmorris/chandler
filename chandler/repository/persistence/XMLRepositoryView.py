@@ -94,7 +94,9 @@ class XMLRepositoryLocalView(XMLRepositoryView):
     def __init__(self, repository):
 
         super(XMLRepositoryLocalView, self).__init__(repository)
+
         self._indexWriter = None
+        self._lock_id = self.repository._env.lock_id()
         
     def createRefDict(self, item, name, otherName, persist):
 
@@ -166,7 +168,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 newVersion = versions.getVersion()
                 if count > 0:
-                    lock = env.lock_get(env.lock_id(), self.ROOT_ID._uuid,
+                    lock = env.lock_get(self._lock_id, self.ROOT_ID._uuid,
                                         DB_LOCK_WRITE)
                     newVersion += 1
                     versions.put(self.ROOT_ID._uuid, pack('>l', ~newVersion))
@@ -254,6 +256,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 if lock:
                     env.lock_put(lock)
+                    lock = None
 
                 self._notRoots.clear()
                 self._notifications.dispatchChanges()
