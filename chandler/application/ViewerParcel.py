@@ -137,7 +137,7 @@ class wxViewerParcel(wxPanel):
           Override to do tasks that need to happen just before your parcel is
         displayed.
         """
-        self.AddViewParcelMenu ()
+        self.ReplaceViewParcelMenu()
         app.wxMainFrame.activeParcel = self
     
     def Deactivate(self):
@@ -146,7 +146,6 @@ class wxViewerParcel(wxPanel):
         replaced with anoter.
         """
         app.wxMainFrame.activeParcel = None
-        self.RemoveViewParcelMenu ()
     
     def GetMenuName(self):
         """
@@ -163,7 +162,24 @@ class wxViewerParcel(wxPanel):
         if index != wxNOT_FOUND:
             oldMenu = menuBar.Remove (index)
             del oldMenu
-
+                        
+    def ReplaceViewParcelMenu(self):
+        """
+          Override to customize your parcel menu.
+        """
+        ignoreErrors = wxLogNull ()
+        viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
+        del ignoreErrors
+        if (viewerParcelMenu != None):
+            menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
+            index = menuBar.FindMenu (_('View'))
+            assert (index != wxNOT_FOUND)
+            if menuBar.FindMenu(_('Help')) == (index + 1):
+                menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
+            else:
+                oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, self.GetMenuName())
+                del oldMenu
+        
     def AddViewParcelMenu(self):
         """
           Override to customize your parcel menu.
