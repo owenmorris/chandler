@@ -1559,8 +1559,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                                 print "Reload: item %s, assigning %s = '%s'" % \
                                  (item.itsPath, attributeName, value)
 
-                    except:
-                        explanation = "Couldn't add value to item"
+                    except Exception, e:
+                        explanation = "Couldn't add value to item (%s)" % e
                         self.saveExplanation(explanation)
                         raise ParcelException(explanation)
 
