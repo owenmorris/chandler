@@ -411,7 +411,7 @@ class MailMessageMixin(MIMEContainer):
         self.isInbound = True
         self.parentAccount = account
 
-class MailMessage(Notes.Note, MailMessageMixin):
+class MailMessage(MailMessageMixin, Notes.Note):
     # DLDTBD - fix MI ordering issue
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
