@@ -23,7 +23,7 @@ Python
 
 # Grab python executable file
 src=chandler/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
-dest=Contents/MacOS/release
+dest=Contents/MacOS
 python
 
 # Grab wx, db and gcj libs
@@ -64,7 +64,7 @@ locale
 
 
 # Grab the bundle files
-src=chandler/distrib/osx/bundle/release
+src=chandler/distrib/osx/bundle
 dest=Contents
 Info.plist
 src=chandler/distrib/osx/bundle
@@ -72,5 +72,5 @@ dest=Contents/Resources
 Chandler.icns
 
 src=chandler/distrib/osx/bundle/release
-dest=Contents/MacOS/release
+dest=Contents/MacOS
 RunChandler

@@ -23,7 +23,7 @@ Python
 
 # Grab python executable file
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
-dest=Contents/MacOS/debug
+dest=Contents/MacOS
 python
 
 # Grab wx, db and gcj libs
@@ -62,7 +62,7 @@ repository
 locale
 
 # Grab the bundle files
-src=chandler/distrib/osx/bundle/debug
+src=chandler/distrib/osx/bundle
 dest=Contents
 Info.plist
 src=chandler/distrib/osx/bundle
@@ -70,7 +70,5 @@ dest=Contents/Resources
 Chandler.icns
 
 src=chandler/distrib/osx/bundle/debug
-dest=Contents/MacOS/debug
+dest=Contents/MacOS
 RunChandler
-# XXX No RunPython in bundle! 
-#RunPython
