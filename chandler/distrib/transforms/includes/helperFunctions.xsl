@@ -10,6 +10,14 @@
       <empty/>
    </xsl:variable>
 
+
+<xsl:template match="a">
+              <xsl:call-template name="createRelativePath">
+                 <xsl:with-param name="src" select="b/@a"/>
+                 <xsl:with-param name="target" select="c/@a"/>
+              </xsl:call-template>           
+</xsl:template>
+
 <!-- 
      createRelativePath creates a relative path from two absolute (UNIX style) paths.
      The algorithm assumes that src and target are absolute paths
@@ -25,7 +33,7 @@
 		<xsl:param name="target"/>
 		<xsl:choose>
            <xsl:when test = "$src=$target"/>
-           <xsl:when test = "substring-after($src, '/')='' or substring-after($target, '/')=''">
+           <xsl:when test = "$src='' or $target=''">
               <xsl:choose>
                  <xsl:when test = "substring-before($src, '/')=$target or substring-before($target, '/')=$src">
                     <xsl:call-template name="adddotdots">
@@ -42,6 +50,18 @@
               </xsl:choose>
            </xsl:when>           
            <xsl:when test = "substring-before($src, '/')!=substring-before($target, '/')">
+              <xsl:call-template name="adddotdots">
+                 <xsl:with-param name="src" select="$src"/>
+                 <xsl:with-param name="target" select="$target"/>
+              </xsl:call-template>
+           </xsl:when>
+           <xsl:when test = "$src='/' or $target='/'">
+              <xsl:call-template name="createRelativePath">
+                 <xsl:with-param name="src" select="substring-after($src, '/')"/>
+                 <xsl:with-param name="target" select="substring-after($target, '/')"/>
+              </xsl:call-template>           
+           </xsl:when>
+           <xsl:when test = "substring-after($src, '/')='' or substring-after($target, '/')=''">
               <xsl:call-template name="adddotdots">
                  <xsl:with-param name="src" select="$src"/>
                  <xsl:with-param name="target" select="$target"/>
@@ -327,40 +347,6 @@
       </xsl:choose>
    </xsl:template>
 
-   <xsl:template match="@itemref" mode="getTypeSchema">
-      <xsl:variable name="ref">
-         <xsl:apply-templates select="." mode="quickRef" />
-      </xsl:variable>
-      <xsl:variable name="relpath">
-         <xsl:apply-templates select="." mode="quickRelpath" />
-      </xsl:variable>
-      <xsl:choose>
-         <xsl:when test="$relpath=''">
-            <xsl:apply-templates select="/core:Parcel/*[@itemName=$ref]/core:type/@itemref" mode="getSchema"/>
-         </xsl:when>
-         <xsl:otherwise>
-            <xsl:variable name="otherdoc" select="document(concat($relpath, $constants.parcelFileName), $root)" />
-            <xsl:apply-templates select="$otherdoc/core:Parcel/*[@itemName=$ref]/core:type/@itemref" mode="getSchema"/>
-         </xsl:otherwise>
-      </xsl:choose>
-   </xsl:template>
-   
-   <xsl:template match="@itemref" mode="getSchema">
-      <xsl:variable name="relpath">
-         <xsl:apply-templates select="." mode="quickRelpath" />
-      </xsl:variable>
-      <xsl:choose>
-         <xsl:when test="$relpath=''">
-            <xsl:apply-templates select="/core:Parcel" mode="getDisplayName"/>
-         </xsl:when>
-         <xsl:otherwise>
-            <xsl:variable name="otherdoc" select="document(concat($relpath, $constants.parcelFileName), $root)" />
-            <xsl:apply-templates select="$otherdoc/core:Parcel" mode="getDisplayName"/>
-         </xsl:otherwise>
-      </xsl:choose>
-      <xsl:value-of select="./core:Parcel/core:displayName"/>
-   </xsl:template>   
-
 <!-- Remove text up to and including a ':', remove everything after a '/' 
      to get the name of the Kind being referred to.
 -->
@@ -419,6 +405,9 @@
    </xsl:choose>
 </func:function>
 
+<!-- Return the inherited attribute's value, or if it's an itemref,
+     dereference that and return the object.  superKinds is a special case, if it doesn't exist,
+     return core:Item -->
 <func:function name="func:getAttributeValue">
    <xsl:param name="context"/>
    <xsl:param name="attribute"/>
@@ -442,6 +431,9 @@
 
       	<xsl:when test = "$context/core:superKinds">
       	   <func:result select="func:getAttributeValue(func:deref($context/core:superKinds/@itemref),$attribute)" />
+      	</xsl:when>
+      	<xsl:when test = "$attribute = 'superKinds'">
+      	   <func:result select="$coreDoc//core:Kind[@itemName='Item']"/>
       	</xsl:when>
       	<xsl:when test = "func:hasSuperKind($context)">
       	   <func:result select="func:getAttributeValue($coreDoc//core:Kind[@itemName='Item'],$attribute)" />
