@@ -72,14 +72,6 @@
     <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
-  <contentModel:ItemCollection itsName="junkItemCollection">
-    <displayName>Junk</displayName>
-  </contentModel:ItemCollection>
-
-  <contentModel:ItemCollection itsName="trashItemCollection">
-    <displayName>Trash</displayName>
-  </contentModel:ItemCollection>
-
   <!-- Calendar Blocks -->
   <CharacterStyle itsName="CalendarTitle">
     <fontStyle>bold</fontStyle>
@@ -284,52 +276,6 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <BoxContainer itsName="JunkSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:JunkTable"/>
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
-  <!-- Junk Table -->
-  <Table itsName="JunkTable">
-    <contents itemref="view:junkItemCollection"/>
-
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
-
-    <columnWidths>270</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
-  </Table>
-
-  <BoxContainer itsName="TrashSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:TrashTable"/>
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
-  <!-- Trash Table -->
-  <Table itsName="TrashTable">
-    <contents itemref="view:trashItemCollection"/>
-
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
-
-    <columnWidths>270</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
-  </Table>
-
   <!-- Untitled Summary -->
   <BoxContainer itsName="UntitledSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
@@ -454,28 +400,6 @@
     <contents itemref="view:contactItemCollection"/>
 
     <childrenBlocks itemref="view:ContactTable"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
-
-    <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
-  </SplitterWindow>
-
-  <!-- Junk View -->
-  <SplitterWindow itsName="JunkTableView">
-    <contents itemref="view:junkItemCollection"/>
-
-    <childrenBlocks itemref="view:JunkSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
-
-    <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
-  </SplitterWindow>
-
-  <!-- Trash View -->
-  <SplitterWindow itsName="TrashTableView">
-    <contents itemref="view:trashItemCollection"/>
-
-    <childrenBlocks itemref="view:TrashSummary"/>
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>

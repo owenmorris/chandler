@@ -124,6 +124,7 @@
     <items itemref="content:MixedTableView"/>
     <items itemref="stockQuote:StockQuoteView"/>
     <items itemref="content:NoteTableView"/>
+    <items itemref="content:ContactTableView"/>
     <items itemref="content:TaskTableView"/>
     <items itemref="content:MailTableView"/>
   </ModifyContentsEvent>
@@ -163,6 +164,13 @@
     <items itemref="content:NoteTableView"/>
   </ModifyContentsEvent>
   
+  <ModifyContentsEvent itsName="AddContactTableView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:ContactTableView"/>
+  </ModifyContentsEvent>
+
   <ModifyContentsEvent itsName="AddTaskTableView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -837,6 +845,7 @@
     <childrenBlocks itemref="doc:AddMixedViewItem"/>
     <childrenBlocks itemref="doc:TestSeparator2"/>
     <childrenBlocks itemref="doc:AddNoteViewItem"/>
+    <childrenBlocks itemref="doc:AddContactViewItem"/>
     <childrenBlocks itemref="doc:AddTaskViewItem"/>
     <childrenBlocks itemref="doc:AddMailViewItem"/>
     <childrenBlocks itemref="doc:AddKindViewsItem"/>
@@ -887,6 +896,13 @@
     <title>Add Note-Kind View</title>
     <event itemref="doc:AddNoteTableView"/>
     <helpString>Adds the Note-Kind view to the sidebar</helpString>
+  </MenuItem>
+  
+  <MenuItem itsName="AddContactViewItem">
+    <blockName>AddContactViewItem</blockName>
+    <title>Add Contact-Kind View</title>
+    <event itemref="doc:AddContactTableView"/>
+    <helpString>Adds the Contact-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddTaskViewItem">
@@ -1353,9 +1369,6 @@
     <_inclusions itemref="content:InTableView"/>
     <_inclusions itemref="content:OutTableView"/>
     <_inclusions itemref="content:CalendarTableView"/>
-    <_inclusions itemref="content:ContactTableView"/>
-    <_inclusions itemref="content:JunkTableView"/>
-    <_inclusions itemref="content:TrashTableView"/>
   </contentModel:ItemCollection>
 
   <Table itsName="Sidebar"
@@ -1409,7 +1422,8 @@
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMixedTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>    
+    <subscribeWhenVisibleEvents itemref="doc:AddContactTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
