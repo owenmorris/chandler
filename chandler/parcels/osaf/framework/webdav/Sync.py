@@ -317,7 +317,7 @@ def getItem(dav):
                     if not k.hasAttributeValue('sharedURL'):
                         continue
                     Dav.DAV(k.sharedURL).sync(k)
-    else:
-        dav.sync(newItem)
+
+    dav.sync(newItem)
 
     return newItem
