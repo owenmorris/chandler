@@ -1,5 +1,8 @@
 <xsl:stylesheet version="1.0"
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+     xmlns:exsl="http://exslt.org/common"
+     xmlns:func="http://exslt.org/functions"
+     extension-element-prefixes="exsl func" 
      xmlns:core="//Schema/Core">
     
 	<xsl:output method="html" encoding="ISO-8859-1"/>
@@ -8,8 +11,8 @@
     <xsl:include href="includes/constants.xsl"/>
 
     <xsl:variable name="pagetype" select="'Enumeration'"/>
-    <xsl:variable name="filename" select="concat($pagetype, 's.html')"/>
-    <xsl:variable name="title" select="concat($pagetype, 's')"/>
+    <xsl:variable name="title" select="func:pluralize($pagetype)"/>
+    <xsl:variable name="filename" select="concat($title, '.html')"/>
     
     <xsl:variable name = "coreRelpath">
        <xsl:call-template name="createRelativePath">
@@ -25,7 +28,7 @@
 		<html>
 			<head>
 				<title>
-					<xsl:value-of select="core:displayName"/>
+					<xsl:apply-templates select="." mode="getDisplayName"/>
 					<xsl:text> - </xsl:text>
 					<xsl:value-of select="$title"/>
 				</title>
@@ -38,7 +41,7 @@
 			<body>
 				<h1>
 					<a href="index.html">
-					   <xsl:value-of select="core:displayName"/>
+					   <xsl:apply-templates select="." mode="getDisplayName"/>
 					</a>
 					<xsl:text> - </xsl:text>
 					<xsl:apply-templates select="$coreDoc/core:Parcel/*[@itemName=$pagetype]" mode="getHrefAnchor">
