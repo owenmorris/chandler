@@ -569,7 +569,7 @@ class WebDAVConduit(ShareConduit):
     def __getSettings(self):
         if self.account is None:
             return (self.host, self.port, self.sharePath.strip("/"),
-                    self.username, self.password, self.account.useSSL)
+                    self.username, self.password, self.useSSL)
         else:
             return (self.account.host, self.account.port,
                     self.account.path.strip("/"), self.account.username,
