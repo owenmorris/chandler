@@ -3,7 +3,6 @@ import davlib
 from repository.item.Item import Item
 from repository.util.URL import URL
 
-import application.Globals as Globals
 import Sync
 
 #@@@ Temporary way for retrieving webdav 'account' information
@@ -88,7 +87,7 @@ class DAV(object):
     def put(self, item):
         """ puts items to the webdav server """
         # add an entry into the itemMap to indicate that there is a local copy of a foreign item
-        sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare')
+        sharing = item.itsView.findPath('//parcels/osaf/framework/GlobalShare')
         # XXX if item.itsUUID not in sharing.values(): # only add us if we originated here
         sharing.itemMap[item.itsUUID] = item.itsUUID
 
@@ -100,8 +99,7 @@ class DAV(object):
         # let you share it to the new URL anyways
         item.sharedURL = self.url
 
-
-        contentItemKind = Globals.repository.findPath('//parcels/osaf/contentmodel/ContentItem')
+        contentItemKind = item.itsView.findPath('//parcels/osaf/contentmodel/ContentItem')
 
         clouds = item.itsKind.getClouds('default')
         for cloud in clouds:
