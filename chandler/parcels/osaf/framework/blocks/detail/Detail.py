@@ -784,11 +784,13 @@ class EditSharingActive (DetailSynchronizer, ControlBlocks.CheckBox):
     """
       "Sharing Active" checkbox on item collections
     """
-    def loadAttributeIntoWidget(self, item, widget):
-        if item is not None:
+    def synchronizeItemDetail (self, item):
+        hasChanged = super(EditSharingActive, self).synchronizeItemDetail(item)
+        if item is not None and self.isShown:
             share = Sharing.getShare(item)
             if share is not None:
-                widget.SetValue(share.active)
+                self.widget.SetValue(share.active)
+        return hasChanged
     
     def onToggleSharingActiveEvent (self, event):
         item = self.selectedItem()
@@ -974,9 +976,15 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
         wx.Yield()
         share = Sharing.newInboundShare(self.itsView, url)
         share.get()
-        itemCollection = share.contents
-        # @@@ select the new collection?
     
+        # @@@ Remove this when the sidebar autodetects new collections
+        collection = share.contents
+        mainView = application.Globals.views[0]
+        mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
+        self.itsView.commit()
+        mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
+        mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.
         enabled = True
