@@ -15,13 +15,29 @@ dependencies = (
 
 
 def build(buildenv):
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "Nothing to build")
+
+    if buildenv['os'] == 'win':
+	os.chdir("distrib")
+	os.chdir("win")
+	if buildenv['version'] == 'release':
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+	     info['name'], "Copying MSVCR70.DLL to release/bin")
+	    hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
+	     os.sep + "release" + os.sep + "bin")
+	if buildenv['version'] == 'debug':
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+	     info['name'], "Copying MSVCR70.DLL to debug/bin")
+	    hardhatlib.copyFile("msvcr70.dll", buildenv['root'] + \
+	     os.sep + "debug" + os.sep + "bin")
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+	     info['name'], "Copying MSVCRTD.DLL to debug/bin")
+	    hardhatlib.copyFile("msvcrtd.dll", buildenv['root'] + \
+	     os.sep + "debug" + os.sep + "bin")
+
 
 
 def clean(buildenv):
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_WARNING, info['name'], 
-     "Clean hasn't been set up yet")
+    pass
 
 
 def run(buildenv):

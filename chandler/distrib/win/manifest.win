@@ -51,3 +51,8 @@ README.win
 # Grab the overall README
 src=Chandler/distrib
 README
+
+# Grab the MS runtime DLL
+src=Chandler/distrib/win
+dest=bin
+msvcr70.dll
