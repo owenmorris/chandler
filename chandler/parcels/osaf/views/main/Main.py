@@ -211,16 +211,9 @@ class MainView(View):
         """
         itemCollection = event.arguments ['item']
 
-        # Make sure we've got a webdav account
-        while not Sharing.isWebDAVSetUp(self.itsView):
-            if Util.okCancel(wx.GetApp().mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame, view=self.itsView):
-                    return
-            else:
-                return
+        # Make sure we have all the accounts; returns False if the user cancels out and we don't.
+        if not Sharing.ensureAccountSetUp(self.itsView):
+            return
         webdavAccount = Sharing.getWebDAVAccount(self.itsView)
 
         # commit changes, since we'll be switching to Twisted thread
@@ -492,21 +485,15 @@ class MainView(View):
         changed to the entire summary view's collection.
         The "Collection | Share collection " menu item
         """
-        if not Sharing.isWebDAVSetUp(self.itsView):
-            # The user hasn't set up webdav, so let's bring up the accounts
-            # dialog, with the webdav account selected
-            """ @@@MOR: This needs to change...
-            webdavAccount = self.findPath('//parcels/osaf/framework/sharing/accounts/WebDAVAccount')
-            application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, account=webdavAccount)
-            """
-
+        # Make sure we have all the accounts; returns False if the user cancels out and we don't.
+        if not Sharing.ensureAccountSetUp(self.itsView):
             return
 
         # @@@ BJS For 0.5, simplify sharing: if the Kind filter isn't All, switch it to All now.
-        """ This doesn't work:
-        navigationBarWidget = Block.findBlockByName('NavigationBar').widget
-        if not navigationBarWidget.GetToolState(0):
-            navigationBarWidget.ToggleTool(0, True)
+        """ This doesn't appear to work:
+        allKindFilterToolbarItemWidget = Block.findBlockByName('KindFilterAllItem').widget
+        if not allKindFilterToolbarItemWidget.IsToggled():
+            allKindFilterToolbarItemWidget.Toggle()
         """
         
         # Tell the ActiveView to select the collection
@@ -534,7 +521,7 @@ class MainView(View):
             menuTitle = _('%s a collection') % verb
             
         event.arguments ['Text'] = menuTitle
-        event.arguments['Enable'] = doManage == (collection is not None and Sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and (doManage == Sharing.isShared(collection))
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
@@ -588,9 +575,8 @@ class MainView(View):
 
     def onSyncWebDAVEventUpdateUI (self, event):
         accountOK = Sharing.isWebDAVSetUp(self.itsView)
-        sharedCollections = self.sharedWebDAVCollections ()
-        enable = accountOK and len (sharedCollections) > 0
-        event.arguments ['Enable'] = enable
+        haveActiveShares = Sharing.checkForActiveShares(self.itsView)
+        event.arguments ['Enable'] = accountOK and haveActiveShares
         # @@@DLD set up the help string to let the user know why it's disabled
 
     def onSyncAllEvent (self, event):
