@@ -277,20 +277,12 @@ class wxTabbedContainer(wx.Notebook):
                   id=self.GetId())
 
     def OnSelectionChanging (self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            pageNum = event.GetSelection()
-            page = self.GetPage(pageNum)
-            try:
-                page.blockUUID
-            except AttributeError:
-                pass
-            else:
-                item = Globals.repository.find(page.blockUUID)
-                block = Globals.repository.find(self.blockUUID)
-                block.UnregisterEvents(item)
-        event.Skip()
+        self.HandleSelectionChange(event, False)
 
     def OnSelectionChanged (self, event):
+        self.HandleSelectionChange(event, True)
+        
+    def HandleSelectionChange(self, event, registerEvents):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             pageNum = event.GetSelection()
             self.selectedTab = pageNum
@@ -299,13 +291,16 @@ class wxTabbedContainer(wx.Notebook):
                 page.blockUUID
             except AttributeError:
                 pass
-            else:    
+            else:
                 item = Globals.repository.find(page.blockUUID)
                 block = Globals.repository.find(self.blockUUID)
-                block.RegisterEvents(item)
-                Globals.mainView.onSetActiveView(item)
+                if registerEvents:
+                    block.RegisterEvents(item)
+                    Globals.mainView.onSetActiveView(item)
+                else:
+                    block.UnregisterEvents(item)
         event.Skip()
-        
+          
     def wxSynchronizeWidget(self):
         counterpart = Globals.repository.find (self.blockUUID)
         assert(len(counterpart.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
