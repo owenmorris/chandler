@@ -871,9 +871,10 @@ class Item(object):
         'Rename this item.'
 
         parent = self.getItemParent()
+        link = parent._children._get(self._name)
         parent._removeItem(self)
         self._name = name
-        parent._addItem(self)
+        parent._addItem(self, link._previousKey, link._nextKey)
 
     def move(self, newParent, previous=None, next=None):
         'Move this item under another container or make it a root.'

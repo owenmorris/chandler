@@ -20,7 +20,7 @@ from repository.persistence.Repository import VersionConflictError
 from repository.persistence.Repository import OnDemandRepositoryView
 from repository.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
-from repository.util.Text import Text
+from repository.util.Lob import Text, Binary
 
 
 class XMLRepositoryView(OnDemandRepositoryView):
@@ -85,9 +85,14 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         else:
             return TransientRefDict(item, name, otherName)
 
-    def getTextType(self):
+    def getLobType(self, mode):
 
-        return XMLText
+        if mode == 'text':
+            return XMLText
+        if mode == 'binary':
+            return XMLBinary
+
+        raise ValueError, mode
 
     def commit(self):
 
@@ -447,11 +452,6 @@ class XMLText(Text):
         self._version = 0
         self._dirty = False
         
-    def _setText(self, text):
-
-        super(XMLText, self)._setText(text)
-        self._dirty = True
-
     def _xmlValue(self, view, generator):
 
         if self._uuid is None:
@@ -495,9 +495,76 @@ class XMLText(Text):
         else:
             self._uuid = UUID(data)
 
+    def _setData(self, text):
+
+        super(XMLText, self)._setData(text)
+        self._dirty = True
+
     def _getData(self):
 
         if self._uuid is None:
             return super(XMLText, self)._getData()
 
         return self._view.repository.store._text.get(self._makeKey())
+
+
+class XMLBinary(Binary):
+
+    def __init__(self, **kwds):
+
+        super(XMLBinary, self).__init__(**kwds)
+        self._uuid = None
+        self._view = None
+        self._version = 0
+        self._dirty = False
+        
+    def _xmlValue(self, view, generator):
+
+        if self._uuid is None:
+            self._uuid = UUID()
+            self._dirty = True
+
+        if self._dirty:
+            self._version += 1
+            view.repository.store._text.put(self._makeKey(), self._data)
+
+        attrs = {}
+        attrs['version'] = str(self._version)
+        attrs['mimetype'] = self.mimetype
+        if self._compression:
+            attrs['compression'] = self._compression
+        attrs['type'] = 'uuid'
+        
+        generator.startElement('binary', attrs)
+        generator.characters(self._uuid.str64())
+        generator.endElement('binary')
+
+    def _makeKey(self):
+
+        return "%s%s" %(self._uuid._uuid, pack('>l', ~self._version))
+
+    def _binaryEnd(self, view, data, attrs):
+
+        self.mimetype = attrs.get('mimetype', 'text/plain')
+        self._compression = attrs.get('compression', None)
+        self._version = long(attrs.get('version', '0'))
+        self._view = view
+
+        if attrs.get('type', 'binary') == 'binary':
+            writer = self.getWriter()
+            writer.write(data)
+            writer.close()
+        else:
+            self._uuid = UUID(data)
+
+    def _setData(self, data):
+
+        super(XMLBinary, self)._setData(data)
+        self._dirty = True
+
+    def _getData(self):
+
+        if self._uuid is None:
+            return super(XMLBinary, self)._getData()
+
+        return self._view.repository.store._binary.get(self._makeKey())

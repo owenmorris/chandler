@@ -123,7 +123,7 @@ class String(Type):
 
     def recognizes(self, value):
 
-        return type(value) is unicode or type(value) is str
+        return type(value) in (unicode, str)
 
     def typeXML(self, value, generator, withSchema):
 
@@ -175,7 +175,7 @@ class Long(Type):
         return long(data)
 
     def recognizes(self, value):
-        return type(value) is long or type(value) is int
+        return type(value) in (long, int)
 
     def _compareTypes(self, other):
         if other._name == 'Integer':
@@ -197,8 +197,7 @@ class Float(Type):
         return float(data)
 
     def recognizes(self, value):
-        return (type(value) is float or
-                type(value) is long or type(value) is int)
+        return type(value) in (float, long, int)
 
     def _compareTypes(self, other):
         return 1
@@ -728,23 +727,10 @@ class List(Collection):
     def _empty(self):
 
         return PersistentList(None, None)
-    
 
-class Text(Type):
 
-    def getImplementationType(self):
+class Lob(Type):
 
-        return self.getRepository().getTextType()
-
-    def makeValue(self, data):
-
-        text = self.getImplementationType()(encoding='utf-8',
-                                            mimetype='text/plain')
-        if data:
-            writer = text.getWriter(False)
-            writer.write(data)
-            writer.close()
-    
     def getParsedValue(self, itemHandler, data):
 
         value = itemHandler.value
@@ -762,6 +748,22 @@ class Text(Type):
 
         return itemHandler.tagCounts[-1] == 0
 
+
+class Text(Lob):
+
+    def getImplementationType(self):
+
+        return self.getRepository().getLobType('text')
+
+    def makeValue(self, data,
+                  encoding='utf-8', mimeType='text/plain', compression='bz2'):
+
+        text = self.getImplementationType()(encoding, mimetype)
+        if data:
+            writer = text.getWriter(compression)
+            writer.write(data)
+            writer.close()
+    
     def textStart(self, itemHandler, attrs):
 
         itemHandler.tagCounts[-1] += 1
@@ -774,8 +776,55 @@ class Text(Type):
 
     def typeXML(self, value, generator, withSchema):
 
+        if type(value) in (unicode, str):
+            value = self.makeValue(value)
+            
         value._xmlValue(self.getRepository(), generator)
 
+    def recognizes(self, value):
+
+        return type(value) in (self.getImplementationType(), unicode, str)
+    
     def handlerName(self):
 
         return 'text'
+
+
+class Binary(Lob):
+
+    def getImplementationType(self):
+
+        return self.getRepository().getLobType('binary')
+
+    def makeValue(self, data, mimeType='text/plain', compression=None):
+
+        binary = self.getImplementationType()(mimetype)
+        if data:
+            out = binary.getOutputStream(compression)
+            writer.write(data)
+            writer.close()
+    
+    def binaryStart(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] += 1
+
+    def binaryEnd(self, itemHandler, attrs):
+
+        itemHandler.value._binaryEnd(self.getRepository(),
+                                     itemHandler.data, attrs)
+        itemHandler.tagCounts[-1] -= 1
+
+    def typeXML(self, value, generator, withSchema):
+
+        if type(value) is str:
+            value = self.makeValue(value)
+            
+        value._xmlValue(self.getRepository(), generator)
+
+    def recognizes(self, value):
+
+        return type(value) in (self.getImplementationType(), str)
+    
+    def handlerName(self):
+
+        return 'binary'

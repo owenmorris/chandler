@@ -9,33 +9,32 @@ from repository.util.Streams import OutputStreamWriter, InputStreamReader
 from repository.util.Streams import BufferedOutputStream, BufferedInputStream
 
 
-class Text(object):
+class Lob(object):
 
-    def __init__(self, encoding='utf-8', mimetype='text/plain'):
+    def __init__(self, mimetype='text/plain'):
 
-        super(Text, self).__init__()
-        
-        self.encoding = encoding
+        super(Lob, self).__init__()
+
         self.mimetype = mimetype
         self._compression = None
         self._data = ''
-        
-    def getWriter(self, compression='bz2'):
+
+    def getOutputStream(self, compression=None):
 
         outputStream = self._getBufferedOutputStream()
         if compression == 'bz2':
             outputStream = BZ2OutputStream(outputStream)
             self._compression = compression
 
-        return OutputStreamWriter(outputStream, self.encoding)
+        return outputStream
 
-    def getReader(self):
+    def getInputStream(self):
 
         inputStream = self._getBufferedInputStream()
         if self._compression == 'bz2':
             inputStream = BZ2InputStream(inputStream)
 
-        return InputStreamReader(inputStream, self.encoding)
+        return inputStream
 
     def _getBufferedOutputStream(self):
 
@@ -52,3 +51,28 @@ class Text(object):
     def _getData(self):
 
         return self._data
+
+
+class Text(Lob):
+
+    def __init__(self, encoding='utf-8', mimetype='text/plain'):
+
+        super(Text, self).__init__(mimetype)
+        
+        self.encoding = encoding
+        
+    def getWriter(self, compression='bz2'):
+
+        return OutputStreamWriter(self.getOutputStream(compression),
+                                  self.encoding)
+
+    def getReader(self):
+
+        return InputStreamReader(self.getInputStream(), self.encoding)
+
+
+class Binary(Lob):
+
+    def __init__(self, mimetype='text/plain'):
+
+        super(Binary, self).__init__(mimeType)

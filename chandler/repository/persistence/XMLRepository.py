@@ -595,6 +595,10 @@ class TextContainer(DBContainer):
     pass
 
 
+class BinaryContainer(DBContainer):
+    pass
+
+
 class XMLStore(Store):
 
     def __init__(self, repository):
@@ -615,6 +619,7 @@ class XMLStore(Store):
             self._versions = VerContainer(self, "__versions__", txn, create)
             self._history = HistContainer(self, "__history__", txn, create)
             self._text = TextContainer(self, "__text__", txn, create)
+            self._binary = BinaryContainer(self, "__binary__", txn, create)
         finally:
             if txnStarted:
                 self._commitTransaction()
@@ -626,6 +631,7 @@ class XMLStore(Store):
         self._versions.close()
         self._history.close()
         self._text.close()
+        self._binary.close()
 
     def loadItem(self, version, uuid):
 
