@@ -21,9 +21,6 @@ class URLTree(Persistent):
         # should be used here.
         self.tree.append(TreeEntry(self, '', PersistentList()))
 
-    def Debug(self):
-        self.__SynchronizeSideBars()
-        
     def RegisterSideBar(self, sideBar):
         """
           Whenever a new window is created, with a new sideBar, we
