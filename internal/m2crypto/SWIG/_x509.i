@@ -1,7 +1,7 @@
 /* Copyright (c) 1999 Ng Pheng Siong. All rights reserved.  */
 /* 
-** Open Source Applications Foundation (OSAF) has extended the functionality
-** to make it possible to create and verify certificates programmatically.
+** Open Source Applications Foundation (OSAF) has extended the
+** API to enable creation of certificates programmatically.
 **
 ** OSAF Changes copyright (c) 2004 Open Source Applications Foundation.
 ** Author: Heikki Toivonen
@@ -11,6 +11,7 @@
 
 %{
 #include <openssl/x509.h>
+#include <openssl/x509v3.h>
 %}
 
 %apply Pointer NONNULL { BIO * };
@@ -40,6 +41,8 @@
 
 %name(x509_get_verify_error) extern const char *X509_verify_cert_error_string(long);
 
+%name(x509_add_ext) extern int X509_add_ext(X509 *, X509_EXTENSION *, int);
+
 %name(x509_req_get_pubkey) extern EVP_PKEY *X509_REQ_get_pubkey(X509_REQ *);
 %name(x509_req_set_pubkey) extern int X509_REQ_set_pubkey(X509_REQ *, EVP_PKEY *);
 
@@ -48,6 +51,9 @@
 %name(x509_store_new) extern X509_STORE *X509_STORE_new(void);
 %name(x509_store_free) extern void X509_STORE_free(X509_STORE *);
 %name(x509_store_add_cert) extern int X509_STORE_add_cert(X509_STORE *, X509 *);
+
+%name(x509_extension_get_critical) extern int X509_EXTENSION_get_critical(X509_EXTENSION *);
+%name(x509_extension_set_critical) extern int X509_EXTENSION_set_critical(X509_EXTENSION *, int);
 
 %constant int NID_commonName                  = 13;
 %constant int NID_countryName                 = 14;
@@ -204,6 +210,45 @@ X509 *sk_x509_pop(STACK *stack) {
     return sk_X509_pop((STACK_OF(X509) *)stack);
 }
 
+X509_EXTENSION *x509v3_ext_conf(LHASH *conf, X509V3_CTX *ctx, char *name, char *value) {
+    return X509V3_EXT_conf(conf, ctx, name, value);
+}
+
+/* X509_EXTENSION_free() might be a macro, didn't find definition. */
+void x509_extension_free(X509_EXTENSION *ext) {
+    X509_EXTENSION_free(ext);
+}
+
+/* sk_X509_EXTENSION_new_null is a macro. */
+STACK *sk_x509_extension_new_null(void) {
+    return (STACK *)sk_X509_EXTENSION_new_null();
+}
+
+/* sk_X509_EXTENSION_free() is a macro. */
+void sk_x509_extension_free(STACK *stack) {
+    sk_X509_EXTENSION_free((STACK_OF(X509_EXTENSION) *)stack);
+}
+
+/* sk_X509_EXTENSION_push() is a macro. */
+int sk_x509_extension_push(STACK *stack, X509_EXTENSION *x509_ext) {
+    return sk_X509_EXTENSION_push((STACK_OF(X509_EXTENSION) *)stack, x509_ext);
+}
+
+/* sk_X509_EXTENSION_pop() is a macro. */
+X509_EXTENSION *sk_x509_extension_pop(STACK *stack) {
+    return sk_X509_EXTENSION_pop((STACK_OF(X509_EXTENSION) *)stack);
+}
+
+/* sk_X509_EXTENSION_num() is a macro. */
+int sk_x509_extension_num(STACK *stack) {
+    return sk_X509_EXTENSION_num((STACK_OF(X509_EXTENSION) *)stack);
+}
+
+/* sk_X509_EXTENSION_value() is a macro. */
+char *sk_x509_extension_value(STACK *stack, int i) {
+    return sk_X509_EXTENSION_value((STACK_OF(X509_EXTENSION) *)stack, i);
+}
+
 int x509_store_load_locations(X509_STORE *store, const char *file) {
     return X509_STORE_load_locations(store, file, NULL);
 }
@@ -242,6 +287,10 @@ long x509_req_get_version(X509_REQ *x) {
 
 int x509_req_set_version(X509_REQ *x, long version) {
     return X509_REQ_set_version(x, version);
+}
+
+int x509_req_add_extensions(X509_REQ *req, STACK *exts) {
+    return X509_REQ_add_extensions(req, (STACK_OF(X509_EXTENSION) *)exts);
 }
 
 int x509_req_sign(X509_REQ *x, EVP_PKEY *pkey, EVP_MD *md) {

@@ -7,9 +7,9 @@ authentication purposes) from within an SSL connection.
 Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved.
 
 Open Source Applications Foundation (OSAF) has extended the functionality
-to make it possible to create and verify certificates programmatically.
+to make it possible to create certificates programmatically.
 
-Epydoc comments also by OSAF.
+Epydoc comments started by OSAF.
 
 OSAF Changes copyright (c) 2004 Open Source Applications Foundation.
 Author: Heikki Toivonen
@@ -26,6 +26,81 @@ class X509Error(Exception): pass
 m2.x509_init(X509Error)
 
 V_OK = m2.X509_V_OK
+
+
+class X509_Extension:
+    """
+    X509 extension.
+
+    XXX Does not allow copying from existing extension.
+    """
+    def __init__(self, name, value, critical=0):
+        self.x509_ext = m2.x509v3_ext_conf(None, None, name, value)
+        self.set_critical(critical)
+
+    def __del__(self):
+        m2.x509_extension_free(self.x509_ext)
+
+    def _ptr(self):
+        return self.x509_ext
+
+    def set_critical(self, critical=1):
+        """
+        Mark this extension critical or noncritical. By default an
+        extension is not critical.
+
+        @type critical:  integer
+        @param critical: Nonzero sets this extension as critical. Calling
+                         this method without arguments will set this extension
+                         to critical.
+        """
+        return m2.x509_extension_set_critical(self.x509_ext, critical)
+
+    def get_critical(self):
+        """
+        Return whether or not this is a critical extension.
+
+        @rtype:   integer
+        @return:  Nonzero if this is a critical extension.
+        """
+        return m2.x509_extension_get_critical(self.x509_ext)
+
+
+class X509_Extension_Stack:
+    def __init__(self, stack=None, _pyfree=0):
+        if stack is not None:
+            self.stack = stack
+            self._pyfree = _pyfree
+        else:
+            self.stack = m2.sk_x509_extension_new_null()
+            self._pyfree = 1
+        self._refkeeper = {}
+
+    def __del__(self):
+        if self._pyfree:
+            m2.sk_x509_extension_free(self.stack)
+
+    def __len__(self):
+        return m2.sk_x509_extension_num(self.stack)
+
+    # XXX How do I get the actual X509_EXTENSION from the stack?
+    #def __getitem__(self, idx):
+    #    if idx < 0 or idx >= m2.sk_x509_extension_num(self.stack):
+    #        raise IndexError, 'index out of range'
+    #    v=m2.sk_x509_extension_value(self.stack, idx)
+    #    return X509_Extension(v)
+
+    def _ptr(self):
+        return self.stack
+
+    def push(self, x509_ext):
+        self._refkeeper[x509_ext._ptr()] = x509_ext
+        return m2.sk_x509_extension_push(self.stack, x509_ext._ptr())
+
+    def pop(self):
+        x509__ext_ptr = m2.sk_x509_extension_pop(self.stack)
+        del self._refkeeper[x509_ext_ptr]
+
 
 class X509_Store_Context:
     def __init__(self, x509_store_ctx, _pyfree=0):
@@ -52,9 +127,10 @@ class X509_Name:
         if x509_name is not None:
             assert m2.x509_name_type_check(x509_name), "'x509_name' type error"
             self.x509_name = x509_name
+            self._pyfree = _pyfree
         else:
             self.x509_name = m2.x509_name_new()
-        self._pyfree = _pyfree
+            self._pyfree = 1
 
     def __del__(self):
         try:
@@ -92,9 +168,10 @@ class X509:
         if x509 is not None:
             assert m2.x509_type_check(x509), "'x509' type error"
             self.x509 = x509
+            self._pyfree = _pyfree
         else:
             self.x509 = m2.x509_new()
-        self._pyfree = _pyfree
+            self._pyfree = 1
 
     def __del__(self):
         try:
@@ -148,8 +225,6 @@ class X509:
 
         @type serial:   integer
         @param serial:  Serial number.
-        @rtype:         XXX
-        @return:        XXX
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"
         # This "magically" changes serial since asn1_integer is C pointer
@@ -181,8 +256,6 @@ class X509:
 
         @type pkey:  EVP_PKEY
         @param pkey: Public key
-        @rtype:      XXX
-        @return:     XXX
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_set_pubkey(self.x509, pkey.pkey)
@@ -197,8 +270,6 @@ class X509:
 
         @type name:     X509_Name
         @param name:    subjectName field.
-        @rtype:         XXX
-        @return:        XXX
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_set_issuer_name(self.x509, name.x509_name)
@@ -213,11 +284,19 @@ class X509:
 
         @type name:     X509_Name
         @param name:    subjectName field.
-        @rtype:         XXX
-        @return:        XXX
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_set_subject_name(self.x509, name.x509_name)
+
+    def add_ext(self, ext):
+        """
+        Add X509 extension to this certificate.
+
+        @type ext:     X509_Extension
+        @param ext:    Extension
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"
+        return m2.x509_add_ext(self.x509, ext.x509_ext, -1)
 
     def sign(self, pkey, md):
         """
@@ -228,8 +307,6 @@ class X509:
         @type md:    string
         @param md:   Message digest algorithm to use for signing, for example
                      'sha1'.
-        @rtype:      XXX
-        @return:     XXX
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"        
         mda = getattr(m2, md)
@@ -353,8 +430,6 @@ class Request:
 
         @type pkey:  EVP_PKEY
         @param pkey: Public key
-        @rtype:      XXX
-        @return:     XXX
         """
         return m2.x509_req_set_pubkey(self.req, pkey.pkey)
 
@@ -367,8 +442,6 @@ class Request:
 
         @type name:     X509_Name
         @param name:    subjectName field.
-        @rtype:         XXX
-        @return:        XXX
         """
         return m2.x509_req_set_subject_name(self.req, name.x509_name)
 
@@ -391,6 +464,15 @@ class Request:
         @return:        Returns 0 on failure.
         """
         return m2.x509_req_set_version(self.req, version)
+
+    def add_extensions(self, ext_stack):
+        """
+        Add X509 extensions to this request.
+
+        @type ext_stack:  X509_Extension_Stack
+        @param ext_stack: Stack of extensions to add.
+        """
+        return m2.x509_req_add_extensions(self.req, ext_stack._ptr())
 
     def verify(self, pkey):
         return m2.x509_req_verify(self.req, pkey)

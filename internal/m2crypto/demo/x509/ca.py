@@ -32,7 +32,12 @@ def makeRequest(pkey):
     name = X509.X509_Name()
     name.CN = 'My CA, Inc.'
     req.set_subject(name)
-    # XXX Extensions
+    ext1 = X509.X509_Extension('subjectAltName', 'DNS:foobar.example.com')
+    ext2 = X509.X509_Extension('nsComment', 'Hello there')
+    extstack = X509.X509_Extension_Stack()
+    extstack.push(ext1)
+    extstack.push(ext2)
+    req.add_extensions(extstack)
     req.sign(pkey, 'sha1')
     return req
 
@@ -65,7 +70,11 @@ def makeCert(req, caPkey):
     m2.x509_gmtime_adj(notBefore, 0)
     days = 30
     m2.x509_gmtime_adj(notAfter, 60*60*24*days)
-    # XXX extensions
+    cert.add_ext(
+        X509.X509_Extension('subjectAltName', 'DNS:foobar.example.com'))
+    ext = X509.X509_Extension('nsComment', 'M2Crypto generated certificate')
+    ext.set_critical(0)# Defaults to non-critical, but we can also set it
+    cert.add_ext(ext)
     cert.sign(caPkey, 'sha1')
     return cert
 

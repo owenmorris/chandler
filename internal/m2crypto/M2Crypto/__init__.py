@@ -1,6 +1,10 @@
 """M2Crypto = Python + OpenSSL + SWIG
 
-Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
+Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved.
+
+Portions created by Open Source Applications Foundation (OSAF) are
+Copyright (C) 2004 OSAF. All Rights Reserved.
+"""
 
 RCS_id='$Id$'
 
