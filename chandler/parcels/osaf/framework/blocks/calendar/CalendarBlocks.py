@@ -16,15 +16,15 @@ import osaf.framework.blocks.Block as Block
 
 
 
-class wxMiniCalendar(wx.minical.wxMiniCalendar):
+class wxMiniCalendar(wx.minical.MiniCalendar):
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
 
     def wxSynchronizeWidget(self):
-        self.SetWindowStyle(wx.minical.wxCAL_SUNDAY_FIRST |
-                            wx.minical.wxCAL_SHOW_SURROUNDING_WEEKS)
+        self.SetWindowStyle(wx.minical.CAL_SUNDAY_FIRST |
+                            wx.minical.CAL_SHOW_SURROUNDING_WEEKS)
 
     def Destroy(self):
         #super (wxMiniCalendar, self).Destroy()
