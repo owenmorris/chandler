@@ -49,7 +49,7 @@ class Set(object):
                 if not isinstance(ob,t):
                     if t:
                         raise TypeError(
-                            "%s is not of type %s" % (ob,self._typeName(t))
+                            "%r is not of type %s" % (ob,self._typeName(t))
                         )
                     else:
                         raise TypeError("Null set cannot be changed")
@@ -62,7 +62,11 @@ class Set(object):
             for ob in add:
                 if ob not in data:
                     data.append(ob)
-                    added.append(ob)
+                    if ob in removed:
+                        removed.remove(ob)  # ignore re-add of removed item
+                    else:
+                        added.append(ob)
+
         if removed or added:
             try:
                 SetChanged(self,removed,added)

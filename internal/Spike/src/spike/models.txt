@@ -132,11 +132,20 @@ items that were actually added or removed::
     >>> s
     Set([10])
 
+If you add and remove the same item, however, it doesn't show up in the change
+event::
+
+    >>> s.replace(remove=[10],add=[10, 5])
+    <Change for Set([10, 5]): removed=[], added=[5]>
+
+    >>> s.replace(remove=[10],add=[10])     # no-op
+
+
 And you can also use the ``reset()`` method to clear the set's contents, and
 optionally supply an iterable of new contents::
 
     >>> s.reset([1,2,3])
-    <Change for Set([1, 2, 3]): removed=[10], added=[1, 2, 3]>
+    <Change for Set([1, 2, 3]): removed=[5, 10], added=[1, 2, 3]>
     >>> s
     Set([1, 2, 3])
 
