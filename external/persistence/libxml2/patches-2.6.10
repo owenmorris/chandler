@@ -322,3 +322,37 @@
              # we reuse attribute maps (for a slight performance gain)
              if self.__ns:
                  attributesNSImpl = xmlreader.AttributesNSImpl({},{})
+--- libxml2-2.6.10/python/setup.py	Sun May 16 20:47:56 2004
++++ libxml2-2.6.10-patched/python/setup.py	Thu Aug 19 14:07:23 2004
+@@ -5,10 +5,16 @@
+ import sys, os
+ from distutils.core import setup, Extension
+ 
++debug = "--debug" in sys.argv or "-g" in sys.argv
++
+ # Below ROOT, we expect to find include, include/libxml2, lib and bin.
+ # On *nix, it is not needed (but should not harm), 
+ # on Windows, it is set by configure.js.
+-ROOT = r'/usr' 
++
++if debug:
++    ROOT=os.path.join(os.environ['BUILD_ROOT'], 'debug')
++else:
++    ROOT=os.path.join(os.environ['BUILD_ROOT'], 'release')
+ 
+ # Thread-enabled libxml2
+ with_threads = 1
+@@ -56,11 +62,11 @@
+ # - iconv.h 
+ # - libxslt/xsltconfig.h
+ includes_dir = [
++os.path.join(ROOT,'include'),
++HOME,
+ "/usr/include",
+ "/usr/local/include",
+ "/opt/include",
+-os.path.join(ROOT,'include'),
+-HOME
+ ];
+ 
+ xml_includes=""
