@@ -1420,26 +1420,50 @@ def getShare(collection):
     return None
 
 
-def isMailSetUp(view):
-    """ See if IMAP/SMTP accounts have at least the minimum setup needed for
-        sharing (IMAP needs email address, SMTP needs host).
+def isIMAPSetUp(view):
+    """ See if the IMAP account has at least the minimum setup needed for
+        sharing (IMAP needs email address).
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
-    @return: True if accounts are set up; False otherwise.
+    @return: True if the account is set up; False otherwise.
     """
 
     # Find imap account, and make sure email address is valid
     imap = Mail.MailParcel.getIMAPAccount(view)
     if not imap.emailAddress:
         return False
+    return True
+
+
+def isSMTPSetUp(view):
+    """ See if SMTP account has at least the minimum setup needed for
+        sharing (SMTP needs host).
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if the account is set up; False otherwise.
+    """
 
     # Find smtp account, and make sure server field is set
+    imap = Mail.MailParcel.getIMAPAccount(view)
     smtp = imap.defaultSMTPAccount
     if not smtp.host:
         return False
-
     return True
+
+
+def isMailSetUp(view):
+    """ See if the email accounts have at least the minimum setup needed for
+        sharing.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if the accounts are set up; False otherwise.
+    """
+    if isIMAPSetUp(view) and isSMTPSetUp(view):
+        return True
+    return False
 
 
 def isWebDAVSetUp(view):
@@ -1452,6 +1476,56 @@ def isWebDAVSetUp(view):
 
     account = getWebDAVAccount(view)
     return account is not None
+
+def ensureAccountSetUp(view):
+    """ A helper method to make sure the user gets the account info filled out.
+
+    This method will examine all the account info and if anything is missing,
+    a dialog will explain to the user what is missing; if they want to proceed
+    to enter that information, the accounts dialog will pop up.  If at any
+    point they hit Cancel, this method will return False.  Only when all
+    account info is filled in will this method return True.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if accounts are set up; False otherwise.
+    """
+
+    while True:
+
+        DAVReady = isWebDAVSetUp(view)
+        IMAPReady = isIMAPSetUp(view)
+        SMTPReady = isSMTPSetUp(view)
+        if DAVReady and IMAPReady and SMTPReady:
+            return True
+
+        msg = "The following account(s) need to be set up before you can share a collection:\n\n"
+        if not DAVReady:
+            msg += " - WebDAV (collection publishing)\n"
+        if not IMAPReady:
+            msg += " - IMAP (inbound email)\n"
+        if not SMTPReady:
+            msg += " - SMTP (outound email)\n"
+        msg += "\nWould you like to enter account information now?"
+
+        response = application.dialogs.Util.yesNo(wx.GetApp().mainFrame,
+                                                  "Account set up",
+                                                  msg)
+        if response == False:
+            return False
+
+        if not IMAPReady:
+            account = Mail.MailParcel.getIMAPAccount(view)
+        elif not SMTPReady:
+            account = Mail.MailParcel.getIMAPAccount(view).defaultSMTPAccount
+
+        response = \
+          application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
+          wx.GetApp().mainFrame, account=account, view=view)
+
+        if response == False:
+            return False
+
 
 
 def syncAll(view):
