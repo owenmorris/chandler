@@ -28,15 +28,25 @@ class EventItem(InformationItem):
         if (self.endTime == None) or (self.startTime == None): return None
         return self.endTime - self.startTime
     
-    def setDuration(self, value):
+    def setDuration(self, dateTimeDelta):
         """Set duration of event, expects value to be mxDateTimeDelta
         
         endTime is updated based on the new duration, startTime remains fixed
         """
     
         if (self.startTime != None) :
-            self.endTime = self.startTime + value
+            self.endTime = self.startTime + dateTimeDelta
 
     duration = property(getDuration, setDuration)
 
+    def changeStart(self, dateTime):
+        """Change the start time without changing the duration.
+
+        Setting startTime directly will effectively change the duration,
+        because the endTime is not affected. This method changes the endTime"""
+
+        duration = self.duration
+        self.startTime = dateTime
+        self.endTime = self.startTime + duration
+        
 
