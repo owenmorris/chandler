@@ -9,7 +9,7 @@ import xml.sax, xml.sax.saxutils
 import sys, re, os.path
 
 
-class packList(list, xml.sax.ContentHandler):
+class packlist(list, xml.sax.ContentHandler):
     'A list and SAX ContentHandler implementation listing packs.'
 
     def __init__(self, path):
@@ -27,7 +27,7 @@ class packList(list, xml.sax.ContentHandler):
 
     def startElement(self, tag, attrs):
 
-        method = getattr(packList, tag + 'Start', None)
+        method = getattr(packlist, tag + 'Start', None)
         if method is not None:
             method(self, attrs)
             
@@ -37,7 +37,7 @@ class packList(list, xml.sax.ContentHandler):
 
         attrs = self.tagAttrs.pop()
 
-        method = getattr(packList, tag + 'End', None)
+        method = getattr(packlist, tag + 'End', None)
         if method is not None:
             method(self, attrs)
 
@@ -77,5 +77,5 @@ class packList(list, xml.sax.ContentHandler):
 
 
 if __name__ == "__main__":
-    for path in packList(sys.argv[1]):
+    for path in packlist(sys.argv[1]):
         print path
