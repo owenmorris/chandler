@@ -468,7 +468,12 @@ class FileSystemConduit(ShareConduit):
 
     def _putItem(self, item): # must implement
         path = self._getItemPath(item)
-        text = self.share.format.exportProcess(item)
+
+        try:
+            text = self.share.format.exportProcess(item)
+        except Exception, e:
+            raise TransformationFailed(message=str(e))
+
         if text is None:
             return None
         out = file(path, 'w')
@@ -485,8 +490,13 @@ class FileSystemConduit(ShareConduit):
         # logger.info("Getting item: %s" % itemPath)
         extension = os.path.splitext(itemPath)[1].strip(os.path.extsep)
         text = file(itemPath).read()
-        item = self.share.format.importProcess(text, extension=extension,
-         item=into)
+
+        try:
+            item = self.share.format.importProcess(text, extension=extension,
+             item=into)
+        except Exception, e:
+            raise TransformationFailed(message=str(e))
+
         stat = os.stat(itemPath)
         return (item, stat.st_mtime)
 
@@ -744,7 +754,12 @@ class WebDAVConduit(ShareConduit):
         """ putItem should publish an item and return etag/date, etc.
         """
         url = self.__getItemURL(item)
-        text = self.share.format.exportProcess(item)
+
+        try:
+            text = self.share.format.exportProcess(item)
+        except Exception, e:
+            raise TransformationFailed(message=str(e))
+
         if text is None:
             return None
 
@@ -822,7 +837,12 @@ class WebDAVConduit(ShareConduit):
 
         etag = resp.getheader('ETag', None)
         etag = self.__cleanEtag(etag)
-        item = self.share.format.importProcess(text, item=into)
+
+        try:
+            item = self.share.format.importProcess(text, item=into)
+        except Exception, e:
+            raise TransformationFailed(message=str(e))
+
         return (item, etag)
 
 
@@ -938,7 +958,11 @@ class SimpleHTTPConduit(WebDAVConduit):
             raise NotAllowed(message=message)
 
         logger.info("...received; processing...")
-        self.share.format.importProcess(text, item=self.share)
+
+        try:
+            self.share.format.importProcess(text, item=self.share)
+        except Exception, e:
+            raise TransformationFailed(message=str(e))
 
         lastModified = resp.getheader('Last-Modified', None)
         self.lastModified = lastModified
@@ -976,11 +1000,12 @@ class CouldNotConnect(SharingError):
     """ Exception raised if a conduit can't connect to an external entity
         due to DNS/network problems.
     """
-
 class IllegalOperation(SharingError):
     """ Exception raised if the entity a conduit is communicating with is
         denying an operation for some reason not covered by other exceptions.
     """
+class TransformationFailed(SharingError):
+    """ Exception raised if import or export process failed. """
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
