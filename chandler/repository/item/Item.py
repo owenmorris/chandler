@@ -21,7 +21,7 @@ class Item(object):
         '''Construct an Item.
 
         All items require a parent item unless they are a repository root in
-        which case the parent argument should be the repository.
+        which case the parent argument is the repository.
         Kind can be None for schema-less operation.
         Items have two sets of attributes: the regular implementation python
         attributes and the Chandler attributes. The latter are kept in a
@@ -62,7 +62,7 @@ class Item(object):
     def __getattr__(self, name):
 
         if self._deleted:
-            raise ValueError, "item is deleted " + str(self)
+            raise ValueError, "item is deleted: %s" %(str(self))
 
         return self.getAttribute(name)
 
@@ -272,7 +272,7 @@ class Item(object):
             else:
                 return default
 
-        raise TypeError, attribute + " is not multi-valued"
+        raise TypeError, "%s is not multi-valued" %(attribute)
 
     def setValue(self, attribute, value, key=None, _attrDict=None):
         'Set a value for a multi-valued attribute, optionally for a given key.'
@@ -304,7 +304,7 @@ class Item(object):
                     attrValue = [ value ]
                     return
             else:
-                raise TypeError, attribute + " is not multi-valued"
+                raise TypeError, "%s is not multi-valued" %(attribute)
 
             _attrDict[attribute] = attrValue
 
@@ -341,7 +341,7 @@ class Item(object):
         elif isinstance(value, list):
             return 0 <= key and key < len(value)
         elif value is not None:
-            raise TypeError, attribute + " is not multi-valued"
+            raise TypeError, "%s is not multi-valued" %(attribute)
 
         return False
 
@@ -361,7 +361,7 @@ class Item(object):
             except ValueError:
                 return False
         elif attrValue is not None:
-            raise TypeError, attribute + " is not multi-valued"
+            raise TypeError, "%s is not multi-valued" %(attribute)
 
         return False
 
@@ -887,7 +887,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 refName = ref[0]
                 if refName is None:
                     if other is None:
-                        raise ValueError, "refName to " + ref[1] + " is None, it should be loaded before " + item.getPath()
+                        raise ValueError, "refName to %s is None, it should be loaded before %s" %(str(ref[1]), str(item.getPath()))
                     else:
                         refName = other.refName(attrName)
                 otherName = ref[2]._otherName
@@ -1094,4 +1094,4 @@ class ItemHandler(xml.sax.ContentHandler):
         if typeName == 'class':
             return Item.loadClass(str(data))
 
-        raise ValueError, "Unknown type: " + typeName
+        raise ValueError, "Unknown type: %s" %(typeName)

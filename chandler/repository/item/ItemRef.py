@@ -100,12 +100,12 @@ class ItemRef(object):
             if isinstance(value, Path):
                 return 'path'
 
-            raise ValueError, type(value) + " not supported here."
+            raise ValueError, "%s not supported here" %(str(type(value)))
 
         other = self.other(item)
         if other is None:
-            raise ValueError, ("dangling ref at " +
-                               str(item.getPath()) + '.' + name)
+            raise ValueError, "dangling ref at %s.%s" %(str(item.getPath()),
+                                                        name)
 
         attrs = { 'type': 'uuid' }
 

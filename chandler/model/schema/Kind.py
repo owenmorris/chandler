@@ -72,9 +72,7 @@ class KindKind(Kind):
     def __init__(self, name, parent, kind, **_kwds):
 
         super(KindKind, self).__init__(name, parent, kind, **_kwds)
-
-        if kind is None:
-            self._kind = self
+        self._kind = self
 
 
 class SchemaRoot(Item):
