@@ -4,7 +4,7 @@ Version: 0.4
 Release: 1
 License: GPLv2
 Group: Office
-Vendor: Open Source Application Foundation
+Vendor: Open Source Applications Foundation
 URL: http://www.osafoundation.org
 BuildRoot: %{_builddir}/%{name}
 Source0: chandler.tar.gz
