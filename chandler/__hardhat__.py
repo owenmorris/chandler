@@ -22,8 +22,6 @@ dependencies = (
 
 def build(buildenv):
 
-    bogus4()
-
     # Build the linux launcher program
     if buildenv['os'] == 'posix':
         os.chdir("distrib/linux/launcher")
