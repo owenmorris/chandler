@@ -126,9 +126,11 @@ def build(buildenv):
         buildOptions = [
          python,
          'setup.py',
-         'build_ext',
+         'BUILD_OGL=0',
+         'BUILD_GLCANVAS=0',
          'BUILD_BASE=build_%s' % version,
          'WX_CONFIG='+buildenv['root']+'/%s/bin/wx-config' % version,
+         'build_ext',
          '--inplace',
         ]
         if version == "debug":
