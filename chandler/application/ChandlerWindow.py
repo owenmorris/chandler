@@ -77,6 +77,7 @@ class wxChandlerWindow(wxFrame):
         """
         app = application.Application.app
         app.wxMainFrame = self
+        app.wxMainFrame.activeParcel = None
         app.model.mainFrame = self.model
         event.Skip()
 
