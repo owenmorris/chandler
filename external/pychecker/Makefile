@@ -5,6 +5,12 @@ SRC=$(PYCHECKER)/pychecker-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
 
+ifeq ($(OS),Darwin)
+BIN=$(FRAMEWORK)/bin
+else
+BIN=bin
+endif
+
 BUILD=build_$(SNAP)
 
 
