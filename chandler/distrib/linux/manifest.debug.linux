@@ -55,7 +55,7 @@ libxerces-c.so.24.0
 libpathan.so.2
 libpathan.so.2.0.2
 libxml2.so.2
-libxml2.so.2.6.3
+libxml2.so.2.6.10
 src=debug/dbxml/lib
 libdbxml-1.2.so
 
