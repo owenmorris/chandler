@@ -6,6 +6,7 @@ info = {
        }
 
 dependencies = (
+                'persistence/db',
                 'python',
                 'distutils',
                 'wxpython',
