@@ -318,7 +318,7 @@
   -->
   <Menu itsName="NewItemMenu">
     <blockName>NewItemMenu</blockName>
-    <title>New item</title>
+    <title>New Item</title>
     <helpString>Create a new Content Item</helpString>
     <childrenBlocks itemref="doc:NewNoteItem"/>
     <childrenBlocks itemref="doc:NewMessageItem"/>
@@ -331,6 +331,7 @@
   <MenuItem itsName="NewNoteItem">
     <blockName>NewTabItem</blockName>
     <title>Note</title>
+    <accel>N</accel>
     <helpString>Create a new Note</helpString>
     <event itemref="doc:NewNote"/>
   </MenuItem>
@@ -387,7 +388,6 @@
   <MenuItem itsName="NewItemCollectionItem">
     <blockName>NewItemCollectionItem</blockName>
     <title>New Item Collection</title>
-    <accel>N</accel>
     <helpString>Create a new Item Collection</helpString>
     <event itemref="events:NewItemCollectionItem"/>
   </MenuItem>
