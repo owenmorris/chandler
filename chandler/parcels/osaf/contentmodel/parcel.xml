@@ -14,7 +14,6 @@
     xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
     xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
     xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-    xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
     xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
     >
 
