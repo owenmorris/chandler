@@ -7,10 +7,6 @@
 # http://osafoundation.org/Chandler_0.1_license_terms.htm
 #
 
-NOTE:  This is a test RPM - it has been tested only on a basic 
-       FC2 setup and has not been tested to ensure a clean
-       un-install
-       
 To build the binary RPM, you need to do the following:
 
 First, create a rpm build environment that will let you test
@@ -31,34 +27,19 @@ and install into something other than your actual root directories.
   
       %_topdir /home/whatever_user_name_where_rpm_lives/rpm
 
-  3. create a temp dir to extract and "massage" the chandler distribution
-      
-      mkdir osaf_temp 
+After you have setup the RPM environment, you can create the RPM by
+running the makeinstaller.sh helper script.  This script is what is
+run within the Hardhat/Tinderbox environment so it has some assumptions.
 
-Once the above is ready, then you can retrieve the distribution tarball
-you want to build the binary RPM from and prepare it.  These steps will
-very soon be scripted so that they are done by the hardhat and/or tinderbox
-scripts.
-  
-  1.  cd /path/to/osaf_temp
-  2.  mkdir usr
-      mkdir usr/local
-  3.  cd usr/local
-  4.  tar xvzf Chandler_debug_foo.tar.gz
-  5.  cd ../..
-  6.  tar zcvf ~/rpm/SOURCES/chandler.tar.gz usr
-  
-Note that currently the chandler.spec file has a number of hard-coded 
-entries.  The plan is to replace them with references to defines that
-are created by a wrapper script.
+Running internal/installers/rpm/makeinstaller.sh without any command
+line parameters will give you the following usage help:
 
-Once the SOURCES tarball is created, now it's time to tell rpmbuild to
-do it's thing.
-  
-  rpmbuild -ba chandler.spec
-  
-Note that you will see a number of dependency errors - these are expected
-at this stage.
-  
-After rpmbuild runs, you will find a binary RPM in ~/rpm/RPMS/i386/ that
-is named Chandler-0.4-1.i386.rpm
+   usage: $0 <path to .spec file> <.spec file> <path to distrib directory> <distrib file root>
+
+   example: $0 /home/builder/tinderbuild/internal/installers/rpm/ chandler.spec /home/builder/tinderbuild/ Chandler_linux_foo
+   
+This script will check the rpm setup, copy the distribution tarball from 
+the tinderbuild working directory, setup the proper SOURCES/ tree, call
+rpmbuild and then finally copy and rename the rpm to the tinderbuild 
+working directory.
+

@@ -17,6 +17,12 @@ features are added, network downloading/updating for instance.
 
 Compiling setup.exe under Windows
 
+  NOTE: if you are running the build process under Cygwin,
+        there is a helper script in internal/installers/win
+        called makeinstallers.sh that checks the setup, calls
+        makensis and then copies and renames Setup.exe to the
+        tinderbuild working directory.
+
   1.  create an installation image of Chandler in a build directory
   2.  place in the build directory the chandler.nsi script
   3.  change to the build directory
@@ -36,7 +42,7 @@ Compiling setup.exe under Linux
       /path/to/makesys chandler.nsi
   
   5.  the Setup.exe will created in the build directory
-  
+
 Installing NSIS on Linux
 
   1.  extract the nsis204.tar.bz2 tarball
