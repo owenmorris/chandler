@@ -113,7 +113,7 @@ class JabberClient:
         
         print "registered"
          
-        if self.connection.auth(username, self.password, 'Chandler'):	
+        if self.connection.auth(username, self.password, 'Chandler'):	            
             self.connection.setPresenceHandler(presenceCallback)
             self.connection.setMessageHandler(messageCallback)
             self.connection.setIqHandler(iqCallback)
@@ -127,8 +127,8 @@ class JabberClient:
             EVT_IDLE(self.viewer, self.OnIdle)
            
         else:
-            wxMessageBox(_("There is an authentication proglem. We can't log into the jabber server.  Perhaps your password is incorrect."))
-            self.Logout()
+            wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
+            #self.Logout()
  
     # dump the roster, mainly for debugging
     def DumpRoster(self):
@@ -193,9 +193,9 @@ class JabberClient:
         if self.connected:
             self.connection.disconnect()
             
-        self.connected = FALSE
+        self.connected = false
         self.connection = None
-        self.loggedIn = FALSE
+        self.loggedIn = false
         
         # cancel the idle calls
         EVT_IDLE(self.viewer, None)
@@ -204,7 +204,7 @@ class JabberClient:
     def GetAccessibleViews(self, jabberID):
         strippedID = jabberID.getStripped()
         if self.accessibleViews.has_key(strippedID):
-            return self.accessible_views[strippedID]	
+            return self.accessibleViews[strippedID]	
 
         self.requestAccessibleViews(strippedID)
         # add empty key to avoid repeated requests
@@ -222,7 +222,7 @@ class JabberClient:
     def PermissionsChanged(self, view):
         for jabberID in self.openPeers.keys():
             if self.openPeers[jabberID] == 1:
-                self.HandleViewRequest(jabber_id)
+                self.HandleViewRequest(jabberID)
                             
     # handle requests for accessible views 
     def HandleViewRequest(self, requestJabberID):
@@ -247,7 +247,7 @@ class JabberClient:
     
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
-        mappedResponse = response_body.encode('ascii')
+        mappedResponse = responseBody.encode('ascii')
         mappedResponse = self.FixExtraBlanks(mappedResponse)
             
         newViews = cPickle.loads(mappedResponse)	
@@ -260,8 +260,10 @@ class JabberClient:
         fromAddress = messageElement.getFrom()
         toAddress = messageElement.getTo()
         subject = messageElement.getSubject()
-                
-        xRequest = message_element.getX()		
+        
+        xRequest = messageElement.getX()		
+        print "message ", type, xRequest, fromAddress, subject
+
         if xRequest != None:
             if xRequest == 'chandler:shimmer-request':
                 self.viewer.repository.ReceivedRequest(body, fromAddress)
@@ -284,7 +286,7 @@ class JabberClient:
         
         # it's a main stream instant message (not one of our structured ones.
         # FIXME: eventually, invoke our instant messaging client
-        message = _("Message from ") + fromAddress + _(" about ") + subject + ". Cant handle yet..."
+        message = _("Message from ") + str(fromAddress) + _(" about ") + str(subject) + ". Cant handle yet..."
         wxMessageBox(message)
         
     # handle incoming presence requests by automatically accepting them
@@ -303,7 +305,7 @@ class JabberClient:
         #if type == 'unavailable':
             #self.viewer.location_bar.notify_unavailable(who)
             
-        print "presence element of type", type, "from", from_address, "status", status
+        print "presence element of type", type, "from", fromAddress, "status", status
                 
         # invoke a dialog to confirm the subscription request if necessary
         if type == 'subscribe' or type == 'unsubscribe':
@@ -320,7 +322,7 @@ class JabberClient:
         if query == 'jabber:iq:roster':				
             self.NotifyPresenceChanged(fromAddress)
             
-        print "iq callback ", type, from_address, query, error
+        print "iq callback ", type, fromAddress, query, error
         
     def RequestAccessibleViews(self, jabberID):
         requestMessage = Message(jabberID, 'Requesting accessible views')
@@ -340,7 +342,7 @@ class JabberClient:
         
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
-        message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscription_type)
+        message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)
         result = tkMessageBox.askquestion('Subscription Request', message)
         
         if result == 'yes':
@@ -396,7 +398,7 @@ class JabberClient:
         rosterIQ = Iq(type='set')
         query = rosterIQ.setQuery('jabber:iq:roster')
         item = query.insertTag('item')
-        item.putAttr('jid', str(jabber_id))
+        item.putAttr('jid', str(jabberID))
             
         if subscribeFlag:
             item.putAttr('subscription', 'none')
