@@ -41,6 +41,16 @@ class Item(object):
         
         self._setRoot(parent._addItem(self))
 
+    def __iter__(self):
+
+        class nullIter(object):
+            def next(self): raise StopIteration
+        
+        if hasattr(self, '_children'):
+            return self._children.itervalues()
+
+        return nullIter()
+    
     def __repr__(self):
 
         return ("<" + type(self).__name__ + ": " +
@@ -96,10 +106,9 @@ class Item(object):
         attribute, a situation best avoided.'''
 
         old = self._attributes.get(name)
-        isItem = isinstance(value, Item)
 
         if isinstance(old, ItemRef):
-            if isItem:
+            if isinstance(value, Item):
                 old._reattach(self, old.other(self), value,
                               self._otherName(name))
             else:
@@ -108,12 +117,13 @@ class Item(object):
             if isinstance(old, RefDict):
                 old.clear()
 
-            if isItem:
+            if isinstance(value, Item):
                 otherName = self._otherName(name)
                 value = ItemRef(self, value, otherName)
                 card = self.getAttrAspect(name, 'Cardinality', 'single')
+
                 if card == 'dict':
-                    refs = RefDict(self, otherName)
+                    refs = RefDict(self, name, otherName)
                     refs[value._item.refName(name)] = value
                     value = refs
                 elif card == 'list':
@@ -182,7 +192,8 @@ class Item(object):
 
             if card == 'dict':
                 if isItem:
-                    attrValue = RefDict(self, self._otherName(attribute))
+                    attrValue = RefDict(self, attribute,
+                                        self._otherName(attribute))
                 else:
                     attrValue = {key: value}
                     return
@@ -284,8 +295,13 @@ class Item(object):
     def delete(self):
         '''Delete this item and disconnect all its item references.
 
+        If this item has children, they are recursively deleted first.
         A deleted item is no longer reachable through the repository or other
         items. It is an error to access deleted item reference.'''
+
+        if hasattr(self, '_children'):
+            for item in self._children.values():
+                item.delete()
 
         for attr in self._attributes.keys():
             self.__delattr__(attr)
@@ -347,6 +363,9 @@ class Item(object):
             if newRepository is not None:
                 newRepository._registerItem(self)
 
+        for child in self:
+            child._setRoot(root)
+
     def getParent(self):
         '''Return this item's container parent.
 
@@ -384,27 +403,85 @@ class Item(object):
             self._setRoot(parent._addItem(self))
             self._parent = parent
     
+    def _addItem(self, item):
+
+        name = item._name
+        
+        if hasattr(self, '_children'):
+
+            current = self._children.get(name)
+            if current is not None:
+                current.delete()
+
+            self._children[name] = item
+
+        else:
+            self._children = { name: item }
+            
+        return self._root
+
+    def _removeItem(self, item):
+
+        del self._children[item.getName()]
+
+    def getChild(self, name):
+        'Return the child as named or None if not found.'
+
+        if hasattr(self, '_children'):
+            return self._children.get(name)
+
+        return None
+
     def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.
-
-        If the item is not a container and a path is specified then the search
-        is performed relative to the item's parent container.'''
         
+        Spec can be a Path, a UUID or a string in which case it gets coerced
+        into one of the former. If spec is a path, the search is done relative
+        to the item unless the path is absolute.'''
+
         if isinstance(spec, Path):
-            if _index > 0 and _index == len(spec):
+            l = len(spec)
+
+            if _index == l:
                 if spec[_index - 1] == self._name:
                     return self
                 else:
                     return None
 
+            if _index > l:
+                return None
+
+            if _index == 0:
+                if spec[0] == '//':
+                    return self.getRepository().find(spec)
+
+                elif spec[0] == '/':
+                    if self._root is self:
+                        return self.find(spec, _index=1)
+                    else:
+                        return self._root.find(spec, _index=0)
+
+            child = self.getChild(spec[_index])
+            if child is not None:
+                return child.find(spec, _index + 1)
+
         elif isinstance(spec, UUID):
             return self.getRepository().find(spec)
 
-        return self._parent.find(spec, _index)
+        elif isinstance(spec, str):
+            if len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
+                return self.find(UUID(spec))
+
+            return self.find(Path(spec))
+
+        return None
 
     def save(self, repository, **args):
 
         repository.saveItem(self, **args)
+
+        for child in self:
+            child.save(repository, **args)
 
     def toXML(self, generator, withSchema=False):
         'Generate the XML representation for this item.'
@@ -479,10 +556,13 @@ class Item(object):
                     attrs['otherName'] = self._otherName(name)
                     withSchema = False
             elif not isinstance(value, str):
-                if attrType is None:
-                    attrs['type'] = typeName(value)
-                elif withSchema:
-                    attrs['type'] = attrType.typeName()
+                if (tag == 'value' or
+                    ((tag == 'attribute' or
+                      tag == 'ref') and attrCard == 'single')):
+                    if attrType is None:
+                        attrs['type'] = typeName(value)
+                    elif withSchema:
+                        attrs['type'] = attrType.typeName()
 
             generator.characters(indent)
             generator.startElement(tag, attrs)
@@ -503,7 +583,7 @@ class Item(object):
                 if attrType is None:
                     value = str(value)
                 else:
-                    value = attrType.serialize(value)
+                    value = attrType.serialize(value, withSchema)
                 generator.characters(value)
 
             generator.endElement(tag)
@@ -576,13 +656,13 @@ class ItemHandler(xml.sax.ContentHandler):
                 otherName = self.getOtherName(name, attrDef, attrs)
                 
                 if cardinality == 'dict':
-                    self.collections.append(RefDict(None, otherName))
+                    self.collections.append(RefDict(None, name, otherName))
                 elif cardinality == 'list':
                     self.collections.append(RefList(None, name, otherName))
                 
     def itemEnd(self, attrs):
 
-        cls = self.cls or self.kind.Class
+        cls = self.cls or (self.kind and self.kind.Class) or Item
         self.item = item = cls(self.name, self.repository, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
                                _attributes = self.attributes)
@@ -602,13 +682,18 @@ class ItemHandler(xml.sax.ContentHandler):
 
         for ref in self.refs:
             other = item.find(ref[1])
-
+            
             if len(ref) == 2:
                 name = ref[0][0]
                 otherName = ref[0][1]
                 valueDict = item._attributes
             else:
                 name = ref[0]
+                if name is None:
+                    if other is None:
+                        raise ValueError, "refName to " + ref[1] + " is None, it should be loaded before " + item.getPath()
+                    else:
+                        name = other.refName(ref[2]._name)
                 otherName = ref[2]._otherName
                 valueDict = ref[2]
                 valueDict._item = item
@@ -692,8 +777,11 @@ class ItemHandler(xml.sax.ContentHandler):
                 ref = UUID(self.data)
 
             if self.collections:
-                name = self.makeValue(None, attrs.get('nameType', 'str'),
-                                      attrs['name'])
+                if attrs.has_key('name'):
+                    name = self.makeValue(None, attrs.get('nameType', 'str'),
+                                          attrs['name'])
+                else:
+                    name = None
                 self.refs.append((name, ref, self.collections[-1]))
             else:
                 name = attrs['name']

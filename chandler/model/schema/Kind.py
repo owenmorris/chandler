@@ -55,9 +55,13 @@ class KindKind(Kind):
 
         return attrDef
     
+    def inheritAttrDef(self, name):
+
+        return None
+    
 
 Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
-                                            'Cardinality': 'dict',
+                                            'Cardinality': 'list',
                                             'OtherName': 'SubKind' },
                              'SubKind': { 'Required': False,
                                           'Cardinality': 'dict',

@@ -45,7 +45,7 @@ class ItemRef(object):
             else:
                 card = other.getAttrAspect(name, 'Cardinality', 'single')
                 if card == 'dict':
-                    old = RefDict(other, other._otherName(name))
+                    old = RefDict(other, name, other._otherName(name))
                     other._attributes[name] = old
                     old[item.refName(name)] = self
                     return
@@ -84,11 +84,12 @@ class ItemRef(object):
 
 class RefDict(dict):
 
-    def __init__(self, item, otherName, initialDict=None):
+    def __init__(self, item, name, otherName, initialDict=None):
 
         super(RefDict, self).__init__()
 
         self._item = item
+        self._name = name
         self._otherName = otherName
         
         if initialDict is not None:
@@ -174,9 +175,8 @@ class RefList(RefDict):
 
     def __init__(self, item, name, otherName, initialList=None):
 
-        super(RefList, self).__init__(item, otherName, initialDict)
+        super(RefList, self).__init__(item, name, otherName, None)
 
-        self._name = name
         self._keys = []
 
         if initialList is not None:

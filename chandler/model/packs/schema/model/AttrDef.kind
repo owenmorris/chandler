@@ -12,6 +12,9 @@
         <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
         <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>
         <ref name="OtherName" type="path">//Schema/Model/Attributes/OtherName</ref>
+        <ref name="DeletePolicy" type="path">//Schema/Model/Attributes/DeletePolicy</ref>
+        <ref name="CopyPolicy" type="path">//Schema/Model/Attributes/CopyPolicy</ref>
+        <ref name="CountPolicy" type="path">//Schema/Model/Attributes/CountPolicy</ref>
         <ref name="DisplayName" type="path">//Schema/Model/Attributes/DisplayName</ref>
         <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
     </ref>

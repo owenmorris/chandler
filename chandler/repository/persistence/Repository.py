@@ -13,7 +13,6 @@ import re
 from model.util.UUID import UUID
 from model.util.Path import Path
 from model.item.Item import ItemHandler
-from model.item.Container import Container
 
 
 class Repository(object):
@@ -179,12 +178,11 @@ class Repository(object):
         else:
             path.append(item.getName())
             print path
-            if isinstance(item, Container):
-                for child in item:
-                    self.dir(child, path)
+            for child in item:
+                self.dir(child, path)
             path.pop()
         
-    def save(self, encoding='iso-8859-1'):
+    def save(self, encoding='iso-8859-1', purge=False):
         '''Save all items into the directory the repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
@@ -211,6 +209,9 @@ class Repository(object):
                 contents.write('\n')
                 
         contents.close()
+
+        if purge:
+            self.purge()
 
     def _saveRoot(self, root, encoding='iso-8859-1', withSchema=False):
 
@@ -349,8 +350,10 @@ class PackHandler(xml.sax.ContentHandler):
 
         self.cwd.pop()
 
-    def parentStart(self, attrs):
+    def itemStart(self, attrs):
 
+        parent = None
+        
         if attrs.has_key('path'):
             parent = self.cover.find(Path(attrs['path']))
         elif attrs.has_key('uuid'):
@@ -358,32 +361,27 @@ class PackHandler(xml.sax.ContentHandler):
         elif attrs.has_key('file'):
             parent = self.loadItem(os.path.join(self.cwd[-1], attrs['file']),
                                    self.parent[-1])
-        self.parent.append(parent)
-
-        if attrs.has_key('cwd'):
-            self.cwd.append(os.path.join(self.cwd[-1], attrs['cwd']))
-            
-    def parentEnd(self, attrs):
-
-        self.parent.pop()
-
-        if attrs.has_key('cwd'):
-            self.cwd.pop()
-
-    def itemStart(self, attrs):
-
-        if attrs.has_key('files'):
+        elif attrs.has_key('files'):
             pattern = '^' + attrs['files'] + '$'
             pattern = pattern.replace('.', '\\.').replace('*', '.*')
             exp = re.compile(pattern)
 
             for file in os.listdir(self.cwd[-1]):
                 if exp.match(file):
-                    self.loadItem(os.path.join(self.cwd[-1], file),
-                                  self.parent[-1])
-        else:
-            self.cover._loadItem(os.path.join(self.cwd[-1], attrs['file']),
-                                 self.parent[-1])
+                    parent = self.loadItem(os.path.join(self.cwd[-1], file),
+                                           self.parent[-1])
+            
+        self.parent.append(parent)
+
+        if attrs.has_key('cwd'):
+            self.cwd.append(os.path.join(self.cwd[-1], attrs['cwd']))
+
+    def itemEnd(self, attrs):
+
+        self.parent.pop()
+
+        if attrs.has_key('cwd'):
+            self.cwd.pop()
 
     def loadItem(self, file, parent):
 

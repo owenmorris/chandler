@@ -2,5 +2,5 @@
 <item>
     <name>Class</name>
     <kind type="path">//Schema/Model/Type</kind>
-    <class module="model.schema.Types">Clazz</class>
+    <class module="model.schema.Types">Class</class>
 </item>

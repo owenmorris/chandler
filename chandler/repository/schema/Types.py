@@ -14,7 +14,7 @@ class Type(Item):
 
     kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
                                          'Cardinality': 'dict',
-                                         'OtherName': 'Type' } })
+                                         'OtherName': 'Type' }})
 
     def makeValue(self, data):
 
@@ -24,7 +24,7 @@ class Type(Item):
 
         raise NotImplementedError, "Type.typeName()"
 
-    def serialize(self, value):
+    def serialize(self, value, withSchema=False):
 
         return str(value)
     
@@ -105,15 +105,15 @@ class Path(Type):
         return model.util.Path(data)
 
 
-class Clazz(Type):
+class Class(Type):
 
     def typeName(self):
 
         return 'class'
 
-    def serialize(self, value):
+    def serialize(self, value, withSchema=False):
 
-        return value.__module__ + '.' + value.__name__
+        return "%s.%s" %(value.__module__, value.__name__)
 
     def unserialize(self, data):
 
@@ -126,17 +126,27 @@ class Clazz(Type):
 
 class Enum(Type):
 
+    kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
+                                         'Cardinality': 'dict',
+                                         'OtherName': 'Type' },
+                            'Values': { 'Cardinality': 'list' } })
+
     def typeName(self):
 
         return 'str'
 
-    def serialize(self, value):
+    def serialize(self, value, withSchema=False):
 
-        return value
+        number = self.Values.index(value)
+        
+        if withSchema:
+            return value
+        else:
+            return str(number)
     
     def unserialize(self, data):
 
         if data[0] >= '0' and data[0] <= '9':
             return self.Values[int(data)]
 
-        return data
+        return self.Values.index(data) and data

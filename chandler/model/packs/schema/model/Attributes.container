@@ -2,5 +2,4 @@
 
 <item>
     <name>Attributes</name>
-    <class module="model.item.Container">Container</class>
 </item>

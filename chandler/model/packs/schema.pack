@@ -2,18 +2,18 @@
 
 <pack name="Schema" cwd="schema">
 
-  <parent file="Schema.root">
-    <parent file="Model.domain" cwd="model">
+  <item file="Schema.root">
+    <item file="Model.domain" cwd="model">
       <item files="*.kind" />
 
-      <parent file="Types.container" cwd="types">
+      <item file="Types.container" cwd="types">
         <item files="*.type" />
-      </parent>
+      </item>
 
-      <parent file="Attributes.container" cwd="attributes">
+      <item file="Attributes.container" cwd="attributes">
         <item files="*.attr" />
-      </parent>
-    </parent>
-  </parent>
+      </item>
+    </item>
+  </item>
 
 </pack>
