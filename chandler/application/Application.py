@@ -14,6 +14,9 @@ from repository.persistence.RepositoryError import VersionConflictError
 from crypto import Crypto
 import logging as logging
 
+logger = logging.getLogger('App')
+logger.setLevel(logging.INFO)
+
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
 
@@ -162,7 +165,7 @@ class wxApplication (wx.App):
         """
         debugParcelDir = Globals.options.parcelDir
         if debugParcelDir and os.path.exists(debugParcelDir):
-            print "Using PARCELDIR (%s)" % debugParcelDir
+            logger.info("Using PARCELDIR (%s)" % debugParcelDir)
             sys.path.insert (2, debugParcelDir)
 
         """
@@ -493,7 +496,7 @@ class wxApplication (wx.App):
         try:
             member = getattr (type(item), methodName)
         except AttributeError:
-            logging.warning ("CallItemMethodAsync couldn't find method %s on item %s" % (methodName, str (item)))
+            logger.warning ("CallItemMethodAsync couldn't find method %s on item %s" % (methodName, str (item)))
             return
 
         # unwrap the transportArgs
