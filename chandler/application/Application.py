@@ -11,6 +11,7 @@ from wxPython.xrc import *
 
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
+from application.URLTree import URLTree
 from persistence import Persistent 
 from persistence.list import PersistentList
 
@@ -34,7 +35,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 19
+    VERSION = 20
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -49,12 +50,12 @@ class Application(Persistent):
 
         self.preferences         object containing all application preferences
         self.mainFrame           ChandlerWindow
-        self.URLTree             tree of parcel views
+        self.URLTree             tree of url's
         self.version             see __setstate__
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
-        self.URLTree = PersistentList ()
+        self.URLTree = URLTree()
         self.version = Application.VERSION
     
     def SynchronizeView(self):
@@ -103,7 +104,7 @@ class Application(Persistent):
             if __debug__ and createNewRepository:
                 self.CreateNewRepository = 1
                 
-            
+                
 class wxApplication (wxApp):
     """
       Many wxPython objects, for example wxApplication have corresponding
@@ -247,8 +248,9 @@ class wxApplication (wxApp):
         if uri != None:
             self.wxMainFrame.GoToUri(uri, false)
         else:
-            if len(self.model.URLTree) > 0:
-                self.wxMainFrame.GoToUri(self.model.URLTree[0][1], true)
+            children = self.model.URLTree.GetUriChildren('')
+            if len(children) > 0:
+                self.wxMainFrame.GoToUri(children[0], true)
             
     def OnQuit(self, event):
         """

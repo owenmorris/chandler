@@ -38,24 +38,21 @@ class ViewerParcel (Parcel):
         below.
           Currently we install by appending to the end of the list
         """
+        uriList = app.model.URLTree.GetUriChildren('')
         found = false
-        for item in app.model.URLTree:
-            parcel = item[0]
+        for uri in uriList:
+            parcel = app.model.URLTree.UriExists(uri)
             if parcel.__module__ == theClass.__module__:
                 found = true
                 break
-            
+        
         if not found:
             if type (theClass) == types.ClassType:
                 instance = new.instance (theClass, {})
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            itemList = PersistentList()
-            itemList.append(instance)
-            itemList.append(instance.displayName)
-            itemList.append(PersistentList())
-            app.model.URLTree.append (itemList)
+            app.model.URLTree.AddUri(instance, instance.displayName)
         
     Install = classmethod (Install)
     
@@ -116,6 +113,13 @@ class ViewerParcel (Parcel):
                                                           panel)
             panel.Activate()
             panel.Show ()
+            
+    def GoToUri(self, uri):
+        """
+          Override to navigate your parcel to the specified uri.
+        """
+        self.SynchronizeView()
+        return true
     
 class wxViewerParcel(wxPanel):
     def __init__(self):

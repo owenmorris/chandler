@@ -164,6 +164,7 @@ class wxChandlerWindow(wxFrame):
           Closing the last window causes the application to quit.
         """
         del application.Application.app.association[id(self.model)]
+        application.Application.app.model.URLTree.RemoveSideBar(self.model)
         self.Destroy()
         
     def MoveOntoScreen(self):
@@ -201,40 +202,27 @@ class wxChandlerWindow(wxFrame):
     def GoToUri(self, uri, doAddToHistory = true):
         """
           Navigates to the specified uri.  Steps for this include:
-        1) Telling the parcel to display itself  2) Adjusting the sidebar
-        to represent the currently selected uri  3) Adjusting the navigation
-        bar to have the proper history and synchronize its view.
+        1) Adjusting the sidebar to represent the currently selected uri  
+        2) Adjusting the navigation bar to have the proper history and 
+        synchronize its view  3) Telling the parcel to display the proper
+        uri.
         """
         # If the window has already been closed
         if not application.Application.app.association.has_key(id(self.model)):
             return false
-        
+
         if uri.startswith('/'):
             uri = uri[1:]
         if uri.endswith('/'):
             uri = uri[:-1]
         fields = uri.split('/')
         uriParcelName = fields[0]
+        parcel = application.Application.app.model.URLTree.UriExists(uriParcelName)
+        if parcel == None:
+            return false
         
-        for item in application.Application.app.model.URLTree:
-            parcel = item[0]
-            """
-            Each parcel must have an attribute which is the displayName.
-            """
-            assert (hasattr (parcel, 'displayName'))
-            allNames = [parcel.displayName]
-            """
-              In addition to having a display name, parcels can register
-            other root level uris by having a list uriRootList.
-            """
-            if (hasattr(parcel, 'uriRootList')):
-                allNames += parcel.uriRootList
-            for name in allNames:
-                if name == uriParcelName:
-                    self.sideBar.model.SelectUri(uri)
-                    if doAddToHistory:
-                        self.navigationBar.model.AddUriToHistory(uri)
-                    self.navigationBar.model.SynchronizeView()
-                    parcel.SynchronizeView ()
-                    return true
-        return false
+        self.sideBar.model.SelectUri(uri)
+        if doAddToHistory:
+            self.navigationBar.model.AddUriToHistory(uri)
+        self.navigationBar.model.SynchronizeView()
+        return parcel.GoToUri(uri)
