@@ -28,15 +28,33 @@ def make_op(lhs, op, rhs):
 parser Query:
     ignore:    "[ \r\t\n]+"
     token NUM: '[0-9]+'
-    token FOR: '[Ff][Oo][Rr]'
-    token ID: '[a-zA-Z]+'
     token STRING: '"([^\\"]+|\\\\.)*"|\'([^\']+|\\\\.)*\''
-    token UNOP: '[+-]'
+    token PARAM: '\$[0-9]+'
+    token UNOP: '(not|\+|-)'
     token MULOP: '(\*|/|div|mod)'
     token ADDOP: '(\+|-)'
     token RELOP: '(==|!=|>=|<=|>|<)'
     token BOOLOP: '(and|or)'
+    token ID: '[a-zA-Z]+'
     token END: '$'
+
+    rule stmt: union_stmt {{ return union_stmt }} 
+        | intersection_stmt {{ return intersection_stmt }}
+        | difference_stmt {{ return difference_stmt }}
+        | for_stmt {{ return for_stmt }}
+
+    rule stmt_list: stmt {{ result = [ stmt ] }}
+        (',' stmt {{ result.append(stmt) }} )*
+        {{ return result }}
+
+    rule union_stmt: 'union' '\(' stmt_list '\)' 
+        {{ return [ 'union', stmt_list] }}
+
+    rule intersection_stmt: 'intersect' '\(' stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2 = stmt }} '\)'
+        {{ return [ 'intersect', stmt1, stmt2] }}
+
+    rule difference_stmt: 'difference' '\(' stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2=stmt }}  '\)'
+        {{ return [ 'difference', stmt1, stmt2] }}
 
     rule for_stmt: 'for' ID 'in' 
                    ( name_expr 'where' and_or_expr 
@@ -82,6 +100,6 @@ parser Query:
                     ( ',' and_or_expr {{ result.append(and_or_expr) }} )*
                     {{ return result }}
 
-    rule name_expr: ID {{ return ID }}
+    rule name_expr: ID {{ return ID }} | PARAM {{ return PARAM }}
 
 %%
