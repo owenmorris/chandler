@@ -845,42 +845,28 @@ def setupEnvironment(buildenv):
 
     if buildenv['os'] == 'posix':
         ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
-        if buildenv['version'] == 'debug':
-            additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
-             'lib'
-            additional_path_rel = buildenv['root'] + os.sep + 'release' + \
-             os.sep + 'lib'
-            additional_path = additional_path + os.pathsep + additional_path_rel
-        else:
-            additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
-             'lib'
+        ver = buildenv['version']
+        additional_path=os.path.join(buildenv['root'],ver,'lib')+\
+         os.pathsep + os.path.join(buildenv['root'],ver,'db','lib')+\
+         os.pathsep + os.path.join(buildenv['root'],ver,'dbxml','lib')
         ld_library_path = additional_path + os.pathsep + ld_library_path
         os.putenv('LD_LIBRARY_PATH', ld_library_path)
 
     if buildenv['os'] == 'osx':
         dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH', '')
-        if buildenv['version'] == 'debug':
-            additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
-             'lib'
-            additional_path_rel = buildenv['root'] + os.sep + 'release' + \
-             os.sep + 'lib'
-            additional_path = additional_path + os.pathsep + additional_path_rel
-        else:
-            additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
-             'lib'
+        ver = buildenv['version']
+        additional_path=os.path.join(buildenv['root'],ver,'lib')+\
+         os.pathsep + os.path.join(buildenv['root'],ver,'db','lib')+\
+         os.pathsep + os.path.join(buildenv['root'],ver,'dbxml','lib')
         dyld_library_path = additional_path + os.pathsep + dyld_library_path
         os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
 
         dyld_framework_path = os.environ.get('DYLD_FRAMEWORK_PATH', '')
-        if buildenv['version'] == 'debug':
-            additional_path = os.path.join( buildenv['root'], 'debug', 'Library',
-             'Frameworks')
-        else:
-            additional_path = os.path.join( buildenv['root'], 'release', 
-             'Library', 'Frameworks')
+        additional_path = os.path.join( buildenv['root'], ver, 'Library',
+         'Frameworks')
         dyld_framework_path = additional_path + os.pathsep + dyld_framework_path
         os.putenv('DYLD_FRAMEWORK_PATH', dyld_framework_path)
-        
+
 def quoteString(str):
     return "\'" + str + "\'"
 
