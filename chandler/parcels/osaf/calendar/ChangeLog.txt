@@ -1,5 +1,9 @@
 # ChangeLog for Calendar Parcel
 
+2003-09-11 Kaitlin Duck Sherwood <ducky@osafoundation.org>
+   * Modified "About" page to give a clearer description of how
+     to add an Event.
+
 2003-09-05 Katie Capps Parlante <capps@osafoundation.org>
    * Added participant to calendar model
    * Changed table view to use wxListCtrl instead of wxGrid
