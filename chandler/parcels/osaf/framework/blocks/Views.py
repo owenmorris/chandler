@@ -77,15 +77,15 @@ class View(BoxContainer):
             broadcast (block,
                        methodName,
                        notification,
-                       lambda child: (child is not None and child.isShown))
+                       lambda child: (child is not None and
+                                      child.isShown and 
+                                      not child.eventBoundary))
 
         elif event.dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.mainView,
                        methodName,
                        notification,
-                       lambda child: (child is not None and
-                                      child.isShown and 
-                                      not child.eventBoundary))
+                       lambda child: (child is not None and child.isShown))
 
         elif event.dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
