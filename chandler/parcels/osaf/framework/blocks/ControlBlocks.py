@@ -514,6 +514,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
+    def OnKeyDown(self, event):
+        """
+          Work around a widgets grid bug: ignore single shift key down to avoid beginning
+        editing a cell
+        """
+        if event.GetKeyCode() != wx.WXK_SHIFT:
+            event.Skip()
 
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
