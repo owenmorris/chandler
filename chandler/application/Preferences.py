@@ -13,7 +13,7 @@ class Preferences (Persistent):
        Global Application preferences. """
     def __init__(self):
         self.windowSize = PersistentDict.PersistentDict()
-        self.windowSize['width'] = 389
-        self.windowSize['height'] = 310
+        self.windowSize['width'] = 679
+        self.windowSize['height'] = 532
 
 

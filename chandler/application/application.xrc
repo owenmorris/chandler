@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<resource version="2.4.0.0">
+
+    <object class="wxFrame" subclass="application.ChandlerWindow.wxChandlerWindow" name="ChandlerWindow">
+        <size>100,50</size>
+        <title>Chandler</title>
+        <style>wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE</style>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <flag>wxGROW</flag>
+                <border>1</border>
+                <object class="wxToolBar" subclass="application.NavigationBar.NavigationBar" name="NavigationBar">
+                    <margins>2,2</margins>
+                    <style>wxTB_HORIZONTAL|wxNO_BORDER|wxTB_FLAT|wxTB_TEXT</style>
+                    <bitmapsize>20,20</bitmapsize>
+                    <object class="tool" name="prev">
+                        <bitmap>images/BackArrow.png</bitmap>
+                        <label>Prev</label>
+                    </object>
+                    <object class="tool" name="next">
+                        <bitmap>images/ForwardArrow.png</bitmap>
+                        <label>Next</label>
+                    </object>
+                    <object class="tool" name="reload">
+                        <bitmap>images/Reload.png</bitmap>
+                        <label>Reload</label>
+                    </object>
+                    <object class="tool" name="stop">
+                        <bitmap>images/Stop.png</bitmap>
+                        <label>Stop</label>
+                    </object>
+                    <object class="tool" name="home">
+                        <bitmap>images/Home.png</bitmap>
+                        <label>Home</label>
+                    </object>
+                    <object class="separator">
+                    </object>
+                    <object class="wxTextCtrl" name="uriBox">
+                        <option>1</option>
+                        <size>160,18</size>
+                        <value></value>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxEXPAND</flag>
+                <border>1</border>
+                <object class="unknown" name="ID_FOREIGN">
+                    <size>100,24</size>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxALIGN_CENTRE|wxALL|wxEXPAND</flag>
+                <border>1</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>1</border>
+                        <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
+                            <size>100,10</size>
+                            <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>1</option>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>1</border>
+                        <object class="unknown" name="ViewerParcel">
+                            <size>100,10</size>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+    
+    <object class="wxMenuBar" name="MainMenuBar">
+        <object class="wxMenu" name="FileMenu">
+            <label>File</label>
+            <object class="wxMenuItem" name="Quit">
+                <label>Quit</label>
+                <accel>Ctrl+Q</accel>
+            </object>
+        </object>
+        <object class="wxMenu" name="EditMenu">
+            <label>Edit</label>
+            <object class="wxMenuItem" name="Undo">
+                <label>Undo</label>
+                <accel>Ctrl+Z</accel>
+            </object>
+            <label>Edit</label>
+            <object class="wxMenuItem" name="Redo">
+                <label>Redo</label>
+                <accel>Ctrl+Y</accel>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="Cut">
+                <label>Cut</label>
+                <accel>Ctrl+X</accel>
+            </object>
+            <object class="wxMenuItem" name="Copy">
+                <label>Copy</label>
+                <accel>Ctrl+C</accel>
+            </object>
+            <object class="wxMenuItem" name="Paste">
+                <label>Paste</label>
+                <accel>Ctrl+V</accel>
+            </object>
+            <object class="wxMenuItem" name="Delete">
+                <label>Delete</label>
+                <accel>Del</accel>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="Preferences">
+                <label>Preferences...</label>
+            </object>
+        </object>
+        <object class="wxMenu" name="ViewMenu">
+            <label>View</label>
+            <object class="wxMenuItem" name="ShowNavigationBar">
+                <label>Navigation Bar</label>
+                <checkable>1</checkable>
+            </object>
+            <object class="wxMenuItem" name="ShowActionBar">
+                <label>Action Bar</label>
+                <checkable>1</checkable>
+            </object>
+            <object class="wxMenuItem" name="ShowSideBar">
+                <label>Side Bar</label>
+                <checkable>1</checkable>
+            </object>
+        </object>
+        <object class="wxMenu" name="HelpMenu">
+            <label>Help</label>
+            <object class="wxMenuItem" name="Help">
+                <label>Chandler Help</label>
+            </object>
+            <object class="separator"/>
+            <object class="wxMenuItem" name="About">
+                <label>About Chandler...</label>
+            </object>
+        </object>
+    </object>
+    
+    <object class="wxMenu" name="DebugMenu">
+        <label>Debug</label>
+        <object class="wxMenuItem" name="Test1">
+            <label>Test1</label>
+        </object>
+        <object class="wxMenuItem" name="Test2">
+            <label>Test2</label>
+        </object>
+    </object>
+
+</resource>

@@ -123,7 +123,6 @@ class wxApplication (wxApp):
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         resourceFile = self.chandlerDirectory +\
                        os.sep + "application" +\
-                       os.sep + "resources" +\
                        os.sep + "application.xrc"
 
         #Check for the file's existance in debugging code
@@ -166,8 +165,8 @@ class wxApplication (wxApp):
 
     if __debug__:
         def OnTest1 (self, event):
-            
-            pass
+            if len (self.model.URLTree):
+                self.model.URLTree[0].synchronizeView ()
         
         def OnTest2 (self, event):
             pass

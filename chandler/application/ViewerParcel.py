@@ -8,7 +8,8 @@ __license__ = "OSAF License"
 parcel viewer.
 """
 
-import new, types, exceptions
+import new, types, exceptions, sys, os
+from wxPython.xrc import *
 from application.Parcel import Parcel
 from application.Application import app
 
@@ -32,15 +33,22 @@ class ViewerParcel (Parcel):
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            app.model.URLTree.append (module)
+            app.model.URLTree.append (instance)
         
     Install = classmethod (Install)
 
     def synchronizeView (self):
-        pass
-    
-        #name1  = wxTextCtrl(wxWindow, -1, '', wxPoint(50, 10), wxSize(100, -1))
-        #app.applicationResources.AttachUnknownControl ("ViewerParcel", name1)
-
-        #name2  = wxTextCtrl(wxWindow, -1, '', wxPoint(50, 10), wxSize(100, -1))
-        #app.applicationResources.AttachUnknownControl ("ViewerParcel", name2)
+        if not app.association.has_key(id(self)):
+            module = sys.modules[self.__class__.__module__]
+            path = os.path.dirname (module.__file__)
+            path += os.sep + "parcel.xrc"
+            """
+              ViewerParcels must have a resource file named parcel.xrc
+            """
+            assert (os.path.exists (path))
+            resources = wxXmlResource(path)
+            wxMainFrame = app.association[id(app.model.mainFrame)]
+            panel = resources.LoadObject(wxMainFrame, "CalendarView", "wxPanel")
+            app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
+            panel.model = self
+            panel.OnInit ()
