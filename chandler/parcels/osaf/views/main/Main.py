@@ -68,8 +68,8 @@ class MainView(View):
          "IMAP Account",
          account,
          [
-           { "attr":"serverName", "label":"IMAP Server" },
-           { "attr":"accountName", "label":"Username" },
+           { "attr":"host", "label":"IMAP Server" },
+           { "attr":"username", "label":"Username" },
            { "attr":"password", "label":"Password", "password":True },
          ]
         ):
@@ -83,8 +83,8 @@ class MainView(View):
                 # Retrieve the conflicting item
                 conflict = e.getItem()
                 itemPath = conflict.itsPath
-                serverName = conflict.serverName
-                accountName = conflict.accountName
+                host = conflict.host
+                username = conflict.username
                 password = conflict.password
                 print "Got a conflict with item:", itemPath
                 # The conflict item has *our* values in it; to see the
@@ -97,8 +97,8 @@ class MainView(View):
                 account = Globals.repository.findPath(itemPath)
                 # To resolve this conflict we're going to simply reapply the 
                 # values that were set in the dialog box.
-                account.serverName = serverName
-                account.accountName = accountName
+                account.host = host
+                account.username = username
                 account.password = password
                 Globals.repository.commit()
                 # Note: this commit, too, could get a conflict I suppose, so
