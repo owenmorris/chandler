@@ -585,7 +585,6 @@ class WebDAVConduit(ShareConduit):
 
     def getLocation(self):  # must implement
         """ Return the url of the share """
-        # @@@MOR need to handle https
 
         (host, port, sharePath, username, password, useSSL) = self.__getSettings()
         scheme = "http"
@@ -649,8 +648,16 @@ class WebDAVConduit(ShareConduit):
     def exists(self):
         super(WebDAVConduit, self).exists()
 
-        resp = self.__getClient().head(self.getLocation())
-        resp.read()
+        try:
+            resp = self.__getClient().head(self.getLocation())
+            resp.read()
+        except WebDAV.ConnectionError, err:
+            raise CouldNotConnect(message=err.message)
+
+        if resp.status == httplib.UNAUTHORIZED:
+            message = "Not authorized to PUT %s" % url
+            raise NotAuthorized(message=message)
+
         if resp.status == httplib.NOT_FOUND:
             return False
         else:
@@ -663,9 +670,36 @@ class WebDAVConduit(ShareConduit):
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
-            resp = self.__getClient().mkcol(url)
-            resp.read() # Always need to read each response
-            # @@@MOR Raise an exception if already exists?
+            try:
+                resp = self.__getClient().mkcol(url)
+                resp.read() # Always need to read each response
+            except WebDAV.ConnectionError, err:
+                raise CouldNotConnect(message=err.message)
+
+            if resp.status == httplib.METHOD_NOT_ALLOWED:
+                # already exists
+                message = "Collection at %s already exists" % url
+                raise AlreadyExists(message=message)
+
+            if resp.status == httplib.UNAUTHORIZED:
+                # not authorized
+                message = "Not authorized to create collection %s" % url
+                raise NotAuthorized(message=message)
+
+            if resp.status == httplib.CONFLICT:
+                # this happens if you try to create a collection within a
+                # nonexistent collection
+                message = "Parent collection for %s not found" % url
+                raise NotFound(message=message)
+
+            if resp.status == httplib.FORBIDDEN:
+                # the server doesn't allow the creation of a collection here
+                message = "Server doesn't allow the creation of collections at %s" % url
+                raise IllegalOperation(message=message)
+
+            if resp.status != httplib.CREATED:
+                 message = "WebDAV error, status = %d" % resp.status
+                 raise IllegalOperation(message=message)
 
     def destroy(self):
         print " @@@MOR unimplemented"
@@ -678,13 +712,34 @@ class WebDAVConduit(ShareConduit):
         """
         url = self.__getItemURL(item)
         text = self.share.format.exportProcess(item)
-        resp = self.__getClient().put(url, text)
-        resp.read() # Always need to read each response
+
+        try:
+            resp = self.__getClient().put(url, text)
+            resp.read() # Always need to read each response
+        except WebDAV.ConnectionError, err:
+            raise CouldNotConnect(message=err.message)
+
+        # 201 = new, 204 = overwrite
+
+        if resp.status == httplib.UNAUTHORIZED:
+            message = "Not authorized to PUT %s" % url
+            raise NotAuthorized(message=message)
+
+        if resp.status == httplib.FORBIDDEN or resp.status == httplib.CONFLICT:
+            # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
+            message = "Parent collection for %s is not found" % url
+            raise NotFound(message=message)
+
         etag = resp.getheader('ETag', None)
         if not etag:
             # mod_dav doesn't give us back an etag upon PUT
-            resp = self.__getClient().head(url)
-            resp.read() # Always need to read each response
+
+            try:
+                resp = self.__getClient().head(url)
+                resp.read() # Always need to read each response
+            except WebDAV.ConnectionError, err:
+                raise CouldNotConnect(message=err.message)
+
             etag = resp.getheader('ETag', None)
             if not etag:
                 print "HEAD didn't give me an etag"
@@ -705,13 +760,30 @@ class WebDAVConduit(ShareConduit):
     def _deleteItem(self, itemPath): # must implement
         itemURL = self.__URLFromPath(itemPath)
         logger.info("...removing from server: %s" % itemURL)
-        resp = self.__getClient().delete(itemURL)
-        deleteResp = resp.read()
+
+        try:
+            resp = self.__getClient().delete(itemURL)
+            deleteResp = resp.read()
+        except WebDAV.ConnectionError, err:
+            raise CouldNotConnect(message=err.message)
 
     def _getItem(self, itemPath, into=None): # must implement
         itemURL = self.__URLFromPath(itemPath)
-        resp = self.__getClient().get(itemURL)
-        text = resp.read()
+
+        try:
+            resp = self.__getClient().get(itemURL)
+            text = resp.read()
+        except WebDAV.ConnectionError, err:
+            raise CouldNotConnect(message=err.message)
+
+        if resp.status == httplib.NOT_FOUND:
+            message = "Not found: %s" % url
+            raise NotFound(message=message)
+
+        if resp.status == httplib.UNAUTHORIZED:
+            message = "Not authorized to get %s" % url
+            raise NotAuthorized(message=message)
+
         etag = resp.getheader('ETag', None)
         etag = self.__cleanEtag(etag)
         item = self.share.format.importProcess(text, item=into)
@@ -726,14 +798,42 @@ class WebDAVConduit(ShareConduit):
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
-            resources = self.__getClient().ls(location + "/")
+            try:
+                resources = self.__getClient().ls(location + "/")
+
+            except WebDAV.ConnectionError, err:
+                raise CouldNotConnect(message=err.message)
+
+            except WebDAV.WebDAVException, e:
+
+                if e.status == httplib.NOT_FOUND:
+                    raise NotFound(message="Not found: %s" % location)
+
+                if e.status == httplib.UNAUTHORIZED:
+                    raise NotAllowed(message="Not allowed: %s" % location)
+
+                raise
+
             for (path, etag) in resources:
                 etag = self.__cleanEtag(etag)
                 resourceList[path] = { 'data' : etag }
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            resp = self.__getClient().head(location)
-            resp.read() # Always need to read each response
+
+            try:
+                resp = self.__getClient().head(location)
+                resp.read() # Always need to read each response
+            except WebDAV.ConnectionError, err:
+                raise CouldNotConnect(message=err.message)
+
+            if resp.status == httplib.NOT_FOUND:
+                message = "Not found: %s" % url
+                raise NotFound(message=message)
+
+            if resp.status == httplib.UNAUTHORIZED:
+                message = "Not authorized to get %s" % url
+                raise NotAuthorized(message=message)
+
             etag = resp.getheader('ETag', None)
             etag = self.__cleanEtag(etag)
             path = urlparse.urlparse(location)[2]
@@ -763,23 +863,30 @@ class WebDAVConduit(ShareConduit):
 
 class SharingError(Exception):
     """ Generic Sharing exception. """
-    pass
+    def __init__(self, message=None):
+        self.message = message
 
 class AlreadyExists(SharingError):
     """ Exception raised if a share already exists. """
-    pass
 
 class NotFound(SharingError):
     """ Exception raised if a share/resource wasn't found. """
-    pass
 
 class NotAllowed(SharingError):
     """ Exception raised if we don't have access. """
-    pass
 
 class Misconfigured(SharingError):
     """ Exception raised if a share isn't properly configured. """
-    pass
+
+class CouldNotConnect(SharingError):
+    """ Exception raised if a conduit can't connect to an external entity
+        due to DNS/network problems.
+    """
+
+class IllegalOperation(SharingError):
+    """ Exception raised if the entity a conduit is communicating with is
+        denying an operation for some reason not covered by other exceptions.
+    """
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1541,6 +1648,13 @@ def ensureAccountSetUp(view):
         if response == False:
             return False
 
+
+def syncShare(share):
+    """ @@@MOR In progress
+    try:
+        share.sync()
+    except WebDAV.ConnectionError, err:
+    """
 
 
 def syncAll(view):

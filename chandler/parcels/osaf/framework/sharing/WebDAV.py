@@ -48,6 +48,16 @@ class Client(object):
             self.conn = httplib.HTTPConnection(self.host, self.port)
 
         self.conn.debuglevel = 0
+        try:
+            logger.debug("Connecting to %s" % self.host)
+            self.conn.connect()
+        except socket.gaierror, err:
+            # @@@MOR can these exceptions mean anything else?
+            message = "Unknown host %s" % self.host
+            raise ConnectionError(message=message)
+        except socket.herror, err:
+            message = "Unknown host %s" % self.host
+            raise ConnectionError(message=message)
 
     def mkcol(self, url, extraHeaders={ }):
         return self._request('MKCOL', url, extraHeaders=extraHeaders)
@@ -92,7 +102,7 @@ class Client(object):
         resources = []
         resp = self.propfind(url, depth=1, extraHeaders=extraHeaders)
         if resp.status != httplib.MULTI_STATUS:
-            raise WebDAVException() # @@@MOR Any way to recover from this?
+            raise WebDAVException(status=resp.status)
 
         # Parse the propfind, pulling out the URLs for each child along
         # with their ETAGs, and storing them in the resourceList dictionary:
@@ -104,6 +114,7 @@ class Client(object):
         except:
             logging.error("Parsing response failed: %s" % text)
             raise
+
         node = doc.children.children
         while node:
             if node.type == "element":
@@ -208,7 +219,8 @@ class Client(object):
                     continue
                 else:
                     logger.debug("Illegal redirect: %s to %s" % (url, newurl))
-                    raise IllegalRedirect()
+                    message = "Illegal redirect: %s to %s" % (url, newurl)
+                    raise IllegalRedirect(message=message)
 
             return response
 
@@ -217,7 +229,9 @@ class Client(object):
         raise ConnectionError()
 
 class WebDAVException(Exception):
-    pass
+    def __init__(self, status=None, message=None):
+        self.status = status
+        self.message = message
 
 class ConnectionError(WebDAVException):
     pass
@@ -235,9 +249,10 @@ class IllegalRedirect(WebDAVException):
 # ----------------------------------------------------------------------------
 
 
-NO_ACCESS  = 0
-READ_ONLY  = 1
-READ_WRITE = 2
+CANT_CONNECT = -1
+NO_ACCESS    = 0
+READ_ONLY    = 1
+READ_WRITE   = 2
 
 def checkAccess(host, port=80, useSSL=False, username=None, password=None,
                 path=None):
@@ -262,8 +277,12 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
             portString = ":%d" % port
 
     url = "%s://%s%s%s" % (scheme, host, portString, path)
-    response = client.propfind(url, depth=0)
-    body = response.read()
+    try:
+        response = client.propfind(url, depth=0)
+        body = response.read()
+    except ConnectionError, err:
+        return (CANT_CONNECT, None)
+
     status = response.status
     # print "PROPFIND:", url, status
     if status < 200 or status >= 300: # failed to read

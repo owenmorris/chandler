@@ -5,6 +5,7 @@ import application.Globals
 from repository.item.Query import KindQuery
 import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
+import osaf.framework.sharing.WebDAV as WebDAV
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
@@ -43,6 +44,7 @@ def IMAPSaveHandler(item, fields, values):
     # process as normal:
     for (field, desc) in fields.iteritems():
         item.setAttributeValue(desc['attr'], values[field])
+
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -156,6 +158,9 @@ PANELS = {
             },
         },
         "id" : "WebDAVPanel",
+        "callbacks" : (
+            ("WEBDAV_TEST", "OnTestWebDAV"),
+        )
     },
 }
 
@@ -366,6 +371,9 @@ class AccountPreferencesDialog(wx.Dialog):
                     wx.EVT_RADIOBUTTON(control, control.GetId(),
                                        self.OnExclusiveRadioButton)
 
+        for callbackReg in PANELS[self.currentPanelType].get('callbacks', ()):
+            self.Bind(wx.EVT_BUTTON, getattr(self, callbackReg[1]),
+                      id=wx.xrc.XRCID(callbackReg[0]))
 
 
     def __StoreFormData(self, panelType, panel, data):
@@ -399,6 +407,38 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def OnCancel(self, evt):
         self.EndModal(False)
+
+    def OnTestWebDAV(self, evt):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+         self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        host = data['WEBDAV_SERVER']
+        port = data['WEBDAV_PORT']
+        useSSL = data['WEBDAV_USE_SSL']
+        username = data['WEBDAV_USERNAME']
+        password = data['WEBDAV_PASSWORD']
+        path = data['WEBDAV_PATH']
+        access = WebDAV.checkAccess(host, port=port, useSSL=useSSL,
+                                    username=username, password=password,
+                                    path=path)
+        result = access[0]
+        status = access[1]
+        if result == WebDAV.CANT_CONNECT:
+            msg = "Couldn't connect to %s.\nPlease double-check the server name and port settings." % host
+        elif result == WebDAV.NO_ACCESS:
+            msg = "Permission denied by server '%s'." % host
+        elif result == WebDAV.READ_ONLY:
+            msg = "You have read access but not write access."
+        elif result == WebDAV.READ_WRITE:
+            msg = "Test was successful.\nThis account has read/write access."
+        else:
+            # This shouldn't happen
+            msg = "Test failed with an unknown response."
+
+        application.dialogs.Util.ok(self, "WebDAV Test Results", msg)
+
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!
