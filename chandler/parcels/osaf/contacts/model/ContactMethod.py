@@ -73,23 +73,18 @@ class ContactMethod(Item):
         self.setAttribute(attributeName, attributeValue)
         
     # change the type of the address item, setting up the passed-in attributes
-    # FIXME: this is broken for new model
-    def ChangeMethodType(self, newType, newAttributes):
+    # we actually need to change the class of the object here
+    # FIXME: this isn't implemented properly yet
+    def ChangeMethodType(self, newType):
         if self.GetMethodType() == newType:
             return
 
         self.SetMethodType(newType)
 
-        methodAttributes = self.GetMethodAddress()
-        for attributeData in newAttributes:
-             methodAttributes.SetAttribute(attributeData[0], attributeData[1])
+        #methodAttributes = self.GetMethodAddress()
+        #for attributeData in newAttributes:
+             #methodAttributes.SetAttribute(attributeData[0], attributeData[1])
 
-    # allocate the attributes object and initialize it from the passed in dictionary
-    def InitMethodAddress(self, attributes):
-        self.methodAddress = ContactMethodAttributes.CreateContactMethodAttributes(self.methodType)
-        for key in attributes.keys():
-            value = attributes[key]
-            self.methodAddress.SetAttribute(key, value)
             
     # return the list of relevant attributes for this contact address, based
     # on it's type.

@@ -386,9 +386,13 @@ class RefDict(References):
 
     def __delitem__(self, key):
 
-        if self._keyList is not None and isinstance(key, int):
-            key = self._keyList.pop(key)
-
+        if self._keyList is not None:
+            if isinstance(key, int):
+                key = self._keyList.pop(key)
+            else:
+                index = self._keyList.index(key)
+                del self._keyList[index]
+                
         value = self._getRef(key)
         item = self._getItem()
         value.detach(self, item, self._name,
