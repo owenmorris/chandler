@@ -39,10 +39,11 @@ class AttributeTemplate(Thing):
     def SetDefault(self, default):
         self[chandler.default] = default
         
-    cardinality = property(GetCardinality, SetCardinality)
-    range = property(GetRange, SetRange)
-    required = property(GetRequired, SetRequired)
-    default = property(GetDefault, SetDefault)
-
+    def GetDisplayName(self):
+        return self[chandler.displayName]
+    
+    def SetDisplayName(self, value):
+        self[chandler.displayName] = value
+        
     def IsValid(self, value):
         return True

@@ -36,7 +36,7 @@ _personAttributes = [ { chandler.uri : chandler.fullname,
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Full Name'),
-                        chandler.default : '' },
+                        chandler.default : 'New Contact' },
                       
                       { chandler.uri : chandler.sortname,
                         chandler.range : 'string',
@@ -50,7 +50,7 @@ _personAttributes = [ { chandler.uri : chandler.fullname,
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('First Name'),
-                        chandler.default : '' },
+                        chandler.default : 'New' },
                       
                       { chandler.uri : chandler.middlename,
                         chandler.range : 'string',
@@ -64,14 +64,14 @@ _personAttributes = [ { chandler.uri : chandler.fullname,
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Last Name'),
-                        chandler.default : '' },
+                        chandler.default : 'Contact' },
                       
                       { chandler.uri : chandler.nickname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Nickname'),
-                        chandler.default : '' },
+                        chandler.default : 'nickname' },
                       
                       { chandler.uri : chandler.honorific,
                         chandler.range : 'string',
@@ -184,4 +184,4 @@ class ContactName(Thing):
             else: 
                 self[chandler.sortname] = self[chandler.lastname] + ', ' + self[chandler.firstname]
         else:
-            self.sortname = self.get(chandler.fullname)
+            self[chandler.sortname] = self.get(chandler.fullname)

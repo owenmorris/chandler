@@ -11,7 +11,7 @@ from application.repository.KindOfThing import AkoThingFactory
 from application.repository.Namespace import chandler
 
 from application.repository.Item import Item
-from application.repository.ContactName import ContactName
+from application.repository.ContactName import ContactName, AkoPersonNameFactory
 from application.repository.ContactMethod import ContactMethod
 
 # We're likely to handle ENUMs differently, but a simple strategy for now
@@ -50,7 +50,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Photo URL'),
-                 chandler.default : '' },
+                 chandler.default : None },
 
                { chandler.uri : chandler.group,
                  chandler.range : 'string',
@@ -121,7 +121,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
 
                { chandler.uri : chandler.gender,
                  chandler.range : _genderChoices,
-                 chandler.cardinality : None,
+                 chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Gender'),
                  chandler.default : _('gender') },
@@ -141,7 +141,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : _('unknown') },
 
                { chandler.uri : chandler.interests,
-                 chandler.range : 'string',
+                 chandler.range : [],
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.displayName : _('Interests'),
@@ -163,7 +163,26 @@ class Contact(Item):
         self.SetHeaderAttributes([])
         self.SetBodyAttributes([])
         self.SetContactName(ContactName(self))
-
+    
+    def GetAttribute(self, attribute):
+        contactName = self.get(chandler.contactName)
+        if (contactName != None):
+            akoContactName =  contactName.GetAko()
+            if (akoContactName.GetAttributeTemplate(attribute) != None):
+                return contactName.GetAttribute(attribute)
+            
+        return Item.GetAttribute(self, attribute)
+        
+    def SetAttribute(self, attribute, value):
+        contactName = self.get(chandler.contactName)
+        if (contactName != None):
+            akoContactName = contactName.GetAko()
+            if (akoContactName.GetAttributeTemplate(attribute) != None):
+                contactName.SetAttribute(attribute, value)
+                return
+        
+        Item.SetAttribute(self, attribute, value)
+        
     def GetContactType(self):
         return self.GetAttribute(chandler.contactType)
         
@@ -186,7 +205,7 @@ class Contact(Item):
     def SetContactMethods(self, value):
         self.SetAttribute(chandler.contactMethod, value)
         
-    contactMethod = property(GetContactMethods)
+    contactMethods = property(GetContactMethods)
     
     # Convenience methods for groups
     
@@ -225,7 +244,7 @@ class Contact(Item):
     
     # Convenience methods for accessing a contact's name fields
     
-    # @@@ ? Take the shortcut, dont' do validation
+    # @@@ Take the shortcut, dont' do validation
     def GetContactName(self):
         return self[chandler.contactName]
     
@@ -261,7 +280,7 @@ class Contact(Item):
         
     def HasHeaderAttribute(self, attribute):
         headerAttributes = self.GetHeaderAttributes()
-        return len(headerAttributes) > 0
+        return headerAttributes.count(attribute) > 0
         
     def AddHeaderAttribute(self, attribute):
         headerAttributes = self.GetHeaderAttributes()
@@ -284,7 +303,7 @@ class Contact(Item):
     
     def HasBodyAttribute(self, attribute):
         bodyAttributes = self.GetBodyAttributes()
-        return len(bodyAttributes) > 0
+        return bodyAttributes.count(attribute) > 0
         
     def AddBodyAttribute(self, attribute):
         bodyAttributes = self.GetBodyAttributes()
@@ -298,12 +317,22 @@ class Contact(Item):
            del bodyAttributes[index]
        except:
            pass
-         
-    # @@@ Fixme!
-    # def AddAddress(self, addressType, addressLocation, attributes):
-    #    newItem = ContactMethod(addressType, addressLocation, attributes)
-    #    self.contactMethods.append(newItem)
-    #    self.SetContact
+
+    # @@@ Depricated, use GetContactMethods
+    def GetAddresses(self):
+        return self.GetContactMethods()
+    
+    def AddAddress(self, addressType, addressDescription):
+        newItem = ContactMethod(addressType, addressDescription)
+        self.contactMethods.append(newItem)
+        return newItem
+    
+    def GetContactValue(self, methodDescription, attributeName):
+        for method in self.contactMethods:
+            if method.GetMethodDescription() == methodDescription:
+                return method.GetFormattedAttribute(attributeName)
+        return ''
+        
     
 
 
