@@ -41,13 +41,11 @@
     Events
   -->
   <BlockEvent itemName="ShowRepositoryViewer">
-    <name>block/ShowRepositoryViewer</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:ParcelViewer"/>
   </BlockEvent>
 
   <BlockEvent itemName="ShowDemo">
-    <name>block/ShowDemo</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:ParcelViewer"/>
   </BlockEvent>
