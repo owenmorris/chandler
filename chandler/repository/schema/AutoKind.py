@@ -206,9 +206,10 @@ class AutoKind(object):
             if not isinstance(value, Item):
                 if attribute.getAspect('cardinality') == 'single':
                     typeKind = kind._kind.getItemParent().getItemChild('Type')
-                    types = typeKind.findTypes(value)
-                    if types:
-                        attribute.setAttributeValue('type', types[0])
+                    if value is not None:
+                        types = typeKind.findTypes(value)
+                        if types:
+                            attribute.setAttributeValue('type', types[0])
 
         kind.addValue('attributes', attribute)
         

@@ -20,6 +20,13 @@ from repository.util.ClassLoader import ClassLoader
 
 class TypeKind(Kind):
 
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(TypeKind, self)._fillItem(name, parent, kind, **kwds)
+
+        typeHandlers = ItemHandler.typeHandlers[self.getRepository()]
+        typeHandlers[None] = self._uuid
+
     def findTypes(self, value):
         """Return a list of types recognizing value.
 
@@ -27,7 +34,7 @@ class TypeKind(Kind):
         that is specific to the category of matching types.
         For example, Integer < Long < Float or String < Symbol."""
 
-        matches = [item for item in self.getItemParent() if item._kind is self and item.recognizes(value)]
+        matches = [item for item in self.getItemParent() if item.isItemOf(self) and item.recognizes(value)]
         if matches:
             matches.sort(lambda x, y: x._compareTypes(y))
 
@@ -44,7 +51,18 @@ class Type(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Type, self)._fillItem(name, parent, kind, **kwds)
+
         self._status |= Item.SCHEMA
+        implementationType = self.getImplementationType()
+        if implementationType is not None:
+            typeHandlers = ItemHandler.typeHandlers[self.getRepository()]
+            typeHandlers[self.getImplementationType()] = self._uuid
+
+    def getImplementationType(self):
+        return self.implementationTypes['python']
+
+    def handlerName(cls):
+        return None
 
     def makeValue(cls, data):
         raise NotImplementedError, "Type.makeValue()"
@@ -52,11 +70,8 @@ class Type(Item):
     def makeString(cls, value):
         return str(value)
 
-    def handlerName(cls):
-        return "%s.%s" %(cls.__module__, cls.__name__)
-
     def recognizes(self, value):
-        raise NotImplementedError, "Type.recognizes()"
+        return type(value) is self.getImplementationType()
 
     # override this to compare types of the same category, like
     # Integer, Long and Float or String and Symbol
@@ -67,42 +82,20 @@ class Type(Item):
     def isAlias(self):
         return False
 
-    def typeXML(self, value, generator):
+    def typeXML(self, value, generator, withSchema):
+        generator.characters(type(self).makeString(value))
 
-        fields = self.fields
-        if fields:
-            generator.startElement('fields', {})
-            for field in fields:
-                self._fieldXML(value, field, generator)
-            generator.endElement('fields')
-        else:
-            generator.characters(type(self).makeString(value))
-
-    def _fieldXML(self, value, field, generator):
-
-        fieldValue = getattr(value, field)
-        attrs = { 'name': field,
-                  'type': ItemHandler.typeName(fieldValue) }
-        generator.startElement('field', attrs)
-        generator.characters(ItemHandler.makeString(fieldValue))
-        generator.endElement('field')
-          
     def unserialize(self, data):
         raise NotImplementedError, "Type.unserialize()"
 
+    def startValue(self, itemHandler):
+        pass
+
+    def isValueReady(self, itemHandler):
+        return True
+
     def getValue(self, itemHandler, data):
         return self.unserialize(data)
-
-    def fieldsStart(self, itemHandler, attrs):
-        itemHandler.fields = {}
-
-    def fieldEnd(self, itemHandler, attrs):
-
-        name = attrs['name']
-        typeName = attrs['type']
-        value = itemHandler.makeValue(typeName, itemHandler.data)
-
-        itemHandler.fields[name] = value
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
@@ -110,6 +103,12 @@ class Type(Item):
 
 
 class String(Type):
+
+    def getImplementationType(self):
+        return unicode
+
+    def handlerName(cls):
+        return 'unicode'
 
     def makeValue(cls, data):
         return unicode(data)
@@ -128,9 +127,16 @@ class String(Type):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
+    handlerName = classmethod(handlerName)
 
 
 class Symbol(Type):
+
+    def getImplementationType(self):
+        return str
+
+    def handlerName(cls):
+        return 'str'
 
     def makeValue(cls, data):
         return str(data)
@@ -138,16 +144,20 @@ class Symbol(Type):
     def unserialize(self, data):
         return Symbol.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is str
-
     def _compareTypes(self, other):
         return 1
     
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
 
 class Integer(Type):
+
+    def getImplementationType(self):
+        return int
+    
+    def handlerName(cls):
+        return 'int'
 
     def makeValue(cls, data):
         return int(data)
@@ -155,16 +165,20 @@ class Integer(Type):
     def unserialize(self, data):
         return Integer.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is int
-
     def _compareTypes(self, other):
         return -1
 
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
 
 class Long(Type):
+
+    def getImplementationType(self):
+        return long
+    
+    def handlerName(cls):
+        return 'long'
 
     def makeValue(cls, data):
         return long(data)
@@ -183,10 +197,17 @@ class Long(Type):
         return 0
 
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
 
 class Float(Type):
 
+    def getImplementationType(self):
+        return float
+    
+    def handlerName(cls):
+        return 'float'
+    
     def makeValue(cls, data):
         return float(data)
 
@@ -201,9 +222,16 @@ class Float(Type):
         return 1
 
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
     
 class Complex(Type):
+
+    def getImplementationType(self):
+        return complex
+    
+    def handlerName(cls):
+        return 'complex'
 
     def makeValue(cls, data):
         return complex(data)
@@ -211,27 +239,32 @@ class Complex(Type):
     def unserialize(self, data):
         return Complex.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is complex
-
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
 
 class Boolean(Type):
 
+    def getImplementationType(self):
+        return bool
+    
+    def handlerName(cls):
+        return 'bool'
+    
     def makeValue(cls, data):
         return data != 'False'
 
     def unserialize(self, data):
         return Boolean.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is bool
-
     makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
 
 
 class UUID(Type):
+
+    def handlerName(cls):
+        return 'uuid'
 
     def makeValue(cls, data):
         return repository.util.UUID.UUID(data)
@@ -239,14 +272,19 @@ class UUID(Type):
     def unserialize(self, data):
         return UUID.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is repository.util.UUID.UUID
+    def makeString(cls, value):
+        return value.str64()
 
     makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
+    handlerName = classmethod(handlerName)
 
 
 class SingleRef(Type):
 
+    def handlerName(cls):
+        return 'ref'
+    
     def makeValue(cls, data):
         uuid = repository.util.UUID.UUID(data)
         return repository.item.PersistentCollections.SingleRef(uuid)
@@ -254,14 +292,14 @@ class SingleRef(Type):
     def unserialize(self, data):
         return SingleRef.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is repository.item.PersistentCollections.SingleRef
-
     makeValue = classmethod(makeValue)
-    
+    handlerName = classmethod(handlerName)
 
 
 class Path(Type):
+
+    def handlerName(cls):
+        return 'path'
 
     def makeValue(cls, data):
         return repository.util.Path.Path(data)
@@ -269,14 +307,43 @@ class Path(Type):
     def unserialize(self, data):
         return Path.makeValue(data)
 
+    makeValue = classmethod(makeValue)
+    handlerName = classmethod(handlerName)
+
+
+class NoneType(Type):
+
+    def getImplementationType(self):
+        return type(None)
+
+    def handlerName(cls):
+        return 'none'
+    
+    def makeValue(cls, data):
+        return None
+
+    def makeString(cls, value):
+        return "None"
+
+    def unserialize(self, data):
+        return None
+        
     def recognizes(self, value):
-        return type(value) is repository.util.Path.Path
+        return value is None
 
     makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
+    handlerName = classmethod(handlerName)
 
 
 class Class(Type):
 
+    def getImplementationType(self):
+        return type
+
+    def handlerName(cls):
+        return 'class'
+    
     def makeValue(cls, data):
         return ClassLoader.loadClass(data)
 
@@ -286,15 +353,19 @@ class Class(Type):
     def unserialize(self, data):
         return Class.makeValue(data)
         
-    def recognizes(self, value):
-        return type(value) is type
-
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
+    handlerName = classmethod(handlerName)
 
 
 class Enumeration(Type):
 
+    def getImplementationType(self):
+        return type(self)
+
+    def handlerName(cls):
+        return 'str'
+    
     def makeValue(cls, data):
         return data
 
@@ -308,7 +379,7 @@ class Enumeration(Type):
         except ValueError:
             return False
 
-    def typeXML(self, value, generator):
+    def typeXML(self, value, generator, withSchema):
 
         try:
             number = self.values.index(value)
@@ -326,18 +397,91 @@ class Enumeration(Type):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
+    handlerName = classmethod(handlerName)
 
 
-class DateTime(Type):
+class Struct(Type):
+
+    def startValue(self, itemHandler):
+        itemHandler.tagCounts.append(0)
+
+    def isValueReady(self, itemHandler):
+        return itemHandler.tagCounts[-1] == 0
+
+    def typeXML(self, value, generator, withSchema):
+
+        fields = self.getAttributeValue('fields', _attrDict=self._values,
+                                        default=[])
+
+        if fields:
+            repository = self.getRepository()
+            generator.startElement('fields', {})
+            for field in fields:
+                self._fieldXML(repository, value, field, generator)
+            generator.endElement('fields')
+        else:
+            raise TypeError, 'Struct %s has no fields' %(self.getItemPath())
+    
+    def _fieldXML(self, repository, value, field, generator):
+
+        fieldName = field['name']
+        fieldValue = getattr(value, fieldName)
+
+        attrs = { 'name': fieldName }
+        typeHandler = ItemHandler.typeHandler(repository, fieldValue)
+
+        typeName = typeHandler.handlerName()
+        if typeName is not None:
+            attrs['type'] = typeName
+        else:
+            attrs['typeid'] = typeHandler._uuid.str64()
+
+        generator.startElement('field', attrs)
+        generator.characters(ItemHandler.makeString(repository, fieldValue))
+        generator.endElement('field')
+
+    def fieldsStart(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] += 1
+        itemHandler.fields = {}
+
+    def fieldsEnd(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] -= 1
+
+    def fieldEnd(self, itemHandler, attrs):
+
+        name = attrs['name']
+
+        if attrs.has_key('type'):
+            value = itemHandler.makeValue(attrs['type'], itemHandler.data)
+        else:
+            typeHandler = itemHandler.repository[UUID(attrs['typeid'])]
+            value = typeHandler.unserialize(itemHandler.data)
+
+        itemHandler.fields[name] = value
+
+    def getValue(self, itemHandler, data):
+
+        implementationType = self.getImplementationType()
+        fields = itemHandler.fields
+
+        if fields is None:
+            return implementationType(data)
+        else:
+            return implementationType(**fields)
+
+
+class DateTime(Struct):
+
+    def getImplementationType(self):
+        return DateTime.implementationType
 
     def makeValue(cls, data):
         return mx.DateTime.ISO.ParseDateTime(data)
         
     def makeString(cls, value):
         return mx.DateTime.ISO.str(value)
-
-    def recognizes(self, value):
-        return type(value) is DateTime.implementationType
 
     def unserialize(self, data):
         return DateTime.makeValue(data)
@@ -362,9 +506,12 @@ class DateTime(Type):
     implementationType = type(mx.DateTime.now())
 
 
-class DateTimeDelta(Type):
+class DateTimeDelta(Struct):
 
     defaults = { 'day': 0.0, 'hour': 0.0, 'minute': 0.0, 'second': 0.0 }
+
+    def getImplementationType(self):
+        return DateTimeDelta.implementationType
 
     def makeValue(cls, data):
         return mx.DateTime.DateTimeDeltaFrom(str(data))
@@ -372,15 +519,14 @@ class DateTimeDelta(Type):
     def unserialize(self, data):
         return DateTimeDelta.makeValue(data)
 
-    def recognizes(self, value):
-        return type(value) is DateTimeDelta.implementationType
+    def _fieldXML(self, repository, value, field, generator):
 
-    def _fieldXML(self, value, field, generator):
-
-        default = DateTimeDelta.defaults[field]
-        fieldValue = getattr(value, field, default)
+        fieldName = field['name']
+        default = DateTimeDelta.defaults[fieldName]
+        fieldValue = getattr(value, fieldName, default)
         if default != fieldValue:
-            super(DateTimeDelta, self)._fieldXML(value, field, generator)
+            super(DateTimeDelta, self)._fieldXML(repository, value, field,
+                                                 generator)
           
     def getValue(self, itemHandler, data):
 
@@ -399,7 +545,7 @@ class DateTimeDelta(Type):
     implementationType = type(mx.DateTime.DateTimeDelta(0))
     
 
-class RelativeDateTime(Type):
+class RelativeDateTime(Struct):
 
     defaults = { 'years': 0, 'months': 0, 'days': 0,
                  'year': None, 'month': None, 'day': None,
@@ -407,21 +553,23 @@ class RelativeDateTime(Type):
                  'hour': None, 'minute': None, 'second': None,
                  'weekday': None, 'weeks': 0 }
 
+    def getImplementationType(self):
+        return RelativeDateTime.implementationType
+
     def makeValue(cls, data):
         return mx.DateTime.RelativeDateTimeFrom(str(data))
-
-    def recognizes(self, value):
-        return type(value) is RelativeDateTime.implementationType
 
     def unserialize(self, data):
         return RelativeDateTime.makeValue(data)
 
-    def _fieldXML(self, value, field, generator):
+    def _fieldXML(self, repository, value, field, generator):
 
-        default = RelativeDateTime.defaults[field]
-        fieldValue = getattr(value, field, default)
+        fieldName = field['name']
+        default = RelativeDateTime.defaults[fieldName]
+        fieldValue = getattr(value, fieldName, default)
         if default != fieldValue:
-            super(RelativeDateTime, self)._fieldXML(value, field, generator)
+            super(RelativeDateTime, self)._fieldXML(repository, value, field,
+                                                    generator)
           
     def getValue(self, itemHandler, data):
 
@@ -451,63 +599,93 @@ class RelativeDateTime(Type):
 
 
 class Collection(Type):
-    
+
     def getValue(self, itemHandler, data):
+
+        itemHandler.tagCounts.pop()
+        itemHandler.attributes.pop()
         return itemHandler.collections.pop()
 
-    def valuesStart(self, itemHandler, attrs):
+    def startValue(self, itemHandler):
+
+        itemHandler.tagCounts.append(0)
         itemHandler.attributes.append(None)
         itemHandler.collections.append(self._empty())
 
+    def isValueReady(self, itemHandler):
+
+        return itemHandler.tagCounts[-1] == 0
+
+    def valuesStart(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] += 1
+
     def valuesEnd(self, itemHandler, attrs):
-        itemHandler.attributes.pop()
-        
+
+        itemHandler.tagCounts[-1] -= 1
+
     def valueStart(self, itemHandler, attrs):
+
+        itemHandler.tagCounts[-1] += 1
         itemHandler.valueStart(itemHandler, attrs)
 
-    def valueEnd(self, itemHandler, attrs):
-        itemHandler.valueEnd(itemHandler, attrs)
+    def valueEnd(self, itemHandler, attrs, **kwds):
+
+        itemHandler.tagCounts[-1] -= 1
+        itemHandler.valueEnd(itemHandler, attrs, **kwds)
 
 
 class Dictionary(Collection):
+
+    def handlerName(cls):
+
+        return 'dict'
 
     def recognizes(self, value):
 
         return isinstance(value, dict)
 
-    def typeXML(self, value, generator):
+    def typeXML(self, value, generator, withSchema):
+
+        repository = self.getRepository()
 
         generator.startElement('values', {})
         for key, val in value._iteritems():
-            ItemHandler.xmlValue(key, val, 'value', None, 'single', None,
-                                 generator, False)
+            ItemHandler.xmlValue(repository,
+                                 key, val, 'value', None, 'single', None,
+                                 generator, withSchema)
         generator.endElement('values')
 
     def _empty(self):
 
         return PersistentDict(None, None)
 
+    handlerName = classmethod(handlerName)
+
 
 class List(Collection):
+
+    def handlerName(cls):
+
+        return 'list'
 
     def recognizes(self, value):
 
         return isinstance(value, list)
 
-    def typeXML(self, value, generator):
+    def typeXML(self, value, generator, withSchema):
+
+        repository = self.getRepository()
 
         generator.startElement('values', {})
         for val in value._itervalues():
-            ItemHandler.xmlValue(None, val, 'value', None, 'single', None,
-                                 generator, False)
+            ItemHandler.xmlValue(repository,
+                                 None, val, 'value', None, 'single', None,
+                                 generator, withSchema)
         generator.endElement('values')
     
     def _empty(self):
 
         return PersistentList(None, None)
     
-
-ItemHandler.typeHandlers[type] = Class
-ItemHandler.typeHandlers[DateTime.implementationType] = DateTime
-ItemHandler.typeHandlers[DateTimeDelta.implementationType] = DateTimeDelta
-ItemHandler.typeHandlers[RelativeDateTime.implementationType] = RelativeDateTime
+    handlerName = classmethod(handlerName)

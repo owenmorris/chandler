@@ -10,6 +10,9 @@ from repository.schema.Types import Type
 
 class Alias(Type):
 
+    def getImplementationType(self):
+        return None
+
     def isAlias(self):
         return True
 

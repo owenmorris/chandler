@@ -16,6 +16,7 @@
       <item file="Kind.kind" /> 
       <item file="Alias.kind" />
       <item file="Type.kind" />
+      <item file="Struct.kind" />
       <item file="Enumeration.kind" />
       <item file="Parcel.kind" />
 

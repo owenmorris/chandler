@@ -23,8 +23,7 @@
       <ref type="path">/Core/Taxon</ref>
     </ref>
 
-    <attribute name="classes" cardinality="dict" 
-               type="repository.schema.Types.Class">
+    <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.schema.Kind.Kind</value>
     </attribute>
   </item>
@@ -140,8 +139,7 @@
 
     <attribute name="cardinality">dict</attribute>
     <attribute name="defaultValue" type="dict">
-      <value name="python" 
-             type="repository.schema.Types.Class">repository.item.Item.Item</value>
+      <value name="python" type="class">repository.item.Item.Item</value>
     </attribute>
   </item>
 

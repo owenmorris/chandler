@@ -12,12 +12,11 @@
 
       <!-- 
          - plus local attributes below:
-         -     fields
+         -     implementationTypes
         -->
     </ref>
 
-    <attribute name="classes" cardinality="dict" 
-               type="repository.schema.Types.Class">
+    <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.schema.Types.Type</value>
     </attribute>
 
@@ -28,7 +27,7 @@
   </item>
 
   <item withSchema="True">
-    <name>fields</name>
+    <name>implementationTypes</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Type</parent>
@@ -39,10 +38,9 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Symbol</ref>
+         type="path" otherCard="list">/Core/Class</ref>
 
-    <attribute name="cardinality">list</attribute>
-    <attribute name="defaultValue" type="NoneType">None</attribute>
+    <attribute name="cardinality">dict</attribute>
   </item>
 
 </items>

@@ -261,14 +261,14 @@ class Item(object):
 
         try:
             if (_attrDict is self._values or
-                _attrDict is None and self._values.has_key(name)):
+                _attrDict is None and name in self._values):
                 value = self._values[name]
                 if isinstance(value, SingleRef):
                     value = self.getRepository().find(value.getUUID())
                 return value
 
             elif (_attrDict is self._references or
-                  _attrDict is None and self._references.has_key(name)):
+                  _attrDict is None and name in self._references):
                 value = self._references[name]
                 if isinstance(value, ItemRef):
                     return value.other(self)
@@ -299,7 +299,8 @@ class Item(object):
                 value.setReadOnly(True)
             return value
 
-        raise AttributeError, name
+        raise AttributeError, "%s has no value for '%s'" %(self.getItemPath(),
+                                                           name)
 
     def removeAttributeValue(self, name, _attrDict=None):
         "Remove a Chandler attribute's value."
@@ -613,10 +614,9 @@ class Item(object):
         'Check for existence of a value for a given Chandler attribute.'
 
         if _attrDict is None:
-            return (self._values.has_key(name) or
-                    self._references.has_key(name))
-        else:
-            return _attrDict.has_key(name)
+            return name in self._values or name in self._references
+
+        return name in _attrDict
 
     def _isAttaching(self):
 
@@ -955,6 +955,16 @@ class Item(object):
 
         return False
 
+    def isItemOf(self, kind):
+
+        if self._kind is kind:
+            return True
+
+        if self._kind is not None:
+            return self._kind.isSubKindOf(kind)
+
+        return False
+
     def walk(self, path, callable, _index=0, **kwds):
         """Walk a path and invoke a callable along the way.
 
@@ -1133,6 +1143,8 @@ class Item(object):
 
     def _xmlAttrs(self, generator, withSchema, version, mode):
 
+        repository = self.getRepository()
+
         for key, value in self._values.iteritems():
             if self._kind is not None:
                 attribute = self._kind.getAttribute(key)
@@ -1154,8 +1166,8 @@ class Item(object):
                     attrType = None
                     attrCard = 'single'
                     attrId = None
-                
-                ItemHandler.xmlValue(key, value, 'attribute',
+
+                ItemHandler.xmlValue(repository, key, value, 'attribute',
                                      attrType, attrCard, attrId, generator,
                                      withSchema)
 

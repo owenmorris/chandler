@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax, xml.sax.saxutils
-import repository.item.Item
+import repository.item as ItemPackage
 
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import SingleRef
@@ -29,6 +29,9 @@ class ItemHandler(xml.sax.ContentHandler):
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
         self.item = None
+
+        if repository not in ItemHandler.typeHandlers:
+            ItemHandler.typeHandlers[repository] = {}
         
     def startDocument(self):
 
@@ -36,16 +39,15 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tags = []
         self.delegates = []
         self.fields = None
+        self.tagCounts = []
 
     def startElement(self, tag, attrs):
 
         self.data = ''
-        self.tagAttrs.append(attrs)
 
         if self.delegates:
             delegate = self.delegates[-1]
             delegateClass = type(delegate)
-            self.delegates.append(delegate)
         else:
             delegate = self
             delegateClass = ItemHandler
@@ -55,14 +57,16 @@ class ItemHandler(xml.sax.ContentHandler):
             method(delegate, self, attrs)
 
         self.tags.append(tag)
+        self.tagAttrs.append(attrs)
 
     def endElement(self, tag):
  
         withValue = False
 
         if self.delegates:
-            delegate = self.delegates.pop()
-            if not self.delegates:
+            delegate = self.delegates[-1]
+            if delegate.isValueReady(self):
+                self.delegates.pop()
                 value = delegate.getValue(self, self.data)
                 withValue = True
 
@@ -84,21 +88,6 @@ class ItemHandler(xml.sax.ContentHandler):
     def characters(self, data):
 
         self.data += data
-
-    def attributeStart(self, itemHandler, attrs):
-
-        attribute = self.getAttribute(attrs['name'])
-        self.attributes.append(attribute)
-
-        cardinality = self.getCardinality(attribute, attrs)
-        typeName = self.getTypeName(attribute, attrs)
-        
-        if cardinality == 'dict' or typeName == 'dict':
-            self.collections.append(PersistentDict(None, None))
-        elif cardinality == 'list' or typeName == 'list':
-            self.collections.append(PersistentList(None, None))
-        else:
-            self.setupTypeDelegate(attrs)
 
     def refStart(self, itemHandler, attrs):
 
@@ -153,7 +142,7 @@ class ItemHandler(xml.sax.ContentHandler):
         cls = self.cls
         if cls is None:
             if self.kind is None:
-                cls = repository.item.Item.Item
+                cls = ItemPackage.Item.Item
             else:
                 cls = self.kind.getItemClass()
 
@@ -165,7 +154,7 @@ class ItemHandler(xml.sax.ContentHandler):
                        version = self.version)
 
         if self.first or self.last:
-            item._children = repository.item.Item.Children(item)
+            item._children = ItemPackage.Item.Children(item)
             item._children._firstKey = self.first
             item._children._lastKey = self.last
 
@@ -252,24 +241,6 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.name = self.data
 
-    def attributeEnd(self, itemHandler, attrs, **kwds):
-
-        if kwds.has_key('value'):
-            value = kwds['value']
-        else:
-            attribute = self.attributes.pop()
-            cardinality = self.getCardinality(attribute, attrs)
-            typeName = self.getTypeName(attribute, attrs)
-
-            if cardinality == 'dict' or typeName == 'dict':
-                value = self.collections.pop()
-            elif cardinality == 'list' or typeName == 'list':
-                value = self.collections.pop()
-            else:
-                value = self.makeValue(typeName, self.data)
-            
-        self.values[attrs['name']] = value
-
     def refEnd(self, itemHandler, attrs):
 
         if self.tags[-1] == 'item':
@@ -326,15 +297,42 @@ class ItemHandler(xml.sax.ContentHandler):
         refDict = self.collections[-1]
         refDict._prepareKey(self.uuid, UUID(self.data))
 
+    def attributeStart(self, itemHandler, attrs):
+
+        attribute = self.getAttribute(attrs['name'])
+        self.attributes.append(attribute)
+
+        cardinality = self.getCardinality(attribute, attrs)
+        typeName = self.getTypeName(attribute, attrs, 'str')
+        
+        if cardinality == 'list':
+            self.collections.append(PersistentList(None, None))
+        elif cardinality == 'dict':
+            self.collections.append(PersistentDict(None, None))
+        else:
+            self.valueStart(itemHandler, attrs)
+
     def valueStart(self, itemHandler, attrs):
 
-        typeName = attrs.get('type')
+        if self.setupTypeDelegate(attrs):
+            return
+
+        if (self.tags[-1] == 'attribute' and
+            self.setupTypeDelegate(self.tagAttrs[-1])):
+            return
+
+        typeName = None
+
+        if attrs.has_key('type'):
+            typeName = attrs['type']
+        elif (self.tags[-1] == 'attribute' and
+              self.tagAttrs[-1].has_key('type')):
+            typeName = self.tagAttrs[-1]['type']
+
         if typeName == 'dict':
             self.collections.append(PersistentDict(None, None))
         elif typeName == 'list':
             self.collections.append(PersistentList(None, None))
-        else:
-            self.setupTypeDelegate(attrs)
 
     # valueEnd is called when parsing 'dict' or 'list' cardinality values of
     # one type (type specified with cardinality) or of unspecified type
@@ -342,34 +340,46 @@ class ItemHandler(xml.sax.ContentHandler):
     # or unspecified cardinality or values of type 'Dictionary' or 'List' of
     # any cardinality. A mess of overloading.
     
-    def valueEnd(self, itemHandler, attrs, **kwds):
+    def attributeEnd(self, itemHandler, attrs, **kwds):
 
-        # case of parsing 'Dictionary' or 'List' of non 'single' cardinality
         if kwds.has_key('value'):
             value = kwds['value']
         else:
-            typeName = attrs.get('type')
-            if typeName == 'dict' or typeName == 'list':
-                # case of parsing 'single' 'list' or 'dict' type value
+            attribute = self.attributes.pop()
+            cardinality = self.getCardinality(attribute, attrs)
+
+            if cardinality == 'dict':
                 value = self.collections.pop()
-
+            elif cardinality == 'list':
+                value = self.collections.pop()
             else:
-                if typeName is None:
-                    cardinality = self.getCardinality(self.attributes[-1],
-                                                      self.tagAttrs[-1])
-                    if cardinality == 'dict' or cardinality == 'list':
-                        # case of parsing non 'single' 'list' or 'dict' type
-                        # value of one type specified with cardinality
-                        typeName = self.getTypeName(self.attributes[-1],
-                                                    self.tagAttrs[-1])
-                    else:
-                        # case of parsing a collection value of type string
-                        # which is unspecified
-                        typeName = 'str'
+                typeName = self.getTypeName(attribute, attrs, 'str')
+                if typeName == 'dict' or typeName == 'list':
+                    value = self.collections.pop()
                 else:
-                    # case of parsing a collection value of a specific type
-                    pass
+                    value = self.makeValue(typeName, self.data)
+            
+        if self.delegates:
+            raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name, attrs['name'], self.delegates)
 
+        self.values[attrs['name']] = value
+
+    def valueEnd(self, itemHandler, attrs, **kwds):
+
+        if kwds.has_key('value'):
+            value = kwds['value']
+        else:
+            typeName = self.getTypeName(self.attributes[-1], attrs, None)
+            if typeName is None:
+                if self.tags[-1] == 'attribute':
+                    typeName = self.getTypeName(self.attributes[-1],
+                                                self.tagAttrs[-1], 'str')
+                else:
+                    typeName = 'str'
+                
+            if typeName == 'dict' or typeName == 'list':
+                value = self.collections.pop()
+            else:
                 value = self.makeValue(typeName, self.data)
 
         name = attrs.get('name')
@@ -393,16 +403,23 @@ class ItemHandler(xml.sax.ContentHandler):
 
         return cardinality
 
-    def getTypeName(self, attribute, attrs):
+    def getTypeName(self, attribute, attrs, default):
 
-        attrType = attrs.get('type')
+        if attrs.has_key('typeid'):
+            try:
+                return self.repository[UUID(attrs['typeid'])].handlerName()
+            except KeyError:
+                raise TypeError, "Type %s not found" %(attrs['typeid'])
 
-        if attrType is None and attribute is not None:
+        if attrs.has_key('type'):
+            return attrs['type']
+
+        if attribute is not None:
             attrType = attribute.getAspect('type', default=None)
             if attrType is not None:
-                return type(attrType).__name__
+                return attrType.handlerName()
 
-        return attrType or 'str'
+        return default
 
     def refName(self, attrs, attr):
 
@@ -433,76 +450,63 @@ class ItemHandler(xml.sax.ContentHandler):
     def setupTypeDelegate(self, attrs):
 
         if attrs.has_key('typeid'):
-            attrType = self.repository.find(UUID(attrs['typeid']))
-            if attrType is None:
-                raise TypeError, "Alias used before being defined"
+            try:
+                attrType = self.repository[UUID(attrs['typeid'])]
+            except KeyError:
+                raise TypeError, "Type %s not found" %(attrs['typeid'])
+
             self.delegates.append(attrType)
+            attrType.startValue(self)
+
+            return True
         
         elif self.attributes[-1]:
             attrType = self.attributes[-1].getAspect('type')
             if attrType is not None:
                 self.delegates.append(attrType)
+                attrType.startValue(self)
 
-    def makeValue(self, typeName, data):
+                return True
 
-        if typeName.find('.') > 0:
-            try:
-                typeHandler = ItemHandler.typeHandlers[typeName]
-            except KeyError:
-                lastDot = typeName.rindex('.')
-                module = typeName[:lastDot]
-                name = typeName[lastDot+1:]
-        
-                typeHandler = getattr(__import__(module, {}, {}, name), name)
-                ItemHandler.typeHandlers[typeName] = typeHandler
-
-            return typeHandler.makeValue(data)
+        return False
+    
+    def makeValue(cls, typeName, data):
 
         try:
             return ItemHandler.typeDispatch[typeName](data)
         except KeyError:
-            raise ValueError, "Unknown type: %s" %(typeName)
+            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
 
-    def typeName(cls, value):
+    def typeHandler(cls, repository, value):
 
-        typeHandler = cls.typeHandlers.get(type(value))
+        try:
+            return repository[cls.typeHandlers[repository][type(value)]]
+        except KeyError:
+            typeKind = repository[cls.typeHandlers[repository][None]]
+            types = typeKind.findTypes(value)
 
-        if typeHandler is not None:
-            return typeHandler.handlerName()
-        elif isinstance(value, UUID):
-            return 'uuid'
-        elif isinstance(value, Path):
-            return 'path'
-        elif isinstance(value, SingleRef):
-            return 'ref'
-        elif isinstance(value, PersistentList):
-            return 'list'
-        elif isinstance(value, PersistentDict):
-            return 'dict'
-        else:
-            return type(value).__name__
-
-    def makeString(cls, value):
-
-        typeHandler = cls.typeHandlers.get(type(value))
-
-        if typeHandler is not None:
-            return typeHandler.makeString(value)
-        else:
-            return str(value)
+            if types:
+                return types[0]
             
-    def xmlValue(cls, name, value, tag, attrType, attrCard, attrId,
+            raise TypeError, 'no handler for values of type %s' %(type(value))
+
+    def typeName(cls, repository, value):
+
+        return cls.typeHandler(repository, value).handlerName()
+
+    def makeString(cls, repository, value):
+
+        return cls.typeHandler(repository, value).makeString(value)
+    
+    def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
                  generator, withSchema):
 
         attrs = {}
             
         if name is not None:
-            if isinstance(name, UUID):
-                attrs['nameType'] = 'uuid'
-                attrs['name'] = name.str64()
-            elif not isinstance(name, str) and not isinstance(name, unicode):
-                attrs['nameType'] = cls.typeName(name)
-                attrs['name'] = str(name)
+            if not isinstance(name, str) and not isinstance(name, unicode):
+                attrs['nameType'] = cls.typeName(repository, name)
+                attrs['name'] = cls.makeString(repository, name)
             else:
                 attrs['name'] = name
 
@@ -511,56 +515,55 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if attrCard == 'single':
             if attrType is not None and attrType.isAlias():
-                valueType = attrType.type(value)
-                if valueType:
-                    if withSchema:
-                        attrs['type'] = valueType.handlerName()
-                    else:
-                        attrs['typeid'] = valueType.getUUID().str64()
-                else:
-                    attrs['type'] = cls.typeName(value)
-            elif not isinstance(value, str) and not isinstance(value, unicode):
+                attrType = attrType.type(value)
                 if attrType is None:
-                    attrs['type'] = cls.typeName(value)
-                elif withSchema:
-                    attrs['type'] = attrType.handlerName()
+                    attrType = cls.typeHandler(repository, value)
+                attrs['typeid'] = attrType._uuid.str64()
+
+            elif withSchema or attrType is None:
+                attrType = cls.typeHandler(repository, value)
+                attrs['typeid'] = attrType._uuid.str64()
+
         else:
             attrs['cardinality'] = attrCard
 
         generator.startElement(tag, attrs)
 
-        if withSchema or attrType is None or attrCard != 'single':
-            if isinstance(value, dict):
-                if isinstance(value, PersistentDict):
-                    for key, val in value._iteritems():
-                        cls.xmlValue(key, val, 'value', attrType, 'single',
-                                     None, generator, withSchema)
-                else:
-                    raise TypeError, 'dict is not persistent'
-            elif isinstance(value, list):
-                if isinstance(value, PersistentList):
-                    for val in value._itervalues():
-                        cls.xmlValue(None, val, 'value', attrType, 'single',
-                                     None, generator, withSchema)
-                else:
-                    raise TypeError, 'list is not persistent'
-            elif isinstance(value, repository.item.Item.Item):
-                raise TypeError, 'Item %s cannot be stored in a collection of literals' %(value.getItemPath())
-            elif value is repository.item.Item.Item.Nil:
-                raise ValueError, 'Cannot persist Item.Nil'
-            else:
-                generator.characters(cls.makeString(value))
+        if attrCard == 'single':
+            if isinstance(value, ItemPackage.Item.Item):
+                raise TypeError, 'Item %s cannot be stored as a literal' %(value.getItemPath())
 
-        else:
-            if attrType.recognizes(value):
-                attrType.typeXML(value, generator)
+            if value is ItemPackage.Item.Item.Nil:
+                raise ValueError, 'Cannot persist Item.Nil'
+
+            if attrType is not None:
+                if not attrType.recognizes(value):
+                    raise TypeError, 'Value %s of type %s on %s is not recognized by type %s' %(value, type(value), name, attrType.getItemPath())
+                else:
+                    attrType.typeXML(value, generator, withSchema)
             else:
-                raise TypeError, 'Value %s of type %s on %s is not recognized by type %s' %(value, type(value), name, attrType.getItemPath())
+                generator.characters(cls.makeString(repository, value))
+            
+        elif attrCard == 'list':
+            for val in value._itervalues():
+                cls.xmlValue(repository,
+                             None, val, 'value', attrType, 'single',
+                             None, generator, withSchema)
+
+        elif attrCard == 'dict':
+            for key, val in value._iteritems():
+                cls.xmlValue(repository,
+                             key, val, 'value', attrType, 'single',
+                             None, generator, withSchema)
+        else:
+            raise ValueError, attrCard
 
         generator.endElement(tag)
 
     typeName = classmethod(typeName)
+    typeHandler = classmethod(typeHandler)
     makeString = classmethod(makeString)
+    makeValue = classmethod(makeValue)
     xmlValue = classmethod(xmlValue)
 
     typeDispatch = {
@@ -574,8 +577,8 @@ class ItemHandler(xml.sax.ContentHandler):
         'long': long,
         'float': float,
         'complex': complex,
-        'class': lambda(data): ClassLoader.loadClass(str(data)),
-        'NoneType': lambda(data): None,
+        'class': lambda(data): ClassLoader.loadClass(data),
+        'none': lambda(data): None,
     }
 
 
@@ -611,8 +614,9 @@ class ItemsHandler(xml.sax.ContentHandler):
 
         if self.itemHandler is not None:
             self.itemHandler.endElement(tag)
-            
+
         if tag == 'item':
+            item = self.itemHandler.item
             self.items.append(self.itemHandler.item)
             self.itemHandler.endDocument()
             self.itemHandler = None

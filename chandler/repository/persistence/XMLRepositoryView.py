@@ -181,7 +181,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         else:
             if verbose:
-                print 'Saving version %d of %s' %(item._version,
+                print 'Saving version %d of %s' %(newVersion,
                                                   item.getItemPath())
 
             out = cStringIO.StringIO()

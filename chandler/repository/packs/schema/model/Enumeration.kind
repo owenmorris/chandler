@@ -21,8 +21,7 @@
       <ref type="path">//Schema/Core/Type</ref>
     </ref>
 
-    <attribute name="classes" cardinality="dict" 
-               type="repository.schema.Types.Class">
+    <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.schema.Types.Enumeration</value>
     </attribute>
   </item>

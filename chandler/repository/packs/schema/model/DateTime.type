@@ -2,15 +2,16 @@
 
 <item withSchema="True">
   <name>DateTime</name>
-  <kind type="path">//Schema/Core/Type</kind>
+  <kind type="path">//Schema/Core/Struct</kind>
   <class module="repository.schema.Types">DateTime</class>
 
-  <attribute name="fields" cardinality="list">
-    <value>year</value>
-    <value>month</value>
-    <value>day</value>
-    <value>hour</value>
-    <value>minute</value>
-    <value>second</value>
+  <attribute name="fields" type="dict" cardinality="list">
+    <value><values><value name="name">year</value></values></value>
+    <value><values><value name="name">month</value></values></value>
+    <value><values><value name="name">day</value></values></value>
+    <value><values><value name="name">hour</value></values></value>
+    <value><values><value name="name">minute</value></values></value>
+    <value><values><value name="name">second</value></values></value>
   </attribute>
+
 </item>

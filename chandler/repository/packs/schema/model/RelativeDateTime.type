@@ -5,20 +5,20 @@
   <kind type="path">//Schema/Core/Type</kind>
   <class module="repository.schema.Types">RelativeDateTime</class>
 
-  <attribute name="fields" cardinality="list">
-    <value>year</value>
-    <value>years</value>
-    <value>month</value>
-    <value>months</value>
-    <value>weekday</value>
-    <value>weeks</value>
-    <value>day</value>
-    <value>days</value>
-    <value>hour</value>
-    <value>hours</value>
-    <value>minute</value>
-    <value>minutes</value>
-    <value>second</value>
-    <value>seconds</value>
+  <attribute name="fields" type="dict" cardinality="list">
+    <value><values><value name="name">year</value></values></value>
+    <value><values><value name="name">years</value></values></value>
+    <value><values><value name="name">month</value></values></value>
+    <value><values><value name="name">months</value></values></value>
+    <value><values><value name="name">weekday</value></values></value>
+    <value><values><value name="name">weeks</value></values></value>
+    <value><values><value name="name">day</value></values></value>
+    <value><values><value name="name">days</value></values></value>
+    <value><values><value name="name">hour</value></values></value>
+    <value><values><value name="name">hours</value></values></value>
+    <value><values><value name="name">minute</value></values></value>
+    <value><values><value name="name">minutes</value></values></value>
+    <value><values><value name="name">second</value></values></value>
+    <value><values><value name="name">seconds</value></values></value>
   </attribute>
 </item>

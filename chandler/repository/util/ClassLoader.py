@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import sys, traceback
 
 class ClassLoader(object):
 
@@ -19,6 +20,7 @@ class ClassLoader(object):
         except ImportError:
             raise
         except Exception, e:
+            traceback.print_exc(file=sys.stdout)
             raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
         
         try:
@@ -30,6 +32,7 @@ class ClassLoader(object):
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
         except Exception, e:
+            traceback.print_exc(file=sys.stdout)
             raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
 
     loadClass = classmethod(loadClass)

@@ -3,4 +3,8 @@
   <name>UUID</name>
   <kind type="path">//Schema/Core/Type</kind>
   <class module="repository.schema.Types">UUID</class>
+
+  <attribute name="implementationTypes" cardinality="dict" type="class">
+    <value name="python">repository.util.UUID.UUID</value>
+  </attribute>
 </item>

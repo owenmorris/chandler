@@ -144,6 +144,23 @@ class Kind(Item):
     def recognizes(self, value):
         raise NotImplementedError, "Kind.recognizes()"
 
+    def isSubKindOf(self, superKind):
+
+        superKinds = self.getAttributeValue('superKinds',
+                                            _attrDict=self._references,
+                                            default=[])
+
+        if superKinds:
+            for kind in superKinds:
+                if kind is superKind:
+                    return True
+
+            for kind in superKinds:
+                if kind.isSubKindOf(superKind):
+                    return True
+
+        return False
+
 
 class ItemKind(Kind):
 

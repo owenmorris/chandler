@@ -25,8 +25,7 @@
       <ref type="path">/Core/Item</ref>
     </ref>
 
-    <attribute name="classes" cardinality="dict" 
-               type="repository.schema.Types.Class">
+    <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.schema.Attribute.Attribute</value>
     </attribute>
   </item>

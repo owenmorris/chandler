@@ -3,4 +3,8 @@
   <name>Path</name>
   <kind type="path">//Schema/Core/Type</kind>
   <class module="repository.schema.Types">Path</class>
+
+  <attribute name="implementationTypes" cardinality="dict" type="class">
+    <value name="python">repository.util.Path.Path</value>
+  </attribute>
 </item>

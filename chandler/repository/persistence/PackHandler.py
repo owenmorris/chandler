@@ -69,7 +69,14 @@ class PackHandler(xml.sax.ContentHandler):
             self.name = attrs['name']
 
             packs = self.repository.find('Packs')
-            Item(self.name, packs, None).setAttributeValue('File', self.path)
+            self.pack = Item(self.name, packs, None)
+
+    def packEnd(self, attrs):
+
+        if not attrs.has_key('file'):
+            itemKind = self.repository.find('Schema/Core/Item')
+            self.pack._setKind(itemKind)
+            self.pack.description = self.path
 
     def cwdStart(self, attrs):
 
@@ -126,6 +133,7 @@ class PackHandler(xml.sax.ContentHandler):
             
         items = self.repository._loadItemsFile(file, parent,
                                                afterLoadHooks=self.hooks[-1])
+
         for item in items:
             item._status |= item.NEW
 

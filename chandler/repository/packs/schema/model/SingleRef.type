@@ -3,4 +3,8 @@
   <name>SingleRef</name>
   <kind type="path">//Schema/Core/Type</kind>
   <class module="repository.schema.Types">SingleRef</class>
+
+  <attribute name="implementationTypes" cardinality="dict" type="class">
+    <value name="python">repository.item.PersistentCollections.SingleRef</value>
+  </attribute>
 </item>

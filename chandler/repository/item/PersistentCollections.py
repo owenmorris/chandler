@@ -155,7 +155,10 @@ class PersistentList(list, PersistentCollection):
     def pop(self, index = -1):
 
         self._setDirty()
-        return super(PersistentList, self).pop(index)
+        value = super(PersistentList, self).pop(index)
+        value = self._restoreValue(value)
+
+        return value
 
     def remove(self, value):
 
