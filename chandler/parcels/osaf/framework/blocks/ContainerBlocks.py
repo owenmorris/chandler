@@ -565,12 +565,12 @@ class TreeNode:
         self.nodeId = nodeId
         self.treeList = treeList
 
-    def AddChildNode (self, data, names, hasChildren):
+    def AddChildNode (self, item, names, hasChildren):
         childNodeId = self.treeList.AppendItem (self.nodeId,
                                                 names.pop(0),
                                                 -1,
                                                 -1,
-                                                wxTreeItemData (data))
+                                                wxTreeItemData (item.getUUID()))
         index = 1
         for name in names:
             self.treeList.SetItemText (childNodeId, name, index)
@@ -578,8 +578,11 @@ class TreeNode:
 
         self.treeList.SetItemHasChildren (childNodeId, hasChildren)
 
-    def AddRootNode (self, data, names, hasChildren):
-        rootNodeId = self.treeList.AddRoot (names.pop(0), -1, -1, wxTreeItemData (data))
+    def AddRootNode (self, item, names, hasChildren):
+        rootNodeId = self.treeList.AddRoot (names.pop(0),
+                                            -1,
+                                            -1,
+                                            wxTreeItemData (item.getUUID()))
         index = 1
         for name in names:
             SetItemText (rootNodeId, name, index)
@@ -589,7 +592,7 @@ class TreeNode:
                                              
     def GetData (self):
         if self.nodeId:
-            return self.treeList.GetPyData (self.nodeId)
+            return self.treeList.GetItemData (self.nodeId)
         else:
             return None        
 
@@ -604,6 +607,9 @@ class wxTreeList(wxTreeListCtrl):
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
  
+    def GetItemData(self, id):
+        return Globals.repository.find (self.GetPyData (id))
+
     def OnExpanding(self, event):
         """
           Load the items in the tree only when they are visible.
@@ -616,7 +622,7 @@ class wxTreeList(wxTreeListCtrl):
         state of the opened tree
         """
         try:
-            counterpart.openedContainers [self.GetPyData(id).getUUID()] = True
+            counterpart.openedContainers [self.GetPyData(id)] = True
         except AttributeError:
             pass
 
@@ -629,7 +635,7 @@ class wxTreeList(wxTreeListCtrl):
         state of the opened tree
         """
         try:
-            del counterpart.openedContainers [self.GetPyData(id).getUUID()]
+            del counterpart.openedContainers [self.GetPyData(id)]
         except AttributeError:
             pass
 
@@ -657,7 +663,7 @@ class wxTreeList(wxTreeListCtrl):
             chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
             notification = Notification(chandlerEvent, None, None)
             eventId = event.GetItem()
-            notification.SetData ({'item':self.GetPyData(eventId),
+            notification.SetData ({'item':self.GetItemData(eventId),
                                    'name':self.GetItemText(eventId),
                                    'id':eventId,
                                    'type':'Normal'})
@@ -665,9 +671,8 @@ class wxTreeList(wxTreeListCtrl):
 
     def SynchronizeFramework(self):
         def ExpandContainer (self, openedContainers, id):
-            item = self.GetPyData(id)
             try:
-                expand = openedContainers [item.getUUID()]
+                expand = openedContainers [self.GetPyData(id)]
             except:
                 return
 
@@ -705,7 +710,7 @@ class wxTreeList(wxTreeListCtrl):
                 child, cookie = self.GetFirstChild (treeNode, 0)
                 while child.IsOk():
                     try:
-                        if name == counterpart.GetTreeDataName (self.GetPyData(child)):
+                        if name == counterpart.GetTreeDataName (self.GetItemData(child)):
                             break
                     except AttributeError:
                         pass
@@ -759,11 +764,6 @@ class TreeList(RectangularChild):
 
 
 class RepositoryTreeList(TreeList):
-    """
-      TreeList is an abstract class. To use it, you must subclass it and
-    implement GetTreeData and GetTreeDataName. See RepositoryTreeList
-    for an example
-    """
     def GetTreeData (self, node):
         item = node.GetData()
         if item:
