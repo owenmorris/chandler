@@ -104,15 +104,15 @@
   </DetailTrunkDelegate>
 
   <!-- The DetailTrunkCache starts each specific DetailTrunk by cloning this stub. -->
-  <ContentItemDetail itsName="DetailTrunkStub"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
+  <DetailRoot itsName="DetailTrunkStub"
+              itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <blockName value="DetailTrunkStub"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
-  </ContentItemDetail>
+  </DetailRoot>
 
   <!-- All our subtrees are of this kind, so we can find 'em. -->
   <core:Kind itsName="DetailTrunkSubtree">

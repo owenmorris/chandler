@@ -219,6 +219,7 @@
         <Endpoint itsName="destinationBlockReference">
             <attribute value="destinationBlockReference"/>
             <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:BlockEvent/DefaultCloud/destinationBlockReference"/>
     </Cloud>
@@ -839,6 +840,15 @@
 
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="selection">
+            <attribute value="selection"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:List/DefaultCloud/selection"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:List/DefaultCloud"/>
   </Kind>  
 
   <!--
@@ -914,6 +924,15 @@
 
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="selection">
+            <attribute value="selection"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Tree/DefaultCloud/selection"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:Tree/DefaultCloud"/>
   </Kind>  
 
   <!--
@@ -1203,6 +1222,15 @@
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:selection"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="selection">
+            <attribute value="selection"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:ItemDetail/DefaultCloud/selection"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:ItemDetail/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -1265,7 +1293,6 @@
         <Endpoint itsName="detailItem">
             <attribute value="detailItem"/>
             <includePolicy value="byRef"/>
-            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/detailItem"/>
     </Cloud>
@@ -1285,7 +1312,6 @@
         <Endpoint itsName="trunkStub">
             <attribute value="trunkStub"/>
             <includePolicy value="byRef"/>
-            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:DetailTrunkDelegate/DefaultCloud/trunkStub"/>
     </Cloud>
@@ -1333,6 +1359,15 @@
     <superKinds itemref="docSchema:ContentItemDetail"/>
     
     <attributes itemref="docSchema:selection"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="selection">
+            <attribute value="selection"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:DetailRoot/DefaultCloud/selection"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:DetailRoot/DefaultCloud"/>
   </Kind>    
 
   <!-- Timer Block  -->

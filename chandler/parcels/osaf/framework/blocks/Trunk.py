@@ -99,7 +99,7 @@ class TrunkDelegate(Item):
                 trunkUUID = self.keyUUIDToTrunkUUID[keyUUID]
             except KeyError:
                 trunk = self._makeTrunkForCacheKey(keyItem)
-                self.keyUUIDToTrunkUUID[keyItem] = trunk.itsUUID
+                self.keyUUIDToTrunkUUID[keyUUID] = trunk.itsUUID
             else:
                 trunk = self.findUUID(trunkUUID)
         return trunk
@@ -107,14 +107,9 @@ class TrunkDelegate(Item):
     def _mapItemToCacheKey(self, item):
         """ 
         Given an item, determine the item to be used as the cache key.
-        Can be overridden; defaults to using the item itself is it's
-        a Block. The block is copied to the soup if it's not already
-        there.
+        Can be overridden; defaults to using the item itself.
         """
-        if isinstance (item, Block.Block):
-            return self._copyItem(item, onlyIfReadOnly=True)
-        else:
-            return None
+        return item
 
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
@@ -147,12 +142,14 @@ class TrunkDelegate(Item):
         return result
 
 class SidebarTrunkDelegate(TrunkDelegate):
-    """
-      Returns the treeTemplatePath if the item in the sidebar is an ItemCollection
-      otherwise returns the default key
-    """
-    def _mapItemToCacheKey(self, item):
-        if isinstance(item, ItemCollection.ItemCollection):
-            return self.findPath (self.treeTemplatePath)
+    def _makeTrunkForCacheKey(self, keyItem):
+        """ 
+          Return the treeTemplate if we've got an item collection otherwise let the super
+          class make a copy
+        """
+        if isinstance (keyItem, ItemCollection.ItemCollection):
+            return self._copyItem(self.findPath (self.treeTemplatePath),
+                                  onlyIfReadOnly=True)
         else:
-            return super(SidebarTrunkDelegate, self)._mapItemToCacheKey (item)
+            return super(SidebarTrunkDelegate, self)._makeTrunkForCacheKey (keyItem)
+

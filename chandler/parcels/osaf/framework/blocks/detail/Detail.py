@@ -34,10 +34,6 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
-    def __init__(self, *arguments, **keywords):
-        super (DetailRoot, self).__init__ (*arguments, **keywords)
-        self.selection = None
-
     def onSetContentsEvent (self, event):
         self.selection = event.arguments['item']
 
