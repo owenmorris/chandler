@@ -100,5 +100,5 @@ def GetAttributes(kind):
         for superKind in kind.superKinds:
             for tuple in GetAttributes(superKind):
                 yield tuple
-    except:
+    except AttributeError:
         pass
