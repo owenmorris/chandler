@@ -353,16 +353,6 @@ class Manager(Item):
                     namespace = "%s/%s" % \
                     ( self._repo2ns[parentPath], myName )
 
-                # Check for duplicate namespaces
-                if self._ns2parcel.has_key(namespace):
-                    pDesc = self._ns2parcel[namespace]
-                    explanation = \
-                        "Duplicate Namespace '%s: defined at %s and %s" % \
-                        (namespace, pDesc["path"], parcelFile)
-                    
-                    self.saveExplanation(explanation)
-                    raise ParcelException(explanation)
-                
                 # Set up the parcel descriptor
                 pDesc = {
                  "time" : DateTime.now(),
