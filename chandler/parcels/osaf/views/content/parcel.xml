@@ -133,37 +133,21 @@
   </CharacterStyle>
 
   <!-- Month -->
-  <calendarBlocks:MonthBlock itsName="SummaryMonth">
+  <calendarBlocks:CanvasMonth itsName="SummaryMonth">
     <contents itemref="view:calendarItemCollection"/>
-
-    <daysPerWeek>7</daysPerWeek>
-    <weeksPerView>6</weeksPerView>
-    <offset>60</offset>
-
-    <characterStyle itemref="view:CalendarTitle"/>
-  </calendarBlocks:MonthBlock>
+  </calendarBlocks:CanvasMonth>
 
   <!-- Week -->
-  <calendarBlocks:WeekBlock itsName="SummaryWeek">
+  <calendarBlocks:CanvasWeek itsName="SummaryWeek">
     <contents itemref="view:calendarItemCollection"/>
-
     <daysPerView>7</daysPerView>
-    <hoursPerView>16</hoursPerView>
-    <offset>60</offset>
-
-    <characterStyle itemref="view:CalendarTitle"/>
-  </calendarBlocks:WeekBlock>
+  </calendarBlocks:CanvasWeek>
 
   <!-- Day -->
-  <calendarBlocks:WeekBlock itsName="SummaryDay">
+  <calendarBlocks:CanvasWeek itsName="SummaryDay">
     <contents itemref="view:calendarItemCollection"/>
-
     <daysPerView>1</daysPerView>
-    <hoursPerView>16</hoursPerView>
-    <offset>60</offset>
-
-    <characterStyle itemref="view:CalendarTitle"/>
-  </calendarBlocks:WeekBlock>
+  </calendarBlocks:CanvasWeek>
 
   <!-- Mixed List -->
   <List itsName="MixedList">

@@ -38,8 +38,11 @@ def GenerateCalendarEvent(days):
     # Choose random days, hours
     startDelta = DateTime.DateTimeDelta(random.randint(0, days),
                                         random.randint(0, 24))
-    
-    event.startTime = DateTime.now() + startDelta
+
+    now = DateTime.now()
+    closeToNow = DateTime.DateTime(now.year, now.month, now.day, now.hour,
+                                   int(now.minute/30) * 30)
+    event.startTime = closeToNow + startDelta
     
     # Choose random minutes
     event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))

@@ -365,8 +365,6 @@ class WeekBlock(CalendarBlock):
 
         widget = wxWeekBlock(self.parentBlock.widget,
                              Block.Block.getWidgetID(self))
-        # @@@ hack hack??
-        widget.autoCreateDistance = self.hourHeight * .5
         return widget
 
     # Derived attributes

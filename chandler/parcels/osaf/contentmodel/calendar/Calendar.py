@@ -108,14 +108,22 @@ class CalendarEventMixin(Item.Item):
         # default the requestor to "me"
         self.organizer = self.getCurrentMeEmailAddress ()
 
+        # start at the nearest half hour, duration of an hour
+        now = DateTime.now()
+        self.startTime = DateTime.DateTime(now.year, now.month, now.day,
+                                           now.hour, int(now.minute/30) * 30)
+        self.duration = DateTime.DateTimeDelta(0, 1)
+
+        # give a starting display name
+        self.displayName = "New Event"
+
+
 class CalendarEvent(CalendarEventMixin, Notes.Note):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
         super (CalendarEvent, self).__init__(name, parent, kind)
-        self.startTime = DateTime.now()
-        self.endTime = DateTime.now()
         self.participants = []
 
     def GetDuration(self):
