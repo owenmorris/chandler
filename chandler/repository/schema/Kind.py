@@ -102,9 +102,6 @@ class SchemaRoot(Item):
             if item._kind is None and item.hasAttribute('Kind'):
                 item._kind = item.Kind
 
-            if item._attributes.get('NotFoundAttrDefs', None):
-                del item.NotFoundAttrDefs[:]
-            
             for child in item:
                 apply(child)
 
