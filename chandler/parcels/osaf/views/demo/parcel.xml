@@ -63,8 +63,107 @@
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
-  <!-- @@@DLD - put the Menus back on the Block Demo once
-                our code works well with the new wxWidgets -->
+  <!--
+    Menus
+  -->
+
+  <Menu itsName="DemoMenu">
+    <blockName>DemoMenu</blockName>
+    <description>A menu added by the Block Demo to the menu bar</description>
+    <title>Block Demo</title>
+    <location>MenuBar</location>
+    <itemLocation>HelpMenu</itemLocation>
+    <helpString></helpString>
+
+    <childrenBlocks itemref="doc:IntroMenuItem"/>    
+    <childrenBlocks itemref="doc:ButtonsMenuItem"/>
+    <childrenBlocks itemref="doc:ControlsMenuItem"/>
+    <childrenBlocks itemref="doc:HTMLMenuItem"/>
+  </Menu>
+
+  <!--
+    Menu Items
+  -->
+
+  <MenuItem itsName="IntroMenuItem">
+    <blockName>IntroMenuItem</blockName>
+    <title>Intro Tab</title>
+    <menuItemKind>Radio</menuItemKind>
+    <event itemref="doc:ChooseIntroTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ButtonsMenuItem">
+    <blockName>ButtonsMenuItem</blockName>
+    <title>Buttons Tab</title>
+    <menuItemKind>Radio</menuItemKind>
+    <event itemref="doc:ChooseButtonsTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ControlsMenuItem">
+    <blockName>ControlsMenuItem</blockName>
+    <title>Controls Tab</title>
+    <menuItemKind>Radio</menuItemKind>
+    <event itemref="doc:ChooseControlsTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itsName="HTMLMenuItem">
+    <blockName>HTMLMenuItem</blockName>
+    <title>HTML Tab</title>
+    <menuItemKind>Radio</menuItemKind>
+    <event itemref="doc:ChooseHTMLTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <!-- 
+    Menu items to demo and test Dynamic Containers 
+    We replace the "Undo" item with our own Undo,
+    delete the "Redo" item completely,
+    insert a sub-menu "Paste Special",
+    and insert a "Clear" menu item before "Delete".
+  -->
+  <MenuItem itsName="ReplaceUndoItem">
+    <blockName>ReplaceUndoItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="UndoItem"/>
+    <operation value="Replace"/>
+    <title>Can't Undo BlockDemo</title>
+  </MenuItem>
+
+  <MenuItem itsName="DeleteRedoItem">
+    <blockName>DeleteRedoItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="RedoItem"/>
+    <operation value="Delete"/>
+  </MenuItem>
+
+  <Menu itsName="InsertPasteSpecialMenu">
+    <blockName>InsertPasteSpecialMenu</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="PasteItem"/>
+    <title>Paste Special</title>
+    <childrenBlocks itemref="doc:PasteSpecialItem2"/>    
+    <childrenBlocks itemref="doc:PasteSpecialItem3"/>
+  </Menu>
+
+  <MenuItem itsName="PasteSpecialItem2">
+    <blockName>PasteSpecialItem2</blockName>
+    <title>Special flavor 2 for BlockDemo</title>
+  </MenuItem>
+
+  <MenuItem itsName="PasteSpecialItem3">
+    <blockName>PasteSpecialItem3</blockName>
+    <title>Special flavor 3 for BlockDemo</title>
+  </MenuItem>
+
+  <MenuItem itsName="InsertClearItem">
+    <blockName>InsertClearItem</blockName>
+    <location>EditMenu</location>
+    <itemLocation value="DeleteItem"/>
+    <title>Clear</title>
+  </MenuItem>
 
   <!--
     Layout blocks
@@ -310,6 +409,15 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
   
   <BoxContainer itsName="BlockDemoView">
     <displayName>Block Demo</displayName>
+
+    <!-- Menus -->
+    <childrenBlocks itemref="doc:DemoMenu"/>
+
+    <!-- Menu items to test Dynamic Containers -->
+    <childrenBlocks itemref="doc:ReplaceUndoItem"/>
+    <childrenBlocks itemref="doc:DeleteRedoItem"/>
+    <childrenBlocks itemref="doc:InsertPasteSpecialMenu"/>
+    <childrenBlocks itemref="doc:InsertClearItem"/>
 
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Tabs"/>

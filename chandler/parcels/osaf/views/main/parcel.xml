@@ -941,7 +941,6 @@
     <childrenBlocks itemref="doc:AddTasksViewItem"/>
     <childrenBlocks itemref="doc:AddMailViewItem"/>
     <childrenBlocks itemref="doc:AddKindViewsItem"/>
-    <childrenBlocks itemref="doc:TestSeparator3"/>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -1017,11 +1016,6 @@
     <helpString>Adds the Kind-specific views to the sidebar</helpString>
   </MenuItem>
 
-  <MenuItem itsName="TestSeparator3">
-    <blockName>TestSeparator3</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
