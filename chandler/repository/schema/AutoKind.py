@@ -4,13 +4,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
 from repository.item.Item import Item
+from repository.item.PersistentCollections import PersistentList
+from repository.item.PersistentCollections import PersistentDict
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
 from repository.schema.Attribute import Attribute
-from repository.util.PersistentList import PersistentList
-from repository.util.PersistentDict import PersistentDict
 
 
 class AutoKind(object):

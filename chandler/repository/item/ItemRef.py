@@ -111,19 +111,6 @@ class ItemRef(object):
         else:
             raise ValueError, "%s doesn't reference %s" %(self, item)
 
-    def _endpoints(self, item, name, other, otherName):
-
-        if self._item is item:
-            if self._other is other:
-                return (item, name, other, otherName)
-            return (item, name, None, otherName)
-        elif self._other is item:
-            if self._item is other:
-                return (other, otherName, item, name)
-            return (other, otherName, None, name)
-
-        return (None, name, None, otherName)
-
     def _refCount(self):
 
         return 1

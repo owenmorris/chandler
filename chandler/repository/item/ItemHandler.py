@@ -7,13 +7,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax, xml.sax.saxutils
 import repository.item.Item
 
+from repository.item.PersistentCollections import PersistentCollection
+from repository.item.PersistentCollections import SingleRef
+from repository.item.PersistentCollections import PersistentList
+from repository.item.PersistentCollections import PersistentDict
+from repository.item.ItemRef import Values, References, RefArgs
+
 from repository.util.UUID import UUID
 from repository.util.Path import Path
-from repository.util.PersistentCollection import PersistentCollection
-from repository.util.PersistentList import PersistentList
-from repository.util.PersistentDict import PersistentDict
-
-from ItemRef import Values, References, RefArgs
 
 
 class ItemHandler(xml.sax.ContentHandler):
@@ -92,9 +93,9 @@ class ItemHandler(xml.sax.ContentHandler):
         typeName = self.getTypeName(attribute, attrs)
         
         if cardinality == 'dict' or typeName == 'dict':
-            self.collections.append(PersistentDict(None))
+            self.collections.append(PersistentDict(None, None))
         elif cardinality == 'list' or typeName == 'list':
-            self.collections.append(PersistentList(None))
+            self.collections.append(PersistentList(None, None))
         else:
             self.setupTypeDelegate(attrs)
 
@@ -169,9 +170,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.repository._registerItem(item)
 
-        for value in self.values.itervalues():
+        for attribute, value in self.values.iteritems():
             if isinstance(value, PersistentCollection):
-                value._setItem(item)
+                companion = item.getAttributeAspect(attribute, 'companion',
+                                                    default=None)
+                value._setItem(item, companion)
 
         for refArgs in self.refs:
             refArgs.attach(item, self.repository)
@@ -324,9 +327,9 @@ class ItemHandler(xml.sax.ContentHandler):
 
         typeName = attrs.get('type')
         if typeName == 'dict':
-            self.collections.append(PersistentDict(None))
+            self.collections.append(PersistentDict(None, None))
         elif typeName == 'list':
-            self.collections.append(PersistentList(None))
+            self.collections.append(PersistentList(None, None))
         else:
             self.setupTypeDelegate(attrs)
 
@@ -415,10 +418,12 @@ class ItemHandler(xml.sax.ContentHandler):
         if otherName is None:
             if attribute is not None:            
                 raise TypeError, 'Undefined other endpoint for %s' %(name)
-            elif name.endswith('__for'):
-                otherName = name[:-5]
             else:
-                otherName = name + '__for'
+                print 'Warning, undefined otherName for %s' %(name)
+                if name.endswith('__for'):
+                    otherName = name[:-5]
+                else:
+                    otherName = name + '__for'
 
         return otherName
 
@@ -457,40 +462,10 @@ class ItemHandler(xml.sax.ContentHandler):
 
             return typeHandler.makeValue(data)
 
-        if typeName == 'str':
-            return str(data)
-
-        if typeName == 'unicode':
-            return unicode(data)
-
-        if typeName == 'uuid':
-            return UUID(data)
-        
-        if typeName == 'path':
-            return Path(data)
-
-        if typeName == 'bool':
-            return data != 'False'
-
-        if typeName == 'int':
-            return int(data)
-
-        if typeName == 'long':
-            return long(data)
-
-        if typeName == 'float':
-            return float(data)
-
-        if typeName == 'complex':
-            return complex(data)
-
-        if typeName == 'class':
-            return repository.item.Item.Item.loadClass(str(data))
-
-        if typeName == 'NoneType':
-            return None
-
-        raise ValueError, "Unknown type: %s" %(typeName)
+        try:
+            return ItemHandler.typeDispatch[typeName](data)
+        except KeyError:
+            raise ValueError, "Unknown type: %s" %(typeName)
 
     def typeName(cls, value):
 
@@ -502,6 +477,8 @@ class ItemHandler(xml.sax.ContentHandler):
             return 'uuid'
         elif isinstance(value, Path):
             return 'path'
+        elif isinstance(value, SingleRef):
+            return 'ref'
         elif isinstance(value, PersistentList):
             return 'list'
         elif isinstance(value, PersistentDict):
@@ -515,6 +492,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if typeHandler is not None:
             return typeHandler.makeString(value)
+        elif value is repository.item.Item.Item.Nil:
+            raise ValueError, 'Cannot persist Item.Nil'
         else:
             return str(value)
             
@@ -555,17 +534,24 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if withSchema or attrType is None or attrCard != 'single':
             if isinstance(value, dict):
-                for key, val in value.iteritems():
-                    cls.xmlValue(key, val, 'value', attrType, 'single',
-                                 generator, withSchema)
+                if isinstance(value, PersistentDict):
+                    for key, val in value._iteritems():
+                        cls.xmlValue(key, val, 'value', attrType, 'single',
+                                     generator, withSchema)
+                else:
+                    raise TypeError, 'dict is not persistent'
             elif isinstance(value, list):
-                for val in value:
-                    cls.xmlValue(None, val, 'value', attrType, 'single',
-                                 generator, withSchema)
+                if isinstance(value, PersistentList):
+                    for val in value._itervalues():
+                        cls.xmlValue(None, val, 'value', attrType, 'single',
+                                     generator, withSchema)
+                else:
+                    raise TypeError, 'list is not persistent'
             elif isinstance(value, repository.item.Item.Item):
                 raise TypeError, 'Item %s cannot be stored in a collection of literals' %(value.getItemPath())
             else:
                 generator.characters(cls.makeString(value))
+
         else:
             if attrType.recognizes(value):
                 attrType.typeXML(value, generator)
@@ -577,6 +563,21 @@ class ItemHandler(xml.sax.ContentHandler):
     typeName = classmethod(typeName)
     makeString = classmethod(makeString)
     xmlValue = classmethod(xmlValue)
+
+    typeDispatch = {
+        'str': lambda(data): str(data),
+        'unicode': lambda(data): unicode(data),
+        'uuid': lambda(data): UUID(data),
+        'path': lambda(data): Path(data),
+        'ref': lambda(data): SingleRef(UUID(data)),
+        'bool': lambda(data): data != 'False',
+        'int': lambda(data): int(data),
+        'long': lambda(data): long(data),
+        'float': lambda(data): float(data),
+        'complex': lambda(data): complex(data),
+        'class': lambda(data): repository.item.Item.Item.loadClass(str(data)),
+        'NoneType': lambda(data): None,
+    }
 
 
 class ItemsHandler(xml.sax.ContentHandler):

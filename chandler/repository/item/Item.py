@@ -7,15 +7,15 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax, xml.sax.saxutils
 import cStringIO
 
-from ItemRef import ItemRef, RefArgs
-from ItemRef import Values, References, RefDict
-from ItemHandler import ItemHandler
+from repository.item.ItemRef import ItemRef, RefArgs
+from repository.item.ItemRef import Values, References, RefDict
+from repository.item.ItemHandler import ItemHandler
+from repository.item.PersistentCollections import PersistentList
+from repository.item.PersistentCollections import PersistentDict
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
-from repository.util.PersistentList import PersistentList
-from repository.util.PersistentDict import PersistentDict
 
 
 class Item(object):
@@ -125,10 +125,12 @@ class Item(object):
         if otherName is None:
             if attribute is not None:
                 raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
-            elif name.endswith('__for'):
-                otherName = name[:-5]
             else:
-                otherName = name + '__for'
+                print 'Warning, undefined otherName for %s.%s' %(self, name)
+                if name.endswith('__for'):
+                    otherName = name[:-5]
+                else:
+                    otherName = name + '__for'
 
         return otherName
 
@@ -216,6 +218,18 @@ class Item(object):
         elif isRef:
             self._references[name] = value
 
+        elif isinstance(value, list):
+            companion = self.getAttributeAspect(name, 'companion',
+                                                default=None)
+            value = PersistentList(self, companion, *value)
+            self._values[name] = value
+            
+        elif isinstance(value, dict):
+            companion = self.getAttributeAspect(name, 'companion',
+                                                default=None)
+            value = PersistentDict(self, companion, **value)
+            self._values[name] = value
+            
         else:
             self._values[name] = value
 
@@ -375,12 +389,12 @@ class Item(object):
         'Get a value from a multi-valued attribute.'
 
         if _attrDict is None:
-            value = (self._values.get(attribute, None) or
-                     self._references.get(attribute, None))
+            value = (self._values.get(attribute, Item.Nil) or
+                     self._references.get(attribute, Item.Nil))
         else:
-            value = _attrDict.get(attribute, None)
+            value = _attrDict.get(attribute, Item.Nil)
             
-        if value is None:
+        if value is Item.Nil:
             return default
 
         if isinstance(value, dict):
@@ -415,9 +429,9 @@ class Item(object):
             else:
                 _attrDict = self._values
 
-        attrValue = _attrDict.get(attribute, None)
+        attrValue = _attrDict.get(attribute, Item.Nil)
             
-        if attrValue is None:
+        if attrValue is Item.Nil:
             card = self.getAttributeAspect(attribute, 'cardinality',
                                            default='single')
 
@@ -425,7 +439,9 @@ class Item(object):
                 if isItem:
                     attrValue = self._refDict(attribute)
                 else:
-                    attrValue = PersistentDict(self)
+                    companion = self.getAttributeAspect(attribute, 'companion',
+                                                        default=None)
+                    attrValue = PersistentDict(self, companion)
                     attrValue[key] = value
                     _attrDict[attribute] = attrValue
                     return
@@ -434,7 +450,10 @@ class Item(object):
                 if isItem:
                     attrValue = self._refDict(attribute)
                 else:
-                    _attrDict[attribute] = PersistentList(self, value)
+                    companion = self.getAttributeAspect(attribute, 'companion',
+                                                        default=None)
+                    _attrDict[attribute] = PersistentList(self, companion,
+                                                          value)
                     return
             else:
                 self.setAttributeValue(attribute, value, _attrDict)
@@ -460,9 +479,9 @@ class Item(object):
             else:
                 _attrDict = self._values
                 
-        attrValue = _attrDict.get(attribute, None)
+        attrValue = _attrDict.get(attribute, Item.Nil)
 
-        if attrValue is None:
+        if attrValue is Item.Nil:
             self.setValue(attribute, value, key, alias, _attrDict)
 
         else:
@@ -487,26 +506,35 @@ class Item(object):
         references, key must be an integer or the refName of the item value
         to remove."""
 
-        value = (self._values.get(attribute, None) or
-                 self._references.get(attribute, None))
+        value = (self._values.get(attribute, Item.Nil) or
+                 self._references.get(attribute, Item.Nil))
 
-        if isinstance(value, dict):
-            return value.has_key(key)
-        elif isinstance(value, list):
-            return 0 <= key and key < len(value)
-        elif value is not None:
-            raise TypeError, "%s is not multi-valued" %(attribute)
+        if value is not Item.Nil:
+            if isinstance(value, dict):
+                return value.has_key(key)
+            elif isinstance(value, list):
+                return 0 <= key and key < len(value)
+            elif value is not None:
+                raise TypeError, "%s is not multi-valued" %(attribute)
 
         return False
 
     def hasValue(self, attribute, value, _attrDict=None):
-        'Tell whether a multi-valued attribute has a given value.'
+        """Tell whether an attribute contains a given value.
+
+        If the attribute is multi-valued the value argument is checked for
+        appartenance in the attribute's value collection.
+        If the attribute is single-valued the value argument is checked for
+        equality with the attribute's value."""
 
         if _attrDict is not None:
-            attrValue = _attrDict.get(attribute, None)
+            attrValue = _attrDict.get(attribute, Item.Nil)
         else:
-            attrValue = (self._values.get(attribute, None) or
-                         self._references.get(attribute, None))
+            attrValue = (self._values.get(attribute, Item.Nil) or
+                         self._references.get(attribute, Item.Nil))
+
+        if attrValue is Item.Nil:
+            return False
 
         if isinstance(attrValue, RefDict) or isinstance(attrValue, list):
             return value in attrValue
@@ -516,8 +544,8 @@ class Item(object):
                 if v == value:
                     return True
 
-        elif attrValue is not None:
-            raise TypeError, "%s is not multi-valued" %(attribute)
+        else:
+            return attrValue == value
 
         return False
 
@@ -539,10 +567,10 @@ class Item(object):
         if _attrDict is not None:
             value = _attrDict[attribute]
         else:
-            value = (self._values.get(attribute, None) or
-                     self._references.get(attribute, None))
+            value = (self._values.get(attribute, Item.Nil) or
+                     self._references.get(attribute, Item.Nil))
 
-        if value is not None:
+        if value is not Item.Nil:
             del value[key]
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
@@ -1135,7 +1163,8 @@ class Item(object):
 
 
     loadClass = classmethod(loadClass)
-    __new__ = classmethod(__new__)
+    __new__   = classmethod(__new__)
+    Nil       = object()
     
     DELETED   = 0x01
     DIRTY     = 0x02

@@ -14,7 +14,7 @@ class UUID(object):
     It is a 128 bit number.
     UUID objects can be used as dictionary keys and are comparable."""
 
-    __slots__ = "_uuid"
+    __slots__ = ("_uuid", "_hash")
     
     def __init__(self, uuid=None):
 
@@ -27,6 +27,8 @@ class UUID(object):
             if not self._uuid:
                 raise ValueError, "Generating UUID from '%s' failed" %(uuid)
 
+        self._hash = UUIDext.hash(self._uuid)
+
     def __repr__(self):
 
         try:
@@ -36,7 +38,7 @@ class UUID(object):
 
     def __hash__(self):
 
-        return UUIDext.hash(self._uuid)
+        return self._hash
 
     def __getstate__(self):
 
@@ -45,6 +47,7 @@ class UUID(object):
     def __setstate__(self, state):
 
         self._uuid = state
+        self._hash = UUIDext.hash(state)
     
     def __eq__(self, other):
 

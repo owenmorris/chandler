@@ -5,13 +5,16 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import mx.DateTime
+import repository.util.UUID
+import repository.util.Path
+import repository.item.PersistentCollections
 
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
 from repository.item.ItemRef import RefDict
-from repository.util.PersistentList import PersistentList
-from repository.util.PersistentDict import PersistentDict
-from Kind import Kind
+from repository.item.PersistentCollections import PersistentList
+from repository.item.PersistentCollections import PersistentDict
+from repository.schema.Kind import Kind
 
 
 class TypeKind(Kind):
@@ -230,27 +233,43 @@ class Boolean(Type):
 class UUID(Type):
 
     def makeValue(cls, data):
-        return repository.util.UUID(data)
+        return repository.util.UUID.UUID(data)
 
     def unserialize(self, data):
         return UUID.makeValue(data)
 
     def recognizes(self, value):
-        return type(value) is UUID
+        return type(value) is repository.util.UUID.UUID
 
     makeValue = classmethod(makeValue)
+
+
+class SingleRef(Type):
+
+    def makeValue(cls, data):
+        uuid = repository.util.UUID.UUID(data)
+        return repository.item.PersistentCollections.SingleRef(uuid)
+
+    def unserialize(self, data):
+        return SingleRef.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is repository.item.PersistentCollections.SingleRef
+
+    makeValue = classmethod(makeValue)
+    
 
 
 class Path(Type):
 
     def makeValue(cls, data):
-        return repository.util.Path(data)
+        return repository.util.Path.Path(data)
 
     def unserialize(self, data):
         return Path.makeValue(data)
 
     def recognizes(self, value):
-        return type(value) is Path
+        return type(value) is repository.util.Path.Path
 
     makeValue = classmethod(makeValue)
 
@@ -458,14 +477,14 @@ class Dictionary(Collection):
     def typeXML(self, value, generator):
 
         generator.startElement('values', {})
-        for key, val in value.iteritems():
+        for key, val in value._iteritems():
             ItemHandler.xmlValue(key, val, 'value', None, 'single',
                                  generator, False)
         generator.endElement('values')
 
     def _empty(self):
 
-        return PersistentDict(None)
+        return PersistentDict(None, None)
 
 
 class List(Collection):
@@ -477,14 +496,14 @@ class List(Collection):
     def typeXML(self, value, generator):
 
         generator.startElement('values', {})
-        for val in value:
+        for val in value._itervalues():
             ItemHandler.xmlValue(None, val, 'value', None, 'single',
                                  generator, False)
         generator.endElement('values')
     
     def _empty(self):
 
-        return PersistentList(None)
+        return PersistentList(None, None)
     
 
 ItemHandler.typeHandlers[type] = Class
