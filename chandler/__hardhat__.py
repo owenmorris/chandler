@@ -41,7 +41,7 @@ def build(buildenv):
         python = buildenv['python_d']
     if buildenv['version'] == 'release':
         python = buildenv['python']
-    hardhatlib.executeCommandNoCapture( buildenv, info['name'],
+    hardhatlib.executeCommand( buildenv, info['name'],
      [python, "setup.py", "install"], "Building UUID Extension" )
     os.chdir("../../..")
 
