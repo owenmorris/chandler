@@ -757,6 +757,6 @@ class ContentItemDetail(SelectionContainer):
         
     def synchronizeColor (self):
         # if there's a color style defined, syncronize the color
-        if hasattr(self, "colorStyle"):
-            self.colorStyle.synchronizeColor(self)    
+        if self.hasAttributeValue("colorStyle"):
+            self.colorStyle.synchronizeColor(self)
            

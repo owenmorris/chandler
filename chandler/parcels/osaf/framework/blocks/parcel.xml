@@ -203,10 +203,12 @@
 
   <Attribute itemName="foregroundColor">
     <type itemref="docSchema:ColorType"/>
+    <defaultValue type="docSchema:ColorType">0,0,0,255</defaultValue>
   </Attribute>
 
   <Attribute itemName="backgroundColor">
     <type itemref="docSchema:ColorType"/>
+    <defaultValue type="docSchema:ColorType">255,255,255,255</defaultValue>
   </Attribute>
   
   <Attribute itemName="colorStyle">

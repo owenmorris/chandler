@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<!-- Copyright (c) 2004 Open Source Applications Foundation -->
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail"

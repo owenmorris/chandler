@@ -1,9 +1,12 @@
+__version__ = "$Revision$"
+__date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.parcel.Parcel as Parcel
 import application.Globals as Globals
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
+import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import wx
 
 """
@@ -113,11 +116,13 @@ class NoteBody(EditTextAttribute):
             item.body = textType.makeValue(widgetText)
         
     def LoadAttributeIntoWidget(self, item, widget):  
-        if hasattr(item, "body"):
+        if item.hasAttributeValue("body"):
             # get the character string out of the Text LOB
-            noteText = item.body
-            noteString = noteText.getInputStream().read()
-            widget.SetValue(noteString)
+            noteBody = item.body
+            if isinstance(noteBody, XMLRepositoryView.XMLText):
+                # Read the unicode stream from the XML
+                noteBody = noteBody.getInputStream().read()
+            widget.SetValue(noteBody)
         else:
             widget.Clear()
 
