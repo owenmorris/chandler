@@ -456,6 +456,8 @@ class ItemHandler(ValueHandler):
         self.afterLoadHooks = afterLoadHooks
         self.item = None
         self.new = new
+        self.values = None
+        self.references = None
         
     def refStart(self, itemHandler, attrs):
 
@@ -502,8 +504,10 @@ class ItemHandler(ValueHandler):
 
         super(ItemHandler, self).itemStart(itemHandler, attrs)
 
-        self.values = Values(None)
-        self.references = References(None)
+        if self.values is None:
+            self.values = Values(None)
+        if self.references is None:
+            self.references = References(None)
 
         self.refs = []
         self.name = None
@@ -811,7 +815,20 @@ class MergeHandler(ItemHandler):
     def __init__(self, repository, origItem):
 
         super(MergeHandler, self).__init__(repository, None, None, False)
+
         self.origItem = origItem
+
+        if hasattr(origItem._values, '_original'):
+            self.values = origItem._values
+        else:
+            self.values = Values(None)
+            self.values._original = origItem._values
+            
+        if hasattr(origItem._references, '_original'):
+            self.references = origItem._references
+        else:
+            self.references = References(None)
+            self.references._original = origItem._references
 
     def itemEnd(self, itemHandler, attrs):
 
@@ -819,11 +836,8 @@ class MergeHandler(ItemHandler):
         values = self.values
         references = self.references
 
-        values._original = item._values
-        references._original = item._references
-
-        values._mergeChanges(item._values)
-        references._mergeChanges(item._references)
+        values._copyChanges(item._values)
+        references._copyChanges(item._references)
 
         for key, value in item._references.iteritems():
             if value is not None and value._isRefList():

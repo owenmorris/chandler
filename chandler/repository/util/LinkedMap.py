@@ -47,6 +47,14 @@ class LinkedMap(dict):
             self._previousKey = previousKey
             linkedMap.linkChanged(self, key)
 
+        def getValue(self, linkedMap):
+
+            return self._value
+
+        def setValue(self, linkedMap, value):
+
+            self._value = value
+
 
     def __init__(self, new):
 
@@ -87,7 +95,7 @@ class LinkedMap(dict):
         target._clear_()
         
         for key, link in super(LinkedMap, self).iteritems():
-            targetLink = target._makeLink(link._value)
+            targetLink = target._makeLink(link.getValue(self))
             link._copy_(targetLink)
             target._insert(key, targetLink)
 
@@ -132,7 +140,7 @@ class LinkedMap(dict):
 
     def __getitem__(self, key, load=True):
 
-        return self._get(key, load)._value
+        return self._get(key, load).getValue(self)
 
     def __setitem__(self, key, value,
                     previousKey=None, nextKey=None, alias=None):
@@ -140,7 +148,7 @@ class LinkedMap(dict):
         link = super(LinkedMap, self).get(key)
 
         if link is not None:
-            link._value = value
+            link.setValue(self, value)
             self.linkChanged(link, key)
 
         else:
@@ -239,7 +247,7 @@ class LinkedMap(dict):
 
         return load and self._load(key)
 
-    def _contains(self, key):
+    def _contains_(self, key):
 
         return super(LinkedMap, self).__contains__(key)
             
@@ -258,7 +266,7 @@ class LinkedMap(dict):
             link = super(LinkedMap, self).get(key, default)
         
         if link is not default:
-            return link._value
+            return link.getValue(self)
 
         return default
 

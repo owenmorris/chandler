@@ -1141,3 +1141,7 @@ class HashTuple(tuple):
             name = name.encode('utf-8')
 
         return super(HashTuple, self).__contains__(_uuid.hash(name))
+
+    def hash(self, name):
+
+        return _uuid.hash(name)

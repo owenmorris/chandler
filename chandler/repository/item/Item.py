@@ -695,7 +695,7 @@ class Item(object):
         if not load:
             if self._children is not None:
                 for link in self._children._itervalues():
-                    yield link._value
+                    yield link.getValue(self._children)
 
         elif self._children is not None:
             for child in self._children:
@@ -2458,7 +2458,7 @@ class Children(LinkedMap):
             assert item._uuid == self._item._uuid
 
             for link in self._itervalues():
-                link._value._parent = item
+                link.getValue(self)._parent = item
 
         if item is not None and item._isItem():
             item._status |= Item.CONTAINER
@@ -2475,10 +2475,7 @@ class Children(LinkedMap):
 
     def _unloadChild(self, child):
 
-        if child._uuid in self:
-            self._remove(child._uuid)
-            if child._name is not None:
-                del self._aliases[child._name]
+        self._unloadRef(child)
     
     def __repr__(self):
 

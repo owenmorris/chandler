@@ -246,7 +246,7 @@ class Kind(Item):
             for uuid, link in inheritedAttributes._iteritems():
                 name = link._alias
                 if not self.resolve(name):
-                    attribute = link._value
+                    attribute = link.getValue(self)
                     for kind in attribute.kinds:
                         if self.isKindOf(kind):
                             break

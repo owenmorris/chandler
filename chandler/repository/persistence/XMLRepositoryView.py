@@ -428,7 +428,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     item._status |= Item.CMERGED
 
                 if newDirty & oldDirty & Item.RDIRTY:
-                    self._mergeRDIRTY(item, dirties)
+                    self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
                     oldDirty &= ~Item.RDIRTY
                     item._status |= Item.RMERGED
 
@@ -443,7 +443,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         oldDirty &= ~Item.VDIRTY
                         item._status |= Item.VMERGED
                     if oldDirty & Item.RDIRTY:
-                        self._mergeRDIRTY(item, dirties)
+                        self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
                         oldDirty &= ~Item.RDIRTY
                         item._status |= Item.RMERGED
 
@@ -480,12 +480,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
         if name != item._name:
             self._e_2_rename(item, name)
 
-    def _mergeRDIRTY(self, item, dirties):
+    def _mergeRDIRTY(self, item, dirties, oldVersion, toVersion):
 
         dirties = HashTuple(dirties)
+        merged = []
         for name in item._references._getDirties():
             if name in dirties:
-                self._e_1_overlap(item, name)
+                item._references[name]._mergeChanges(oldVersion, toVersion)
+                merged.append(dirties.hash(name))
+        if merged:
+            dirties = HashTuple(filter(lambda hash: hash not in merged,
+                                       dirties))
         item._references._dirties = dirties
 
     def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
@@ -516,10 +521,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def _e_2_rename(self, item, name):
 
         raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)
-
-    def _e_1_overlap(self, item, name):
-        
-        raise MergeError, ('ref collections', item, 'merging ref collections is not yet implemented, overlapping attribute: %s' %(name), MergeError.BUG)
 
     def _e_2_overlap(self, item, name):
         

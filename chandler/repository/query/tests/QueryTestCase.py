@@ -5,11 +5,11 @@ import repository.query.Query as Query
 class QueryTestCase(RepositoryTestCase.RepositoryTestCase):
     
     def setUp(self):
-        RepositoryTestCase.RepositoryTestCase._setup(self, False)
+        RepositoryTestCase.RepositoryTestCase._setup(self, True)
 
         self.testdir = os.path.join(self.rootdir, 'repository', \
          'query', 'tests')
-        RepositoryTestCase.RepositoryTestCase._openRepository(self, False)
+        RepositoryTestCase.RepositoryTestCase._openRepository(self, True)
 
     def _compileQuery(self, queryString, args=None):
         q = Query.Query(self.rep, queryString)

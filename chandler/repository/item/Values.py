@@ -195,7 +195,7 @@ class Values(dict):
         except AttributeError:
             pass
 
-    def _mergeChanges(self, source):
+    def _copyChanges(self, source):
 
         if '_flags' in source.__dict__:
             for key, flags in source._flags.iteritems():

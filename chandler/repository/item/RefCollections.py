@@ -84,7 +84,7 @@ class RefList(LinkedMap):
 
         for key in self.iterkeys():
             link = self._get(key)
-            copyOther = copyFn(copyItem, link._value, policy)
+            copyOther = copyFn(copyItem, link.getValue(self), policy)
             if copyOther is not None and copyOther not in refList:
                 refList.append(copyOther, link._alias)
 
@@ -471,18 +471,6 @@ class RefList(LinkedMap):
 
         return False
 
-    def _unloadRef(self, other):
-
-        key = other._uuid
-        if self.has_key(key, load=False):
-            link = self._get(key, load=False)
-            if link is not None:
-                if link._alias is not None:
-                    del self._aliases[link._alias]
-                self._remove(key)
-            else:
-                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, other.itsPath)
-
     def _unload(self):
 
         references = self._item._references
@@ -490,7 +478,7 @@ class RefList(LinkedMap):
         otherName = self._otherName
         
         for link in self._values():
-            references._unloadValue(name, link._value, otherName)
+            references._unloadValue(name, link.getValue(self), otherName)
 
     def linkChanged(self, link, key):
 
@@ -711,7 +699,7 @@ class RefList(LinkedMap):
         refs = self._item._references
         for key in self.iterkeys():
             link = self._get(key)
-            refs._saveRef(key, link._value,
+            refs._saveRef(key, link.getValue(self),
                           generator, False, version, {}, mode,
                           previous=link._previousKey, next=link._nextKey,
                           alias=link._alias)

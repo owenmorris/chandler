@@ -15,7 +15,17 @@ from repository.util.LinkedMap import LinkedMap
 
 
 class PersistentRefs(object):
-    
+
+    class link(LinkedMap.link):
+
+        def getValue(self, linkedMap):
+
+            value = self._value
+            if value is not None and value._isUUID():
+                self._value = value = linkedMap.view[value]
+
+            return value
+
     def __init__(self, view):
 
         super(PersistentRefs, self).__init__()
@@ -26,6 +36,10 @@ class PersistentRefs(object):
         self._value = None
         self._count = 0
         
+    def _makeLink(self, value):
+
+        return PersistentRefs.link(value)
+
     def __len__(self):
 
         return self._count
@@ -57,6 +71,21 @@ class PersistentRefs(object):
             if op != 0:
                 # changed element: key, maybe old alias: alias
                 self._changedRefs[key] = (0, alias)
+
+    def _unloadRef(self, item):
+
+        key = item._uuid
+        if self.has_key(key, load=False):
+            link = self._get(key, load=False)
+            if link is not None:
+                if link._alias is not None:
+                    del self._aliases[link._alias]
+                if key in self._changedRefs:
+                    link.setValue(self, key)
+                else:
+                    self._remove(key)                   
+            else:
+                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
 
     def _removeRef(self, key, link):
 
@@ -237,7 +266,8 @@ class XMLRefList(RefList, PersistentRefs):
             if not (self._flags & LinkedMap.NEW or
                     item.isAttributeDirty(self._name, item._references) or
                     len(self._changedRefs) == 0):
-                raise AssertionError, '%s.%s not marked dirty' %(Item.__repr__(item), self._name)
+                raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
+                                                                 self._name)
 
             self._writeRef(self.uuid, version,
                            self._firstKey, self._lastKey, self._count)
@@ -245,7 +275,7 @@ class XMLRefList(RefList, PersistentRefs):
             for key, (op, oldAlias) in self._changedRefs.iteritems():
                 if op == 0:               # change
                     link = self._get(key, load=False)
-                    ref = link._value
+
                     previous = link._previousKey
                     next = link._nextKey
                     alias = link._alias
@@ -300,6 +330,18 @@ class XMLRefList(RefList, PersistentRefs):
             return XMLNumericIndex(self._getRepository(), **kwds)
 
         return super(XMLRefList, self)._createIndex(indexType, **kwds)
+
+    def _mergeChanges(self, oldVersion, toVersion):
+
+        raise MergeError, ('ref collections', self._item, 'merging ref collections is not yet implemented, overlapping attribute: %s' %(self._name), MergeError.BUG)
+
+#        target = self.view._createRefList(self._item, self._name,
+#                                          self._otherName, True, False, False,
+#                                          self._uuid)
+#        self._copy_(target)
+#        self._item._references[self._name] = target
+#
+#        PersistentRefs._mergeChanges(target, oldVersion, toVersion)
 
 
 class XMLNumericIndex(NumericIndex):
@@ -464,7 +506,7 @@ class XMLChildren(Children, PersistentRefs):
         if not self._isRemoved(key):
             child = self.view.find(key)
             if child is not None:
-                if not self._contains(key):
+                if not self._contains_(key):
                     try:
                         loading = self.view._setLoading(True)
                         self.__setitem__(key, child, alias=child._name)
@@ -533,7 +575,7 @@ class XMLChildren(Children, PersistentRefs):
                 if alias is not None:
                     store.writeName(version, self.uuid, alias, key)
 
-                if link._value is None:
+                if link.getValue(self) is None:
                     unloads.append((key, link._alias))
 
             elif op == 1:             # remove
