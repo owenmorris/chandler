@@ -13,6 +13,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.Query as Query
+import osaf.mail.message as message
 import wx
 
 """
@@ -398,11 +399,16 @@ class ToEditField (EditTextAttribute):
 
         # for each address, strip white space, and match with existing
         addressList = []
+
+        #List of strings containing invalid email addresses
+        badAddressList = []
+
         for address in addresses:
-            address.strip()
-            if '.' in address and '@' in address:
+            address = address.strip()
+
+            if message.isValidEmailAddress(address):
                 for candidate in knownAddresses:
-                    if candidate.emailAddress == address:
+                    if message.emailAddressesAreEqual(candidate.emailAddress, address):
                         # found an existing address!
                         addressList.append(candidate)
                         break
@@ -411,6 +417,13 @@ class ToEditField (EditTextAttribute):
                     newAddress = Mail.EmailAddress()
                     newAddress.emailAddress = address
                     addressList.append(newAddress)
+            else:
+                badAddressList.append(address)
+
+        ##Pop-up Error Dialog about bad address
+        if len(badAddressList) > 0:
+            pass
+            #print "The following addresses are invalid: ", ", ".join(badAddressList)
 
         # reassign the list to the attribute
         item.who = addressList
