@@ -374,7 +374,18 @@ class DetailSynchronizer(object):
         """
 
         # get the user's address strings into a list
-        addresses = addressesString.split(',')
+        addresses = []
+        tmp = addressesString.split(',')
+   
+        for val in tmp:
+            #Many people are use to entering ';' in an email client
+            #so if one or more ';' are found treat as an email address
+            #divider
+            if val.find(';') != -1:
+                addresses.extend(val.split(';'))
+            else:
+                addresses.append(val)
+
 
         # build a list of all processed addresses, and all valid addresses
         validAddresses = []
