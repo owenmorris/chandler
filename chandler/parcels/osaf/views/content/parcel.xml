@@ -37,7 +37,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="taskQuery">
-    <data itemref="taskModel:TaskAspect"/>
+    <data itemref="taskModel:Task"/>
   </contentModel:Query>
   <contentModel:NamedCollection itsName="taskItemCollection">
     <rule itemref="view:taskQuery"/>

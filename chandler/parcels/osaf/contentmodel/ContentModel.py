@@ -112,6 +112,8 @@ class ContentItem(Item.Item):
         futureKind = self.NewStampedKind(operation, aspectKind)
         addedAspects, removedAspects = self.StampPreProcess(futureKind)
         self.itsKind = futureKind
+        # make sure the respository knows about the item's new Kind
+        Globals.repository.commit()
         self.StampPostProcess(futureKind, addedAspects, removedAspects)
 
     def NewStampedKind(self, operation, aspectKind):

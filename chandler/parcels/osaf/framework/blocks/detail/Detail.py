@@ -359,8 +359,6 @@ class ToEditField (EditTextAttribute):
         toFieldString = widget.GetValue()
         # DLDTBD - need to parse the string and lookup the contacts
         #  because it's really the contacts that are stored in the "who" attribute!
-        if toFieldString:
-            item.who = toFieldString
        
     def loadAttributeIntoWidget (self, item, widget):
         whoContacts = item.who # get redirected who list

@@ -117,6 +117,6 @@ class View(BoxContainer):
                         Globals.mainView.lastDynamicParent = block
                         DynamicContainerBlocks.DynamicContainer.\
                                               rebuildDynamicContainers(block, child)
-                        return
+                    return
             block = block.parentBlock
             
