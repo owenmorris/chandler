@@ -73,10 +73,6 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             self.contents.inclusions.clear()
             self.contents.add(item)
 
-    def onCollectionChanged(self, event):
-        self.finishSelectionChanges()
-        super(DetailRoot, self).onCollectionChanged(event) # does synchronizeWidget for us.
-
     def selectedItem(self):
         # return the item being viewed
         return self.selection    
@@ -892,7 +888,8 @@ class EditRedirectAttribute (EditTextAttribute):
             value = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
             value = _('untitled')
-        widget.SetValue(value)
+        if widget.GetValue() != value:
+            widget.SetValue(value)
 
 class EditHeadlineRedirectAttribute (EditRedirectAttribute):
     """

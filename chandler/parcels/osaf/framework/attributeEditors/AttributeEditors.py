@@ -86,6 +86,12 @@ class IAttributeEditor (object):
         aeClass = theClass._GetAttributeEditorClass (type)
         # init the attribute editor, letting it know it's not shared (can use instance data)
         instance = aeClass (isShared=False, presentationStyle=presentationStyle)
+        
+        # Note the characteristics that made us pick this editor
+        instance.typeName = type
+        instance.attributeName = attributeName
+        instance.presentationStyle = presentationStyle
+        
         return instance
     GetAttributeEditorInstance = classmethod (GetAttributeEditorInstance)
 

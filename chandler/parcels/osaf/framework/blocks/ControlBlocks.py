@@ -1412,10 +1412,10 @@ class wxAEBlock(wxRectangularChild):
 
         # lookup the appropriate editor
         # could do the lookup at init time, but then value-based lookups won't be right.
-        editor = self.blockItem.lookupEditor()
+        editor = self.blockItem.lookupEditor(self.editor)
         if editor is not self.editor:
             self.destroyControl()
-        self.editor = editor
+            self.editor = editor
 
         # redraw
         self.redrawAEBlock()
@@ -1543,7 +1543,7 @@ class AEBlock(RectangularChild):
         widget.SetFont(Font (self.characterStyle))
         return widget
 
-    def lookupEditor(self):
+    def lookupEditor(self, oldEditor):
         # get the Attribute Editor for this Type
         typeName = self.getItemAttributeTypeName()
         item = self.getItem()
@@ -1552,8 +1552,15 @@ class AEBlock(RectangularChild):
             presentationStyle = self.presentationStyle
         except AttributeError:
             presentationStyle = None
+            
+        if (oldEditor is not None) and (oldEditor.typeName == typeName) and \
+           (oldEditor.attributeName == attributeName) and \
+           (oldEditor.presentationStyle is presentationStyle):
+            return oldEditor
+        
         selectedEditor = IAttributeEditor.GetAttributeEditorInstance (typeName, 
                                         item, attributeName, presentationStyle)
+
         return selectedEditor
 
     def getItem(self):
