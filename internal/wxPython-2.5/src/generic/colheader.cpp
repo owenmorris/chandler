@@ -1539,12 +1539,12 @@ void wxColumnHeaderItem::SetUIExtent(
 	long			originX,
 	long			extentX )
 {
-	if ((originX >= 0) && (m_OriginX != originX))
-		m_OriginX = originX;
-
 	// NB: not currently permitted
-//	if ((extentX >= 0) && (m_ExtentX != extentX))
-//		m_ExtentX = extentX;
+//	if ((originX >= 0) && (m_OriginX != originX))
+//		m_OriginX = originX;
+
+	if ((extentX >= 0) && (m_ExtentX != extentX))
+		m_ExtentX = extentX;
 }
 
 bool wxColumnHeaderItem::GetFlagAttribute(
