@@ -17,6 +17,8 @@
   <issues>We have not yet fully addressed dates, times, timezones, etc.</issues>
   <issues>Reminders, recurrence are still placeholders, and they might be general enough to live with PimSchema.</issues>
   <issues>The calendar schema depends heavily on people/contacts/users/groups/etc, we have yet to adequately model them.</issues>
+  <issues>Consider using the icalendar terminology, generally</issues>
+  <issues>Consider using the common icalendar task attributes (i.e. percentComplete)</issues>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
@@ -61,12 +63,74 @@
   </Attribute>
 
   <Attribute itemName="reminders">
-    <displayName>Reminder</displayName>
+    <displayName>Reminders</displayName>
     <cardinality>list</cardinality>
     <type itemref="cal:Reminder"/>
   </Attribute>
 
+  <Attribute itemName="resources">
+    <displayName>Resources</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+  </Attribute>
 
+  <!-- Task attributes -->
+
+  <Attribute itemName="requestor">
+    <displayName>Requestor</displayName>
+    <issues>Type could be Contact, EmailAddress or String</issues>
+    <issues>Think about using the icalendar terminology</issues>
+    <cardinality>single</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>requestedTasks</otherName>
+  </Attribute>
+
+  <Attribute itemName="requestee">
+    <displayName>Requestee</displayName>
+    <issues>Type could be Contact, EmailAddress or String</issues>
+    <issues>Think about using the icalendar terminology</issues>
+    <cardinality>single</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>taskRequests</otherName>
+  </Attribute>
+
+  <Attribute itemName="dependsOn">
+    <displayName>Depends On</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <otherName>blocks</otherName>
+  </Attribute>
+
+  <Attribute itemName="blocks">
+    <displayName>Blocks</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <otherName>dependsOn</otherName>
+  </Attribute>
+
+  <Attribute itemName="status">
+    <displayName>Status</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="cal:Status"/>
+  </Attribute>
+
+  <Enumeration itemName="Status">
+    <displayName>Task Status</displayName>
+    <values>done</values>
+    <values>not_done</values>
+    <values>not_started</values>
+    <values>waiting_on_someone_else</values>
+    <values>in_progress</values>
+    <values>deferred</values>
+  </Enumeration>
+
+  <Attribute itemName="mailMessage">
+    <displayName>Mail Message</displayName>
+    <description>Mail message from which this task was spawned</description>
+    <issues>type should be MailMessage</issues>
+    <cardinality>single</cardinality>
+    <type itemref="content:ContentItem"/>
+  </Attribute>
 
   <!-- Calendar Event Attributes -->
   <Enumeration itemName="TimeTransparency">
@@ -119,20 +183,35 @@
   </Attribute>
 
   <Kind itemName="CalendarEvent">
-    <displayName>Calendar Event</displayName>
+    <displayName>Calendar Event/Task</displayName>
     <superKinds itemref="content:ContentItem"/>
+
+    <!-- general -->
     <attributes itemref="cal:headline"/>
     <attributes itemref="cal:startTime"/>
-    <attributes itemref="cal:endTime"/>
+    <attributes itemref="cal:body"/>
     <attributes itemref="cal:location"/>
+    <attributes itemref="cal:recurrence"/>
+    <attributes itemref="cal:reminders"/>
+    <attributes itemref="cal:resources"/>
+
+    <!-- task -->
+    <attributes itemref="cal:requestor"/>
+    <attributes itemref="cal:requestee"/>
+    <attributes itemref="cal:dependsOn"/>
+    <attributes itemref="cal:blocks"/>
+    <attributes itemref="cal:status"/>
+    <attributes itemref="cal:mailMessage"/>
+
+    <!-- calendar -->
+    <attributes itemref="cal:endTime"/>
     <attributes itemref="cal:calendar"/>
     <attributes itemref="cal:participants"/>
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
-    <attributes itemref="cal:recurrence"/>
-    <attributes itemref="cal:reminders"/>
     <attributes itemref="cal:transparency"/>
     <attributes itemref="cal:priority"/>
+
     <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
