@@ -46,11 +46,11 @@ parcels
 # Grab the launcher and linux README
 src=Chandler/distrib/win
 Chandler.bat
-README.win
+README.win.txt
 
 # Grab the overall README
 src=Chandler/distrib
-README
+README.txt
 
 # Grab the MS runtime DLL
 src=Chandler/distrib/win

@@ -33,11 +33,11 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
 
-# Grab the launcher and linux README
+# Grab the launcher and osx README
 src=Chandler/distrib/osx
 Chandler.sh
-README.osx
+README.osx.txt
 
 # Grab the overall README
 src=Chandler/distrib
-README
+README.txt
