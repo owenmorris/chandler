@@ -9,13 +9,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository
 
-def PrintItem(uri, rep, level=0):
+def PrintItem(uri, rep, recursive=False, level=0):
     """
-    Given a uri, display its info along with all its children recursively
+    Given a uri, display its info; include all descendents if recursive is
+    True (default is False)
 
-    Example:  PrintItem("//Schema", rep)
-
+    Example:  PrintItem("//Schema", rep, recursive=True)
     """
+
     for i in range(level):
         print " ",
     item = rep.find(uri)
@@ -111,7 +112,7 @@ def PrintItem(uri, rep, level=0):
 
     print
 
-    if item.hasChildren():
+    if recursive and item.hasChildren():
         for child in item.iterChildren():
-            childuri = child.itsPath
-            PrintItem(childuri, rep, level+1)
+            childuri = str(child.itsPath)
+            PrintItem(childuri, rep, recursive=True, level=level+1)
