@@ -171,10 +171,12 @@ class FeedParserDict(UserDict):
             return self.__dict__[key]
         except KeyError:
             pass
-        try:
-            return self.__getitem__(key)
-        except:
-            raise AttributeError, "object has no attribute '%s'" % key
+        if key[:1]<>'_':
+            try:
+                return self.__getitem__(key)
+            except:
+                pass
+        raise AttributeError, "object has no attribute '%s'" % key
 
     def __contains__(self, key):
         return self.has_key(key)
