@@ -20,9 +20,7 @@ from persistence.dict import PersistentDict
 from application.Application import app
 from application.SimpleCanvas import wxSimpleCanvas
 
-from application.repository.Event import Event
-from application.repository.Repository import Repository
-from application.repository.Namespace import chandler
+from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 
 from OSAF.calendar.ColumnarItem import ColumnarItem
 from OSAF.calendar.ColumnarItemEditor import ColumnarItemEditor
@@ -139,8 +137,7 @@ class wxColumnarTimeView(wxColumnarSubView):
             self.DeleteItem(objectToRemove)
             del objectToRemove
         
-            repository = Repository()
-            repository.Commit()
+            app.repository.save()
             
             self.editor.ClearItem()
             self.Refresh()
@@ -154,8 +151,7 @@ class wxColumnarTimeView(wxColumnarSubView):
                 
     def DeleteItem(self, drawableObject):
         self.zOrderedDrawableObjects.remove(drawableObject)
-        repository = Repository()
-        repository.DeleteThing(drawableObject.item)
+        drawableObject.item.delete()
         del drawableObject.item
         
     # Displaying events based on repository
@@ -177,12 +173,9 @@ class wxColumnarTimeView(wxColumnarSubView):
                 wxMessageBox(message)
         
         if remoteAddress == None or overlay:
-            lr = Repository()
-            for item in lr.thingList:
-                url = item.GetAkoURL()
-                if (url == chandler.Event):
-                    eventObject = ColumnarItem(self, item)
-                    self.zOrderedDrawableObjects.append(eventObject)
+            for item in app.repository.find("//Calendar"):
+                eventObject = ColumnarItem(self, item)
+                self.zOrderedDrawableObjects.append(eventObject)
 
     # receive remote objects by adding them to the list, and redrawing when we receive the last one
     def AddObjectsToView(self, url, objectList, lastFlag):
@@ -204,7 +197,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.Freeze()
         self.editor.ClearItem()
         for columnarItem in self.zOrderedDrawableObjects:
-            if self.model.isDateInRange(columnarItem.item.startTime):
+            if self.model.isDateInRange(columnarItem.item.CalendarStartTime):
                 columnarItem.PlaceItemOnCalendar()
                 columnarItem.Show(True)
             else:
@@ -273,21 +266,24 @@ class wxColumnarTimeView(wxColumnarSubView):
 
     def ConvertDataObjectToDrawableObject(self, dataObject, x, y, move):
         # Moves the item, or creates a new one
-        (item, hotx, hoty) = cPickle.loads(dataObject.GetData())
+        (path, hotx, hoty) = cPickle.loads(dataObject.GetData())
+        item = app.repository.find(path)
         newTime = self.model.getDateTimeFromPos(wxPoint(x, y - hoty))
         
         if (move):
             item.ChangeStart(newTime)
         else:
-            newItem = copy.copy(item)
+            newItem = CalendarEventFactory(app.repository).NewItem()
+            newItem.CalendarDuration = item.CalendarDuration
+            newItem.setAttribute("CalendarHeadline", item.CalendarHeadline)
             newItem.ChangeStart(newTime)
-
-            lr = Repository()
-            lr.AddThing(newItem)
+            
             item = newItem
             
         newItemObject = ColumnarItem(self, item)
         newItemObject.PlaceItemOnCalendar()
+
+        app.repository.save()
 
         return newItemObject
     
@@ -299,9 +295,9 @@ class wxColumnarTimeView(wxColumnarSubView):
             wxMessageBox(_("Sorry, but you can't add a new object to a remote calendar"))
             return None
         
-        newItem = Event()
+        newItem = CalendarEventFactory(app.repository).NewItem()
         
-        newItem.headline = ""
+        newItem.setAttribute("CalendarHeadline", "")
         self.Freeze()
         newEventObject = ColumnarItem(self, newItem)
         newEventObject.SizeDrag(dragRect, startDrag, endDrag)
@@ -310,7 +306,6 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.editor.ClearItem()
         
         # add object to the local repository (addObject commits the object)
-        lr = Repository()
-        lr.AddThing(newItem)
+        app.repository.save()
         
         return newEventObject

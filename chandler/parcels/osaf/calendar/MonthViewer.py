@@ -18,9 +18,6 @@ from application.Application import app
 
 from application.SimpleCanvas import wxSimpleCanvas
 
-from application.repository.Repository import Repository
-from application.repository.Namespace import chandler
-
 from OSAF.calendar.CalendarEvents import *
 
 # @@@ Note, lots in common with ColumnarViewer, perhaps create a common
@@ -115,12 +112,9 @@ class wxMonthViewer(wxSimpleCanvas):
                 wxMessageBox(message)
 
         if remoteAddress == None or overlay:
-            lr = Repository()
             self.eventList = []
-            for item in lr.thingList:
-                url = item.GetAkoURL()
-                if (url == chandler.Event):
-                    self.eventList.append(item)
+            for item in app.repository.find("//Calendar"):
+                self.eventList.append(item)
         
     # receive remote objects by adding to the object list
     # redraw after the last one
@@ -243,9 +237,9 @@ class wxMonthViewer(wxSimpleCanvas):
                 dc.SetTextBackground(wxColor(180, 192, 121))
             else:
                 dc.SetTextBackground(wxColor(180, 192, 159))
-            if (item.startTime > date and item.startTime < nextDay):
+            if (item.CalendarStartTime > date and item.CalendarStartTime < nextDay):
                 count += 1
-                monthHeadline = item.startTime.Format('%I%p ').lower() + item.headline.replace('\n', ' ')
+                monthHeadline = item.CalendarStartTime.Format('%I%p ').lower() + item.CalendarHeadline.replace('\n', ' ')
                 #if monthHeadline[0] == '0':
                 dc.DrawText(monthHeadline, x + 5, y + count * 15)
         dc.SetFont(wxFont(8, wxSWISS, wxNORMAL, wxBOLD))

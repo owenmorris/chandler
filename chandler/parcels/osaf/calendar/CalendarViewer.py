@@ -16,10 +16,6 @@ from persistence import Persistent
 from persistence.dict import PersistentDict
 from persistence.list import PersistentList
 
-from application.repository.Event import Event
-from application.repository.Repository import Repository
-from application.repository.Namespace import chandler
-
 from application.Application import app
 from application.ViewerParcel import *
 from application.SplashScreen import SplashScreen
@@ -71,11 +67,8 @@ class CalendarViewer(ViewerParcel):
     # FIXME: for now, just return all Events
     def GetViewObjects(self, url, jabberID):
         eventList = []
-        repository = Repository()
-        for item in repository.thingList:
-            url = item.GetAkoURL()
-            if (url == chandler.Event):
-                eventList.append(item)              
+        for item in app.repository.find("//Calendar"):
+            eventList.append(item)
         return eventList
     
     # handle errors - just pass it down the the wxViewer

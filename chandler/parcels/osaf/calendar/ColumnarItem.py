@@ -20,8 +20,6 @@ from mx import DateTime
 from persistence import Persistent
 from persistence.dict import PersistentDict
 
-from application.repository.Repository import Repository
-
 from application.Application import app
 from application.SimpleCanvas import wxSimpleDrawableObject
 
@@ -49,8 +47,9 @@ class ColumnarItem(wxSimpleDrawableObject):
                 # to the repository
                 if result == wxID_YES:
                     self.item.remoteAddress = None
-                    repository = Repository()
-                    repository.AddThing(self.item)   
+                    # @@@ fix me, how to deal with this case
+                    #repository = Repository()
+                    #repository.AddThing(self.item)   
                 return true
             
             if event.ButtonDown() and self.ReSizeHitTest(x, y):
@@ -92,9 +91,9 @@ class ColumnarItem(wxSimpleDrawableObject):
         # @@@ Scaffolding, draw the time and headline for show
         dc.SetTextForeground(wxBLACK)
         dc.SetFont(wxSWISS_FONT)
-        time = self.item.startTime
+        time = self.item.CalendarStartTime
         dc.DrawText(time.Format('%I:%M %p'), 10, 0)
-        self.DrawWrappedText(dc, self.item.headline, self.bounds.width - 1)
+        self.DrawWrappedText(dc, self.item.CalendarHeadline, self.bounds.width - 1)
         
     def DrawWrappedText(self, dc, text, wrapLength):
         # @@@ hack hack hack 
@@ -148,23 +147,23 @@ class ColumnarItem(wxSimpleDrawableObject):
         return (self.visible and reSizeBounds.Inside((x,y)))
         
     def SizeDrag(self, dragRect, startDrag, endDrag):
-        self.item.startTime = self.model.getDateTimeFromPos(dragRect.GetPosition())
+        self.item.CalendarStartTime = self.model.getDateTimeFromPos(dragRect.GetPosition())
  
         endHour, endMin = self.model.getTimeFromPos(dragRect.GetBottom())
-        self.item.endTime = DateTime.DateTime(self.item.startTime.year,
-                                              self.item.startTime.month,
-                                              self.item.startTime.day,
-                                              endHour, endMin)
+        self.item.CalendarEndTime = DateTime.DateTime(self.item.CalendarStartTime.year,
+                                                      self.item.CalendarStartTime.month,
+                                                      self.item.CalendarStartTime.day,
+                                                      endHour, endMin)
         
-        if (self.item.duration.hours < self.model.minHours):
-            self.item.duration = DateTime.TimeDelta(self.model.minHours)
+        if (self.item.CalendarDuration.hours < self.model.minHours):
+            self.item.CalendarDuration = DateTime.TimeDelta(self.model.minHours)
         
         self.PlaceItemOnCalendar()
     
     def ConvertDrawableObjectToDataObject(self, x, y):
         dataFormat = wxCustomDataFormat("ChandlerItem")
         dragDropData = wxCustomDataObject(dataFormat)
-        data = cPickle.dumps((self.item, x, y), true)
+        data = cPickle.dumps((str(self.item.getPath()), x, y), true)
         dragDropData.SetData(data)
         return dragDropData
     
@@ -175,8 +174,8 @@ class ColumnarItem(wxSimpleDrawableObject):
         
     def PlaceItemOnCalendar(self):
         width = self.model.dayWidth
-        height = int(self.item.duration.hours * self.model.hourHeight)
-        position = self.model.getPosFromDateTime(self.item.startTime)
+        height = int(self.item.CalendarDuration.hours * self.model.hourHeight)
+        position = self.model.getPosFromDateTime(self.item.CalendarStartTime)
         bounds = wxRect(position.x, position.y, width, height)
         self.SetBounds(bounds)
         self.SetEditorBounds()

@@ -15,8 +15,6 @@ from mx import DateTime
 from persistence import Persistent
 
 from application.Application import app
-from application.repository.Repository import Repository
-from application.repository.Namespace import chandler
 
 from OSAF.calendar.CalendarEvents import *
 
@@ -79,21 +77,18 @@ class wxTableViewer(wxPanel):
         EVT_CALENDAR_DATE(self, self.OnCalendarDate)
         
     def _loadEvents(self):
-        lr = Repository()
         self.eventList = []
-        for item in lr.thingList:
-            url = item.GetAkoURL()
-            if (url == chandler.Event):
-                self.eventList.append(item)
+        for item in app.repository.find("//Calendar"):
+            self.eventList.append(item)
         
     def _fillGrid(self):
         self.grid.ClearGrid()
         index = 0
         for item in self.eventList:
-            if (self.model.isDateInRange(item.startTime)):
-                self.grid.SetCellValue(index, 0, str(item.startTime))
-                self.grid.SetCellValue(index, 1, str(item.duration))
-                self.grid.SetCellValue(index, 2, item.headline)
+            if (self.model.isDateInRange(item.CalendarStartTime)):
+                self.grid.SetCellValue(index, 0, str(item.CalendarStartTime))
+                self.grid.SetCellValue(index, 1, str(item.CalendarDuration))
+                self.grid.SetCellValue(index, 2, item.CalendarHeadline)
                 index = index + 1
         
     def OnSize(self, event):
