@@ -197,6 +197,32 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 items.append(item)
         return items
 
+class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
+    """
+    Base class for all calendar canvases - handles basic item selection, 
+    date ranges, and so forth
+    """
+    def __init__(self, *arguments, **keywords):
+        super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
+
+        self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
+        
+    def OnInit(self):
+        self.editor = wxInPlaceEditor(self, -1) 
+        
+    def OnScroll(self, event):
+        self.Refresh()
+        event.Skip()
+
+    def OnSelectItem(self, item):
+        self.parent.blockItem.selection = item
+        self.parent.blockItem.postSelectItemBroadcast()
+        self.parent.wxSynchronizeWidget()
+
+    def GrabFocusHack(self):
+        self.editor.SaveItem()
+        self.editor.Hide()
+    
 class wxWeekPanel(wx.Panel, CalendarEventHandler):
     def __init__(self, *arguments, **keywords):
         super (wxWeekPanel, self).__init__ (*arguments, **keywords)
@@ -250,7 +276,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.headerCanvas.toggleSize()
         self.wxSynchronizeWidget()
 
-class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
+class wxWeekHeaderCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekHeaderCanvas, self).__init__ (*arguments, **keywords)
 
@@ -264,7 +290,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
 
     def OnInit(self):
-        self.editor = wxInPlaceEditor(self, -1)
+        super (wxWeekHeaderCanvas, self).OnInit()
 
         # Setup the navigation buttons
         today = DateTime.today()
@@ -538,11 +564,6 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         if (y > self.fullHeight):
             self.fullHeight = y
 
-    def OnSelectItem(self, item):
-        self.parent.blockItem.selection = item
-        self.parent.blockItem.postSelectItemBroadcast()
-        self.parent.wxSynchronizeWidget()
-
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if not createOnDrag:
             view = self.parent.blockItem.itsView
@@ -572,10 +593,6 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
                                                item.startTime.hour,
                                                item.startTime.minute))
             self.Refresh()
-
-    def GrabFocusHack(self):
-        self.editor.SaveItem()
-        self.editor.Hide()
 
     def OnEditItem(self, box):
         position = box.bounds.GetPosition()
@@ -607,21 +624,13 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
             newDay = self.parent.blockItem.rangeStart
         return newDay
 
-class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
-    def __init__(self, *arguments, **keywords):
-        super (wxWeekColumnCanvas, self).__init__ (*arguments, **keywords)
-
-        self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
-
-    def OnScroll(self, event):
-        self.Refresh()
-        event.Skip()
+class wxWeekColumnCanvas(wxCalendarCanvas):
 
     def wxSynchronizeWidget(self):
         self.Refresh()
 
     def OnInit(self):
-        self.editor = wxInPlaceEditor(self, -1) 
+        super (wxWeekColumnCanvas, self).OnInit()
         
         # @@@ rationalize drawing calculations...
         self._scrollYRate = 10
@@ -806,10 +815,6 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
 
     # handle mouse related actions: move, resize, create, select
 
-    def GrabFocusHack(self):
-        self.editor.SaveItem()
-        self.editor.Hide()
-
     def OnEditItem(self, box):
         position = self.CalcScrolledPosition(box.bounds.GetPosition())
         size = box.bounds.GetSize()
@@ -818,11 +823,6 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         textSize = wx.Size(size.width - 13, size.height - 20)
 
         self.editor.SetItem(box.getItem(), textPos, textSize, self.smallFont.GetPointSize()) 
-
-    def OnSelectItem(self, item):
-        self.parent.blockItem.selection = item
-        self.parent.blockItem.postSelectItemBroadcast()
-        self.parent.wxSynchronizeWidget()
 
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if createOnDrag:
@@ -1011,11 +1011,12 @@ class wxInPlaceEditor(wx.TextCtrl):
         self.Hide()
         event.Skip()
 
-class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
+class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
     def __init__(self, *arguments, **keywords):
         super(wxMonthCanvas, self).__init__(*arguments, **keywords)
 
     def OnInit(self):
+        super(wxMonthCanvas, self).OnInit()
 
         # Setup the navigation buttons
         today = DateTime.today()
