@@ -240,6 +240,9 @@ class MainView(View):
           Synchronize WebDAV sharing.
         The "File | Sync | WebDAV" menu item
         """
+        # commit repository changes before synch
+        self.RepositoryCommitWithStatus()
+
         # find all the shared collections and sync them.
         self.setStatusMessage (_("checking shared collections"))
         collections = self.sharedWebDAVCollections ()
@@ -335,7 +338,7 @@ class MainView(View):
             menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 
-    def setStatusMessage (self, statusMessage, progressPercentage=-1):
+    def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
         """
           Allows you to set the message contained in the status bar.  You can also specify 
         values for the progress bar contained on the right side of the status bar.  If you
@@ -343,6 +346,9 @@ class MainView(View):
         no percentage is specified the progress bar will disappear.
         """
         Globals.wxApplication.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
+        if alert:
+            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, statusMessage)
+            self.setStatusMessage ('')
 
     def SharingInvitees (self, itemCollection):
         # return the list of sharing invitees
@@ -364,7 +370,8 @@ class MainView(View):
             if path:
                 url = "%s/%s" % (path, itemCollection.itsUUID)
             else:
-                self.setStatusMessage (_("You need to set up the server and path in the account dialog!"))
+                self.setStatusMessage (_("You need to set up the server and path in the account dialog!"),
+                                       alert=True)
                 return
             url = url.encode ('utf-8')
         return url
@@ -455,9 +462,7 @@ class MainView(View):
    
                 errorMessage = _("The following %s occurred. %s") % (str, ', '.join(errorStrings))
                 errorMessage = errorMessage.encode ('utf-8')
-            self.setStatusMessage (errorMessage)
-            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
-            self.setStatusMessage ('')
+            self.setStatusMessage (errorMessage, alert=True)
         
     def RepositoryCommitWithStatus (self):
         """

@@ -54,6 +54,12 @@ def receivedInvitation(url, collectionName, fromAddress):
 def sendInvitation(url, collectionName, sendToList):
     SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
 
+def NotifyUIAsync (message, logger=logging.info, **keys):
+    logger (message)
+    Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
+                                               'setStatusMessage',
+                                               message, **keys)
+
 class SharingConstants(object):
     SHARING_HEADER  = "Sharing-URL"
     SHARING_DIVIDER = ";"
@@ -163,6 +169,8 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
                 errorText.append(e)
 
             self.log.error('\n'.join(e))
+            NotifyUIAsync (_('Errors occurred sending invitations.  See the log file for more information.'),
+                           alert=True)
 
         self.__cleanup()
 
@@ -172,6 +180,7 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
 
         e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url, result.value)
         self.log.error(e)
+        NotifyUIAsync (e, alert=True)
         self.__cleanup()
 
     def __cleanup(self):

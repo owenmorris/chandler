@@ -28,6 +28,12 @@ import repository.item.Query as Query
       3. SSL?
 """
 
+def NotifyUIAsync (message, logger=logging.info, **keys):
+    logger (message)
+    Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
+                                               'setStatusMessage',
+                                               message, **keys)
+
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
     def __init__(self, contextFactory=None):
@@ -101,6 +107,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         return p
 
     def clientConnectionFailed(self, connector, reason):
+        NotifyUIAsync (_("Connection failed - reason is %s") % reason, self.log.error)
         self.deferred.errback(reason)
 
 
@@ -204,7 +211,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         @return: C{None}
         """
 
-        self.log.error("Twisted Error %s" % error)
+        NotifyUIAsync (_("IMAP error: %s") % error, self.log.error, alert=True)
 
     def loginClient(self, proto):
         """
@@ -238,13 +245,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
                          ).addErrback(self.loginClientInsecure, username, password)
 
         finally:
-           self.restorePreviousView()
+            self.restorePreviousView()
 
     def loginClientInsecure(self, error, username, password):
         if __debug__:
             self.printCurrentView("loginClientInsecure")
 
-            return self.proto.login(username, password
+        return self.proto.login(username, password
                           ).addCallback(self.__selectInbox)
 
 
@@ -252,7 +259,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         if __debug__:
             self.printCurrentView("selectInbox ***Could be wrong view***")
 
-        self.__printInfo("Checking Inbox for new mail messages")
+        NotifyUIAsync (_("Checking Inbox for new mail messages"), self.__printInfo)
 
         return self.proto.select("INBOX").addCallback(self.__checkForNewMessages)
 
@@ -279,7 +286,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
                 return d
 
-            self.__printInfo("No messages present to download")
+            NotifyUIAsync (_("No messages present to download"), self.__printInfo)
 
         finally:
             self.restorePreviousView()
@@ -298,7 +305,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             high = max(v)
 
             if high <= self.__getLastUID():
-                self.__printInfo("No new messages found")
+                NotifyUIAsync (_("No new messages found"), self.__printInfo)
 
             else:
                 if self.__getLastUID() == 0:
@@ -365,7 +372,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
                     self.__setLastUID(uid)
                     totalDownloaded += 1
 
-            self.downloadedStr = "%d messages downloaded to Chandler" % (totalDownloaded)
+            self.downloadedStr = _("%d messages downloaded to Chandler") % (totalDownloaded)
 
         finally:
             self.restorePreviousView()
@@ -391,7 +398,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
 
-        self.__printInfo(self.downloadedStr)
+        NotifyUIAsync (self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
 
         self.account.setPinned(False)
@@ -423,7 +430,9 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.account = accountKind.findUUID(self.accountUUID)
 
         if self.account is None: 
-            raise IMAPException("No Account for UUID: %s"% self.account.itsUUID)
+            message = _("No Account for UUID: %s") % self.account.itsUUID
+            NotifyUIAsync (message, self.log.exception, alert=True)
+            raise IMAPException(message)
 
         self.account.setPinned()
 
@@ -473,6 +482,8 @@ def getIMAPAccount(UUID=None):
             break
 
     if account is None:
-        raise IMAPException("No IMAP Account exists in Repository")
+        message = _("No IMAP Account exists in Repository")
+        NotifyUIAsync (message, alert=True)
+        raise IMAPException(message)
 
     return account
