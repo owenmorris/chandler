@@ -21,6 +21,8 @@ $(SYSTEMS):
 
 all: env $(SYSTEMS)
 
+world: all binaries install
+
 clean: env
 	@for system in $(SYSTEMS); \
 	do \
