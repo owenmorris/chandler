@@ -26,7 +26,8 @@ class Condition(Item):
            this is the key routine that evaluates a condition based on it's type,
            returning True if the condition is satisifed
            For now, we only handle notification type conditions, but that will change soon
-        """                
+        """
+
         # we know that the condition fired, but check to make sure it's in our list
         # as a redundancy check
         notificationList = self.GetNotifications()
@@ -74,7 +75,7 @@ class Condition(Item):
         if compareMode == 'contains':
             return attributeValue.find(conditionValue) >= 0
         
-        if compareMode == 'matches': 
+        if compareMode == 'matches':
             try:
                 result = re.match(conditionValue, attributeValue)
                 return result != None
