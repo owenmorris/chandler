@@ -147,7 +147,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         for releaseMode in ('debug', 'release'):   
             ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
-            CopyLog(os.path.join(workingDir, logPath), log)
             if ret != 'success':
                 break
 
@@ -179,22 +178,25 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
 
     except Exception, e:
         print "a testing error"
-        log.write("***Error during tests*** " + str(e) + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Tests log:" + "\n")
-        if os.path.exists(os.path.join(workingDir, logPath)) :
-            CopyLog(os.path.join(workingDir, logPath), log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        doTestLog("***Error during tests*** " + str(e), workingDir, logPath, log)
         return "test_failed"
     else:
-        log.write("Tests successful" + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Detailed Tests log:" + "\n")
-        if os.path.exists(os.path.join(workingDir, logPath)) :
-            CopyLog(os.path.join(workingDir, logPath), log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        doTestLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
+
+
+def doTestLog(msg, workingDir, logPath, log):
+    log.write(msg + "\n")
+    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write("Tests log:\n")
+    logPath = os.path.join(workingDir, logPath)
+    if os.path.exists(logPath):
+        CopyLog(logPath, log)
+    else:
+        log.write(logPath + ' does not exist!\n')
+    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    
 
 def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
     changesAtAll = False
