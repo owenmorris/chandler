@@ -137,7 +137,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         if self._indexWriter is None:
             store = self.repository.store
-            if store.txn is None:
+            if not store._ramdb and store.txn is None:
                 raise RepositoryError, "Can't index outside transaction"
             self._indexWriter = store._index.getIndexWriter()
 

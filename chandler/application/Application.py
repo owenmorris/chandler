@@ -198,10 +198,15 @@ class wxApplication (wx.App):
                                       "__repository__")
         Globals.repository = XMLRepository(repositoryPath)
 
+        kwds = { 'stderr': '-stderr' in sys.argv,
+                 'ramdb': '-ramdb' in sys.argv,
+                 'create': True,
+                 'recover': True }
+
         if '-create' in sys.argv:
-            Globals.repository.create()
+            Globals.repository.create(**kwds)
         else:
-            Globals.repository.open(create=True, recover=True)
+            Globals.repository.open(**kwds)
 
         if not Globals.repository.find('//Packs/Schema'):
             """

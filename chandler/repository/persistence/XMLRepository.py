@@ -26,7 +26,7 @@ from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_LOCK_WRITE
-from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_LOCK_MINLOCKS
+from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from bsddb.db import DBLockDeadlockError
@@ -47,27 +47,36 @@ class XMLRepository(OnDemandRepository):
         super(XMLRepository, self).__init__(dbHome)
         self._env = None
         
-    def create(self):
+    def create(self, **kwds):
 
         if not self.isOpen():
-            super(XMLRepository, self).create()
-            self._create()
+            super(XMLRepository, self).create(**kwds)
+            self._create(**kwds)
             self._status |= self.OPEN
 
-    def _create(self):
+    def _create(self, **kwds):
 
-        if not os.path.exists(self.dbHome):
-            os.makedirs(self.dbHome)
-        elif not os.path.isdir(self.dbHome):
-            raise ValueError, "%s exists but is not a directory" %(self.dbHome)
-        else:
-            self.delete()
-        
+        ramdb = kwds.get('ramdb', False)
+
+        if not ramdb:
+            if not os.path.exists(self.dbHome):
+                os.makedirs(self.dbHome)
+            elif not os.path.isdir(self.dbHome):
+                raise ValueError, "%s is not a directory" %(self.dbHome)
+            else:
+                self.delete()
+
         self._env = self._createEnv()
-        self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
+
+        if ramdb:
+            flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
+        else:
+            flags = self.OPEN_FLAGS
+        self._env.open(self.dbHome, DB_CREATE | flags, 0)
 
         self.store = self._createStore()
-        self.store.open(True)
+        kwds['create'] = True
+        self.store.open(**kwds)
 
     def _createStore(self):
 
@@ -92,14 +101,17 @@ class XMLRepository(OnDemandRepository):
                         os.remove(f)
         os.path.walk(self.dbHome, purge, None)
 
-    def open(self, create=False, recover=False):
+    def open(self, **kwds):
 
-        if not self.isOpen():
-            super(XMLRepository, self).open()
+        if kwds.get('ramdb', False):
+            self.create(**kwds)
+
+        elif not self.isOpen():
+            super(XMLRepository, self).open(**kwds)
             self._env = self._createEnv()
             
             try:
-                if recover:
+                if kwds.get('recover', False):
                     before = datetime.now()
                     self._env.open(self.dbHome,
                                    DB_RECOVER | DB_CREATE | self.OPEN_FLAGS, 0)
@@ -110,11 +122,12 @@ class XMLRepository(OnDemandRepository):
                     self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
 
                 self.store = self._createStore()
-                self.store.open(False)
+                kwds['create'] = False
+                self.store.open(**kwds)
 
             except DBNoSuchFileError:
-                if create:
-                    self._create()
+                if kwds.get('create', False):
+                    self._create(**kwds)
                 else:
                     raise
 
@@ -140,18 +153,22 @@ class XMLRepository(OnDemandRepository):
 
 class XMLContainer(object):
 
-    def __init__(self, store, name, txn, create):
+    def __init__(self, store, name, txn, **kwds):
 
         super(XMLContainer, self).__init__()
         
         self.store = store
-        self._xml = XmlContainer(store.env, name)
         self._filename = name
+
+        if kwds.get('ramdb', False):
+            name = ''
+
+        self._xml = XmlContainer(store.env, name)
         self.version = "%d.%d.%d" %(self._xml.get_version_major(),
                                     self._xml.get_version_minor(),
                                     self._xml.get_version_patch())
             
-        if create:
+        if kwds.get('create', False):
             self._xml.open(txn, DB_CREATE | DB_DIRTY_READ | DB_THREAD)
             self._xml.addIndex(txn, "", "uuid",
                                "node-attribute-equality-string")
@@ -324,23 +341,24 @@ class XMLStore(Store):
         self._threaded = ThreadLocal()
         super(XMLStore, self).__init__(repository)
         
-    def open(self, create=False):
+    def open(self, **kwds):
 
+        self._ramdb = kwds.get('ramdb', False)
         txnStarted = False
         
         try:
             txnStarted = self.startTransaction()
             txn = self.txn
                 
-            self._data = XMLContainer(self, "__data__", txn, create)
-            self._refs = RefContainer(self, "__refs__", txn, create)
-            self._names = NamesContainer(self, "__names__", txn, create)
-            self._versions = VerContainer(self, "__versions__", txn, create)
-            self._history = HistContainer(self, "__history__", txn, create)
-            self._text = FileContainer(self, "__text__", txn, create)
-            self._binary = FileContainer(self, "__binary__", txn, create)
-            self._blocks = BlockContainer(self, "__blocks__", txn, create)
-            self._index = IndexContainer(self, "__index__", txn, create)
+            self._data = XMLContainer(self, "__data__", txn, **kwds)
+            self._refs = RefContainer(self, "__refs__", txn, **kwds)
+            self._names = NamesContainer(self, "__names__", txn, **kwds)
+            self._versions = VerContainer(self, "__versions__", txn, **kwds)
+            self._history = HistContainer(self, "__history__", txn, **kwds)
+            self._text = FileContainer(self, "__text__", txn, **kwds)
+            self._binary = FileContainer(self, "__binary__", txn, **kwds)
+            self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
+            self._index = IndexContainer(self, "__index__", txn, **kwds)
         finally:
             if txnStarted:
                 self.commitTransaction()
@@ -457,9 +475,12 @@ class XMLStore(Store):
 
     def startTransaction(self):
 
-        if self.txn is None:
-            self.txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
-            return True
+        if not self._ramdb:
+            if self.txn is None:
+                self.txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
+                return True
+        else:
+            self.txn = None
 
         return False
 
@@ -538,13 +559,18 @@ class XMLStore(Store):
 
     def acquireLock(self):
 
-        repository = self.repository
-        return repository._env.lock_get(self.lockId, repository.itsUUID._uuid,
-                                        DB_LOCK_WRITE)
+        if not self._ramdb:
+            repository = self.repository
+            return repository._env.lock_get(self.lockId,
+                                            repository.itsUUID._uuid,
+                                            DB_LOCK_WRITE)
+
+        return None
 
     def releaseLock(self, lock):
 
-        self.repository._env.lock_put(lock)
+        if lock is not None:
+            self.repository._env.lock_put(lock)
         return None
 
     def saveItem(self, xml, uuid, version, currPN, origPN, status):

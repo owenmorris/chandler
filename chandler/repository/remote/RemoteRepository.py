@@ -38,9 +38,9 @@ class RemoteStore(XMLStore):
         super(RemoteStore, self).__init__(repository)
         self.transport = transport
 
-    def open(self, create=False):
+    def open(self, **kwds):
 
-        super(RemoteStore, self).open(create=create)
+        super(RemoteStore, self).open(**kwds)
         self.transport.open()
 
     def close(self):

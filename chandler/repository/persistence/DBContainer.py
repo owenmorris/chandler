@@ -18,21 +18,27 @@ from bsddb.db import DBNotFoundError, DBLockDeadlockError
 
 class DBContainer(object):
 
-    def __init__(self, store, name, txn, create):
+    def __init__(self, store, name, txn, **kwds):
 
         super(DBContainer, self).__init__()
 
         self.store = store
         self._db = DB(store.env)
         self._filename = name
+        
+        if kwds.get('ramdb', False):
+            self._flags = 0
+            name = None
+        else:
+            self._flags = DB_DIRTY_READ
             
-        if create:
+        if kwds.get('create', False):
             self._db.open(filename = name, dbtype = DB_BTREE,
-                          flags = DB_CREATE | DB_DIRTY_READ | DB_THREAD,
+                          flags = DB_CREATE | DB_THREAD | self._flags,
                           txn = txn)
         else:
             self._db.open(filename = name, dbtype = DB_BTREE,
-                          flags = DB_DIRTY_READ | DB_THREAD,
+                          flags = DB_THREAD | self._flags,
                           txn = txn)
 
     def close(self):
@@ -61,11 +67,11 @@ class DBContainer(object):
 
     def get(self, key):
 
-        return self._db.get(key, txn=self.store.txn, flags=DB_DIRTY_READ)
+        return self._db.get(key, txn=self.store.txn, flags=self._flags)
 
     def cursor(self):
 
-        return self._db.cursor(txn=self.store.txn, flags=DB_DIRTY_READ)
+        return self._db.cursor(txn=self.store.txn, flags=self._flags)
 
     def _logDL(self, n):
 
@@ -166,7 +172,7 @@ class RefContainer(DBContainer):
                 cursor = self.cursor()
 
                 try:
-                    value = cursor.set_range(cursorKey, flags=DB_DIRTY_READ)
+                    value = cursor.set_range(cursorKey, flags=self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -230,7 +236,7 @@ class RefContainer(DBContainer):
             key = item._uuid._uuid
 
             try:
-                value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                value = cursor.set_range(key, flags=self._flags)
                 while value is not None and value[0].startswith(key):
                     cursor.delete()
                     value = cursor.next()
@@ -244,10 +250,10 @@ class RefContainer(DBContainer):
 
 class VerContainer(DBContainer):
 
-    def __init__(self, store, name, txn, create):
+    def __init__(self, store, name, txn, **kwds):
 
-        super(VerContainer, self).__init__(store, name, txn, create)
-        if create:
+        super(VerContainer, self).__init__(store, name, txn, **kwds)
+        if kwds.get('create', False):
             self._db.put(Repository.itsUUID._uuid, pack('>l', 0), txn)
             self._db.put(self.itsUUID._uuid, UUID()._uuid, txn)
 
@@ -292,7 +298,7 @@ class VerContainer(DBContainer):
                 
                 try:
                     key = uuid._uuid
-                    value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                    value = cursor.set_range(key, flags=self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -338,7 +344,7 @@ class VerContainer(DBContainer):
 
                 try:
                     key = uuid._uuid
-                    value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                    value = cursor.set_range(key, flags=self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -398,7 +404,7 @@ class HistContainer(DBContainer):
 
             try:
                 value = cursor.set_range(pack('>l', oldVersion + 1),
-                                         flags=DB_DIRTY_READ)
+                                         flags=self._flags)
             except DBNotFoundError:
                 return
 
@@ -451,7 +457,7 @@ class NamesContainer(DBContainer):
                 cursor = self.cursor()
                 
                 try:
-                    value = cursor.set_range(cursorKey, flags=DB_DIRTY_READ)
+                    value = cursor.set_range(cursorKey, flags=self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:

@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, os, os.path, threading, logging, heapq
+import os, os.path, threading, logging, heapq
 import libxml2
 
 from repository.util.UUID import UUID
@@ -52,29 +52,29 @@ class Repository(object):
         self._threaded = ThreadLocal()
         self._notifications = []
 
-    def create(self):
+    def create(self, **kwds):
 
-        self._init()
+        self._init(**kwds)
         
-    def open(self, create=False):
+    def open(self, **kwds):
 
-        self._init()
+        self._init(**kwds)
 
     def delete(self):
         
         raise NotImplementedError, "Repository.delete"
 
-    def _init(self):
+    def _init(self, **kwds):
 
         self._status = 0
         self.logger = logging.getLogger('repository')
 
-        if '-debug' in sys.argv:
+        if kwds.get('debug', False):
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
 
-        if '-stderr' in sys.argv or not self.logger.root.handlers:
+        if kwds.get('stderr', False) or not self.logger.root.handlers:
             if not self.logger.handlers:
                 self.logger.addHandler(logging.StreamHandler())
             
@@ -94,6 +94,9 @@ class Repository(object):
 
     def closeView(self, purge=False):
         self.view.close()
+
+    def openView(self):
+        self.view.open()
 
     def commit(self, purge=False):
 
@@ -238,8 +241,13 @@ class RepositoryView(object):
         raise NotImplementedError, "RepositoryView.getTextType"
 
     def closeView(self):
-
         self.close()
+
+    def openView(self):
+        self.open()
+
+    def open(self):
+        pass
 
     def close(self):
 

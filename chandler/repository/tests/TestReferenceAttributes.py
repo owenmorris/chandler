@@ -140,6 +140,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
+        managerKind = self.rep['manager']
+        employeeKind = self.rep['employee']
         emp1 = None
         emp2 = None
         emp3 = None
@@ -202,6 +204,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
+        managerKind = self.rep['manager']
+        employeeKind = self.rep['employee']
         (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
