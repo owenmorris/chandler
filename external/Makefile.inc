@@ -37,7 +37,7 @@ PLATFORM=linux
 endif
 endif
 
-ifeq ($(GCJ_HOME),)
+ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
 GCJ_HOME=$(compiler)
 endif
@@ -49,7 +49,22 @@ GCJ_HOME=/usr
 endif
 endif
 
-UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
+ifeq ($(OS),Cygwin)
+ifdef VS71COMNTOOLS
+
+MSVC_ROOT:=$(shell cygpath -u $$VS71COMNTOOLS\\..\\..)
+MSVC_DIR:=$(MSVC_ROOT)/Vc7
+
+export PATH:=$(MSVC_ROOT)/Common7/IDE:$(MSVC_DIR)/BIN:$(MSVC_ROOT)/Common7/Tools:$(MSVC_ROOT)/Common7/Tools/bin/prerelease:$(MSVC_ROOT)/Common7/Tools/bin:$(PATH)
+
+export INCLUDE:=$(shell cygpath -awp $(MSVC_DIR)/atlmfc/include:$(MSVC_DIR)/PlatformSDK/include/prerelease:$(MSVC_DIR)/PlatformSDK/include:$(MSVC_DIR)/include)
+
+export LIB:=$(shell cygpath -awp $(MSVC_DIR)/atlmfc/lib:$(MSVC_DIR)/LIB:$(MSVC_DIR)/PlatformSDK/lib/prerelease:$(MSVC_DIR)/PlatformSDK/lib)
+
+endif
+endif
+
+UPLOAD=builder@builds.o11n.org:/www/docs/external/$(PLATFORM)
 
 .PHONY: default all build compile install clean env
 
@@ -57,7 +72,7 @@ default: all
 
 env::
 	@echo Operating system is $(OS)
-ifeq ($(BUILD_ROOT),)
+ifndef BUILD_ROOT
 	@echo BUILD_ROOT is not set && false
 else
 	@echo BUILD_ROOT is $(BUILD_ROOT)
@@ -77,13 +92,18 @@ ifeq ($(OS),Cygwin)
         else \
             $(GCJ_HOME)/bin/gcj.exe --v; \
         fi
-	@if expr "$VS71COMNTOOLSx" = "x"  > /dev/null; then \
-		echo You do not have MSVS installed for this user; \
+ifndef VS71COMNTOOLS
+	@echo VS71COMNTOOLS is not set, you do not have MSVC 7.1 installed
+	@false
+else
+	@if [ ! -d $(shell cygpath -u $$VS71COMNTOOLS) ]; then \
+            echo VS71COMNTOOLS is not set properly; \
             false; \
-     else \
-		echo "Setting your environment variables..."; \
-		. $(BUILD_ROOT)/cygenv.sh; \
+        else \
+            echo INCLUDE for MSVC is `echo $$INCLUDE`; \
+            echo LIB for MSVC is `echo $$LIB`; \
 	fi
+endif
 else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
             echo GCJ_HOME is incorrect; \
