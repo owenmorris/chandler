@@ -29,7 +29,7 @@ BIN_ARCHIVES=../twisted-$(SNAP)-r11303-1.tar.gz \
              ../dbxml-$(SNAP)-1.2.1-1.tar.gz \
              ../pathan-$(SNAP)-1.2-1.tar.gz \
              ../xerces-c-$(SNAP)-2_4_0-1.tar.gz \
-             ../pylucene-$(SNAP)-0.8.2-4.tar.gz \
+             ../pylucene-$(SNAP)-0.8.2-6.tar.gz \
              ../epydoc-$(SNAP)-2.1-1.tar.gz \
              ../python-$(SNAP)-2.3.3-1.tar.gz \
              ../db-$(SNAP)-4.2.52-1.tar.gz \
