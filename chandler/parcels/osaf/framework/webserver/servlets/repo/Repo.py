@@ -7,6 +7,7 @@ import application
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
+from repository.persistence.DBLob import DBLob
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
@@ -541,6 +542,21 @@ def RenderItem(item):
                 except:
                     result += "%s: %s (%s)<br>" % (key, clean(value[key]),
                      clean(type(value[key])))
+
+            result += "</td></tr>\n"
+            count += 1
+
+        elif isinstance(value, DBLob):
+            result += oddEvenRow(count)
+            result += "<td valign=top>"
+            result += "%s" % name
+            result += "</td><td valign=top>"
+            try:
+                content = value.getInputStream().read()
+                result += clean(content)
+
+            except:
+                result += "(Couldn't read Lob content)"
 
             result += "</td></tr>\n"
             count += 1
