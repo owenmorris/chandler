@@ -35,9 +35,10 @@ class FilterQuery(Query):
 class KindQuery(Query):
     'A query that returns all items of certain kinds or subkind thereof'
 
-    def __init__(self):
+    def __init__(self, recursive=True):
 
         super(KindQuery, self).__init__()
+        self.recursive = recursive
 
     def run(self, kinds):
 
@@ -50,6 +51,7 @@ class KindQuery(Query):
             for item in kind.getRepository().queryItems(query):
                 yield item
 
-            subKinds = kind.getAttributeValue('subKinds', default=[])
-            for item in self.run(subKinds):
-                yield item
+            if self.recursive:
+                subKinds = kind.getAttributeValue('subKinds', default=[])
+                for item in self.run(subKinds):
+                    yield item

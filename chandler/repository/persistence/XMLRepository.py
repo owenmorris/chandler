@@ -278,13 +278,12 @@ class XMLContainer(object):
     def queryItems(self, version, query):
 
         store = self.store
-        ctx = store.ctx
         txnStarted = False
 
         docs = {}
         try:
             txnStarted = store._startTransaction()
-            for value in self._xml.queryWithXPath(store.txn, query, ctx,
+            for value in self._xml.queryWithXPath(store.txn, query, store.ctx,
                                                   DB_DIRTY_READ):
                 doc = value.asDocument()
                 ver = self.getDocVersion(doc)
