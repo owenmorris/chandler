@@ -7,16 +7,24 @@
 
   <content:IMAPAccount itsName="IMAPAccountOne">
     <displayName>IMAP</displayName>
+    <username>osafuser</username>
+    <password>chandler</password>
+    <host>code-bear.com</host>
+
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:ReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
     <defaultSMTPAccount itemref="mail:SMTPAccountOne" />
   </content:IMAPAccount>
 
-  <content:EmailAddress itsName="ReplyAddress" />
+  <content:EmailAddress itsName="ReplyAddress" >
+  <fullName>Osaf Test User</fullName>
+  <emailAddress>osafuser@code-bear.com</emailAddress>
+  </content:EmailAddress>
 
 
   <content:SMTPAccount itsName="SMTPAccountOne">
     <displayName>SMTP</displayName>
+    <host>code-bear.com</host>
   </content:SMTPAccount>
 </Parcel>

@@ -37,6 +37,8 @@ To Do:
 1. Work with Apple Mail and see how it handle display of various message types and copy
 2. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
 3. Add i18n support to outbound message
+4. Look at why certain encodings are failing from bear server move move encodings to 
+   i18n Package
 
 
 ARE THESES HANDLED BY THE EMAIL LIBRARY?
