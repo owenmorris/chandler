@@ -36,7 +36,7 @@ def syncItem(dav, item):
         localChanges = True
         serverChanges = False
 
-    print 'Syncing %s'          % (unicode(dav.url))
+    print 'Syncing %s (%s)'     % (unicode(dav.url), item.getItemDisplayName())
     print '-- needsPut      %s' % (needsPut)
     print '-- localChanges  %s' % (localChanges)
     print '-- serverChanges %s' % (serverChanges)
@@ -59,6 +59,11 @@ def syncItem(dav, item):
     if localChanges:
         # put back merged local changes
         syncToServer(dav, item)
+
+        # because some server suck (moddav) and don't change the etag
+        # when you change properties, lets force this
+        dav.putResource(item.itsKind.itsName, 'text/plain')
+
 
     if serverChanges or localChanges:
         # Make sure we have the latest etag and lastModified
