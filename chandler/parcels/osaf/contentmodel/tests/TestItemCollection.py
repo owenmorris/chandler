@@ -50,7 +50,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         log = logging.getLogger("Test")
         log.setLevel(logging.DEBUG)
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         log.debug("Generating calendar events")
         item = GenerateItems.GenerateCalendarEvent(100)
