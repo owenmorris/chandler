@@ -58,6 +58,27 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
+
+    def __findEvents(self, wildcard):
+        assert self.declarations.locked(), 'lock not acquired'
+
+        results = []
+        regex = re.compile(wildcard, re.IGNORECASE)
+
+        for key, value in self.declarations.iteritems():
+            matchObject = regex.match(key)
+            if matchObject != None:
+                results.append(value.event)
+
+        return results
+
+    def FindEvents(self, wildcard):
+        self.declarations.acquire()
+        try:
+            return self.__findEvents(wildcard)
+        finally:
+            self.declarations.release()
+
     def Subscribe(self, name, clientID, callback = None, *args):
         # make a subscription object
         self.subscriptions.acquire()
