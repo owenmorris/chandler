@@ -275,7 +275,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
             histNotifications.dispatchHistory()
             delta = datetime.now() - after
             if delta.seconds > 1:
-                self.logger.warning('%s %d notifications run in %s',
+                self.logger.warning('%s %d notifications ran in %s',
                                     self, count, delta)
 
         self.prune(10000)
