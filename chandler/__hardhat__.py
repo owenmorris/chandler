@@ -22,7 +22,7 @@ dependencies = (
 
 def build(buildenv):
 
-    bogus3()
+    bogus4()
 
     # Build the linux launcher program
     if buildenv['os'] == 'posix':
