@@ -132,11 +132,7 @@ class RSSChannel(ContentItem):
             lastModified = lastModified.tuple()
 
         # fetch the data
-
-        # XXX because of a bug in feedparser 3.0 betas we don't do
-        # etags or lastmodified here (bug 1421)
-        #data = feedparser.parse(self.url, etag, lastModified)
-        data = feedparser.parse(self.url)
+        data = feedparser.parse(self.url, etag, lastModified)
 
         # set etag
         SetAttribute(self, data, 'etag')
@@ -147,8 +143,11 @@ class RSSChannel(ContentItem):
             self.lastModified = mx.DateTime.mktime(modified)
 
         # if the feed is bad, raise the sax exception
-        if data['bozo'] == 1:
-            raise data['bozo_exception']
+        try:
+            if data['bozo'] == 1:
+                raise data['bozo_exception']
+        except KeyError:
+            return
 
         self._DoChannel(data['channel'])
         self._DoItems(data['items'])

@@ -38,6 +38,11 @@ class UpdateAction(Action):
                 #print 'failed to parse %s' % item.url
                 #print e
                 logging.exception('zaobao failed to parse %s' % item.url)
+            except UnicodeEncodeError, e:
+                #print 'failed to parse %s' % item.url
+                #print e
+                logging.exception('zaobao failed to parse %s' % item.url)
+
         repository.commit()
         #print 'Updated feeds'
 

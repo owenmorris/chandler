@@ -3,14 +3,14 @@
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
-Handles RSS 0.9x, RSS 1.0, RSS 2.0, Hot RSS, Atom, CDF feeds
+Handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom feeds
 
 Required: Python 2.1 or later
 Recommended: Python 2.3 or later
 Recommended: libxml2 <http://xmlsoft.org/python.html>
 """
 
-__version__ = "3.0-beta-21"
+__version__ = "3.0-beta-22"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
 __copyright__ = "Copyright 2002-4, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
@@ -18,15 +18,20 @@ __contributors__ = ["Jason Diamond <http://injektilo.org/>",
                     "Fazal Majid <http://www.majid.info/mylos/weblog/>"]
 __license__ = "Python"
 _debug = 0
+_debug_never_use_libxml2 = 0
 
 # if you are embedding feedparser in a larger application, you should change this to your application name and URL
 USER_AGENT = "UniversalFeedParser/%s%s +http://diveintomark.org/projects/feed_parser/" % (__version__, _debug and "-debug" or "")
 
-# ---------- required modules (should come with any Python distribution) ----------
-#import cjkcodecs.aliases
-#import japanese
+# If you want feedparser to automatically run HTML markup through HTML Tidy, set this to 1.
+# This is off by default because of reports of crashing on some platforms.  If it crashes
+# for you, please submit a bug report with your OS platform, Python version, and the URL
+# of the feed you were attempting to parse.
+# Requires mxTidy <http://www.egenix.com/files/python/mxTidy.html>
+TIDY_MARKUP = 0
 
-import sgmllib, re, sys, copy, urlparse, time, rfc822
+# ---------- required modules (should come with any Python distribution) ----------
+import sgmllib, re, sys, copy, urlparse, time, rfc822, types
 try:
     from cStringIO import StringIO as _StringIO
 except:
@@ -53,12 +58,12 @@ except ImportError:
         socket.setdefaulttimeout(10)
 import urllib2
 
-# mxtidy allows feedparser to tidy malformed embedded HTML markup in description, content, etc.
-# this does not affect HTML sanitizing, which is self-contained in the _HTMLSanitizer class
-#try:
-#    from mx.Tidy import Tidy as _mxtidy # http://www.lemburg.com/files/python/mxTidy.html
-#except:
-#    _mxtidy = None
+_mxtidy = None
+if TIDY_MARKUP:
+    try:
+        from mx.Tidy import Tidy as _mxtidy
+    except:
+        pass
 
 # If a real XML parser is available, feedparser will attempt to use it.  feedparser works
 # with both the built-in SAX parser and PyXML SAX parser.  On platforms where the Python
@@ -72,6 +77,7 @@ import urllib2
 try:
     import xml.sax
     from xml.sax.saxutils import escape as _xmlescape
+    class CharacterEncodingOverride(xml.sax.SAXException): pass
     _XML_AVAILABLE = 1
 except:
     _XML_AVAILABLE = 0
@@ -106,7 +112,7 @@ SUPPORTED_VERSIONS = {'': 'unknown',
                       'atom03': 'Atom 0.3',
                       'atom': 'Atom (unknown version)',
                       'cdf': 'CDF',
-                      'hotrss': 'Hot RSS',
+                      'hotrss': 'Hot RSS'
                       }
 
 try:
@@ -118,6 +124,23 @@ except NameError:
         for k, v in aList:
             rc[k] = v
         return rc
+
+from UserDict import UserDict
+class FeedParserDict(UserDict):
+    def __getitem__(self, key):
+        if key == 'channel': key = 'feed'
+        if key == 'items': key = 'entries'
+        return UserDict.__getitem__(self, key)
+
+    def __getattr__(self, key):
+        try:
+            return self.__dict__[key]
+        except KeyError:
+            pass
+        try:
+            return self.__getitem__(key)
+        except:
+            raise AttributeError, "object has no attribute '%s'" % key
 
 class _FeedParserMixin:
     namespaces = {"": "",
@@ -180,23 +203,24 @@ class _FeedParserMixin:
     can_contain_dangerous_markup = ['content', 'description', 'title', 'summary', 'info', 'tagline', 'copyright']
     html_types = ['text/html', 'application/xhtml+xml']
     
-    def __init__(self, baseuri=None):
+    def __init__(self, baseuri=None, encoding='utf-8'):
         if _debug: sys.stderr.write("initializing FeedParser\n")
-        self.channel = {} # channel- or feed-level data
-        self.items = [] # list of item- or entry-level data
+        self.feeddata = FeedParserDict() # feed-level data
+        self.encoding = encoding # character encoding
+        self.entries = [] # list of entry-level data
         self.version = '' # feed type/version, see SUPPORTED_VERSIONS
 
         # the following are used internally to track state;
         # some of this is kind of out of control and should
         # probably be refactored into a finite state machine
-        self.inchannel = 0
-        self.initem = 0
+        self.infeed = 0
+        self.inentry = 0
         self.incontent = 0
         self.intextinput = 0
         self.inimage = 0
         self.inauthor = 0
         self.incontributor = 0
-        self.contentparams = {}
+        self.contentparams = FeedParserDict()
         self.namespacemap = {}
         self.elementstack = []
         self.basestack = []
@@ -334,35 +358,10 @@ class _FeedParserMixin:
 
     def handle_decl(self, text):
         pass
-#        # called for the DOCTYPE, if present, e.g.
-#        # <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-#        #     "http://www.w3.org/TR/html4/loose.dtd">
-#        if text.count('http://my.netscape.com/publish/formats/rss-0.91.dtd'):
-#            self.version = 'rss091n'
-
-    _new_declname_match = re.compile(r'[a-zA-Z][-_.a-zA-Z0-9:]*\s*').match
-    def _scan_name(self, i, declstartpos):
-        rawdata = self.rawdata
-        n = len(rawdata)
-        if i == n:
-            return None, -1
-        m = self._new_declname_match(rawdata, i)
-        if m:
-            s = m.group()
-            name = s.strip()
-            if (i + len(s)) == n:
-                return None, -1  # end of buffer
-            return name.lower(), m.end()
-        else:
-            self.updatepos(declstartpos, i)
-            self.error("expected name token")
 
     def parse_declaration(self, i):
         # override internal declaration handler to handle CDATA blocks
         if _debug: sys.stderr.write("entering parse_declaration\n")
-#        if re.search(r'^<!DOCTYPE\s+?rss\s+?PUBLIC\s+?"-//Netscape Communications//DTD RSS 0.91//EN"\s+?"http://my.netscape.com/publish/formats/rss-0.91.dtd">', self.rawdata[i:]):
-#            if _debug: sys.stderr.write("found Netscape DOCTYPE\n")
-#            self.version = 'rss091n'
         if self.rawdata[i:i+9] == '<![CDATA[':
             k = self.rawdata.find(']]>', i)
             if k == -1: k = len(self.rawdata)
@@ -429,50 +428,56 @@ class _FeedParserMixin:
 
         # resolve relative URIs within embedded markup
         if element in self.can_contain_relative_uris:
-            output = _resolveRelativeURIs(output, self.baseuri)
+            output = _resolveRelativeURIs(output, self.baseuri, self.encoding)
         
         # sanitize embedded markup
         if element in self.can_contain_dangerous_markup:
-            output = _sanitizeHTML(output)
+            output = _sanitizeHTML(output, self.encoding)
+
+        if type(output) == types.StringType:
+            try:
+                output = unicode(output, self.encoding)
+            except:
+                pass
             
         # store output in appropriate place(s)
-        if self.initem:
+        if self.inentry:
             if element == 'content':
-                self.items[-1].setdefault(element, [])
+                self.entries[-1].setdefault(element, [])
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
-                self.items[-1][element].append(contentparams)
+                self.entries[-1][element].append(contentparams)
             elif element == 'category':
-                self.items[-1][element] = output
-                domain = self.items[-1]['categories'][-1][0]
-                self.items[-1]['categories'][-1] = (domain, output)
+                self.entries[-1][element] = output
+                domain = self.entries[-1]['categories'][-1][0]
+                self.entries[-1]['categories'][-1] = (domain, output)
             elif element == 'source':
-                self.items[-1]['source']['value'] = output
+                self.entries[-1]['source']['value'] = output
             elif element == 'link':
-                self.items[-1][element] = output
+                self.entries[-1][element] = output
                 if output:
-                    self.items[-1]['links'][-1]['href'] = output
+                    self.entries[-1]['links'][-1]['href'] = output
             else:
-                self.items[-1][element] = output
+                self.entries[-1][element] = output
                 if self.incontent:
                     if element == 'description':
                         element = 'summary'
                     contentparams = copy.deepcopy(self.contentparams)
                     contentparams['value'] = output
-                    self.items[-1][element + '_detail'] = contentparams
-        elif self.inchannel and (not self.intextinput) and (not self.inimage):
-            self.channel[element] = output
+                    self.entries[-1][element + '_detail'] = contentparams
+        elif self.infeed and (not self.intextinput) and (not self.inimage):
+            self.feeddata[element] = output
             if element == 'category':
-                domain = self.channel['categories'][-1][0]
-                self.channel['categories'][-1] = (domain, output)
+                domain = self.feeddata['categories'][-1][0]
+                self.feeddata['categories'][-1] = (domain, output)
             elif element == 'link':
-                self.channel['links'][-1]['href'] = output
+                self.feeddata['links'][-1]['href'] = output
             elif self.incontent:
                 if element == 'description':
                     element = 'tagline'
                 contentparams = copy.deepcopy(self.contentparams)
                 contentparams['value'] = output
-                self.channel[element + '_detail'] = contentparams
+                self.feeddata[element + '_detail'] = contentparams
         return output
 
     def _mapToStandardPrefix(self, name):
@@ -489,10 +494,10 @@ class _FeedParserMixin:
 
     def _save(self, key, value):
         if value:
-            if self.initem:
-                self.items[-1].setdefault(key, value)
-            elif self.channel:
-                self.channel.setdefault(key, value)
+            if self.inentry:
+                self.entries[-1].setdefault(key, value)
+            elif self.feeddata:
+                self.feeddata.setdefault(key, value)
 
     def _start_rss(self, attrsD):
         versionmap = {'0.91': 'rss091u',
@@ -513,7 +518,7 @@ class _FeedParserMixin:
         self.version = 'hotrss'
 
     def _start_channel(self, attrsD):
-        self.inchannel = 1
+        self.infeed = 1
         self._cdf_common(attrsD)
     _start_feedinfo = _start_channel
 
@@ -529,7 +534,7 @@ class _FeedParserMixin:
             self._end_link()
     
     def _start_feed(self, attrsD):
-        self.inchannel = 1
+        self.infeed = 1
         versionmap = {'0.1': 'atom01',
                       '0.2': 'atom02',
                       '0.3': 'atom03'}
@@ -542,7 +547,7 @@ class _FeedParserMixin:
                 self.version = 'atom'
 
     def _end_channel(self):
-        self.inchannel = 0
+        self.infeed = 0
     _end_feed = _end_channel
     
     def _start_image(self, attrsD):
@@ -555,7 +560,7 @@ class _FeedParserMixin:
         self.intextinput = 1
         self.push('textinput', 0)
         context = self._getContext()
-        context.setdefault('textinput', {})
+        context.setdefault('textinput', FeedParserDict())
     _start_textInput = _start_textinput
     
     def _end_textinput(self):
@@ -582,7 +587,7 @@ class _FeedParserMixin:
         self.incontributor = 1
         context = self._getContext()
         context.setdefault('contributors', [])
-        context['contributors'].append({})
+        context['contributors'].append(FeedParserDict())
         self.push('contributor', 0)
 
     def _end_contributor(self):
@@ -634,21 +639,21 @@ class _FeedParserMixin:
             pass
 
     def _getContext(self):
-        if self.initem:
-            context = self.items[-1]
+        if self.inentry:
+            context = self.entries[-1]
         else:
-            context = self.channel
+            context = self.feeddata
         return context
 
     def _save_author(self, key, value):
         context = self._getContext()
-        context.setdefault('author_detail', {})
+        context.setdefault('author_detail', FeedParserDict())
         context['author_detail'][key] = value
         self._sync_author_detail()
 
     def _save_contributor(self, key, value):
         context = self._getContext()
-        context.setdefault('contributors', [{}])
+        context.setdefault('contributors', [FeedParserDict()])
         context['contributors'][-1][key] = value
 
     def _sync_author_detail(self):
@@ -678,16 +683,16 @@ class _FeedParserMixin:
             if author and (author[-1] == ')'):
                 author = author[:-1]
             author = author.strip()
-            context.setdefault('author_detail', {})
+            context.setdefault('author_detail', FeedParserDict())
             context['author_detail']['name'] = author
             context['author_detail']['email'] = email
             
     def _start_tagline(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('tagline', 1)
     _start_subtitle = _start_tagline
 
@@ -695,16 +700,16 @@ class _FeedParserMixin:
         value = self.pop('tagline')
         self.incontent -= 1
         self.contentparams.clear()
-        if self.inchannel:
-            self.channel['description'] = value
+        if self.infeed:
+            self.feeddata['description'] = value
     _end_subtitle = _end_tagline
             
     def _start_copyright(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('copyright', 1)
     _start_dc_rights = _start_copyright
 
@@ -715,16 +720,16 @@ class _FeedParserMixin:
     _end_dc_rights = _end_copyright
 
     def _start_item(self, attrsD):
-        self.items.append({})
+        self.entries.append(FeedParserDict())
         self.push('item', 0)
-        self.initem = 1
+        self.inentry = 1
         self._cdf_common(attrsD)
     _start_entry = _start_item
     _start_product = _start_item
 
     def _end_item(self):
         self.pop('item')
-        self.initem = 0
+        self.inentry = 0
     _end_entry = _end_item
 
     def _start_dc_language(self, attrsD):
@@ -801,10 +806,10 @@ class _FeedParserMixin:
         self.push('category', 1)
         domain = self._getAttribute(attrsD, 'domain')
         cats = []
-        if self.initem:
-            cats = self.items[-1].setdefault('categories', [])
-        elif self.inchannel:
-            cats = self.channel.setdefault('categories', [])
+        if self.inentry:
+            cats = self.entries[-1].setdefault('categories', [])
+        elif self.infeed:
+            cats = self.feeddata.setdefault('categories', [])
         cats.append((domain, None))
     _start_dc_subject = _start_category
     _start_keywords = _start_category
@@ -815,27 +820,27 @@ class _FeedParserMixin:
     _end_keywords = _end_category
         
     def _start_cloud(self, attrsD):
-        self.channel['cloud'] = attrsD
+        self.feeddata['cloud'] = attrsD
         
     def _start_link(self, attrsD):
         attrsD.setdefault('rel', 'alternate')
         attrsD.setdefault('type', 'text/html')
         if attrsD.has_key('href'):
             attrsD['href'] = self.resolveURI(attrsD['href'])
-        expectingText = self.inchannel or self.initem
-        if self.initem:
-            self.items[-1].setdefault('links', [])
-            self.items[-1]['links'].append(attrsD)
-        elif self.inchannel:
-            self.channel.setdefault('links', [])
-            self.channel['links'].append(attrsD)
+        expectingText = self.infeed or self.inentry
+        if self.inentry:
+            self.entries[-1].setdefault('links', [])
+            self.entries[-1]['links'].append(attrsD)
+        elif self.infeed:
+            self.feeddata.setdefault('links', [])
+            self.feeddata['links'].append(attrsD)
         if attrsD.has_key('href'):
             expectingText = 0
             if attrsD.get('type', '') in self.html_types:
-                if self.initem:
-                    self.items[-1]['link'] = attrsD['href']
-                elif self.inchannel:
-                    self.channel['link'] = attrsD['href']
+                if self.inentry:
+                    self.entries[-1]['link'] = attrsD['href']
+                elif self.infeed:
+                    self.feeddata['link'] = attrsD['href']
         else:
             self.push('link', expectingText)
     _start_producturl = _start_link
@@ -868,11 +873,11 @@ class _FeedParserMixin:
             
     def _start_title(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
-        self.push('title', self.inchannel or self.initem)
+                              'base': attrsD.get('xml:base', self.baseuri)})
+        self.push('title', self.infeed or self.inentry)
     _start_dc_title = _start_title
 
     def _end_title(self):
@@ -886,11 +891,11 @@ class _FeedParserMixin:
 
     def _start_description(self, attrsD, default_content_type='text/html'):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', default_content_type),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
-        self.push('description', self.inchannel or self.initem)
+                              'base': attrsD.get('xml:base', self.baseuri)})
+        self.push('description', self.infeed or self.inentry)
 
     def _start_abstract(self, attrsD):
         return self._start_description(attrsD, 'text/plain')
@@ -902,18 +907,18 @@ class _FeedParserMixin:
         context = self._getContext()
         if self.intextinput:
             context['textinput']['description'] = value
-        elif self.initem:
+        elif self.inentry:
             context['summary'] = value
-        elif self.inchannel:
+        elif self.infeed:
             context['tagline'] = value
     _end_abstract = _end_description
 
     def _start_info(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('info', 1)
 
     def _end_info(self):
@@ -925,13 +930,13 @@ class _FeedParserMixin:
         if attrsD:
             if attrsD.has_key('url'):
                 attrsD['url'] = self.resolveURI(attrsD['url'])
-            self.channel['generator_detail'] = attrsD
+            self.feeddata['generator_detail'] = attrsD
         self.push('generator', 1)
 
     def _end_generator(self):
         value = self.pop('generator')
-        if self.channel.has_key('generator_detail'):
-            self.channel['generator_detail']['name'] = value
+        if self.feeddata.has_key('generator_detail'):
+            self.feeddata['generator_detail']['name'] = value
             
     def _start_admin_generatoragent(self, attrsD):
         self.push('generator', 1)
@@ -949,27 +954,27 @@ class _FeedParserMixin:
         
     def _start_summary(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'escaped'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'escaped'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('summary', 1)
 
     def _end_summary(self):
         value = self.pop('summary')
-        if self.items:
-            self.items[-1]['description'] = value
+        if self.entries:
+            self.entries[-1]['description'] = value
         self.incontent -= 1
         self.contentparams.clear()
         
     def _start_enclosure(self, attrsD):
-        if self.initem:
-            self.items[-1].setdefault('enclosures', [])
-            self.items[-1]['enclosures'].append(attrsD)
+        if self.inentry:
+            self.entries[-1].setdefault('enclosures', [])
+            self.entries[-1]['enclosures'].append(attrsD)
             
     def _start_source(self, attrsD):
-        if self.initem:
-            self.items[-1]['source'] = attrsD
+        if self.inentry:
+            self.entries[-1]['source'] = attrsD
         self.push('source', 1)
 
     def _end_source(self):
@@ -977,35 +982,35 @@ class _FeedParserMixin:
 
     def _start_content(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'xml'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'xml'),
                               'type': attrsD.get('type', 'text/plain'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('content', 1)
 
     def _start_prodlink(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': attrsD.get('mode', 'xml'),
+        self.contentparams = FeedParserDict({'mode': attrsD.get('mode', 'xml'),
                               'type': attrsD.get('type', 'text/html'),
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('content', 1)
 
     def _start_body(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': 'xml',
+        self.contentparams = FeedParserDict({'mode': 'xml',
                               'type': 'application/xhtml+xml',
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('content', 1)
     _start_xhtml_body = _start_body
 
     def _start_content_encoded(self, attrsD):
         self.incontent += 1
-        self.contentparams = {'mode': 'escaped',
+        self.contentparams = FeedParserDict({'mode': 'escaped',
                               'type': 'text/html',
                               'language': attrsD.get('xml:lang', self.lang),
-                              'base': attrsD.get('xml:base', self.baseuri)}
+                              'base': attrsD.get('xml:base', self.baseuri)})
         self.push('content', 1)
     _start_fullitem = _start_content_encoded
 
@@ -1023,10 +1028,10 @@ class _FeedParserMixin:
 
 if _XML_AVAILABLE:
     class _StrictFeedParser(_FeedParserMixin, xml.sax.handler.ContentHandler, xml.sax.handler.EntityResolver):#, xml.sax.handler.DTDHandler):
-        def __init__(self, baseuri):
+        def __init__(self, baseuri, encoding):
             if _debug: sys.stderr.write('trying StrictFeedParser\n')
             xml.sax.handler.ContentHandler.__init__(self)
-            _FeedParserMixin.__init__(self, baseuri)
+            _FeedParserMixin.__init__(self, baseuri, encoding)
             self.bozo = 0
             self.exc = None
         
@@ -1062,8 +1067,7 @@ if _XML_AVAILABLE:
             self.unknown_starttag(localname, attrsD.items())
 
         def resolveEntity(self, publicId, systemId):
-            pass
-#            return _StringIO()
+            return _StringIO()
 
         def characters(self, text):
             self.handle_data(text)
@@ -1080,25 +1084,31 @@ if _XML_AVAILABLE:
         def error(self, exc):
             self.bozo = 1
             self.exc = exc
+            
         def fatalError(self, exc):
             self.error(exc)
             raise exc
-
-class _LooseFeedParser(_FeedParserMixin, sgmllib.SGMLParser):
-    def __init__(self, baseuri):
-        sgmllib.SGMLParser.__init__(self)
-        _FeedParserMixin.__init__(self, baseuri)
 
 class _BaseHTMLProcessor(sgmllib.SGMLParser):
     elements_no_end_tag = ['area', 'base', 'basefont', 'br', 'col', 'frame', 'hr',
       'img', 'input', 'isindex', 'link', 'meta', 'param']
     
-    def __init__(self):
+    def __init__(self, encoding):
+        self.encoding = encoding
         sgmllib.SGMLParser.__init__(self)
         
     def reset(self):
         self.pieces = []
         sgmllib.SGMLParser.reset(self)
+
+    def feed(self, data):
+        data = re.compile(r'<!((?!DOCTYPE|--|\[))', re.IGNORECASE).sub(r'&lt;!\1', data)
+        data = re.sub(r'<(\S+)/>', r'<\1></\1>', data)
+        data = data.replace('&#39;', "'")
+        data = data.replace('&#34;', '"')
+        if type(data) == types.UnicodeType:
+            data = data.encode(self.encoding)
+        sgmllib.SGMLParser.feed(self, data)
 
     def normalize_attrs(self, attrs):
         # utility method to be called by descendants
@@ -1110,6 +1120,7 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         # called for each start tag
         # attrs is a list of (attr, value) tuples
         # e.g. for <pre class="screen">, tag="pre", attrs=[("class", "screen")]
+        if _debug: sys.stderr.write('_BaseHTMLProcessor, unknown_starttag, tag=%s\n' % tag)
         strattrs = "".join([' %s="%s"' % (key, value) for key, value in attrs])
         if tag in self.elements_no_end_tag:
             self.pieces.append("<%(tag)s%(strattrs)s />" % locals())
@@ -1136,6 +1147,7 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         # called for each block of plain text, i.e. outside of any tag and
         # not containing any character or entity references
         # Store the original text verbatim.
+        if _debug: sys.stderr.write('_BaseHTMLProcessor, handle_text, text=%s\n' % text)
         self.pieces.append(text)
         
     def handle_comment(self, text):
@@ -1155,9 +1167,37 @@ class _BaseHTMLProcessor(sgmllib.SGMLParser):
         # Reconstruct original DOCTYPE
         self.pieces.append("<!%(text)s>" % locals())
         
+    _new_declname_match = re.compile(r'[a-zA-Z][-_.a-zA-Z0-9:]*\s*').match
+    def _scan_name(self, i, declstartpos):
+        rawdata = self.rawdata
+        if _debug: sys.stderr.write("i=%s, declstartpos=%s, rawdata=%s\n" % (i, declstartpos, rawdata))
+        n = len(rawdata)
+        if i == n:
+            return None, -1
+        m = self._new_declname_match(rawdata, i)
+        if m:
+            s = m.group()
+            name = s.strip()
+            if (i + len(s)) == n:
+                return None, -1  # end of buffer
+            return name.lower(), m.end()
+        else:
+            self.handle_data(rawdata)
+#            self.updatepos(declstartpos, i)
+            return None, -1
+
     def output(self):
         """Return processed HTML as a single string"""
-        return "".join(self.pieces)
+        if _debug:
+            for p in self.pieces:
+                sys.stderr.write(p)
+            sys.stderr.write('\n')
+        return "".join([str(p) for p in self.pieces])
+
+class _LooseFeedParser(_FeedParserMixin, _BaseHTMLProcessor):
+    def __init__(self, baseuri, encoding):
+        sgmllib.SGMLParser.__init__(self)
+        _FeedParserMixin.__init__(self, baseuri, encoding)
 
 class _RelativeURIResolver(_BaseHTMLProcessor):
     relative_uris = [('a', 'href'),
@@ -1186,8 +1226,8 @@ class _RelativeURIResolver(_BaseHTMLProcessor):
                      ('q', 'cite'),
                      ('script', 'src')]
 
-    def __init__(self, baseuri):
-        _BaseHTMLProcessor.__init__(self)
+    def __init__(self, baseuri, encoding):
+        _BaseHTMLProcessor.__init__(self, encoding)
         self.baseuri = baseuri
 
     def resolveURI(self, uri):
@@ -1198,8 +1238,10 @@ class _RelativeURIResolver(_BaseHTMLProcessor):
         attrs = [(key, ((tag, key) in self.relative_uris) and self.resolveURI(value) or value) for key, value in attrs]
         _BaseHTMLProcessor.unknown_starttag(self, tag, attrs)
         
-def _resolveRelativeURIs(htmlSource, baseURI):
-    p = _RelativeURIResolver(baseURI)
+def _resolveRelativeURIs(htmlSource, baseURI, encoding):
+    if _debug: sys.stderr.write("entering _resolveRelativeURIs\n")
+    p = _RelativeURIResolver(baseURI, encoding)
+    if _debug: sys.stderr.write(repr(type(htmlSource)) + '\n')
     p.feed(htmlSource)
     return p.output()
 
@@ -1256,18 +1298,18 @@ class _HTMLSanitizer(_BaseHTMLProcessor):
         if not self.unacceptablestack:
             _BaseHTMLProcessor.handle_data(self, text)
 
-def _sanitizeHTML(htmlSource):
-    p = _HTMLSanitizer()
+def _sanitizeHTML(htmlSource, encoding):
+    p = _HTMLSanitizer(encoding)
     p.feed(htmlSource)
     data = p.output()
-#    if _mxtidy:
-#        nerrors, nwarnings, data, errordata = _mxtidy.tidy(data, output_xhtml=1, numeric_entities=1, wrap=0)
-#        if data.count('<body'):
-#            data = data.split('<body', 1)[1]
-#            if data.count('>'):
-#                data = data.split('>', 1)[1]
-#        if data.count('</body'):
-#            data = data.split('</body', 1)[0]
+    if _mxtidy and TIDY_MARKUP:
+        nerrors, nwarnings, data, errordata = _mxtidy.tidy(data, output_xhtml=1, numeric_entities=1, wrap=0)
+        if data.count('<body'):
+            data = data.split('<body', 1)[1]
+            if data.count('>'):
+                data = data.split('>', 1)[1]
+        if data.count('</body'):
+            data = data.split('</body', 1)[0]
     data = data.strip().replace('\r\n', '\n')
     return data
 
@@ -1636,10 +1678,15 @@ def _getCharacterEncoding(http_headers, xml_data):
         """
         if not content_type:
             return '', ''
+        content_type = content_type.strip()
         paramstr = content_type.split(';')[1:]
         if not paramstr:
             return content_type, ''
         content_type = content_type.split(';', 1)[0].strip().lower()
+        if not paramstr[0]:
+            # declaration like "text/xml;" (note ending semicolon)
+            # dunno if this is malformed but it sure was hard to track down
+            return content_type, ''
         import string
         params = dict([map(string.lower, map(string.strip, p.strip().split('=', 1))) for p in paramstr])
         charset = params.get('charset')
@@ -1680,11 +1727,13 @@ def _getCharacterEncoding(http_headers, xml_data):
 def _changeEncodingDeclaration(data, encoding):
     """Changes an XML data stream on the fly to specify a new encoding
 
-    data is a raw string (not Unicode) that is presumed to be in %encoding already
+    data is a raw sequence of bytes (not Unicode) that is presumed to be in %encoding already
     encoding is a string recognized by encodings.aliases
     """
     if _debug: sys.stderr.write('entering _changeEncodingDeclaration\n')
     if _debug: sys.stderr.write('proposed encoding: %s\n' % encoding)
+    #import cjkcodecs.aliases
+    #import japanese
     data = unicode(data, encoding)
     declmatch = re.compile(u'^<\?xml[^>]*?>')
     newdecl = unicode("""<?xml version='1.0' encoding='%s'?>""" % encoding, encoding)
@@ -1712,7 +1761,7 @@ def _stripDoctype(data):
     
 def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, referrer=None):
     """Parse a feed from a URL, file, stream, or string"""
-    result = {}
+    result = FeedParserDict()
     f = _open_resource(url_file_stream_or_string, etag=etag, modified=modified, agent=agent, referrer=referrer)
     data = f.read()
     if hasattr(f, "headers"):
@@ -1736,17 +1785,28 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
     if hasattr(f, "headers"):
         result["headers"] = f.headers.dict
     f.close()
-    result['channel'] = {}
-    result['items'] = {}
+    if result.get("status", 0) == 304:
+        result['feed'] = FeedParserDict()
+        result['entries'] = []
+        result['debug_message'] = "The feed has not changed since you last checked, so the server sent no data.  This is a feature, not a bug!"
+        return result
     result['encoding'], http_encoding, xml_encoding = _getCharacterEncoding(result.get("headers", {}), data)
     result['version'], data = _stripDoctype(data)
     baseuri = result.get('headers', {}).get('content-location', result.get('url'))
     # try true XML parser first
-    if _XML_AVAILABLE:
+    if not _XML_AVAILABLE:
+        if _debug: sys.stderr.write('no xml libraries available\n')
+    use_strict_parser = _XML_AVAILABLE
+    if use_strict_parser:
         if _debug: sys.stderr.write('using xml library\n')
         result['bozo'] = 0
-        feedparser = _StrictFeedParser(baseuri)
-        saxparser = xml.sax.make_parser(["drv_libxml2"])
+        feedparser = _StrictFeedParser(baseuri, result['encoding'])
+        if _debug and _debug_never_use_libxml2:
+            sys.stderr.write('not using libxml2 (even if available)\n')
+            additional_parsers = []
+        else:
+            additional_parsers = ["drv_libxml2"]
+        saxparser = xml.sax.make_parser(additional_parsers)
         saxparser.setFeature(xml.sax.handler.feature_namespaces, 1)
         saxparser.setContentHandler(feedparser)
         saxparser.setErrorHandler(feedparser)
@@ -1761,63 +1821,55 @@ def parse(url_file_stream_or_string, etag=None, modified=None, agent=None, refer
             # libxml2 driver does not support EntityResolver
             if _debug: sys.stderr.write('using an xml library that does not support EntityResolver (not a big deal)\n')
         encoding_set = (result['encoding'] == xml_encoding)
-#        if not encoding_set:
-#            if hasattr(xml.sax.handler, "property_encoding"):
-#                try:
-#                    saxparser.setProperty(xml.sax.handler.property_encoding, result['encoding'])
-#                    encoding_set = 1
-#                except xml.sax.SAXNotSupportedException:
-#                    pass
-#                except xml.sax.SAXNotRecognizedException:
-#                    pass
-        bozo_exception = None
         if not encoding_set:
-            try:
-                data = _changeEncodingDeclaration(data, result['encoding'])
-                encoding_set = 1
-            except Exception, bozo_exception:
-                pass
-        if encoding_set:
-            source = xml.sax.xmlreader.InputSource()
-            source.setByteStream(_StringIO(data))
-            if hasattr(saxparser, '_ns_stack'):
-                # work around bug in built-in SAX parser (doesn't recognize xml: namespace)
-                # PyXML doesn't have this problem, and it doesn't have _ns_stack either
-                saxparser._ns_stack.append({'http://www.w3.org/XML/1998/namespace':'xml'})
-            try:
-                saxparser.parse(source)
-            except Exception, e:
-                # SAX parser is supposed to catch all of these and call feedparser.fatal_error,
-                # which captures them.  For some reason, some Unicode-related errors go
-                # uncaught on some combination of platform, XML library, Python version,
-                # and phase of the moon.
-                feedparser.bozo = 1
-                feedparser.bozo_exception = e
-            if feedparser.bozo:
-                # feed is not well-formed XML, fall back on regex-based parser
-                if _debug: sys.stderr.write('xml parsing failed, using regexes.  now you have two problems...\n')
-                result['bozo'] = 1
-                result['bozo_exception'] = feedparser.exc
-                # munge short tags, e.g. <description/> becomes <description></description>
-                data = re.sub(r'<(\S+)/>', r'<\1></\1>', data)
-                feedparser = _LooseFeedParser(baseuri)
-                feedparser.feed(data)
-        else:
-            if _debug: sys.stderr.write('character encoding is wrong, using regexes\n')
+            bozo_exception = None
+            proposed_encodings = [result['encoding'], xml_encoding, 'utf-8', 'iso-8859-1', 'windows-1252']
+            tried_encodings = []
+            for proposed_encoding in proposed_encodings:
+                if proposed_encodings in tried_encodings: continue
+                tried_encodings.append(proposed_encoding)
+                try:
+                    data = _changeEncodingDeclaration(data, proposed_encoding)
+                except Exception, bozo_exception:
+                    if _debug: sys.stderr.write('character encoding is wrong\n')
+                else:
+                    if proposed_encoding != result['encoding']:
+                        try:
+                            raise CharacterEncodingOverride, "document declared as %s, but parsed as %s" % (result['encoding'], proposed_encoding)
+                        except CharacterEncodingOverride, bozo_exception:
+                            result['bozo'] = 1
+                            result['bozo_exception'] = bozo_exception
+                    result['encoding'] = proposed_encoding
+                    encoding_set = 1
+                    break
+        if not encoding_set:
             result['bozo'] = 1
             result['bozo_exception'] = bozo_exception
-            # munge short tags, e.g. <description/> becomes <description></description>
-            data = re.sub(r'<(\S+)/>', r'<\1></\1>', data)
-            feedparser = _LooseFeedParser(baseuri)
-            feedparser.feed(data)
-    else:
-        if _debug: sys.stderr.write('no xml libraries available, using regexes\n')
-        # munge short tags, e.g. <description/> becomes <description></description>
-        data = re.sub(r'<(\S+)/>', r'<\1></\1>', data)
-        feedparser = _LooseFeedParser(baseuri)
+            use_strict_parser = 0
+    if use_strict_parser:
+        source = xml.sax.xmlreader.InputSource()
+        source.setByteStream(_StringIO(data))
+        if hasattr(saxparser, '_ns_stack'):
+            # work around bug in built-in SAX parser (doesn't recognize xml: namespace)
+            # PyXML doesn't have this problem, and it doesn't have _ns_stack either
+            saxparser._ns_stack.append({'http://www.w3.org/XML/1998/namespace':'xml'})
+        try:
+            saxparser.parse(source)
+        except Exception, e:
+            if _debug: sys.stderr.write('xml parsing failed\n')
+            feedparser.bozo = 1
+            feedparser.bozo_exception = feedparser.exc or e
+        if feedparser.bozo:
+            # feed is not well-formed XML, fall back on regex-based parser
+            result['bozo'] = 1
+            result['bozo_exception'] = feedparser.bozo_exception
+            use_strict_parser = 0
+    if not use_strict_parser:
+        if _debug: sys.stderr.write('using regexes, now you have two problems\n')
+        feedparser = _LooseFeedParser(baseuri, result['encoding'])
         feedparser.feed(data)
-    result['channel'] = feedparser.channel
-    result['items'] = feedparser.items
+    result['feed'] = feedparser.feeddata
+    result['entries'] = feedparser.entries
     result['version'] = result['version'] or feedparser.version
     return result
 
@@ -1916,31 +1968,62 @@ if __name__ == '__main__':
 #2.7.5 - 1/15/2004 - MAP - added workaround for malformed DOCTYPE (seen on many
 #  blogspot.com sites); added _debug variable
 #2.7.6 - 1/16/2004 - MAP - fixed bug with StringIO importing
-#3.0 - MAP - parse entire feed with real XML parser (if available); added several
-#  new supported namespaces; fixed bug tracking naked markup in description;
-#  added support for enclosure; added support for source; re-added support for
-#  cloud which got dropped somehow; added support for expirationDate; fixed
-#  xml:lang inheritance; fixed multiple bugs tracking xml:base URI, one for
-#  documents that don't define one explicitly and one for documents that define
-#  an outer and an inner xml:base that goes out of scope before the end of the
-#  document; fixed bug parsing multiple links at feed level; added feed type and
-#  version detection, result["version"] will be one of SUPPORTED_VERSIONS.keys()
-#  or empty string if unrecognized; added support for creativeCommons:license and
-#  cc:license; added support for full Atom content model in title, tagline, info,
-#  copyright, summary; fixed bug with gzip encoding (not always telling server
-#  we support it when we do); support Atom-style author element in author_detail
+#3.0b3 - 1/23/2004 - MAP - parse entire feed with real XML parser (if available);
+#  added several new supported namespaces; fixed bug tracking naked markup in
+#  description; added support for enclosure; added support for source; re-added
+#  support for cloud which got dropped somehow; added support for expirationDate
+#3.0b4 - 1/26/2004 - MAP - fixed xml:lang inheritance; fixed multiple bugs tracking
+#  xml:base URI, one for documents that don't define one explicitly and one for
+#  documents that define an outer and an inner xml:base that goes out of scope
+#  before the end of the document
+#3.0b5 - 1/26/2004 - MAP - fixed bug parsing multiple links at feed level
+#3.0b6 - 1/27/2004 - MAP - added feed type and version detection, result["version"]
+#  will be one of SUPPORTED_VERSIONS.keys() or empty string if unrecognized;
+#  added support for creativeCommons:license and cc:license; added support for
+#  full Atom content model in title, tagline, info, copyright, summary; fixed bug
+#  with gzip encoding (not always telling server we support it when we do)
+#3.0b7 - 1/28/2004 - MAP - support Atom-style author element in author_detail
 #  (dictionary of "name", "url", "email"); map author to author_detail if author
-#  contains name + email address; better handling of empty HTML tags (br, hr, img,
-#  etc.) in embedded markup, in either HTML or XHTML form (<br>, <br/>, <br />);
-#  fixed CDATA handling in non-wellformed feeds under Python 2.1; fixed bug
-#  resolving relative links in wfw:commentRSS; fixed bug capturing author and
-#  contributor URL; fixed bug resolving relative links in author and contributor
-#  URL; fixed bug resolvin relative links in generator URL; added support for
-#  recognizing RSS 1.0; passed Simon Fell's namespace tests, and included them
-#  permanently in the test suite with his permission; determine character
-#  encoding as per RFC 3023; always map description to summary_detail (Andrei);
-#  use libxml2 (if available); fixed bug exploding author information when
-#  author name was in parentheses; removed ultra-problematic mxTidy support;
-#  patch to workaround crash in PyXML/expat when encountering invalid entities
-#  (MarkMoraes); support for textinput/textInput; added CDF support; added
-#  Hot RSS support
+#  contains name + email address
+#3.0b8 - 1/28/2004 - MAP - added support for contributor
+#3.0b9 - 1/29/2004 - MAP - fixed check for presence of dict function; added
+#  support for summary
+#3.0b10 - 1/31/2004 - MAP - incorporated ISO-8601 date parsing routines from
+#  xml.util.iso8601
+#3.0b11 - 2/2/2004 - MAP - added 'rights' to list of elements that can contain
+#  dangerous markup; fiddled with decodeEntities (not right); liberalized
+#  date parsing even further
+#3.0b12 - 2/6/2004 - MAP - fiddled with decodeEntities (still not right);
+#  added support to Atom 0.2 subtitle; added support for Atom content model
+#  in copyright; better sanitizing of dangerous HTML elements with end tags
+#  (script, frameset)
+#3.0b13 - 2/8/2004 - MAP - better handling of empty HTML tags (br, hr, img,
+#  etc.) in embedded markup, in either HTML or XHTML form (<br>, <br/>, <br />)
+#3.0b14 - 2/8/2004 - MAP - fixed CDATA handling in non-wellformed feeds under
+#  Python 2.1
+#3.0b15 - 2/11/2004 - MAP - fixed bug resolving relative links in wfw:commentRSS;
+#  fixed bug capturing author and contributor URL; fixed bug resolving relative
+#  links in author and contributor URL; fixed bug resolvin relative links in
+#  generator URL; added support for recognizing RSS 1.0; passed Simon Fell's
+#  namespace tests, and included them permanently in the test suite with his
+#  permission; fixed namespace handling under Python 2.1
+#3.0b16 - 2/12/2004 - MAP - fixed support for RSS 0.90 (broken in b15)
+#3.0b17 - 2/13/2004 - MAP - determine character encoding as per RFC 3023
+#3.0b18 - 2/17/2004 - MAP - always map description to summary_detail (Andrei);
+#  use libxml2 (if available)
+#3.0b19 - 3/15/2004 - MAP - fixed bug exploding author information when author
+#  name was in parentheses; removed ultra-problematic mxTidy support; patch to
+#  workaround crash in PyXML/expat when encountering invalid entities
+#  (MarkMoraes); support for textinput/textInput
+#3.0b20 - 4/7/2004 - MAP - added CDF support
+#3.0b21 - 4/14/2004 - MAP - added Hot RSS support
+#3.0b22 - 4/19/2004 - MAP - changed 'channel' to 'feed', 'item' to 'entries' in
+#  results dict; changed results dict to allow getting values with results.key
+#  as well as results[key]; work around embedded illformed HTML with half
+#  a DOCTYPE; work around malformed Content-Type header; if character encoding
+#  is wrong, try several common ones before falling back to regexes (if this
+#  works, bozo_exception is set to CharacterEncodingOverride); fixed character
+#  encoding issues in BaseHTMLProcessor by tracking encoding and converting
+#  from Unicode to raw strings before feeding data to sgmllib.SGMLParser;
+#  convert each value in results to Unicode (if possible), even if using
+#  regex-based parsing
