@@ -362,11 +362,9 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
                 oldDirty &= ~Item.NDIRTY
 
-            # @@@ Per Andi, commenting these out to prevent infinite recursion
-            # Instead, we'll get a VersionConflictError
-            # if newDirty & oldDirty & Item.CDIRTY:
-            #     # item._children._mergeChanges(oldVersion, toVersion)
-            #    oldDirty &= ~Item.CDIRTY
+            if newDirty & oldDirty & Item.CDIRTY:
+                item._children._mergeChanges(oldVersion, toVersion)
+                oldDirty &= ~Item.CDIRTY
 
             if newDirty and oldDirty:
                 raise VersionConflictError, (item, newDirty, oldDirty)

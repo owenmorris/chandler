@@ -461,7 +461,7 @@ class RepositoryView(object):
                 self.logger.debug('loading item %s', string[index+6:index+28])
             else:
                 self.logger.debug('loading item %s', string)
-            
+
         handler = ItemHandler(self, parent or self, afterLoadHooks, instance)
         parser.parseDoc(doc, handler)
 

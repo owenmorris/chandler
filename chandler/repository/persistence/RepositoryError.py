@@ -47,5 +47,9 @@ class MergeError(VersionConflictError):
     BUG    = 0
     RENAME = 1
     MOVE   = 2
+    NAME   = 3
 
-    codeNames = { BUG: 'BUG', RENAME: 'RENAME', 'MOVE': MOVE }
+    codeNames = { BUG: 'BUG',
+                  RENAME: 'RENAME',
+                  MOVE: 'MOVE',
+                  NAME: 'NAME' }

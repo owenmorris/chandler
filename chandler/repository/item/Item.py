@@ -733,8 +733,8 @@ class Item(object):
 
         if not load:
             if self._children is not None:
-                for child in self._children._itervalues():
-                    yield child._value
+                for link in self._children._itervalues():
+                    yield link._value
 
         elif self._children is not None:
             for child in self._children:
@@ -2470,9 +2470,10 @@ class Children(LinkedMap):
 
     def _unloadChild(self, child):
 
-        self._remove(child._uuid)
-        if child._name is not None:
-            del self._aliases[child._name]
+        if child._uuid in self:
+            self._remove(child._uuid)
+            if child._name is not None:
+                del self._aliases[child._name]
     
     def __repr__(self):
 
@@ -2497,13 +2498,6 @@ class Children(LinkedMap):
         finally:
             if buffer is not None:
                 buffer.close()
-
-    def _load(self, key):
-
-        if self._item.getRepositoryView()._loadItem(key) is not None:
-            return True
-
-        return False
 
     def _saveValues(self, version):
 

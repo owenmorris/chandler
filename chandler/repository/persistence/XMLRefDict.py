@@ -358,7 +358,9 @@ class XMLChildren(Children):
 
     def _load(self, key):
 
-        if self.view._loadItem(key) is not None:
+        op, oldAlias = self._changedRefs.get(key, (0, None))
+
+        if op != 1 and self.view._loadItem(key) is not None:
             return True
 
         return False
@@ -409,15 +411,11 @@ class XMLChildren(Children):
     def _saveValues(self, version):
 
         store = self.view.repository.store
-
-        if '_mergeList' in self.__dict__:
-            children = self._mergeList
-        else:
-            children = self
-
-        for key, (op, oldAlias) in children._changedRefs.iteritems():
+        unloads = []
+        
+        for key, (op, oldAlias) in self._changedRefs.iteritems():
             try:
-                link = children._get(key, load=False)
+                link = self._get(key, load=False)
             except KeyError:
                 link = None
     
@@ -433,6 +431,9 @@ class XMLChildren(Children):
                     if alias is not None:
                         store.writeName(version, self._uuid, alias, key)
 
+                    if link._value is None:
+                        unloads.append((key, link._alias))
+
                 elif key is None:
                     self._writeRef(self._uuid, version,
                                    self._firstKey, self._lastKey, None)
@@ -445,194 +446,83 @@ class XMLChildren(Children):
             else:                     # error
                 raise ValueError, op
 
+        for key, alias in unloads:
+            self._remove(key)
+            if alias is not None:
+                del self._aliases[alias]
+
     def _clearDirties(self):
 
         self._changedRefs.clear()
-        try:
-            del self._mergeList
-        except AttributeError:
-            pass
 
     def _mergeChanges(self, oldVersion, toVersion):
 
-        self._mergeList = MergeList(self.view, self._item, oldVersion)
-        self._mergeList.collectHistory(toVersion)
-        self._mergeList.applyChanges(self, self._changedRefs)
+        moves = {}
+
+        def merge(version, (collection, child), ref):
+            if collection == self._uuid:     # the children collection
+
+                if child == self._uuid:      # the list head
+                    pass
+
+                elif ref is None:            # removed child
+                    op, oldAlias = self._changedRefs.get(child, (-1, None))
+                    if op == 0:
+                        self._e_1_remove(child)
+                    elif self.has_key(child):
+                        del self[child]
+
+                else:
+                    previousKey, nextKey, alias = ref
+                    op, oldAlias = self._changedRefs.get(child, (0, None))
+
+                    if op == 1:
+                        self._e_2_remove(child)
+
+                    try:
+                        link = self._get(child)
+                        if link._alias != alias:
+                            if oldAlias is not None:
+                                self._e_1_renames(oldAlias, link._alias, alias)
+                            else:
+                                key = self.resolveAlias(alias)
+                                if key is not None:
+                                    self._e_2_renames(key, alias, child)
+                                self.setAlias(child, alias)
+
+                    except KeyError:
+                        key = self.resolveAlias(alias)
+                        if key is not None:
+                            self._e_names(child, key, alias)
+                        link = self.__setitem__(child, None, alias=alias)
+
+                    if previousKey is None or self.has_key(previousKey):
+                        self.place(child, previousKey)
+                    else:
+                        moves[previousKey] = child
+                        
+        self._getRefs().applyHistory(merge, self._uuid,
+                                     self._item._version, toVersion)
+
+        for previousKey, child in moves.iteritems():
+            self.place(child, previousKey)
                         
         self.view.logger.info('%s merged children of %s with newer versions',
                               self.view, self._item.itsPath)
 
 
-class MergeList(LinkedMap):
+    def _e_1_remove(self, *args):
+        raise MergeError, ('merging children', self._item, 'modified child %s was removed in other view' %(args), MergeError.MOVE)
 
-    def __init__(self, view, item, version):
+    def _e_2_remove(self, *args):
+        raise MergeError, ('merging children', self._item, 'removed child %s was modified in other view' %(args), MergeError.MOVE)
 
-        super(MergeList, self).__init__()
+    def _e_1_renames(self, *args):
+        raise MergeError, ('merging children', self._item, 'child %s renamed to %s and %s' %(args), MergeError.RENAME)
 
-        self.view = view
-        self.item = item
-        self.uuid = item._uuid
-        self.version = version
+    def _e_2_renames(self, *args):
+        raise MergeError, ('merging children', self._item, 'child %s named %s conflicts with child %s of same name' %(args), MergeError.NAME)
 
-        self._changedRefs = {}
-        self._key = self._getRefs().prepareKey(self.uuid, self.uuid)
-        self._aliases = {}
-        
-        ref = self._getRefs().loadRef(self._key, version, self.uuid)
-        if ref is not None:
-            self._firstKey, self._lastKey, alias = ref
-
-    def _getRefs(self):
-
-        return self.view.repository.store._refs
-
-    def collectHistory(self, toVersion):
-
-        def collect(version, (collection, child), ref):
-            if collection == self.uuid:     # the children collection
-
-                if child == self.uuid:      # the list head
-                    self._firstKey, self._lastKey, alias = ref
-
-                elif ref is None:           # deleted child
-                    link = self._makeLink(None)
-                    self._insert(child, link)
-
-                else:
-                    link = self._makeLink(child)
-                    link._previousKey, link._nextKey, link._alias = ref
-                    self._insert(child, link)
-                    if link._alias is not None:
-                        self._aliases[link._alias] = child
-                        
-        self._getRefs().applyHistory(collect, self.uuid,
-                                     self.version, toVersion)
-
-    def applyChanges(self, children, changes):
-
-        key = self._insertKey = self._firstKey
-        while key in self:
-            self._insertKey = key
-            key = self._get(key)._nextKey
-
-        for child in changes.keys():
-            if child in changes:
-                if child is not None:           # not the list head
-                    op, oldAlias = changes[child]
-                    if op == 0:                 # insert or change
-                        self.applyChange(children, changes, child, oldAlias)
-                    elif op == 1:               # delete
-                        raise NotImplementedError
-
-        children._firstKey = self._firstKey
-        children._lastKey = self._lastKey
-
-    def applyChange(self, children, changes, child, oldAlias):
-
-        link = children._get(child)
-        prev = prevKey = link._previousKey
-        exists = child in self
-
-        if exists:
-            alias = self._get(child)._alias
-            if oldAlias is not None:
-                if oldAlias != alias and link._alias != alias:
-                    raise MergeError, ('merging children', self.item, 'child %s renamed to %s and %s' %(oldAlias, link._alias, alias), MergeError.RENAME)
-
-        if link._alias in self._aliases:
-            alias = link._alias
-            if exists and self._aliases[alias] != child or not exists:
-                raise MergeError, ('merging children', self.item, 'child %s conflicts with other child %s, both are named %s' %(child, self._aliases[alias], alias), MergeError.RENAME)
-
-        if prev is None:
-            if exists:
-                prevKey = self._firstKey
-            else:
-                prev = prevKey = self._insertKey
-        else:
-            key = prevKey
-            while key in self:
-                prev = prevKey = key
-                key = self._get(key)._nextKey
-
-        if prevKey is not None and prevKey not in self:
-            op, oa = changes.get(prevKey, (0, None))
-            if op != 0:
-                raise ValueError, op
-            self.applyChange(children, changes, prevKey, oa)
-
-        current = self.placeChange(child, prev, link._alias)
-
-        link._previousKey = current._previousKey
-        if exists:
-            link._nextKey = current._nextKey
-
-        if oldAlias is not None:
-            self._changedRefs[child] = (0, oldAlias)
-
-        try:
-            del changes[child]
-        except KeyError:
-            pass
-
-    def placeChange(self, key, afterKey, alias):
-
-        if key == afterKey:
-            raise ValueError, 'key == afterKey'
-
-        try:
-            current = self._get(key, False)
-            exists = True
-        except KeyError:
-            current = self._makeLink(key)
-            current._alias = alias
-            self._insert(key, current)
-            exists = False
-
-        if exists:
-            if current._previousKey == afterKey:
-                return current
-            if current._previousKey is not None:
-                previous = self._get(current._previousKey)
-            else:
-                previous = None
-            if current._nextKey is not None:
-                next = self._get(current._nextKey)
-            else:
-                next = None
-
-        if afterKey is None:
-            after = None
-            afterNextKey = self._firstKey
-        else:
-            after = self._get(afterKey)
-            afterNextKey = after._nextKey
-
-        if exists:
-            if previous is not None:
-                previous._setNext(current._nextKey, current._previousKey, self)
-            if next is not None:
-                next._setPrevious(current._previousKey, current._nextKey, self)
-
-        current._setNext(afterNextKey, key, self)
-        if afterNextKey is not None:
-            self._get(afterNextKey)._setPrevious(key, afterNextKey, self)
-        if after is not None:
-            after._setNext(key, afterKey, self)
-
-        current._setPrevious(afterKey, key, self)
-
-        return current
-            
-    def linkChanged(self, link, key):
-
-        op, alias = self._changedRefs.get(key, (1, link._alias))
-        if op != 0:
-            self._changedRefs[key] = (0, alias)
-
-    def _load(self, key):
-
-        raise MergeError, ('merging children', self.item,
-                           'of a bug: _load should not be called.',
-                           MergeError.BUG)
+    def _e_names(self, *args):
+        raise MergeError, ('merging children', self._item, 'child %s conflicts with other child %s, both are named %s' %(args), MergeError.NAME)
 

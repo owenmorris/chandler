@@ -148,6 +148,7 @@ class TestMerge(RepositoryTestCase):
         try:
             self.rename('foo', 'bar')
         except MergeError, e:
+            #print e
             self.assert_(e.getReasonCode() == MergeError.RENAME)
 
     def testMoveSame(self):
@@ -157,6 +158,7 @@ class TestMerge(RepositoryTestCase):
         try:
             self.move('foo', 'bar')
         except MergeError, e:
+            #print e
             self.assert_(e.getReasonCode() == MergeError.MOVE)
         else:
             self.assert_(False)
@@ -177,7 +179,8 @@ class TestMerge(RepositoryTestCase):
         try:
             main.commit()
         except MergeError, e:
-            self.assert_(e.getReasonCode() == MergeError.RENAME)
+            #print e
+            self.assert_(e.getReasonCode() == MergeError.NAME)
         else:
             self.assert_(False)
 
@@ -201,9 +204,123 @@ class TestMerge(RepositoryTestCase):
         try:
             main.commit()
         except MergeError, e:
-            self.assert_(e.getReasonCode() == MergeError.RENAME)
+            #print e
+            self.assert_(e.getReasonCode() == MergeError.NAME)
         else:
             self.assert_(False)
+
+    def testMoveFirst(self):
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('foo', pm)
+        km.newItem('bar', pm)
+        km.newItem('i1', pm)
+        km.newItem('i2', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        po.placeChild(po['i1'], None)
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+        pm.placeChild(pm['i2'], None)
+        main.commit()
+        
+        names = [c.itsName for c in pm.iterChildren()]
+        self.assert_(names[0] == 'i1')
+        self.assert_(len(names) == 4)
+
+    def testChange1Remove1(self):
+
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('q', self.rep)
+        km.newItem('foo', pm)
+        km.newItem('bar', pm)
+        km.newItem('i1', pm)
+        km.newItem('i2', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        po.placeChild(po['i1'], None)
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+        qm = self.rep['q']
+
+        pm['i1'].move(qm)
+
+        try:
+            main.commit()
+        except MergeError, e:
+            #print e
+            self.assert_(e.getReasonCode() == MergeError.MOVE)
+        else:
+            self.assert_(False)
+
+    def testRemove1Change1(self):
+
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('q', self.rep)
+        km.newItem('foo', pm)
+        km.newItem('bar', pm)
+        km.newItem('i1', pm)
+        km.newItem('i2', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        qo = self.rep['q']
+        po['i1'].move(qo)
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+
+        pm.placeChild(pm['i1'], None)
+
+        try:
+            main.commit()
+        except MergeError, e:
+            #print e
+            self.assert_(e.getReasonCode() == MergeError.MOVE)
+        else:
+            self.assert_(False)
+
+    def testRemove1ChangeOther(self):
+
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+        km.newItem('q', self.rep)
+        km.newItem('foo', pm)
+        km.newItem('bar', pm)
+        km.newItem('i1', pm)
+        km.newItem('i2', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        qo = self.rep['q']
+        po['i1'].move(qo)
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+        pm['foo'].rename('baz')
+        main.commit()
+
+        names = [c.itsName for c in pm.iterChildren()]
+        self.assert_(names[0] == 'baz')
+        self.assert_(len(names) == 3)
 
 
 if __name__ == "__main__":
@@ -211,5 +328,4 @@ if __name__ == "__main__":
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-    # unittest.main()
-    pass
+    unittest.main()
