@@ -213,7 +213,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
         # print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn -z3", "update", "-d", cvsVintage])
+         [cvsProgram, "-qn", "update", "-d", cvsVintage])
         # hardhatutil.dumpOutputList(outputList, log)
         (filenameChanged, changesAtAll) = NeedsUpdate(outputList, filename)
         if changesAtAll:
