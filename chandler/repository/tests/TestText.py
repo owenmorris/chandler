@@ -33,6 +33,7 @@ class TestText(RepositoryTestCase):
         largeText = os.path.join(self.testdir, 'data', 'world192.txt')
 
         input = file(largeText, 'r')
+        movie.synopsis.mimetype = 'text/plain'
         writer = movie.synopsis.getWriter(compression=compression,
                                           encryption=encryption,
                                           key=key)
@@ -100,6 +101,7 @@ class TestText(RepositoryTestCase):
         largeText = os.path.join(self.testdir, 'data', 'world192.txt')
 
         input = file(largeText, 'r')
+        movie.synopsis.mimetype = 'text/plain'
         writer = movie.synopsis.getWriter(compression=compression,
                                           encryption=encryption,
                                           key=key)

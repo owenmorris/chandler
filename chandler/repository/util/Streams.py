@@ -248,7 +248,7 @@ class CompressedInputStream(object):
 
         raise NotImplementedError, "CompressedInputStream._decompressor"
         
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         if self.extra_data is not None:
             data = self.extra_data.read(length)
@@ -322,22 +322,23 @@ class BlockInputStream(object):
         self._buffer = StringIO()
         self.rpos = 0
         
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         lr = self.buffer.tell() - self.rpos
-        if length > 0 and length == lr:
-            self.buffer.seek(self.rpos, 0)
-            result = self.buffer.read()
-            self.buffer.truncate(0)
-            self.buffer.reset()
-            self.rpos = 0
-            return result
-        if length > 0 and length < lr:
-            self.buffer.seek(self.rpos, 0)
-            result = self.buffer.read(length)
-            self.rpos += len(result)
-            self.buffer.seek(0, 2)
-            return result
+        if lr > 0:
+            if length == lr:
+                self.buffer.seek(self.rpos, 0)
+                result = self.buffer.read()
+                self.buffer.truncate(0)
+                self.buffer.reset()
+                self.rpos = 0
+                return result
+            if length > 0 and length < lr:
+                self.buffer.seek(self.rpos, 0)
+                result = self.buffer.read(length)
+                self.rpos += len(result)
+                self.buffer.seek(0, 2)
+                return result
 
         while True:
             ld = self.readLen()
@@ -356,18 +357,11 @@ class BlockInputStream(object):
 
             if length > 0:
                 lr = self.buffer.tell() - self.rpos
-                if lr > length:
+                if length < lr:
                     self.buffer.seek(self.rpos, 0)
                     result = self.buffer.read(length)
                     self.rpos += len(result)
                     self.buffer.seek(0, 2)
-                    return result
-                else:
-                    self.buffer.seek(self.rpos, 0)
-                    result = self.buffer.read()
-                    self.buffer.truncate(0)
-                    self.buffer.reset()
-                    self.rpos = 0
                     return result
 
     def readBlocks(self, len):
@@ -471,7 +465,7 @@ class Base64InputStream(BlockInputStream):
         ls = self._read(3, True)
         if ls == '':
             return 0
-        
+
         return unpack('>h', (ls + '=').decode('base64'))[0]
 
 
@@ -481,7 +475,7 @@ class StringInputStream(object):
 
         self.input = StringIO(string)
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         return self.input.read(length)
 
@@ -497,7 +491,7 @@ class BufferedInputStream(object):
         super(BufferedInputStream, self).__init__()
         self.buffer = StringIO(sender())
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         return self.buffer.read(length)
 
@@ -513,7 +507,7 @@ class ConcatenatedInputStream(object):
         self._streams = streams
         self._done = []
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         while self._streams:
             data = self._streams[0].read(length)
@@ -538,7 +532,7 @@ class ConcatenatedInputStream(object):
 
 class NullInputStream(object):
 
-    def read(self, length = -1):
+    def read(self, length=-1):
         return ''
 
     def close(self):
@@ -581,7 +575,7 @@ class InputStreamReader(object):
 
         return self.inputStream.read(length)
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         text = self._read(length)
         text = unicode(text, self.encoding)
@@ -600,7 +594,7 @@ class StringReader(object):
         super(StringReader, self).__init__()
         self.unicodeText = unicode(unicodeText)
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
         text = self.unicodeText
         if text is None:

@@ -123,8 +123,7 @@ class Text(Lob):
                                                    self.encoding),
         'text/plain': lambda self, key: self.getReader(key),
 
-        'text/vnd.osaf-stream64': lambda self, key: InputStreamReader(Base64InputStream(self.getInputStream(key)),
-                                                             self.encoding)
+        'text/vnd.osaf-stream64': lambda self, key: InputStreamReader(Base64InputStream(self.getInputStream(key)), self.encoding)
     }
 
 
