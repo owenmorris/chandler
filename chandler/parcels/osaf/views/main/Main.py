@@ -270,6 +270,12 @@ class MainView(View):
         # Done
         self.setStatusMessage (_("Sharing initiated."))
 
+    def onStartProfilerEvent(self, event):
+        Block.profileEvents = True
+            
+        
+    def onStopProfilerEvent(self, event):
+        Block.profileEvents = False
     # Test Methods
 
     def getSidebarSelectedCollection (self):

@@ -8,6 +8,7 @@ from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID
 import wx
 import logging
+import hotshot
 
 
 class Block(Item):
@@ -425,7 +426,36 @@ class Block(Item):
 
     def dispatchEvent (theClass, event):
 
-        def callMethod (block, methodName, event):
+        
+        def callMethod(block, methodName, event):
+            """
+            wrapper for callNamedMethod that optionally invokes the profiler
+            """
+
+            # allow the compiler to optimize for non-debug cases
+            if not __debug__:
+                callNamedMethod(block, methodName, event)
+            else:
+                if Block.profileEvents and not Block.__profilerActive:                        
+                    # create profiler lazily
+                    if not Block.__profiler:
+                        Block.__profiler = hotshot.Profile('Events.prof')
+                        
+                    Block.__profilerActive = True
+                    try:
+                        #
+                        # run the call inside the profiler
+                        #
+                        Block.__profiler.runcall(callNamedMethod, block, methodName, event)
+                        Block.__profilerActive = False
+                    except:
+                        # make sure that we turn off reentrancy check no matter what
+                        Block.__profilerActive = False
+                        raise
+                else:
+                    callNamedMethod(block, methodName, event)
+                            
+        def callNamedMethod (block, methodName, event):
             """
               Call method named methodName on block
             """
@@ -529,6 +559,12 @@ class Block(Item):
             assert (False)
     dispatchEvent = classmethod (dispatchEvent)
 
+    # event profiler (class attributes)
+    profileEvents = False        # Make "True" to profile events
+    __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
+    __profiler = None              # The hotshot profiler
+    
+    
 class ShownSynchronizer:
     """
     A mixin that handles isShown-ness: Make sure my visibility matches my block's.

@@ -306,6 +306,18 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="StartProfiler">
+    <blockName>StartProfiler</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
+  <BlockEvent itsName="StopProfiler">
+    <blockName>StopProfiler</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
   <BlockEvent itsName="GetNewMail">
     <blockName>GetNewMail</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -478,6 +490,8 @@
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:MimeTestItem"/>
     <childrenBlocks itemref="doc:i18nMailTestItem"/>
+    <childrenBlocks itemref="doc:StartProfilerItem"/>
+    <childrenBlocks itemref="doc:StopProfilerItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:LogViewChangesItem"/>
     <childrenBlocks itemref="doc:LogRepositoryHistoryItem"/>
@@ -1014,6 +1028,20 @@
     <title>Generate Notes</title>
     <event itemref="doc:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="StartProfilerItem">
+    <blockName>StartProfilerItem</blockName>
+    <title>Start Profiler</title>
+    <event itemref="doc:StartProfiler"/>
+    <helpString>Start profiling events</helpString>
+  </MenuItem>
+  
+  <MenuItem itsName="StopProfilerItem">
+    <blockName>StopProfilerItem</blockName>
+    <title>Stop Profiler</title>
+    <event itemref="doc:StopProfiler"/>
+    <helpString>Stop profiling events</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShareCollectionItem">
