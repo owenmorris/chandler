@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True">
+    <name>Item</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints" otherName="clouds"
+         cardinality="list" otherCard="list">
+    </ref>
+
+    <ref name="kind" otherName="clouds" otherCard="list" otherAlias="default"
+         type="path">//Schema/Core/Item</ref>
+  </item>
+
+
+</items>

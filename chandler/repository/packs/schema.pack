@@ -27,6 +27,7 @@
       <item file="Clouds.namespace" cwd="clouds">
         <item file="Kind.cloud" />
         <item file="Attribute.cloud" />
+        <item file="Item.cloud" />
       </item>
 
       <item file="Mixins.namespace" />
