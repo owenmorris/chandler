@@ -32,8 +32,6 @@ IMPORTANCE = ["important", "normal", "fyi"]
 def GenerateCalendarEvent(days):
     event = Calendar.CalendarEvent()
     event.displayName = random.choice(HEADLINES)
-    for i in range(random.randint(1, 2)):
-        event.participants.append(GenerateCalendarParticipant())
     
     # Choose random days, hours
     startDelta = DateTime.DateTimeDelta(random.randint(0, days),
