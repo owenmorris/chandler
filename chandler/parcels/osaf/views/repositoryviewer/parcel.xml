@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel describes="//parcels/OSAF/views/repositoryviewer"
+             itemName="repositoryviewer"
+             xmlns:core="//Schema/Core"
+             xmlns="//parcels/OSAF/framework/blocks"
+             xmlns:doc="//parcels/OSAF/views/repositoryviewer"
+             xmlns:events="//parcels/OSAF/framework/blocks/Events">
+
+  <core:version>0.3</core:version>
+
+  <!--
+    Queries
+  -->
+  <Query itemName="myQuery">
+    <queryEnum>listOfItems</queryEnum>
+    <data></data>
+  </Query>
+
+  <!--
+    Styles
+  -->
+  <CharacterStyle itemName="HeaderCharacterStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>12.0</fontSize>
+    <fontStyle>bold</fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>  
+
+  <!--
+    Events
+  -->
+
+  <!--
+    Menus
+  -->
+  <Menu itemName="RepositoryMenu">
+    <title>Repository Viewer</title>
+    <operation>InsertBefore</operation>
+    <menuLocation></menuLocation>
+    <itemLocation></itemLocation>
+    <helpString></helpString>
+  </Menu>
+
+  <!--
+    Menu Items
+  -->
+  <MenuItem itemName="BlankItem">
+    <title>Do Something...</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>RepositoryMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <helpString>Not yet implemented</helpString>
+  </MenuItem>
+
+  <!--
+    Layout blocks
+  -->
+  <RepositoryTreeList itemName="RepositoryTreeList">
+    <!-- Attributes -->
+    <hideRoot>False</hideRoot>
+    <noLines>False</noLines>
+    <useButtons>True</useButtons>
+    <columnHeadings>Item Name</columnHeadings>
+    <columnHeadings>Display Name</columnHeadings>
+    <columnHeadings>Kind</columnHeadings>
+    <columnHeadings>UUID</columnHeadings>
+    <columnHeadings></columnHeadings>
+    <columnHeadings>URL</columnHeadings>    
+    <columnWidths>135</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>120</columnWidths>
+    <columnWidths>10</columnWidths>
+    <columnWidths>120</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </RepositoryTreeList>
+ 
+  <ItemView itemName="ItemView">
+    <!-- Attributes -->
+    <url></url>
+    
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemView>
+
+  <SplitWindow itemName="RepositoryBox">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:RepositoryMenu"/>
+    <childrenBlocks itemref="doc:RepositoryTreeList"/>
+    <childrenBlocks itemref="doc:ItemView"/>
+
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+    <size>517,564</size>
+    <minimumSize>50,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </SplitWindow>
+  
+</core:Parcel>

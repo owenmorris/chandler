@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/OSAF/views"
+        itemName="views"
+        xmlns="//Schema/Core">
+
+  <description>Chandler views</description>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+</Parcel>

@@ -838,6 +838,18 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
+    <Attribute itemName="hideRoot">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <Attribute itemName="noLines">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <Attribute itemName="useButtons">
+      <type itemref="Boolean"/>
+    </Attribute>
+
     <Attribute itemName="columnHeadings">
       <type itemref="String"/>
       <cardinality>list</cardinality>
@@ -848,8 +860,19 @@
       <cardinality>list</cardinality>
     </Attribute>
 
+    <attributes itemref="docSchema:TreeList/hideRoot"/>
+    <attributes itemref="docSchema:TreeList/noLines"/>
+    <attributes itemref="docSchema:TreeList/useButtons"/>    
     <attributes itemref="docSchema:TreeList/columnHeadings"/>
     <attributes itemref="docSchema:TreeList/columnWidths"/>
+  </Kind>  
+
+  <!--
+    Sidebar
+  -->
+  <Kind itemName="Sidebar">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Sidebar</classes>
+    <superKinds itemref="docSchema:TreeList"/>
   </Kind>  
 
   <Kind itemName="RepositoryTreeList">

@@ -72,7 +72,7 @@ class View(BoxContainer):
                 return Globals.repository.find (UUID)
             except AttributeError:
                 focusWindow = focusWindow.GetParent()
-        return Globals.topView
+        return Globals.mainView
 
     
     def onSetFocus (self):

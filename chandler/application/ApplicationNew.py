@@ -188,18 +188,18 @@ class wxApplicationNew (wxApp):
 
         from OSAF.framework.blocks.Views import View
         
-        topView = Globals.repository.find('//parcels/OSAF/templates/top/TopView')
+        mainView = Globals.repository.find('//parcels/OSAF/views/main/MainView')
 
-        if topView:
-            assert isinstance (topView, View)
+        if mainView:
+            assert isinstance (mainView, View)
             self.mainFrame = MainFrame(None,
                                        -1,
                                        "Chandler",
-                                       size=(topView.size.width, topView.size.height),
+                                       size=(mainView.size.width, mainView.size.height),
                                        style=wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE)
-            Globals.topView = topView
+            Globals.mainView = mainView
             self.menuParent = None
-            self.mainFrame.counterpartUUID = topView.getUUID()
+            self.mainFrame.counterpartUUID = mainView.getUUID()
             EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
@@ -207,14 +207,14 @@ class wxApplicationNew (wxApp):
             events = []
             for event in GlobalEvents.blockEvents:
                 events.append (event)
-            for event in topView.blockEvents:
+            for event in mainView.blockEvents:
                 events.append (event)
 
             Globals.notificationManager.Subscribe (events,
-                                                   Globals.topView.getUUID(),
-                                                   Globals.topView.dispatchEvent)
+                                                   Globals.mainView.getUUID(),
+                                                   Globals.mainView.dispatchEvent)
 
-            topView.render (self.mainFrame, self.mainFrame)
+            mainView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
         return true                     #indicates we succeeded with initialization
@@ -269,7 +269,7 @@ class wxApplicationNew (wxApp):
         focus = wxWindow_FindFocus()
         if self.focus != focus:
             self.focus = focus
-            Globals.topView.onSetFocus()
+            Globals.mainView.onSetFocus()
         event.Skip()
 
     def OnExit(self):
