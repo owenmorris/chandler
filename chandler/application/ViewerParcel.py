@@ -428,10 +428,11 @@ class wxViewerParcel(wxPanel):
                                     break
                                 menuItemNodeChild = menuItemNodeChild.GetNext()
                             
-                            menu.InsertItem (insertAtIndex, parcelMenuItems [menuItemIndex])
+                            item = parcelMenu.RemoveItem(parcelMenuItems[menuItemIndex])
+                            menu.InsertItem (insertAtIndex, item)
                             menuItemIndex += 1
                         menuItemNode = menuItemNode.GetNext()
-                
+                    parcelMenu.Destroy()
             menuNode = menuNode.GetNext()
         mainMenuBar.Destroy()
 
