@@ -16,7 +16,7 @@
   <Attribute itsName="link">
     <displayName>Web URL</displayName>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <type itemref="URL"/>
   </Attribute>
 
   <Attribute itsName="category">

@@ -37,11 +37,14 @@ class ZaoBaoItemDetail(Detail.HTMLDetailArea):
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
             HTMLText = HTMLText + '<p>' + content + '</p>\n\n'
             #should find a good way to localize "more..."
-            HTMLText = HTMLText + '<br><a href="' + item.link + '">more...</a>'
+            HTMLText = HTMLText + '<br><a href="' + str(item.link) + '">more...</a>'
 
             HTMLText = HTMLText + '</body></html>\n'
 
             return HTMLText
 
 
-
+class LinkDetail(Detail.StaticRedirectAttribute):
+    def staticTextLabelValue(self, item):
+        theLabel = str(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
+        return theLabel
