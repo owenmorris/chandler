@@ -467,7 +467,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         
 
 class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
-    
+    _colBorderSize = 0
     def __init__(self, *arguments, **keywords):
         
         """ 
