@@ -10,25 +10,27 @@
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/zaobao"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-             xmlns:zb="http://osafoundation.org/parcels/osaf/examples/zaobao">
+             xmlns:zb="http://osafoundation.org/parcels/osaf/examples/zaobao"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
+             >
 
   <core:version>0.3</core:version>
 
   <!-- RSS Channels -->
-  <zb:RSSChannel itsName="osaf">
+  <zb:RSSChannel itsName="osaf-rss-channel">
     <displayName>Loading... OSAF News</displayName>
     <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="chandlerwiki">
+   </zb:RSSChannel>
+  <zb:RSSChannel itsName="chandlerwiki-rss-channel">
     <displayName>Loading... Chandler Wiki</displayName>
     <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Chandler/WebRss?skin=rss</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itsName="junglewiki">
+  <zb:RSSChannel itsName="junglewiki-rss-channel">
     <displayName>Loading... Jungle Wiki</displayName>
     <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Jungle/WebRss?skin=rss</zb:url>
   </zb:RSSChannel>
-
-
+  
   <!-- Styles -->
   <CharacterStyle itsName="HeaderCharacterStyle">
     <fontStyle>bold</fontStyle>
@@ -81,7 +83,7 @@
     <minimumSize>900,580</minimumSize>
   </HTML>
 
-  <SplitterWindow itsName="ZaoBaoView">
+  <SplitterWindow itsName="ZaoBaoViewSplitter">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -94,7 +96,8 @@
 
   <Tree itsName="ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:osaf"/>
+    <hideRoot>False</hideRoot>
+    <rootPath itemref="doc:osaf-rss-channel"/>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -110,7 +113,7 @@
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itsName="ZaoBaoChannelView">
+  <SplitterWindow itsName="ZaoBaoChannelViewOld">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -122,13 +125,14 @@
 
   <Tree itsName="chandlerwiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:chandlerwiki"/>
+    <rootPath itemref="doc:chandlerwiki-rss-channel"/>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
     <columnHeadings>Date</columnHeadings>
     <columnWidths>150</columnWidths>
 
+    <hideRoot>False</hideRoot>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
   </Tree>
@@ -150,7 +154,7 @@
 
   <Tree itsName="junglewiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:junglewiki"/>
+    <rootPath itemref="doc:junglewiki-rss-channel"/>
 
     <columnHeadings>Subject</columnHeadings>
     <columnWidths>300</columnWidths>
@@ -175,4 +179,142 @@
     <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
   </SplitterWindow>
 
+  <contentModel:ItemCollection itsName="ZaoBaoItemView">
+    <displayName>RSS Items</displayName>
+    <_rule value="for i in '//parcels/osaf/examples/zaobao/RSSItem' where True"/>
+  </contentModel:ItemCollection>
+  <contentModel:ItemCollection itsName="ZaoBaoChannelView">
+    <displayName>RSS Channels</displayName>
+    <_rule value="for i in '//parcels/osaf/examples/zaobao/RSSChannel' where True"/>
+  </contentModel:ItemCollection>
+  <BoxContainer itsName="ZaoBaoViewOld">
+    <displayName>ZaoBao</displayName>
+ 
+    <!-- Menus -->
+    <!-- <childrenBlocks itemRef="doc:Menu"/> -->
+
+    <!-- MenuItems for dynamic containers? Have to look into this -->
+    
+    <!-- Toolbar buttons -->
+    <!-- <childrenBlocks itemref="doc:RefreshButton"/> -->
+
+    <!-- Layout children - how does it know where this goes? Does it have to be a tab container?-->
+    <childrenBlocks itemref="doc:ZaoBaoChannelViewOld"/>
+    
+    <!-- Attributes - what are these? -->
+    <orientationEnum>Vertical</orientationEnum>
+    <eventBoundary>True</eventBoundary>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+  </BoxContainer>
+  
+  <!-- ## detail view for RSSItems ## -->
+  
+  <!-- ContentItem will handle display of the channel title -->
+  
+  <!-- URL -->
+  <ContentItemDetail itsName="LinkArea"
+    itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+    <blockName>LinkArea</blockName>
+    <selectedItemsAttribute>link</selectedItemsAttribute>
+    <childrenBlocks itemref="doc:LinkLabel"/>
+    <childrenBlocks itemref="doc:LinkEditField"/>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+
+  <StaticText itsName="LinkLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName>LinkLabel</blockName>
+    <title>link</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="LinkEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+    <blockName>LinkEditField</blockName>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+     <readOnly>True</readOnly>
+    <characterStyle itemref="detail:TextStyle"/>
+  </EditText>
+  
+  <!-- Category -->
+  <ContentItemDetail itsName="CategoryArea"
+    itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+    <blockName>CategoryArea</blockName>
+    <selectedItemsAttribute>category</selectedItemsAttribute>
+    <childrenBlocks itemref="doc:CategoryLabel"/>
+    <childrenBlocks itemref="doc:CategoryEditField"/>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+
+  <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName>CategoryLabel</blockName>
+    <title>category</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="CategoryEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+    <blockName>CategoryEditField</blockName>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <readOnly>True</readOnly>
+    <characterStyle itemref="detail:TextStyle"/>
+  </EditText>
+  
+  <!-- Content area -->
+  <!--
+  <EditText itsName="ContentArea"
+    itemclass="osaf.framework.blocks.detail.Detail.NoteBody">
+    <blockName>NotesArea</blockName>
+    <readOnly>True</readOnly>
+    <characterStyle itemref="detail:LabelStyle"/>    
+  </EditText>
+  -->
+  
+  <!-- Author area -->
+  <ContentItemDetail itsName="AuthorArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+    <blockName>AuthorArea</blockName>
+    <selectedItemsAttribute>author</selectedItemsAttribute>
+    <childrenBlocks itemref="doc:AuthorLabel"/>
+    <childrenBlocks itemref="doc:AuthorEditField"/>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+  
+  <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName>AuthorLabel</blockName>
+    <title>author</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="AuthorEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+    <blockName>AuthorEditField</blockName>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <readOnly>True</readOnly>
+    <characterStyle itemref="detail:TextStyle"/>
+  </EditText>
+  
+  
+    
+  <!-- The actual detail area -->
+  <detail:DetailTrunkSubtree itsName="ChannelSubtree">
+    <!-- This ensures that this detail view gets attached to RSSItems -->
+    <key itemref="zb:RSSItem"/>
+    
+    <!-- UI Elements for detail view -->
+    <rootBlocks itemref="doc:LinkArea"/>
+    <rootBlocks itemref="doc:AuthorArea"/>
+    <!--<rootBlocks itemref="doc:DateArea"/> -->
+    <rootBlocks itemref="doc:CategoryArea"/>
+    <!-- <rootBlocks itemref="doc:ContentArea"/> -->
+  </detail:DetailTrunkSubtree>
+  
 </core:Parcel>
