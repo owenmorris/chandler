@@ -11,6 +11,7 @@ from repository.item.ItemRef import RefDict
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
 from repository.util.UUID import UUID
+from repository.util.LinkedMap import LinkedMap
 
 
 class XMLRefDict(RefDict):
@@ -404,9 +405,14 @@ class XMLChildren(Children):
 
         store = self.view.repository.store
 
-        for key, (op, oldAlias) in self._changedRefs.iteritems():
+        if '_mergeList' in self.__dict__:
+            children = self._mergeList
+        else:
+            children = self
+
+        for key, (op, oldAlias) in children._changedRefs.iteritems():
             try:
-                link = self._get(key, load=False)
+                link = children._get(key, load=False)
             except KeyError:
                 link = None
     
@@ -434,86 +440,183 @@ class XMLChildren(Children):
             else:                     # error
                 raise ValueError, op
 
-        if '_patches' in self.__dict__:
-            for key, (previous, next, alias) in self._patches.iteritems():
-                self._writeRef(key, version, previous, next, alias)
-                if alias is not None:
-                    store.writeName(version, self._uuid, alias, key)
-
     def _clearDirties(self):
 
         self._changedRefs.clear()
         try:
-            del self._patches
+            del self._mergeList
         except AttributeError:
             pass
 
     def _mergeChanges(self, oldVersion, newVersion):
 
-        uuid = self._uuid
-        item = self._item
-        view = self.view
+        self._mergeList = MergeList(self.view, self._item, oldVersion)
+        self._mergeList.collectHistory(newVersion - 1)
+        self._mergeList.applyChanges(self, self._changedRefs)
+                        
+        self.view.logger.info('%s merged children of %s with newer versions',
+                              self.view, self._item.itsPath)
 
-        changes = self._changedRefs
-        history = {}
+
+class MergeList(LinkedMap):
+
+    def __init__(self, view, item, version):
+
+        super(MergeList, self).__init__()
+
+        self.view = view
+        self.item = item
+        self.uuid = item._uuid
+        self.version = version
+
+        self._changedRefs = {}
+        self._key = self._getRefs().prepareKey(self.uuid, self.uuid)
+        self._value = StringIO()
+        self._aliases = {}
         
+        ref = self._getRefs().loadRef(self._key, version, self.uuid)
+        if ref is not None:
+            self._firstKey, self._lastKey, alias = ref
+
+    def _getRefs(self):
+
+        return self.view.repository.store._refs
+
+    def collectHistory(self, toVersion):
+
         def collect(version, (collection, child), ref):
+            if collection == self.uuid:     # the children collection
 
-            if collection == uuid:     # the children collection
-                if ref is None:
-                    if child in changes:
-                        op, alias = changes[child]
-                        if op != 1:
-                            raise MergeError, ('merging children', item.itsPath,
-                                               '%s was removed in other view'
-                                               %(view[child].itsPath))
-                        else:
-                            del changes[child]
+                if child == self.uuid:      # the list head
+                    self._firstKey, self._lastKey, alias = ref
+
+                elif ref is None:           # deleted child
+                    link = self._makeLink(None)
+                    self._insert(child, link)
+
                 else:
-                    history[child] = (child, version, ref)
+                    link = self._makeLink(child)
+                    link._previousKey, link._nextKey, link._alias = ref
+                    self._insert(child, link)
+                    if link._alias is not None:
+                        self._aliases[link._alias] = child
                         
-        self._getRefs().applyHistory(collect, uuid, oldVersion, newVersion)
-        otherChanges = history.values()
-        otherChanges.sort(lambda c0, c1: c0[1] - c1[1])
+        self._getRefs().applyHistory(collect, self.uuid,
+                                     self.version, toVersion)
 
-        self._patches = {}
-        
-        for child, version, (previous, next, alias) in otherChanges:
+    def applyChanges(self, children, changes):
 
-            if child == uuid:          # means self._head
-                child = None
-                
+        key = self._insertKey = self._firstKey
+        while key in self:
+            self._insertKey = key
+            key = self._get(key)._nextKey
+
+        for child in changes.keys():
             if child in changes:
+                if child is not None:           # not the list head
+                    op, oldAlias = changes[child]
+                    if op == 0:                 # insert or change
+                        self.applyChange(children, changes, child, oldAlias)
+                    elif op == 1:               # delete
+                        raise NotImplementedError
 
-                if child is None:
-                    link = self._head
-                else:
-                    link = self._get(child)
+        children._firstKey = self._firstKey
+        children._lastKey = self._lastKey
 
-                if next != link._nextKey:
-                    if child is None:
-                        next = uuid
-                        o, v, (p, n, a) = history[next]
-                    else:
-                        n = next
-                        while n in history:
-                            next = n
-                            o, v, (p, n, a) = history[next]
+    def applyChange(self, children, changes, child, oldAlias):
 
-                    patch = (p, link._nextKey, a)
-                    self._patches[next] = patch
-                    history[next] = (next, newVersion, patch)
+        link = children._get(child, False)
+        prev = prevKey = link._previousKey
 
-                    if child is not None:
-                        if link._nextKey is not None:
-                            link = self._get(link._nextKey)
-                            link._previousKey = next
+        if prev is None:
+            if child in self:
+                prevKey = self._firstKey
+            else:
+                prev = prevKey = self._insertKey
 
-                    del changes[child]
+        else:
+            key = prevKey
+            while key in self:
+                prev = prevKey = key
+                key = self._get(key)._nextKey
 
-                elif previous != link._previousKey:
-                    raise MergeError, ('merging children', item.itsPath,
-                                       'merging prev not yet implemented')
-                        
-        view.logger.info('%s merged children of %s with newer versions',
-                         view, item.itsPath)
+        if prevKey is not None and prevKey not in self:
+            op, oa = changes.get(prevKey, (0, None))
+            if op != 0:
+                raise ValueError, op
+            self.applyChange(children, changes, prevKey, oa)
+
+        exists, current = self.placeChange(child, prev, link._alias)
+
+        link._previousKey = current._previousKey
+        if exists:
+            link._nextKey = current._nextKey
+
+        if oldAlias is not None:
+            self._changedRefs[child] = (0, oldAlias)
+
+        try:
+            del changes[child]
+        except KeyError:
+            pass
+
+    def placeChange(self, key, afterKey, alias):
+
+        if key == afterKey:
+            raise ValueError, 'key == afterKey'
+
+        try:
+            current = self._get(key, False)
+            exists = True
+        except KeyError:
+            current = self._makeLink(key)
+            current._alias = alias
+            self._insert(key, current)
+            exists = False
+
+        if exists:
+            if current._previousKey == afterKey:
+                return exists, current
+            if current._previousKey is not None:
+                previous = self._get(current._previousKey)
+            else:
+                previous = None
+            if current._nextKey is not None:
+                next = self._get(current._nextKey)
+            else:
+                next = None
+
+        if afterKey is None:
+            after = None
+            afterNextKey = self._firstKey
+        else:
+            after = self._get(afterKey)
+            afterNextKey = after._nextKey
+
+        if exists:
+            if previous is not None:
+                previous._setNext(current._nextKey, current._previousKey, self)
+            if next is not None:
+                next._setPrevious(current._previousKey, current._nextKey, self)
+
+        current._setNext(afterNextKey, key, self)
+        if afterNextKey is not None:
+            self._get(afterNextKey)._setPrevious(key, afterNextKey, self)
+        if after is not None:
+            after._setNext(key, afterKey, self)
+
+        current._setPrevious(afterKey, key, self)
+
+        return exists, current
+            
+    def linkChanged(self, link, key):
+
+        op, alias = self._changedRefs.get(key, (1, link._alias))
+        if op != 0:
+            self._changedRefs[key] = (0, alias)
+
+    def _load(self, key):
+
+        raise MergeError, ('merging children', self.item,
+                           'of a bug: _load should not be called.')
+

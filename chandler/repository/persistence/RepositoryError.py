@@ -32,4 +32,4 @@ class MergeError(VersionConflictError):
     "(%s) merging %s failed because %s"
 
     def __str__(self):
-        return self.__doc__ % self.args
+        return self.__doc__ %(self.args[0], self.args[1].itsPath, self.args[2])

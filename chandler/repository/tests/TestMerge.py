@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
+from repository.util.Path import Path
 
 
 class TestMerge(RepositoryTestCase):
@@ -19,32 +20,42 @@ class TestMerge(RepositoryTestCase):
 
         super(TestMerge, self).setUp()
 
-        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
-                                     'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
+        self.itemPath = Path('//Schema/Core/Item')
+
+        kind = self.rep.find(self.itemPath)
+        kind.newItem('p', self.rep)
         self.rep.commit()
         
     def merge(self, o, m):
 
-        cm = self.rep.findPath('//CineGuide')
-        km = self.rep.findPath('//CineGuide/KHepburn')
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
         am = []
+
+        oc = [c.itsName for c in pm.iterChildren()]
         
         view = self.rep.createView('view')
         main = self.rep.setCurrentView(view)
-        co = self.rep.findPath('//CineGuide')
-        ko = self.rep.findPath('//CineGuide/KHepburn')
+
+        po = self.rep['p']
+        ko = self.rep.findPath('//Schema/Core/Item')
         ao = []
         for i in xrange(o):
-            ao.append(ko.itsKind.newItem('ao_%02d' %(i), co))
+            ao.append(ko.itsKind.newItem('ao_%02d' %(i), po))
         view.commit()
 
         view = self.rep.setCurrentView(main)
         for i in xrange(m):
-            am.append(km.itsKind.newItem('am_%02d' %(i), cm))
+            am.append(km.itsKind.newItem('am_%02d' %(i), pm))
         main.commit()
 
-        c = cm._children
+        ic = [c.itsName for c in pm.iterChildren()]
+        uc = oc[:]
+        uc.extend([c.itsName for c in ao])
+        uc.extend([c.itsName for c in am])
+        self.assert_(ic == uc)
+
+        c = pm._children
 
         for i in xrange(o - 1):
             self.assert_(c.nextKey(ao[i].itsUUID) == ao[i + 1].itsUUID)
@@ -60,15 +71,30 @@ class TestMerge(RepositoryTestCase):
             self.assert_(c.previousKey(am[i].itsUUID) == am[i - 1].itsUUID)
 
         self.assert_(c.lastKey() == am[m - 1].itsUUID)
-        
-    def testMergeOne(self):
+
+    def test1Merge1(self):
+        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.commit()
         self.merge(1, 1)
 
-    def testMergeTwo(self):
+    def test1Merge2(self):
+        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.commit()
         self.merge(2, 2)
 
-    def testMergeBunch(self):
+    def test1MergeN(self):
+        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.commit()
         self.merge(5, 8)
+
+    def test0Merge1(self):
+        self.merge(1, 1)
+
+    def test0Merge2(self):
+        self.merge(2, 2)
+
+    def test0MergeN(self):
+        self.merge(6, 9)
 
 
 if __name__ == "__main__":

@@ -2447,7 +2447,7 @@ class Children(LinkedMap):
 
     def _unloadChild(self, child):
 
-        self._unload(child._uuid)
+        self._remove(child._uuid)
         if child._name is not None:
             del self._aliases[child._name]
     

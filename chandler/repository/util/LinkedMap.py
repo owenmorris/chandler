@@ -90,9 +90,13 @@ class LinkedMap(dict):
 
         return False
 
-    def _unload(self, key):
+    def _remove(self, key):
 
         super(LinkedMap, self).__delitem__(key)
+
+    def _insert(self, key, link):
+
+        super(LinkedMap, self).__setitem__(key, link)
 
     def _makeLink(self, value):
 
