@@ -59,7 +59,7 @@ class MainView(View):
     def onSharingSubscribeToCollectionEvent(self, notification):
         url =  application.dialogs.Util.promptUser( \
          Globals.wxApplication.mainFrame, "Subscribe to Collection...",
-         "Collection URL:", "http://webdav.osafoundation.org/")
+         "Collection URL:", "http://code-bear.com/dav/test_item_collection")
         if url is not None:
             collection = osaf.framework.webdav.Dav.DAV(url).get( )
             event = Globals.parcelManager.lookup(EVENTS,
