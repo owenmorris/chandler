@@ -51,10 +51,10 @@ public:
 	void SetItemData(
 		const wxColumnHeaderItem		*info );
 
-	void GetImageRef(
-		wxBitmap			&imageRef );
-	void SetImageRef(
-		wxBitmap			&imageRef,
+	void GetBitmapRef(
+		wxBitmap			&bitmapRef );
+	void SetBitmapRef(
+		wxBitmap			&bitmapRef,
 		const wxRect		*boundsR );
 
 	void GetLabelText(
@@ -102,7 +102,9 @@ public:
 		bool				bSelected );
 #endif
 
-	static void GetBitmapBounds(
+	static bool HasValidBitmapRef( 
+		const wxBitmap	*bitmapRef );
+	static void GetBitmapItemBounds(
 		const wxRect		*itemBoundsR,
 		long				targetJustification,
 		wxRect			*targetBoundsR );
@@ -115,7 +117,7 @@ public:
 	wxString				m_LabelTextRef;
 	unsigned long			m_FontID;
 	long					m_TextJust;
-	wxBitmap				*m_ImageRef;
+	wxBitmap				*m_BitmapRef;
 	long					m_OriginX;
 	long					m_ExtentX;
 	bool					m_BEnabled;
@@ -155,6 +157,11 @@ public:
 	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
 
+#if defined(__WXMAC__)
+	virtual void MacControlUserPaneActivateProc(
+		bool				bActivating );
+#endif
+
 	wxSize CalculateDefaultSize( void ) const;
 	void ResizeToFit( void );
 	long GetTotalUIExtent( void );
@@ -182,12 +189,12 @@ public:
 		bool				bSortEnabled,
 		bool				bSortAscending );
 
-	void GetImageRef(
+	void GetBitmapRef(
 		long				itemIndex,
-		wxBitmap			&imageRef );
-	void SetImageRef(
+		wxBitmap			&bitmapRef );
+	void SetBitmapRef(
 		long				itemIndex,
-		wxBitmap			&imageRef );
+		wxBitmap			&bitmapRef );
 
 	wxString GetLabelText(
 		long				itemIndex );

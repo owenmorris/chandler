@@ -118,10 +118,10 @@ public:
         bool                bSortAscending = false );
     void DeleteItem(
         long                itemIndex );
-    void GetImageRef(
+    void GetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef );
-    void SetImageRef(
+    void SetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef );
     wxString GetLabelText(

@@ -14,31 +14,38 @@ class TestPanel( wx.Panel ):
         self.log = log
 
         # should be 17 for Mac; 20 for all other platforms
+        # wxColumnHeader can handle it
         colHeight = 20
 
-        l1 = wx.StaticText( self, -1, "wx.ColumnHeader (1001)", (20, 20), (200, 20) )
+        # "no" to sort arrows for this list
+        cntlID = 1001
+        prompt = "wx.ColumnHeader (%d)" %(cntlID)
+        l1 = wx.StaticText( self, -1, prompt, (20, 20), (200, 20) )
 
-        ch1 = wx.colheader.ColumnHeader( self, 1001, (20, 40), (350, colHeight), 0 )
-        ch1.AppendItem("Sun", wx.colheader.COLUMNHEADER_JUST_Center, 50, 1, 0, 1)
-        ch1.AppendItem("Mon", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
-        ch1.AppendItem("Tue", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
-        ch1.AppendItem("Wed", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
-        ch1.AppendItem("Thu", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
-        ch1.AppendItem("Fri", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
-        ch1.AppendItem("Sat", wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1)
+        ch1 = wx.colheader.ColumnHeader( self, cntlID, (20, 40), (350, colHeight), 0 )
+        dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
+        for v in dow:
+            ch1.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
+        ch1.SetSelectedItemIndex( 0 )
         self.ch1 = ch1
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch1 )
-        #ch1.SetToolTipString( "Column header (1)" )
+        #ch1.SetToolTipString( "Column header (%d)" %(cntlID) )
 
-        l2 = wx.StaticText( self, -1, "wx.ColumnHeader (1002)", (80, 70), (200, 20) )
+        # "yes" to sort arrows for this list
+        cntlID = 1002
+        prompt = "wx.ColumnHeader (%d)" %(cntlID)
+        l2 = wx.StaticText( self, -1, prompt, (80, 70), (200, 20) )
 
-        ch2 = wx.colheader.ColumnHeader( self, 1002, (80, 90), (270, colHeight), 0 )
-        ch2.AppendItem( "Juan", wx.colheader.COLUMNHEADER_JUST_Left, 90, 1, 1, 1 )
-        ch2.AppendItem( "Valdéz", wx.colheader.COLUMNHEADER_JUST_Center, 90, 0, 1, 1 )
-        ch2.AppendItem( "coffee guy", wx.colheader.COLUMNHEADER_JUST_Right, 90, 0, 1, 1 )
+        ch2 = wx.colheader.ColumnHeader( self, cntlID, (80, 90), (270, colHeight), 0 )
+        coffeeNames = [ "Juan", "Valdéz", "coffee guy" ]
+        for i, v in enumerate( coffeeNames ):
+            ch2.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Left + i, 90, 0, 1, 1 )
+        ch2.SetSelectedItemIndex( 0 )
+
+       # add demo UI controls
         self.ch2 = ch2
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch2 )
-        #ch2.SetToolTipString("Column header (2)")
+        #ch2.SetToolTipString( "Column header (%d)" %(cntlID) )
 
         l0 = wx.StaticText( self, -1, "[result]", (10, 150), (150, 20) )
         self.l0 = l0
@@ -74,7 +81,7 @@ class TestPanel( wx.Panel ):
         itemCount = ch.GetItemCount()
         ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
         testBmp = images.getTest2Bitmap()
-        ch.SetImageRef( itemCount, testBmp )
+        ch.SetBitmapRef( itemCount, testBmp )
         ch.SetSelectedItemIndex( itemCount )
         ch.ResizeToFit()
         self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
@@ -105,6 +112,10 @@ overview = """<html><body>
 <p>Native column headers can be found in many views, most notably in a folder Details view</p>
 
 <p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot:</p>
+
+<p>Limitation 1: text and bitmaps are mutually exclusive</p>
+
+<p>Addition 1: MSW will have a persistant selection indicator</p>
 
 <p>MSW has no canonical UI for selection - uses a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator</p>
 

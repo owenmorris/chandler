@@ -297,6 +297,9 @@ bool		bResultV;
 #endif
 	}
 
+	// force a redraw
+	SetViewDirty();
+
 	return bResultV;
 }
 
@@ -815,9 +818,9 @@ wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 		return NULL;
 }
 
-void wxColumnHeader::GetImageRef(
+void wxColumnHeader::GetBitmapRef(
 	long				itemIndex,
-	wxBitmap			&imageRef )
+	wxBitmap			&bitmapRef )
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -826,17 +829,17 @@ bool					bResultV;
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		itemRef->GetImageRef( imageRef );
+		itemRef->GetBitmapRef( bitmapRef );
 	}
 	else
 	{
-//		imageRef.SetOK( false );
+//		bitmapRef.SetOK( false );
 	}
 }
 
-void wxColumnHeader::SetImageRef(
+void wxColumnHeader::SetBitmapRef(
 	long				itemIndex,
-	wxBitmap			&imageRef )
+	wxBitmap			&bitmapRef )
 {
 wxColumnHeaderItem		*itemRef;
 wxRect					boundsR;
@@ -845,7 +848,7 @@ wxRect					boundsR;
 	if (itemRef != NULL)
 	{
 		GetItemBounds( itemIndex, &boundsR );
-		itemRef->SetImageRef( imageRef, &boundsR );
+		itemRef->SetBitmapRef( bitmapRef, &boundsR );
 		RefreshItem( itemIndex );
 	}
 }
@@ -1105,6 +1108,15 @@ long		originX, i;
 #pragma mark -
 #endif
 
+#if defined(__WXMAC__)
+// virtual
+void wxColumnHeader::MacControlUserPaneActivateProc(
+	bool			bActivating )
+{
+	Enable( bActivating );
+}
+#endif
+
 #if defined(__WXMSW__)
 // virtual
 WXDWORD wxColumnHeader::MSWGetStyle(
@@ -1217,15 +1229,24 @@ long					resultV;
 	itemData.fmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
 	// add bitmap reference as needed
-	if ((itemRef->m_ImageRef != NULL) && itemRef->m_ImageRef->Ok())
+	// NB: text and icon are mutually exclusive:
+	// - need m_BitmapJustification  + mgmt. to fully implement nonMutEx behavior
+	// FIXME: scaling a la wxBytmap::SetWidth/Height doesn't apply !!!
+	// FIXME: protect against HBMP leaks?
+	if (HasValidBitmapRef( itemRef )))
 	{
-		itemData.mask |= HDI_BITMAP;
-		itemData.fmt |= HDF_BITMAP;
 		itemData.fmt &= ~HDF_STRING;
-		itemData.hbm = (HBITMAP)(itemRef->m_ImageRef->GetHBITMAP());
+		itemData.fmt |= HDF_BITMAP;
+		itemData.mask |= HDI_BITMAP;
+		itemData.hbm = (HBITMAP)(itemRef->m_BitmapRef->GetHBITMAP());
+	}
+	else
+	{
+		itemData.fmt &= ~HDF_BITMAP;
 	}
 
 	// add sort arrows as needed
+	// NB: should sort and bitmap be MutEx?
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
 	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
 		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
@@ -1318,7 +1339,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	:
 	m_FontID( 0 )
 	, m_TextJust( 0 )
-	, m_ImageRef( NULL )
+	, m_BitmapRef( NULL )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1333,7 +1354,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	:
 	m_FontID( 0 )
 	, m_TextJust( 0 )
-	, m_ImageRef( NULL )
+	, m_BitmapRef( NULL )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1346,7 +1367,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 
 wxColumnHeaderItem::~wxColumnHeaderItem()
 {
-	delete m_ImageRef;
+	delete m_BitmapRef;
 }
 
 // NB: a copy and nothing else...
@@ -1368,9 +1389,9 @@ void wxColumnHeaderItem::GetItemData(
 
 	GetLabelText( info->m_LabelTextRef );
 
-	if (info->m_ImageRef != m_ImageRef)
-		if (info->m_ImageRef != NULL)
-			GetImageRef( *(info->m_ImageRef) );
+	if (info->m_BitmapRef != m_BitmapRef)
+		if (info->m_BitmapRef != NULL)
+			GetBitmapRef( *(info->m_BitmapRef) );
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -1389,38 +1410,50 @@ void wxColumnHeaderItem::SetItemData(
 	m_BSortAscending = info->m_BSortAscending;
 
 	SetLabelText( info->m_LabelTextRef );
-	if (m_ImageRef != NULL)
-		SetImageRef( *(info->m_ImageRef), NULL );
+	if (m_BitmapRef != NULL)
+		SetBitmapRef( *(info->m_BitmapRef), NULL );
 }
 
-void wxColumnHeaderItem::GetImageRef(
-	wxBitmap			&imageRef )
+// static
+bool wxColumnHeaderItem::HasValidBitmapRef(
+	const wxBitmap		*bitmapRef )
 {
-	if (m_ImageRef != NULL)
-		imageRef = *m_ImageRef;
-//	else
-//		imageRef.SetOK( false );
+bool		bResultV;
+
+	bResultV = ((bitmapRef != NULL) && bitmapRef->Ok());
+
+	return bResultV;
 }
 
-void wxColumnHeaderItem::SetImageRef(
-	wxBitmap			&imageRef,
+void wxColumnHeaderItem::GetBitmapRef(
+	wxBitmap			&bitmapRef )
+{
+	if (m_BitmapRef != NULL)
+		bitmapRef = *m_BitmapRef;
+//	else
+//		bitmapRef.SetOK( false );
+}
+
+void wxColumnHeaderItem::SetBitmapRef(
+	wxBitmap			&bitmapRef,
 	const wxRect		*boundsR )
 {
 wxRect			targetBoundsR;
 
-	delete m_ImageRef;
-	m_ImageRef = new wxBitmap( imageRef );
+	// NB: could rewrite to make NULL wxBitmap for no bitmap
+	delete m_BitmapRef;
+	m_BitmapRef = new wxBitmap( bitmapRef );
 
-	if ((boundsR != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	if ((boundsR != NULL) && HasValidBitmapRef( m_BitmapRef ))
 	{
-		GetBitmapBounds( boundsR, m_TextJust, &targetBoundsR );
+		GetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
 
-		m_ImageRef->SetWidth( targetBoundsR.width );
-		m_ImageRef->SetHeight( targetBoundsR.height );
+		m_BitmapRef->SetWidth( targetBoundsR.width );
+		m_BitmapRef->SetHeight( targetBoundsR.height );
 	}
 	else
 	{
-		// wxLogDebug( _T("wxColumnHeaderItem::SetImageRef failed") );
+		// wxLogDebug( _T("wxColumnHeaderItem::SetBitmapRef failed") );
 	}
 }
 
@@ -1561,6 +1594,7 @@ ThemeButtonDrawInfo		drawInfo;
 RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
+bool					bHasIcon;
 OSStatus				errStatus;
 
 	errStatus = noErr;
@@ -1569,6 +1603,9 @@ OSStatus				errStatus;
 	qdBoundsR.right = qdBoundsR.left + boundsR->width;
 	qdBoundsR.top = 0;
 	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
+
+	// determine bitmap rendering condition
+	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
 	// clip down to the item bounds
 	savedClipRgn = NewRgn();
@@ -1613,7 +1650,7 @@ OSStatus				errStatus;
 
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
-	if (! m_LabelTextRef.IsEmpty())
+	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
 	CFStringRef			cfLabelText;
 	TextEncoding		targetEncoding;
@@ -1634,12 +1671,12 @@ OSStatus				errStatus;
 	}
 
 	// render the bitmap, should one be present
-	if ((dc != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	if (bHasIcon)
 	{
 	wxRect		iconBoundsR;
 
-		GetBitmapBounds( boundsR, m_TextJust, &iconBoundsR );
-		dc->DrawBitmap( *m_ImageRef, iconBoundsR.x, iconBoundsR.y, false );
+		GetBitmapItemBounds( boundsR, m_TextJust, &iconBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, iconBoundsR.x, iconBoundsR.y, false );
 	}
 
 	// restore the clip region
@@ -1649,8 +1686,13 @@ OSStatus				errStatus;
 	return (long)errStatus;
 #else
 
+bool					bHasIcon;
+
 	if ((parentW == NULL) || (dc == NULL))
 		return (-1L);
+
+	// determine bitmap rendering condition
+	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
 	// draw column header background
 	{
@@ -1689,9 +1731,11 @@ OSStatus				errStatus;
 	}
 
 	// FIXME: need to clip long text items
-	dc->DrawText( m_LabelTextRef, originX, localBoundsR.y + 1 );
+	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
+		dc->DrawText( m_LabelTextRef, originX, localBoundsR.y + 1 );
 
 	// draw sort direction arrows (if specified)
+	// NB: what if icon avail? mut. ex.?
 	if (m_BSelected && m_BSortEnabled)
 	{
 #if defined(__WXGTK__)
@@ -1705,12 +1749,12 @@ OSStatus				errStatus;
 	}
 
 	// render the bitmap, should one be present
-	if ((dc != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	if (bHasIcon)
 	{
 	wxRect		iconBoundsR;
 
-		GetBitmapBounds( boundsR, m_TextJust, &iconBoundsR );
-		dc->DrawBitmap( *m_ImageRef, iconBoundsR.x, iconBoundsR.y, false );
+		GetBitmapItemBounds( boundsR, m_TextJust, &iconBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, iconBoundsR.x, iconBoundsR.y, false );
 	}
 
 	return 0;
@@ -1746,7 +1790,7 @@ COLORREF		targetColor;
 	gdiBoundsR.top = boundsR->y;
 	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
 
-	// now...frame it
+	// now...frame it (or something)
 	targetHDC = GetHdcOf( *dc );
 
 	//targetPen = CreatePen( PS_SOLID, 2, 0 );
@@ -1867,7 +1911,7 @@ wxPoint		triPt[3];
 #endif
 
 // static
-void wxColumnHeaderItem::GetBitmapBounds(
+void wxColumnHeaderItem::GetBitmapItemBounds(
 	const wxRect			*itemBoundsR,
 	long					targetJustification,
 	wxRect				*targetBoundsR )
