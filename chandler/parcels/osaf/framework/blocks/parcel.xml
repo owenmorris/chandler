@@ -9,10 +9,6 @@
         itemName="blocks"
         xmlns="//Schema/Core"
         xmlns:docSchema="//parcels/OSAF/framework/blocks"
-
-        xmlns:parent1 = "//parcels/OSAF/framework"
-        xmlns:parent2 = "//parcels/OSAF/framework/notifications"
-
         xmlns:events="//parcels/OSAF/framework/notifications/schema">
 
   <description>Schema for blocks that make up CPIA documents </description>
@@ -150,19 +146,32 @@
 
     <Enumeration itemName="dispatchEnumType">
       <values>Broadcast</values>
-      <values>Controller</values>
+      <values>BubbleUp</values>
+      <values>SendToBlock</values>
     </Enumeration>
 
     <Attribute itemName="dispatchEnum">
       <type itemref="docSchema:BlockEvent/dispatchEnumType"/>
     </Attribute>
 
-    <Attribute itemName="UUID">
-      <type itemref="UUID"/>
+    <Attribute itemName="dispatchToBlock">
+      <type itemref="docSchema:Block"/>
     </Attribute>
 
     <attributes itemref="docSchema:BlockEvent/dispatchEnum"/>
-    <attributes itemref="docSchema:BlockEvent/UUID"/>
+    <attributes itemref="docSchema:BlockEvent/dispatchToBlock"/>
+  </Kind>
+
+
+  <Kind itemName="ChoiceEvent">
+    <classes key="python">OSAF.framework.blocks.Block.ChoiceEvent</classes>
+    <superKinds itemref="docSchema:BlockEvent"/>
+
+    <Attribute itemName="choice">
+      <type itemref="String"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:ChoiceEvent/choice"/>
   </Kind>
 
   <!--
@@ -207,11 +216,11 @@
   </Kind>
   
   <!--
-    Controller
+    View
   -->
-  <Kind itemName="Controller">
-    <classes key="python">OSAF.framework.blocks.Controller.Controller</classes>
-    <superKinds itemref="docSchema:Block"/>
+  <Kind itemName="View">
+    <classes key="python">OSAF.framework.blocks.View.View</classes>
+    <superKinds itemref="docSchema:BoxContainer"/>
   </Kind>
 
   <!--

@@ -22,89 +22,6 @@ class Block(Item):
         return None, None, None
 
 
-    def findController (self):
-        from OSAF.framework.blocks.Controller import Controller
-        block = self
-
-        while (block):
-            for child in block.childrenBlocks:
-                if isinstance (child, Controller):
-                    return child
-            block = block.parentBlock
-            
-        return None
-
-
-    def dispatchEvent (self, notification):
-        
-        def broadcast (block, methodName, event):
-            """
-              Call method named methodName on every block and it's children
-            who implements it
-            """
-            if hasattr (block, methodName):
-                member = getattr (block, methodName)
-                member (event)
-            for child in block.childrenBlocks:
-                broadcast (child, methodName, event)
-
-        event = notification.data['event']
-        """
-          Find the controller for the window with the focus
-        """
-        controller = self.getFocusBlock().findController()
-        """
-          Construct method name based upon the name of the event.
-        """
-        methodName = 'on_' + event.name.replace ('/', '_')
-        if notification.data['type'] == 'UpdateUI':
-            methodName += '_UpdateUI'
-        
-        if event.dispatchEnum == 'Broadcast':
-            broadcast (controller.parentBlock, methodName, event)
-        elif event.dispatchEnum == 'Controller':
-            """
-              Bubble the event up through all the containing controllers
-            """
-            while (controller):
-                try:
-                    member = getattr (controller, methodName)
-                    member (notification)
-                    break
-                except AttributeError:
-                    controller = controller.parentBlock.parentBlock
-        elif __debug__:
-            assert (False)
-
-
-    def getFocusBlock (self):
-        focusWindow = wxWindow_FindFocus()
-        try:
-            UUID = focusWindow.counterpartUUID
-        except AttributeError:
-            return Globals.topController
-        return (Globals.repository.find (UUID))
-
-    
-    def onSetFocus (self):
-        """
-          Cruise up the parent hierarchy looking for the parent of the first
-        menu or menuItem. If it's not the same as the last time the focus
-        changed then we need to rebuild the menus.
-        """
-        from OSAF.framework.blocks.MenuBlocks import Menu, MenuItem
-
-        block = self.getFocusBlock()
-        while (block):
-            for child in block.childrenBlocks:
-                if isinstance (child, Menu) or isinstance (child, MenuItem):
-                    parent = child.parentBlock
-                    if True or parent != Globals.wxApplication.menuParent:
-                        Globals.wxApplication.menuParent = parent
-                        Menu.rebuildMenus(parent)
-                        return
-            block = block.parentBlock
-
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
@@ -146,5 +63,11 @@ class Block(Item):
 
     
 class BlockEvent(Event):
+    def __init__(self, *arguments, **keywords):
+        super (BlockEvent, self).__init__ (*arguments, **keywords)
+        self.dispatchToBlock = None
+
+
+class ChoiceEvent(BlockEvent):
     pass
 

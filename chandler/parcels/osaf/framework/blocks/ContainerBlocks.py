@@ -385,6 +385,15 @@ class TabbedContainer(RectContainer):
                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
 
+    def on_chandler_TabChoice (self, notification):
+        tabbedContainer = Globals.association[self.getUUID()]
+        choice = notification.data ['event'].choice
+        for index in xrange (tabbedContainer.GetPageCount()):
+            if tabbedContainer.GetPageText(index) == choice:
+                tabbedContainer.SetSelection (index)
+                break
+
+
 class Toolbar(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         return None, None, None
@@ -441,7 +450,7 @@ class wxTreeList(wxTreeListCtrl):
                      'type':'Normal'}
         notification = Notification('chandler/GetTreeListData', None, None)
         notification.SetData(arguments)
-        Globals.notificationManager.PostNotification(notification)
+        Globals.topView.dispatchEvent(notification)
 
 
 class TreeList(RectContainer):
@@ -458,7 +467,7 @@ class TreeList(RectContainer):
                      'type':'Normal'}
         notification = Notification("chandler/GetTreeListData", None, None)
         notification.SetData(arguments)
-        Globals.notificationManager.PostNotification(notification)
+        Globals.topView.dispatchEvent(notification)
 
         if isinstance (parent, wxSizerPtr):
             parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())

@@ -147,6 +147,27 @@
     <helpString></helpString>
   </MenuItem>
 
+  <ChoiceEvent itemName="ChooseButtons">
+    <name>chandler/TabChoice</name>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <choice>Buttons</choice>
+  </ChoiceEvent>
+
+  <ChoiceEvent itemName="ChooseControls">
+    <name>chandler/TabChoice</name>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <choice>Controls</choice>
+  </ChoiceEvent>
+
+  <ChoiceEvent itemName="ChooseData">
+    <name>chandler/TabChoice</name>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <choice>Data</choice>
+  </ChoiceEvent>
+  
   <MenuItem itemName="ButtonsMenuItem">
     <title>Buttons Tab</title>
     <operation>InsertBefore</operation>
@@ -154,7 +175,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="events:ButtonsMenu"/>
+    <event itemref="doc:ChooseButtons"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -165,7 +186,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="events:ControlsMenu"/>
+    <event itemref="doc:ChooseControls"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -176,7 +197,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="events:DataMenu"/>
+    <event itemref="doc:ChooseData"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -186,9 +207,6 @@
     <fontStyle>bold</fontStyle>
     <fontName></fontName>
   </CharacterStyle>
-
-  <Controller itemName="Controller">
-  </Controller>
 
   <StaticText itemName="Header">
     <open>True</open>
@@ -657,8 +675,9 @@
     <orientationEnum>Horizontal</orientationEnum>
   </SplitterWindow>
 
-  <BoxContainer itemName="TopDocument">
+  <View itemName="TopView">
     <content-spec itemref="doc:myQuery"/>
+
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:QuitItem"/>
 
@@ -674,8 +693,7 @@
 
     <childrenBlocks itemref="doc:Header"/>
     <childrenBlocks itemref="doc:ContentBox"/>
-    <childrenBlocks itemref="doc:Controller"/>
-    <open>True</open>
+     <open>True</open>
 
     <size>400,200</size>
     <minimumSize>400,200</minimumSize>
@@ -684,6 +702,6 @@
     <stretchFactor>1.0</stretchFactor>
 
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  </View>
 
 </core:Parcel>

@@ -16,67 +16,52 @@ of a limitation of the XML format, which will be eliminated</description>
   
   <BlockEvent itemName="Quit">
     <name>chandler/Quit</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Undo">
     <name>chandler/Undo</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Redo">
     <name>chandler/Redo</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Cut">
     <name>chandler/Cut</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Copy">
     <name>chandler/Copy</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Paste">
     <name>chandler/Paste</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="GetTreeListData">
     <name>chandler/GetTreeListData</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Preferences">
     <name>chandler/Preferences</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="ButtonsMenu">
-    <name>chandler/ButtonsMenu</name>
-    <dispatchEnum>Controller</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itemName="ControlsMenu">
-    <name>chandler/ControlsMenu</name>
-    <dispatchEnum>Controller</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itemName="DataMenu">
-    <name>chandler/DataMenu</name>
-    <dispatchEnum>Controller</dispatchEnum>
-  </BlockEvent>
-  
   <BlockEvent itemName="Right">
     <name>chandler/Right</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itemName="Left">
     <name>chandler/Left</name>
-    <dispatchEnum>Controller</dispatchEnum>
+    <dispatchEnum>BubbleUp</dispatchEnum>
   </BlockEvent>
 
 
