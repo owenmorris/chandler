@@ -28,7 +28,7 @@ ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
-SWIG=$(PREFIX)/bin/swig/swig.exe
+SWIG=$(PREFIX)/bin/swig.exe
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
