@@ -285,8 +285,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </HTML>
 
   <!--
@@ -432,8 +430,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </HTML>
 
   <TabbedContainer itemName="TabbedView"
@@ -462,9 +458,6 @@
 
     <size>125,600</size>
     <minimumSize>10,10</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
  
   <BookmarksBar itemName="BookmarksBar">
@@ -474,7 +467,6 @@
     <size>200,20</size>
     <minimumSize>200,20</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </BookmarksBar>
 
@@ -490,8 +482,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </SplitterWindow>
   
   <BoxContainer itemName="BookmarksContainer">
@@ -505,8 +495,6 @@
     <size>400,200</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
 
   <View itemName="MainView"
@@ -566,8 +554,6 @@
     <size>900,600</size>
     <minimumSize>900,600</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </View>
 
 </core:Parcel>

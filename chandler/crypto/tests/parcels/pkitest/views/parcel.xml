@@ -22,9 +22,6 @@
     <open>True</open>
     <size>0,0</size>
     <minimumSize>0,0</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
     <blockEvents itemref="views:StartStopServerEvent"/>
     <blockEvents itemref="views:ConnectDisconnectClientEvent"/>
     <blockEvents itemref="views:SendDataToServerEvent"/>
@@ -37,9 +34,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="clientRow">
@@ -52,9 +46,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="sendRow">
@@ -64,9 +55,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="sendCol">
@@ -76,9 +64,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="SendButtonLabelSizer">
@@ -88,9 +73,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="receiveCol">
@@ -100,9 +82,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <!-- The buttons -->
@@ -114,7 +93,6 @@
       <open>True</open>
       <size>120,20</size>
       <minimumSize>120,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:Button>
@@ -126,7 +104,6 @@
       <open>True</open>
       <size>140,20</size>
       <minimumSize>140,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:Button>
@@ -138,7 +115,6 @@
       <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:Button>
@@ -186,7 +162,6 @@
       <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:EditText>
@@ -238,7 +213,6 @@
       <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:EditText>
@@ -274,9 +248,6 @@
 
       <size>200,400</size>
       <minimumSize>100,100</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:Tree>
 
     <!-- A style for normal text -->

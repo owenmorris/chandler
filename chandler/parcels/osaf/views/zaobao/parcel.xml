@@ -71,24 +71,17 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <EditText itemName="NewChannel">
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -100,8 +93,6 @@
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
     <orientationEnum>Vertical</orientationEnum>
 
     <childrenBlocks itemref="doc:ItemDetail"/>
@@ -115,8 +106,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </HTML>
 
   <SplitterWindow itemName="ZaoBaoView">
@@ -126,8 +115,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:ZaoBaoTree"/>
     <childrenBlocks itemref="doc:ItemViewBox"/>
@@ -156,17 +143,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ZaoBaoChannelView">
@@ -176,8 +157,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
@@ -199,17 +178,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="chandlerwiki_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chandlerwiki_ZaoBaoChannelView">
@@ -219,8 +192,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:chandlerwiki_ChannelList"/>
     <childrenBlocks itemref="doc:chandlerwiki_ChannelItemDetail"/>
@@ -241,17 +212,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="junglewiki_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="junglewiki_ZaoBaoChannelView">
@@ -261,8 +226,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
     <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
@@ -284,17 +247,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ted_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ted_ZaoBaoChannelView">
@@ -304,8 +261,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:ted_ChannelList"/>
     <childrenBlocks itemref="doc:ted_ChannelItemDetail"/>
@@ -327,17 +282,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="zaobao_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="zaobao_ZaoBaoChannelView">
@@ -347,8 +296,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:zaobao_ChannelList"/>
     <childrenBlocks itemref="doc:zaobao_ChannelItemDetail"/>
@@ -371,17 +318,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="chao_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chao_ZaoBaoChannelView">
@@ -391,8 +332,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:chao_ChannelList"/>
     <childrenBlocks itemref="doc:chao_ChannelItemDetail"/>
@@ -415,17 +354,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="lessig_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="lessig_ZaoBaoChannelView">
@@ -435,8 +368,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:lessig_ChannelList"/>
     <childrenBlocks itemref="doc:lessig_ChannelItemDetail"/>
@@ -459,17 +390,11 @@
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </Tree>
 
   <zb:ZaoBaoItemDetail itemName="mark_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="mark_ZaoBaoChannelView">
@@ -479,8 +404,6 @@
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
 
     <childrenBlocks itemref="doc:mark_ChannelList"/>
     <childrenBlocks itemref="doc:mark_ChannelItemDetail"/>

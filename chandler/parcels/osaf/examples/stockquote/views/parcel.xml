@@ -21,9 +21,6 @@
     <open>True</open>
     <size>0,0</size>
     <minimumSize>0,0</minimumSize>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
     <blockEvents itemref="views:GetQuoteEvent"/>
 
     <blocks:BoxContainer itemName="layout">
@@ -34,9 +31,6 @@
       <open>True</open>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
-      <alignmentEnum>grow</alignmentEnum>
-      <stretchFactor>1.0</stretchFactor>
     </blocks:BoxContainer>
 
     <!-- The button -->
@@ -48,7 +42,6 @@
       <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:Button>
@@ -66,7 +59,6 @@
       <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
-      <border>0.0, 0.0, 0.0, 0.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:EditText>
