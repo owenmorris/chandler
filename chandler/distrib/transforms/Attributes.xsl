@@ -34,7 +34,13 @@
 				</title>
 				<link rel="stylesheet" type="text/css">
 				   <xsl:attribute  name = "href" >
-				      <xsl:value-of select="$constants.cssPath" />
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				   <xsl:value-of select="$constants.cssFile" />
 				   </xsl:attribute>
 				</link>
 			</head>
