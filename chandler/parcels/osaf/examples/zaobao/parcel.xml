@@ -12,11 +12,11 @@
   <description>RSS schema for ZaoBao parcel for 0.4 release</description>
   <version>0.1</version>
 
-
+  <!-- Shared between RSSChannel and RSSItem -->
   <Attribute itsName="link">
     <displayName>Web URL</displayName>
     <cardinality>single</cardinality>
-    <type itemref="URL"/>
+    <type itemref="String"/>
   </Attribute>
 
   <Attribute itsName="category">
@@ -41,8 +41,19 @@
   <!-- Kind: RSSChannel -->
 
   <Kind itsName="RSSChannel">
+    <superKinds itemref="content:ContentItem"/>
+    <!-- <superKinds itemref="content:Note"/> -->
+    <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
+    
     <displayName>RSS Channel</displayName>
 
+    <Attribute itsName="who">
+        <redirectTo value="author"/>
+    </Attribute>
+    
+    <Attribute itsName="about">
+        <redirectTo value="displayName"/>
+    </Attribute>
     <!-- Feed specific attributes -->
     <Attribute itsName="url">
       <displayName>URL</displayName>
@@ -88,30 +99,44 @@
       <inverseAttribute itemref="zaobao:RSSItem/channel"/>
     </Attribute>
 
+    <!-- unique to RSSChannel -->
     <attributes itemref="zaobao:RSSChannel/url"/>
     <attributes itemref="zaobao:RSSChannel/etag"/>
     <attributes itemref="zaobao:RSSChannel/lastModified"/>
-
-    <attributes itemref="zaobao:link"/>
-    <attributes itemref="zaobao:category"/>
-    <attributes itemref="zaobao:author"/>
-    <attributes itemref="zaobao:date"/>
     <attributes itemref="zaobao:RSSChannel/copyright"/>
     <attributes itemref="zaobao:RSSChannel/language"/>
 
     <attributes itemref="zaobao:RSSChannel/isUnread"/>
     <attributes itemref="zaobao:RSSChannel/items"/>
 
-    <superKinds itemref="content:ContentItem"/>
-    <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
+    <!-- shared between RSSChannel and RSSItem -->
+    <attributes itemref="zaobao:link"/>
+    <attributes itemref="zaobao:category"/>
+    <attributes itemref="zaobao:author"/>
+    <attributes itemref="zaobao:date"/>
+
   </Kind>  
 
 
   <!-- Kind: RSSItem -->
 
   <Kind itsName="RSSItem">
-    <displayName>RSS Item</displayName>
+    <superKinds itemref="content:ContentItem"/>
+    <!-- <superKinds itemref="content:Note"/> -->
+    <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
 
+    <displayName>RSS Item</displayName>
+    <Attribute itsName="about">
+        <redirectTo value="displayName"/>
+    </Attribute>
+    <Attribute itsName="who">
+        <redirectTo value="author"/>
+    </Attribute>
+    <Attribute itsName="body">
+        <redirectTo value="content"/>
+    </Attribute>
+    
+    <!-- Unique to RSSItem -->
     <Attribute itsName="channel">
       <displayName>Channel</displayName>
       <cardinality>single</cardinality>
@@ -125,16 +150,16 @@
     </Attribute>
 
     <attributes itemref="zaobao:RSSItem/content"/>
+    <attributes itemref="zaobao:RSSItem/channel"/>
+
     <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:category"/>
     <attributes itemref="zaobao:author"/>
     <attributes itemref="zaobao:date"/>
 
-    <attributes itemref="zaobao:RSSItem/channel"/>
-    <superKinds itemref="content:ContentItem"/>
-    <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
   </Kind>
 
+  <!-- Just declaring an item of this type will allow it to be woken up -->
   <wakeupCall:WakeupCall itsName="ZaoBao">
   <wakeupCallClass>osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall</wakeupCallClass>
         <callOnStartup>True</callOnStartup>
@@ -143,11 +168,11 @@
         <delay>00:04:00:00</delay>
   </wakeupCall:WakeupCall>
 
-  <!-- view related stuff -->
+  <!-- view related stuff - not sure if this is used anywhere? -->
+  
   <Kind itsName="ZaoBaoItemDetail">
     <classes key="python">osaf.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
     <superKinds itemref="docSchema:ItemDetail"/>
   </Kind>  
-
-
+  
 </Parcel>

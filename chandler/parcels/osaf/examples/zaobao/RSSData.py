@@ -10,20 +10,21 @@ import mx.DateTime
 import feedparser
 
 
-def SetAttribute(self, data, attr, nattr=None):
-    if not nattr:
-        nattr = attr
+# sets a given attribute overriding the name with newattr
+def SetAttribute(self, data, attr, newattr=None):
+    if not newattr:
+        newattr = attr
     value = data.get(attr)
     if value:
-        type = self.getAttributeAspect(nattr, 'type', default=None)
+        type = self.getAttributeAspect(newattr, 'type', default=None)
         if type is not None:
             value = type.makeValue(value)
-        self.setAttributeValue(nattr, value)
+        self.setAttributeValue(newattr, value)
 
 def SetAttributes(self, data, attributes):
     if isinstance(attributes, dict):
-        for attr, nattr in attributes.iteritems():
-            SetAttribute(self, data, attr, nattr=nattr)
+        for attr, newattr in attributes.iteritems():
+            SetAttribute(self, data, attr, newattr=newattr)
     elif isinstance(attributes, list):
         for attr in attributes:
             SetAttribute(self, data, attr)
@@ -111,9 +112,9 @@ class RSSChannel(ContentItem):
 
         for itemData in items:
             #print 'new item'
-            item = RSSItem()
-            item.Update(itemData)
-            self.addValue('items', item)
+            rssItem = RSSItem()
+            rssItem.Update(itemData)
+            self.addValue('items', rssItem)
 
 
 ##
@@ -131,7 +132,7 @@ class RSSItem(ContentItem):
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
 
-        attrs = ['link', 'category']
+        attrs = ['link', 'category', 'author']
         # @@@MOR attrs = ['creator', 'link', 'category']
         SetAttributes(self, data, attrs)
 
