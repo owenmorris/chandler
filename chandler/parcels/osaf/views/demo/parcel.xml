@@ -10,7 +10,8 @@
              xmlns:core="//Schema/Core"
              xmlns="//parcels/OSAF/framework/blocks"
              xmlns:doc="//parcels/OSAF/views/demo"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events">
+             xmlns:events="//parcels/OSAF/framework/blocks/Events"
+             xmlns:main="//parcels/OSAF/views/main">
 
   <core:version>0.3</core:version>
 
@@ -72,7 +73,7 @@
 
   <ChoiceEvent itemName="SwitchEmbeddedChild">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:EmbeddedTitle"/>
+    <dispatchToBlock itemref="main:ParcelViewer"/>
     <methodName>OnChooseTabEvent</methodName>
     <choice>parcels/OSAF/templates/top/LeftText</choice>
   </ChoiceEvent>  
@@ -420,9 +421,11 @@
   </BoxContainer>
 
   <TreeList itemName="TreeExample">
-    <columnHeadings>Heading</columnHeadings>
-    
+    <columnHeadings>Heading</columnHeadings>    
     <columnWidths>200</columnWidths>
+    <noLines>False</noLines>
+    <useButtons>True</useButtons>
+    <hideRoot>False</hideRoot>
 
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>

@@ -69,7 +69,7 @@ class ContainerChild(Block):
     def addToContainer(self, parent, child, id, flag, border):
         pass
     
-    def removeFromContainer(self, childToRemove):
+    def removeFromContainer(self, parent, child):
         pass
     
     def handleChildren(self, window):
@@ -155,24 +155,51 @@ class BoxContainer(RectangularChild):
 
 class EmbeddedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        self.wxParent = parent
-        self.wxParentWindow = parentWindow
+        sizer = wxBoxSizer(wxHORIZONTAL)
+        panel = wxPanel(parentWindow, -1)
+        panel.SetSizer(sizer)
+        self.getParentBlock(parentWindow).addToContainer(parent, panel, 1,
+                                                         self.Calculate_wxFlag(),
+                                                         self.Calculate_wxBorder())
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
-            return newChild.render (parent, parentWindow)
+            newChild.parentBlock = self
+            return panel, sizer, panel
         return None, None, None
+
+    def addToContainer (self, parent, child, weight, flag, border):
+        parent.Add(child, int(weight), flag, border)
+        
+    def removeFromContainer(self, parent, child):
+        parent.Remove (child)
+        child.Destroy ()
+        parent.Layout ()
     
-    def OnSwitchEmbeddedChildEvent (self, notification):
+    def OnSelectionChangedEvent (self, notification):
+        # @@@ This isn't working yet.  For some reason, switching parcels
+        #  causes an infinite number of UpdateUI notifications to be posted.
+        return
+        node = notification.data['node']
+        name = node.treeList.GetItemText(node.nodeId)
         oldChild = Globals.repository.find (self.contentSpec.data)
-        wxOldChild = Globals.association[oldChild.getUUID()]
-        self.getParentBlock(self.wxParentWindow).removeFromContainer(self.wxParent, wxOldChild)
-                
-        self.contentSpec.data = notification.event.choice
+        wxOldChild = Globals.association [oldChild.getUUID()]
+        parent = wxOldChild.GetContainingSizer ()
+        parentWindow = wxOldChild.GetParent()
+        
+        self.removeFromContainer(parent, wxOldChild)
+        oldChild.parentBlock = None
+        
+        if name == "Demo":
+            self.contentSpec.data = 'parcels/OSAF/views/demo/TabBox'
+        else:
+            self.contentSpec.data = 'parcels/OSAF/views/repositoryviewer/RepositoryBox'        
+        
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
-            newChild.render (self.wxParent, self.wxParentWindow)
-
-
+            newChild.parentBlock = self
+            newChild.render (parent, parentWindow)
+        
+            
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         id = 0
@@ -364,30 +391,24 @@ class SplitWindow(RectangularChild):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
         
-    def removeFromContainer(self, childToRemove):
+    def removeFromContainer(self, parent, child):
         # @@@ Must be implemented
         pass
-
+        
     def handleChildren(self, window):
-        children = window.GetChildren()
+        assert (len (self.childrenToAdd) == 2)
         width, height = window.GetSizeTuple()
         assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
         if self.orientationEnum == "Horizontal":
-            window.SplitHorizontally(children[0],
-                                     children[1],
+            window.SplitHorizontally(self.childrenToAdd[0],
+                                     self.childrenToAdd[1],
                                      int (round (height * self.splitPercentage)))
         else:
-            window.SplitVertically(children[0],
-                                   children[1],
+            window.SplitVertically(self.childrenToAdd[0],
+                                   self.childrenToAdd[1],
                                    int (round (width * self.splitPercentage)))
         return window
-
-        assert (len (self.childrenToAdd) == 2)
-        if self.orientationEnum == "Horizontal":
-            window.SplitVertically(self.childrenToAdd[0], self.childrenToAdd[1])
-        else:
-            window.SplitHorizontally(self.childrenToAdd[0], self.childrenToAdd[1])
-    
+   
 
 class StaticText(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
@@ -443,7 +464,7 @@ class TabbedContainer(RectangularChild):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
         
-    def removeFromContainer(self, childToRemove):
+    def removeFromContainer(self, parent, child):
         # @@@ Must be implemented
         pass
 
@@ -623,4 +644,12 @@ class Sidebar(TreeList):
             node.AddRootNode (['Repository Viewer', 'Demo'], ['Views'], true)
     
     def OnSelectionChangedEvent (self, notification):
-        pass
+        node = notification.data['node']
+        name = node.treeList.GetItemText(node.nodeId)
+        arguments = {'parcelName':name, 'type':'Normal'}
+        event = Globals.repository.find('//parcels/OSAF/views/demo/SwitchEmbeddedChild')
+        notification = Notification(event, None, None)
+        notification.SetData(arguments)
+        Globals.notificationManager.PostNotification (notification)
+
+        
