@@ -271,6 +271,7 @@
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
     <core:inverseAttribute itemref="blocks:Block/contents"/>
+    <initialValue/>
   </core:Attribute>
 
   <core:Attribute itsName="rule">
@@ -278,16 +279,19 @@
     <core:cardinality>single</core:cardinality>
     <core:type itemref="Query"/>
     <core:inverseAttribute itemref="queryOwner"/>
+    <initialValue ref="core:None"/>
   </core:Attribute>
 
   <core:Attribute itsName="inclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
+    <initialValue/>
   </core:Attribute>
 
   <core:Attribute itsName="exclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
+    <initialValue/>
   </core:Attribute>
 
   <core:Kind itsName="ItemCollection">

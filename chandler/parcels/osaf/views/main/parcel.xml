@@ -41,25 +41,25 @@
     <dispatchToBlock itemref="doc:StatusBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="GoBack">
+  <BlockEvent itsName="GoBack">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>goBack</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="GoForward">
+  <BlockEvent itsName="GoForward">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>goForward</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="RefreshView">
+  <BlockEvent itsName="RefreshView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>refreshView</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="GoToURL">
+  <BlockEvent itsName="GoToURL">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>gotoURL</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
@@ -68,7 +68,7 @@
   <!--
     Menus
   -->  
-  <Menu itemName="FileMenu">
+  <Menu itsName="FileMenu">
     <title>File</title>
     <location>MenuBar</location>
   </Menu>
@@ -92,7 +92,7 @@
   </Menu>
  
   <!-- the Menu Bar -->
-  <MenuBar itemName="MenuBar"/>
+  <MenuBar itsName="MenuBar"/>
 
   <!--
     Menu Items
@@ -113,7 +113,7 @@
     <event itemref="events:Close"/>
   </MenuItem>
   
-  <MenuItem itemName="FileSeparator1">
+  <MenuItem itsName="FileSeparator1">
     <location>FileMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -140,7 +140,7 @@
     <event itemref="events:Redo"/>
   </MenuItem>
 
-  <MenuItem itemName="EditSeparator1">
+  <MenuItem itsName="EditSeparator1">
     <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -166,7 +166,7 @@
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itemName="EditSeparator2">
+  <MenuItem itsName="EditSeparator2">
     <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -264,7 +264,7 @@
   <!--
     Toolbars
   -->
-  <NavigationBar itemName="NavigationBar">
+  <NavigationBar itsName="NavigationBar">
     <!-- Dynamic Children -->
     <dynamicChildren itemref="doc:BackButton"/>
     <dynamicChildren itemref="doc:ForwardButton"/>

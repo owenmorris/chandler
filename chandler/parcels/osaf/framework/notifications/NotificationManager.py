@@ -43,9 +43,10 @@ class NotificationManager(object):
         try:
             from repository.item.Query import KindQuery
             eventKind = Globals.repository.findPath('//parcels/osaf/framework/notifications/schema/Event')
-            for item in KindQuery().run([eventKind]):
-                if not self.declarations.has_key(item.itsUUID):
-                    self.declarations[item.itsUUID] = Declaration(item)
+            if eventKind is not None:
+                for item in KindQuery().run([eventKind]):
+                    if not self.declarations.has_key(item.itsUUID):
+                        self.declarations[item.itsUUID] = Declaration(item)
         finally:
             self.declarations.release()
 

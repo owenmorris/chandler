@@ -339,7 +339,8 @@ class Manager(Item):
         parser.setContentHandler(handler)
 
         filesToParse = []
-        self.__namespacesToLoad = []
+        self.__parcelsToLoad = []
+        self.__parcelsToReload = []
 
         try:
             # Scan the parcel directories for parcel.xml files that are
@@ -362,6 +363,8 @@ class Manager(Item):
                             if pDesc["time"] >= os.stat(parcelFile).st_mtime:
                                 # The file is not more recent
                                 parseThisFile = False
+                            else:
+                                self.__parcelsToReload.append(self._repo2ns[repoPath])
 
                         if parseThisFile:
                             filesToParse.append((parcelFile, repoPath))
@@ -402,7 +405,8 @@ class Manager(Item):
                 self._file2ns[parcelFile] = namespace
 
                 # Load this file during LoadParcels
-                self.__namespacesToLoad.append(namespace)
+                self.log.info("scan: adding %s to load list" % namespace)
+                self.__parcelsToLoad.append(namespace)
 
 
             for file in self._file2ns.keys():
@@ -481,7 +485,7 @@ class Manager(Item):
 
         # make sure we're not already loaded
         parcel = self.repo.findPath(repoPath)
-        if parcel is not None:
+        if parcel is not None and namespace not in self.__parcelsToReload:
             globalDepth = globalDepth - 1
             return parcel
 
@@ -498,7 +502,7 @@ class Manager(Item):
         # make sure we're not already loaded (as a side effect of loading
         # parent)
         parcel = self.repo.findPath(repoPath)
-        if parcel is not None:
+        if parcel is not None and namespace not in self.__parcelsToReload:
             # for i in range(globalDepth):
             #     print " ",
             # print "(skipping %s)" % namespace
@@ -523,6 +527,10 @@ class Manager(Item):
         parser.setFeature(xml.sax.handler.feature_namespaces, True)
         parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
         parser.setContentHandler(handler)
+
+        # remove this parcel from the reload list
+        if namespace in self.__parcelsToReload:
+            self.__parcelsToReload.remove(namespace)
 
         # parse the file and load the items
         parser.parse(parcelFile)
@@ -579,8 +587,8 @@ class Manager(Item):
             self.__scanParcels()
             print " done"
 
-            if not namespaces and self.__namespacesToLoad:
-                namespaces = self.__namespacesToLoad
+            if not namespaces and self.__parcelsToLoad:
+                namespaces = self.__parcelsToLoad
 
             if namespaces:
                 print "Loading parcels..."
@@ -1153,12 +1161,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         else:
             parent = self.parcelParent
 
-        # If the item already exists, consider it an error.  In the future
-        # we will want to support item reloading.
-        item = parent.getItemChild(name)
-        if item is not None:
-            raise self.saveErrorState("Item already exists %s" % item.itsPath)
-
         # Find the kind represented by the tag (uri, local). The
         # parser has already mapped the prefix to the namespace (uri).
         kind = self.findItem(uri, local,
@@ -1167,6 +1169,35 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         if kind is None:
             raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
              (uri, local))
+
+
+        # If the item already exists, we're reloading the item
+        try:
+            item = parent.getItemChild(name)
+            if item is not None:
+
+                # Two ways to "reset" an item; option "A" nukes all literal
+                # and reference attributes, while option "B" retains the
+                # references.
+                option = "B"
+
+                if option == "A":
+                    # Setting itsKind to None removes all the item's values
+                    item.itsKind = None
+                    # Setting itsKind to a kind also sets all initialValues
+                    item.itsKind = kind
+
+                if option == "B":
+                    item.itsKind = kind
+                    item._values.clear()
+                    item._kind.getInitialValues(item, item._values, {})
+                    item.setDirty()
+
+                return item
+
+        except Exception, e:
+            self.saveErrorState(str(e))
+            raise
 
         if timing: tools.timing.begin("Creating items")
 
@@ -1431,6 +1462,7 @@ def __test():
 
         item = manager.lookup(CPIA, "Block")
         print item.itsPath
+
 
     rep.commit()
     rep.close()

@@ -236,6 +236,7 @@ class wxApplication (wx.App):
         """
         from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
+        Globals.notificationManager.PrepareSubscribers()
 
         # Load Parcels
         parcelSearchPath = [ parcelDir ]

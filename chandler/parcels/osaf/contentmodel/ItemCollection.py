@@ -13,9 +13,9 @@ class ItemCollection(Item.Item):
         super(ItemCollection, self).__init__(name, parent, kind)
 
         # these are all Item attributes
-        self.rule = None
-        self.inclusions = []
-        self.exclusions = []
+        # self.rule = None
+        # self.inclusions = []
+        # self.exclusions = []
 
         # our result cache
         self.results = []
