@@ -119,7 +119,6 @@ class wxApplication (wx.App):
         self.ignoreSynchronizeWidget = True
         self.focus = None
 
-        tools.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
         wx.InitAllImageHandlers()
 
         """
