@@ -98,12 +98,6 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         # message the mainView to do the bulk of the work, showing progress
         Globals.views[0].postEventByName ('ShareItem', {'item': self})
 
-    def __len__ (self):
-        return len (self.resultSet)
-
-    def __contains__ (self, item):
-        return item in self.resultSet
-
     def __getitem__ (self, index):
         try:
             return self.resultSet.getByIndex (self.indexName, index)

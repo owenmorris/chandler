@@ -243,6 +243,12 @@ class Query(Item.Item):
                 method (item, (added,removed))
         log.debug(u"queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
+    def __len__ (self):
+        return len (self.resultSet)
+
+    def __contains__ (self, item):
+        return item in self.resultSet
+
     def __iter__(self):
         """
         Return a generator of the query results
