@@ -8,7 +8,6 @@ info = {
 dependencies = (
                 'persistence/db',
                 'python',
-                'distutils',
                 'persistence/xerces-c',
                 'persistence/pathan',
                 'persistence/dbxml',
