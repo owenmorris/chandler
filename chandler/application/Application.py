@@ -350,10 +350,12 @@ class wxApplication (wxApp):
 		if applicationCommand:
 			event.Skip()
 
-	# return a list of views accessible to the user represented by
-	# the passed in jabberID by looping through all the parcels
-	# and asking them
 	def GetAccessibleViews(self, jabberID):
+		"""
+		  return a list of views accessible to the user represented by
+		  the passed in jabberID by looping through all the parcels
+		  and asking them
+		"""
 		parcels = self.model.URLTree.GetParcelList()
 		accessibleViews = []
 		
@@ -363,6 +365,16 @@ class wxApplication (wxApp):
 				accessibleViews.append(view)
 				
 		return accessibleViews
+	
+	def HasPermission(self, jabberID, url):
+		"""
+		  determine if the passed-in jabberID has permission to access the passed-in url
+		  implement by asking the relevant parcel
+		"""
+		parcel = self.GetParcelFromURL(url)		
+		if parcel != None:
+			return parcel.HasPermission(jabberID, url)
+		return false
 
 	def GetParcelFromURL(self, url):
 		"""

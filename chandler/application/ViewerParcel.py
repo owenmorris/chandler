@@ -145,6 +145,14 @@ class ViewerParcel (Parcel):
           override this so they can manage their own objectlist.
         """
         pass
+
+    def HasPermission(self, jabberID, url):
+        """
+          determinine if the passed-in jabberID has permission to access the passed-in url
+          The base class says everything is OK, parcels subclass to implement real permissions
+          FIXME: eventually, we should put the logic here when we have a real framework
+        """
+        return true
     
 class wxViewerParcel(wxPanel):
     def __init__(self):

@@ -265,7 +265,14 @@ class JabberClient:
         responseMessage = Message(responseAddress, responseStr)
         responseMessage.setX(requestType)
         self.connection.send(responseMessage)
-        
+
+    # send an error response back
+    def SendErrorResponse(self, jabberID, url, errorMessage):
+        responseMessage = Message(jabberID, errorMessage)
+        responseMessage.setX('chandler:receive-error')
+        responseMessage.setSubject('Error ' + url)
+        self.connection.send(responseMessage)
+         
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
         newViews = self.DecodePythonObject(responseBody)
@@ -368,8 +375,14 @@ class JabberClient:
     # handle receiving a request for objects from a url 
     # ask the application for the objects, then send them back to the requestor
     def HandleObjectRequest(self, fromAddress, url):
+        # make sure the request has permission to access this view
+        if not self.application.HasPermission(fromAddress, url):
+            errorMessage = _("%s does not have permission to access %s") % (fromAddress, url)
+            self.SendErrorResponse(fromAddress, url, errorMessage)
+            return
+        
         objectList = self.application.GetViewObjects(url, fromAddress)
-    
+           
         # we can send the objects back in ask many responses as we like
         # the granularity constant specifies how many objects it sends back
         # in one message.  Right now, it's arbitrarily set at 3 but we need
@@ -401,10 +414,9 @@ class JabberClient:
         self.application.AddObjectsToView(url, objectList, lastFlag)
                         
     # handle receiving notification of an error to an object request
-    # FIXME: handle errors soon by telling the application to put up a dialog
     def HandleErrorResponse(self, fromAddress, body):
-        pass
-    
+        wxMessageBox(body)
+         
     # encode a Python object into a text string, using cPickle and base64 encoding
     def EncodePythonObject(self, objectToEncode):
         viewStr = cPickle.dumps(objectToEncode)		
