@@ -1,0 +1,69 @@
+# manifest.linux.debug
+#
+# Variables maintain their value until changed, so be aware of the order of
+# things...
+#
+# src: set this to be relative to buildenv['root']
+# dest: set this to be relative to buildenv['distdir']
+# recursive: set to yes or no
+# glob: set to a comma-separated list of glob patterns
+
+# Grab the python executable
+src=debug/bin
+dest=bin
+python_d
+
+# Recursively grab python libraries
+src=debug/lib
+dest=lib
+recursive=yes
+glob=*.py,*.pyc,*.pyo,*.pyd,*.so
+python2.3/lib-old
+python2.3/lib-tk
+python2.3/site-packages
+python2.3/encodings
+python2.3/email
+python2.3/compiler
+python2.3/hotshot
+python2.3/xml
+python2.3/curses
+python2.3/plat-linux2
+python2.3/lib-dynload
+
+# Grab files from the lib/python2.3 directory
+recursive=no
+python2.3
+
+# Grab the WX GTK library
+libwx_gtkd-2.4.so
+libwx_gtk2d-2.4.so
+
+# Grab Chandler.py, version.py and LICENSE.txt
+src=Chandler
+dest=
+Chandler.py
+version.py
+HISTORY.txt
+LICENSE.txt
+
+# Grab the rest of Chandler from the application/ and parcel/ folders
+recursive=yes
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
+application
+parcels
+
+# Grab the launcher script and linux README
+src=Chandler/distrib/linux
+Chandler.sh
+README.linux.txt
+
+# Grab the launcher programs
+src=release
+dest=
+chandler
+dest=lib
+chandler_bin
+
+# Grab the overall README
+src=Chandler/distrib
+README.txt
