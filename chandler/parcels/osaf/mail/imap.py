@@ -181,11 +181,12 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         This method captures all errors thrown while in the Twisted Reactor Thread.
         @return: C{None}
         """
-        if __debug__:
-            self.printCurrentView("catchErrors")
 
         if isinstance(err, failure.Failure):
             err = err.value
+
+        if __debug__:
+            self.printCurrentView("catchErrors: %s " % str(err))
 
         if not self.factory.connectionLost:
             self.__disconnect()
@@ -301,7 +302,9 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
             self.printCurrentView("__disconnect")
 
         self.factory.sendFinished = 1
-        self.proto.transport.loseConnection()
+
+        if self.proto is not None:
+            self.proto.transport.loseConnection()
 
     def __fetchMessages(self, msgs):
 
