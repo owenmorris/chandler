@@ -678,7 +678,7 @@ class References(Values):
                              other._kind.itsPath, otherName, otherOtherName)
                 return False
 
-            otherOther = other._references.get(otherName)
+            otherOther = other._references._getRef(otherName)
             if not (otherOther is self._item or
                     otherOther._isRefList() and self._item in otherOther):
                 logger.error("%s.%s doesn't reference %s.%s",
