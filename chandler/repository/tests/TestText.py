@@ -15,10 +15,10 @@ class TextTest(unittest.TestCase):
     """ Test Text storage """
 
     def setUp(self):
-        rootdir = os.environ['CHANDLER_HOME']
-        schemaPack = os.path.join(rootdir, 'Chandler', 'repository',
+        rootdir = os.environ['CHANDLERDIR']
+        schemaPack = os.path.join(rootdir, 'repository',
                                   'packs', 'schema.pack')
-        cineguidePack = os.path.join(rootdir, 'Chandler', 'repository',
+        cineguidePack = os.path.join(rootdir, 'repository',
                                      'tests', 'data', 'packs',
                                      'cineguide.pack')
         self.rep = XMLRepository('TextUnitTest-Repository')
@@ -31,8 +31,8 @@ class TextTest(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLER_HOME']
-        largeText = os.path.join(rootdir, 'Chandler', 'repository',
+        rootdir = os.environ['CHANDLERDIR']
+        largeText = os.path.join(rootdir, 'repository',
                                  'tests', 'data', 'world192.txt')
 
         input = file(largeText, 'r')
