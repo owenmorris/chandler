@@ -38,7 +38,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
 
     def onNewEvent (self, event):
         "Create a new tab"
-        originalItem = self.findPath('parcels/osaf/views/content/UntitledView')
+        originalItem = self.findPath('parcels/osaf/views/content/untitledItemCollection')
         userdata = self.findPath('//userdata')
         newItem = originalItem.copy(parent=userdata, cloudAlias='default')
         newItem.contents.displayName = self._getUniqueName("Untitled")

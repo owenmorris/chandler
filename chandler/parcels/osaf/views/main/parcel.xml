@@ -169,11 +169,11 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
-    <items itemref="content:MixedView"/>
-    <items itemref="content:NotesView"/>
-    <items itemref="content:ContactsView"/>
-    <items itemref="content:TasksView"/>
-    <items itemref="content:MailView"/>
+    <items itemref="content:mixedItemCollection"/>
+    <items itemref="content:notesItemCollection"/>
+    <items itemref="content:contactItemCollection"/>
+    <items itemref="content:taskItemCollection"/>
+    <items itemref="content:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddContactsView">
@@ -181,7 +181,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:ContactsView"/>
+    <items itemref="content:contactItemCollection"/>
   </ModifyContentsEvent>
 
   <ModifyContentsEvent itsName="AddDemoView">
@@ -213,9 +213,9 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NotesView"/>
-    <items itemref="content:TasksView"/>
-    <items itemref="content:MailView"/>
+    <items itemref="content:notesItemCollection"/>
+    <items itemref="content:taskItemCollection"/>
+    <items itemref="content:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMailView">
@@ -223,7 +223,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MailView"/>
+    <items itemref="content:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedView">
@@ -231,7 +231,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MixedView"/>
+    <items itemref="content:mixedItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNotesView">
@@ -239,7 +239,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NotesView"/>
+    <items itemref="content:notesItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddRepositoryView">
@@ -255,7 +255,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:TasksView"/>
+    <items itemref="content:taskItemCollection"/>
   </ModifyContentsEvent>
   
   <BlockEvent itsName="CheckRepository">
