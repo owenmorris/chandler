@@ -15,13 +15,14 @@ class SimpleTest(unittest.TestCase):
 
     def setUp(self):
         """Creates a new repository and a factory. 
-           Loads the schema and calendar
-	"""
+           Loads the schema and calendar """
+        
         rootdir = os.environ['CHANDLERDIR']
         schemaPack = os.path.join(rootdir, 'model', 'packs', 'schema.pack')
         calendarPack = os.path.join(rootdir, 'parcels', 'OSAF',
                                     'calendar', 'model', 'calendar.pack')
         self.rep = FileRepository('test')
+        self.rep.create()
         self.rep.loadPack(schemaPack)
         self.rep.loadPack(calendarPack)
         self.factory = CalendarEventFactory(self.rep)
@@ -72,7 +73,7 @@ class SimpleTest(unittest.TestCase):
 
     def tearDown(self):
         # Note: to use for diagnosis if a test fails
-        self.rep.save()
+        self.rep.close(purge=True)
 
 if __name__ == "__main__":
     unittest.main()

@@ -181,7 +181,6 @@ class Enum(Type):
         try:
             number = self.Values.index(value)
         except ValueError:
-            print value
             raise ValueError, "%d not in %s enum" %(value, self._name)
             
         generator.characters(str(number))
@@ -191,7 +190,7 @@ class Enum(Type):
         if data[0] >= '0' and data[0] <= '9':
             return self.Values[int(data)]
 
-        return self.Values[self.Values.index(data)]
+        return data
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)

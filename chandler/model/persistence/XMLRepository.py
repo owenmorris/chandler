@@ -9,9 +9,10 @@ import cStringIO
 
 from model.util.UUID import UUID
 from model.item.Item import ItemHandler
+from model.item.ItemRef import ItemRef
 from model.persistence.Repository import Repository
 
-from bsddb3.db import DBEnv, DB_CREATE, DB_INIT_MPOOL
+from bsddb.db import DBEnv, DB, DB_CREATE, DB_INIT_MPOOL, DB_BTREE
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
@@ -36,7 +37,7 @@ class XMLRepository(Repository):
         self._env = None
         self._ctx = XmlQueryContext()
         
-    def open(self):
+    def create(self):
 
         if self._env is None:
             self._env = DBEnv()
@@ -44,9 +45,16 @@ class XMLRepository(Repository):
             self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
             self._data = XMLRepository.xmlContainer(self._env, "__data__")
 
-    def close(self):
+    def open(self, verbose=False):
+
+        if self._env is None:
+            self.create()
+            self._load(verbose=verbose)
+
+    def close(self, purge=False, verbose=False):
 
         if self._env is not None:
+            self._save(purge=purge, verbose=verbose)
             self._data.close()
             self._schema.close()
             self._env.close()
@@ -56,7 +64,7 @@ class XMLRepository(Repository):
 
         return self._env is not None
 
-    def load(self, verbose=False):
+    def _load(self, verbose=False):
 
         if not self.isOpen():
             raise DBError, "Repository is not open"
@@ -90,7 +98,7 @@ class XMLRepository(Repository):
         purge(self._schema)
         purge(self._data)
 
-    def save(self, encoding='iso-8859-1', purge=False, verbose=False):
+    def _save(self, purge=False, verbose=False):
 
         if not self.isOpen():
             raise DBError, "Repository is not open"
@@ -102,20 +110,19 @@ class XMLRepository(Repository):
 
         if hasSchema:
             self._saveRoot(self.getRoot('Schema'), self._schema,
-                           encoding, True, verbose)
+                           True, verbose)
         
         for root in self._roots.itervalues():
             name = root.getName()
             if name != 'Schema':
                 self._saveRoot(root, self._data,
-                               encoding, not hasSchema, verbose)
+                               not hasSchema, verbose)
 
-    def _saveRoot(self, root, container, encoding='iso-8859-1',
+    def _saveRoot(self, root, container,
                   withSchema=False, verbose=False):
 
         root.save(self, container = container,
-                  encoding = encoding, withSchema = withSchema,
-                  verbose = verbose)
+                  withSchema = withSchema, verbose = verbose)
 
     def saveItem(self, item, **args):
 
@@ -127,8 +134,7 @@ class XMLRepository(Repository):
             container.deleteDocument(oldDoc)
 
         out = cStringIO.StringIO()
-        generator = xml.sax.saxutils.XMLGenerator(out, args.get('encoding',
-                                                                'iso-8859-1'))
+        generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
         generator.startDocument()
         item.toXML(generator, args.get('withSchema', False))
         generator.endDocument()
@@ -138,6 +144,10 @@ class XMLRepository(Repository):
         out.close()
 
         container.putDocument(doc)
+
+    def createRefDict(self, uuid):
+
+        return XMLRefDict(self, uuid)
 
 
     class xmlContainer(object):
@@ -182,3 +192,30 @@ class XMLRepository(Repository):
 
             self._xml.close()
             self._xml = None
+
+
+class XMLRefDict(dict):
+
+    def __init__(self, repository, uuid):
+        
+        super(XMLRefDict, self).__init__()
+
+        self._uuid = uuid
+        self._repository = repository
+        
+    def _setItem(self, item):
+
+        self._item = item
+
+    def _getItem(self):
+
+        return self._item
+
+    def _xmlValue(self, generator):
+
+        for ref in self.iteritems():
+            ref[1]._xmlValue(ref[0], self._item, generator)
+
+#        generator.startElement('db', {})
+#        generator.characters(self._uuid.str64())
+#        generator.endElement('db')

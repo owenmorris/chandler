@@ -30,14 +30,20 @@ class Repository(object):
         self._unresolvedRefs = []
         self._orphans = []
         
-    def open(self):
-        pass
+    def create(self):
+        raise NotImplementedError, "Repository.create"
 
-    def close(self):
-        pass
-    
+    def open(self, verbose=False):
+        raise NotImplementedError, "Repository.open"
+
+    def close(self, purge=False, verbose=False):
+        raise NotImplementedError, "Repository.close"
+
     def isOpen(self):
-        return True
+        raise NotImplementedError, "Repository.isOpen"
+    
+    def createRefDict(self, uuid):
+        raise NotImplementedError, "Repository.createRefDict"
     
     def __iter__(self):
 
@@ -177,9 +183,6 @@ class Repository(object):
             orphan[1].move(self.find(orphan[0]))
         self._orphans = []
 
-    def load(self, verbose=False):
-        raise NotImplementedError, "Repository.load"
-
     def _loadItemFile(self, path,
                       parent=None, verbose=False, afterLoadHooks=None):
 
@@ -204,13 +207,6 @@ class Repository(object):
 
     def purge(self):
         raise NotImplementedError, "Repository.purge"
-
-    def save(self, encoding='iso-8859-1', purge=False, verbose=False):
-        raise NotImplementedError, "Repository.save"
-
-    def _saveRoot(self, root, encoding='iso-8859-1',
-                  withSchema=False, verbose=False):
-        raise NotImplementedError, "Repository._saveRoot"
 
     def saveItem(self, item, **args):
         raise NotImplementedError, "Repository.saveItem"

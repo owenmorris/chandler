@@ -79,18 +79,18 @@ class ItemRef(object):
     def other(self, item):
         'Return the other end of the ref relative to item.'
 
-        if self._item is item:
-            return self._other
-        elif self._other is item:
-            return self._item
+        if self.getItem() is item:
+            return self.getOther()
+        elif self.getOther() is item:
+            return self.getItem()
         else:
-            return None
+            raise ValueError, "%s doesn't reference %s" %(str(self), str(item))
 
     def _refCount(self):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema):
+    def _xmlValue(self, name, item, generator, withSchema=False):
 
         def typeName(value):
             
@@ -130,17 +130,40 @@ class ItemRef(object):
 
 class RefDict(object):
 
-    def __init__(self, item, name, otherName, initialDict=None):
+    def __init__(self, item, name, otherName, dbDict=None, initialDict=None):
 
         super(RefDict, self).__init__()
 
-        self._dict = {}
-        self._item = item
+        if dbDict is None:
+            if item._kind is not None:
+                attrDef = item._kind.getAttrDef(name)
+                if attrDef is not None:
+                    uuid = attrDef.getUUID()
+                else:
+                    uuid = UUID()
+            else:
+                uuid = UUID()
+
+            dbDict = item.getRepository().createRefDict(uuid)
+
+        self._refs = dbDict
+
+        if item is not None:
+            self._setItem(item)
+
         self._name = name
         self._otherName = otherName
         
         if initialDict is not None:
             self.update(initialDict)
+
+    def _setItem(self, item):
+
+        self._refs._setItem(item)
+
+    def _getItem(self):
+
+        return self._refs._getItem()
 
     def update(self, valueDict):
 
@@ -159,72 +182,74 @@ class RefDict(object):
 
     def __getitem__(self, key):
 
-        return self._dict.__getitem__(key).other(self._item)
+        return self._refs.__getitem__(key).other(self._getItem())
 
     def __setitem__(self, key, value):
 
-        old = self._dict.get(key)
+        old = self._refs.get(key)
         
         if isinstance(old, ItemRef):
+            item = self._getItem()
             if isinstance(value, ItemRef):
-                old._detach(self._item, self._name,
-                            old.other(self._item), self._otherName)
+                old._detach(item, self._name,
+                            old.other(item), self._otherName)
             else:
-                old._reattach(self._item, self._name,
-                              old.other(self._item), value, self._otherName)
+                old._reattach(item, self._name,
+                              old.other(item), value, self._otherName)
                 return
 
         if not isinstance(value, ItemRef):
-            value = ItemRef(self._item, self._name, value, self._otherName)
+            value = ItemRef(self._getItem(), self._name,
+                            value, self._otherName)
             
-        self._dict.__setitem__(key, value)
+        self._refs.__setitem__(key, value)
 
     def __delitem__(self, key):
 
         value = self._getRef(key)
-        value._detach(self._item, self._name,
-                      value.other(self._item), self._otherName)
+        item = self._getItem()
+        value._detach(item, self._name, value.other(item), self._otherName)
         self._removeRef(key)
 
     def _removeRef(self, key):
 
-        self._dict.__delitem__(key)
+        self._refs.__delitem__(key)
 
     def _getRef(self, key):
 
-        return self._dict.get(key)
+        return self._refs.get(key)
 
     def get(self, key, default=None):
 
-        value = self._dict.get(key, default)
+        value = self._refs.get(key, default)
         if value is not default:
-            value = value.other(self._item)
+            value = value.other(self._getItem())
 
         return value
 
     def has_key(self, key):
 
-        return self._dict.has_key(key)
+        return self._refs.has_key(key)
 
     def __contains__(self, key):
 
-        return self._dict.__contains__(key)
+        return self._refs.__contains__(key)
 
     def keys(self):
 
-        return self._dict.keys()
+        return self._refs.keys()
 
     def iterkeys(self):
 
-        return self._dict.iterkeys()
+        return self._refs.iterkeys()
 
     def iteritems(self):
 
-        return self._dict.iteritems()
+        return self._refs.iteritems()
 
     def __len__(self):
 
-        return len(self._dict)
+        return len(self._refs)
 
     def __iter__(self):
 
@@ -260,7 +285,7 @@ class RefDict(object):
 
         return 'dict'
 
-    def _xmlValue(self, name, item, generator, withSchema):
+    def _xmlValue(self, name, item, generator, withSchema=False):
 
         if len(self) > 0:
 
@@ -278,16 +303,15 @@ class RefDict(object):
                 attrs['otherCard'] = otherCard
 
             generator.startElement('ref', attrs)
-            for ref in self.iteritems():
-                ref[1]._xmlValue(ref[0], item, generator, False)
+            self._refs._xmlValue(generator)
             generator.endElement('ref')
 
 
 class RefList(RefDict):
 
-    def __init__(self, item, name, otherName, initialList=None):
+    def __init__(self, item, name, otherName, dbDict=None, initialList=None):
 
-        super(RefList, self).__init__(item, name, otherName, None)
+        super(RefList, self).__init__(item, name, otherName, dbDict, None)
 
         self._keys = []
 

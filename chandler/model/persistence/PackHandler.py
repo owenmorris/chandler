@@ -106,13 +106,16 @@ class PackHandler(xml.sax.ContentHandler):
 
     def itemEnd(self, attrs):
 
-        self.parent.pop()
+        item = self.parent.pop()
 
         if attrs.has_key('cwd'):
             self.cwd.pop()
 
         if len(self.parent) == 1:
             self.repository.resolveRefs()
+
+        if attrs.has_key('call'):
+            getattr(type(item), attrs['call'])(item)
 
     def loadItem(self, file, parent):
 

@@ -2,7 +2,7 @@
 
 <pack name="Schema" cwd="schema">
 
-  <item file="Schema.root">
+  <item file="Schema.root" call="afterLoadHook">
     <item file="Model.domain" cwd="model">
 
       <!-- Must be loaded first -->
@@ -20,6 +20,7 @@
       <item file="Attributes.container" cwd="attributes">
         <item files="*.attr" />
       </item>
+
     </item>
   </item>
 

@@ -137,7 +137,8 @@ class wxColumnarTimeView(wxColumnarSubView):
             self.DeleteItem(objectToRemove)
             del objectToRemove
         
-            app.repository.save()
+            app.repository.close()
+            app.repository.open()
             
             self.editor.ClearItem()
             self.Refresh()
@@ -283,7 +284,8 @@ class wxColumnarTimeView(wxColumnarSubView):
         newItemObject = ColumnarItem(self, item)
         newItemObject.PlaceItemOnCalendar()
 
-        app.repository.save()
+        app.repository.close()
+        app.repository.open()
 
         return newItemObject
     
@@ -306,6 +308,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.editor.ClearItem()
         
         # add object to the local repository (addObject commits the object)
-        app.repository.save()
+        app.repository.close()
+        app.repository.open()
         
         return newEventObject

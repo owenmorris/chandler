@@ -98,6 +98,8 @@ class Item(object):
                 otherName = name[:-5]
             else:
                 otherName = name + '__for'
+            print 'Warning: Undefined endpoint for %s.%s' %(item.getPath(),
+                                                            name)
 
         return otherName
 
@@ -159,11 +161,11 @@ class Item(object):
 
             if card == 'dict':
                 refs = RefDict(self, name, otherName)
-                refs[value._item.refName(name)] = value
+                refs[value._getItem().refName(name)] = value
                 value = refs
             elif card == 'list':
                 refs = RefList(self, name, otherName)
-                refs[value._item.refName(name)] = value
+                refs[value._getItem().refName(name)] = value
                 value = refs
 
             self._references[name] = value
@@ -853,11 +855,20 @@ class ItemHandler(xml.sax.ContentHandler):
 
             if cardinality != 'single':
                 otherName = self.getOtherName(name, attrDef, attrs)
+                if attrDef:
+                    uuid = attrDef.getUUID()
+                else:
+                    uuid = UUID()
+                dbDict = self.repository.createRefDict(uuid)
                 
                 if cardinality == 'dict':
-                    self.collections.append(RefDict(None, name, otherName))
+                    self.collections.append(RefDict(None, name, otherName,
+                                                    dbDict))
                 elif cardinality == 'list':
-                    self.collections.append(RefList(None, name, otherName))
+                    self.collections.append(RefList(None, name, otherName,
+                                                    dbDict))
+                else:
+                    raise ValueError, "Illegal cardinality: %s" %(cardinality)
 
     def itemStart(self, itemHandler, attrs):
 
@@ -893,7 +904,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         for value in item._references.itervalues():
             if isinstance(value, RefDict):
-                value._item = item
+                value._setItem(item)
 
         for ref in self.refs:
             other = item.find(ref[1])
@@ -1062,6 +1073,8 @@ class ItemHandler(xml.sax.ContentHandler):
                 otherName = name[:-5]
             else:
                 otherName = name + '__for'
+            print 'Warning: Undefined endpoint for %s.%s' %(item.getPath(),
+                                                            name)
 
         return otherName
 

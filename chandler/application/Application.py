@@ -252,7 +252,7 @@ class wxApplication (wxApp):
         """
         self.repository = FileRepository(os.path.join(self.chandlerDirectory,
          "__database__"))
-        self.repository.load()
+        self.repository.open()
         if not self.repository.find('//Schema'):
             self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
                                                   "packs", "schema.pack"))

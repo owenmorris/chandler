@@ -24,8 +24,30 @@ class FileRepository(Repository):
         
         super(FileRepository, self).__init__()
         self._dir = dir
+        self._isOpen = False
 
-    def load(self, verbose=False):
+    def create(self):
+
+        if not self._isOpen:
+            self._isOpen = True
+
+    def open(self, verbose=False):
+
+        if not self._isOpen:
+            self._load(verbose=verbose)
+            self._isOpen = True
+
+    def close(self, purge=False, verbose=False):
+
+        if self._isOpen:
+            self._save(purge=purge, verbose=verbose)
+            self._isOpen = False
+
+    def isOpen(self):
+
+        return self._isOpen
+
+    def _load(self, verbose=False):
         'Load items from the directory the repository was initialized with.'
         
         if os.path.isdir(self._dir):
@@ -61,7 +83,7 @@ class FileRepository(Repository):
                             os.remove(os.path.join(path, item))
             os.path.walk(self._dir, purge, None)
 
-    def save(self, encoding='iso-8859-1', purge=False, verbose=False):
+    def _save(self, purge=False, verbose=False):
         '''Save all items into the directory this repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
@@ -76,14 +98,14 @@ class FileRepository(Repository):
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
-            self._saveRoot(self.getRoot('Schema'), encoding, True, verbose)
+            self._saveRoot(self.getRoot('Schema'), True, verbose)
             contents.write('Schema')
             contents.write('\n')
         
         for root in self._roots.itervalues():
             name = root.getName()
             if name != 'Schema':
-                self._saveRoot(root, encoding, not hasSchema, verbose)
+                self._saveRoot(root, not hasSchema, verbose)
                 contents.write(name)
                 contents.write('\n')
                 
@@ -92,8 +114,7 @@ class FileRepository(Repository):
         if purge:
             self.purge()
 
-    def _saveRoot(self, root, encoding='iso-8859-1',
-                  withSchema=False, verbose=False):
+    def _saveRoot(self, root, withSchema=False, verbose=False):
 
         name = root.getName()
         dir = os.path.join(self._dir, name)
@@ -104,8 +125,7 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        root.save(self, contents = rootContents,
-                  encoding = encoding, withSchema = withSchema,
+        root.save(self, contents = rootContents, withSchema = withSchema,
                   verbose = verbose)
         rootContents.close()
 
@@ -118,8 +138,7 @@ class FileRepository(Repository):
         filename = os.path.join(self._dir, item.getRoot().getName(),
                                 uuid + '.item')
         out = file(filename, 'w')
-        generator = xml.sax.saxutils.XMLGenerator(out, args.get('encoding',
-                                                                'iso-8859-1'))
+        generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
 
         generator.startDocument()
         item.toXML(generator, args.get('withSchema', False))
@@ -130,3 +149,20 @@ class FileRepository(Repository):
 
         out.write('\n')
         out.close()
+
+    def createRefDict(self, uuid):
+
+        return FileRefDict()
+    
+
+class FileRefDict(dict):
+
+    def _setItem(self, item):
+        self._item = item
+
+    def _getItem(self):
+        return self._item
+
+    def _xmlValue(self, generator):
+        for ref in self.iteritems():
+            ref[1]._xmlValue(ref[0], self._item, generator)

@@ -7,6 +7,7 @@ from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 from mx import DateTime
 
 rep = FileRepository('data')
+rep.open()
 rep.loadPack('model/packs/schema.pack', verbose=True)
 rep.loadPack('parcels/OSAF/calendar/model/calendar.pack', verbose=True)
 
@@ -22,8 +23,4 @@ bar.setAttribute('CalendarStartTime', DateTime.now())
 bar.setAttribute('CalendarEndTime', DateTime.now())
 bar.setAttribute('CalendarHeadline', "Second Test Event")
 
-rep.save()
-
-
-
-
+rep.close()
