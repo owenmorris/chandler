@@ -579,6 +579,10 @@ class OnDemandRepositoryView(RepositoryView):
             item = self._loadItemDoc(doc, self.repository.store,
                                      afterLoadHooks = self._hooks)
 
+            if item is None:
+                self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", self.repository.store.getDocContent(doc))
+                raise ValueError, "item didn't load, see log for more info"
+                                  
             uuid = item._uuid
             if uuid in self._childrenRegistry:
                 children = self._childrenRegistry[uuid]
