@@ -47,7 +47,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         else:
             dbgStr = ""
             relStr = "release"
-        
+
         # Find out if the initialization was ever done
         try:
 
@@ -65,7 +65,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
                 hardhatutil.dumpOutputList(outputList, log)
-    
+
                 # Now need to do the setup for external - "expand" and "make"
                 os.chdir(extModuleDir)
                 os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
@@ -82,7 +82,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 outputList = hardhatutil.executeCommandReturnOutput(
                  [buildenv['make'], dbgStr, "binaries" ])
                 hardhatutil.dumpOutputList(outputList, log)
-    
+
                 os.chdir(intModuleDir)
                 log.write("Making internal (debug) programs\n")
                 outputList = hardhatutil.executeCommandReturnOutput(
@@ -93,14 +93,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                  [buildenv['make'], dbgStr, "binaries" ])
                 hardhatutil.dumpOutputList(outputList, log)
 
-    except Exception, e:
-        print "an initialization error"
-        log.write("***Error during initialization***" + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("initialization log:" + "\n")
-        CopyLog(os.path.join(releaseModeDir, logPath), log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        return "init_failed"
+        except Exception, e:
+            print "an initialization error"
+            log.write("***Error during initialization***" + "\n")
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("initialization log:" + "\n")
+            CopyLog(os.path.join(releaseModeDir, logPath), log)
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            return "init_failed"
 
     # do debug
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
