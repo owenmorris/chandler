@@ -1,0 +1,4 @@
+build_release
+build_debug
+*.pyc *.pyo
+licence
