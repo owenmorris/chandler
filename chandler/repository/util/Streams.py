@@ -4,7 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from bz2 import BZ2Compressor, BZ2Decompressor
+try:
+    from bz2 import BZ2Compressor, BZ2Decompressor
+except ImportError:
+    print '*** python bz2 module is missing ***'
+    class BZ2Compressor(object): pass
+    class BZ2Decompressor(object): pass
+    
 from cStringIO import StringIO
 
 
