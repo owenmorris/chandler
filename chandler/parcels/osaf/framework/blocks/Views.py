@@ -43,10 +43,11 @@ class View(BoxContainer):
         methodName = event.methodName
 
         try:
-            if notification.data['type'] == 'UpdateUI':
-                methodName += 'UpdateUI'
+            updateUI = notification.data['UpdateUI']
         except KeyError:
             pass
+        else:
+            methodName += 'UpdateUI'
 
         if event.dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)

@@ -39,11 +39,7 @@ def repositoryCallback(uuid, notification, reason, **kwds):
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
-    d = { 'uuid' : uuid, 'keywords' : kwds }
-    note.SetData(d)
-
-    #print uuid, notification, reason, kwds
-
+    note.SetData({'uuid' : uuid, 'keywords' : kwds})
     Globals.notificationManager.PostNotification(note)
 
 class MainFrame(wxFrame):
@@ -251,30 +247,27 @@ class wxApplication (wxApp):
             blockEvent = Block.wxIDToObject (wxID)
 
             if isinstance (blockEvent, BlockEvent):
-                assert isinstance (blockEvent, BlockEvent)
+                args = {}
                 if event.GetEventType() == wxEVT_UPDATE_UI:
-                    data = {'type':'UpdateUI'}
-                else:
-                    data = {'type':'Normal'}
+                    args['UpdateUI'] = True
 
-                notification = Notification(blockEvent, None, None)
-                notification.SetData(data)
-                Globals.notificationManager.PostNotification (notification)
+                blockEvent.Post (args)
                 if event.GetEventType() == wxEVT_UPDATE_UI:
                     try:
-                        event.Check (data ['Check'])
+                        event.Check (args ['Check'])
                     except KeyError:
                         pass
                     try:
-                        event.Enable (data ['Enable'])
+                        event.Enable (args ['Enable'])
                     except KeyError:
                         pass
                     try:
-                        text = data ['Text']
+                        text = args ['Text']
+                    except KeyError:
+                        pass
+                    else:
                         eventObject = event.GetEventObject()
-                        event.SetText (data ['Text'])
-                    except KeyError:
-                        pass
+                        event.SetText (text)
                 return
         event.Skip()
 

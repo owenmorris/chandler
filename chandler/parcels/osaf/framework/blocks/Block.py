@@ -14,6 +14,11 @@ class Block(Item):
         self.styles = []
  
 
+    def Post (self, event, args):
+        args['sender'] = self
+        event.Post (args)
+
+
     def render (self, parent, parentWindow):
         pass
 

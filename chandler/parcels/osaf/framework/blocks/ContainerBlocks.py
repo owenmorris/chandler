@@ -1,3 +1,5 @@
+
+import time
 import application.Globals as Globals
 from Block import Block
 from Node import Node
@@ -5,7 +7,6 @@ from repository.util.UUID import UUID
 from wxPython.wx import *
 from wxPython.gizmos import *
 from wxPython.html import *
-from OSAF.framework.notifications.Notification import Notification
 
 
 class Font(wxFont):
@@ -270,10 +271,9 @@ class wxEditText(wxTextCtrl):
         EVT_TEXT_ENTER(self, self.GetId(), self.OnEnterPressed)
 
     def OnEnterPressed(self, event):
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/EnterPressed')
-        notification = Notification(event, None, None)
-        notification.SetData ({'text':self.GetValue(), 'type':'Normal'})
-        Globals.notificationManager.PostNotification (notification)
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/EnterPressed'),
+                          {'text':self.GetValue()})
 
             
 class EditText(RectangularChild):
@@ -344,12 +344,9 @@ class wxListBlock(wxListCtrl):
 #        self.SetItemData(row, self.GetPyData(data))
 
     def On_wxSelectionChanged(self, event):
-        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(chandlerEvent, None, None)
-        eventId = event.GetItem()
-        notification.SetData({'id':eventId,
-                              'type':'Normal'})
-        Globals.notificationManager.PostNotification(notification)
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                          {'id':event.GetItem()})
         
     def SynchronizeFramework(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -663,6 +660,17 @@ class wxTreeList(wxTreeListCtrl):
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
+        EVT_IDLE(self, self.OnIdle)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
+
+    def OnIdle(self, event):
+        """
+          Don't update screen more than once a second
+        """
+        if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
+            self.SynchronizeFramework()
+        event.Skip()
 
     def GetItemData(self, id):
         data = self.GetPyData (id)
@@ -718,14 +726,8 @@ class wxTreeList(wxTreeListCtrl):
         if counterpart.selection != selection:
             counterpart.selection = selection
     
-            chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-            notification = Notification(chandlerEvent, None, None)
-            eventId = event.GetItem()
-            notification.SetData ({'item':self.GetItemData(eventId),
-                                   'name':self.GetItemText(eventId),
-                                   'id':eventId,
-                                   'type':'Normal'})
-            Globals.notificationManager.PostNotification (notification)
+            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                              {'item':self.GetItemData(event.GetItem())})
 
     def SynchronizeFramework(self):
         def ExpandContainer (self, openedContainers, id):
@@ -767,6 +769,9 @@ class wxTreeList(wxTreeListCtrl):
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
                                                    counterpart.ItemModified)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = time.time()
+
 
     def GoToPath(self, path):
         treeNode = self.GetRootItem()
@@ -866,7 +871,7 @@ class RepositoryTreeList(TreeList):
             parentUUID = item.getItemParent().getUUID()
         if self.hasKey ('openedContainers', parentUUID):
             wxTreeListWindow = Globals.association[self.getUUID()]
-            wxTreeListWindow.SynchronizeFramework()
+            wxTreeListWindow.scheduleUpdate = True
 
 
 class Sidebar(TreeList):
@@ -910,23 +915,19 @@ class NavigationBar(Toolbar):
     def tooEnterPressed(self, event):
         tool = Block.wxIDToObject(event.GetId())
         
-    def SendSelectionChanged(self, item):
-        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(chandlerEvent, None, None)
-        notification.SetData ({'item':item, 'type':'Normal'})
-        Globals.notificationManager.PostNotification (notification)
-
     def GoBack(self):
         if len(self.history) > 1:
             currentLocation = self.history.pop()
             self.future.append(currentLocation)
-            self.SendSelectionChanged (self.history[-1])
+            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                       {'item':self.history[-1]})
     
     def GoForward(self):
         if len(self.future) > 0:
             newLocation = self.future.pop()
             self.history.append(newLocation)
-            self.SendSelectionChanged (newLocation)
+            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                       {'item':newLocation})
 
     def OnSelectionChangedEvent (self, notification):
         item = notification.data['item']
@@ -947,10 +948,3 @@ class BookmarksBar(RectangularChild):
 
     def bookmarkPressed(self, event):
         pass
-    
-    def SendSelectionChanged(self, item):
-        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(chandlerEvent, None, None)
-        notification.SetData ({'item':item, 'type':'Normal'})
-        Globals.notificationManager.PostNotification (notification)
-        
