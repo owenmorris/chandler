@@ -1,0 +1,7 @@
+# ChangeLog for agents
+
+2003-07-15 Andy Hertzfeld <andy@differnet.com>
+
+    * added the agents sub-directory
+    * added the Notification Manager, written by Andrew Francis
+    <andrewfr_ice@yahoo.com>

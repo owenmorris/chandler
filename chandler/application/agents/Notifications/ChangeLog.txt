@@ -1,0 +1,27 @@
+# ChangeLog for Notifications
+
+2003-07-04 Andrew Francis <andrewfr_ice@yahoo.com>
+
+    * initial release of Notification Manager
+
+2003-07-05 Andrew Francis <andrewfr_ice@yahoo.com>
+
+    * NotificationQueue.py:
+        added strategy
+
+2003-07-07 Andrew Francis <andrewfr_ice@yahoo.com>
+
+    * NotificationManager.py:
+        added synchronization
+	
+2003-07-08 Andrew Francis <andrewfr_ice@yahoo.com>
+
+    * Notification.py:
+        remove argument from SetTime
+    * NotificationManager.py:
+         added new data structure
+	 
+2003-07-15 Andy Hertzfeld <andy@differnet.com>
+
+    * initial checkin of the Notification Manager, written by Andrew Francis
+    <andrewfr_ice@yahoo.com>
