@@ -184,8 +184,8 @@ def RotateDirectories(dir):
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>Parcel Loading</a> for details on loading your own parcels)."],
-    'release' : ["Developers' release/ directory", "Description of release distro"],
-    'debug' : ["Developers' debug/ directory", "Description of debug distro"],
+    'release' : ["Developers' release directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'release' directory.  Download, unpack, and place the contained 'release' directory next to your 'Chandler' directory."],
+    'debug' : ["Developers' debug directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'debug' directory.  Download, unpack, and place the contained 'debug' directory next to your 'Chandler' directory."],
 }
 
 def CreateIndex(outputDir, newDirName, nowString, buildName):
@@ -196,7 +196,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
-        fileOut.write("<p><a href="+newDirName+"/"+actual+">: "+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
+        fileOut.write("<p><a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
     fileOut.write("</td></tr></table></body></html>\n")
     fileOut.close()
     fileOut = file(outputDir+os.sep+"time.js", "w")
