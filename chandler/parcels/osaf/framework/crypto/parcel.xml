@@ -56,7 +56,7 @@
       <displayName>certificate</displayName>
       <type itemref="crypto:Certificate"/>
       <cardinality>single</cardinality>
-      <inverseAttribute itemref="crypto:Certificate"/>
+      <inverseAttribute itemref="crypto:Certificate/privateKey"/>
     </Attribute>
 
     <attributes itemref="crypto:PrivateKey/cipher"/>
@@ -190,7 +190,7 @@
       <displayName>privateKey</displayName>
       <type itemref="crypto:PrivateKey"/>
       <cardinality>single</cardinality>
-      <inverseAttribute itemref="crypto:PrivateKey"/>
+      <inverseAttribute itemref="crypto:PrivateKey/certificate"/>
     </Attribute>
 
     <attributes itemref="crypto:Certificate/notBefore"/>
