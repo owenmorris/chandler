@@ -9,7 +9,6 @@
 <core:Parcel describes="//parcels/OSAF/contentmodel"
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
-             xmlns:parcel="//Schema/Core/Parcel"
 	     xmlns:notes="//parcels/OSAF/contentmodel/notes"
 	     xmlns:contact="//parcels/OSAF/contentmodel/contacts"
              xmlns="//parcels/OSAF/contentmodel"
@@ -90,8 +89,8 @@
     <core:attributes itemref="projects"/>
     <core:attributes itemref="groups"/>
     <core:attributes itemref="contact:creator"/>
-    <core:attributes itemref="parcel:createdOn"/>
-    <core:attributes itemref="parcel:modifiedOn"/>
+    <core:attributes itemref="core:Parcel/createdOn"/>
+    <core:attributes itemref="core:Parcel/modifiedOn"/>
     <core:attributes itemref="fyiLinks"/>
     <core:attributes itemref="fyiLinkedToItems"/>
     <core:attributes itemref="notes:attachedNotes"/>
