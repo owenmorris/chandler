@@ -15,12 +15,6 @@ Command-line frontend to hardhatlib.py (see description there)
 import os, sys, traceback, getopt, string
 
 
-# Needs:  
-# cvs module to checkout (chandler-source)
-# which module to build (Chandler)
-# working directory (nightly)
-# release ID (2003.04.11)
-
 def usage():
     print "python nightly [OPTION]..."
     print ""
@@ -40,7 +34,7 @@ False = 0
 
 
 # defaults:
-cvsModule = "chandler-source"
+cvsModule = "chandler-system"
 project = "osaf/chandler"
 module = "Chandler"
 releaseId = None

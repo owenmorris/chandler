@@ -68,12 +68,12 @@ Or, if you would like to fetch the source from our CVS repository:
   :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep
 
 - cvs login
-  (When prompted for a password, just hit Enter)
+  (When prompted for a password, enter "anonymous")
 
-- cvs checkout -r TAG chandler-source 
+- cvs checkout -r TAG chandler-system 
   (Replace "TAG" with one of the available CVS tags listed at
   http://downloads.osafoundation.org/chandler/cvs/ , for example:
-  cvs checkout -r CHANDLER_0_1 chandler-source)
+  cvs checkout -r CHANDLER_0_1 chandler-system)
 
 
 
