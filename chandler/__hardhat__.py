@@ -279,7 +279,7 @@ def distribute(buildenv):
              "Chandler_linux_dev_debug_" + buildVersionShort)
             os.chdir(buildenv['root'])
 
-       elif buildenv['os'] == 'win':
+        elif buildenv['os'] == 'win':
 
             distName = 'Chandler_win_debug_' + buildVersionShort
             distDir = buildenv['root'] + os.sep + distName
