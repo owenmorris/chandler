@@ -102,52 +102,52 @@ class Block(Item):
 
     def OnShowHide(self, notification):
         self.open = not self.open
-        self.SynchronizeFramework()
-        self.parentBlock.SynchronizeFramework()
+        self.synchronizeWidget()
+        self.parentBlock.synchronizeWidget()
 
 
     def OnShowHideUpdateUI(self, notification):
         notification.data['Check'] = self.open
 
 
-    def SynchronizeFramework (self):
+    def synchronizeWidget (self):
         """
-          synchronizeFramework's job is to make the wx counterpart match the state of
+          synchronizeWidget's job is to make the wx counterpart match the state of
         the data persisted in the block. There's a tricky problem that occurs: Often
         we add a handler to the wx counterpart of a block to, for example, get called
         when the user changes the selection, which we use to update the block's selection
         and post a selection changed notification. It turns out that while we are in
-        synchronizeFramework, changes to the wx counterpart cause these handlers to be
+        synchronizeWidget, changes to the wx counterpart cause these handlers to be
         called, and in this case we don't want to post a notification. So we wrap calls
-        to synchronizeFramework and set a flag indicating that we're inside
-        synchronizeFramework so the handlers can tell when not to post selection
+        to synchronizeWidget and set a flag indicating that we're inside
+        synchronizeWidget so the handlers can tell when not to post selection
         changed events. We use this flag in other similar situations, for example,
         during shutdown to ignore events caused by the framework tearing down wx
         counterparts.
         """
         try:
             theWindow = Globals.association[self.itsUUID]
-            method = getattr (theWindow, 'wxSynchronizeFramework')
+            method = getattr (theWindow, 'wxSynchronizeWidget')
         except AttributeError:
             pass
         else:
-            if not Globals.wxApplication.ignoreSynchronizeFramework:
-                oldIgnoreSynchronizeFramework = Globals.wxApplication.ignoreSynchronizeFramework
-                Globals.wxApplication.ignoreSynchronizeFramework = True
+            if not Globals.wxApplication.ignoreSynchronizeWidget:
+                oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
+                Globals.wxApplication.ignoreSynchronizeWidget = True
                 try:
                     method()
                 finally:
-                    Globals.wxApplication.ignoreSynchronizeFramework = oldIgnoreSynchronizeFramework
+                    Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
 
 class ContainerChild(Block):
     def render (self, parent, parentWindow):
-        oldIgnoreSynchronizeFramework = Globals.wxApplication.ignoreSynchronizeFramework
-        Globals.wxApplication.ignoreSynchronizeFramework = True
+        oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
+        Globals.wxApplication.ignoreSynchronizeWidget = True
         try:
             (widget, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
         finally:
-            Globals.wxApplication.ignoreSynchronizeFramework = oldIgnoreSynchronizeFramework
+            Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
         """
           Store the wxWindows version of the object in the association, so
         given the block we can find the associated wxWindows object.
@@ -176,7 +176,7 @@ class ContainerChild(Block):
             parentWindow = widget
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
-            self.SynchronizeFramework()
+            self.synchronizeWidget()
         return widget
                 
     def addToContainer(self, parent, child, id, flag, border):
@@ -191,16 +191,17 @@ class wxRectangularChild (wx.Panel):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.counterpartUUID)
         if block.open != self.IsShown():
             self.Show (block.open)
             parentWidget = Globals.association [block.parentBlock.itsUUID]
             parentSizer = parentWidget.GetSizer()
-            if self.IsShown():
-                parentSizer.Show (self)
-            else:
-                parentSizer.Hide (self)
+            if parentSizer:
+                if self.IsShown():
+                    parentSizer.Show (self)
+                else:
+                    parentSizer.Hide (self)
         if block.open:
             self.SetSize ((block.size.width, block.size.height))
             self.Layout()
@@ -211,7 +212,7 @@ class wxRectangularChild (wx.Panel):
         which will cause the parent class to get a crack at the event.
         """
         event.Skip()
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
             counterpart.size.width = event.GetSize().x
             counterpart.size.height = event.GetSize().y

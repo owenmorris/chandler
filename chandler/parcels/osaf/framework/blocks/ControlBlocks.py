@@ -194,13 +194,13 @@ class wxListBlock(wx.ListCtrl):
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
                 counterpart = Globals.repository.find (self.counterpartUUID)
-                counterpart.SynchronizeFramework()
+                counterpart.SynchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = self.GetClientSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
@@ -212,7 +212,7 @@ class wxListBlock(wx.ListCtrl):
         event.Skip()
 
     def On_wxSelectionChanged(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
@@ -221,7 +221,7 @@ class wxListBlock(wx.ListCtrl):
                               {'item':item})
 
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
         elementDelegate = counterpart.elementDelegate
         if not elementDelegate:
@@ -352,19 +352,19 @@ class wxSummary(wx.grid.Grid):
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
                 counterpart = Globals.repository.find (self.counterpartUUID)
-                counterpart.SynchronizeFramework()
+                counterpart.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
             columnIndex = event.GetRowOrCol()
             counterpart.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = event.GetSize()
             widthMinusLastColumn = 0
             assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
@@ -378,7 +378,7 @@ class wxSummary(wx.grid.Grid):
         event.Skip()
 
     def removeFromContainer(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
@@ -620,13 +620,13 @@ class wxTreeAndList:
         if self.scheduleUpdate:
            if (time.time() - self.lastUpdateTime) > 0.5:
                counterpart = Globals.repository.find (self.counterpartUUID)
-               counterpart.SynchronizeFramework()
+               counterpart.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             if isinstance (self, wx.gizmos.TreeListCtrl):
                 size = self.GetClientSize()
                 widthMinusLastColumn = 0
@@ -682,7 +682,7 @@ class wxTreeAndList:
         self.CollapseAndReset (id)
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
             columnIndex = event.GetColumn()
             try:
@@ -691,7 +691,7 @@ class wxTreeAndList:
                 pass
 
     def On_wxSelectionChanged(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             counterpart = Globals.repository.find (self.counterpartUUID)
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
@@ -702,7 +702,7 @@ class wxTreeAndList:
                 counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                   {'item':selection})
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):
             try:
                 expand = openedContainers [self.GetItemData(id).GetData()]
@@ -862,7 +862,7 @@ class wxItemDetail(wx.html.HtmlWindow):
             event = Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged')
             event.Post({'item':item, 'type':'Normal'})
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
         if counterpart.selection:
             self.SetPage(counterpart.getHTMLText(counterpart.selection))
@@ -899,4 +899,4 @@ class ItemDetail(RectangularChild):
           Display the item in the wxWindow counterpart.
         """
         self.selection = notification.data['item']
-        self.SynchronizeFramework ()
+        self.synchronizeWidget ()

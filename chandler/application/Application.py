@@ -92,13 +92,13 @@ class MainFrame(wx.Frame):
         track changes to the selection are called, and we don't want to count
         these changes, since they weren't caused by user actions.
         """
-        Globals.wxApplication.ignoreSynchronizeFramework = True
+        Globals.wxApplication.ignoreSynchronizeWidget = True
         Globals.wxApplication.mainFrame = None
         self.Destroy()
 
     def OnSize(self, event):
         event.Skip()
-        if not Globals.wxApplication.ignoreSynchronizeFramework:
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
             block = Globals.repository.find (self.counterpartUUID)
             block.size.width = self.GetSize().x
             block.size.height = self.GetSize().y
@@ -138,7 +138,7 @@ class wxApplication (wx.App):
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        self.ignoreSynchronizeFramework = False
+        self.ignoreSynchronizeWidget = False
 
         wx.InitAllImageHandlers()
         """

@@ -70,7 +70,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         
         self.SetScrollRate(0,0)
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         counterpart = Globals.repository.find(self.counterpartUUID)
         
         # populate canvas with drawable items for each event on the calendar
@@ -115,7 +115,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
     def OnIdle(self, event):
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                self.wxSynchronizeFramework()
+                self.wxSynchronizeWidget()
                 self.Refresh()
         else:
             self.lastupdateTime = time.time()
@@ -229,7 +229,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         
         self.SetScrollRate(0,0)
     
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         counterpart = Globals.repository.find(self.counterpartUUID)
 
         # populate canvas with drawable items for each event on the calendar
@@ -271,7 +271,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
     def OnIdle(self, event):
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                self.wxSynchronizeFramework()
+                self.wxSynchronizeWidget()
                 self.Refresh()
         else:
             self.lastupdateTime = time.time()
