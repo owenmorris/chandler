@@ -13,7 +13,7 @@ class SplashScreen(wxFrame):
     """
       A splash screen presented to the user when they first run Chandler.
     """
-    def __init__(self, title = ""):
+    def __init__(self, title = "", useTimer=true):
         """
           Sets up the splash screen and starts its timer.
         """
@@ -22,15 +22,21 @@ class SplashScreen(wxFrame):
                          style=wxSTAY_ON_TOP|wxCAPTION)
         panel = HTMLPanel(self)
         self.CentreOnScreen()
-        self.timer = SplashTimer(self)
-        self.timer.Start(10000)
+        
+        if useTimer:
+            self.timer = SplashTimer(self)
+            self.timer.Start(10000)
+        else:
+            self.timer = None
+            
         EVT_CLOSE(self, self.OnCloseWindow)
         
     def OnCloseWindow(self, event):
         """
           Stops the timer from running and closes the window.
         """
-        self.timer.Stop()
+        if self.timer != None:
+            self.timer.Stop()
         self.Destroy()
         
 class HTMLPanel(wxHtmlWindow):

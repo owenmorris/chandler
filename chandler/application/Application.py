@@ -75,7 +75,7 @@ class Application(Persistent):
         else:
             self.splashWasShown = 0
         if self.splashWasShown < 2:
-            splash = SplashScreen('Welcome to Chandler')
+            splash = SplashScreen(_("Welcome to Chandler"))
             splash.Show(true)
             
     def __setstate__(self, dict):
@@ -166,7 +166,7 @@ class wxApplication (wxApp):
         resourceFile = "application" +\
                        os.sep + "application.xrc"
 
-        #Check for the file's existance in debugging code
+        #Check for the file's existence in debugging code
         assert stat.S_ISREG(os.stat(resourceFile)[stat.ST_MODE])
         self.applicationResources = wxXmlResource(resourceFile)
 
@@ -191,6 +191,7 @@ class wxApplication (wxApp):
         self.LoadParcels()
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
+        EVT_MENU(self, XRCID ("About"), self.OnAbout)
         
         self.homeDirectory = wxGetHomeDir() + os.sep + ".Chandler";
         if not os.path.exists (self.homeDirectory):
@@ -245,6 +246,14 @@ class wxApplication (wxApp):
           Exit the application
         """
         self.ExitMainLoop ()
+
+    # for now, we show the splash screen for the about command.
+    def OnAbout(self, event):
+        """
+          Show the splash screen in response to the about command
+        """
+        splash = SplashScreen(_("About Chandler"), useTimer=false)
+        splash.Show(true)
 
     def LoadParcels(self):       
         """
