@@ -16,4 +16,4 @@ else
     exit 1
 fi
 
-CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler PYTHONHOME=$CHANDLERHOME/release LD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib $CHANDLERHOME/release/bin/python -O $*
+CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler:$CHANDLERHOME/chandler/parcels PYTHONHOME=$CHANDLERHOME/release LD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib $CHANDLERHOME/release/bin/python -O $*

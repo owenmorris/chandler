@@ -16,4 +16,4 @@ else
     exit 1
 fi
 
-CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler PYTHONHOME=$CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERHOME/release/Library/Frameworks exec $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python -O $*
+CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler:$CHANDLERHOME/chandler/parcels PYTHONHOME=$CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERHOME/release/Library/Frameworks exec $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python -O $*
