@@ -197,6 +197,12 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekColumnCanvas, self).__init__ (*arguments, **keywords)
 
+        self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
+
+    def OnScroll(self, event):
+        self.Refresh()
+        event.Skip()
+
     def wxSynchronizeWidget(self):
         self.Refresh()
 
@@ -228,6 +234,11 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetTextForeground(self.bigFontColor)
         dc.SetFont(self.bigFont)
 
+        # Use topTime to draw am/pm on the topmost hour
+        topCoordinate = self.CalcUnscrolledPosition((0,0))
+        topTime = self.getDateTimeFromPosition(wx.Point(topCoordinate[0],
+                                                        topCoordinate[1]))
+
         # Draw the lines separating hours
         for hour in range(24):
             
@@ -235,12 +246,18 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             if (hour > 0):
                 if (hour == 1):
                     hourString = "am 1"
-                elif (hour > 12):
-                    hourString = str(hour - 12)
-                elif (hour == 12):
+                elif (hour == 12): 
                     hourString = "pm 12"
+                elif (hour > 12):
+                    if (hour == (topTime.hour + 1)): # topmost hour
+                        hourString = "pm %s" % str(hour - 12)
+                    else:
+                        hourString = str(hour - 12)
                 else:
-                    hourString = str(hour)
+                    if (hour == (topTime.hour + 1)): # topmost hour
+                        hourString = "am %s" % str(hour)
+                    else:
+                        hourString = str(hour)
                 wText, hText = dc.GetTextExtent(hourString)
                 dc.DrawText(hourString,
                             (self.xOffset - wText - 5,
@@ -440,6 +457,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
     def OnSize(self, event):
         self.Refresh()
+        event.Skip()
 
     def wxSynchronizeWidget(self):
         self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
