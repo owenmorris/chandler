@@ -21,7 +21,6 @@ import logging
 import wx
 import time, StringIO, urlparse, libxml2, os, mx
 import chandlerdb
-import vobject
 import WebDAV
 
 logger = logging.getLogger('Sharing')
@@ -639,8 +638,10 @@ class FileSystemConduit(ShareConduit):
 
     def _getItem(self, itemPath, into=None): # must implement
         # logger.info("Getting item: %s" % itemPath)
+        extension = os.path.splitext(itemPath)[1].strip(os.path.extsep)
         text = file(itemPath).read()
-        item = self.share.format.importProcess(text, item=into)
+        item = self.share.format.importProcess(text, extension=extension,
+         item=into)
         stat = os.stat(itemPath)
         return (item, stat.st_mtime)
 
@@ -764,14 +765,14 @@ class WebDAVConduit(ShareConduit):
         """ Return the path (not the full url) of an item given its external
         UUID """
 
+        extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
-
             if isinstance(item, Share):
                 return "/%s/%s/share.xml" % (self.sharePath, self.shareName)
             else:
-                return "/%s/%s/%s.xml" % (self.sharePath, self.shareName,
-                 item.externalUUID)
+                return "/%s/%s/%s.%s" % (self.sharePath, self.shareName,
+                 item.externalUUID, extension)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             return "/%s/%s" % (self.sharePath, self.shareName)
@@ -935,6 +936,7 @@ class ImportExportFormat(ContentModel.ChandlerItem):
         pass
 
     def _findByExternalUUID(self, kindPath, externalUUID):
+        kindPath = "//Schema/Core/Item"
         query = Query.Query(self.itsView.repository,
          "for i in '%s' where i.externalUUID == '%s'" % \
           (kindPath, externalUUID))
@@ -945,99 +947,6 @@ class ImportExportFormat(ContentModel.ChandlerItem):
         if len(results):
             return results[0]
         return None
-
-class ICalendarFormat(ImportExportFormat):
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
-
-    __calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
-
-    def fileStyle(self):
-        return self.STYLE_SINGLE
-
-    def importProcess(self, text, item=None):
-        # the item parameter is so that a share item can be passed in for us
-        # to populate.
-
-        # An ICalendar file doesn't have any 'share' info, just the collection
-        # of events, etc.  Therefore, we want to actually populate the share's
-        # 'contents':
-
-        if item is None:
-            item = ItemCollection.ItemCollection()
-        else:
-            if isinstance(item, Share):
-                if item.contents is None:
-                    item.contents = ItemCollection.ItemCollection()
-                item = item.contents
-
-        if not isinstance(item, ItemCollection.ItemCollection):
-            print "Only a share or an item collection can be passed in"
-            #@@@MOR Raise something
-
-        if not item.hasAttributeValue("externalUUID"):
-            item.externalUUID = str(chandlerdb.util.UUID.UUID())
-
-        # @@@MOR Total hack
-        newtext = []
-        for c in text:
-            if ord(c) > 127:
-                c = " "
-            newtext.append(c)
-        text = "".join(newtext)
-
-        input = StringIO.StringIO(text)
-        calendar = vobject.readComponents(input, validate=True).next()
-
-        countNew = 0
-        countUpdated = 0
-
-        for event in calendar.vevent:
-
-            # See if we have a corresponding item already, or create one
-            externalUUID = event.uid[0].value
-            eventItem = self._findByExternalUUID(self.__calendarEventPath,
-             externalUUID)
-            if eventItem is None:
-                eventItem = Calendar.CalendarEvent()
-                eventItem.externalUUID = externalUUID
-                countNew += 1
-            else:
-                countUpdated += 1
-
-            try:
-                eventItem.displayName = event.summary[0].value
-            except AttributeError:
-                eventItem.displayName = ""
-
-            try:
-                eventItem.description = event.description[0].value
-                # print "Has a description:", eventItem.description
-            except AttributeError:
-                eventItem.description = ""
-
-            dt = event.dtstart[0].value
-            eventItem.startTime = \
-             mx.DateTime.ISO.ParseDateTime(dt.isoformat())
-
-            try:
-                dt = event.dtend[0].value
-                eventItem.endTime = \
-                 mx.DateTime.ISO.ParseDateTime(dt.isoformat())
-            except:
-                eventItem.duration = mx.DateTime.DateTimeDelta(0, 1)
-
-            item.add(eventItem)
-            # print "Imported", eventItem.displayName, eventItem.startTime,
-            #  eventItem.duration, eventItem.endTime
-        logger.info("...iCalendar import of %d new items, %d updated" % \
-         (countNew, countUpdated))
-
-        return item
-
-    def exportProcess(self, item, depth=0):
-        # item is the whole collection
-        pass
 
 
 class CloudXMLFormat(ImportExportFormat):
@@ -1135,7 +1044,10 @@ class CloudXMLFormat(ImportExportFormat):
     def fileStyle(self):
         return self.STYLE_DIRECTORY
 
-    def importProcess(self, text, item=None):
+    def extension(self, item):
+        return "xml"
+
+    def importProcess(self, text, extension=None, item=None):
         doc = libxml2.parseDoc(text)
         node = doc.children
         try:
@@ -1334,6 +1246,10 @@ class CloudXMLFormat(ImportExportFormat):
             # print "Creating item of kind", kind.itsPath, kind.getItemClass()
             item = kind.newItem(None, None)
             # print "created item", item.itsPath, item.itsKind
+        else:
+            # there is a chance that the incoming kind is different than the
+            # item's kind
+            item.itsKind = kind
 
         # we have an item, now set attributes
         attributes = self.__collectAttributes(item)
@@ -1391,3 +1307,4 @@ class CloudXMLFormat(ImportExportFormat):
                     pass
 
         return item
+

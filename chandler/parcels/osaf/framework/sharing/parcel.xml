@@ -47,7 +47,7 @@
     <Kind itsName="ICalendarFormat">
         <superKinds itemref="share:ImportExportFormat"/>
         <displayName value="iCalendar Import/Export Format Kind"/>
-        <classes key="python" value="osaf.framework.sharing.Sharing.ICalendarFormat"/>
+        <classes key="python" value="osaf.framework.sharing.ICalendar.ICalendarFormat"/>
     </Kind>
 
     <Kind itsName="CloudXMLFormat">

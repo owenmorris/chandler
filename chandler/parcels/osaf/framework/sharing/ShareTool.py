@@ -1,7 +1,8 @@
 import os
 import wx
 import wx.xrc
-import osaf.framework.sharing.Sharing as Sharing
+import Sharing
+import ICalendar
 import application.Globals as Globals
 from repository.item.Query import KindQuery
 import application.dialogs.Util
@@ -295,7 +296,7 @@ class ShareEditorDialog(wx.Dialog):
              password=password
             )
             if shareName.endswith('.ics'):
-                format = Sharing.ICalendarFormat()
+                format = ICalendar.ICalendarFormat()
             else:
                 format = Sharing.CloudXMLFormat()
             if self.join:

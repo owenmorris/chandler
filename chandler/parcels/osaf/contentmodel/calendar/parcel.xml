@@ -171,6 +171,14 @@
         <attribute value="location"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/SharingCloud/location"/>
+      <Endpoint itsName="allDay">
+        <attribute value="allDay"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/SharingCloud/allDay"/>
+      <Endpoint itsName="transparency">
+        <attribute value="transparency"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/SharingCloud/transparency"/>
       <Endpoint itsName="organizer">
         <attribute value="organizer"/>
         <includePolicy value="byCloud"/>

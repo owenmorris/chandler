@@ -12,6 +12,7 @@ import repository.item.Item as Item
 import application.Parcel as Parcel
 import application.Globals as Globals
 import osaf.framework.sharing.Sharing as Sharing
+import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
@@ -71,7 +72,7 @@ class ICalendarTestCase(unittest.TestCase):
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
          sharePath=".", shareName="Chandler.ics")
-        format = Sharing.ICalendarFormat(name="format", parent=sandbox)
+        format = ICalendar.ICalendarFormat(name="format", parent=sandbox)
         self.share = Sharing.Share(name="share", parent=sandbox,
          conduit=conduit, format=format)
         self.share.get()
