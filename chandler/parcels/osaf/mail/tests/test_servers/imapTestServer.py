@@ -6,40 +6,43 @@ import sys
 import os
 
 """
-TODO:
-1. Add in actual SSL Handshake support
-2. Add in real PLAIN Login support
+Notes:
+1. Add bad Auth sharing
+2. TLS
 """
 
 PORT = 1430
-
 LOGIN_PLAIN = "testuser testuser"
 
-"""Support Flags"""
 SSL_SUPPORT = True
-
-"""DEBUG_FLAGS"""
 INVALID_SERVER_RESPONSE = False
+INVALID_CAPABILITY_RESPONSE = False
+INVALID_LOGIN_RESPONSE = False
 DENY_CONNECTION = False
 DROP_CONNECTION = False
-BAD_TRANSFER_RESPONSE = False
 BAD_TLS_RESPONSE = False
 TIMEOUT_RESPONSE = False
 SLOW_GREETING = False
 NO_MAILBOX = False
+SEND_CAPABILITY_IN_GREETING = False
 
 """Commands"""
-CONNECTION_MADE = "* OK Twisted Test Server Ready"
-CAP  = "CAPABILITY IMAP4REV1 LOGIN-REFERRALS"
-CAP_AUTH  = "CAPABILITY IMAP4REV1 LOGIN-REFERRALS AUTH=PLAIN"
-CAP_SSL   = "CAPABILITY IMAP4REV1 LOGIN-REFERRALS STARTTLS AUTH=PLAIN"
-AUTH_ACCEPTED = "user testuser authenticated"
+CONNECTION_MADE = "OK Twisted Test Server Ready"
+CAP  = "CAPABILITY IMAP4REV1 IDLE NAMESPACE MAILBOX-REFERRALS BINARY UNSELECT SCAN SORT THREAD=REFERENCES THREAD=ORDEREDSUBJECT MULTIAPPEND LOGIN-REFERRALS"
+CAP_SSL   = CAP + " STARTTLS"
+
+
+INVALID_RESPONSE = "The IMAP Server is sending you an invalid RFC response"
+AUTH_ACCEPTED = "OK user testuser authenticated"
 NOOP_OK = "OK NOOP completed"
 AUTH_DECLINED = "NO LOGIN failed"
-UNKNOWN_COMMAND = " Bad Command unrecognized"
+UNKNOWN_COMMAND = "Bad Command unrecognized"
 TLS_ERROR = "server side error start TLS handshake"
 NO_MAILBOX_ERROR = "NO SELECT failed"
 LOGOUT_COMPLETE = "OK LOGOUT completed"
+CAPABILITY_COMPLETE = "OK CAPABILITY completed"
+BAD_REQUEST = "BAD Missing command"
+NOT_LOGGED_IN = "BAD Command unrecognized/login please: INBOX"
 
 INBOX_SELECTED = [
 "* 0 EXISTS",
@@ -47,16 +50,24 @@ INBOX_SELECTED = [
 "* OK [UIDVALIDITY 1092939128] UID validity status",
 "* OK [UIDNEXT 2] Predicted next UID",
 "* FLAGS (Junk \Answered \Flagged \Deleted \Draft \Seen)",
-"* OK [PERMANENTFLAGS (Junk \* \Answered \Flagged \Deleted \Draft \Seen)] Permanent flags",
+"* OK [PERMANENTFLAGS (Junk \* \Answered \Flagged \Deleted \Draft \Seen)] Permanent flags"
+]
 
 INBOX_SELECT_COMPLETE = "OK [READ-WRITE] SELECT completed"
 
 class IMAPTestServer(basic.LineReceiver):
     def __init__(self):
-        pass
+        self.loggedIn = False
 
     def getCode(self, str):
         return str.split(" ")[0]
+
+    def isValidRequest(self, str):
+        try:
+            int(self.getCode(str))
+            return True
+        except ValueError:
+            return False
 
     def sendSelectResp(self, req):
         #XXX: need to refine this
@@ -64,15 +75,10 @@ class IMAPTestServer(basic.LineReceiver):
         self.sendResponse(INBOX_SELECT_COMPLETE, req)
 
     def sendCapabilities(self, req):
-        caps = CAP
+        caps = SSL_SUPPORT and CAP_SSL or CAP
 
-        if AUTH_SUPPORT:
-            caps = CAP_AUTH
-
-        if SSL_SUPPORT:
-            cap = CAP_SSL
-
-        self.sendResponse(caps, req)
+        self.sendLine("* %s" % caps)
+        self.sendResponse(CAPABILITY_COMPLETE, req)
 
     def sendResponse(self, resp, req):
         self.sendLine("%s %s" % (self.getCode(req), resp))
@@ -89,7 +95,13 @@ class IMAPTestServer(basic.LineReceiver):
             self.sendGreeting()
 
     def sendGreeting(self):
-        self.sendLine(CONNECTION_MADE)
+        line = CONNECTION_MADE
+
+        if SEND_CAPABILITY_IN_GREETING:
+            caps = SSL_SUPPORT and CAP_SSL or CAP
+            line += " [%s]" % caps
+
+        self.sendLine("* %s" % line)
 
     def lineReceived(self, line):
         """Error Conditions"""
@@ -101,36 +113,53 @@ class IMAPTestServer(basic.LineReceiver):
             self.transport.loseConnection()
             return
 
-        if INVALID_SERVER_RESPONSE:
-            self.sendResponse("%s The IMAP Server is sending you a invalid RFC response", line)
-            return
+        if not self.isValidRequest(line):
+            self.sendLine("%s %s" % (line, UNKNOWN_COMMAND))
 
-        if "CAPABILITY" in line.upper():
+        elif "CAPABILITY" in line.upper():
+            if INVALID_CAPABILITY_RESPONSE:
+                self.sendResponse(INVALID_RESPONSE, line)
+            else:
+                self.sendCapabilities(line)
+
+        elif "STARTTLS" in line.upper() and SSL_SUPPORT:
+            self.sendResponse(TLS_ERROR, line)
+
+        elif "LOGIN" in line.upper():
+            if INVALID_LOGIN_RESPONSE:
+                self.sendResponse(INVALID_RESPONSE, line)
+
+            else:
+                resp = None
+
+                if LOGIN_PLAIN in line:
+                    resp = AUTH_ACCEPTED
+                    self.loggedIn = True
+                else:
+                    resp = AUTH_DECLINED
+                    self.loggedIn = False
+
+                self.sendResponse(resp, line)
+
+        elif "LOGOUT" in line.upper():
+            self.loggedIn = False
+            self.sendResponse(LOGOUT_COMPLETE, line)
+            self.disconnect()
+
+        elif INVALID_SERVER_RESPONSE:
+            self.sendLine(INVALID_RESPONSE)
+
+        elif not self.loggedIn:
+            self.sendResponse(NOT_LOGGED_IN, line)
 
         elif "NOOP" in line.upper():
             self.sendResponse(NOOP_OK, line)
-
-        elif "LOGIN" in line.upper():`
-            resp = None
-            if LOGIN_PLAIN in line.upper():
-                resp = AUTH_ACCEPTED
-            else:
-                resp = AUTH_DECLINED 
-
-            self.sendResponse(resp, line)
 
         elif "SELECT" in line.upper():
             if NO_MAILBOX or "INBOX" not in line.upper():
                 self.sendResponse(NO_MAILBOX_ERROR, line)
             else:
-                self.sendSelectResp(line);
-
-        elif "LOGOUT" in line.upper():
-            self.sendResponse(LOGOUT_COMPLETE, line) 
-            self.disconnect()
-
-        elif "STARTTLS" in line.upper() and SSL_SUPPORT:
-            self.sendLine(TLS_ERROR)
+                self.sendSelectResp(line)
 
         else:
             self.sendResponse(UNKNOWN_COMMAND, line)
@@ -139,30 +168,15 @@ class IMAPTestServer(basic.LineReceiver):
         self.transport.loseConnection()
 
 
-def config(ehlo, ssl, auth):
-    global EHLO_SUPPORT, SSL_SUPPORT, AUTH_SUPPORT
-    EHLO_SUPPORT = ehlo
-    SSL_SUPPORT = ssl
-    AUTH_SUPPORT = auth
-
-def no_ssl_support():
-    config(True, False, True)
-
-def no_auth_support():
-    config(True, True, False)
-
-def basic_smtp_server():
-    config(False, False, False)
-
-
-usage = """ smtpServer.py [arg] (default is ESMTP | AUTH | SSL support)
+usage = """imapServer.py [arg] (default is Standard IMAP Server with no messages in Inbox)
+cap_greeting - send the IMAP Server 'CAPABILITY' list in the Server Greeting response
 no_ssl - Start with no SSL support
-no_auth - Start with no AUTH support
-smtp - Start with no EHLO, SSL, or AUTH support
+no_mailbox - Start with no Inbox
 bad_resp - Send a non-RFC compliant response to the Client
-deny - Deny the connection 
+bad_cap_resp - send a non-RFC compliant response when the Client sends a 'CAPABILITY' request
+bad_login_resp - send a non-RFC compliant response when the Client sends a 'LOGIN' request
+deny - Deny the connection
 drop - Drop the connection after sending the greeting
-bad_tran - Send a bad response to a Mail From request
 bad_tls - Send a bad response to a STARTTLS
 timeout - Do not return a response to a Client request
 slow - Wait 20 seconds after the connection is made to return a Server Greeting
@@ -174,27 +188,40 @@ def printMessage(msg):
 def processArgs():
 
     if len(sys.argv) < 2:
-        printMessage("ESMTP | SSL | AUTH")
+        printMessage("Inbox with no messages")
         return
 
     arg = sys.argv[1]
 
-    if arg.lower() == 'no_ssl':
-        no_ssl_support()
+    if arg.lower() == 'cap_greeting':
+        global SEND_CAPABILITY_IN_GREETING
+        SEND_CAPABILITY_IN_GREETING = True
+        printMessage("Send Capability in Greeting")
+
+    elif arg.lower() == 'no_ssl':
+        global SSL_SUPPORT
+        SSL_SUPPORT = False
         printMessage("NON-SSL")
 
-    elif arg.lower() == 'no_auth':
-        no_auth_support()
-        printMessage("NON-AUTH")
-
-    elif arg.lower() == 'smtp':
-        basic_smtp_server()
-        printMessage("SMTP Only")
+    elif arg.lower() == 'no_mailbox':
+        global NO_MAILBOX
+        NO_MAILBOX = True 
+        printMessage("NON-MAILBOX")
 
     elif arg.lower() == 'bad_resp':
         global INVALID_SERVER_RESPONSE
         INVALID_SERVER_RESPONSE = True
         printMessage("Invalid Server Response")
+
+    elif arg.lower() == 'bad_cap_resp':
+        global INVALID_CAPABILITY_RESPONSE
+        INVALID_CAPABILITY_RESPONSE = True
+        printMessage("Invalid Capability Response")
+
+    elif arg.lower() == 'bad_login_resp':
+        global INVALID_LOGIN_RESPONSE
+        INVALID_LOGIN_RESPONSE = True
+        printMessage("Invalid Capability Response")
 
     elif arg.lower() == 'deny':
         global DENY_CONNECTION 
@@ -206,10 +233,6 @@ def processArgs():
         DROP_CONNECTION = True
         printMessage("Drop Connection")
 
-    elif arg.lower() == 'bad_tran':
-        global BAD_TRANSFER_RESPONSE 
-        BAD_TRANSFER_RESPONSE = True
-        printMessage("Bad Transfer Response")
 
     elif arg.lower() == 'bad_tls':
         global BAD_TLS_RESPONSE 
@@ -228,9 +251,6 @@ def processArgs():
 
     elif arg.lower() == '--help':
         print usage
-
-    elif arg.lower() == '--help':
-        print usage
         sys.exit()
 
     else:
@@ -241,7 +261,7 @@ def main():
     processArgs()
 
     f = Factory()
-    f.protocol = SMTPTestServer
+    f.protocol = IMAPTestServer
     reactor.listenTCP(PORT, f)
     reactor.run()
 
