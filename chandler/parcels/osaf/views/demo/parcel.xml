@@ -177,14 +177,15 @@
                itemClass="osaf.views.demo.Demo.DemoToolbarItem">
     <blockName>BlockDemoToolbarButton</blockName>
     <location>NavigationBar</location>
-    <title>Cycle Tabs</title>
+    <title>Block Demo</title>
+    <label>Cycle Tabs</label>
     <bitmap>application/images/forwardto.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the next tab in block demo</helpString>
     <event itemref="doc:CycleTabs"/>
     <!-- ToolbarItems must use subscribeAlways because they are not true wx widgets -->
     <!--  but we'll only get the event when pressed, which will only happen when visible. -->
-    <subscribeAlwaysEvents itemref="doc:CycleTabs"/>
+    <subscribeWhenVisibleEvents itemref="doc:CycleTabs"/>
   </ToolbarItem>
  
   <!--
