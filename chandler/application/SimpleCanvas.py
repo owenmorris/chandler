@@ -310,60 +310,62 @@ class wxSimpleCanvas (wxScrolledWindow):
                 self.dragStart = wxPoint (x, y)
                 self.CaptureMouse()
                 return true
-            elif event.Dragging():
-                """
-                  Clip mouse position to the scrolling window's bounds
-                """
-                boundsX, boundsY = self.GetVirtualSizeTuple()
-                if x < 0:
-                    x = 0
-                if x > boundsX:
-                    x = boundsX
-                if y < 0:
-                    y = 0
-                if y > boundsY:
-                    y = boundsY
-
-                deltaX =  x - self.dragStart.x
-                deltaY =  y - self.dragStart.y
-
-                if deltaX >= 0:
-                    left = self.dragStart.x
-                    width = deltaX
-                else:
-                    left = x
-                    width = -deltaX
-                    
-                if deltaY >= 0:
-                    top = self.dragStart.y
-                    height = deltaY
-                else:
-                    top = y
-                    height = -deltaY
-                dragRect = wxRect (left, top, width, height)
-
-                if not hasattr (self, 'dragCreateDrawableObject'):
-                    if (deltaX * deltaX) + (deltaY * deltaY) > (self.autoCreateDistance * self.autoCreateDistance):
-                        """
-                           Create a new drawable object if we've dragged autoCreateDistance
-                        pixels
-                        """
-                        self.dragCreateDrawableObject = self.CreateNewDrawableObject (dragRect,
-                                                                                      self.dragStart,
-                                                                                      wxPoint (x, y))
-                        self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
-                        self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
+            elif hasattr (self, 'dragStart'):
+                if event.Dragging():
+                    """
+                      Clip mouse position to the scrolling window's bounds
+                    """
+                    boundsX, boundsY = self.GetVirtualSizeTuple()
+                    if x < 0:
+                        x = 0
+                    if x > boundsX:
+                        x = boundsX
+                    if y < 0:
+                        y = 0
+                    if y > boundsY:
+                        y = boundsY
+    
+                    deltaX =  x - self.dragStart.x
+                    deltaY =  y - self.dragStart.y
+    
+                    if deltaX >= 0:
+                        left = self.dragStart.x
+                        width = deltaX
+                    else:
+                        left = x
+                        width = -deltaX
+                        
+                    if deltaY >= 0:
+                        top = self.dragStart.y
+                        height = deltaY
+                    else:
+                        top = y
+                        height = -deltaY
+                    dragRect = wxRect (left, top, width, height)
+    
+                    if not hasattr (self, 'dragCreateDrawableObject'):
+                        if (deltaX * deltaX) + (deltaY * deltaY) > (self.autoCreateDistance * self.autoCreateDistance):
+                            """
+                               Create a new drawable object if we've dragged autoCreateDistance
+                            pixels
+                            """
+                            self.dragCreateDrawableObject = self.CreateNewDrawableObject (dragRect,
+                                                                                          self.dragStart,
+                                                                                          wxPoint (x, y))
+                            self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
+                            self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
+                        return true
+                    else:
+                        self.dragCreateDrawableObject.SizeDrag (dragRect,
+                                                                self.dragStart,
+                                                                wxPoint (x, y))
+    
+                elif event.ButtonUp():
+                    del self.dragStart
+                    if hasattr (self, 'dragCreateDrawableObject'):
+                        del self.dragCreateDrawableObject
+                    self.ReleaseMouse()
                     return true
-                else:
-                    self.dragCreateDrawableObject.SizeDrag (dragRect,
-                                                            self.dragStart,
-                                                            wxPoint (x, y))
-
-            elif event.ButtonUp():
-                if hasattr (self, 'dragCreateDrawableObject'):
-                    del self.dragCreateDrawableObject
-                self.ReleaseMouse()
-                return true
         return false
 
     def OnData (self, dataObject, x, y, result):
