@@ -149,11 +149,9 @@
     <characterStyle itemref="doc:TitleStyle"/>
     <title>Demo View</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -163,11 +161,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -177,11 +173,10 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.  It is used as an example for</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
+
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -191,11 +186,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title>developers new to Chandler to see the kinds of blocks that are available and as a test framework</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -205,11 +198,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title>for blocks.</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
  
@@ -219,11 +210,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -233,11 +222,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title>Click through the tabs to view the kinds of blocks that Chandler supports.</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -255,12 +242,9 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
 
   <StaticText itemName="ButtonHeader">
@@ -269,11 +253,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <title>Click on the buttons below to modify the text field</title>
 
-    <open>True</open>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
@@ -283,7 +265,6 @@
     <buttonKind>Text</buttonKind>
 
     <contentSpec itemref="doc:myQuery"/>    
-    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -298,7 +279,6 @@
     <icon>application/images/refresh.png</icon>
 
     <contentSpec itemref="doc:myQuery"/>    
-    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -313,7 +293,6 @@
     <buttonKind>Toggle</buttonKind>
 
     <contentSpec itemref="doc:myQuery"/>    
-    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -331,12 +310,9 @@
     <orientationEnum>Horizontal</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,40</size>
     <minimumSize>200,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
   
   <EditText itemName="ButtonText">
@@ -347,12 +323,9 @@
     <readOnly>False</readOnly>
     <characterStyle itemref="doc:TextStyle"/>
 
-    <open>True</open>
     <size>100,100</size>
     <minimumSize>100,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </EditText>
 
   <BoxContainer itemName="ButtonsTab">
@@ -365,12 +338,9 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
   
   <RadioBox itemName="RadioExample">
@@ -385,11 +355,9 @@
     <itemsPerLine>3</itemsPerLine>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </RadioBox>
   
@@ -401,11 +369,9 @@
     <choices>Third</choices>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </ComboBox>
 
@@ -417,12 +383,9 @@
     <orientationEnum>Horizontal</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
   
   <BoxContainer itemName="ComboSizer">
@@ -433,12 +396,9 @@
     <orientationEnum>Horizontal</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
 
   <BoxContainer itemName="ControlsTab">
@@ -450,12 +410,9 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
 
   <HTML itemName="HTMLExample">
@@ -463,12 +420,9 @@
     <url>parcels/OSAF/views/demo/example.html</url>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <size>200,200</size>
     <minimumSize>200,200</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </HTML>
 
   <BoxContainer itemName="HTMLTab">
@@ -477,13 +431,10 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <open>True</open>
     <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
 
   <TabbedContainer itemName="Tabs"
@@ -504,8 +455,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </TabbedContainer>
   
   <BoxContainer itemName="TabBox">
@@ -531,13 +480,10 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
     <eventBoundary>True</eventBoundary>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
     
 </core:Parcel>
