@@ -111,7 +111,7 @@ def main():
             status = "build_failed"
 
         else:
-            if ret == "succes":
+            if ret == "success":
                 print "There were changes, and the build was successful"
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
