@@ -10,6 +10,9 @@ class Query (Item):
         self.data = []
         self.results = []
 
+    def __iter__(self):
+        return self.iterateResults()
+
     def len(self):
         if self.resultsStale:
             self.refreshResults()

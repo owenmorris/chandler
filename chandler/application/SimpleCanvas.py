@@ -304,8 +304,8 @@ class wxSimpleCanvas (wx.ScrolledWindow):
         self.internalDnDItem = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
-        self.SetDropTarget (wx.CanvasDropTarget (self, dropTargetDataObject))
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
+        # self.SetDropTarget (wx.CanvasDropTarget (self, dropTargetDataObject))
 
     def RefreshScrolledRect (self, rect):
         position = rect.GetPosition()

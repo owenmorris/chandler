@@ -9,6 +9,7 @@
              itemName="content"
              xmlns="//parcels/OSAF/framework/blocks"
 	     xmlns:core="//Schema/Core"
+             xmlns:calendarBlocks="//parcels/OSAF/framework/blocks/calendar"
              xmlns:calendarModel="//parcels/OSAF/contentmodel/calendar"
              xmlns:noteModel="//parcels/OSAF/contentmodel/notes"
              xmlns:contactsModel="//parcels/OSAF/contentmodel/contacts"
@@ -102,6 +103,38 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </List>
+
+  <!-- Month -->
+  <calendarBlocks:MonthBlock itemName="SummaryMonth">
+    <contentSpec itemref="view:calendarQuery"/>
+
+    <daysPerWeek>7</daysPerWeek>
+    <weeksPerView>6</weeksPerView>
+    <offset>20</offset>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>    
+  </calendarBlocks:MonthBlock>
+
+  <!-- Week -->
+  <calendarBlocks:WeekBlock itemName="SummaryWeek">
+    <contentSpec itemref="view:calendarQuery"/>
+
+    <daysPerView>7</daysPerView>
+    <hoursPerView>24</hoursPerView>
+    <offset>40</offset>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>    
+  </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->
   <Summary itemName="MixedList">
@@ -237,5 +270,41 @@
     <splitPercentage>0.5</splitPercentage>
   </SplitWindow>
 
+  <!-- Week View -->
+  <SplitWindow itemName="MonthView">
+    <childrenBlocks itemref="view:SummaryMonth"/>
+    <childrenBlocks itemref="view:ContentItemDetail"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+    
+  </SplitWindow>
+
+  <!-- Week View -->
+  <SplitWindow itemName="WeekView">
+    <childrenBlocks itemref="view:SummaryWeek"/>
+    <childrenBlocks itemref="view:ContentItemDetail"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Horizontal</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
+  </SplitWindow>
 
 </core:Parcel>

@@ -303,6 +303,8 @@
     <children itemref="doc:CalendarView"/>
     <children itemref="doc:ContactsView"/>
     <children itemref="doc:NotesView"/>
+    <!-- children itemref="doc:MonthView"/ -->
+    <!-- children itemref="doc:WeekView"/ -->
   </Node>
 
   <Node itemName="AboutChandler">
@@ -385,6 +387,16 @@
   <Node itemName="MixedView">
     <displayName>Mixed</displayName>
     <item itemref="content:MixedListView"/>
+  </Node>
+
+  <Node itemName="MonthView">
+    <displayName>Month</displayName>
+    <item itemref="content:MonthView"/>
+  </Node>
+
+  <Node itemName="WeekView">
+    <displayName>Week</displayName>
+    <item itemref="content:WeekView"/>
   </Node>
 
   <!--

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$-->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/OSAF/framework/blocks/calendar"
+        itemName="calendar"
+        xmlns="//Schema/Core"
+	xmlns:blocks="//parcels/OSAF/framework/blocks"
+	xmlns:calBlocks="//parcels/OSAF/framework/blocks/calendar"
+	xmlns:events="//parcels/OSAF/framework/notifications/schema">
+
+  <description>calendar blocks</description>
+  <version>0.3</version>
+
+  <Kind itemName="MonthBlock">
+    <classes key="python">OSAF.framework.blocks.calendar.CalendarBlocks.MonthBlock</classes>
+    <superKinds itemref="blocks:RectangularChild"/>
+
+    <Attribute itemName="daysPerWeek">
+      <type itemref="Integer"/>
+    </Attribute>
+    <Attribute itemName="weeksPerView">
+      <type itemref="Integer"/>
+    </Attribute>
+    <Attribute itemName="offset">
+      <type itemref="Integer"/>
+    </Attribute>
+
+    <Attribute itemName="rangeStart">
+      <type itemref="DateTime"/>
+    </Attribute>
+    <Attribute itemName="rangeIncrement">
+      <type itemref="RelativeDateTime"/>
+    </Attribute>
+
+    <attributes itemref="calBlocks:MonthBlock/daysPerWeek"/>
+    <attributes itemref="calBlocks:MonthBlock/weeksPerView"/>
+    <attributes itemref="calBlocks:MonthBlock/offset"/>
+    <attributes itemref="calBlocks:MonthBlock/rangeStart"/>
+    <attributes itemref="calBlocks:MonthBlock/rangeIncrement"/>
+  </Kind>
+
+  <Kind itemName="WeekBlock">
+    <classes key="python">OSAF.framework.blocks.calendar.CalendarBlocks.WeekBlock</classes>
+    <superKinds itemref="blocks:RectangularChild"/>
+
+    <Attribute itemName="daysPerView">
+      <type itemref="Integer"/>
+    </Attribute>
+    <Attribute itemName="hoursPerView">
+      <type itemref="Integer"/>
+    </Attribute>
+    <Attribute itemName="offset">
+      <type itemref="Integer"/>
+    </Attribute>
+
+    <Attribute itemName="rangeStart">
+      <type itemref="DateTime"/>
+    </Attribute>
+    <Attribute itemName="rangeIncrement">
+      <type itemref="RelativeDateTime"/>
+    </Attribute>
+
+    <attributes itemref="calBlocks:WeekBlock/daysPerView"/>
+    <attributes itemref="calBlocks:WeekBlock/hoursPerView"/>
+    <attributes itemref="calBlocks:WeekBlock/offset"/>
+    <attributes itemref="calBlocks:WeekBlock/rangeStart"/>
+    <attributes itemref="calBlocks:WeekBlock/rangeIncrement"/>
+  </Kind>
+
+</Parcel>
