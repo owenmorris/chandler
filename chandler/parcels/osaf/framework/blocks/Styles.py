@@ -48,10 +48,9 @@ class Font(wx.Font):
                 elif lowerStyle == "underline":
                     underline = True
                 
-        wx.Font.__init__ (self,
-                         size,
-                         family,
-                         style,
-                         weight,
-                         underline,
-                         characterStyle.fontName)
+        super (Font, self).__init__ (size,
+                                     family,
+                                     style,
+                                     weight,
+                                     underline,
+                                     characterStyle.fontName)

@@ -16,9 +16,6 @@ import feedparser
 # ZaoBaoParcel
 ##
 class ZaoBaoParcel(Parcel):
-    def __init__(self, name, parent, kind):
-        Parcel.__init__(self, name, parent, kind)
-
     def _setUUIDs(self, parent):
 
         # hackery to avoid threading conflicts

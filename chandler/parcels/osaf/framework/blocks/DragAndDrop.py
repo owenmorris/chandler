@@ -45,7 +45,7 @@ class DropReceiveWidget (object):
     
 class DropTarget(wx.DropTarget):
     def __init__(self, window):
-        wx.DropTarget.__init__(self)
+        super (DropTarget, self).__init__ ()
         self.window = window
         self.dataFormat = wx.CustomDataFormat("ItemUUID")
         self.data = wx.CustomDataObject(self.dataFormat)

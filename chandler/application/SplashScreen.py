@@ -24,7 +24,7 @@ class SplashScreen(wx.Dialog):
             style= wx.FRAME_FLOAT_ON_PARENT|wx.DEFAULT_FRAME_STYLE
         else:
             style = wx.DEFAULT_FRAME_STYLE
-        wx.Dialog.__init__(self, parent, -1, title, style=style)
+        super (SplashScreen, self).__init__ (parent, -1, title, style=style)
         defaultWindowWidth = 700
         maxWindowHeight = 600
         self.isModal = isModal
@@ -66,8 +66,9 @@ class HTMLPanel(wx.html.HtmlWindow):
         """
           Sets up the wx.html.HtmlWindow and loads the proper page to be displayed.
         """
-        wx.html.HtmlWindow.__init__(self, parent, size=size,
-                              style=wx.HW_SCROLLBAR_AUTO)
+        super (HTMLPanel, self).__init__ (parent,
+                                          size=size,
+                                          style=wx.HW_SCROLLBAR_AUTO)
         self.parent = parent
         self.LoadPage(pageLocation)
         
@@ -99,7 +100,7 @@ class SplashTimer(wx.Timer):
         """
           Sets up the timer.
         """
-        wx.Timer.__init__(self)
+        super (SplashTimer, self).__init__ ()
         self.window = window
         
     def Notify(self):

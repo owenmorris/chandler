@@ -13,11 +13,13 @@ class wxCanvasDragImage(wx.Frame):
     to display the image, and that it is always full screen.
     """
     def __init__(self, bitmap):
-        wx.Frame.__init__(self, None, -1, "",
-                         style = wx.FRAME_SHAPED
-                         | wx.SIMPLE_BORDER
-                         | wx.FRAME_NO_TASKBAR
-                         | wx.STAY_ON_TOP)
+        super (wxCanvasDragImage, self).__init__ (None,
+                                                  -1,
+                                                  "",
+                                                  style = wx.FRAME_SHAPED
+                                                  | wx.SIMPLE_BORDER
+                                                  | wx.FRAME_NO_TASKBAR
+                                                  | wx.STAY_ON_TOP)
         self.bmp = bitmap
         w, h = self.bmp.GetWidth(), self.bmp.GetHeight()
         self.SetClientSize( (w, h) )
@@ -83,7 +85,7 @@ class wxCanvasDragImage(wx.Frame):
 
 class wxCanvasDropSource (wx.DropSource):
     def __init__(self, drawableObject, dataObject):
-        wx.DropSource.__init__(self, drawableObject.canvas)
+        super (wxCanvasDropSource, self).__init__ (drawableObject.canvas)
         self.drawableObject = drawableObject
         self.SetData (dataObject)
 
@@ -97,7 +99,7 @@ class wxCanvasDropSource (wx.DropSource):
 
 class wxCanvasDropTarget (wx.PyDropTarget):
     def __init__(self, canvas, dropTargetDataObject):
-        wx.PyDropTarget.__init__(self)
+        super (wxCanvasDropTarget, self).__init__ ()
         self.canvas = canvas
         self.data = dropTargetDataObject
         self.SetDataObject (dropTargetDataObject)
@@ -114,7 +116,7 @@ class wxCanvasDropTarget (wx.PyDropTarget):
     
 class wxSimpleDrawableObject (wx.EvtHandler):
     def __init__(self, canvas):
-        wx.EvtHandler.__init__ (self)
+        super (wxSimpleDrawableObject, self).__init__ ()
 
         self.bounds = wx.Rect ()
         self.canvas = canvas
@@ -285,9 +287,6 @@ class wxSimpleDrawableObject (wx.EvtHandler):
 
 
 class wxSimpleCanvas (wx.ScrolledWindow):
-
-    def __init__ (self, *_args, **_kwargs):
-        wx.ScrolledWindow.__init__ (self, *_args, **_kwargs)
 
     def __del__(self):
         for item in self.zOrderedDrawableObjects:

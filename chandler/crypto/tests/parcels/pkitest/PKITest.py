@@ -14,7 +14,7 @@ from PyEGADS import egads
 class PKITestViewParcel(Parcel):
 
     def __init__(self, name, parent, kind):
-        Parcel.__init__(self, name, parent, kind)
+        super (PKITestViewParcel, self).__init__ (name, parent, kind)
         # XXX __init__ does not seem to run
         #m2threading.init()
         #self.seeder = seedm2.Seeder()
