@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, os, shutil
 import application.Globals
+from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 
 def locateProfileDir(chandlerDirectory):
     """
@@ -170,7 +171,6 @@ def main():
         # The normal way: wrap the app in an exception frame
         try:
             import logging, traceback, wx
-            from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
             realMain()
 
         except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
