@@ -417,9 +417,8 @@ class Item(object):
 
     def _invokeMonitors(self, name, attrDict):
 
-        if attrDict._isMonitored(name):
-            from repository.item.Monitors import Monitors
-            Monitors.invoke('set', self, name)
+        from repository.item.Monitors import Monitors
+        Monitors.invoke('set', self, name)
 
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
