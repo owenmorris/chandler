@@ -92,7 +92,7 @@ class SimpleTest(unittest.TestCase):
 
     def tearDown(self):
         # Note: to use for diagnosis if a test fails
-        self.rep.close(purge=True)
+        self.rep.close()
 
 if __name__ == "__main__":
     unittest.main()
