@@ -36,6 +36,8 @@ class ItemCollection(ContentModel.ContentItem):
             except NoSuchAttributeError:
                 self._query = self.createRepositoryQuery()
             self._query.subscribe (self, "onItemCollectionChanged")
+            self._query.stale = True
+            self.resultsStale = True
             self.notifyOfChanges ("multiple changes")
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
