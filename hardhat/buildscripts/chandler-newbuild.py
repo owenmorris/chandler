@@ -44,7 +44,18 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         releaseModeDir = os.path.join(workingDir, releaseMode)
         if not os.path.exists(releaseModeDir):
             os.mkdir(releaseModeDir)
-        os.chdir(releaseModeDir)
+            os.chdir(releaseModeDir)
+            print "checking out external"
+            log.write("Checking out: external with " + cvsVintage + "\n")
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+             [cvsProgram, "-q", "checkout", cvsVintage, "external"])
+            hardhatutil.dumpOutputList(outputList, log)
+            print "checking out internal"
+            log.write("Checking out: internal with " + cvsVintage + "\n")
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+             [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
+            hardhatutil.dumpOutputList(outputList, log)
+
         if releaseMode == "debug":
             dbgStr = "DEBUG=1"
             relStr = "debug"
@@ -60,17 +71,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar.gz")
             log.write("Checking for source tarball " + sourceTarball + "\n")
             if not os.path.exists(sourceTarball) :
-                print "checking out external"
-                log.write("Checking out: external with " + cvsVintage + "\n")
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [cvsProgram, "-q", "checkout", cvsVintage, "external"])
-                hardhatutil.dumpOutputList(outputList, log)
-                print "checking out internal"
-                log.write("Checking out: internal with " + cvsVintage + "\n")
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
-                hardhatutil.dumpOutputList(outputList, log)
-
                 # Now need to do the setup for external - "expand" and "make"
                 os.chdir(extModuleDir)
                 log.write("Environment variables: \n")
