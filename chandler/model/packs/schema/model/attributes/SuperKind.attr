@@ -5,6 +5,5 @@
     <kind type="path">//Schema/Model/AttrDef</kind>
 
     <attribute name="Cardinality">dict</attribute>
-    <attribute name="Required" type="bool">False</attribute>
     <attribute name="OtherName">SubKind</attribute>
 </item>

@@ -6,5 +6,4 @@
 
     <ref name="Type" type="path">//Schema/Model/Types/String</ref>
     <attribute name="Cardinality">single</attribute>
-    <attribute name="Required" type="bool">False</attribute>
 </item>

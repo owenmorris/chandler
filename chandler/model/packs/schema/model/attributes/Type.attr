@@ -4,7 +4,6 @@
     <name>Type</name>
     <kind type="path">//Schema/Model/AttrDef</kind>
 
-    <attribute name="Required" type="bool">False</attribute>
     <attribute name="Cardinality">single</attribute>
     <attribute name="OtherName">TypeFor</attribute>
 </item>

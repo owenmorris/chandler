@@ -6,6 +6,5 @@
 
     <ref name="Type" type="path">//Schema/Model/Types/Bool</ref>
     <attribute name="Cardinality">single</attribute>
-    <attribute name="Required" type="bool">False</attribute>
     <attribute name="Default" type="bool">False</attribute>
 </item>

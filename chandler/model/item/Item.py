@@ -116,7 +116,12 @@ class Item(object):
         This method is only required when there is an ambiguity between a
         python and a Chandler attribute, a situation best avoided.'''
 
-        value = self._attributes[name]
+        try:
+            value = self._attributes[name]
+        except KeyError:
+            value = self.getAttrAspect(name, 'Default', None)
+            if value is None:
+                raise
 
         if isinstance(value, ItemRef):
             return value.other(self)
