@@ -510,7 +510,13 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
 
         for item in self.parent.blockItem.getDayItemsByDate(date):
             itemRect = wx.Rect(x, y, w, h)
-            self.canvasItemList.append(CollectionCanvas.CanvasItem(itemRect, item))
+            
+            canvasItem = CollectionCanvas.CanvasItem(itemRect, item)
+            self.canvasItemList.append(canvasItem)
+            
+            # keep track of the current drag/resize box
+            if self._currentDragBox and self._currentDragBox.item == item:
+                self._currentDragBox = canvasItem
 
             if (self.parent.blockItem.selection is item):
                 dc.SetBrush(wx.Brush(wx.Colour(217, 217, 217)))
@@ -564,7 +570,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
             return
         
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._dragBox.getItem()
+        item = self._currentDragBox.getItem()
         if (newTime.absdate != item.startTime.absdate):
             item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                newTime.day,
@@ -583,10 +589,23 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.SetItem(box.getItem(), position, size)
 
     def getDateTimeFromPosition(self, position):
+        # bound the position by the available space that the user 
+        # can see/scroll to
+        yPosition = max(position.y, 0)
+        xPosition = max(position.x, self.xOffset)
+        
+        if (self.fixed):
+            height = self.GetMinSize().GetWidth()
+        else:
+            height = self.fullHeight
+            
+        yPosition = min(yPosition, height)
+        xPosition = min(xPosition, self.xOffset + self.dayWidth * self.parent.columns - 1)
+
         if self.parent.blockItem.dayMode:
             newDay = self.parent.blockItem.selectedDate
         elif self.dayWidth > 0:
-            deltaDays = (position.x - self.xOffset) / self.dayWidth
+            deltaDays = (xPosition - self.xOffset) / self.dayWidth
             startDay = self.parent.blockItem.rangeStart
             newDay = startDay + DateTime.RelativeDateTime(days=deltaDays)
         else:
@@ -610,10 +629,14 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor = wxInPlaceEditor(self, -1) 
         
         # @@@ rationalize drawing calculations...
+        self._scrollYRate = 10
         self.SetVirtualSize((self.GetVirtualSize().width, 40*24))
-        self.SetScrollRate(0, 10)
-        self.Scroll(0, (40*7)/10)
+        self.SetScrollRate(0, self._scrollYRate)
+        self.Scroll(0, (40*7)/self._scrollYRate)
 
+    def ScaledScroll(self, scrollX, scrollY, buffer=0):
+        self.Scroll(scrollX, (scrollY / self._scrollYRate) + buffer)
+        
     def _doDrawingCalculations(self):
         # @@@ magic numbers
         self.size = self.GetVirtualSize()
@@ -723,7 +746,13 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
                                rect.y + int(self.hourHeight * (time.hour + time.minute/float(60))),
                                rect.width,
                                int(item.duration.hours * self.hourHeight))
-            self.canvasItemList.append(ColumnarCanvasItem(itemRect, item))
+
+            canvasItem = ColumnarCanvasItem(itemRect, item)
+            self.canvasItemList.append(canvasItem)
+
+            # keep track of the current drag/resize box
+            if self._currentDragBox and self._currentDragBox.item == item:
+                self._currentDragBox = canvasItem                
 
             # Draw one event
             headline = time.Format('%I:%M %p ') + item.displayName
@@ -812,20 +841,33 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
     
     def OnResizingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._dragBox.getItem()
-        resizeMode = self._dragBox.getResizeMode(self._dragStartUnscrolled)
+        item = self._currentDragBox.getItem()
+        resizeMode = self.GetResizeMode()
         delta = DateTime.DateTimeDelta(0, 0, 15)
-        if (resizeMode == "LOW" and newTime > (item.startTime + delta)):
+        
+        # make sure we're changing by at least delta, and 
+        # staying on the same day (we don't support resizing across days yet)
+        if (resizeMode == "LOW" and 
+            newTime > (item.startTime + delta) and
+            item.startTime.day == newTime.day):
             item.endTime = newTime
-        elif (resizeMode == "TOP" and newTime < (item.endTime - delta)):
+        elif (resizeMode == "TOP" and 
+              newTime < (item.endTime - delta) and
+              item.endTime.day == newTime.day):
             item.startTime = newTime
         self.Refresh()
     
     def OnDraggingItem(self, unscrolledPosition):
-        dy = (self._dragStartUnscrolled.y - self._dragBox.bounds.y)
+        # at the start of the drag, the mouse was somewhere inside the
+        # dragbox, but not necessarily exactly at x,y
+        #
+        # so account for the original offset within the ORIGINAL dragbox so the 
+        # mouse cursor stays in the same place relative to the original box
+        dy = (self._dragStartUnscrolled.y - self._originalDragBox.bounds.y)
         position = wx.Point(unscrolledPosition.x, unscrolledPosition.y - dy)
+        
         newTime = self.getDateTimeFromPosition(position)
-        item = self._dragBox.getItem()
+        item = self._currentDragBox.getItem()
         if ((newTime.absdate != item.startTime.absdate) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
@@ -833,6 +875,14 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             self.Refresh()
 
     def getDateTimeFromPosition(self, position):
+        # bound the position by the available space that the user 
+        # can see/scroll to
+        yPosition = max(position.y, 0)
+        xPosition = max(position.x, self.xOffset)
+        
+        yPosition = min(yPosition, self.hourHeight * 24 - 1)
+        xPosition = min(xPosition, self.xOffset + self.dayWidth * self.parent.columns - 1)
+        
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
         else:
@@ -840,11 +890,12 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         # @@@ fixes Bug#1831, but doesn't really address the root cause
         # (the window is drawn with (0,0) virtual size on mac)
         if self.dayWidth > 0:
-            deltaDays = (position.x - self.xOffset) / self.dayWidth
+            deltaDays = (xPosition - self.xOffset) / self.dayWidth
         else:
             deltaDays = 0
-        deltaHours = (position.y) / self.hourHeight
-        deltaMinutes = ((position.y % self.hourHeight) * 60) / self.hourHeight
+        
+        deltaHours = yPosition / self.hourHeight
+        deltaMinutes = ((yPosition % self.hourHeight) * 60) / self.hourHeight
         deltaMinutes = int(deltaMinutes/15) * 15
         newTime = startDay + DateTime.RelativeDateTime(days=deltaDays,
                                                        hours=deltaHours,
@@ -1067,8 +1118,13 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
         for item in self.blockItem.getItemsByDate(date):
             itemRect = wx.Rect(x, y, w, h)
-            self.canvasItemList.append(CollectionCanvas.CanvasItem(itemRect, item))
+            canvasItem = CollectionCanvas.CanvasItem(itemRect, item)
+            self.canvasItemList.append(canvasItem)
 
+            # keep track of the current drag/resize box
+            if self._currentDragBox and self._currentDragBox.item == item:
+                self._currentDragBox = canvasItem
+                
             if (self.blockItem.selection is item):
                 dc.SetPen(wx.BLACK_PEN)
                 dc.SetBrush(wx.WHITE_BRUSH)
@@ -1106,7 +1162,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
     def OnDraggingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._dragBox.getItem()
+        item = self._currentDragBox.getItem()
         if (newTime.absdate != item.startTime.absdate):
             item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                newTime.day,
