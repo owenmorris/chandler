@@ -172,12 +172,12 @@ class AccountPreferencesDialog(wx.Dialog):
         self.currentPanel = None # whatever detail panel we swap in
         self.data = [ ]
 
-        wx.EVT_BUTTON( self, wx.xrc.XRCID( "OK_BUTTON" ), self.OnOk )
-        wx.EVT_BUTTON( self, wx.xrc.XRCID( "CANCEL_BUTTON" ), self.OnCancel )
-        wx.EVT_LISTBOX( self, wx.xrc.XRCID( "ACCOUNTS_LIST" ),
-         self.OnAccountSel )
-
         self.__PopulateAccountsList(account)
+
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
+         id=wx.xrc.XRCID("ACCOUNTS_LIST"))
 
     def __PopulateAccountsList(self, account):
         """ Find all AccountBase items and put them in the list; also build
@@ -256,6 +256,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         self.outerSizer.Fit(self)
+        self.accountsList.SetFocus()
 
 
     def __StoreFormData(self, panelType, panel, data):
