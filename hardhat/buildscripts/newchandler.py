@@ -107,21 +107,21 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
     
         print "Checking CVS for updates"
         log.write("Checking CVS for updates\n")
-        (makeInstall, makeDistribution) = changesInCVS(chanDir, workingDir, cvsVintage, log, 'Makefile')
+        cvsChanges = changesInCVS(chanDir, workingDir, cvsVintage, log)
         
-        if makeInstall:
+        if cvsChanges:
             log.write("Changes in CVS require install\n")
             changes = "-changes"
             for releaseMode in releaseModes:        
                 doInstall(releaseMode, workingDir, log)
                 
-        if makeDistribution:
+        if cvsChanges:
             log.write("Changes in CVS require making distributions\n")
             changes = "-changes"
             for releaseMode in releaseModes:
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
-        if not makeInstall and not makeDistribution:
+        if not cvsChanges:
             log.write("No changes\n")
             changes = "-nochanges"
 
@@ -206,11 +206,8 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
     
 
-def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
+def changesInCVS(moduleDir, workingDir, cvsVintage, log):
     changesAtAll = False
-    filenameChanged = False
-#     print "Examining CVS"
-#     log.write("Examining CVS\n")
     for module in cvsModules:
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
@@ -221,11 +218,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-qn", "update", "-d", cvsVintage])
         # hardhatutil.dumpOutputList(outputList, log)
-        (filenameChangedInMod, changesAtAllInMod) = NeedsUpdate(outputList,
-                                                                filename)
-        if filenameChangedInMod:
-            filenameChanged = True
-        if changesAtAllInMod:
+        if NeedsUpdate(outputList):
             changesAtAll = True
             print "" + module + " needs updating"
             # update it
@@ -242,7 +235,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
 
     log.write(separator)
     log.write("Done with CVS\n")
-    return (filenameChanged, changesAtAll)
+    return changesAtAll
 
 
 def doInstall(buildmode, workingDir, log):
@@ -312,15 +305,7 @@ def doRealclean(log, workingDir):
         print "make realclean failed\n"
         log.write("make realclean failed\n")
 
-
-def NeedsUpdate(outputList, filename):
-    """
-    @return: Returns a tuple of booleans. The first is true if filename is
-             empty and there were some changes or the filename was changed.
-             The second is true if there were any changes.
-    """
-    filenameChanged = False
-    anyfileChanged = False
+def NeedsUpdate(outputList):
     for line in outputList:
         if line.lower().find("ide scripts") != -1:
             # this hack is for skipping some Mac-specific files that
@@ -331,17 +316,14 @@ def NeedsUpdate(outputList, filename):
             continue
         if line[0] == "U":
             print "needs update because of", line
-            filenameChanged = not filename or line[2:-1] == filename
-            anyfileChanged = True
+            return True
         if line[0] == "P":
             print "needs update because of", line
-            filenameChanged = not filename or line[2:-1] == filename
-            anyfileChanged = True
+            return True
         if line[0] == "A":
             print "needs update because of", line
-            filenameChanged = not filename or line[2:-1] == filename
-            anyfileChanged = True
-    return (filenameChanged, anyfileChanged)
+            return True
+    return False
 
 def CopyLog(file, fd):
     input = open(file, "r")
