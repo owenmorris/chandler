@@ -12,3 +12,14 @@
  	if ($key eq "RELATIVE_DIRECTORY")
  		{
  		if ($lib ne "")
+--- openssl-0.9.7d/Makefile.org	Wed Mar 17 04:08:47 2004
++++ openssl-0.9.7d-patched/Makefile.org	Mon Jun  7 18:11:10 2004
+@@ -303,7 +303,7 @@
+ 	fi; \
+ 	( set -x; ${CC} --verbose -dynamiclib -o lib$$i${SHLIB_EXT} \
+ 		lib$$i.a $$libs -all_load -current_version ${SHLIB_MAJOR}.${SHLIB_MINOR} \
+-		-compatibility_version ${SHLIB_MAJOR}.`echo ${SHLIB_MINOR} | cut -d. -f1` \
++		-compatibility_version ${SHLIB_MAJOR}.${SHLIB_MINOR} \
+ 		-install_name ${INSTALLTOP}/lib/lib$$i${SHLIB_EXT} ) || exit 1; \
+ 	libs="-l`basename $$i${SHLIB_EXT} .dylib` $$libs"; \
+ 	echo "" ; \
