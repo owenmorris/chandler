@@ -34,7 +34,7 @@ compile: $(SRC)/$(BUILD)/config.msvc
 
 py:
 	cd $(SRC)/python; \
-	$(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_DBG) \
+	$(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
                               install --force
 
 build: compile py

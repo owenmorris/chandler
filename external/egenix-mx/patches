@@ -19,7 +19,7 @@
  #define STRFTIME_OUTPUT_SIZE	1024
  
  /* Define these to have the module use free lists (saves malloc calls) */
-+#if !defined(Py_DEBUG) || Py_DEBUG == 0
++#ifndef Py_DEBUG
  #define MXDATETIME_FREELIST
  #define MXDATETIMEDELTA_FREELIST
 +#endif

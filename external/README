@@ -21,7 +21,7 @@ Getting build sources with CVS
 
    - cvs -d :pserver:<cvslogin>@cvs.osafoundation.org:/usr/local/cvsrep co external
 
-Set two vital environment variables:
+Setting vital environment variables:
 ------------------------------------
   - cd external
   - export BUILD_ROOT=`pwd`
@@ -33,6 +33,8 @@ GCJ_HOME variable should be set to /usr/local/gcc-3.3.2
 On windows, the GCJ_HOME path needs to be cygwin style. For example, if the
 path to gcj is d:\mingw-3.1\bin\gcj.exe, the GCJ_HOME variable needs to be
 set to /cygdrive/d/mingw-3.1
+On windows, the usual MSVC environment variables need to be set. See VC's
+vsvars32.bat file for more information.
 
 Verify that the environment is correct
 --------------------------------------

@@ -39,7 +39,7 @@ build: apply
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/PyLucene$(_SUFFIX).py \
+                  $(SNAP)/$(SITE)/PyLucene.py \
                   $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
                   $(SNAP)/bin/libdb_java42$(SUFFIX).dll
 
