@@ -1,6 +1,19 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.21 (CVS tag CHANDLER_0_3_21) 2004-07-27
+    * IMAP can now retrieve mail from test server (no SSL auth yet, so we 
+      can't use OSAF's server) 
+    * Create certificate and private key objects from PEM format strings
+    * Added a repository unit test for redirectTo ordering bug.
+    * added copyPolicy support for SingleRef values, including collections
+    * Added a helper method/class which allows the user to edit one or more
+      of an item's attributes via a dialog that gets built on the fly. The
+      first use of this is for a new Test menu item ("Edit Mail Account")
+      which lets you change the IMAP server, username, and password for the
+      default IMAP account.
+    * numerous bug fixes from initial milestone build
+
 Milestone 0.3.20_A (CVS tag CHANDLER_0_3_20_A) 2004-07-20
     * Chandler executable directories rearranged 
     * Changed DynamicContainer Blocks to work more like regular Blocks
