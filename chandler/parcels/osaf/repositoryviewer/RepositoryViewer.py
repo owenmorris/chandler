@@ -41,11 +41,11 @@ class wxRepositoryViewer(wxViewerParcel):
 
         # Set up tree control
         self.treeCtrl = wxTreeListCtrl(self.splitter)
-        self.treeCtrl.AddColumn(_('Containment Path'))
+        self.treeCtrl.AddColumn(_('Item Name'))
         self.treeCtrl.AddColumn(_('Display Name'))
         self.treeCtrl.AddColumn(_('Kind'))
         self.treeCtrl.AddColumn(_('UUID'))
-        self.treeCtrl.AddColumn(_('URI'))
+        self.treeCtrl.AddColumn(_('URL'))
         
         EVT_TREE_SEL_CHANGED(self, self.treeCtrl.GetId(), self.OnSelChanged)
         
@@ -131,14 +131,14 @@ class wxRepositoryViewer(wxViewerParcel):
 
         displayName = item.getItemDisplayName()
                 
-        if item._kind != None:
-            kind = item._kind.getItemName()
+        if item.hasAttributeValue('kind'):
+            kind = item.kind.getItemName()
         else:
-            kind = 'Item'
+            kind = "Kind not found"
         
         self.treeCtrl.SetItemText(node, displayName, 1)
         self.treeCtrl.SetItemText(node, kind, 2)
         self.treeCtrl.SetItemText(node, str(item.getUUID()), 3)
-        self.treeCtrl.SetItemText(node, '?', 4)
+        self.treeCtrl.SetItemText(node, str(item.getItemPath()), 4)
         
         
