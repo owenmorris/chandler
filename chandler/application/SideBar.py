@@ -159,6 +159,7 @@ class wxSideBar(wxTreeCtrl):
         EVT_WINDOW_DESTROY (self, self.OnDestroy)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnSelChanged)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnItemExpanding)
+        EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnItemCollapsing)
         
     def OnSelChanged(self, event):
         """
@@ -197,6 +198,17 @@ class wxSideBar(wxTreeCtrl):
         entry = self.__GetSideBarURLTreeEntry(fields, self.model.sideBarURLTree)
         entry.isOpen = true
         self.model.SynchronizeView()
+
+    def OnItemCollapsing(self, event):
+        """
+          Whenever a disclosure box is collapsed, we mark it as such in the
+        model's dict.
+        """
+        item = event.GetItem()
+        uri = self.BuildUriFromItem(item)
+        fields = uri.split('/')
+        entry = self.__GetSideBarURLTreeEntry(fields, self.model.sideBarURLTree)
+        entry.isOpen = false
 
     def __GetSideBarURLTreeEntry(self, fields, dict):
         if len(fields) == 1:
