@@ -1,5 +1,5 @@
 from application import Globals
-from OSAF.framework.blocks.ContainerBlocks import BoxContainer
+from osaf.framework.blocks.ContainerBlocks import BoxContainer
 from repository.parcel.Parcel import Parcel
 from M2Crypto import SSL, Rand, threading as m2threading
 import thread
@@ -38,7 +38,7 @@ class PKITestViewParcel(Parcel):
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
         rep = self.getRepository()
-        urlRoot = rep.find("//parcels/OSAF/views/main/URLRoot")
+        urlRoot = rep.find("//parcels/osaf/views/main/URLRoot")
         pkiNode = rep.find("//parcels/pkitest/views/PKITestViewNode")
         if urlRoot and pkiNode:
             urlRoot.children.append(pkiNode)

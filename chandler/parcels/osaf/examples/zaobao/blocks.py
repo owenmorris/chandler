@@ -8,8 +8,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Query import KindQuery
-from OSAF.framework.blocks.ControlBlocks import Tree, ItemDetail
-import OSAF.examples.zaobao.RSSData as RSSData
+from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail
+import osaf.examples.zaobao.RSSData as RSSData
 
 # GetElementCellValues is shared between both classes
 def GetElementCellValues(element):

@@ -5,18 +5,18 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework/blocks/calendar"
+<Parcel describes="//parcels/osaf/framework/blocks/calendar"
         itemName="calendar"
         xmlns="//Schema/Core"
-	xmlns:blocks="//parcels/OSAF/framework/blocks"
-	xmlns:calBlocks="//parcels/OSAF/framework/blocks/calendar"
-	xmlns:events="//parcels/OSAF/framework/notifications/schema">
+	xmlns:blocks="//parcels/osaf/framework/blocks"
+	xmlns:calBlocks="//parcels/osaf/framework/blocks/calendar"
+	xmlns:events="//parcels/osaf/framework/notifications/schema">
 
   <description>calendar blocks</description>
   <version>0.3</version>
 
   <Kind itemName="MonthBlock">
-    <classes key="python">OSAF.framework.blocks.calendar.CalendarBlocks.MonthBlock</classes>
+    <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.MonthBlock</classes>
     <superKinds itemref="blocks:RectangularChild"/>
 
     <Attribute itemName="daysPerWeek">
@@ -44,7 +44,7 @@
   </Kind>
 
   <Kind itemName="WeekBlock">
-    <classes key="python">OSAF.framework.blocks.calendar.CalendarBlocks.WeekBlock</classes>
+    <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.WeekBlock</classes>
     <superKinds itemref="blocks:RectangularChild"/>
 
     <Attribute itemName="daysPerView">

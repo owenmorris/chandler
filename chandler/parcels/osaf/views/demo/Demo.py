@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import OSAF.framework.blocks.ContainerBlocks as ContainerBlocks
+import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 
 class DemoTabs(ContainerBlocks.TabbedContainer):
     def OnChooseTabEventUpdateUI(self, notification):
@@ -13,11 +13,11 @@ class DemoTabs(ContainerBlocks.TabbedContainer):
         notification.data['Check'] = (selectedText == notification.event.choice)
 
     def OnAddTextEvent(self, notification):
-        textBox = Globals.repository.find('//parcels/OSAF/views/demo/ButtonText')
+        textBox = Globals.repository.find('//parcels/osaf/views/demo/ButtonText')
         wxTextBox = Globals.association[textBox.itsUUID]
         wxTextBox.AppendText('Here is some text')
     
     def OnReloadTextEvent(self, notification):
-        textBox = Globals.repository.find('//parcels/OSAF/views/demo/ButtonText')
+        textBox = Globals.repository.find('//parcels/osaf/views/demo/ButtonText')
         wxTextBox = Globals.association[textBox.itsUUID]
         wxTextBox.SetValue('')

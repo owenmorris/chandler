@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/framework/blocks/Events"
+<core:Parcel describes="//parcels/osaf/framework/blocks/Events"
              itemName="Events"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:events="//parcels/osaf/framework/blocks/Events">
 
   <description>Events, need to be defined in a different parcel than the schema because 
 of a limitation of the XML format, which will be eliminated</description>

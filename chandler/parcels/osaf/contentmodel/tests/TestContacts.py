@@ -9,9 +9,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import OSAF.contentmodel.tests.TestContentModel as TestContentModel
-import OSAF.contentmodel.tests.GenerateItems as GenerateItems
-import OSAF.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.tests.TestContentModel as TestContentModel
+import osaf.contentmodel.tests.GenerateItems as GenerateItems
+import osaf.contentmodel.contacts.Contacts as Contacts
 
 import mx.DateTime as DateTime
 
@@ -21,7 +21,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
     def testContacts(self):
         """ Simple test for creating instances of contact related kinds """
 
-        self.loadParcel("OSAF/contentmodel/contacts")
+        self.loadParcel("osaf/contentmodel/contacts")
 
         def _verifyContactName(name):
             self.assertEqual(name.firstName, 'Sylvia')
@@ -30,7 +30,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(name.getAttributeValue('lastName'), 'Plath')
 
         # Test the globals
-        contactsPath = '//parcels/OSAF/contentmodel/contacts/%s'
+        contactsPath = '//parcels/osaf/contentmodel/contacts/%s'
 
         self.assertEqual(Contacts.ContactsParcel.getContactKind(),
                          self.rep.find(contactsPath % 'Contact'))
@@ -77,8 +77,8 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
     def testGeneratedContacts(self):
 
-        self.loadParcel("OSAF/contentmodel/contacts")
-        self.loadParcel("OSAF/contentmodel/mail")
+        self.loadParcel("osaf/contentmodel/contacts")
+        self.loadParcel("osaf/contentmodel/mail")
 
         GenerateItems.GenerateContacts(100)
         self.rep.commit()

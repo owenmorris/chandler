@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//parcels/OSAF/examples"
+<Parcel describes="//parcels/osaf/examples"
         itemName="examples"
         xmlns="//Schema/Core">
 

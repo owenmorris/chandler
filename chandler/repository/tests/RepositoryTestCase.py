@@ -14,11 +14,11 @@ class RepositoryTestCase(unittest.TestCase):
 
     def setUp(self):
         self.rootdir = os.environ['CHANDLERHOME']
-        self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository',
+        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
                                   'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
         self.rep.commit()

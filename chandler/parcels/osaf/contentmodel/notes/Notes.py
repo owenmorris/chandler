@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
-import OSAF.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 class NotesParcel(Parcel.Parcel):

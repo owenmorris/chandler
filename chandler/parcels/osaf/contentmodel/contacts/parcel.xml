@@ -5,14 +5,14 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/contentmodel/contacts"
+<Parcel describes="//parcels/osaf/contentmodel/contacts"
         itemName="contacts"
-        itemClass="OSAF.contentmodel.contacts.Contacts.ContactsParcel"
+        itemClass="osaf.contentmodel.contacts.Contacts.ContactsParcel"
         xmlns="//Schema/Core"
-        xmlns:content="//parcels/OSAF/contentmodel"
-	xmlns:mail="//parcels/OSAF/contentmodel/mail"
-	xmlns:calendar="//parcels/OSAF/contentmodel/calendar"
-        xmlns:contact="//parcels/OSAF/contentmodel/contacts">
+        xmlns:content="//parcels/osaf/contentmodel"
+	xmlns:mail="//parcels/osaf/contentmodel/mail"
+	xmlns:calendar="//parcels/osaf/contentmodel/calendar"
+        xmlns:contact="//parcels/osaf/contentmodel/contacts">
 
   <displayName>Contact Content Model</displayName>
   <description>Contact schema for the 0.3 release</description>
@@ -160,7 +160,7 @@
     <attributes itemref="calendar:participatingIn"/>
     <attributes itemref="calendar:requestedTasks"/>
     <attributes itemref="calendar:taskRequests"/>
-    <classes key="python">OSAF.contentmodel.contacts.Contacts.Contact</classes>
+    <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 
   <!-- Contact Section -->
@@ -272,7 +272,7 @@
     <attributes itemref="contact:anniversary"/>
     <attributes itemref="contact:children"/>
     <attributes itemref="contact:instantMessageAddresses"/>
-    <classes key="python">OSAF.contentmodel.contacts.Contacts.ContactSection</classes>
+    <classes key="python">osaf.contentmodel.contacts.Contacts.ContactSection</classes>
   </Kind>
 
   <!-- Attributes used in ContactName -->
@@ -336,7 +336,7 @@
     <!-- attributes itemref="contact:prefixes"/-->
     <!-- attributes itemref="contact:suffixes"/-->
     <!-- attributes itemref="contact:initials"/-->
-    <classes key="python">OSAF.contentmodel.contacts.Contacts.ContactName</classes>
+    <classes key="python">osaf.contentmodel.contacts.Contacts.ContactName</classes>
   </Kind>
 
   <!-- Street Address -->
@@ -414,7 +414,7 @@
     <attributes itemref="contact:postalCode"/>
     <attributes itemref="contact:countryName"/>
     <attributes itemref="contact:streetAddressOwner"/>
-    <classes key="python">OSAF.contentmodel.contacts.Contacts.StreetAddress</classes>
+    <classes key="python">osaf.contentmodel.contacts.Contacts.StreetAddress</classes>
   </Kind>
 
   <!-- Phone Number -->
@@ -463,7 +463,7 @@
     <attributes itemref="contact:phoneNumber"/>
     <attributes itemref="contact:phoneType"/>
     <attributes itemref="contact:phoneNumberOwner"/>
-    <classes key="python">OSAF.contentmodel.contacts.Contacts.PhoneNumber</classes>
+    <classes key="python">osaf.contentmodel.contacts.Contacts.PhoneNumber</classes>
   </Kind>
 
 </Parcel>

@@ -19,7 +19,7 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         Test to ensure all parcels load
         """
-        parcelDir = os.path.join(self.rootdir, 'Chandler', 'parcels')
+        parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels')
         LoadParcels(parcelDir, self.rep)
         PrintItem("//Schema", self.rep)
         PrintItem("//parcels", self.rep)

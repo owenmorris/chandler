@@ -5,13 +5,13 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/demo"
+<core:Parcel describes="//parcels/osaf/views/demo"
              itemName="demo"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:doc="//parcels/OSAF/views/demo"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events"
-             xmlns:main="//parcels/OSAF/views/main">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:doc="//parcels/osaf/views/demo"
+             xmlns:events="//parcels/osaf/framework/blocks/Events"
+             xmlns:main="//parcels/osaf/views/main">
 
   <core:version>0.3</core:version>
 
@@ -417,7 +417,7 @@
 
   <HTML itemName="HTMLExample">
     <!-- Attributes -->
-    <url>parcels/OSAF/views/demo/example.html</url>
+    <url>parcels/osaf/views/demo/example.html</url>
 
     <contentSpec itemref="doc:myQuery"/>
     <size>200,200</size>
@@ -438,7 +438,7 @@
   </BoxContainer>
 
   <TabbedContainer itemName="Tabs"
-                   itemClass="OSAF.views.demo.Demo.DemoTabs">
+                   itemClass="osaf.views.demo.Demo.DemoTabs">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:IntroTab"/>
     <childrenBlocks itemref="doc:ButtonsTab"/>

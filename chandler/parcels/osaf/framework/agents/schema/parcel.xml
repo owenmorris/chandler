@@ -8,12 +8,12 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework/agents/schema"
+<Parcel describes="//parcels/osaf/framework/agents/schema"
         itemName="schema"
         xmlns="//Schema/Core"
-        xmlns:agents="//parcels/OSAF/framework/agents/schema"
-        xmlns:blah="//parcels/OSAF/framework/utils"
-        xmlns:indexes="//parcels/OSAF/framework/utils/indexer">
+        xmlns:agents="//parcels/osaf/framework/agents/schema"
+        xmlns:blah="//parcels/osaf/framework/utils"
+        xmlns:indexes="//parcels/osaf/framework/utils/indexer">
 
   <displayName>Agent Schema</displayName>
   <description>Agent schema for the 0.2 release</description>
@@ -109,13 +109,13 @@
     <attributes itemref="agents:Action/actionOwner"/>
     <attributes itemref="agents:Action/actionRepertoireOwner"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.agents.schema.Action.Action</classes>
+    <classes key="python">osaf.framework.agents.schema.Action.Action</classes>
   </Kind>
 
   <Kind itemName="DialogAction">
     <displayName>Dialog Action</displayName>
     <superKinds itemref="agents:Action"/>
-    <classes key="python">OSAF.framework.agents.schema.DialogAction.DialogAction</classes>
+    <classes key="python">osaf.framework.agents.schema.DialogAction.DialogAction</classes>
   </Kind>
 
 
@@ -194,7 +194,7 @@
     <attributes itemref="agents:Condition/conditionOwner"/>
     <attributes itemref="agents:Condition/conditionRepertoireOwner"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.agents.schema.Condition.Condition</classes>
+    <classes key="python">osaf.framework.agents.schema.Condition.Condition</classes>
   </Kind>
 
 
@@ -289,7 +289,7 @@
     <attributes itemref="agents:Instruction/instructionOwner"/>
     <attributes itemref="agents:Instruction/timers"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.agents.schema.Instruction.Instruction</classes>
+    <classes key="python">osaf.framework.agents.schema.Instruction.Instruction</classes>
   </Kind>
   
   
@@ -322,7 +322,7 @@
     <attributes itemref="agents:Repertoire/possibleActions"/>
     <attributes itemref="agents:Repertoire/possibleConditions"/>
     <attributes itemref="agents:Repertoire/repertoireOwner"/>
-    <classes key="python">OSAF.framework.agents.schema.Repertoire.Repertoire</classes>
+    <classes key="python">osaf.framework.agents.schema.Repertoire.Repertoire</classes>
     <superKinds itemref="Item"/>
   </Kind>
 
@@ -385,7 +385,7 @@
     <attributes itemref="agents:AgentItem/prefData"/>
     <attributes itemref="agents:AgentItem/status"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.agents.schema.AgentItem.AgentItem</classes>
+    <classes key="python">osaf.framework.agents.schema.AgentItem.AgentItem</classes>
   </Kind>
 
 </Parcel>

@@ -20,14 +20,14 @@ EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'History':
-        eventPath = '//parcels/OSAF/framework/item_' + reason
+        eventPath = '//parcels/osaf/framework/item_' + reason
     else:
         return
 
     event = Globals.repository.find(eventPath)
 
     # Postpone import to avoid circular imports
-    from OSAF.framework.notifications.Notification import Notification
+    from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
     note.SetData({'uuid' : uuid, 'keywords' : kwds})
@@ -166,7 +166,7 @@ class wxApplication (wx.App):
         """
 #        wx.Locale_AddCatalogLookupPathPrefix('locale')
 #        self.locale.AddCatalog('Chandler.mo')
-        gettext.install('Chandler', os.path.join (Globals.chandlerDirectory, 'locale'))
+        gettext.install('chandler', os.path.join (Globals.chandlerDirectory, 'locale'))
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
         It's necessary to add the "parcels" directory to sys.path in order
@@ -226,7 +226,7 @@ class wxApplication (wx.App):
           Create and start the notification manager. Delay imports to avoid
         circular references.
         """
-        from OSAF.framework.notifications.NotificationManager import NotificationManager
+        from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
 
@@ -236,13 +236,13 @@ class wxApplication (wx.App):
           Create and start the agent manager. Delay imports to avoid
         circular references.
         """
-        from OSAF.framework.agents.AgentManager import AgentManager
+        from osaf.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
         # It is important to commit before the task manager starts
         Globals.repository.commit()
-        from OSAF.framework.tasks.TaskManager import TaskManager
+        from osaf.framework.tasks.TaskManager import TaskManager
         Globals.taskManager = TaskManager()
         Globals.taskManager.start()
 
@@ -251,11 +251,11 @@ class wxApplication (wx.App):
         self.focus = None
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
-        from OSAF.framework.blocks.Views import View
+        from osaf.framework.blocks.Views import View
         """
           Load and display the main chandler view.
         """
-        mainView = Globals.repository.find('//parcels/OSAF/views/main/MainView')
+        mainView = Globals.repository.find('//parcels/osaf/views/main/MainView')
 
         if mainView:
             assert isinstance (mainView, View)
@@ -269,7 +269,7 @@ class wxApplication (wx.App):
             self.mainFrame.counterpartUUID = mainView.itsUUID
             self.mainFrame.Bind(wx.EVT_SIZE, self.mainFrame.OnSize)
 
-            GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
+            GlobalEvents = Globals.repository.find('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
               Subscribe to some global events and those belonging to the mainView.
             """
@@ -298,8 +298,8 @@ class wxApplication (wx.App):
         Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
         Delay imports to avoid circular references.
         """
-        from OSAF.framework.blocks.Block import Block, BlockEvent
-        from OSAF.framework.notifications.Notification import Notification
+        from osaf.framework.blocks.Block import Block, BlockEvent
+        from osaf.framework.notifications.Notification import Notification
 
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:

@@ -6,13 +6,13 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/contentmodel"
+<core:Parcel describes="//parcels/osaf/contentmodel"
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
-	     xmlns:notes="//parcels/OSAF/contentmodel/notes"
-	     xmlns:contact="//parcels/OSAF/contentmodel/contacts"
-             xmlns="//parcels/OSAF/contentmodel"
-             itemClass="OSAF.contentmodel.ContentModel.ContentModel">
+	     xmlns:notes="//parcels/osaf/contentmodel/notes"
+	     xmlns:contact="//parcels/osaf/contentmodel/contacts"
+             xmlns="//parcels/osaf/contentmodel"
+             itemClass="osaf.contentmodel.ContentModel.ContentModel">
 
   <core:displayName>Chandler Content Model</core:displayName>
   <core:description>Content Model for the 0.3 release</core:description>
@@ -129,7 +129,7 @@
     <core:attributes itemref="aboutAttribute"/>
     <core:attributes itemref="dateAttribute"/>
 
-    <core:classes key="python">OSAF.contentmodel.ContentModel.ContentItem</core:classes>
+    <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 
 <!-- Project -->
@@ -169,7 +169,7 @@
     <core:attributes itemref="parentProject"/>
     <core:attributes itemref="subProjects"/>
     <core:attributes itemref="itemsInProject"/>
-    <core:classes key="python">OSAF.contentmodel.ContentModel.Project</core:classes>
+    <core:classes key="python">osaf.contentmodel.ContentModel.Project</core:classes>
   </core:Kind>
 
 <!-- Group -->
@@ -190,7 +190,7 @@
     <core:displayAttribute itemref="name"/>
     <core:attributes itemref="name"/>
     <core:attributes itemref="itemsInGroup"/>
-    <core:classes key="python">OSAF.contentmodel.ContentModel.Group</core:classes>
+    <core:classes key="python">osaf.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 
 </core:Parcel>

@@ -5,10 +5,10 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework/tasks"
+<Parcel describes="//parcels/osaf/framework/tasks"
         itemName="tasks"
         xmlns="//Schema/Core"
-        xmlns:sched="//parcels/OSAF/framework/tasks">
+        xmlns:sched="//parcels/osaf/framework/tasks">
 
   <displayName>Task Schema</displayName>
 
@@ -94,7 +94,7 @@
     <attributes itemref="sched:Action/confirmFlag"/>
     <attributes itemref="sched:Action/actionOwner"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.tasks.Action.Action</classes>
+    <classes key="python">osaf.framework.tasks.Action.Action</classes>
   </Kind>
 
 
@@ -168,7 +168,7 @@
 
     <superKinds itemref="Item"/>
 
-    <classes key="python">OSAF.framework.tasks.Task.Task</classes>
+    <classes key="python">osaf.framework.tasks.Task.Task</classes>
   </Kind>
 
 </Parcel>

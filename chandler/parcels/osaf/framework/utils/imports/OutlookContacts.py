@@ -64,7 +64,7 @@ currently ignored fields:
 "User 1"        "User 2" "User 3"        "User 4"
 """
 
-MAPPINGDIR="parcels/OSAF/framework/utils/imports"
+MAPPINGDIR="parcels/osaf/framework/utils/imports"
 
 class OutlookContacts(Importer.CSVImporter):
     """Import contacts exported by Outlook to CSV format."""
@@ -83,7 +83,7 @@ class OutlookContacts(Importer.CSVImporter):
 
     def postProcess(self, object):
         """Deal with registering homeSection and workSection after the fact."""
-        kindPath="//parcels/OSAF/contentmodel/contacts/ContactSection"
+        kindPath="//parcels/osaf/contentmodel/contacts/ContactSection"
         sectionKind=Globals.repository.find(kindPath)
         sectionsList=[]
         for child in object.iterChildren():

@@ -5,14 +5,14 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/contentmodel/calendar"
+<Parcel describes="//parcels/osaf/contentmodel/calendar"
         itemName="calendar"
-        itemClass="OSAF.contentmodel.calendar.Calendar.CalendarParcel"
+        itemClass="osaf.contentmodel.calendar.Calendar.CalendarParcel"
         xmlns="//Schema/Core"
-        xmlns:content="//parcels/OSAF/contentmodel"
-	xmlns:mail="//parcels/OSAF/contentmodel/mail"
-	xmlns:contact="//parcels/OSAF/contentmodel/contacts"
-        xmlns:cal="//parcels/OSAF/contentmodel/calendar">
+        xmlns:content="//parcels/osaf/contentmodel"
+	xmlns:mail="//parcels/osaf/contentmodel/mail"
+	xmlns:contact="//parcels/osaf/contentmodel/contacts"
+        xmlns:cal="//parcels/osaf/contentmodel/calendar">
 
   <displayName>Calendar Content Model</displayName>
   <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>
@@ -257,7 +257,7 @@
 
     <displayAttribute itemref="cal:headline"/>
 
-    <classes key="python">OSAF.contentmodel.calendar.Calendar.CalendarEvent</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
   </Kind>
 
@@ -268,7 +268,7 @@
     <attributes itemref="content:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
     <displayAttribute itemref="content:name"/>
-    <classes key="python">OSAF.contentmodel.calendar.Calendar.Location</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.Location</classes>
   </Kind>
 
   <Kind itemName="Calendar">
@@ -278,7 +278,7 @@
     <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
     <attributes itemref="content:name"/>
     <displayAttribute itemref="content:name"/>
-    <classes key="python">OSAF.contentmodel.calendar.Calendar.Calendar</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.Calendar</classes>
   </Kind>
 
   <Kind itemName="RecurrencePattern">
@@ -286,7 +286,7 @@
     <issues>Recurrence Pattern is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
     <displayName>Recurrence Pattern</displayName>
-    <classes key="python">OSAF.contentmodel.calendar.Calendar.RecurrencePattern</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.RecurrencePattern</classes>
   </Kind>
 
   <Kind itemName="Reminder">
@@ -294,7 +294,7 @@
     <issues>Reminder is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Reminder should have an attribute that points to a Calendar Event.</issues>
     <displayName>Reminder</displayName>
-    <classes key="python">OSAF.contentmodel.calendar.Calendar.Reminder</classes>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.Reminder</classes>
   </Kind>
 
 </Parcel>

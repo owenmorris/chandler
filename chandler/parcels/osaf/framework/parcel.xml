@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework"
+<Parcel describes="//parcels/osaf/framework"
         itemName="framework"
         xmlns="//Schema/Core"
-        xmlns:app="//parcels/OSAF/framework"
-        xmlns:events="//parcels/OSAF/framework/notifications/schema">
+        xmlns:app="//parcels/osaf/framework"
+        xmlns:events="//parcels/osaf/framework/notifications/schema">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>

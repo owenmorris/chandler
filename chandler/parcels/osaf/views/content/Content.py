@@ -5,11 +5,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 
-import OSAF.framework.blocks.ControlBlocks as ControlBlocks
+import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
-import OSAF.contentmodel.calendar.Calendar as Calendar
-import OSAF.contentmodel.notes.Notes as Notes
-import OSAF.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.notes.Notes as Notes
+import osaf.contentmodel.contacts.Contacts as Contacts
 
 import repository.item.Query as Query
 
@@ -23,14 +23,14 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         HTMLText = "<html><body>"
         
         kind = item.itsKind
-        if kind is Globals.repository.find ("//parcels/OSAF/contentmodel/calendar/CalendarEvent"):
+        if kind is Globals.repository.find ("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
             HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
             HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()
             HTMLText += "<b>Date: </b> %s<br>" % item.getDate()
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
-        elif kind is Globals.repository.find ("//parcels/OSAF/contentmodel/notes/Note"):
+        elif kind is Globals.repository.find ("//parcels/osaf/contentmodel/notes/Note"):
             HTMLText += "<b>Title: </b> %s<br>" % item.getAbout()
-        elif kind is Globals.repository.find ("//parcels/OSAF/contentmodel/contacts/Contact"):
+        elif kind is Globals.repository.find ("//parcels/osaf/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
             HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
             for phone in item.homeSection.phoneNumbers:

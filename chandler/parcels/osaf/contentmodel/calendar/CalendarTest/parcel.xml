@@ -7,10 +7,10 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/contentmodel/calendar/CalendarTest"
+<core:Parcel describes="//parcels/osaf/contentmodel/calendar/CalendarTest"
              itemName="CalendarTest"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/contentmodel/calendar">
+             xmlns="//parcels/osaf/contentmodel/calendar">
 
   <core:displayName>Calendar Tests</core:displayName>
   <core:description>Sample events</core:description>

@@ -10,7 +10,7 @@ import wx
 from mx import DateTime
 
 import application.SimpleCanvas as SimpleCanvas
-import OSAF.framework.blocks.Block as Block
+import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
 
 class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):

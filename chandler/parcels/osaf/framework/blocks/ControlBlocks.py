@@ -88,7 +88,7 @@ class wxEditText(wx.TextCtrl):
 
     def OnEnterPressed(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/EnterPressed'),
+        counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/EnterPressed'),
                           {'text':self.GetValue()})
 
             
@@ -217,7 +217,7 @@ class wxListBlock(wx.ListCtrl):
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
                 counterpart.selection = item
-            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+            counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                               {'item':item})
 
 
@@ -225,7 +225,7 @@ class wxListBlock(wx.ListCtrl):
         counterpart = Globals.repository.find (self.counterpartUUID)
         elementDelegate = counterpart.elementDelegate
         if not elementDelegate:
-            elementDelegate = '//parcels/OSAF/framework/blocks/ControlBlocks/ListDelegate'
+            elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
         queryItem = counterpart.contentSpec
@@ -243,9 +243,9 @@ class wxListBlock(wx.ListCtrl):
             subscription = self.subscriptionUUID
         except AttributeError:
             counterpart = Globals.repository.find (self.counterpartUUID)
-            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.find('//parcels/osaf/framework/item_added'),
+                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -383,7 +383,7 @@ class wxSummary(wx.grid.Grid):
             item = counterpart.contentSpec [event.GetIndex()]
             if counterpart.selection != item:
                 counterpart.selection = item
-            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+            counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                               {'item':item})
 
 
@@ -430,7 +430,7 @@ class wxSummary(wx.grid.Grid):
         queryItem.resultsStale = True
         elementDelegate = counterpart.elementDelegate
         if not elementDelegate:
-            elementDelegate = '//parcels/OSAF/framework/blocks/ControlBlocks/ListDelegate'
+            elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
         table = self.GetTable()
@@ -449,9 +449,9 @@ class wxSummary(wx.grid.Grid):
             subscription = self.subscriptionUUID
         except AttributeError:
             counterpart = Globals.repository.find (self.counterpartUUID)
-            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.find('//parcels/osaf/framework/item_added'),
+                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -699,7 +699,7 @@ class wxTreeAndList:
             if counterpart.selection != selection:
                 counterpart.selection = selection
         
-                counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                   {'item':selection})
 
     def wxSynchronizeFramework(self):
@@ -761,9 +761,9 @@ class wxTreeAndList:
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
-                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.find('//parcels/osaf/framework/item_added'),
+                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
             counterpart = Globals.repository.find (self.counterpartUUID)
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
@@ -864,7 +864,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+            event = Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged')
             event.Post({'item':item, 'type':'Normal'})
 
     def wxSynchronizeFramework(self):

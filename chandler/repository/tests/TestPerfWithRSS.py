@@ -18,12 +18,12 @@ import application.Globals as Globals
 
 # get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
-sys.path.append(os.path.join(_chandlerDir,'Chandler','parcels','OSAF','examples','zaobao'))
+sys.path.append(os.path.join(_chandlerDir,'chandler','parcels','osaf','examples','zaobao'))
 import feedparser
 
 # get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
 # You can obtain the files from http://aloha.osafoundation.org/~twl/RSSdata/rssfeeds.syndic8.tar.bz2
-RSS_HOME=os.path.join(_chandlerDir,'Chandler','repository','tests','data','rssfeeds/')
+RSS_HOME=os.path.join(_chandlerDir,'chandler','repository','tests','data','rssfeeds/')
 if os.path.exists(RSS_HOME):
     _rssfiles = os.listdir(RSS_HOME)
 else:
@@ -32,25 +32,25 @@ else:
 # make them file URL's
 _defaultBlogs = [ "%s%s%s" %("file://", RSS_HOME, f) for f in _rssfiles ]
 
-BASE_PATH = Path('//parcels/OSAF/examples/zaobao')
+BASE_PATH = Path('//parcels/osaf/examples/zaobao')
 
 class TestPerfWithRSS(unittest.TestCase):
     """ Simple performance tests """
 
     def setUp(self):
         self.rootdir = _chandlerDir
-        self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         Globals.repository = self.rep # to keep indexer happy
         self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository', 'packs', 'schema.pack')
+        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository', 'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
 
-        parcelDir = os.path.join(self.rootdir,'Chandler','parcels')
+        parcelDir = os.path.join(self.rootdir, 'chandler','parcels')
         sys.path.insert(1, parcelDir)
-        LoadParcels.LoadParcel(os.path.join(parcelDir, 'OSAF', 'examples', 
-         'zaobao'), '//parcels/OSAF/examples/zaobao', parcelDir, self.rep)
+        LoadParcels.LoadParcel(os.path.join(parcelDir, 'osaf', 'examples', 
+         'zaobao'), '//parcels/osaf/examples/zaobao', parcelDir, self.rep)
         
         self.rep.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
@@ -143,7 +143,7 @@ class TestPerfWithRSS(unittest.TestCase):
 #        self.rep.close()
 #        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
 #        self.rep.open()
-#        RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
+#        RSSItem = self.rep.find('//parcels/osaf/examples/zaobao/RSSItem')
 #        self._readItems(RSSItem.itsKind)
 #        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
 #        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.itsKind)

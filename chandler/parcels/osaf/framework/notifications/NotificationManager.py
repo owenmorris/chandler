@@ -20,7 +20,7 @@ class NotificationManager(object):
     """
     The Notification Manager is an object that maintains information
     about notifications and events.  Parcels can declare
-    L{events<OSAF.framework.notifications.schema.Event.Event>}. The
+    L{events<osaf.framework.notifications.schema.Event.Event>}. The
     Notification Manager provides a way for clients to post notifications
     when they occur, and to subscribe to them in order to be notified as
     necessary.
@@ -42,7 +42,7 @@ class NotificationManager(object):
         self.declarations.acquire()
         try:
             from repository.item.Query import KindQuery
-            eventKind = Globals.repository.find('//parcels/OSAF/framework/notifications/schema/Event')
+            eventKind = Globals.repository.find('//parcels/osaf/framework/notifications/schema/Event')
             for item in KindQuery().run([eventKind]):
                 self.declarations[item.itsUUID] = Declaration(item)
         finally:
@@ -53,7 +53,7 @@ class NotificationManager(object):
         Subscribe a callback to a list of events
 
         @param events: events you wish to subscribe to
-        @type events: C{list} of L{Event<OSAF.framework.notifications.schema.Event.Event>} items
+        @type events: C{list} of L{Event<osaf.framework.notifications.schema.Event.Event>} items
 
         @param clientID: The 'name' of this subscription.  Used to unsubscribe.
         @type clientID: L{UUID}
@@ -130,7 +130,7 @@ class NotificationManager(object):
         Get the next notification in the queue or None if there are no pending events
 
         @param notification: The notification you wish to send
-        @type notification: L{Notification<OSAF.framework.notifications.Notification.Notification>}
+        @type notification: L{Notification<osaf.framework.notifications.Notification.Notification>}
         """
         # for now we don't care who posts......
         # future version should check notification for validity

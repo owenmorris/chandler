@@ -58,13 +58,13 @@ class BookmarksBar(RectangularChild):
         sizer.Add((10, 0), 0, wx.EXPAND)
         
     def bookmarkPressed(self, text):
-        item = Node.GetItemFromPath(text, '//parcels/OSAF/views/main/URLRoot')
+        item = Node.GetItemFromPath(text, '//parcels/osaf/views/main/URLRoot')
         """
           If a parcel takes the focus upon a SelectionChanged event, we must take the focus back
         temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
         """
         Globals.wxApplication.mainFrame.SetFocus()
-        self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+        self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':item})
         
     def OnViewBookmarksBarEvent(self, notification):
@@ -112,14 +112,14 @@ class NavigationBar(Toolbar):
         tool = Globals.wxApplication.mainFrame.FindWindowById(event.GetId())
         url = tool.GetValue()
         try:
-            item = Node.GetItemFromPath(url, '//parcels/OSAF/views/main/URLRoot')
+            item = Node.GetItemFromPath(url, '//parcels/osaf/views/main/URLRoot')
         except BadURL:
             dialog = wx.MessageDialog(None, 'The url "' + str(url) + '" does not exist', 
                                      'Chandler',
                                      style=wx.OK|wx.CENTRE)
             dialog.ShowModal()
         else:
-            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
         
     def OnViewNavigationBarEvent(self, notification):
@@ -145,7 +145,7 @@ class NavigationBar(Toolbar):
             temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
             """
             Globals.wxApplication.mainFrame.SetFocus()
-            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
     def GoForward(self):
@@ -157,7 +157,7 @@ class NavigationBar(Toolbar):
             temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
             """
             Globals.wxApplication.mainFrame.SetFocus()
-            self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
     def OnSelectionChangedEvent (self, notification):
@@ -169,7 +169,7 @@ class NavigationBar(Toolbar):
 
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
-        urlBox = Globals.repository.find ('//parcels/OSAF/views/main/URLBox')
+        urlBox = Globals.repository.find ('//parcels/osaf/views/main/URLBox')
         wxURLBox = Globals.association[urlBox.itsUUID]
         wxURLBox.SetValue(path)
         

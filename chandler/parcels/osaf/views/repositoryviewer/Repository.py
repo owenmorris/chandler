@@ -7,7 +7,7 @@ __copyright__ = "Copyright (c) 200 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import OSAF.framework.blocks.ControlBlocks as ControlBlocks
+import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
 class RepositoryDelegate:
     """ Used by the tree in the repository view

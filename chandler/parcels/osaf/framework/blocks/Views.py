@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 from ContainerBlocks import *
 from MenuBlocks import MenuEntry
-from OSAF.framework.notifications.Notification import Notification
+from osaf.framework.notifications.Notification import Notification
 import wx
 
 class View(BoxContainer):
@@ -109,7 +109,7 @@ class View(BoxContainer):
         menu or menuItem. If it's not the same as the last time the focus
         changed then we need to rebuild the menus.
         """
-        from OSAF.framework.blocks.MenuBlocks import Menu, MenuItem
+        from osaf.framework.blocks.MenuBlocks import Menu, MenuItem
 
         Globals.activeView = block
         while (block):

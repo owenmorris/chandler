@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
-from OSAF.framework.notifications.schema.Event import Event
+from osaf.framework.notifications.schema.Event import Event
 import wx
 import logging
 

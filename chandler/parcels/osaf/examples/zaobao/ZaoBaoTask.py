@@ -4,8 +4,8 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from OSAF.framework.tasks.Action import Action
-from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
+from osaf.framework.tasks.Action import Action
+from osaf.examples.zaobao.RSSData import ZaoBaoParcel
 from repository.item.Query import KindQuery, TextQuery
 import socket
 import logging

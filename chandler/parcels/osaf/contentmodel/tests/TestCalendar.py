@@ -9,9 +9,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import OSAF.contentmodel.calendar.Calendar as Calendar
-import OSAF.contentmodel.tests.TestContentModel as TestContentModel
-import OSAF.contentmodel.tests.GenerateItems as GenerateItems
+import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.tests.TestContentModel as TestContentModel
+import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
 import mx.DateTime as DateTime
 
@@ -21,7 +21,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testCalendar(self):
         """ Simple test for creating instances of calendar related kinds """
 
-        self.loadParcel("OSAF/contentmodel/calendar")
+        self.loadParcel("osaf/contentmodel/calendar")
 
         def _verifyCalendarEvent(event):
             self.assertEqual(event.headline, "simple headline")
@@ -45,7 +45,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                               "simple location")
 
         # Check that the globals got created by the parcel
-        calendarPath = '//parcels/OSAF/contentmodel/calendar/%s'
+        calendarPath = '//parcels/osaf/contentmodel/calendar/%s'
         
         self.assertEqual(Calendar.CalendarParcel.getCalendarEventKind(),
                          self.rep.find(calendarPath % 'CalendarEvent'))
@@ -95,7 +95,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testTimeFields(self):
         """ Test time related fields and methods """
         
-        self.loadParcel("OSAF/contentmodel/calendar")
+        self.loadParcel("osaf/contentmodel/calendar")
 
         # Test getDuration
         firstItem = Calendar.CalendarEvent()
@@ -119,7 +119,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testDeleteItem(self):
         """ Test calendar event deletion """
         
-        self.loadParcel("OSAF/contentmodel/calendar")
+        self.loadParcel("osaf/contentmodel/calendar")
 
         item = Calendar.CalendarEvent()
         path = item.itsPath
@@ -131,7 +131,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
     def testGeneratedEvents(self):
 
-        self.loadParcel("OSAF/contentmodel/calendar")
+        self.loadParcel("osaf/contentmodel/calendar")
 
         GenerateItems.GenerateCalendarEvents(100, 100)
         self.rep.commit()

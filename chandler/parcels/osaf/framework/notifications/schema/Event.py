@@ -4,7 +4,7 @@
 """
 
 from repository.item.Item import Item
-from OSAF.framework.notifications.Notification import Notification
+from osaf.framework.notifications.Notification import Notification
 import application.Globals as Globals
 
 class Event(Item):

@@ -9,8 +9,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import OSAF.contentmodel.tests.TestContentModel as TestContentModel
-import OSAF.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.tests.TestContentModel as TestContentModel
+import osaf.contentmodel.mail.Mail as Mail
 
 import mx.DateTime as DateTime
 
@@ -20,13 +20,13 @@ class MailTest(TestContentModel.ContentModelTestCase):
     def testMail(self):
         """ Simple test for creating instances of email related kinds """
 
-        self.loadParcel("OSAF/contentmodel/mail")
+        self.loadParcel("osaf/contentmodel/mail")
 
         def _verifyMailMessage(message):
             pass
 
         # Test the globals
-        mailPath = '//parcels/OSAF/contentmodel/mail/%s'
+        mailPath = '//parcels/osaf/contentmodel/mail/%s'
 
         self.assertEqual(Mail.MailParcel.getAttachmentKind(),
                          self.rep.find(mailPath % 'Attachment'))

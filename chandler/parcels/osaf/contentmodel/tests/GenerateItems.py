@@ -11,10 +11,10 @@ import random
 
 from mx import DateTime
 
-import OSAF.contentmodel.calendar.Calendar as Calendar
-import OSAF.contentmodel.contacts.Contacts as Contacts
-import OSAF.contentmodel.mail.Mail as Mail
-import OSAF.contentmodel.notes.Notes as Notes
+import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.notes.Notes as Notes
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 

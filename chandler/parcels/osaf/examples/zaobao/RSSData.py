@@ -7,7 +7,7 @@ import application.Globals as Globals
 from repository.item.Item import Item
 from repository.util.Path import Path
 from repository.parcel.Parcel import Parcel
-from OSAF.contentmodel.ContentModel import ContentItem
+from osaf.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import types
 import feedparser

@@ -5,12 +5,12 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/repositoryviewer"
+<core:Parcel describes="//parcels/osaf/views/repositoryviewer"
              itemName="repositoryviewer"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:doc="//parcels/OSAF/views/repositoryviewer"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:doc="//parcels/osaf/views/repositoryviewer"
+             xmlns:events="//parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
 
@@ -64,7 +64,7 @@
   -->
   <Tree itemName="RepositoryTree">
     <!-- Attributes -->
-    <elementDelegate>OSAF.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
+    <elementDelegate>osaf.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
 
     <hideRoot>False</hideRoot>
     <noLines>False</noLines>
@@ -88,7 +88,7 @@
   </Tree>
  
   <ItemDetail itemName="ItemDetail"
-              itemClass="OSAF.views.repositoryviewer.Repository.RepositoryItemDetail">
+              itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
     <!-- Attributes -->
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>

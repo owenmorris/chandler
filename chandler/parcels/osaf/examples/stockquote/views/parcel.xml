@@ -5,14 +5,14 @@
 
 <Parcel itemName="views"
         xmlns="//Schema/Core"
-        xmlns:blocks="//parcels/OSAF/framework/blocks"
-        xmlns:views="//parcels/OSAF/examples/stockquote/views"
-        itemClass="OSAF.examples.stockquote.StockQuote.StockQuoteViewParcel">
+        xmlns:blocks="//parcels/osaf/framework/blocks"
+        xmlns:views="//parcels/osaf/examples/stockquote/views"
+        itemClass="osaf.examples.stockquote.StockQuote.StockQuoteViewParcel">
 
   <!-- The main block for the view: -->
 
   <blocks:BoxContainer itemName="StockQuoteView"
-        itemClass="OSAF.examples.stockquote.StockQuote.StockQuoteView">
+        itemClass="osaf.examples.stockquote.StockQuote.StockQuoteView">
 
     <displayName>Stock Quote</displayName>
     <childrenBlocks itemref="views:StockQuoteView/TitleLabel"/>

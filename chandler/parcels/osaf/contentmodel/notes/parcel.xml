@@ -5,12 +5,12 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/contentmodel/notes"
+<Parcel describes="//parcels/osaf/contentmodel/notes"
         itemName="notes"
-	itemClass="OSAF.contentmodel.notes.Notes.NotesParcel"
+	itemClass="osaf.contentmodel.notes.Notes.NotesParcel"
         xmlns="//Schema/Core"
-        xmlns:content="//parcels/OSAF/contentmodel"
-        xmlns:notes="//parcels/OSAF/contentmodel/notes">
+        xmlns:content="//parcels/osaf/contentmodel"
+        xmlns:notes="//parcels/osaf/contentmodel/notes">
 
   <displayName>Notes Content Model</displayName>
   <version>0.3</version>
@@ -55,7 +55,7 @@
     <attributes itemref="notes:title"/>
     <attributes itemref="notes:body"/>
     <attributes itemref="notes:attachedToItems"/>
-    <classes key="python">OSAF.contentmodel.notes.Notes.Note</classes>
+    <classes key="python">osaf.contentmodel.notes.Notes.Note</classes>
   </Kind>
 
   <!-- Conversation -->
@@ -92,7 +92,7 @@
     <superKinds itemref="content:ContentItem"/>
     <attributes itemref="notes:subjectItem"/>
     <attributes itemref="notes:conversationLines"/>
-    <classes key="python">OSAF.contentmodel.notes.Notes.Conversation</classes>
+    <classes key="python">osaf.contentmodel.notes.Notes.Conversation</classes>
   </Kind>
 
   <!-- Conversation -->

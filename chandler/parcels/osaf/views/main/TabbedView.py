@@ -4,9 +4,9 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import OSAF.framework.blocks.ControlBlocks as ControlBlocks
-from OSAF.framework.blocks.Node import Node as Node
-from OSAF.framework.blocks.Block import Block as Block
+import osaf.framework.blocks.ControlBlocks as ControlBlocks
+from osaf.framework.blocks.Node import Node as Node
+from osaf.framework.blocks.Block import Block as Block
 from repository.util.UUID import UUID
 
 class TabbedView(ControlBlocks.TabbedContainer):
@@ -52,7 +52,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
 
     def OnNewTabEvent (self, notification):
         tabbedContainer = Globals.association[self.itsUUID]
-        kind = Globals.repository.find("parcels/OSAF/framework/blocks/HTML")
+        kind = Globals.repository.find("parcels/osaf/framework/blocks/HTML")
         self.activeTab = tabbedContainer.GetPageCount()
         self.tabTitles.append(self.getUniqueName("untitled"))
         

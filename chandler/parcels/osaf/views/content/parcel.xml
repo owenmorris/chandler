@@ -5,15 +5,15 @@
 <!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/content"
+<core:Parcel describes="//parcels/osaf/views/content"
              itemName="content"
-             xmlns="//parcels/OSAF/framework/blocks"
+             xmlns="//parcels/osaf/framework/blocks"
 	     xmlns:core="//Schema/Core"
-             xmlns:calendarBlocks="//parcels/OSAF/framework/blocks/calendar"
-             xmlns:calendarModel="//parcels/OSAF/contentmodel/calendar"
-             xmlns:noteModel="//parcels/OSAF/contentmodel/notes"
-             xmlns:contactsModel="//parcels/OSAF/contentmodel/contacts"
-	     xmlns:view="//parcels/OSAF/views/content">
+             xmlns:calendarBlocks="//parcels/osaf/framework/blocks/calendar"
+             xmlns:calendarModel="//parcels/osaf/contentmodel/calendar"
+             xmlns:noteModel="//parcels/osaf/contentmodel/notes"
+             xmlns:contactsModel="//parcels/osaf/contentmodel/contacts"
+	     xmlns:view="//parcels/osaf/views/content">
 
   <core:version>0.3</core:version>
 
@@ -45,7 +45,7 @@
   <List itemName="CalendarList">
     <contentSpec itemref="view:calendarQuery"/>
 
-    <elementDelegate>OSAF.views.content.Content.CalendarListDelegate</elementDelegate>
+    <elementDelegate>osaf.views.content.Content.CalendarListDelegate</elementDelegate>
 
     <columnHeadings>Participants</columnHeadings>
     <columnHeadings>Headline</columnHeadings>
@@ -66,7 +66,7 @@
   <List itemName="ContactList">
     <contentSpec itemref="view:contactQuery"/>
 
-    <elementDelegate>OSAF.views.content.Content.ContactListDelegate</elementDelegate>
+    <elementDelegate>osaf.views.content.Content.ContactListDelegate</elementDelegate>
     
     <columnHeadings>First Name</columnHeadings>
     <columnHeadings>Last Name</columnHeadings>
@@ -89,7 +89,7 @@
   <List itemName="NoteList">
     <contentSpec itemref="view:notesQuery"/>
 
-    <elementDelegate>OSAF.views.content.Content.NoteListDelegate</elementDelegate>
+    <elementDelegate>osaf.views.content.Content.NoteListDelegate</elementDelegate>
 
     <columnHeadings>Description</columnHeadings>
     <columnHeadings>Created On</columnHeadings>
@@ -140,7 +140,7 @@
   <Summary itemName="MixedList">
     <contentSpec itemref="view:mixedQuery"/>
 
-    <elementDelegate>OSAF.views.content.Content.MixedListDelegate</elementDelegate>
+    <elementDelegate>osaf.views.content.Content.MixedListDelegate</elementDelegate>
 
     <columnHeadings>Who (Participants)</columnHeadings>
     <columnHeadings>About (Headline)</columnHeadings>
@@ -158,7 +158,7 @@
   </Summary>
 
   <ItemDetail itemName="ContentItemDetail"
-              itemClass="OSAF.views.content.Content.ContentItemDetail">
+              itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
@@ -168,7 +168,7 @@
   </ItemDetail>
 
   <ItemDetail itemName="CalendarEventDetail"
-              itemClass="OSAF.views.content.Content.ContentItemDetail">
+              itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
@@ -178,7 +178,7 @@
   </ItemDetail>
 
   <ItemDetail itemName="ContactDetail"
-              itemClass="OSAF.views.content.Content.ContentItemDetail">
+              itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
@@ -188,7 +188,7 @@
   </ItemDetail>
 
   <ItemDetail itemName="NoteDetail"
-              itemClass="OSAF.views.content.Content.ContentItemDetail">
+              itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>

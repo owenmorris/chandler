@@ -11,7 +11,7 @@ import unittest, os
 
 import repository.parcel.LoadParcels as LoadParcels
 import repository.tests.RepositoryTestCase as RepositoryTestCase
-import OSAF.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
@@ -19,7 +19,7 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         RepositoryTestCase.RepositoryTestCase.setUp(self)
 
         Globals.repository = self.rep
-        self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
+        self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
 
     def loadParcel(self, relPath):
         """
@@ -27,7 +27,7 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         """
         uri = "//parcels/%s" % relPath
         uri = uri.replace(os.path.sep, "/")
-        parcelDir = os.path.join(self.rootdir, 'Chandler', 'parcels', relPath)
+        parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
         LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
         self.assert_(self.rep.find(uri))
 
@@ -35,7 +35,7 @@ class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
 
-        self.loadParcel("OSAF/contentmodel")
+        self.loadParcel("osaf/contentmodel")
 
         def checkGroupItemLink(group, contentItem):
             self.assertEqual(len(contentItem.groups), 1)

@@ -11,7 +11,7 @@ import application.Globals as Globals
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
 
-import OSAF.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 import mx.DateTime as DateTime
@@ -88,7 +88,7 @@ class CalendarEvent(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
-            kind = Globals.repository.find ("//parcels/OSAF/contentmodel/calendar/CalendarEvent")
+            kind = Globals.repository.find ("//parcels/osaf/contentmodel/calendar/CalendarEvent")
         ContentModel.ContentItem.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()

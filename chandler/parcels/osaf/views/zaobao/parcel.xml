@@ -5,13 +5,13 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/zaobao"
+<core:Parcel describes="//parcels/osaf/views/zaobao"
              itemName="zaobao"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:doc="//parcels/OSAF/views/zaobao"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events"
-             xmlns:zb="//parcels/OSAF/examples/zaobao">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:doc="//parcels/osaf/views/zaobao"
+             xmlns:events="//parcels/osaf/framework/blocks/Events"
+             xmlns:zb="//parcels/osaf/examples/zaobao">
 
   <core:version>0.3</core:version>
 
@@ -73,7 +73,7 @@
   <!-- The main ZaoBao view -->
 
   <Tree itemName="ZaoBaoTree">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
     <rootPath itemref="zb:RSSChannel"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -129,7 +129,7 @@
   </BoxContainer>
 
   <HTML itemName="AboutZaoBao">
-    <url>parcels/OSAF/examples/zaobao/AboutZaoBao.html</url>
+    <url>parcels/osaf/examples/zaobao/AboutZaoBao.html</url>
     <eventBoundary>True</eventBoundary>
     <open>True</open>
     <size>900,580</size>
@@ -165,7 +165,7 @@
   <!-- Example single channel view -->
 
   <Tree itemName="ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:osaf"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -211,7 +211,7 @@
 
 
   <Tree itemName="chandlerwiki_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chandlerwiki"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -256,7 +256,7 @@
 
 
   <Tree itemName="junglewiki_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:junglewiki"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -302,7 +302,7 @@
 
 
   <Tree itemName="ted_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:ted"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -348,7 +348,7 @@
 
 
   <Tree itemName="zaobao_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:zaobao"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -395,7 +395,7 @@
 
 
   <Tree itemName="chao_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chao"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -442,7 +442,7 @@
 
 
   <Tree itemName="lessig_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:lessig"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -489,7 +489,7 @@
 
 
   <Tree itemName="mark_ChannelList">
-    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:diveintomark"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>

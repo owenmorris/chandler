@@ -5,16 +5,16 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/main"
+<core:Parcel describes="//parcels/osaf/views/main"
              itemName="main"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:doc="//parcels/OSAF/views/main"
-             xmlns:events="//parcels/OSAF/framework/blocks/Events"
-             xmlns:repository="//parcels/OSAF/views/repositoryviewer"
-             xmlns:demo="//parcels/OSAF/views/demo"
-             xmlns:content="//parcels/OSAF/views/content"
-             xmlns:zaobao="//parcels/OSAF/views/zaobao">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:doc="//parcels/osaf/views/main"
+             xmlns:events="//parcels/osaf/framework/blocks/Events"
+             xmlns:repository="//parcels/osaf/views/repositoryviewer"
+             xmlns:demo="//parcels/osaf/views/demo"
+             xmlns:content="//parcels/osaf/views/content"
+             xmlns:zaobao="//parcels/osaf/views/zaobao">
 
   <core:version>0.3</core:version>
 
@@ -279,7 +279,7 @@
     Status Bar
   -->
   <StatusBar itemName="StatusBar"
-             itemClass="OSAF.framework.blocks.NavigationBlocks.ChandlerStatusBar">
+             itemClass="osaf.framework.blocks.NavigationBlocks.ChandlerStatusBar">
   </StatusBar>
 
   <!-- 
@@ -445,7 +445,7 @@
   </HTML>
 
   <TabbedContainer itemName="TabbedView"
-                   itemClass="OSAF.views.main.TabbedView.TabbedView">
+                   itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:AboutChandlerHTML"/>
 
@@ -460,7 +460,7 @@
 
   <Tree itemName="Sidebar">
     <!-- Attributes -->
-    <elementDelegate>OSAF.views.main.SideBar.SideBarDelegate</elementDelegate>
+    <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:AboutChandler"/>
 
     <hideRoot>True</hideRoot>
@@ -525,7 +525,7 @@
   </BoxContainer>
 
   <View itemName="MainView"
-        itemClass="OSAF.views.main.Main.MainView">
+        itemClass="osaf.views.main.Main.MainView">
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:NewTabItem"/>

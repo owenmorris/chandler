@@ -21,7 +21,7 @@ dependencies = (
                 'SOAPpy',
                 'pychecker',
                 # 'm2crypto',
-                'Chandler/repository'
+                'chandler/repository'
                )
 
 def build(buildenv):
@@ -435,7 +435,7 @@ def generateDocs(buildenv):
                           '-o %s -v -n Chandler' % targetDir,
                           '--inheritance listed',
                           '--no-private',
-                          'parcels/OSAF/framework/notifications',
+                          'parcels/osaf/framework/notifications',
                           'repository/item',
                           'repository/schema')
 

@@ -12,7 +12,7 @@ __all__ = ['getIndex']
 def getIndex(name):
     repository = Globals.repository
     ITEM_KIND_PATH = '//Schema/Core/Item'
-    INDEX_KIND_PATH = '//parcels/OSAF/framework/utils/indexer/Index'
+    INDEX_KIND_PATH = '//parcels/osaf/framework/utils/indexer/Index'
 
     index = repository.find('//userdata/indexes/' + name)
     if index:

@@ -5,7 +5,7 @@
 
 <Parcel itemName="views"
         xmlns="//Schema/Core"
-        xmlns:blocks="//parcels/OSAF/framework/blocks"
+        xmlns:blocks="//parcels/osaf/framework/blocks"
         xmlns:views="//parcels/pkitest/views"
         itemClass="pkitest.PKITest.PKITestViewParcel">
 
@@ -256,7 +256,7 @@
 
     <blocks:Tree itemName="RepositoryTree">
       <!-- Attributes -->
-      <elementDelegate>OSAF.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
+      <elementDelegate>osaf.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
 
       <hideRoot>False</hideRoot>
       <noLines>False</noLines>

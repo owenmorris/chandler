@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AttributeMap>
-<RootKind>//parcels/OSAF/contentmodel/contacts/Contact</RootKind>
+<RootKind>//parcels/osaf/contentmodel/contacts/Contact</RootKind>
 <EmptyDate>0/0/00</EmptyDate>
 <Attribute name="contactName">
     <Attribute name="firstName">

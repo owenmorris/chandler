@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//parcels/OSAF/examples/zaobao"
+<Parcel describes="//parcels/osaf/examples/zaobao"
         itemName="zaobao"
-        itemClass="OSAF.examples.zaobao.RSSData.ZaoBaoParcel"
+        itemClass="osaf.examples.zaobao.RSSData.ZaoBaoParcel"
         xmlns="//Schema/Core"
-        xmlns:zaobao="//parcels/OSAF/examples/zaobao"
-        xmlns:fw="//parcels/OSAF/framework"
-        xmlns:task="//parcels/OSAF/framework/tasks"
-        xmlns:content="//parcels/OSAF/contentmodel"
-        xmlns:docSchema="//parcels/OSAF/framework/blocks">
+        xmlns:zaobao="//parcels/osaf/examples/zaobao"
+        xmlns:fw="//parcels/osaf/framework"
+        xmlns:task="//parcels/osaf/framework/tasks"
+        xmlns:content="//parcels/osaf/contentmodel"
+        xmlns:docSchema="//parcels/osaf/framework/blocks">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.4 release</description>
@@ -105,7 +105,7 @@
     <attributes itemref="zaobao:RSSChannel/items"/>
 
     <superKinds itemref="content:ContentItem"/>
-    <classes key="python">OSAF.examples.zaobao.RSSData.RSSChannel</classes>
+    <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
   </Kind>  
 
 
@@ -134,7 +134,7 @@
 
     <attributes itemref="zaobao:RSSItem/channel"/>
     <superKinds itemref="content:ContentItem"/>
-    <classes key="python">OSAF.examples.zaobao.RSSData.RSSItem</classes>
+    <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
   </Kind>
 
 
@@ -150,7 +150,7 @@
       <task:repeatDelay>00:00:05:00</task:repeatDelay>
     </task:Schedule>
 
-    <task:Action itemName="GetFeeds" itemClass="OSAF.examples.zaobao.ZaoBaoTask.UpdateAction">
+    <task:Action itemName="GetFeeds" itemClass="osaf.examples.zaobao.ZaoBaoTask.UpdateAction">
       <description>Gets and updates all the feeds</description>
     </task:Action>
 
@@ -162,7 +162,7 @@
 
   <!-- view related stuff -->
   <Kind itemName="ZaoBaoItemDetail">
-    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
+    <classes key="python">osaf.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
     <superKinds itemref="docSchema:ItemDetail"/>
   </Kind>  
 

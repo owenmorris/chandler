@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework/blocks"
+<Parcel describes="//parcels/osaf/framework/blocks"
         itemName="blocks"
         xmlns="//Schema/Core"
-        xmlns:docSchema="//parcels/OSAF/framework/blocks"
-        xmlns:events="//parcels/OSAF/framework/notifications/schema">
+        xmlns:docSchema="//parcels/osaf/framework/blocks"
+        xmlns:events="//parcels/osaf/framework/notifications/schema">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
@@ -44,26 +44,26 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Struct itemName="ColorType" itemClass="OSAF.framework.blocks.DocumentTypes.ColorStruct">
+  <Struct itemName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct">
     <fields key="red"></fields>
     <fields key="green"></fields>
     <fields key="blue"></fields>
     <fields key="alpha"></fields>
-    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.ColorType</implementationTypes>
+    <implementationTypes key="python">osaf.framework.blocks.DocumentTypes.ColorType</implementationTypes>
   </Struct>
  
-  <Struct itemName="SizeType" itemClass="OSAF.framework.blocks.DocumentTypes.SizeStruct">
+  <Struct itemName="SizeType" itemClass="osaf.framework.blocks.DocumentTypes.SizeStruct">
     <fields key="width"></fields>
     <fields key="height"></fields>
-    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.SizeType</implementationTypes>
+    <implementationTypes key="python">osaf.framework.blocks.DocumentTypes.SizeType</implementationTypes>
   </Struct>
  
-  <Struct itemName="RectType" itemClass="OSAF.framework.blocks.DocumentTypes.RectStruct">
+  <Struct itemName="RectType" itemClass="osaf.framework.blocks.DocumentTypes.RectStruct">
     <fields key="top"></fields>
     <fields key="left"></fields>
     <fields key="bottom"></fields>
     <fields key="right"></fields>
-    <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.RectType</implementationTypes>
+    <implementationTypes key="python">osaf.framework.blocks.DocumentTypes.RectType</implementationTypes>
   </Struct>
  
   <Enumeration itemName="textAlignmentEnumType">
@@ -103,7 +103,7 @@
     Chandler Query
   -->
   <Kind itemName="Query">
-    <classes key="python">OSAF.framework.blocks.Query.Query</classes>
+    <classes key="python">osaf.framework.blocks.Query.Query</classes>
     <superKinds itemref="Item"/>
 
     <Attribute itemName="usedInBlocks">
@@ -153,7 +153,7 @@
     Named styles
   -->
   <Kind itemName="Style">
-    <classes key="python">OSAF.framework.blocks.Styles.Style</classes>
+    <classes key="python">osaf.framework.blocks.Styles.Style</classes>
     <superKinds itemref="Item"/>
     
     <Attribute itemName="usedInBlocks">
@@ -166,7 +166,7 @@
   </Kind>
 
   <Kind itemName="CharacterStyle">
-    <classes key="python">OSAF.framework.blocks.Styles.CharacterStyle</classes>
+    <classes key="python">osaf.framework.blocks.Styles.CharacterStyle</classes>
     <superKinds itemref="docSchema:Style"/>
 
     <attributes itemref="docSchema:fontFamily"/>
@@ -192,7 +192,7 @@
   -->
 
   <Kind itemName="BlockEvent">
-    <classes key="python">OSAF.framework.blocks.Block.BlockEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="events:Event"/>
 
     <Enumeration itemName="dispatchEnumType">
@@ -220,7 +220,7 @@
   </Kind>
 
   <Kind itemName="ChoiceEvent">
-    <classes key="python">OSAF.framework.blocks.Block.ChoiceEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.ChoiceEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itemName="choice">
@@ -245,7 +245,7 @@
   -->
 
   <Kind itemName="Block">
-    <classes key="python">OSAF.framework.blocks.Block.Block</classes>
+    <classes key="python">osaf.framework.blocks.Block.Block</classes>
     <superKinds itemref="Item"/>
 
     <Attribute itemName="contentSpec">
@@ -294,7 +294,7 @@
     View
   -->
   <Kind itemName="View">
-    <classes key="python">OSAF.framework.blocks.Views.View</classes>
+    <classes key="python">osaf.framework.blocks.Views.View</classes>
     <superKinds itemref="docSchema:BoxContainer"/>
   </Kind>
 
@@ -302,7 +302,7 @@
     ContainerChild is the most generic child of a container
   -->
   <Kind itemName="ContainerChild">
-    <classes key="python">OSAF.framework.blocks.Block.ContainerChild</classes>
+    <classes key="python">osaf.framework.blocks.Block.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
   </Kind>
 
@@ -310,7 +310,7 @@
     RectangularChild is a rectangular child of a container
   -->
   <Kind itemName="RectangularChild">
-    <classes key="python">OSAF.framework.blocks.Block.RectangularChild</classes>
+    <classes key="python">osaf.framework.blocks.Block.RectangularChild</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="size">
@@ -363,7 +363,7 @@
     BoxContainer
   -->
   <Kind itemName="BoxContainer">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.BoxContainer</classes>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.BoxContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:orientationEnum"/>
@@ -373,7 +373,7 @@
     EmbeddedContainer
   -->
   <Kind itemName="EmbeddedContainer">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.EmbeddedContainer</classes>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.EmbeddedContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>
   
@@ -381,7 +381,7 @@
     Menu Entries are either MenuItems or Menus
   -->
   <Kind itemName="MenuEntry">
-    <classes key="python">OSAF.framework.blocks.MenuBlocks.MenuEntry</classes>
+    <classes key="python">osaf.framework.blocks.MenuBlocks.MenuEntry</classes>
     <superKinds itemref="docSchema:Block"/>
 
     <Attribute itemName="title">
@@ -425,7 +425,7 @@
     MenuItem
   -->
   <Kind itemName="MenuItem">
-    <classes key="python">OSAF.framework.blocks.MenuBlocks.MenuItem</classes>
+    <classes key="python">osaf.framework.blocks.MenuBlocks.MenuItem</classes>
     <superKinds itemref="docSchema:MenuEntry"/>
 
     <Enumeration itemName="menuItemKindEnumType">
@@ -454,7 +454,7 @@
     Menu
   -->
   <Kind itemName="Menu">
-    <classes key="python">OSAF.framework.blocks.MenuBlocks.Menu</classes>
+    <classes key="python">osaf.framework.blocks.MenuBlocks.Menu</classes>
     <superKinds itemref="docSchema:MenuEntry"/>
   </Kind>
 
@@ -463,7 +463,7 @@
     Button
   -->
   <Kind itemName="Button">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.Button</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Button</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
@@ -500,7 +500,7 @@
     Choice
   -->
   <Kind itemName="Choice">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.Choice</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Choice</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="choices">
@@ -520,7 +520,7 @@
     ComboBox
   -->
   <Kind itemName="ComboBox">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.ComboBox</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ComboBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="selection">
@@ -545,7 +545,7 @@
     EditText
   -->
   <Kind itemName="EditText">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.EditText</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.EditText</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="lineStyleEnumType">
@@ -581,7 +581,7 @@
     HTML
   -->
   <Kind itemName="HTML">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.HTML</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.HTML</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="url">
@@ -595,7 +595,7 @@
     List
   -->
   <Kind itemName="List">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.List</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:columnHeadings"/>
@@ -608,7 +608,7 @@
     Summary
   -->
   <Kind itemName="Summary">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.Summary</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Summary</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:columnHeadings"/>
@@ -621,7 +621,7 @@
     Tree
   -->
   <Kind itemName="Tree">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.Tree</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.Tree</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="hideRoot">
@@ -660,7 +660,7 @@
     RadioBox
   -->
   <Kind itemName="RadioBox">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.RadioBox</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.RadioBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
@@ -696,7 +696,7 @@
     ScrolledWindow
   -->
   <Kind itemName="ScrolledWindow">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.ScrolledWindow</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ScrolledWindow</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
   </Kind>    
@@ -705,7 +705,7 @@
     SplitWindow
   -->
   <Kind itemName="SplitWindow">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitWindow</classes>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.SplitWindow</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="splitPercentage">
@@ -720,7 +720,7 @@
     StaticText
   -->
   <Kind itemName="StaticText">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.StaticText</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.StaticText</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="title">
@@ -736,7 +736,7 @@
     StatusBar
   -->
   <Kind itemName="StatusBar">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.StatusBar</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.StatusBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>
 
@@ -744,7 +744,7 @@
     TabbedContainer
   -->
   <Kind itemName="TabbedContainer">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TabbedContainer</classes>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.TabbedContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="tabPosEnumType">
@@ -771,7 +771,7 @@
     Toolbar
   -->
   <Kind itemName="Toolbar">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Toolbar</classes>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.Toolbar</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="toolSize">
@@ -785,7 +785,7 @@
     ToolbarItem
   -->
   <Kind itemName="ToolbarItem">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.ToolbarItem</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="toolbarLocation">
@@ -831,7 +831,7 @@
   <!-- Item Detail Block  -->
 
   <Kind itemName="ItemDetail">
-    <classes key="python">OSAF.framework.blocks.ControlBlocks.ItemDetail</classes>
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ItemDetail</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:selection"/>
@@ -841,7 +841,7 @@
     NavigationBar
   -->
   <Kind itemName="NavigationBar">
-    <classes key="python">OSAF.framework.blocks.NavigationBlocks.NavigationBar</classes>
+    <classes key="python">osaf.framework.blocks.NavigationBlocks.NavigationBar</classes>
     <superKinds itemref="docSchema:Toolbar"/>
   </Kind>  
 
@@ -849,7 +849,7 @@
     BookmarksBar
   -->
   <Kind itemName="BookmarksBar">
-    <classes key="python">OSAF.framework.blocks.NavigationBlocks.BookmarksBar</classes>
+    <classes key="python">osaf.framework.blocks.NavigationBlocks.BookmarksBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="bookmarksPath">
@@ -863,7 +863,7 @@
     Node, used to store URL space in repository
   -->
   <Kind itemName="Node">
-    <classes key="python">OSAF.framework.blocks.Node.Node</classes>
+    <classes key="python">osaf.framework.blocks.Node.Node</classes>
     <superKinds itemref="Item"/>
 
     <Attribute itemName="parent">

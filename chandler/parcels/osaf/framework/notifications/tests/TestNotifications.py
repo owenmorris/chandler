@@ -12,22 +12,22 @@ import unittest, os
 import application.Globals as Globals
 import repository.item.Item as Item
 
-from OSAF.framework.notifications.Notification import Notification
+from osaf.framework.notifications.Notification import Notification
 
 def MakeEvent():
-    eventKind = Globals.repository.find('//parcels/OSAF/framework/notifications/schema/Event')
+    eventKind = Globals.repository.find('//parcels/osaf/framework/notifications/schema/Event')
     event = eventKind.newItem(None, Globals.repository)
     return event
 
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'History':
-        eventPath = '//parcels/OSAF/framework/item_' + reason
+        eventPath = '//parcels/osaf/framework/item_' + reason
     else:
         return
 
     event = Globals.repository.find(eventPath)
 
-    from OSAF.framework.notifications.Notification import Notification
+    from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
     d = { 'uuid' : uuid, 'keywords' : kwds }
@@ -44,11 +44,11 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         """ load only the parcel we need (and it's dependencies) """
         import repository.parcel.LoadParcels as LoadParcels
 
-        self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
+        self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
 
         uri = "//parcels/%s" % relPath
         uri = uri.replace(os.path.sep, "/")
-        parcelDir = os.path.join(self.rootdir, 'Chandler', 'parcels', relPath)
+        parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
         LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
         self.assert_(self.rep.find(uri))
 
@@ -60,14 +60,14 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
         # Load the parcels
         #
-        #self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
+        #self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
         #import repository.parcel.LoadParcels as LoadParcels
         #LoadParcels.LoadParcels(self.parceldir, self.rep)
-        self._loadParcel("OSAF/framework/notifications/schema")
-        self._loadParcel("OSAF/framework")
+        self._loadParcel("osaf/framework/notifications/schema")
+        self._loadParcel("osaf/framework")
 
         # Create and start the notification manager
-        from OSAF.framework.notifications.NotificationManager import NotificationManager
+        from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
 
     def test_Subscribe(self):
@@ -123,11 +123,11 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
             print 'Deleted:', uuid
 
         # subscribe to changed, added, deleted events
-        e = rep.find('//parcels/OSAF/framework/item_changed')
+        e = rep.find('//parcels/osaf/framework/item_changed')
         nm.Subscribe([e], 1, onItemChanged)
-        e = rep.find('//parcels/OSAF/framework/item_added')
+        e = rep.find('//parcels/osaf/framework/item_added')
         nm.Subscribe([e], 2, onItemAdded)
-        e = rep.find('//parcels/OSAF/framework/item_deleted')
+        e = rep.find('//parcels/osaf/framework/item_deleted')
         nm.Subscribe([e], 3, onItemDeleted)
 
         print 'adding event'

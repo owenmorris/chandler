@@ -33,9 +33,9 @@ class Parcel(Item):
 
         if not repository.find('//parcels'):
             parcels = Parcel('parcels', repository, parcelKind)
-        if not repository.find('//parcels/OSAF'):
+        if not repository.find('//parcels/osaf'):
             parcels = repository.find('//parcels')
-            osaf = Parcel('OSAF', parcels, parcelKind)
+            osaf = Parcel('osaf', parcels, parcelKind)
 
     setupParcels = staticmethod(setupParcels)
 

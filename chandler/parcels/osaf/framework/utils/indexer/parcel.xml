@@ -5,10 +5,10 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/OSAF/framework/utils/indexer"
+<Parcel describes="//parcels/osaf/framework/utils/indexer"
         itemName="indexer"
         xmlns="//Schema/Core"
-        xmlns:indexes="//parcels/OSAF/framework/utils/indexer">
+        xmlns:indexes="//parcels/osaf/framework/utils/indexer">
 
   <displayName>Indexer Schema</displayName>
   <description>Indexer schema</description>
@@ -34,7 +34,7 @@
 
     <attributes itemref="indexes:Index/items"/>
     <superKinds itemref="Item"/>
-    <classes key="python">OSAF.framework.utils.indexer.Index.Index</classes>
+    <classes key="python">osaf.framework.utils.indexer.Index.Index</classes>
   </Kind>
 
 </Parcel>

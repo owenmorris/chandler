@@ -5,16 +5,16 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/OSAF/views/locations"
+<core:Parcel describes="//parcels/osaf/views/locations"
              itemName="locations"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks"
-             xmlns:main="//parcels/OSAF/views/main"
-             xmlns:doc="//parcels/OSAF/views/locations"
-             xmlns:repository="//parcels/OSAF/views/repositoryviewer"
-             xmlns:demo="//parcels/OSAF/views/demo"
-             xmlns:content="//parcels/OSAF/views/content"
-             xmlns:zaobao="//parcels/OSAF/views/zaobao">
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:main="//parcels/osaf/views/main"
+             xmlns:doc="//parcels/osaf/views/locations"
+             xmlns:repository="//parcels/osaf/views/repositoryviewer"
+             xmlns:demo="//parcels/osaf/views/demo"
+             xmlns:content="//parcels/osaf/views/content"
+             xmlns:zaobao="//parcels/osaf/views/zaobao">
 
   <core:version>0.3</core:version>
 
