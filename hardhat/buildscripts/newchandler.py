@@ -283,7 +283,7 @@ def forceBuildNextCycle(log, workingDir):
         os.remove(chandlerMakefile)
     
 
-def doRealclean(log):
+def doRealclean(log, workingDir):
     try:
         # If make install fails, it will almost certainly fail next time
         # as well - the typical case has been bad binaries packages.
