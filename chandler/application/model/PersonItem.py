@@ -12,10 +12,13 @@ __license__ = "OSAF"
 from application.persist import Persist
 
 from EntityItem import EntityItem
+from PersonName import PersonName
 
 class PersonItem(EntityItem):
 
     rdfs = Persist.Dict()
+
+    rdfs[chandler.name] = RdfRestriction(PersonName, 1)
 
     def __init__(self):
         EntityItem.__init__(self)

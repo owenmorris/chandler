@@ -113,6 +113,18 @@
   <daml:sameClassAs rdf:resource="ical:VCALENDAR"/>
 </daml:Class>
 
+<daml:Class rdf:ID="EmailAddress">
+  <rdfs:label>EmailAddress</rdfs:label>
+</daml:Class>
+
+<daml:Class rdf:ID="Address">
+  <rdfs:label>Address</rdfs:label>
+</daml:Class>
+
+<daml:Class rdf:ID="PersonName">
+  <rdfs:label>PersonName</rdfs:label>
+</daml:Class>
+
 <daml:ObjectProperty rdf:ID="linkedWith">
   <rdfs:subPropertyOf rdf:resource="dc:relation"/>
 </daml:ObjectProperty>
@@ -151,6 +163,9 @@
   <rdfs:samePropertyAs rdf:resource="ical:LOCATION"/>
 </daml:ObjectProperty>
 
+<daml:ObjectProperty rdf:ID="email">
+</daml:ObjectProperty>
+
 <daml:DatatypeProperty rdf:ID="dateCreated">
   <rdfs:subPropertyOf rdf:resource="dc:date"/>
 </daml:DatatypeProperty>
@@ -174,6 +189,144 @@
 
 <daml:DatatypeProperty rdf:ID="importance">
 </daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="name">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="mbox">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="category">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="address1">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="address2">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="address3">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="city">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="state">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="country">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="zip">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="firstName">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="lastName">
+</daml:DatatypeProperty>
+
+<daml:DatatypeProperty rdf:ID="fullName">
+</daml:DatatypeProperty>
+
+<daml:Class rdf:about="PersonName">
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:firstName"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:lastName"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:fullName"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+</daml:Class>
+
+<daml:Class rdf:about="Address">
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:address1"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:address2"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:address3"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:city"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:state"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:country"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:zip"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+</daml:Class>
+
+<daml:Class rdf:about="EmailAddress">
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:name"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:mbox"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+      <daml:cardinality> 1 </daml:cardinality>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <daml:Restriction>
+      <daml:onProperty rdf:resource="chandler:category"/>
+      <daml:toClass rdf:resource="xsd:string"/>
+    </daml:Restriction>
+  </rdfs:subClassOf>
+</daml:Class>
 
 <daml:Class rdf:about="InformationItem">
   <rdfs:subClassOf>

@@ -1,6 +1,6 @@
 #!bin/env python
 
-"""Model object representing a Place in Chandler
+"""Model object representing email addresses.
 """
 
 __author__ = "Katie Capps Parlante"
@@ -11,20 +11,21 @@ __license__ = "OSAF"
 
 from application.persist import Persist
 
-from InformationItem import InformationItem
-from Address import Address
-        
-class PlaceItem(InformationItem):
+from RdfObject import RdfObject
+from RdfRestriction import RdfRestriction
+
+class EmailAddress(RdfObject):
+    """EmailAddress"""
+
+    # Define the schema for Addresses
+    # ---------------------------------------
 
     rdfs = Persist.Dict()
 
     rdfs[chandler.name] = RdfRestriction(str, 1)
-    rdfs[chandler.address] = RdfRestriction(Address)
+    rdfs[chandler.mbox] = RdfRestriction(str, 1)
     rdfs[chandler.category] = RdfRestriction(str)
 
     def __init__(self):
-        InformationItem.__init__(self)
-
-
-
+        RdfObject.__init__(self)
 

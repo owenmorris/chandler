@@ -12,6 +12,9 @@ __license__ = "OSAF"
 from application.persist import Persist
 
 from InformationItem import InformationItem
+from EmailAddress import EmailAddress
+from Address import Address
+from PlaceItem import PlaceItem
 
 from RdfRestriction import RdfRestriction
 
@@ -24,8 +27,8 @@ class EntityItem(InformationItem):
     rdfs = Persist.Dict()
     
     rdfs[chandler.name] = RdfRestriction(InformationItem, 1) #Name
-    rdfs[chandler.place] = RdfRestriction(InformationItem) #PlaceItem
-    rdfs[chandler.email] = RdfRestriction(InformationItem) #EmailAddress
+    rdfs[chandler.place] = RdfRestriction(PlaceItem) #PlaceItem
+    rdfs[chandler.email] = RdfRestriction(EmailAddress)
     rdfs[chandler.phone] = RdfRestriction(InformationItem) #PhoneService
     rdfs[chandler.im] = RdfRestriction(InformationItem) #IMAddress
     rdfs[chandler.image] = RdfRestriction(InformationItem) #Image
