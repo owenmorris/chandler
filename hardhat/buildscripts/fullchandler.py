@@ -293,6 +293,7 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
         log.write("Build log:" + "\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         log.write(separator)
+        raise e
     except Exception, e:
         print "upload error"
         log.write("***Error during upload***\n")
@@ -300,6 +301,7 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
         log.write(str(e) + "\n")
         log.write("(No build log!)\n")
         log.write(separator)
+        raise e
 
 
 def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
