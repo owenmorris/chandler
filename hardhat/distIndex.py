@@ -99,7 +99,7 @@ def CreateIndex(buildName):
         if fileName.find("_src_") > 0:
             print "Generating data for ", thisFile
             html += '<strong style="font-size: larger;">'
-            html += '<a href="http://builds.osafoundation.org' + urlPath + '">' + thisFile + '</a>'
+            html += '<a href="' + thisFile + '">' + thisFile + '</a>'
             html += ' (' + hardhatutil.fileSize(fileName) + ')</strong>\n'
             html += '<p>Source code.</p>'
             html += ' MD5 checksum: ' + hardhatutil.MD5sum(fileName) + '<br>'
@@ -108,7 +108,7 @@ def CreateIndex(buildName):
         elif fileName.find("Chan") > 0:
             print "Generating data for ", thisFile
             html += '<strong style="font-size: larger;">'            
-            html += '<a href="http://builds.osafoundation.org' + urlPath + '">' + thisFile + '</a>'
+            html += '<a href="' + thisFile + '">' + thisFile + '</a>'
             html += ' (' + hardhatutil.fileSize(fileName) + ')</strong>\n'
             if fileName.find("_debug_") > 0:
                 html += '<p>' + _descriptions['developer'][1] + '</p>'
