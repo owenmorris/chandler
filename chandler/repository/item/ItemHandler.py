@@ -9,7 +9,8 @@ import repository.item as ItemPackage
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
-from repository.item.ItemRef import Values, References, RefArgs, NoneRef
+from repository.item.ItemRef import RefArgs, NoneRef
+from repository.item.Values import Values, References, ItemValue
 
 from repository.util.SingleRef import SingleRef
 from repository.util.UUID import UUID
@@ -168,7 +169,7 @@ class ItemHandler(ContentHandler):
                 companion = item.getAttributeAspect(attribute, 'companion',
                                                     default=None)
                 value._setItem(item, attribute, companion)
-            elif isinstance(value, ItemPackage.Item.ItemValue):
+            elif isinstance(value, ItemValue):
                 value._setItem(item, attribute)
 
         for refArgs in self.refs:

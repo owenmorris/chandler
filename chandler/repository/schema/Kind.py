@@ -5,7 +5,8 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.item.Item import Item, ItemValue
+from repository.item.Item import Item
+from repository.item.Values import ItemValue
 from repository.item.ItemRef import ItemRef, RefDict, NoneRef
 from repository.item.PersistentCollections import PersistentCollection
 from repository.util.Path import Path

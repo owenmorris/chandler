@@ -13,8 +13,9 @@ from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
 from dbxml import XmlDocument, XmlValue
 
-from repository.item.Item import Item, ItemValue
-from repository.item.ItemRef import RefDict, TransientRefDict, Values
+from repository.item.Item import Item
+from repository.item.Values import Values, ItemValue
+from repository.item.ItemRef import RefDict, TransientRefDict
 from repository.persistence.Repository import Repository, RepositoryError
 from repository.persistence.Repository import VersionConflictError
 from repository.persistence.Repository import OnDemandRepositoryView
@@ -575,7 +576,6 @@ class XMLText(Text, ItemValue):
         self._uuid = None
         self._view = view
         self._version = 0
-        self._indexed = False
 
     def _xmlValue(self, generator):
 

@@ -6,8 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import cStringIO
 
-from repository.item.ItemRef import ItemRef, NoneRef, RefArgs
-from repository.item.ItemRef import Values, References, RefDict
+from repository.item.ItemRef import ItemRef, NoneRef, RefArgs, RefDict
+from repository.item.Values import Values, References, ItemValue
 from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
@@ -256,6 +256,10 @@ class Item(object):
               references to the items stored in the mixed collection. By
               default, if the companion aspect is not set, the entire
               repository is considered. This aspect takes a string value.
+            - C{copyPolicy}: when an item is copied with the L{copy} method,
+              its reference attribute values are copied if this policy is
+              set to C{copy}. By default, C{copyPolicy} is set to
+              C{remove}. This aspect takes a string value.
             - C{deletePolicy}: when an item is deleted this policy defines
               what happens to items that are referenced by this
               attribute. Possible C{deletePolicy} values are:
@@ -1130,7 +1134,20 @@ class Item(object):
         return False
 
     def copy(self, name=None, parent=None):
+        """
+        Copy this item.
 
+        The item's literal attribute values are copied.
+        The item's reference attribute values are copied if the
+        C{copyPolicy} aspect on the attribute is C{copy}. The C{copyPolicy}
+        is C{remove} by default.
+
+        @param name: the name of the item's copy
+        @type name: a string
+        @param parent: the parent of the item's copy, the original's parent
+        by default
+        @type parent: an item
+        """
         cls = type(self)
         item = cls.__new__(cls)
         item._fillItem(name, parent or self.itsParent, self._kind,
@@ -1305,7 +1322,12 @@ class Item(object):
 
     def __getKind(self):
 
-        return self._kind
+        kind = self._kind
+        if kind is not None and kind._status & Item.STALE:
+            kind = self.getRepository()[kind._uuid]
+            self._kind = kind
+                
+        return kind
 
     def getRepository(self):
         """
@@ -1974,44 +1996,3 @@ class Children(LinkedMap):
             return True
 
         return False
-
-
-class ItemValue(object):
-    'A superclass for values that are owned by an item.'
-    
-    def __init__(self):
-
-        self._item = None
-        self._attribute = None
-        self._dirty = False
-
-    def _setItem(self, item, attribute):
-
-        if self._item is not None and self._item is not item:
-            raise ValueError, 'item attribute value %s is already owned by another item %s' %(self, self._item)
-        
-        self._item = item
-        if self._dirty:
-            item.setDirty()
-
-        self._attribute = attribute
-
-    def _getItem(self):
-
-        return self._item
-
-    def _getAttribute(self):
-
-        return self._attribute
-
-    def _setDirty(self):
-
-        if not self._dirty:
-            self._dirty = True
-            if self._item is not None:
-                self._item.setDirty(attribute=self._attribute,
-                                    dirty=Item.VDIRTY)
-
-    def _copy(self, item, attribute):
-
-        raise NotImplementedError, 'ItemValue._copy is abstract'

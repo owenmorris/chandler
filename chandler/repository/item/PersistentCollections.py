@@ -6,6 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 import repository.item.Item
+import repository.item.Values 
 
 from repository.util.UUID import UUID
 from repository.util.SingleRef import SingleRef
@@ -46,7 +47,7 @@ class PersistentCollection(object):
         for value in self.itervalues():
             if isinstance(value, PersistentCollection):
                 value._setItem(item, attribute, companion)
-            elif isinstance(value, repository.item.Item.ItemValue):
+            elif isinstance(value, repository.item.Values.ItemValue):
                 value._setItem(item, attribute)
 
     def __setItem(self, item, attribute, companion):
@@ -74,7 +75,7 @@ class PersistentCollection(object):
                                    self._companion, **value)
         elif isinstance(value, repository.item.Item.Item):
             value = SingleRef(value._uuid)
-        elif isinstance(value, repository.item.Item.ItemValue):
+        elif isinstance(value, repository.item.Values.ItemValue):
             value._setItem(self._item, self._attribute)
 
         return value
