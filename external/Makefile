@@ -46,9 +46,12 @@ default: all
 sources:
 	tar -cvf sources.tar $(SOURCES)
 
-expand:
+sources.tar:
+	curl http://builds.osafoundation.org/external/sources.tar > sources.tar
+
+expand: sources.tar
 	tar xvf sources.tar; \
-	@for system in $(SYSTEMS); \
+	for system in $(SYSTEMS); \
 	do \
 	    (cd $$system; $(MAKE) expand); \
 	done
