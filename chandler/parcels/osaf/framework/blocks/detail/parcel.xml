@@ -94,7 +94,8 @@
     <!-- child blocks -->
     <blockName value="DetailTrunk"/>
     <childrenBlocks itemref="doc:MarkupBar"/>
-    <childrenBlocks itemref="doc:ToArea"/>
+    <childrenBlocks itemref="doc:ToMailArea"/>
+    <childrenBlocks itemref="doc:ToCollectionArea"/>
     <childrenBlocks itemref="doc:FromArea"/>
     <childrenBlocks itemref="doc:ContactFullNameArea"/>
     <childrenBlocks itemref="doc:HeadlineArea"/>
@@ -226,11 +227,11 @@
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="ToArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
+  <ContentItemDetail itsName="ToMailArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.ToMailBlock">
     <blockName value="ToArea"/>
     <childrenBlocks itemref="doc:ToString"/>
-    <childrenBlocks itemref="doc:ToEditField1"/>
+    <childrenBlocks itemref="doc:ToMailEditField"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>who</selectedItemsAttribute>
@@ -247,9 +248,41 @@
     <minimumSize>100, 24</minimumSize>
   </StaticText>
   
-  <EditText itsName="ToEditField1"
-            itemClass="osaf.framework.blocks.detail.Detail.ToEditField">
-    <blockName value="ToEditField1"/>
+  <EditText itsName="ToMailEditField"
+            itemClass="osaf.framework.blocks.detail.Detail.ToMailEditField">
+    <blockName value="ToMailEditField"/>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>100, 24</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="ToCollectionArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.ToCollectionBlock">
+    <blockName value="ToArea"/>
+    <childrenBlocks itemref="doc:ToString2"/>
+    <childrenBlocks itemref="doc:ToCollectionEditField"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>who</selectedItemsAttribute>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="ToString2"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
+    <blockName value="ToString2"/>
+    <title>to</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>100, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="ToCollectionEditField"
+            itemClass="osaf.framework.blocks.detail.Detail.ToCollectionEditField">
+    <blockName value="ToCollectionEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -452,7 +485,7 @@
     <buttonKind>Text</buttonKind>
 
     <size>60,30</size>
-    <minimumSize>60,30</minimumSize>
+    <minimumSize>75,30</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <event itemref="doc:SendShareItem"/>
     <alignmentEnum>alignMiddleRight</alignmentEnum>

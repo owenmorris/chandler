@@ -566,7 +566,10 @@ class EmailAddress(Item.Item):
             except AttributeError:
                 fullName = ''
         if fullName is not None and len (fullName) > 0:
-            return fullName + ' <' + self.emailAddress + '>'
+            if self.emailAddress:
+                return fullName + ' <' + self.emailAddress + '>'
+            else:
+                return fullName
         else:
             return self.getItemDisplayName ()
 

@@ -158,17 +158,22 @@ class DetailRoot (ControlBlocks.SelectionContainer):
 
         # preflight the send/share request
         # mail items and collections need their recievers set up
-        try:
-            whoTo = item.who
-        except AttributeError:
-            whoTo = []
-        if len (whoTo) == 0:
-            if isinstance (item, ItemCollection.ItemCollection):
+        message = None
+        if isinstance (item, ItemCollection.ItemCollection):
+            try:
+                whoTo = item.sharees
+            except AttributeError:
+                whoTo = []
+            if len (whoTo) == 0:
                 message = _('Please specify who to share this collection with in the "to" field.')
-            elif isinstance (item, Mail.MailMessageMixin):
+        elif isinstance (item, Mail.MailMessageMixin):
+            try:
+                whoTo = item.toAddress
+            except AttributeError:
+                whoTo = []
+            if len (whoTo) == 0:
                 message = _('Please specify who to send this message to in the "to" field.')
-            else:
-                message = _('Please specify receivers.')
+        if message:
             Util.ok(Globals.wxApplication.mainFrame,
              _("No Receivers"), message)
         else:
@@ -358,13 +363,6 @@ class StaticRedirectAttribute (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
-    # map internal attribute names into nicer display strings
-    # DLDTBD - display mapping should come out of the repository
-    displayMapping = {"displayName": "title",
-                      "fromAddress": "from",
-                      "toAddress": "to",
-                      }
-                      
     def shouldShow (self, item):
         contactKind = Contacts.ContactsParcel.getContactKind ()
         if item is None or item.isItemOf (contactKind):
@@ -380,10 +378,8 @@ class StaticRedirectAttribute (StaticTextLabel):
         if redirectAttr is None:
             redirectAttr = redirectName
         # lookup better names for display of some attributes
-        try:
-            redirectAttr = self.displayMapping[redirectAttr]
-        except KeyError:
-            pass
+        if item.hasAttributeAspect (redirectAttr, 'displayName'):
+            redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
         if len (redirectAttr) > 0:
             redirectAttr = redirectAttr + _(' ')
         return redirectAttr
@@ -424,6 +420,19 @@ class ToAndFromBlock (DetailSynchronizer, LabeledTextAttributeBlock):
         # if the item is a MailMessageMixin, or an ItemCollection,
         # then we should show ourself
         return ItemCollectionOrMailMessageMixin (item)
+
+class ToMailBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    def shouldShow (self, item):
+        # if the item is a MailMessageMixin, or an ItemCollection,
+        # then we should show ourself
+        mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+        return item.isItemOf (mailKind)
+
+class ToCollectionBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    def shouldShow (self, item):
+        # if the item is a MailMessageMixin, or an ItemCollection,
+        # then we should show ourself
+        return isinstance (item, ItemCollection.ItemCollection)
 
 class StaticToFromText (StaticTextLabel):
     def shouldShow (self, item):
@@ -601,44 +610,76 @@ class NoteBody (EditTextAttribute):
         else:
             widget.Clear()
 
-class ToEditField (EditTextAttribute):
+class EditToAddressTextAttribute (EditTextAttribute):
     """
-    Body attribute of a ContentItem, e.g. a Note
+    An editable address attribute that resyncs the DV when changed
     """
     def saveAttributeFromWidget(self, item, widget, validate):
         if validate:
             toFieldString = widget.GetValue()
-    
-            # remember the old value for nice change detection
-            oldWhoString = item.ItemWhoString ()
     
             # parse the addresses and get/create/validate
             processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
     
             # reassign the list to the attribute
             try:
-                item.who = validAddresses
+                item.setAttributeValue (self.whichAttribute (), validAddresses)
             except:
                 pass
-    
-            # Detect changes from none to some, and resynchronizeDetailView
-            #  so we can reenable the Notify button when sharees are added.
-            if isinstance (item, ItemCollection.ItemCollection):
-                whoString = item.ItemWhoString ()
-                oneEmpty = len (whoString) == 0 or len (oldWhoString) == 0
-                oneOK = len (whoString) > 0 or len (oldWhoString) > 0
-                if oneEmpty and oneOK:
-                    self.resynchronizeDetailView ()
     
             # redisplay the processed addresses in the widget
             widget.SetValue (processedAddresses)
 
     def loadAttributeIntoWidget (self, item, widget):
-        whoString = item.ItemWhoString ()
-        widget.SetValue (whoString)
+        if self.shouldShow (item):
+            try:
+                whoContacts = item.getAttributeValue (self.whichAttribute ())
+            except AttributeError:
+                whoContacts = ''
+            try:
+                numContacts = len(whoContacts)
+            except TypeError:
+                numContacts = -1
+            if numContacts == 0:
+                whoString = ''
+            elif numContacts > 0:
+                whoNames = []
+                for whom in whoContacts.values():
+                    whoNames.append (str (whom))
+                whoString = ', '.join(whoNames)
+            else:
+                whoString = str (whoContacts)
+                if isinstance(whoContacts, Contacts.ContactName):
+                    names = []
+                    if len (whoContacts.firstName):
+                        names.append (whoContacts.firstName)
+                    if len (whoContacts.lastName):
+                        names.append (whoContacts.lastName)
+                    whoString = ' '.join(names)
+            widget.SetValue (whoString)
 
+class ToMailEditField (EditToAddressTextAttribute):
+    """
+    'To' attribute of a Mail ContentItem, e.g. who it's sent to
+    """
     def shouldShow (self, item):
-        return ItemCollectionOrMailMessageMixin (item)
+        mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+        return item.isItemOf (mailKind)
+
+    def whichAttribute(self):
+        # define the attribute to be used
+        return 'toAddress'
+
+class ToCollectionEditField (EditToAddressTextAttribute):
+    """
+    'To' attribute of an ItemCollection, e.g. who it's shared with
+    """
+    def shouldShow (self, item):
+        return isinstance (item, ItemCollection.ItemCollection)
+
+    def whichAttribute(self):
+        # define the attribute to be used
+        return 'who'
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""

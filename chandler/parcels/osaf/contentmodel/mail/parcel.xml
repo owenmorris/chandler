@@ -508,6 +508,7 @@
 
 
         <Attribute itsName="toAddress">
+            <displayName value="to"/>
             <type itemref="mail:EmailAddress" />
             <cardinality value="list" />
             <initialValue />
@@ -515,6 +516,7 @@
         </Attribute>
 
         <Attribute itsName="fromAddress">
+            <displayName value="from"/>
             <type itemref="mail:EmailAddress" />
             <initialValue itemref="None"/>
             <inverseAttribute itemref="mail:EmailAddress/messagesFrom" />
