@@ -332,6 +332,12 @@ class AttributeDelegate (ListDelegate):
                 value = item.getAttributeValue (indirectAttributeName)
             except AttributeError:
                 value = ""
+            else:
+                if item.getAttributeAspect (indirectAttributeName, "cardinality") == "list":
+                    compoundValue = value
+                    value = ""
+                    for part in compoundValue:
+                        value = value + ", " + part
             return value
 
     def GetElementType (self, row, column):
