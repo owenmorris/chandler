@@ -7,8 +7,8 @@ info = {
 
 dependencies = (
                 'python',
-                'wxpython',
                 'distutils',
+                'wxpython',
                 'egenix-mx',
                 'zodb',
                 'jabber-py',
@@ -16,8 +16,8 @@ dependencies = (
 if sys.platform != 'darwin':
     dependencies = (
                     'python',
-                    'wxpython',
                     'distutils',
+                    'wxpython',
                     'egenix-mx',
                     'zodb',
                     'jabber-py',
