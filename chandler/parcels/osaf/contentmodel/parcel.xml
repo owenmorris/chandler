@@ -326,6 +326,7 @@
     <Attribute itsName="source">
       <type itemref="cm:ItemCollection"/>
       <inverseAttribute itemref="cm:ItemCollection/destination"/>
+      <initialValue itemref="None"/>
     </Attribute>
   
     <Attribute itsName="destination">

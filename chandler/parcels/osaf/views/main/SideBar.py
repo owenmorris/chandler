@@ -129,9 +129,6 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     """
                     key = ItemCollection.ItemCollection (view=self.itsView)
                     key.source = item
-                    key._rule = item._rule
-                    key.inclusions = item.inclusions
-                    key.exclusions = item.exclusions
                     key.displayName = item.displayName + u" filtered by " + filterKind.displayName
                     key.addFilterKind (filterKind)
                     self.itemTupleKeyToCacheKey [tupleKey] = key

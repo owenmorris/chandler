@@ -74,16 +74,22 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         if self.ruleIsStale:
             args = {}
             newQueryString = self._rule
-            if len (self.inclusions):
+            if self.source:
                 if newQueryString:
                     newQueryString = "union (" + newQueryString + ", for i in $0 where True)"
                 else:
                     newQueryString = "for i in $0 where True"
-                args ["$0"] = (self.itsUUID, "inclusions")
+                args ["$0"] = (self.source.itsUUID, "_resultSet")
+            if len (self.inclusions):
+                if newQueryString:
+                    newQueryString = "union (" + newQueryString + ", for i in $1 where True)"
+                else:
+                    newQueryString = "for i in $1 where True"
+                args ["$1"] = (self.itsUUID, "inclusions")
             if newQueryString:
                 if len (self.exclusions):
-                    newQueryString = "difference (" + newQueryString + ", for i in $1 where True)"
-                    args ["$1"] = (self.itsUUID, "exclusions")
+                    newQueryString = "difference (" + newQueryString + ", for i in $2 where True)"
+                    args ["$2"] = (self.itsUUID, "exclusions")
                 if len (self.kindFilter) != 0:
                     for kindPath in self.kindFilter:
                         newQueryString = "intersect (" + newQueryString + ", for i inevery '" + kindPath + "' where True)"
