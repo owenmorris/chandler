@@ -1008,9 +1008,12 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
     
     def onAcceptShareEvent(self, event):
         url, collectionName = MailSharing.getSharingHeaderInfo(self.selectedItem())
+        statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
+        statusBlock.setStatusMessage( _('Subscribing to collection...') )
         wx.Yield()
         share = Sharing.newInboundShare(self.itsView, url)
         share.get()
+        statusBlock.setStatusMessage( _('Subscribed to collection') )
     
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
