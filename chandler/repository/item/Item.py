@@ -367,7 +367,6 @@ class Item(object):
                             # reattaching on original endpoint
                             old.reattach(self, name, old.other(self), value,
                                          self._kind.getOtherName(name))
-                            self.setDirty(attribute=name)
                             return value
                     elif isRef:
                         # reattaching on other endpoint,

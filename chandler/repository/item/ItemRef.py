@@ -100,8 +100,10 @@ class ItemRef(object):
 
     def reattach(self, item, name, old, new, otherName):
 
-        self.detach(item, name, old, otherName)
-        self.attach(item, name, new, otherName)
+        if old is not new:
+            self.detach(item, name, old, otherName)
+            self.attach(item, name, new, otherName)
+            item.setDirty(attribute=name)
 
     def _unload(self, item):
 
