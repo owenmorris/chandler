@@ -437,7 +437,11 @@ def make_message(data):
 
     m.dateSent = DateTime.mktime(Utils.parsedate(msg['Date']))
     m.dateReceived = DateTime.now()
-    m.subject = msg['Subject']
+
+    if msg['Subject'] is None:
+        m.subject = ""
+    else:
+        m.subject = msg['Subject']
 
     # XXX replyAddress should really be the Reply-to header, not From
     m.replyAddress = Mail.EmailAddress()
