@@ -14,6 +14,7 @@ from repository.item.ItemHandler import ItemHandler
 from repository.item.ItemRef import RefDict
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
+from repository.item.Query import KindQuery
 from repository.schema.Kind import Kind
 from repository.util.ClassLoader import ClassLoader
 
@@ -34,7 +35,8 @@ class TypeKind(Kind):
         that is specific to the category of matching types.
         For example, Integer < Long < Float or String < Symbol."""
 
-        matches = [item for item in self.getItemParent() if item.isItemOf(self) and item.recognizes(value)]
+        query = KindQuery()
+        matches = [i for i in query.run([self]) if i.recognizes(value)]
         if matches:
             matches.sort(lambda x, y: x._compareTypes(y))
 
@@ -809,10 +811,6 @@ class Text(Lob):
 
         value._xmlValue(generator)
 
-    def recognizes(self, value):
-
-        return type(value) in (self.getImplementationType(), unicode, str)
-    
     def handlerName(self):
 
         return 'text'
@@ -847,10 +845,6 @@ class Binary(Lob):
 
         value._xmlValue(generator)
 
-    def recognizes(self, value):
-
-        return type(value) in (self.getImplementationType(), str)
-    
     def handlerName(self):
 
         return 'binary'
