@@ -80,7 +80,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="Source\Include,Source\DOH,Source\Modules,Source\Preprocessor,Source\Swig,Source\CParse"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
@@ -1318,7 +1318,7 @@
 						Name="Release|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
-							Optimization="2"
+							Optimization="3"
 							AdditionalIncludeDirectories=""
 							PreprocessorDefinitions=""/>
 					</FileConfiguration>

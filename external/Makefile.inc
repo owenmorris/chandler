@@ -40,7 +40,7 @@ ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
-SWIG=$(PREFIX)/bin/swig.exe
+SWIG=$(PREFIX)/bin/swig/swig.exe
 MD5=md5sum.exe
 MD5CHECK=$(MD5) -c
 else

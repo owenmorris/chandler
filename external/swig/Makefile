@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-VERSION=20Feb04
+VERSION=1.3.22
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
 
@@ -11,17 +11,16 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
-$(SRC)/$(BUILD)/Makefile:
-	mkdir -p $(SRC)/$(BUILD); \
-	cd $(SRC)/$(BUILD); \
-	PATH="$(GCJ_HOME)/bin:$(PATH)"; \
-	../configure --prefix=`cygpath -am $(PREFIX)` \
-                     --with-python=`cygpath -am $(PYTHON)` \
-                     --build=i386-pc-cygwin
+$(SRC)/SWIG13.sln:
+	tar -C win32 --exclude CVS -cf - . | tar -C $(SRC) -xvf -
 
-swig: $(SRC)/$(BUILD)/Makefile
-	PATH="$(GCJ_HOME)/bin:$(PATH)"; $(MAKE) -C $(SRC)/$(BUILD)
-	$(MAKE) -C $(SRC)/$(BUILD) install
+swig: $(SRC)/SWIG13.sln
+	cd $(SRC); devenv.com SWIG13.sln /build Release
+	mkdir -p $(PREFIX)/bin/swig
+	tar -C $(SRC) -cf - SWIG.exe Lib | tar -C $(PREFIX)/bin/swig -xvf -
+
+clean:
+	cd $(SRC); devenv.com SWIG13.sln /clean Release
 
 else
 
@@ -34,6 +33,9 @@ $(SRC)/$(BUILD)/Makefile:
 swig: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD) install
+
+clean:
+	rm -rf $(SRC)/$(BUILD)
 
 endif
 
@@ -49,9 +51,6 @@ upload:
 
 # Nothing to do
 install:
-
-clean:
-	rm -rf $(SRC)/$(BUILD)
 
 SWIG-$(VERSION).tar.gz:
 	$(CURL) http://builds.o11n.org/external/SWIG-$(VERSION).tar.gz 
