@@ -57,23 +57,24 @@ class SideBar(Persistent):
         uriList = app.model.URLTree.GetUriChildren(parentUri)
         for name in uriList:
             uri = parentUri + name
+            uriNoCase = uri.lower()
             parcel = app.model.URLTree.UriExists(uri)
             children = app.model.URLTree.GetUriChildren(uri)
             hasChildren = len(children) > 0            
 
             if not sideBarLevel.has_key(name):
                 itemId = wxWindow.AppendItem(parentItem, name)
-                wxWindow.uriDictMap[uri] = itemId
+                wxWindow.uriDictMap[uriNoCase] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarLevel[name] = URLTreeEntry(parcel, false, 
                                                   PersistentDict(),
                                                   false)
             else:
-                if not wxWindow.uriDictMap.has_key(uri):
+                if not wxWindow.uriDictMap.has_key(uriNoCase):
                     itemId = wxWindow.AppendItem(parentItem, name)
-                    wxWindow.uriDictMap[uri] = itemId
+                    wxWindow.uriDictMap[uriNoCase] = itemId
                 else:
-                    itemId = wxWindow.uriDictMap[uri]
+                    itemId = wxWindow.uriDictMap[uriNoCase]
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarLevel[name].isOpen:
                     self.__UpdateURLTree(sideBarLevel[name].children, 
@@ -90,6 +91,7 @@ class SideBar(Persistent):
         # in the app's URLTree
         for key in sideBarLevel.keys():
             uriToDelete = parentUri + key
+            uriToDelete = uriToDelete.lower()
             item = sideBarLevel[key]
             if not item.isMarked:
                 if wxWindow.uriDictMap.has_key(uriToDelete):
@@ -117,7 +119,7 @@ class SideBar(Persistent):
         # through the appURLTree to find the proper item and expand its
         # ancestors if necessary.
         try:
-            wxWindow.SelectItem(wxWindow.uriDictMap[uri])
+            wxWindow.SelectItem(wxWindow.uriDictMap[uri.lower()])
         except:
             pass
         self.ignoreChangeSelect = false
@@ -319,14 +321,15 @@ class wxSideBar(wxTreeCtrl):
                                              dict[fields[0]].children)
         
     def __GetItemFromUri(self, uri):
-        if not self.uriDictMap.has_key(uri):
+        uriNoCase = uri.lower()
+        if not self.uriDictMap.has_key(uriNoCase):
             urlTree = app.model.URLTree
             if urlTree.UriExists(uri):
                 fields = uri.split('/')
                 self.__DoExpandUri(fields, self.model.sideBarURLTree)
             else:
                 return None
-        return self.uriDictMap[uri]
+        return self.uriDictMap[uriNoCase]
 
     def __DoExpandUri(self, fields, dict):
         if not dict[fields[0]].isOpen:

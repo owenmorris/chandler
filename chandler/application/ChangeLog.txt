@@ -7,3 +7,7 @@
 
 2003-04-10 Jed Burgess <jed@osafoundation.org>
     * Fixed bug where right clicking in the sideBar caused a crash.
+    
+2003-04-28 Jed Burgess <jed@osafoundation.org>
+    * Made it so that entering addresses in the uriBox is no longer 
+      case sensitive.

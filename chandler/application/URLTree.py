@@ -178,6 +178,26 @@ class URLTree(Persistent):
             self.__SynchronizeSideBars()
             return oldParcel
         return None
+    
+    def GetProperCaseOfURI(self, uri):
+        """
+          Takes in a uri and returns the proper case for that uri.
+        """
+        return self.__URICaseHelper(self.__GetUriFields(uri), self.tree, '')
+    
+    def __URICaseHelper(self, uriFields, URLTreeLevel, uriSoFar):
+        """
+          Recursively builds up the proper case for the supplied uriFields.
+        """
+        if len(uriFields) == 0:
+            return uriSoFar
+        for treeEntry in URLTreeLevel:
+            if treeEntry.name.lower() == uriFields[0].lower():
+                if len(uriSoFar) > 0:
+                    uriSoFar += '/'
+                uriSoFar += treeEntry.name
+                return self.__URICaseHelper(uriFields[1:], treeEntry.children, uriSoFar)
+        return None
 
     def __GetUriEntry(self, uriFields, URLTreeLevel):
         """
@@ -185,7 +205,7 @@ class URLTree(Persistent):
         TreeEntry assocaited with it.
         """
         for treeEntry in URLTreeLevel:
-            if treeEntry.name == uriFields[0]:
+            if treeEntry.name.lower() == uriFields[0].lower():
                 if len(uriFields) == 1:
                     return treeEntry
                 return self.__GetUriEntry(uriFields[1:], treeEntry.children)

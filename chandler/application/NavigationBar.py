@@ -45,7 +45,8 @@ class NavigationBar(Persistent):
         list.
         """
         self.future = PersistentList()
-        self.history.append(uri)
+        uriWithCase = app.model.URLTree.GetProperCaseOfURI(uri)
+        self.history.append(uriWithCase)
         
     def GetCurrentUri(self):
         """
