@@ -7,7 +7,8 @@
 # will create a disk image file.
 
 # This line is required if you aren't logged in on the actual Mac console:
-disktool -c 0
+# this does not seem to be required in Panther (generates an error)
+# disktool -c 0
 
 FOLDER="$1"
 if [ -z "$FOLDER" ]; then
