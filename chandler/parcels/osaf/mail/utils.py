@@ -161,7 +161,8 @@ def isString(var):
 
 def strToText(contentItem, attribute, unicodeString, indexText=False, \
               encoding=constants.DEFAULT_CHARSET):
-    """Converts a C{unicode}u string  to {Lob}.
+    #XXX: Should rename this method to be more clear
+    """Converts a C{unicode} string  to {Lob}.
     """
     assert isinstance(unicodeString, unicode), "Only Unicode string may be passed to this method"
 
@@ -171,6 +172,7 @@ def strToText(contentItem, attribute, unicodeString, indexText=False, \
 
 
 def textToStr(text):
+    #XXX: Should rename this method to be more clear
     """Converts a text C{Lob} to a C{unicode} String"""
     assert isinstance(text, Lob), "Must pass a Lob instance"
     assert text.encoding, "Encoding must not be None for reader API"
