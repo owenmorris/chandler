@@ -95,8 +95,9 @@ def main():
             print "all is well"
             log.write("all is well")
             status = "success"
-            os.rename(os.path.join(buildDir, "output"), 
-             os.path.join(outputDir, buildVersion))
+            newDir = os.path.join(outputDir, buildVersion)
+            os.rename(os.path.join(buildDir, "output"), newDir)
+            CreateIndex(newDir)
             RotateDirectories(outputDir)
         log.close()
 
@@ -140,6 +141,22 @@ def RotateDirectories(dir):
     dirs.sort()
     for subdir in dirs[:-3]:
         hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
+
+def CreateIndex(dir):
+    """Generates an index.html page from the hint files that hardhat creates
+    which contain the actual distro filenames"""
+    fileOut = file(dir+os.sep+"index.html", "w")
+    for x in ["enduser", "developer", "release", "debug"]:
+        actual = _readFile(dir+os.sep+x)
+        fileOut.write(x + "=" + actual)
+    fileOut.close()
+
+def _readFile(path):
+    fileIn = open(path, "r")
+    line = fileIn.readline()
+    fileIn.close()
+    return line.strip()
+
 
 
 main()
