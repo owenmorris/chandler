@@ -107,13 +107,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # of events, etc.  Therefore, we want to actually populate the share's
         # 'contents':
 
+        view = self.itsView
         if item is None:
-            item = ItemCollection.ItemCollection()
-        else:
-            if isinstance(item, Sharing.Share):
-                if item.contents is None:
-                    item.contents = ItemCollection.ItemCollection()
-                item = item.contents
+            item = ItemCollection.ItemCollection(view=view)
+        elif isinstance(item, Sharing.Share):
+            if item.contents is None:
+                item.contents = ItemCollection.ItemCollection(view=view)
+            item = item.contents
 
         if not isinstance(item, ItemCollection.ItemCollection):
             print "Only a share or an item collection can be passed in"

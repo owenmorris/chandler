@@ -11,7 +11,6 @@ import unittest, os
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.contentmodel.ContentModel as ContentModel
-import application.Globals as Globals
 
 class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
@@ -21,8 +20,6 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
          'osaf', 'contentmodel', 'tests')
 
         super(ContentModelTestCase,self)._openRepository(self)
-
-        Globals.repository = self.rep
 
 
     def isOnline(self):
@@ -38,17 +35,20 @@ class ContentItemTest(ContentModelTestCase):
     def testContentItem(self):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
-
+        view = self.rep.view
+        
         # Check that the globals got created by the parcel
-        self.assert_(ContentModel.ContentModel.getContentItemParent())
-        self.assert_(ContentModel.ContentItem.getKind())
-        self.assert_(ContentModel.Project.getKind())
-        self.assert_(ContentModel.Group.getKind())
+        self.assert_(ContentModel.ContentModel.getContentItemParent(view))
+        self.assert_(ContentModel.ContentItem.getKind(view))
+        self.assert_(ContentModel.Project.getKind(view))
+        self.assert_(ContentModel.Group.getKind(view))
 
         # Construct a sample item
-        genericContentItem = ContentModel.ContentItem("genericContentItem")
-        genericProject = ContentModel.Project("genericProject")
-        genericGroup = ContentModel.Group("genericGroup")
+        view = self.rep.view
+        genericContentItem = ContentModel.ContentItem("genericContentItem",
+                                                      view=view)
+        genericProject = ContentModel.Project("genericProject", view=view)
+        genericGroup = ContentModel.Group("genericGroup", view=view)
 
         # Check that each item was created
         self.assert_(genericContentItem)
@@ -56,7 +56,7 @@ class ContentItemTest(ContentModelTestCase):
         self.assert_(genericGroup)
 
         # Check each item's parent, make sure it has a path
-        contentItemParent = ContentModel.ContentModel.getContentItemParent()
+        contentItemParent = ContentModel.ContentModel.getContentItemParent(view)
         self.assertEqual(genericContentItem.itsParent, contentItemParent)
         self.assertEqual(genericProject.itsParent, contentItemParent)
         self.assertEqual(genericGroup.itsParent, contentItemParent)

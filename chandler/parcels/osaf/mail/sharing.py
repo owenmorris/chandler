@@ -12,7 +12,6 @@ import email.Message as Message
 import mx.DateTime as DateTime
 
 #Chandler imports
-import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.framework.sharing as chandlerSharing
@@ -30,7 +29,7 @@ TO DO:
 """
 
 
-def receivedInvitation(url, collectionName, fromAddress):
+def receivedInvitation(view, url, collectionName, fromAddress):
     """
        Calls osaf.framework.sharing.anounceSharingUrl.
 
@@ -47,7 +46,7 @@ def receivedInvitation(url, collectionName, fromAddress):
     assert isinstance(collectionName, str), "collectionName must be a String"
     assert isinstance(fromAddress, str), "fromAddress  must be a String"
 
-    chandlerSharing.Sharing.announceSharingInvitation(url.strip(), collectionName.strip(), fromAddress.strip())
+    chandlerSharing.Sharing.announceSharingInvitation(view, url.strip(), collectionName.strip(), fromAddress.strip())
 
 def sendInvitation(url, collectionName, sendToList):
     """Sends a sharing invitation via SMTP to a list of recipients
@@ -68,7 +67,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends an invitation via SMTP. Use the osaf.mail.sharing.sendInvitation
        method do not call this class directly"""
 
-    def __init__(self, url, collectionName, sendToList, account=None):
+    def __init__(self, repository, url, collectionName, sendToList, account=None):
 
         assert isinstance(url, str), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
@@ -81,7 +80,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         viewName = "SMTPInvitationSender_%s" % str(UUID.UUID())
 
-        super(SMTPInvitationSender, self).__init__(Globals.repository, viewName)
+        super(SMTPInvitationSender, self).__init__(repository, viewName)
 
         self.account = None
         self.from_addr = None
@@ -173,7 +172,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def __getData(self):
         """If accountUUID is None will return the first SMTPAccount found"""
-        self.account, replyToAddress = Mail.MailParcel.getSMTPAccount(self.accountUUID)
+        self.account, replyToAddress = Mail.MailParcel.getSMTPAccount(self.getCurrentView(), self.accountUUID)
         self.from_addr = replyToAddress.emailAddress
 
 

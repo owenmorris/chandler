@@ -121,7 +121,7 @@ def importICalendar(cal, rep, parent=None):
         else: duration = None
         #lets not go crazy with large recurrence sets
         for dt in itertools.islice(event.rruleset, 10):
-            newevent = Calendar.CalendarEvent()
+            newevent = Calendar.CalendarEvent(view=rep.view)
             newevent.startTime = convertToMX(dt)
             if duration:
                 newevent.endTime = convertToMX(dt + duration)

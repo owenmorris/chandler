@@ -30,10 +30,11 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         )
 
         #create test data
-        GenerateItems.GenerateNotes(20)
-        GenerateItems.generateCalendarEventItems(20,5)
-        GenerateItems.GenerateContacts(10)
-        self.rep.commit()
+        view = self.rep.view
+        GenerateItems.GenerateNotes(view, 20)
+        GenerateItems.generateCalendarEventItems(view, 20, 5)
+        GenerateItems.GenerateContacts(view, 10)
+        view.commit()
 
         results = self._compileQuery('union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
         # these checks could be more robust

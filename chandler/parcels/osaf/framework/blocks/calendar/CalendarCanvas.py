@@ -15,7 +15,6 @@ import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
-import application.Globals as Globals
 
 class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
     def __init__(self, *arguments, **keywords):
@@ -454,8 +453,9 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if not createOnDrag:
+            view = self.parent.blockItem.itsView
             newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            event = Calendar.CalendarEvent()
+            event = Calendar.CalendarEvent(view=view)
             event.InitOutgoingAttributes()
             event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                 newTime.day,
@@ -463,7 +463,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
                                                 event.startTime.minute))
             event.allDay = True
             self.OnSelectItem(event)
-            Globals.repository.commit()
+            view.commit()
         return None
 
     def OnDraggingItem(self, unscrolledPosition):
@@ -679,15 +679,16 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             pass
         else:
             # @@@ this code might want to live somewhere else, refactored
+            view = self.parent.blockItem.itsView
             newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            event = Calendar.CalendarEvent()
+            event = Calendar.CalendarEvent(view=view)
             event.InitOutgoingAttributes()
             event.ChangeStart(newTime)
             self.OnSelectItem(event)
 
             # @@@ Bug#1854 currently this is too slow,
             # and the event causes flicker
-            Globals.repository.commit()
+            view.commit()
         return None
     
     def OnResizingItem(self, unscrolledPosition):
@@ -916,8 +917,9 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if not createOnDrag:
             # @@@ this code might want to live somewhere else, refactored
+            view = self.blockItem.itsView
             newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            event = Calendar.CalendarEvent()
+            event = Calendar.CalendarEvent(view=view)
             event.InitOutgoingAttributes()
             event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                 newTime.day,
@@ -927,7 +929,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
             
             # @@@ Bug#1854 currently this is too slow,
             # and the event causes flicker
-            Globals.repository.commit()
+            view.commit()
         return None
 
     def OnDraggingItem(self, unscrolledPosition):

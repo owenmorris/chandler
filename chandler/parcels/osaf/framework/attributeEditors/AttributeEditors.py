@@ -489,7 +489,7 @@ class LocationAttributeEditor (LabeledAttributeEditor):
                 pass
         else:
             # lookup an existing item by name, if we can find it, 
-            value = Calendar.Location.getLocation (valueString)
+            value = Calendar.Location.getLocation (item.itsView, valueString)
             setattr (item, attributeName, value)
 
     def onKeyPressed(self, event):

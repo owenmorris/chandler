@@ -92,7 +92,7 @@ def subscribeToWebDavCollection(url):
 
     mainView = Globals.view[0]
     mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
-    Globals.repository.commit()
+    mainView.itsView.commit()
     # ...and selecting that view in the sidebar
     mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
     mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
@@ -179,10 +179,10 @@ def getWebDavAccount():
 
     return Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
 
-def isMailSetUp():
+def isMailSetUp(view):
 
     # Find imap account, and make sure email address is valid
-    imap = Mail.MailParcel.getIMAPAccount()
+    imap = Mail.MailParcel.getIMAPAccount(view)
     if not imap.emailAddress:
         return False
 
@@ -196,24 +196,24 @@ def isMailSetUp():
 # Non-blocking methods that the mail thread can use to call methods on the
 # main thread:
 
-def announceSharingInvitation(url, collectionName, fromAddress):
+def announceSharingInvitation(view, url, collectionName, fromAddress):
     """ Call this method to announce that an inbound sharing invitation has
         arrived. This method is non-blocking. """
     logger.info("announceSharingInvitation() received an invitation from " \
     "mail: [%s][%s][%s]" % (url, collectionName, fromAddress))
 
     sharingParcel = \
-     Globals.repository.findPath("//parcels/osaf/framework/sharing")
+     view.findPath("//parcels/osaf/framework/sharing")
     wx.GetApp().CallItemMethodAsync( sharingParcel,
      '_sharingUpdateCallback', url, collectionName, fromAddress)
     logger.info("invite, just after CallItemMethodAsync")
 
-def announceError(error):
+def announceError(view, error):
     """ Call this method to announce an error. This method is non-blocking. """
     logger.info("announceError() received an error from mail: [%s]" % error)
 
     sharingParcel = \
-     Globals.repository.findPath("//parcels/osaf/framework/sharing")
+     view.findPath("//parcels/osaf/framework/sharing")
     wx.GetApp().CallItemMethodAsync( sharingParcel,
      '_errorCallback', error)
 
@@ -228,10 +228,10 @@ class Share(ContentModel.ChandlerItem):
     """ Represents a set of shared items, encapsulating contents, location,
         access method, data format, sharer and sharees. """
 
-    def __init__(self, name=None, parent=None, kind=None, contents=None,
-     conduit=None, format=None):
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 contents=None, conduit=None, format=None):
 
-        super(Share, self).__init__(name, parent, kind)
+        super(Share, self).__init__(name, parent, kind, view)
 
         self.contents = contents # ItemCollection
         self.setConduit(conduit)
@@ -275,9 +275,9 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     """ Transfers items in and out. """
 
-    def __init__(self, name=None, parent=None, kind=None, sharePath=None,
-     shareName=None):
-        super(ShareConduit, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 sharePath=None, shareName=None):
+        super(ShareConduit, self).__init__(name, parent, kind, view)
 
         self.sharePath = sharePath
         self.shareName = shareName
@@ -572,10 +572,10 @@ class FileSystemConduit(ShareConduit):
 
     SHAREFILE = "share.xml"
 
-    def __init__(self, name=None, parent=None, kind=None, sharePath=None,
-     shareName=None):
-        super(FileSystemConduit, self).__init__(name, parent, kind,
-         sharePath, shareName)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 sharePath=None, shareName=None):
+        super(FileSystemConduit, self).__init__(name, parent, kind, view,
+                                                sharePath, shareName)
 
         # @@@MOR What sort of processing should we do on sharePath for this
         # filesystem conduit?
@@ -702,10 +702,11 @@ class WebDAVConduit(ShareConduit):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVConduit"
 
-    def __init__(self, name=None, parent=None, kind=None, sharePath=None,
-     shareName=None, host=None, port=80, username="", password=""):
-        super(WebDAVConduit, self).__init__(name, parent, kind, sharePath,
-         shareName)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 sharePath=None, shareName=None,
+                 host=None, port=80, username="", password=""):
+        super(WebDAVConduit, self).__init__(name, parent, kind, view,
+                                            sharePath, shareName)
 
         self.host = host
         self.port = port
@@ -1010,9 +1011,9 @@ class CloudXMLFormat(ImportExportFormat):
         },
     }
 
-    def __init__(self, name=None, parent=None, kind=None,
-     cloudAlias='sharing'):
-        super(CloudXMLFormat, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 cloudAlias='sharing'):
+        super(CloudXMLFormat, self).__init__(name, parent, kind, view)
 
         self.cloudAlias = cloudAlias
 
@@ -1294,9 +1295,9 @@ class MixedFormat(ImportExportFormat):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/MixedFormat"
 
-    def __init__(self, name=None, parent=None, kind=None,
-     cloudAlias='sharing'):
-        super(CloudXMLFormat, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+                 cloudAlias='sharing'):
+        super(CloudXMLFormat, self).__init__(name, parent, kind, view)
         self.cloudAlias = cloudAlias
 
     def fileStyle(self):

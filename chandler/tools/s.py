@@ -66,7 +66,8 @@ def initRepository(directory, destroy=False):
          'packs', 'schema.pack'))
         rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'chandler.pack'))
-    Globals.repository = rep
+
+    return rep
 
 def initLogger(file):
     """
@@ -123,7 +124,7 @@ def setup(directory, destroy=False):
     initLogger(os.path.join(directory, 'chandler.log'))
     initRepository(os.path.join(directory, '__repository__'), destroy)
     initParcels()
-    return Globals.repository
+    return rep
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -141,10 +142,10 @@ CPIA = application.Parcel.CPIA
 
 # Handy dandy methods:
 def pp(item, rec=False):
-    application.Parcel.PrintItem(item.itsPath, application.Globals.repository, rec)
+    application.Parcel.PrintItem(item.itsPath, item.itsView, rec)
 
-def find(path):
-    return application.Globals.repository.findPath(path)
+def find(view, path):
+    return view.findPath(path)
 
 def lp(uri=None):
     if uri is None:
@@ -176,7 +177,7 @@ Item = //Schema/Core/Item item
 parcels = //parcels item
 pm = parcel manager
 pp(item) = pretty printer (application.Parcel.PrintItem)
-find(path) = repository.findPath(path)
+find(view, path) = view.findPath(path)
 lp(uri) = load a parcel, given its uri; if uri is None, load all parcels
 
 Modules loaded:

@@ -3,11 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
-import sys
-import application.Globals as Globals
-import mx
-import wx
+import os, sys, mx, wx
 
 class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
@@ -175,13 +171,13 @@ class ReminderDialog(wx.Dialog):
         dismissSelection = event.GetEventObject() is self.reminderControls['dismiss']
         for reminder in self.getListItems(dismissSelection):
             del reminder.reminderTime
-        Globals.repository.commit()
+        wx.getApp().repository.view.commit()
 
     def onSnooze(self, event):
         """ Snooze the selected reminders for five minutes """
         for reminder in self.getListItems(True):
             reminder.reminderTime = mx.DateTime.now() + mx.DateTime.RelativeDateTime(minutes=5)
-        Globals.repository.commit()
+        wx.getApp().repository.view.commit()
     
     def getListItems(self, selectedOnly):
         """ Provide iteration over ListCtrl items """

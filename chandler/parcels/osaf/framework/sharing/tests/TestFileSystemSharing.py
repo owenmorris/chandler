@@ -10,7 +10,6 @@ import unittest, os, sys, logging
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
-import application.Globals as Globals
 import osaf.framework.sharing.Sharing as Sharing
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
@@ -55,9 +54,8 @@ class SharingTestCase(unittest.TestCase):
         self.mgrs = []
         for i in xrange(2):
             self.repos.append(self._initRamDB(packs))
-            Globals.repository = self.repos[i] # argh!
-            self.mgrs.append(Parcel.Manager.getManager(
-             repository=self.repos[i], path=parcelpath))
+            self.mgrs.append(Parcel.Manager.getManager(self.repos[i].view,
+                                                       path=parcelpath))
             self.mgrs[i].loadParcels(namespaces)
             # create a sandbox root
             Item.Item("sandbox", self.repos[i], None)
@@ -78,7 +76,6 @@ class SharingTestCase(unittest.TestCase):
         return repo
 
     def _createCollection(self, repo):
-        Globals.repository = repo # argh!
         sandbox = repo.findPath("//sandbox")
 
         coll = ItemCollection.ItemCollection(name="testcollection",
@@ -86,7 +83,6 @@ class SharingTestCase(unittest.TestCase):
 
 
     def _populateCollection(self, repo):
-        Globals.repository = repo # argh!
         sandbox = repo.findPath("//sandbox")
 
         coll = sandbox.findPath("testcollection")
@@ -128,7 +124,6 @@ class SharingTestCase(unittest.TestCase):
 
 
     def dumpSandbox(self, repo):
-        Globals.repository = repo # argh!
         Parcel.PrintItem("//sandbox", repo, recursive=True)
 
 
@@ -136,15 +131,16 @@ class SharingTestCase(unittest.TestCase):
 
         # Export
         repo = self.repos[0]
-        Globals.repository = repo # argh!
         sandbox = repo.findPath("//sandbox")
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=".", shareName="exportedcollection")
-        format = Sharing.CloudXMLFormat(name="format", parent=sandbox)
+         sharePath=".", shareName="exportedcollection", view=repo.view)
+        format = Sharing.CloudXMLFormat(name="format", parent=sandbox,
+                                        view=repo.view)
         self.share1 = Sharing.Share(name="share", parent=sandbox,
-         contents=coll, conduit=conduit, format=format)
+                                    contents=coll, conduit=conduit,
+                                    format=format, view=repo.view)
         if self.share1.exists():
             self.share1.destroy()
         self.share1.create()
@@ -152,15 +148,16 @@ class SharingTestCase(unittest.TestCase):
 
         # Import
         repo = self.repos[1]
-        Globals.repository = repo # argh!
         sandbox = repo.findPath("//sandbox")
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=".", shareName="exportedcollection")
-        format = Sharing.CloudXMLFormat(name="format", parent=sandbox)
+         sharePath=".", shareName="exportedcollection", view=repo.view)
+        format = Sharing.CloudXMLFormat(name="format", parent=sandbox,
+                                        view=repo.view)
         self.share2 = Sharing.Share(name="share", parent=sandbox,
-         conduit=conduit, format=format)
+                                    conduit=conduit, format=format,
+                                    view=repo.view)
         self.share2.get()
 
         # Make sure that the items we imported have the same displayNames
@@ -188,18 +185,14 @@ class SharingTestCase(unittest.TestCase):
             if item.displayName == "meeting":
                 changedItem = item
 
-        Globals.repository = self.repos[1] # just in case (not needed?)
         self.share2.put()
 
-        Globals.repository = self.repos[0] # just in case (not needed?)
         self.share1.get()
 
         self.assert_(changedItem.displayName == "meeting rescheduled",
          "displayName is %s" % (changedItem.displayName))
 
     def Remove(self):
-
-        Globals.repository = self.repos[0] # just in case (not needed?)
 
         # Remove an item from share1...
         for item in self.share1.contents:
@@ -209,7 +202,6 @@ class SharingTestCase(unittest.TestCase):
         # ...publish...
         self.share1.put()
 
-        Globals.repository = self.repos[1] # just in case (not needed?)
         # ...get...
         self.share2.get()
         # ...and make sure it's gone from share2

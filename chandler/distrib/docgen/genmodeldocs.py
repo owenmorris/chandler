@@ -4,7 +4,6 @@
 """
 
 import os, sys, logging, string, errno, getopt, shutil, time
-import application.Globals as Globals
 import Util
 import repository
 
@@ -41,7 +40,7 @@ def main():
     for root in repo.iterRoots():
         processItem(root, generateSchemaDocument, conf)
 
-    generateIndex(conf)
+    generateIndex(repo.view, conf)
     shutil.copy(os.path.join('distrib', 'docgen', 'schema.css'),
      os.path.join(outputDirectory, 'schema.css'))
 
@@ -84,12 +83,12 @@ def generateSchemaDocument(item, conf):
     out.write(footer)
     out.close()
 
-def generateIndex(conf):
+def generateIndex(view, conf):
     index = os.path.join(conf['directory'], 'index.html')
     print index
     header = "<html><head><title>Chandler Schema Documentation</title><link rel='stylesheet' href='%s' type='text/css' /></head><body>\n" % (conf['css'])
     body = "<div class='header'>Chandler Schema Documentation</div>"
-    body += RenderKinds(conf['urlRoot'])
+    body += RenderKinds(view, conf['urlRoot'])
     footer = "</body></html>"
     out = file(index, 'w')
     out.write(header)
@@ -105,13 +104,13 @@ def generateTimestamp():
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def RenderKinds(urlRoot):
+def RenderKinds(view, urlRoot):
     result = ""
     items = {}
     tree = {}
     for item in repository.item.Query.KindQuery().run(
      [
-      Globals.repository.findPath("//Schema/Core/Kind"),
+      view.findPath("//Schema/Core/Kind"),
      ]
     ):
         items[item.itsPath] = item

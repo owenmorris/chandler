@@ -57,7 +57,7 @@ class RepositoryTestCase(TestCase):
             self.rep.commit()
 
         self.manager = \
-         ParcelManager.getManager(repository=self.rep, \
+         ParcelManager.getManager(self.rep.view, \
          path=[os.path.join(self.rootdir, 'parcels')])
 
     def setUp(self, ramdb=True):
@@ -86,7 +86,7 @@ class RepositoryTestCase(TestCase):
             self.rep.open()
 
         self.manager = \
-         ParcelManager.getManager(repository=self.rep, \
+         ParcelManager.getManager(self.rep.view, \
          path=[os.path.join(self.rootdir, 'parcels')])
 
     def _find(self, path):
@@ -96,10 +96,6 @@ class RepositoryTestCase(TestCase):
         self.loadParcels([namespace])
 
     def loadParcels(self, namespaces=None):
-        import application
-        import application.Globals as Globals
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        Globals.repository = self.rep
 
         self.manager.loadParcels(namespaces)
         if namespaces:

@@ -15,8 +15,8 @@ class Note(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/Note"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Note, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Note, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for

@@ -27,11 +27,12 @@ class TestNotification(QueryTestCase.QueryTestCase):
           'http://testparcels.org/notification']
         )
 
-        GenerateItems.GenerateContacts(100)
-        contact = GenerateItems.GenerateContact()
+        view = self.rep.view
+        GenerateItems.GenerateContacts(view, 100)
+        contact = GenerateItems.GenerateContact(view)
         contact.contactName.firstName = "Alexis"
 
-        self.rep.commit()
+        view.commit()
 
         # basic query processing
         queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
@@ -71,21 +72,22 @@ class TestNotification(QueryTestCase.QueryTestCase):
         )
 
         #create test data
-        GenerateItems.GenerateNotes(20)
-        GenerateItems.generateCalendarEventItems(20,5)
-        GenerateItems.GenerateContacts(10)
+        view = self.rep.view
+        GenerateItems.GenerateNotes(view, 20)
+        GenerateItems.generateCalendarEventItems(view, 20, 5)
+        GenerateItems.GenerateContacts(view, 10)
         # make sure there's at least one good data item
         import osaf.contentmodel.calendar.Calendar as Calendar
         import osaf.contentmodel.contacts.Contacts as Contacts
         import osaf.contentmodel.Notes as Notes
-        event = GenerateItems.GenerateCalendarEvent(1)
+        event = GenerateItems.GenerateCalendarEvent(view, 1)
         event.displayName = "Meeting"
-        note = GenerateItems.GenerateNote()
+        note = GenerateItems.GenerateNote(view)
         note.displayName = "story idea"
-        contact = GenerateItems.GenerateContact()
+        contact = GenerateItems.GenerateContact(view)
         contact.contactName.firstName = "Alexis"
         
-        self.rep.commit()
+        view.commit()
 
         queryString = 'union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i"))'
 

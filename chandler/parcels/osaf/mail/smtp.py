@@ -18,7 +18,6 @@ import logging as logging
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
 import crypto.ssl as ssl
@@ -68,7 +67,7 @@ class ChandlerESMTPSender(smtp.ESMTPSender):
 class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends a Chandler mail message via SMTP"""
 
-    def __init__(self, account, mailMessage):
+    def __init__(self, repository, account, mailMessage):
         """
            @param account: An SMTP Account content model object
            @type account: C{Mail.MailParcel.SMTPAccountKind}
@@ -77,13 +76,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
            @type account: C{Mail.MailMessageMixin}
         """
 
-        assert account is not None and account.isItemOf(Mail.SMTPAccount.getKind())
+        assert account is not None and account.isItemOf(Mail.SMTPAccount.getKind(repository.view))
         assert mailMessage is not None and isinstance(mailMessage, Mail.MailMessageMixin)
 
         """Create a unique view string to prevent multiple sends using same view"""
         viewName = "SMTPSender_%s_%s" % (str(UUID.UUID()), DateTime.now())
 
-        super(SMTPSender, self).__init__(Globals.repository, viewName)
+        super(SMTPSender, self).__init__(repository, viewName)
 
         self.accountUUID = account.itsUUID
         self.mailMessageUUID = mailMessage.itsUUID
@@ -192,7 +191,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             email, code, str = recipient
 
             if recipient[1] != constants.SMTP_SUCCESS:
-                deliveryError = Mail.MailDeliveryError()
+                deliveryError = Mail.MailDeliveryError(view=self.getCurrentView())
                 deliveryError.errorCode = code
                 deliveryError.errorString = "%s: %s" % (email, str)
                 deliveryError.errorDate = errorDate
@@ -232,7 +231,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
     def __recordError(self, err):
         """Helper method to record the errors to the mailMessage object"""
 
-        deliveryError = Mail.MailDeliveryError()
+        deliveryError = Mail.MailDeliveryError(view=self.getCurrentView())
         deliveryError.errorDate = DateTime.now()
         errorType = str(err.__class__)
 
@@ -347,10 +346,11 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         """Returns instances of C{SMTPAccount} and C{MailMessage}
            based on C{UUID}'s"""
 
-        accountKind = Mail.SMTPAccount.getKind()
+        view = self.getCurrentView()
+        accountKind = Mail.SMTPAccount.getKind(view)
         self.account = accountKind.findUUID(self.accountUUID)
 
-        mailMessageKind = Mail.MailMessage.getKind()
+        mailMessageKind = Mail.MailMessage.getKind(view)
         self.mailMessage = mailMessageKind.findUUID(self.mailMessageUUID)
 
         assert self.account is not None, "No Account for UUID: %s" % self.accountUUID

@@ -13,8 +13,6 @@ from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-import application
-import application.Globals as Globals
 
 # get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
@@ -40,8 +38,6 @@ class TestPerfWithRSS(RepositoryTestCase):
     def setUp(self):
 
         super(TestPerfWithRSS, self).setUp()
-
-        Globals.repository = self.rep # to keep indexer happy
 
         # sys.path.insert(1, parcelDir)
         self.loadParcel("http://osafoundation.org/parcels/osaf/examples/zaobao")

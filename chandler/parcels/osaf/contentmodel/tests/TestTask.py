@@ -12,7 +12,6 @@ import unittest, os
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
-import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
 import mx.DateTime as DateTime
 
@@ -36,21 +35,23 @@ class TaskTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/tasks")
 
         # Check that the globals got created by the parcel
+        view = self.rep.view
         taskPath = Path('//parcels/osaf/contentmodel/tasks')
-        self.assert_(Task.Task.getKind() != None)
-        self.assert_(self.rep.find(Path(taskPath, 'Task')) != None)
+        self.assert_(Task.Task.getKind(view) != None)
+        self.assert_(view.find(Path(taskPath, 'Task')) != None)
 
-        self.assertEqual(Task.Task.getKind(),
-                         self.rep.find(Path(taskPath, 'Task')))
+        self.assertEqual(Task.Task.getKind(view),
+                         view.find(Path(taskPath, 'Task')))
 
         # Construct A Sample Item
-        taskItem = Task.Task("TestTask")
+        taskItem = Task.Task("TestTask", view=view)
         taskItem.displayName = "test headline"
         taskItem.importance = "important"
 
         self._reopenRepository()
+        view = self.rep.view
 
-        contentItemParent = self.rep.findPath("//userdata")
+        contentItemParent = view.findPath("//userdata")
 
         taskItem2 = contentItemParent.getItemChild("TestTask")
         _verifyTask(taskItem2)

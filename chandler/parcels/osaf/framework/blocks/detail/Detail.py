@@ -184,12 +184,12 @@ class DetailRoot (Trunk.TrunkParentBlock):
         self.finishSelectionChanges () # finish changes to previous selected item 
         item = self.selectedItem()
 
-        if not Sharing.isMailSetUp():
+        if not Sharing.isMailSetUp(self.itsView):
             if Util.okCancel(wx.GetApp().mainFrame,
              "Account information required",
              "Please set up your accounts."):
                 if not AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame):
+                 wx.GetApp().mainFrame, view=self.itsView):
                     return
             else:
                 return
@@ -444,10 +444,8 @@ class StaticRedirectAttribute (StaticTextLabel):
       Static Text that displays the name of the selected item's Attribute
     """
     def shouldShow (self, item):
-        contactKind = Contacts.Contact.getKind ()
-        if item is None or item.isItemOf (contactKind):
-            return False
-        return True
+        return not (item is None or
+                    item.isItemOf (Contacts.Contact.getKind (self.itsView)))
 
     def staticTextLabelValue (self, item):
         redirectAttr = GetRedirectAttribute(item, self.whichAttribute ())
@@ -461,7 +459,7 @@ class StaticRedirectAttribute (StaticTextLabel):
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
-        contactKind = Contacts.Contact.getKind ()
+        contactKind = Contacts.Contact.getKind (self.itsView)
         if item is None or item.isItemOf (contactKind):
             self.isShown = False
         else:
@@ -469,10 +467,8 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
         self.synchronizeWidget()
 
     def shouldShow (self, item):
-        contactKind = Contacts.Contact.getKind ()
-        if item is None or item.isItemOf (contactKind):
-            return False
-        return True
+        return not (item is None or
+                    item.isItemOf (Contacts.Contact.getKind (self.itsView)))
 
 class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     pass
@@ -483,7 +479,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
-    mailKind = Mail.MailMessageMixin.getKind ()
+    mailKind = Mail.MailMessageMixin.getKind (item.itsView)
     isCollection = isinstance (item, ItemCollection.ItemCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
@@ -504,7 +500,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         self.finishSelectionChanges () # finish changes to editable fields 
         tool = event.arguments['sender']
         item = self.selectedItem()
-        isANoteKind = item.isItemOf(Notes.Note.getKind())
+        isANoteKind = item.isItemOf(Notes.Note.getKind(self.itsView))
         if not isANoteKind:
             return
         if item is not None:
@@ -520,7 +516,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
         if item is not None:
-            enable = item.isItemOf(Notes.Note.getKind())
+            enable = item.isItemOf(Notes.Note.getKind(self.itsView))
         else:
             enable = False
         event.arguments ['Enable'] = enable
@@ -564,7 +560,7 @@ class MailMessageButton (DetailStampButton):
         return Mail.MailMessageMixin
     
     def stampMixinKind(self):
-        return Mail.MailMessageMixin.getKind()
+        return Mail.MailMessageMixin.getKind(self.itsView)
     
 class CalendarStamp (DetailStampButton):
     """
@@ -574,7 +570,7 @@ class CalendarStamp (DetailStampButton):
         return Calendar.CalendarEventMixin
 
     def stampMixinKind(self):
-        return Calendar.CalendarEventMixin.getKind()
+        return Calendar.CalendarEventMixin.getKind(self.itsView)
 
 class TaskStamp (DetailStampButton):
     """
@@ -584,7 +580,7 @@ class TaskStamp (DetailStampButton):
         return Task.TaskMixin
 
     def stampMixinKind(self):
-        return Task.TaskMixin.getKind()
+        return Task.TaskMixin.getKind(self.itsView)
 
 
 class PrivateSwitchButton(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
@@ -773,7 +769,7 @@ class FromEditField (EditTextAttribute):
                     contactKind = \
                      item.findPath("//parcels/osaf/contentmodel/contacts/Contact")
                     if type is contactKind:
-                        item.whoFrom = item.getCurrentMeContact()
+                        item.whoFrom = item.getCurrentMeContact(item.itsView)
                     else:
                         emailAddressKind = \
                          item.findPath("//parcels/osaf/contentmodel/mail/EmailAddress")
@@ -810,7 +806,7 @@ class EditHeadlineRedirectAttribute (EditRedirectAttribute):
     """
     def shouldShow (self, item):
         # don't show if the item is a Contact
-        contactKind = Contacts.Contact.getKind ()
+        contactKind = Contacts.Contact.getKind (self.itsView)
         shouldShow = not item.isItemOf (contactKind)
         return shouldShow
 

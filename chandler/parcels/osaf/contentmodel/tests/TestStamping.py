@@ -40,9 +40,10 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         aDate = DateTime.now()
         item.date = aDate
         aWhoList = []
+        view = item.itsView
         if doWho:
-            aWhoList.append(GenerateItems.GenerateCalendarParticipant())
-            aWhoList.append(GenerateItems.GenerateCalendarParticipant())
+            aWhoList.append(GenerateItems.GenerateCalendarParticipant(view))
+            aWhoList.append(GenerateItems.GenerateCalendarParticipant(view))
         if compareWhos:
             item.who = aWhoList
 
@@ -95,18 +96,19 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
         self.loadParcel("http://osafoundation.org/parcels/osaf/mail")
-
+        view = self.rep.view
+        
         # Get the stamp kinds
-        mailMixin = Mail.MailMessageMixin.getKind()
-        taskMixin = Task.TaskMixin.getKind()
-        eventMixin = Calendar.CalendarEventMixin.getKind()
-        taskKind = Task.Task.getKind()
-        mailKind = Mail.MailMessage.getKind()
-        eventKind = Calendar.CalendarEvent.getKind()
-        noteKind = Notes.Note.getKind()
+        mailMixin = Mail.MailMessageMixin.getKind(view)
+        taskMixin = Task.TaskMixin.getKind(view)
+        eventMixin = Calendar.CalendarEventMixin.getKind(view)
+        taskKind = Task.Task.getKind(view)
+        mailKind = Mail.MailMessage.getKind(view)
+        eventKind = Calendar.CalendarEvent.getKind(view)
+        noteKind = Notes.Note.getKind(view)
 
         # start out with a Note
-        aNote = Notes.Note("noteItem1")
+        aNote = Notes.Note("noteItem1", view=view)
         self.setAttributes(aNote, doWho=False)
         self.assertAttributes(aNote)
         add = 'add'
@@ -130,7 +132,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assertAttributes(aNote)
 
         # Create a Task, and do all kinds of stamping on it
-        aTask = Task.Task("aTask")
+        aTask = Task.Task("aTask", view=view)
         self.setAttributes(aTask)
 
         self.traverseStampSquence(aTask, ((add, eventMixin),
@@ -174,7 +176,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assert_(aTask.isItemOf(taskKind))
 
         # check stamping on an Event
-        anEvent = Calendar.CalendarEvent("anEvent")
+        anEvent = Calendar.CalendarEvent("anEvent", view=view)
         self.setAttributes(anEvent)
 
         # round-robin it's Kind back to event
@@ -187,7 +189,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assert_(anEvent.isItemOf(eventKind))
 
         # check stamping on a Mail Message
-        aMessage = Mail.MailMessage("aMessage")
+        aMessage = Mail.MailMessage("aMessage", view=view)
         self.setAttributes(aMessage)
         self.traverseStampSquence(aMessage, ((add, eventMixin),
                                              (add, taskMixin),
@@ -224,7 +226,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         # Test some failure cases
         # These cases should produce suitable warning messages in Chandler.log
         if testFailureCases:
-            anotherEvent = Calendar.CalendarEvent("anotherEvent")
+            anotherEvent = Calendar.CalendarEvent("anotherEvent", view=view)
             self.setAttributes(anotherEvent)
             self.assert_(anotherEvent.isItemOf(eventKind))
             try:

@@ -6,9 +6,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import application
-import repository.item.Item as Item
 import repository.query.Query as Query
 
 import osaf.contentmodel.ContentModel as ContentModel
@@ -27,8 +25,8 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    def __init__ (self, name=None, parent=None, kind=None):
-        super (CalendarEventMixin, self).__init__(name, parent, kind)
+    def __init__ (self, name=None, parent=None, kind=None, view=None):
+        super (CalendarEventMixin, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -61,12 +59,12 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
 
             # I only want a Contact
             if not isinstance(whoFrom, Contacts.Contact):
-                whoFrom = self.getCurrentMeContact()
+                whoFrom = self.getCurrentMeContact(self.itsView)
 
             self.organizer = whoFrom
 
         except AttributeError:
-            self.organizer = self.getCurrentMeContact()
+            self.organizer = self.getCurrentMeContact(self.itsView)
 
         # give a starting display name
         try:
@@ -187,16 +185,16 @@ class CalendarEvent(CalendarEventMixin, Notes.Note):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (CalendarEvent, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (CalendarEvent, self).__init__(name, parent, kind, view)
         self.participants = []
 
 class Location(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/Location"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Location, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Location, self).__init__(name, parent, kind, view)
 
     def __str__ (self):
         """
@@ -207,7 +205,7 @@ class Location(ContentModel.ChandlerItem):
             # Stale items can't access their attributes
         return self.getItemDisplayName ()
 
-    def getLocation (cls, locationName):
+    def getLocation (cls, view, locationName):
         """
           Factory Method for getting a Location.
 
@@ -225,7 +223,7 @@ class Location(ContentModel.ChandlerItem):
         # get all Location objects whose displayName match the param
         queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
                       where i.displayName ==$0'
-        locQuery = Query.Query (Globals.repository, queryString)
+        locQuery = Query.Query (view.repository, queryString)
         locQuery.args = [ locationName ]
         locQuery.execute ()
 
@@ -234,7 +232,7 @@ class Location(ContentModel.ChandlerItem):
             return firstSpot
 
         # make a new Location
-        newLocation = Location()
+        newLocation = Location(view=view)
         newLocation.displayName = locationName
         return newLocation
 
@@ -244,12 +242,12 @@ class Calendar(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Calendar, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Calendar, self).__init__(name, parent, kind, view)
 
 class RecurrencePattern(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/RecurrencePattern"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (RecurrencePattern, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (RecurrencePattern, self).__init__(name, parent, kind, view)

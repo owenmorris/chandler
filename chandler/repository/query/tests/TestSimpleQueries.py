@@ -17,9 +17,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
         import osaf.contentmodel.mail.Mail as Mail
         # create an outbound Mail item
-        aMessage = Mail.MailMessage()
+        view = self.rep.view
+        aMessage = Mail.MailMessage(view=view)
         aMessage.isInbound = True
-        self.rep.commit()
+        view.commit()
         # now run the query
 
         qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"
@@ -96,12 +97,13 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
         tools.timing.end("Load Contacts Parcel")
 
+        view = self.rep.view
         tools.timing.begin("Generate Contacts")
-        GenerateItems.GenerateContacts(100)
+        GenerateItems.GenerateContacts(view, 100)
         tools.timing.end("Generate Contacts")
 
         tools.timing.begin("Commit Contacts")
-        self.rep.commit()
+        view.commit()
         tools.timing.end("Commit Contacts")
 #        tools.timing.results()
         
@@ -119,12 +121,13 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
         tools.timing.end("Load Calendar Parcel")
 
+        view = self.rep.view
         tools.timing.begin("Generate Calendar Events")
-        GenerateItems.generateCalendarEventItems(100,30)
+        GenerateItems.generateCalendarEventItems(view, 100, 30)
         tools.timing.end("Generate Calendar Events")
 
         tools.timing.begin("Commit Calendar Events")
-        self.rep.commit()
+        view.commit()
         tools.timing.end("Commit Calendar Events")
         tools.timing.results()
         
@@ -164,12 +167,13 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
         tools.timing.end("Load Calendar Parcel")
 
+        view = self.rep.view
         tools.timing.begin("Generate Calendar Events")
-        GenerateItems.generateCalendarEventItems(100,30)
+        GenerateItems.generateCalendarEventItems(view, 100, 30)
         tools.timing.end("Generate Calendar Events")
 
         tools.timing.begin("Commit Calendar Events")
-        self.rep.commit()
+        view.commit()
         tools.timing.end("Commit Calendar Events")
 #        tools.timing.results()
 

@@ -10,7 +10,6 @@ import unittest, os, sys, logging
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
-import application.Globals as Globals
 import osaf.framework.sharing.Sharing as Sharing
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.contentmodel.ItemCollection as ItemCollection
@@ -22,7 +21,7 @@ class ICalendarTestCase(unittest.TestCase):
 
     def runTest(self):
         self._setup()
-        self.Import()
+        self.Import(self.repo.view)
         self._teardown()
 
     def _setup(self):
@@ -47,9 +46,8 @@ class ICalendarTestCase(unittest.TestCase):
         ]
 
         self.repo = self._initRamDB(packs)
-        Globals.repository = self.repo
-        self.manager = Parcel.Manager.getManager(repository=self.repo,
-         path=parcelpath)
+        self.manager = Parcel.Manager.getManager(self.repo.view,
+                                                 path=parcelpath)
         self.manager.loadParcels(namespaces)
         # create a sandbox root
         Item.Item("sandbox", self.repo, None)
@@ -66,7 +64,7 @@ class ICalendarTestCase(unittest.TestCase):
         repo.commit()
         return repo
 
-    def Import(self):
+    def Import(self, view):
 
         path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                             'parcels', 'osaf', 'framework', 'sharing', 'tests')
@@ -74,7 +72,7 @@ class ICalendarTestCase(unittest.TestCase):
         sandbox = self.repo.findPath("//sandbox")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=path, shareName="Chandler.ics")
+         sharePath=path, shareName="Chandler.ics", view=view)
         format = ICalendar.ICalendarFormat(name="format", parent=sandbox)
         self.share = Sharing.Share(name="share", parent=sandbox,
          conduit=conduit, format=format)

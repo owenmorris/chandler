@@ -2,7 +2,6 @@ import os
 import wx
 import wx.xrc
 import application.Globals
-from application.Globals import repository as repo
 from repository.item.Query import KindQuery
 import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
@@ -35,7 +34,7 @@ def IMAPSaveHandler(item, fields, values):
         # EmailAddress item (could be an existing one if the fields match, or
         # a new one could be created)
         item.replyToAddress = \
-         Mail.EmailAddress.getEmailAddress(newAddressString,
+         Mail.EmailAddress.getEmailAddress(item.itsView, newAddressString,
          newFullName)
         if item.replyToAddress is None:
             print "Error, got None from getEmailAddress(%s, %s)" % \
@@ -163,11 +162,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
-         account=None):
+         account=None, view=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.resources = resources
+        self.view = view
 
         # outerSizer will have two children to manage: on top is innerSizer,
         # and below that is the okCancelSizer
@@ -226,7 +226,7 @@ class AccountPreferencesDialog(wx.Dialog):
             be editing. If account is passed in, show its details. """
 
         # Make sure we're sync'ed with any changes other threads have made
-        repo.refresh()
+        self.view.refresh()
 
         accountIndex = 0 # which account to select first
         imapAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "IMAPAccount")
@@ -288,7 +288,7 @@ class AccountPreferencesDialog(wx.Dialog):
          self.data[self.currentIndex]['values'])
 
         for account in self.data:
-            item = repo.findUUID(account['item'])
+            item = self.view.findUUID(account['item'])
             values = account['values']
             panel = PANELS[item.accountType]
             if panel.has_key("saveHandler"):
@@ -306,7 +306,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         i = 0
         for account in self.data:
-            item = repo.findUUID(account['item'])
+            item = self.view.findUUID(account['item'])
             values = account['values']
             panel = PANELS[item.accountType]
             if panel.has_key("validationHandler"):
@@ -335,7 +335,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.currentPanel.Hide()
 
         self.currentIndex = index
-        item = repo.findUUID(self.data[index]['item'])
+        item = self.view.findUUID(self.data[index]['item'])
         self.currentPanelType = item.accountType
         self.currentPanel = self.panels[self.currentPanelType]
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
@@ -383,7 +383,7 @@ class AccountPreferencesDialog(wx.Dialog):
         if self.__Validate():
             self.__ApplyChanges()
             self.EndModal(True)
-            repo.commit()
+            self.view.commit()
 
     def OnCancel(self, evt):
         self.EndModal(False)
@@ -401,12 +401,12 @@ class AccountPreferencesDialog(wx.Dialog):
         wx.CallAfter(control.SetSelection, -1, -1)
 
 
-def ShowAccountPreferencesDialog(parent, account=None):
+def ShowAccountPreferencesDialog(parent, account=None, view=None):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
          'application', 'dialogs', 'AccountPreferences_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
         win = AccountPreferencesDialog(parent, "Account Preferences",
-         resources=resources, account=account)
+         resources=resources, account=account, view=view)
         win.CenterOnScreen()
         val = win.ShowModal()
         win.Destroy()

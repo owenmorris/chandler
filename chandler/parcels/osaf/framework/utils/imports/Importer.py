@@ -5,10 +5,9 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import csv
 
-class Importer:
+class Importer(object):
     """Base class for Chandler Importer objects.
     
     @ivar lineNumber: Current line number in the source file.
@@ -17,11 +16,11 @@ class Importer:
     @ivar mapping: An L{ImportMap.ImportMap} object
     
     """
-    def __init__(self, destination=None):
+    def __init__(self, view, destination=None):
         if destination == None:
-            self.destination=Globals.repository.findPath("//userdata")
+            self.destination=view.findPath("//userdata")
         else:
-            self.destination=Globals.repository.findPath(destination)
+            self.destination=view.findPath(destination)
         self.lineNumber=0
     
     def processObjects(self, sourceFile):
@@ -51,7 +50,7 @@ class Importer:
         """
         pass
     
-    def postProcess(self, object):
+    def postProcess(self, view, object):
         """Further process recently created object.
         
         @param object: Recently created object.
@@ -63,7 +62,7 @@ class Importer:
         """
         pass
 
-    def processFile(self):
+    def processFile(self, view):
         """Create objects in sourceFile.
         
         return: The number of high-level objects created, each high level object
@@ -76,10 +75,10 @@ class Importer:
         f=file(self.source)
         objects=0
         for object in self.processObjects(f):
-            self.postProcess(object)
+            self.postProcess(view, object)
             objects=objects + 1
         try:
-            Globals.repository.commit()
+            view.commit()
         except:
             raise CreationError, "Error commiting to repository",self.lineNumber
         f.close()
@@ -97,8 +96,8 @@ class CSVImporter(Importer):
     @type keyList: list of strings
     
     """
-    def __init__(self, hasHeader=True, dialect='excel', keyList=None, dest=None):
-        Importer.__init__(self, dest)
+    def __init__(self, view, hasHeader=True, dialect='excel', keyList=None, dest=None):
+        super(CSVImporter, self).__init__(view, dest)
         self.dialect=dialect
         self.hasHeader=hasHeader
         self.keyList=keyList

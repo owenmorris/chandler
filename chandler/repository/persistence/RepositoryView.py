@@ -767,6 +767,7 @@ class RepositoryView(object):
     itsUUID = property(__getUUID)
     itsName = property(__getName)
     itsPath = property(_getPath)
+    itsView = property(lambda self: self)
     itsParent = None
     
     logger = property(getLogger)

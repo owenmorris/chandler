@@ -6,7 +6,6 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import Importer, MapXML, os
-import application.Globals as Globals
 
 #@@@TODO deal with the special case of gender (enum){"gender" : "Gender"}
 #Unspecified in Outlook, Unknown in Chandler
@@ -68,9 +67,9 @@ MAPPINGDIR="parcels/osaf/framework/utils/imports"
 
 class OutlookContacts(Importer.CSVImporter):
     """Import contacts exported by Outlook to CSV format."""
-    def __init__(self, sourceFile=None, mapping="outlook2000.xml"):
+    def __init__(self, view, sourceFile=None, mapping="outlook2000.xml"):
         """Currently version is ignored, assumes Outlook 2000 format."""
-        Importer.CSVImporter.__init__(self)        
+        super(OutlookContacts, self).__init__(view)
         if sourceFile is None:
             #hack to avoid user interface to input a file, os.getcwd()
             #will probably be the Chandler dir, but YMMV.
@@ -81,10 +80,10 @@ class OutlookContacts(Importer.CSVImporter):
         reader=MapXML.MapXML(path)
         self.mapping=reader.streamFile()
 
-    def postProcess(self, object):
+    def postProcess(self, view, object):
         """Deal with registering homeSection and workSection after the fact."""
         kindPath="//parcels/osaf/contentmodel/contacts/ContactSection"
-        sectionKind=Globals.repository.findPath(kindPath)
+        sectionKind=view.findPath(kindPath)
         sectionsList=[]
         for child in object.iterChildren():
             if child.itsKind is sectionKind:

@@ -7,13 +7,11 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application
 import repository.item.Item as Item
 import mx.DateTime as DateTime
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
-import application.Globals as Globals
 
 
 class TaskMixin(ContentModel.ChandlerItem):
@@ -25,8 +23,8 @@ class TaskMixin(ContentModel.ChandlerItem):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    def __init__ (self, name=None, parent=None, kind=None):
-        super (TaskMixin, self).__init__(name, parent, kind)
+    def __init__ (self, name=None, parent=None, kind=None, view=None):
+        super (TaskMixin, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -62,7 +60,7 @@ class TaskMixin(ContentModel.ChandlerItem):
 
             # I only want a Contact
             if not isinstance(whoFrom, Contacts.Contact):
-                whoFrom = self.getCurrentMeContact()
+                whoFrom = self.getCurrentMeContact(self.itsView)
 
             self.requestor = whoFrom
         except AttributeError:
@@ -124,8 +122,8 @@ class TaskEventExtraMixin(ContentModel.ContentItem):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    def __init__ (self, name=None, parent=None, kind=None):
-        super (TaskEventExtraMixin, self).__init__(name, parent, kind)
+    def __init__ (self, name=None, parent=None, kind=None, view=None):
+        super (TaskEventExtraMixin, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -152,5 +150,5 @@ class Task(TaskMixin, Notes.Note):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/Task"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super(Task, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super(Task, self).__init__(name, parent, kind, view)

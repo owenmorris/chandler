@@ -1908,7 +1908,8 @@ class Item(object):
             if name is not None:
                 loading = self.getRepositoryView().isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
-                    raise ChildNameError, (self, item._name)
+                    if not loading:
+                        raise ChildNameError, (self, item._name)
 
         else:
             self._children = self.getRepositoryView()._createChildren(self,

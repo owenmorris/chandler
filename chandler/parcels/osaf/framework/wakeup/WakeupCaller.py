@@ -2,7 +2,6 @@ import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryV
 import osaf.framework.twisted.TwistedThreadPool as TwistedThreadPool
 import repository.item.Query as Query
 import repository.util.ClassLoader as ClassLoader
-import application.Globals as Globals
 import twisted.internet.reactor as reactor
 import logging as logging
 import chandlerdb.util.UUID as UUID
@@ -28,12 +27,12 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
       interval specified.
     """
 
-    def __init__(self):
+    def __init__(self, repository):
         #Create a unique view string
-        super(WakeupCaller, self).__init__(Globals.repository, "WC_%s" % (str(UUID.UUID())))
+        super(WakeupCaller, self).__init__(repository, "WC_%s" % (str(UUID.UUID())))
         self.wakeupCallies = {}
         self.threadPool = TwistedThreadPool.RepositoryThreadPool()
-        self.wakeupCallKind = None
+        self.wakeupCallKindID = None
 
     def startup(self):
         """
@@ -65,7 +64,9 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
                 continue
 
             if callOnStartup and wakeupCall.callOnStartup:
-                self.threadPool.callInThread(self.__proxy, wakeupCall.callback.receiveWakeupCall, wakeupCall.itsUUID)
+                self.threadPool.callInThread(self.__proxy,
+                                             wakeupCall.callback.receiveWakeupCall,
+                                             wakeupCall.itsUUID)
 
             wakeupCall.handle = reactor.callLater(wakeupCall.delay.seconds, self.execInView,
                                                   self.__triggerEvent, wakeupCall.itsUUID)
@@ -86,13 +87,21 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         self.__startup(False)
 
     def __proxy(self, wakeupCallCallback, UUID):
-        wakeupCall = self.__getKind().findUUID(UUID)
-        wakeupCallCallback(wakeupCall)
+        #
+        # XXX: Fix the code below to cache the view
+        #
+        try:
+            prevView = self.repository.setCurrentView(self.repository.view)
+            wakeupCall = self.__getKind().findUUID(UUID)
+            wakeupCallCallback(wakeupCall)
+        finally:
+            self.repository.setCurrentView(prevView)
 
     def __triggerEvent(self, uuid):
         wakeupCall = self.wakeupCallies[uuid]
 
-        self.threadPool.callInThread(self.__proxy, wakeupCall.callback.receiveWakeupCall,
+        self.threadPool.callInThread(self.__proxy,
+                                     wakeupCall.callback.receiveWakeupCall,
                                      wakeupCall.itsUUID)
 
         if wakeupCall.repeat:
@@ -117,10 +126,15 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
                 self.wakeupCallies[wakeupCall.itsUUID] = wakeupCall
 
     def __getKind(self):
-        if self.wakeupCallKind is None:
-            self.wakeupCallKind = Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
 
-        return self.wakeupCallKind
+        view = self.getCurrentView()
+        if self.wakeupCallKindID is None:
+            wakeupCallKind = view.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
+            self.wakeupCallKindID = wakeupCallKind.itsUUID
+        else:
+            wakeupCallKind = view.find(self.wakeupCallKindID)
+
+        return wakeupCallKind
 
     def __isValid(self, wakeupCall):
         if wakeupCall is None or wakeupCall.delay.seconds <= 0:

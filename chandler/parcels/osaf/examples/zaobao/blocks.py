@@ -6,14 +6,13 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 from repository.item.Query import KindQuery
 from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail, ListDelegate
 import osaf.examples.zaobao.RSSData as RSSData
 
 # GetZaoBaoElementValues is shared between both classes
 def GetZaoBaoElementValues(element):
-    if element == RSSData.RSSChannel.getKind():
+    if element == RSSData.RSSChannel.getKind(element.itsView):
         return ['','']
 
     displayName = element.getAttributeValue('displayName',
@@ -28,12 +27,12 @@ def GetZaoBaoElementValues(element):
 
 class ZaoBaoListDelegate (ListDelegate):
     def GetElementParent(self, element):
-        if element.itsKind is RSSData.RSSChannel.getKind():
+        if element.itsKind is RSSData.RSSChannel.getKind(element.itsView):
             return None
         return element.channel
 
     def GetElementChildren(self, element):
-        if element.itsKind is RSSData.RSSChannel.getKind():
+        if element.itsKind is RSSData.RSSChannel.getKind(element.itsView):
             return element.items
         return None
 
@@ -41,7 +40,7 @@ class ZaoBaoListDelegate (ListDelegate):
         return GetZaoBaoElementValues(element)
 
     def ElementHasChildren(self, element):
-        if element.itsKind is RSSData.RSSChannel.getKind():
+        if element.itsKind is RSSData.RSSChannel.getKind(element.itsView):
             return len(element.getAttributeValue('items', default=[])) != 0
         return False
 
@@ -53,7 +52,7 @@ class ZaoBaoListDelegate (ListDelegate):
 
 class ZaoBaoTreeDelegate (ListDelegate):
     def GetElementParent(self, element):
-        chanKind = RSSData.RSSChannel.getKind()
+        chanKind = RSSData.RSSChannel.getKind(element.itsView)
         if element == chanKind:
             return None
         if element.itsKind is chanKind:
@@ -61,7 +60,7 @@ class ZaoBaoTreeDelegate (ListDelegate):
         return element.channel
 
     def GetElementChildren(self, element):
-        chanKind = RSSData.RSSChannel.getKind()
+        chanKind = RSSData.RSSChannel.getKind(element.itsView)
 
         if element == chanKind:
             return KindQuery().run([chanKind])
@@ -75,7 +74,7 @@ class ZaoBaoTreeDelegate (ListDelegate):
         return GetZaoBaoElementValues(element)
 
     def ElementHasChildren(self, element):
-        chanKind = RSSData.RSSChannel.getKind()
+        chanKind = RSSData.RSSChannel.getKind(element.itsView)
         if element == chanKind:
             return True
 
@@ -85,8 +84,9 @@ class ZaoBaoTreeDelegate (ListDelegate):
         return False
 
     def NeedsUpdate(self, event):
-        item = Globals.repository.findUUID(event.arguments['uuid'])
-        if item.itsKind is RSSData.RSSChannel.getKind():
+        view = self.blockItem.itsView
+        item = view.findUUID(event.arguments['uuid'])
+        if item.itsKind is RSSData.RSSChannel.getKind(view):
             self.scheduleUpdate = True
 
 
@@ -96,14 +96,17 @@ def onEnterPressedEvent(self, event):
     if len(url) < 5:
         return
 
-    Globals.repository.commit()
-    chan = RSSData.NewChannelFromURL(url, True)
-    Globals.repository.commit()
+    view = self.itsView
+
+    view.commit()
+    chan = RSSData.NewChannelFromURL(view, url, True)
+    view.commit()
+
 
 class ZaoBaoItemDetail(ItemDetail):
 
     def getHTMLText(self, item):
-        if item == Globals.repository.view:
+        if item == item.itsView:
             return
         if item is not None:
             displayName = item.getAttributeValue('displayName', default='<Untitled>')

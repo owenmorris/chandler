@@ -25,7 +25,7 @@ class ContentModel(Parcel):
     # Cached UUID of //userdata
     contentItemParentID = None
 
-    def getContentItemParent(cls):
+    def getContentItemParent(cls, view):
         """ Return //userdata or create if non-existent """
 
         def makeContainer(parent, name, child):
@@ -34,19 +34,17 @@ class ContentModel(Parcel):
             else:
                 return child
 
-        repository = Globals.repository
         if cls.contentItemParentID is not None:
-            parent = repository.findUUID(cls.contentItemParentID)
+            parent = view.findUUID(cls.contentItemParentID)
             if parent is not None:
                 return parent
             # Our cached UUID is invalid
             cls.contentItemParentID is None
 
-        parent = repository.find(cls.contentitemsPath)
+        parent = view.find(cls.contentitemsPath)
         if parent is None:
-            itemKind = repository.findPath('//Schema/Core/Item')
-            parent = repository.walk(cls.contentitemsPath,
-             makeContainer)
+            itemKind = view.findPath('//Schema/Core/Item')
+            parent = view.walk(cls.contentitemsPath, makeContainer)
         cls.contentItemParentID = parent.itsUUID
         return parent
 
@@ -67,29 +65,38 @@ class ChandlerItem(Item.Item):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/ChandlerItem"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.getContentItemParent()
-        if not kind:
-            kind = self.getKind()
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+
+        if view is None and parent is None and kind is None:
+            raise AssertionError, 'view cannot be None when both parent and kind are None'
+
+        if parent is None:
+            if view is None:
+                view = kind.itsView
+            parent = ContentModel.getContentItemParent(view)
+
+        if kind is None:
+            if view is None:
+                view = parent.itsView
+            kind = self.getKind(view)
+
         super (ChandlerItem, self).__init__(name, parent, kind)
 
 
-    def getKind(cls):
+    def getKind(cls, view):
         """ Look up a class's kind, based on its myKindPath attribute """
 
         """ The UUID of the kind is cached in the class's myKindID 
             attribute """
 
-        repository = Globals.repository
         if cls.myKindID is not None:
-            myKind = repository.findUUID(cls.myKindID)
+            myKind = view.findUUID(cls.myKindID)
             if myKind is not None:
                 return myKind
             # Our cached UUID is invalid
             cls.myKindID = None
 
-        myKind = repository.findPath(cls.myKindPath)
+        myKind = view.findPath(cls.myKindPath)
         assert myKind, "%s not yet loaded" % cls.myKindPath
         cls.myKindID = myKind.itsUUID
         return myKind
@@ -101,11 +108,11 @@ class ContentItem(ChandlerItem):
     myKindPath = "//parcels/osaf/contentmodel/ContentItem"
     myKindID = None
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (ContentItem, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (ContentItem, self).__init__(name, parent, kind, view)
 
         self.createdOn = DateTime.now()
-        self.creator = self.getCurrentMeContact()
+        self.creator = self.getCurrentMeContact(self.itsView)
 
 
     def InitOutgoingAttributes (self):
@@ -200,7 +207,7 @@ class ContentItem(ChandlerItem):
         except NameError:
             kindKind = self.findPath('//Schema/Core/Kind')
             allKinds = Query.KindQuery().run([kindKind])
-            contentItemKind = ContentItem.getKind ()
+            contentItemKind = ContentItem.getKind (self.itsView)
             contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
             cachedContentItemKinds = contentItemKinds
         return contentItemKinds
@@ -401,7 +408,7 @@ class ContentItem(ChandlerItem):
         don't need to import Mail.
         """
         import mail.Mail as Mail
-        return Mail.EmailAddress.getEmailAddress (nameOrAddressString)
+        return Mail.EmailAddress.getEmailAddress (self.itsView, nameOrAddressString)
 
     def getCurrentMeEmailAddress (self):
         """
@@ -411,14 +418,14 @@ class ContentItem(ChandlerItem):
         don't need to import Mail.
         """
         import mail.Mail as Mail
-        return Mail.EmailAddress.getCurrentMeEmailAddress ()
+        return Mail.EmailAddress.getCurrentMeEmailAddress (self.itsView)
 
-    def getCurrentMeContact(self):
+    def getCurrentMeContact(self, ignore=None):
         """
           Lookup the current "me" Contact.
         """
         import contacts.Contacts
-        return contacts.Contacts.Contact.getCurrentMeContact()
+        return contacts.Contacts.Contact.getCurrentMeContact(self.itsView)
 
     def setStatusMessage (cls, message, *args):
         Globals.views[0].setStatusMessage (message, *args)
@@ -498,12 +505,12 @@ class Project(ChandlerItem):
     myKindPath = "//parcels/osaf/contentmodel/Project"
     myKindID = None
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Project, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Project, self).__init__(name, parent, kind, view)
 
 class Group(ChandlerItem):
     myKindPath = "//parcels/osaf/contentmodel/Group"
     myKindID = None
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Group, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Group, self).__init__(name, parent, kind, view)

@@ -94,7 +94,7 @@ class MainView(View):
 
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
-        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame)
+        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.itsView)
 
     def onNewEvent (self, event):
         # Create a new Content Item
@@ -104,7 +104,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
 
         # Tell the sidebar we want to go to the All or contacts box
-        if newItem.isItemOf (Contacts.Contact.getKind ()):
+        if newItem.isItemOf (Contacts.Contact.getKind (self.itsView)):
             itemName = 'ContactsView'
         else:
             itemName = 'AllView'
@@ -164,7 +164,7 @@ class MainView(View):
           Do a repository commit with notice posted in the Status bar.
         """
         self.setStatusMessage (_("committing changes to the repository..."))
-        self.itsView.repository.commit()
+        self.itsView.commit()
         self.setStatusMessage ('')
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
@@ -197,13 +197,13 @@ class MainView(View):
     
         # get default SMTP account
         item = event.arguments ['item']
-        account = Mail.MailParcel.getSMTPAccount()[0]
+        account = Mail.MailParcel.getSMTPAccount(self.itsView)[0]
 
         # put a sending message into the status bar
         self.setStatusMessage ('Sending mail...')
 
         # Now send the mail
-        smtp.SMTPSender(account, item).sendMail()
+        smtp.SMTPSender(self.itsView.repository, account, item).sendMail()
 
     def onShareItemEvent (self, event):
         """
@@ -306,7 +306,8 @@ class MainView(View):
             conduit = self.findPath("//userdata/fsconduit")
             if conduit is None:
                 conduit = Sharing.FileSystemConduit(name="fsconduit",
-                 parent=parent, sharePath=".", shareName="import.ics")
+                 parent=parent, sharePath=".", shareName="import.ics",
+                                                    view=self.itsView)
             format = self.findPath("//userdata/icalImportFormat")
             if format is None:
                 format = ICalendar.ICalendarFormat(name="icalImportFormat",
@@ -340,30 +341,31 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
 
     def onGenerateCalendarEventItemsEvent(self, event):
-        GenerateItems.generateCalendarEventItems(10, 30)
-        self.itsView.repository.commit()
+        GenerateItems.generateCalendarEventItems(self.itsView, 10, 30)
+        self.itsView.commit()
 
     def onGenerateContactsEvent(self, event):
-        GenerateItems.GenerateContacts(10)
-        self.itsView.repository.commit()
+        GenerateItems.GenerateContacts(self.itsView, 10)
+        self.itsView.commit()
 
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Content Items" Menu
-        GenerateItems.GenerateNotes(2) 
-        GenerateItems.generateCalendarEventItems(2, 30)
-        GenerateItems.GenerateTasks(2)
-        GenerateItems.GenerateEventTasks(2)
-        # GenerateItems.GenerateContacts(2) 
-        self.itsView.repository.commit() 
+        view = self.itsView
+        GenerateItems.GenerateNotes(view, 2) 
+        GenerateItems.generateCalendarEventItems(view, 2, 30)
+        GenerateItems.GenerateTasks(view, 2)
+        GenerateItems.GenerateEventTasks(view, 2)
+        # GenerateItems.GenerateContacts(view, 2)
+        view.commit() 
 
     def onGenerateNotesEvent(self, event):
-        GenerateItems.GenerateNotes(10)
-        self.itsView.repository.commit()
+        GenerateItems.GenerateNotes(self.itsView, 10)
+        self.itsView.commit()
 
     def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
 
-        if not Sharing.isMailSetUp():
+        if not Sharing.isMailSetUp(self.itsView):
             if application.dialogs.Util.okCancel( \
              wx.GetApp().mainFrame,
              "Account information required",
@@ -374,12 +376,12 @@ class MainView(View):
             else:
                 return
 
-        account = Mail.MailParcel.getIMAPAccount()
+        account = Mail.MailParcel.getIMAPAccount(self.itsView)
 
-        repository = self.itsView.repository
-        repository.commit()
-        osaf.mail.imap.IMAPDownloader(account).getMail()
-        repository.refresh()
+        view = self.itsView
+        view.commit()
+        osaf.mail.imap.IMAPDownloader(view.repository, account).getMail()
+        view.refresh()
 
     def onLogRepositoryHistoryEvent(self, event):
         # triggered from "Test | Log Repository History" Menu
@@ -395,7 +397,7 @@ class MainView(View):
 
     def onReloadParcelsEvent(self, event):
         # Test menu item
-        ParcelManager.getManager().loadParcels()
+        ParcelManager.getManager(self.itsView).loadParcels()
         wx.GetApp().UnRenderMainView ()
         wx.GetApp().RenderMainView ()
 
@@ -510,7 +512,7 @@ class MainView(View):
 
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
-        self.itsView.repository.commit() 
+        self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             Sharing.syncCollection(collection)
@@ -567,7 +569,7 @@ class MainView(View):
         # find all the shared collections and sync them.
         self.onSyncWebDAVEvent (event)
 
-        if not Sharing.isMailSetUp():
+        if not Sharing.isMailSetUp(self.itsView):
             if application.dialogs.Util.okCancel( \
              wx.GetApp().mainFrame,
              "Account information required",

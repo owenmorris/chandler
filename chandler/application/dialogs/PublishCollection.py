@@ -2,7 +2,6 @@ import os
 import wx
 import wx.xrc
 import application.Globals
-from application.Globals import repository as repo
 from application.Globals import parcelManager as pm
 import osaf.mail.message
 import osaf.mail.sharing

@@ -4,7 +4,6 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
-import application.Globals as Globals
 from osaf.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import feedparser
@@ -33,13 +32,13 @@ def SetAttributes(self, data, attributes):
 ##
 # RSSChannel
 ##
-def NewChannelFromURL(url, update = True):
+def NewChannelFromURL(view, url, update = True):
     data = feedparser.parse(url)
 
     if data['channel'] == {} or data['status'] == 404:
         return None
 
-    channel = RSSChannel()
+    channel = RSSChannel(view=view)
     channel.url = url
 
     if update:
@@ -55,8 +54,8 @@ class RSSChannel(ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super(RSSChannel, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super(RSSChannel, self).__init__(name, parent, kind, view)
         self.items = []
 
     def Update(self):
@@ -110,12 +109,12 @@ class RSSChannel(ContentItem):
             for item in self.items:
                 item.delete()
 
+        view = self.itsView
         for itemData in items:
             #print 'new item'
-            rssItem = RSSItem()
+            rssItem = RSSItem(view=view)
             rssItem.Update(itemData)
             self.addValue('items', rssItem)
-
 
 ##
 # RSSItem
@@ -124,8 +123,8 @@ class RSSItem(ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/examples/zaobao/RSSItem"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super(RSSItem, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super(RSSItem, self).__init__(name, parent, kind, view)
 
     def Update(self, data):
         # fill in the item

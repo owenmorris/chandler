@@ -477,6 +477,7 @@ class Repository(object):
     REFCOUNTED = 0x0002
 
     view = property(getCurrentView, setCurrentView)
+    repository = property(lambda self: self)
     debug = property(isDebug, setDebug)
 
 

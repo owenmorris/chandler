@@ -24,7 +24,6 @@ class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
 
         super(ParcelLoaderTestCase, self)._openRepository(self)
 
-        Globals.repository = self.rep
-
-        Globals.parcelManager = application.Parcel.Manager.getManager()
+        view = self.rep.view
+        Globals.parcelManager = application.Parcel.Manager.getManager(view)
 

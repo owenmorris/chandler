@@ -19,9 +19,10 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
-        ic = ItemCollection.ItemCollection()
+        view = self.rep.view
+        ic = ItemCollection.ItemCollection(view=view)
         for index in range(100):
-            item = GenerateItems.GenerateCalendarEvent(100)
+            item = GenerateItems.GenerateCalendarEvent(view, 100)
             ic.add(item)
 
             # test __contains__
@@ -53,11 +54,12 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         log.debug("Generating calendar events")
-        item = GenerateItems.GenerateCalendarEvent(100)
-        self.rep.commit()
+        view = self.rep.view
+        item = GenerateItems.GenerateCalendarEvent(view, 100)
+        view.commit()
 
         log.debug("Creating ItemCollection")
-        ic = ItemCollection.ItemCollection()
+        ic = ItemCollection.ItemCollection(view=view)
         ic.subscribe()
 
         # a newly initialized query with no string has a size 0 rsult
@@ -67,22 +69,23 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         log.debug("Setting rule attribute")
         ic.rule = 'for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True'
         log.debug("Committing ItemCollection")
-        self.rep.commit()
+        view.commit()
         print "Rule/ItemCollection: %s, %s" % (ic.rule, ic.itsUUID)
         self.assertEqual(1, len([i for i in ic]))
 
         # test notification
-        item = GenerateItems.GenerateCalendarEvent(100)
-        self.rep.commit()
+        item = GenerateItems.GenerateCalendarEvent(view, 100)
+        view.commit()
         self.assertEqual(2, len(ic))
-        self.rep.commit()
+        view.commit()
 
         # see if we can reload stored data
         uuid = ic.itsUUID
         ic = None
         self._reopenRepository()
+        view = self.rep.view
         log.debug("reloading ItemCollection")
-        ic = self.rep.findUUID(uuid)
+        ic = view.findUUID(uuid)
         self.assertEqual(2, len([i for i in ic]))
 
 if __name__ == "__main__":

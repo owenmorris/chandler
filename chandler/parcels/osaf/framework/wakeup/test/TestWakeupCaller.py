@@ -28,7 +28,7 @@ class WakeupCallTest(WakeupCaller.WakeupCall):
 
         if DATA[1] == 2:
             wakeupCallItem.enabled = False
-            Globals.repository.view.commit()
+            wakeupCallItem.itsView.commit()
             Globals.wakeupCaller.refresh()
 
 class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
@@ -50,22 +50,22 @@ class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
         """
 
         global DATA
-        wakeupCall = WakeupCallerParcel.WakeupCall()
+        wakeupCall = WakeupCallerParcel.WakeupCall(view=self.rep.view)
 
         wakeupCall.wakeupCallClass = WakeupCallTest
         wakeupCall.delay  = DateTime.DateTimeDeltaFrom("00:00:00:05")
         wakeupCall.repeat = True
 
         DATA[0] = wakeupCall.itsUUID
-
-        Globals.repository.view.commit()
+        
+        self.rep.view.commit()
         Globals.wakeupCaller.refresh()
 
         #Wait for the WakeupCaller to call the WakeupCallTest 2 times
         time.sleep(60)
 
         wakeupCall.delete()
-        Globals.repository.view.commit()
+        self.rep.view.commit()
 
         self.assertEquals(DATA[1], 2)
         self.assertEquals(DATA[2], True)
@@ -75,12 +75,12 @@ class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/wakeup")
 
-        Globals.repository.commit()
+        self.rep.view.commit()
 
         Globals.twistedReactorManager = TwistedReactorManager.TwistedReactorManager()
         Globals.twistedReactorManager.startReactor()
 
-        Globals.wakeupCaller = WakeupCaller.WakeupCaller()
+        Globals.wakeupCaller = WakeupCaller.WakeupCaller(self.rep)
         Globals.wakeupCaller.startup()
 
     def tearDown(self):

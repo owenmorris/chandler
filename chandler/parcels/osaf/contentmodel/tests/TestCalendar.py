@@ -56,21 +56,23 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/contentmodel/calendar')
-
-        self.assertEqual(Calendar.CalendarEvent.getKind(),
-                         self.rep.find(Path(calendarPath, 'CalendarEvent')))
-        self.assertEqual(Calendar.Calendar.getKind(),
-                         self.rep.find(Path(calendarPath, 'Calendar')))
-        self.assertEqual(Calendar.Location.getKind(),
-                         self.rep.find(Path(calendarPath, 'Location')))
-        self.assertEqual(Calendar.RecurrencePattern.getKind(),
-                         self.rep.find(Path(calendarPath, 'RecurrencePattern')))
+        view = self.rep.view
+        
+        self.assertEqual(Calendar.CalendarEvent.getKind(view),
+                         view.find(Path(calendarPath, 'CalendarEvent')))
+        self.assertEqual(Calendar.Calendar.getKind(view),
+                         view.find(Path(calendarPath, 'Calendar')))
+        self.assertEqual(Calendar.Location.getKind(view),
+                         view.find(Path(calendarPath, 'Location')))
+        self.assertEqual(Calendar.RecurrencePattern.getKind(view),
+                         view.find(Path(calendarPath, 'RecurrencePattern')))
 
         # Construct a sample item
-        calendarEventItem = Calendar.CalendarEvent("calendarEventItem")
-        calendarItem = Calendar.Calendar("calendarItem")
-        locationItem = Calendar.Location("locationItem")
-        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem")
+        calendarEventItem = Calendar.CalendarEvent("calendarEventItem",
+                                                   view=view)
+        calendarItem = Calendar.Calendar("calendarItem", view=view)
+        locationItem = Calendar.Location("locationItem", view=view)
+        recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", view=view)
 
         # CalendarEvent properties
         calendarEventItem.displayName = "simple headline"
@@ -116,13 +118,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         # Test getDuration
-        firstItem = Calendar.CalendarEvent()
+        view = self.rep.view
+        firstItem = Calendar.CalendarEvent(view=view)
         firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
         firstItem.endTime = DateTime.DateTime(2003, 2, 1, 11, 30)
         self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
 
         # Test setDuration
-        secondItem = Calendar.CalendarEvent()
+        secondItem = Calendar.CalendarEvent(view=view)
         secondItem.startTime = DateTime.DateTime(2003, 3, 5, 9)
         secondItem.duration = DateTime.DateTimeDelta(0, 1.5)
         self.assertEqual(secondItem.endTime,
@@ -158,20 +161,22 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
-        item = Calendar.CalendarEvent()
+        view = self.rep.view
+        item = Calendar.CalendarEvent(view=view)
         path = item.itsPath
         item.delete()
         del item
-        itemShouldBeGone = self.rep.find(path)
+        itemShouldBeGone = view.find(path)
         self.assertEqual(itemShouldBeGone, None)
-        self.rep.commit()
+        view.commit()
 
     def testGeneratedEvents(self):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
-        GenerateItems.generateCalendarEventItems(100, 100)
-        self.rep.commit()
+        view = self.rep.view
+        GenerateItems.generateCalendarEventItems(view, 100, 100)
+        view.commit()
 
 if __name__ == "__main__":
     unittest.main()

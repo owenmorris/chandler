@@ -287,17 +287,19 @@ class ShareEditorDialog(wx.Dialog):
              sharePath=sharePath,
              shareName=shareName,
              username=username,
-             password=password
+             password=password,
+             view=self.view
             )
             if shareName.endswith('.ics'):
-                format = ICalendar.ICalendarFormat()
+                format = ICalendar.ICalendarFormat(view=self.view)
             else:
-                format = Sharing.CloudXMLFormat()
+                format = Sharing.CloudXMLFormat(view=self.view)
             if self.join:
-                self.share = Sharing.Share(conduit=conduit, format=format)
+                self.share = Sharing.Share(conduit=conduit, format=format,
+                                           view=self.view)
             else:
                 self.share = Sharing.Share(contents=collection, conduit=conduit,
-                 format=format)
+                                           format=format, view=self.view)
             self.share.displayName = title
         else:
             self.share.displayName = title

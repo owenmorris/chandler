@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os
 import mx.DateTime as DateTime
 
-class ImportMap:
+class ImportMap(object):
     """Base class for ImportMap trees.
     
     @ivar parentMap: The parent L{ImportMap} of this branch, or None if

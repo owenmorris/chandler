@@ -33,21 +33,22 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         # Test the globals
         contactsPath = Path('//parcels/osaf/contentmodel/contacts')
-
-        self.assertEqual(Contacts.Contact.getKind(),
-                         self.rep.find(Path(contactsPath, 'Contact')))
-        self.assertEqual(Contacts.ContactName.getKind(),
-                         self.rep.find(Path(contactsPath, 'ContactName')))
+        view = self.rep.view
+        
+        self.assertEqual(Contacts.Contact.getKind(view),
+                         view.find(Path(contactsPath, 'Contact')))
+        self.assertEqual(Contacts.ContactName.getKind(view),
+                         view.find(Path(contactsPath, 'ContactName')))
 
         # Construct sample items
-        contactItem = Contacts.Contact("contactItem")
-        contactNameItem = Contacts.ContactName("contactNameItem")
+        contactItem = Contacts.Contact("contactItem", view=view)
+        contactNameItem = Contacts.ContactName("contactNameItem", view=view)
 
         # Double check kinds
         self.assertEqual(contactItem.itsKind,
-                         Contacts.Contact.getKind())
+                         Contacts.Contact.getKind(view))
         self.assertEqual(contactNameItem.itsKind,
-                         Contacts.ContactName.getKind())
+                         Contacts.ContactName.getKind(view))
 
         # Literal properties
         contactNameItem.firstName = "Sylvia"
@@ -66,8 +67,9 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcels(["http://osafoundation.org/parcels/osaf/contentmodel/contacts", "http://osafoundation.org/parcels/osaf/contentmodel/mail"])
 
-        GenerateItems.GenerateContacts(100)
-        self.rep.commit()
+        view = self.rep.view
+        GenerateItems.GenerateContacts(view, 100)
+        view.commit()
         
 
 if __name__ == "__main__":

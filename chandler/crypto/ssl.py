@@ -67,7 +67,14 @@ def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
     if verify:
         # XXX We'd like to load the CA certs from repository, or better yet,
         # XXX provide BIO 'directory' from which to load certs on demand.
-        caCertFile = os.path.join(Crypto.getProfileDir(), 'cacert.pem')
+        parcelDir = os.getenv('PARCELDIR')
+        caCertFile = None
+        if parcelDir is not None:
+            caCertFile = os.path.join(parcelDir, 'personal', 'cacert.pem')
+            if not os.path.exists(caCertFile):
+                caCertFile = None
+        if caCertFile is None:
+            caCertFile = os.path.join(Crypto.getProfileDir(), 'cacert.pem')
         if ctx.load_verify_locations(caCertFile) != 1:
             raise SSLContextError, "No CA certificate file"
 

@@ -23,8 +23,8 @@ DURATIONS = [60, 90, 120, 150, 180]
 
 REMINDERS = [None, None, 1, 10] # The "None"s make a 50% chance the event will have no reminder...
 
-def GenerateCalendarParticipant():
-    email = Mail.EmailAddress()
+def GenerateCalendarParticipant(view):
+    email = Mail.EmailAddress(view=view)
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice(LASTNAMES).lower()
     email.emailAddress = "%s@%s" % (handle, domainName)
@@ -32,8 +32,8 @@ def GenerateCalendarParticipant():
 
 IMPORTANCE = ["important", "normal", "fyi"]
 
-def GenerateCalendarEvent(days):
-    event = Calendar.CalendarEvent()
+def GenerateCalendarEvent(view, days):
+    event = Calendar.CalendarEvent(view=view)
     event.displayName = random.choice(HEADLINES)
     
     # Choose random days, hours
@@ -56,51 +56,51 @@ def GenerateCalendarEvent(days):
     event.importance = random.choice(IMPORTANCE)
     return event
     
-def generateCalendarEventItems(count, days):
+def generateCalendarEventItems(view, count, days):
     """ Generate _count_ events over the next _days_ number of days """
     for index in range(count):
-        GenerateCalendarEvent(days)
+        GenerateCalendarEvent(view, days)
 
 TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
           "grocery list", "gift ideas", "life goals", "fantastic recipe",
           "garden plans", "funny joke", "story idea", "poem"]
 
-def GenerateNote():
+def GenerateNote(view):
     """ Generate one Note item """
-    note = Notes.Note()
+    note = Notes.Note(view=view)
     note.displayName = random.choice(TITLES)
     delta = DateTime.DateTimeDelta(random.randint(0, 5),
                                    random.randint(0, 24))
     note.createdOn = DateTime.now() + delta
     return note
 
-def GenerateNotes(count):
+def GenerateNotes(view, count):
     """ Generate _count_ notes """
     for index in range(count):
-        GenerateNote()
+        GenerateNote(view)
 
-def GenerateTask():
+def GenerateTask(view):
     """ Generate one Task item """
-    task = Task.Task()
+    task = Task.Task(view=view)
     delta = DateTime.DateTimeDelta(random.randint(0, 5),
                                    random.randint(0, 24))
     task.dueDate = DateTime.today() + delta    
     task.displayName = random.choice(TITLES)
     return task
 
-def GenerateTasks(count):
+def GenerateTasks(view, count):
     """ Generate _count_ tasks """
     for index in range(count):
-        GenerateTask()
+        GenerateTask(view)
 
-def GenerateEventTask():
+def GenerateEventTask(view):
     """ Generate one Task/Event stamped item """
-    event = GenerateCalendarEvent(30)
-    event.StampKind('add', Task.TaskMixin.getKind())
+    event = GenerateCalendarEvent(view, 30)
+    event.StampKind('add', Task.TaskMixin.getKind(event.itsView))
 
-def GenerateEventTasks(count):
+def GenerateEventTasks(view, count):
     for index in range(count):
-        GenerateEventTask()
+        GenerateEventTask(view)
 
 DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
                'electricbagpipes.com', 'facelessentity.com', 'example.com',
@@ -150,26 +150,26 @@ def GenerateEmailAddress(name):
     handle = random.choice([name.firstName, name.lastName])
     return "%s@%s" % (handle.lower(), domainName)
 
-def GenerateEmailAddresses(name):
+def GenerateEmailAddresses(view, name):
     list = []
     for i in range(random.randint(1, 2)):
-        email = Mail.EmailAddress()
+        email = Mail.EmailAddress(view=view)
         email.emailAddress = GenerateEmailAddress(name)
         list.append(email)
     return list
 
-def GenerateContactName():
-    name = Contacts.ContactName()
+def GenerateContactName(view):
+    name = Contacts.ContactName(view=view)
     name.firstName = random.choice(FIRSTNAMES)
     name.lastName = random.choice(LASTNAMES)
     return name
 
 
-def GenerateContact():
-    contact = Contacts.Contact()
-    contact.contactName = GenerateContactName()
+def GenerateContact(view):
+    contact = Contacts.Contact(view=view)
+    contact.contactName = GenerateContactName(view)
     return contact
 
-def GenerateContacts(count):
+def GenerateContacts(view, count):
     for index in range(count):
-        GenerateContact()
+        GenerateContact(view)

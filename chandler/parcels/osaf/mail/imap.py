@@ -21,7 +21,6 @@ import logging as logging
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import chandlerdb.util.UUID as UUID
 import repository.item.Query as Query
-import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import crypto.ssl as ssl
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
@@ -125,7 +124,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 
 class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
-    def __init__(self, account):
+    def __init__(self, repository, account):
         """
         Creates a C{IMAPDownload} instance
         @param account: An Instance of C{IMAPAccount}
@@ -135,7 +134,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         assert account is not None, "You must pass in an IMAPAccount instance"
 
         viewName = "%s_%s_%s" % (account.displayName, str(UUID.UUID()), DateTime.now())
-        super(IMAPDownloader, self).__init__(Globals.repository, viewName)
+        super(IMAPDownloader, self).__init__(repository, viewName)
 
         self.accountUUID = account.itsUUID
         self.account = None
@@ -344,7 +343,8 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
                 foundInvitation = True
                 continue
 
-            repMessage = message.messageObjectToKind(messageObject, messageText)
+            repMessage = message.messageObjectToKind(self.getCurrentView(),
+                                                     messageObject, messageText)
 
             """Set the message as incoming"""
             repMessage.incomingMessage(account=self.account)
@@ -403,7 +403,8 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
                 s = "url: %s collectionName: %s fromAddress: %s" % (url, collectionName, fromAddress)
                 self.log.info(s)
 
-            sharing.receivedInvitation(url, collectionName, fromAddress)
+            sharing.receivedInvitation(self.getCurrentView(),
+                                       url, collectionName, fromAddress)
 
     def __getLastUID(self):
         return self.account.messageDownloadSequence
@@ -412,7 +413,8 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         self.account.messageDownloadSequence = uid
 
     def __getAccount(self):
-        self.account = Mail.MailParcel.getIMAPAccount(self.accountUUID)
+        self.account = Mail.MailParcel.getIMAPAccount(self.getCurrentView(),
+                                                      self.accountUUID)
 
     def __printInfo(self, info):
 

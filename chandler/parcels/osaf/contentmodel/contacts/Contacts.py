@@ -6,9 +6,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
-import repository
-import repository.item.Item as Item
+from repository.item.ItemError import ChildNameError
+
 import osaf.contentmodel.ContentModel as ContentModel
 import mx.DateTime as DateTime
 
@@ -18,8 +17,8 @@ class Contact(ContentModel.ContentItem):
     myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
 
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (Contact, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Contact, self).__init__(name, parent, kind, view)
 
         # If I didn't get assigned a creator, then I must be the "me" contact
         # and I want to be my own creator:
@@ -39,21 +38,21 @@ class Contact(ContentModel.ContentItem):
         self.contactName.firstName = ''
         self.contactName.lastName = ''
 
-    def getCurrentMeContact(cls):
+    def getCurrentMeContact(cls, view):
         """ Lookup the current "me" Contact """
 
         # cls.meContactID caches the Contact representing the user.  One will
         # be created if it doesn't yet exist.
 
         if cls.meContactID is not None:
-            me = Globals.repository.findUUID(cls.meContactID)
+            me = view.findUUID(cls.meContactID)
             if me is not None:
                 return me
             # Our cached UUID is invalid
             cls.meContactID is None
 
-        parent = ContentModel.ContentModel.getContentItemParent()
-        me = parent.findPath("me")
+        parent = ContentModel.ContentModel.getContentItemParent(view)
+        me = parent.getItemChild("me")
         if me is None:
             try:
                 me = Contact(name="me", parent=parent)
@@ -61,7 +60,7 @@ class Contact(ContentModel.ContentItem):
                 me.contactName = ContactName(parent=me)
                 me.contactName.firstName = "Chandler"
                 me.contactName.lastName = "User"
-            except repository.item.ItemError.ChildNameError:
+            except ChildNameError:
                 # If "me" already exists, that means we're actually
                 # in the process of creating it.
                 return None
@@ -96,5 +95,5 @@ class ContactName(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
 
-    def __init__(self, name=None, parent=None, kind=None):
-        super (ContactName, self).__init__(name, parent, kind)
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (ContactName, self).__init__(name, parent, kind, view)

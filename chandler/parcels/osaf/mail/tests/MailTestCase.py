@@ -2,8 +2,6 @@ import unittest, os, sys
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 
-import application
-import application.Globals as Globals
 
 class MailTestCase(RepositoryTestCase.RepositoryTestCase):
 
@@ -23,4 +21,3 @@ class MailTestCase(RepositoryTestCase.RepositoryTestCase):
 
         super(MailTestCase, self)._openRepository(self)
 
-        Globals.repository = self.rep

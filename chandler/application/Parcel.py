@@ -36,24 +36,22 @@ class Manager(Item):
     method getManager()::
 
         import application
-        mgr = application.Parcel.Manager.getManager(repository=rep, path=parcelSearchPath)
+        mgr = application.Parcel.Manager.getManager(view, path=parcelSearchPath)
         mgr.loadParcels()
 
-    By default, the manager will use Globals.repository if the "repository"
-    parameter is not passed in; similarly if "path" is not passed in, it
-    will use os.path.join(Globals.chandlerDirectory, "parcels").
+    if "path" is not passed in, it will use
+    os.path.join(Globals.chandlerDirectory, "parcels").
     """
 
-    def getManager(cls, repository=None, path=None):
+    def getManager(cls, view, path=None):
         """
         Class method for getting an instance of the parcel manager.
 
         If there is a manager item already already in this repository, that
         will be returned.  Otherwise one will be created.
 
-        @param repository: The repository object to load items into.  If
-        no repository is passed in, "Globals.repository" will be used.
-        @type repository: L{repository.persistence.Repository}
+        @param view: The repository view object to load items into.
+        @type view: L{repository.persistence.RepositoryView}
         @param path: The search path for finding parcels.  This is a list
         of absolute directory paths; when loading parcels, each directory
         in the search path will be used as a starting point for recursively
@@ -62,19 +60,16 @@ class Manager(Item):
         @return: parcel manager object
         """
 
-        if repository is None:
-            repository = Globals.repository
-
-        manager = repository.findPath("//parcels/manager")
+        manager = view.findPath("//parcels/manager")
         if manager is None:
-            parcelKind = repository.findPath("//Schema/Core/Parcel")
-            parcelRoot = repository.findPath("//parcels")
+            parcelKind = view.findPath("//Schema/Core/Parcel")
+            parcelRoot = view.findPath("//parcels")
             if parcelRoot is None:
-                parcelRoot = parcelKind.newItem("parcels", repository)
+                parcelRoot = parcelKind.newItem("parcels", view)
                 parcelRoot.namespace = NS_ROOT
             manager = parcelRoot.findPath("manager")
             if manager is None:
-                managerKind = repository.findPath("//Schema/Core/ParcelManager")
+                managerKind = view.findPath("//Schema/Core/ParcelManager")
                 manager = managerKind.newItem("manager", parcelRoot)
 
         if path:
@@ -1740,10 +1735,11 @@ def __prepareRepo():
         bootstrapPack = os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'schema.pack')
         rep.loadPack(bootstrapPack)
+
         chandlerPack = os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'chandler.pack')
         rep.loadPack(chandlerPack)
-    Globals.repository = rep
+
     return rep
 
 
@@ -1756,7 +1752,7 @@ def __test():
     rep = __prepareRepo()
 
     parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
-    manager = Manager.getManager(repository=rep, path=parcelPath)
+    manager = Manager.getManager(rep.view, path=parcelPath)
     manager.loadParcels()
 
     if False:

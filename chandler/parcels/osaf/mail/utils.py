@@ -28,7 +28,7 @@ class Counter:
         return self.counter
 
 
-def loadMimeTortureTests():
+def loadMimeTortureTests(view):
     import osaf.mail.message as message
     import osaf.contentmodel.mail.Mail as Mail
 
@@ -43,10 +43,10 @@ def loadMimeTortureTests():
 
         filename = os.path.join(mimeDir, file)
         messageObject = email.message_from_file(open(filename))
-        mailMessage   = message.messageObjectToKind(messageObject)
+        mailMessage   = message.messageObjectToKind(view, messageObject)
         #mailMessage.incomingMessage()
 
-    Globals.repository.view.commit()
+    view.commit()
 
 
 def getChandlerTransportMessage():

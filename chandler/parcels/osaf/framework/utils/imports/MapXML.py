@@ -7,12 +7,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import ImportMap
 import libxml2
-import application.Globals as Globals
 
 START=1
 END=15
 
-class MapXML:
+class MapXML(object):
     """Parse XML file to create a mapping object.
     
     @ivar path: The path to the xml mapping file.
@@ -49,7 +48,7 @@ class MapXML:
         last=self.stack[-1]
         last.maps.append(listItem)
 
-    def processNode(self):
+    def processNode(self, view):
         name=self.reader.Name()
         type=self.reader.NodeType()
         if name == 'Attribute':
@@ -80,7 +79,7 @@ class MapXML:
             if name in expandNodes:
                 node = self.reader.Expand()
                 if name == 'RootKind':
-                    kind=Globals.repository.findPath(node.getContent())
+                    kind=view.findPath(node.getContent())
                     self.stack[0].kind=kind
                 elif name == 'EmptyDate':
                     self.emptyDates.append(node.getContent())
@@ -117,7 +116,7 @@ class MapXML:
         self.lastTag=None
         self.lastXMLAttr=None
         
-    def streamFile(self):
+    def streamFile(self, view):
         """Open file, process important Nodes.
         
         return: Returns None if the self.path isn't a readable file, or if
@@ -135,7 +134,7 @@ class MapXML:
         ret = self.reader.Read()
         while ret == 1:
             if self.reader.NodeType() in [START, END]:
-                self.processNode()
+                self.processNode(view)
             ret = self.reader.Read()
     
         if ret != 0:
@@ -146,7 +145,8 @@ class MapXML:
 """#debugging
 if __name__ == "__main__":
     testXML=MapXML('outlook2000.xml')
-    testXML.streamFile()
+    ## add repository open code here
+    testXML.streamFile(view)
     def walk(x, level=0):
         if type(x)==list:
             for m in x:

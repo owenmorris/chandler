@@ -165,7 +165,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key):
         messageObject[key] = ", ".join(addrs)
 
 
-def messageTextToKind(messageText):
+def messageTextToKind(view, messageText):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -177,9 +177,9 @@ def messageTextToKind(messageText):
 
     assert isinstance(messageText, str), "messageText must be a String"
 
-    return messageObjectToKind(email.message_from_string(messageText), messageText)
+    return messageObjectToKind(view, email.message_from_string(messageText), messageText)
 
-def messageObjectToKind(messageObject, messageText=None):
+def messageObjectToKind(view, messageObject, messageText=None):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -195,7 +195,7 @@ def messageObjectToKind(messageObject, messageText=None):
     assert len(messageObject.keys()) > 0, \
            "messageObject data is not a valid RFC2882 message"
 
-    m = Mail.MailMessage()
+    m = Mail.MailMessage(view=view)
 
     # Save the original message text in a text blob
     if messageText is None:
@@ -217,7 +217,7 @@ def messageObjectToKind(messageObject, messageText=None):
 
         buf = ["Message: %s\n-------------------------------" % messageId]
 
-    __parsePart(messageObject, m, bodyBuffer, counter, buf)
+    __parsePart(view, messageObject, m, bodyBuffer, counter, buf)
 
     """If the message has attachments set hasMimeParts to True"""
     if len(m.mimeParts) > 0:
@@ -227,7 +227,7 @@ def messageObjectToKind(messageObject, messageText=None):
     #XXX: All body part should already be encoded in utf-8
     m.body = utils.strToText(m, "body", '\n'.join(bodyBuffer).replace("\r", ""))
 
-    __parseHeaders(messageObject, m)
+    __parseHeaders(view, messageObject, m)
 
     if __verbose():
         logging.warn("\n\n%s\n\n" % '\n'.join(buf))
@@ -315,7 +315,7 @@ def kindToMessageText(mailMessage, saveMessage=False):
     return messageText
 
 
-def __parseHeaders(messageObject, m):
+def __parseHeaders(view, messageObject, m):
 
     date = messageObject['Date']
 
@@ -342,15 +342,15 @@ def __parseHeaders(messageObject, m):
         m.dateSent = utils.getEmptyDate()
         m.dateSentString = ""
 
-    __assignToKind(m, messageObject, 'Subject', 'String', 'subject')
-    __assignToKind(m, messageObject, 'From', 'EmailAddress', 'fromAddress')
-    __assignToKind(m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
-    __assignToKind(m.toAddress, messageObject, 'To', 'EmailAddressList')
-    __assignToKind(m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
-    __assignToKind(m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
+    __assignToKind(view, m, messageObject, 'Subject', 'String', 'subject')
+    __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'fromAddress')
+    __assignToKind(view, m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
+    __assignToKind(view, m.toAddress, messageObject, 'To', 'EmailAddressList')
+    __assignToKind(view, m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
+    __assignToKind(view, m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
 
     # Do not decode the message ID as it requires no i18n processing
-    __assignToKind(m, messageObject, 'Message-ID', 'String', 'messageId', False)
+    __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False)
 
     m.chandlerHeaders = {}
     m.headers = {}
@@ -367,7 +367,7 @@ def __parseHeaders(messageObject, m):
 
         del messageObject[key]
 
-def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
+def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=True):
 
     try:
         """ Test that a key exists and its value is not None """
@@ -395,7 +395,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
         # Use any existing EmailAddress, but don't update them
         #  because that will cause the item to go stale in the UI thread.
-        ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
+        ea = Mail.EmailAddress.getEmailAddress(view, addr[1], **keyArgs)
 
         if ea is not None:
             setattr(kindVar, attr, ea)
@@ -413,7 +413,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
             # Use any existing EmailAddress, but don't update them
             #  because that will cause the item to go stale in the UI thread.
-            ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
+            ea = Mail.EmailAddress.getEmailAddress(view, addr[1], **keyArgs)
 
             if ea is not None:
                 kindVar.append(ea)
@@ -427,25 +427,25 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
     del messageObject[key]
 
 
-def __parsePart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
+def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
     __checkForDefects(mimePart)
 
     maintype  = mimePart.get_content_maintype()
 
     if maintype == "message":
-        __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
     elif maintype == "multipart":
-        __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
     elif maintype == "text":
-        __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+        __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
     else:
-        __handleBinary(mimePart, parentMIMEContainer,  counter, buf, level)
+        __handleBinary(view, mimePart, parentMIMEContainer,  counter, buf, level)
 
 
-def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
@@ -506,13 +506,13 @@ def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, lev
 
     if multipart:
         for part in payload:
-            __parsePart(part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+            __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
     else:
         logging.warn("******WARNING****** message/%s payload not multipart" % subtype)
 
 
-def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
@@ -532,7 +532,7 @@ def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, l
 
             for part in payload:
                 if part.get_content_type() == "text/plain":
-                    __handleText(part, parentMIMEContainer, bodyBuffer, counter, buf, level)
+                    __handleText(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level)
                     foundText = True
                     break
 
@@ -545,9 +545,9 @@ def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, l
 
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
-                    __handleText(firstPart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+                    __handleText(view, firstPart, parentMIMEContainer, bodyBuffer, counter, buf, level)
                 else:
-                    __handleBinary(firstPart, parentMIMEContainer, counter, buf, level)
+                    __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level)
         else:
             logging.warn("******WARNING****** multipart/alternative has no payload")
 
@@ -569,10 +569,10 @@ def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, l
 
     else:
         for part in payload:
-            __parsePart(part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+            __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
 
-def __handleBinary(mimePart, parentMIMEContainer, counter, buf, level):
+def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
     contype = mimePart.get_content_type()
 
     if __verbose():
@@ -582,7 +582,7 @@ def __handleBinary(mimePart, parentMIMEContainer, counter, buf, level):
     if contype == "application/applefile":
         return
 
-    mimeBinary = Mail.MIMEBinary()
+    mimeBinary = Mail.MIMEBinary(view=view)
 
     """Get the attachments data"""
     body = mimePart.get_payload(decode=1)
@@ -603,7 +603,7 @@ def __handleBinary(mimePart, parentMIMEContainer, counter, buf, level):
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
 
-def __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
     subtype = mimePart.get_content_subtype()
 
     if __verbose():
@@ -623,7 +623,7 @@ def __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
         size > 0 and bodyBuffer.append(body)
 
     else:
-        mimeText = Mail.MIMEText()
+        mimeText = Mail.MIMEText(view=view)
 
         mimeText.mimeType = mimePart.get_content_type()
         mimeText.filesize = len(body)

@@ -10,7 +10,7 @@ import wx
 
 import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
-import application.Globals as Globals
+
 
 # @@@ These buttons could become a more general utility
 
@@ -555,7 +555,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         """
         Handles drop target behavior -- @@@ not yet fully implemented
         """
-        item = Globals.repository.findUUID(itemUUID)
+        item = self.blockItem.findUUID(itemUUID)
         
 
     def OnHover(self, x, y):

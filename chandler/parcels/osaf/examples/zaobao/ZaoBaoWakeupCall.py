@@ -3,7 +3,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import osaf.examples.zaobao.RSSData as RSSData
 from repository.item.Query import KindQuery, TextQuery
@@ -12,10 +11,13 @@ import logging
 from xml.sax import SAXParseException
 
 class WakeupCall(WakeupCaller.WakeupCall):
-    def receiveWakeupCall(self, wakeupCallItem):
-        Globals.repository.view.refresh()
 
-        chanKind = RSSData.RSSChannel.getKind()
+    def receiveWakeupCall(self, wakeupCallItem):
+
+        view = wakeupCallItem.itsView
+        view.refresh()
+
+        chanKind = RSSData.RSSChannel.getKind(view)
 
         for item in KindQuery().run([chanKind]):
             try:
@@ -35,4 +37,4 @@ class WakeupCall(WakeupCaller.WakeupCall):
                 #print e
                 logging.exception('zaobao failed to parse %s' % item.url)
 
-        Globals.repository.view.commit()
+        view.commit()

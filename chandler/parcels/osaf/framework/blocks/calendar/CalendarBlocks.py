@@ -16,7 +16,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 
 import application.SimpleCanvas as SimpleCanvas
 import osaf.framework.blocks.Block as Block
-import application.Globals as Globals
+
 
 class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
     def __init__(self, canvas, item):
@@ -244,8 +244,10 @@ class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
 
     def ConvertDataObjectToDrawableObject(self, dataObject, x, y, move):
         (uuid, hotx, hoty) = cPickle.loads(dataObject.GetData())
-        item = Globals.repository.find(uuid)
-        newTime = self.blockItem.getDateTimeFromPosition(x, y - hoty)
+        blockItem = self.blockItem
+        view = blockItem.itsView
+        item = view.find(uuid)
+        newTime = blockItem.getDateTimeFromPosition(x, y - hoty)
         
         if (move):
             item.ChangeStart(newTime)
@@ -255,17 +257,18 @@ class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
         newDrawableObject = CalendarItem(self, item)
         self.PlaceItemOnCalendar(newDrawableObject)
 
-        Globals.repository.commit()
+        view.commit()
         
         return newDrawableObject
 
     def CreateNewDrawableObject(self, dragRect, startDrag, endDrag):
-        newItem = Calendar.CalendarEvent()
+        view = self.item.itsView
+        newItem = Calendar.CalendarEvent(view=view)
         newItem.displayName = _("New Event")
         newDrawableObject = CalendarItem(self, newItem)
         newDrawableObject.SizeDrag(dragRect, startDrag, endDrag)
 
-        Globals.repository.commit()
+        view.commit()
         
         return newDrawableObject
 

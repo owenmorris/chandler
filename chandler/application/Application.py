@@ -223,13 +223,13 @@ class wxApplication (wx.App):
         if Globals.options.repo:
             kwds['fromPath'] = Globals.options.repo
             
-        Globals.repository  = DBRepository(path)
+        self.repository = DBRepository(path)
         if Globals.options.create:
-            Globals.repository .create(**kwds)
+            self.repository.create(**kwds)
         else:
-            Globals.repository .open(**kwds)
+            self.repository.open(**kwds)
 
-        self.UIRepositoryView = Globals.repository.getCurrentView()
+        self.UIRepositoryView = self.repository.getCurrentView()
 
         if not self.UIRepositoryView.findPath('//Packs/Schema'):
             """
@@ -247,7 +247,8 @@ class wxApplication (wx.App):
             parcelSearchPath.append( debugParcelDir )
 
         application.Globals.parcelManager = \
-         application.Parcel.Manager.getManager(path=parcelSearchPath)
+         application.Parcel.Manager.getManager(self.UIRepositoryView,
+                                               path=parcelSearchPath)
         application.Globals.parcelManager.loadParcels()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
@@ -310,7 +311,7 @@ class wxApplication (wx.App):
         self.mainFrame.Show()
 
         from osaf.framework.wakeup.WakeupCaller import WakeupCaller
-        Globals.wakeupCaller = WakeupCaller()
+        Globals.wakeupCaller = WakeupCaller(self.UIRepositoryView.repository)
         Globals.wakeupCaller.startup()
 
         tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA

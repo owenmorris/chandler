@@ -50,14 +50,15 @@ This is the body"""
         if self.__mailMessage is not None:
             return self.__mailMessage
 
-        m = Mail.MailMessage()
-        m.fromAddress = Mail.EmailAddress()
+        view = self.rep.view
+        m = Mail.MailMessage(view=view)
+        m.fromAddress = Mail.EmailAddress(view=view)
         m.fromAddress.emailAddress = "bill@home.net"
 
-        toOne = Mail.EmailAddress()
+        toOne = Mail.EmailAddress(view=view)
         toOne.emailAddress = "test@testuser.com"
 
-        toTwo = Mail.EmailAddress()
+        toTwo = Mail.EmailAddress(view=view)
         toTwo.emailAddress = "john@home.com"
         toTwo.fullName = "John Johnson"
 
@@ -65,7 +66,7 @@ This is the body"""
         m.toAddress.append(toOne)
         m.toAddress.append(toTwo)
 
-        ccOne = Mail.EmailAddress()
+        ccOne = Mail.EmailAddress(view=view)
         ccOne.emailAddress = "jake@now.com"
 
         m.ccAddress = []
@@ -192,14 +193,14 @@ This is the body"""
              self.assertEquals(dict1[l1[i]], dict2[l2[i]])
 
     def testMessageTextToKind(self):
-        mailKind = message.messageTextToKind(self.__getMessageText())
+        mailKind = message.messageTextToKind(self.rep.view, self.__getMessageText())
 
         self.assertNotEqual(mailKind, None)
 
         self.__compareMailMessages(mailKind, self.__getMailMessage())
 
     def testMessageObjectToKind(self):
-        mailKind = message.messageObjectToKind(self.__getMessageObject(), self.__mail)
+        mailKind = message.messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
 

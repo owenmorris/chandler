@@ -34,9 +34,7 @@ def makePreloadedRepository(path, schema=True, parcels=False):
         rep.loadPack(schemaPack)
 
     if parcels:
-        application.Globals.repository = rep
-
-        manager = application.Parcel.Manager.getManager(repository=rep, \
+        manager = application.Parcel.Manager.getManager(rep.view, \
          path=[os.path.join(rootdir, 'chandler', 'parcels')])
         manager.loadParcels()
 

@@ -41,7 +41,9 @@ def repository(directory, destroy=False):
          'packs', 'schema.pack'))
         rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'chandler.pack'))
-    Globals.repository = rep
+
+    return rep
+
 
 def logger(file):
     """
@@ -57,7 +59,7 @@ def logger(file):
     handler.setFormatter(formatter)
     logging.getLogger().addHandler(handler)
 
-def parcels():
+def parcels(repository):
     """
     Load all parcels under the 'parcels' directory
     """
@@ -80,7 +82,7 @@ def parcels():
             parcelSearchPath.append( debugParcelDir )
 
     from application.Parcel import Manager
-    manager = Manager.getManager(path=parcelSearchPath)
+    manager = Manager.getManager(repository.view, path=parcelSearchPath)
     manager.loadParcels()
 
 def setup(directory, destroy=False):
@@ -96,8 +98,8 @@ def setup(directory, destroy=False):
 
     Globals.chandlerDirectory = directory
     logger(os.path.join(directory, 'chandler.log'))
-    repository(os.path.join(directory, '__repository__'), destroy)
+    rep = repository(os.path.join(directory, '__repository__'), destroy)
     parcels()
-    return Globals.repository
+    return rep
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
