@@ -213,4 +213,5 @@ class SharingTestCase(unittest.TestCase):
             self.assert_(item.displayName != "lunch")
 
 if __name__ == "__main__":
-    unittest.main()
+    pass
+    # unittest.main()
