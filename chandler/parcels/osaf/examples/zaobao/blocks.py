@@ -15,11 +15,19 @@ class ZaoBaoTreeList(TreeList):
         node.AddChildNode(child, names, hasKids)
 
     def GetTreeData(self, node):
+        repository = self.getRepository()
+        try:
+            cs = self.contentSpec.data.split('.')
+            c = repository.find(str(cs[0]))
+            c.getAttributeValue(str(cs[1]), default=None)
+        except:
+            pass
+
         item = node.GetData()
         if item:
             chanKind = ZaoBaoParcel.getRSSChannelKind()
 
-            if item == Globals.repository:
+            if item.getUUID() == Globals.repository.getUUID():
                 for child in KindQuery().run([chanKind]):
                     self._addChildNode(node, child, child.hasAttributeValue('items'))
 
