@@ -36,6 +36,11 @@
     <ref name="CalendarEndTime" type="path">//Schema/CalendarEndTime</ref>
   </ref>
 
+  <ref name="SuperKind">
+    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
+	 type="path">/Model/Item</ref>
+  </ref>
+
   <attribute name="Class" type="model.schema.Types.Class">OSAF.calendar.model.CalendarEvent.CalendarEvent</attribute>
 
 </item>
