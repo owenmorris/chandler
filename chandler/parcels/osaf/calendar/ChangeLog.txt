@@ -1,6 +1,6 @@
 # ChangeLog for Calendar Parcel
 
-2003-07-24 capps@osafoundation.org
+2003-07-24 Katie Capps Parlante <capps@osafoundation.org>
    * Created calendar data parcel as sub parcel of calendar parcel
    * Moved calendar viewer parcel code on to new repository
 
