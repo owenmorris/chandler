@@ -15,7 +15,7 @@ CPPFLAGS=	$(INCLUDES)
 
 
 # XXX edit LIBS (in particular) to match Modules/Makefile
-LIBS=		-lnsl -ldl -lreadline -ltermcap -lieee -lpthread -lutil
+LIBS=		-lnsl -ldl -lieee -lpthread -lutil
 LDFLAGS=	-Xlinker -export-dynamic
 SYSLIBS=	-lm
 MODLIBS=	
