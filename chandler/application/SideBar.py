@@ -39,13 +39,15 @@ class SideBar(Persistent):
         else:
             wxWindow = app.association[id(self)]
         
+        wasEmpty = false
         if not hasattr(wxWindow, 'root'):
             wxWindow.root = wxWindow.AddRoot('Root')
+            wasEmpty = true        
         self.sideBarURLTree = PersistentDict.PersistentDict()
         self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, 
-                             wxWindow.root)
+                             wxWindow.root, wasEmpty)
 
-    def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent):
+    def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent, wasEmpty):
         """
           Synchronizes the sidebar's URLTree with the application's
         URLTree.  The sidebar only stores a dict mapping visible items
@@ -58,32 +60,44 @@ class SideBar(Persistent):
             name = item[1]
             children = item[2]
             hasChildren = len(children) > 0
-                        
+
             if not sideBarURLTree.has_key(instanceId):
                 itemId = wxWindow.AppendItem(parent, name)
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                sideBarURLTree[instanceId] = [instance, false, itemId, 
-                                              {}, false]
+                sideBarURLTree[instanceId] = URLTreeEntry(instance, false,
+                                                          itemId, {}, false)
             else:
-                itemId = sideBarURLTree[instanceId][2]
+                if wasEmpty:
+                    itemId = wxWindow.AppendItem(parent, name)
+                    sideBarURLTree[instanceId].wxId = itemId
+                else:
+                    itemId = sideBarURLTree[instanceId].wxId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                if sideBarURLTree[instanceId][1]: # If it is open
-                    self.__UpdateURLTree(sideBarURLTree[instanceId][3], 
+                if sideBarURLTree[instanceId].isOpen:
+                    self.__UpdateURLTree(sideBarURLTree[instanceId].children, 
                                          item[2], itemId)
-            # Mark the item as existing in the app's URLTree
-            sideBarURLTree[instanceId][4] = true
+            sideBarURLTree[instanceId].isMarked = true
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
         for key in sideBarURLTree.keys():
             item = sideBarURLTree[key]
-            # If it was not marked, delete it
-            if not item[4]:
-                wxWindow.Delete(item[2])
+            if not item.isMarked:
+                wxWindow.Delete(item.wxId)
                 del sideBarURLTree[key]
             else:
-                # Clear the visited flag
-                item[4] = false
-        
+                item.isMarked = false
+
+class URLTreeEntry:
+    """
+      URLTreeEntry is just a container class for items inserted into the
+    SideBar's URLTree dictionary.
+    """
+    def __init__(self, instance, isOpen, wxId, children, isMarked):
+        self.instance = instance
+        self.isOpen = isOpen
+        self.wxId = wxId
+        self.children = children
+        self.isMarked = isMarked        
 
 class wxSideBar(wxTreeCtrl):
     def __init__(self):
@@ -110,7 +124,7 @@ class wxSideBar(wxTreeCtrl):
         is a wxApp object. We use the association to keep track of the
         wxPython object associated with each persistent object.
         """
-        app.association[id(self.model)] = self        
+        app.association[id(self.model)] = self
         """
            There isn't a EVT_DESTROY function, so we'll implement it do
         what the function would have done.
