@@ -35,6 +35,7 @@ expand: epydoc-$(VERSION)-expanded
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/epydoc \
 		--exclude test; \

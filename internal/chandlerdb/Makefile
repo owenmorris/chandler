@@ -31,6 +31,7 @@ upload: chandlerdb-$(SNAP)-$(RELVER).tar.gz
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
+	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(CHANDLERDB)/chandlerdb-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) chandlerdb-$(SNAP)-$(RELVER).tar.gz > chandlerdb-$(SNAP)-$(RELVER).tar.gz.md5
 

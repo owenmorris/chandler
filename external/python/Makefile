@@ -141,6 +141,7 @@ clean:
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/libs -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/libs -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
                   $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
@@ -166,6 +167,7 @@ build: expand apply
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/Library/Frameworks/Python.framework -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/Library/Frameworks/Python.framework -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/Library/Frameworks/Python.framework \
             --exclude site-packages \
@@ -202,6 +204,7 @@ build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/lib/python*/ -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/lib/python*/ -name "*.pyo" | xargs rm -f; \
         tar -cvzf $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/idle $(SNAP)/bin/python* \
                   $(SNAP)/lib/python* \
