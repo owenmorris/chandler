@@ -21,12 +21,17 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     os.mkdir(outputDir)
 
     # do debug
-    Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
+    ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
      buildVersion, clobber, log)
 
+    if not ret:
+        return False
+
     # do release
-    Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
+    ret = Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
      buildVersion, clobber, log)
+
+    return ret
 
 
 
@@ -105,6 +110,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     moduleData = {}
     needToScrubAll = 0
     newModules = 0
+    changesAtAll = 0
 
     for module in cvsModules:
         print "- - - -", module, "- - - - - - - - - - - - - - - - -"
@@ -115,6 +121,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         # does module's directory exist?
         if not os.path.exists(moduleDir):
             newModules = 1
+            changesAtAll = 1
             # check out that module
             os.chdir(modeDir)
             print "checking out", module
@@ -132,6 +139,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             # dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
                 print "YES"
+                changesAtAll = 1
                 moduleData[module]["changed"] = 1
                 # update it
                 os.chdir(moduleDir)
@@ -153,6 +161,11 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     log.write("Done with CVS\n")
     mainModuleDir = os.path.join(modeDir, mainModule)
     print "Main module dir =", mainModuleDir
+
+    if not changesAtAll:
+        log.write("There were no changes")
+        return False
+
     if needToScrubAll:
         os.chdir(mainModuleDir)
         print "Scrubbing all"
@@ -211,6 +224,8 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         CopyLog(os.path.join(modeDir, logPath), log)
         log.write("End of log" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+
+    return True  # end of Do( )
 
 
 def dumpOutputList(outputList, fd = None):

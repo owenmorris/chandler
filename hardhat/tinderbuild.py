@@ -85,7 +85,7 @@ def main():
 
             log.write( "Start = " + nowString)
 
-            mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
+            ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
              buildVersion, 0, log)
 
         except Exception, e:
@@ -94,14 +94,19 @@ def main():
             log.write("Failed; exception: " + e)
             status = "build_failed"
         else:
-            print "all is well"
-            log.write("Success")
-            status = "success"
-            newDir = os.path.join(outputDir, buildVersion)
-            os.rename(os.path.join(buildDir, "output"), newDir)
-            log.write("Calling CreateIndex with " + newDir)
-            CreateIndex(newDir)
-            RotateDirectories(outputDir)
+            if ret:
+                print "There were changes, and the build was successful"
+                log.write("There were changes, and the build was successful")
+                status = "success"
+                newDir = os.path.join(outputDir, buildVersion)
+                os.rename(os.path.join(buildDir, "output"), newDir)
+                log.write("Calling CreateIndex with " + newDir)
+                CreateIndex(newDir)
+                RotateDirectories(outputDir)
+            else:
+                print "There were no changes"
+                log.write("There were no changes in CVS")
+                status = "success"
 
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S"))
 
