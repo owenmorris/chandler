@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import os, sys, stat, gettext, locale
+import os, sys, stat, gettext, locale, threading
 from wxPython.wx import *
 from wxPython.xrc import *
 
@@ -14,7 +14,7 @@ import PresencePanel
 
 from application.agents.Notifications.NotificationManager import NotificationManager
 from repository.schema.AutoItem import AutoItem
-from application.agents.AgentManager import AgentManager
+import application.agents.AgentManager as AgentManager
 from application.ChandlerWindow import ChandlerWindow
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
@@ -43,6 +43,7 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
         self.target = target
         self.args = args
+        self.lock = threading.Lock()
 
 class Application(AutoItem):
     """
@@ -296,13 +297,6 @@ class wxApplication (wxApp):
                                         'document.xml')
             loader.load(documentPath)
 
-        # Load the agent schema
-        if not self.repository.find('//Agents'):       
-            agentsPath = os.path.join(self.chandlerDirectory,
-                                    'application', 'agents', 'model',
-                                    'agents.xml')
-            loader.load(agentsPath)
-
         # New parcel loading -- not tested on all platforms
         if __debug__ and debugParcelDir:
             parcelSearchPath = "%s%s%s" % (parcelDir,
@@ -357,7 +351,8 @@ class wxApplication (wxApp):
         self.jabberClient.Login()
 
         # initialize the agent manager
-        self.agentManager = AgentManager(self)
+        self.agentManager = AgentManager.AgentManager()
+        self.agentManager.Startup()
         
         #self.OpenStartingURL()
         
@@ -367,7 +362,7 @@ class wxApplication (wxApp):
         """
           Main application termination.
         """
-        self.agentManager.Stop()
+        self.agentManager.Shutdown()
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
@@ -403,13 +398,14 @@ class wxApplication (wxApp):
         # FIXME:  This will not fully quit the app if a stdout window has been
         # opened by a print statement.  We should also close that stdout window.
         self.wxMainFrame.Close()
-        self.agentManager.Stop()
+        self.agentManager.Shutdown()
 
     def OnMainThreadCallbackEvent(self, event):
         """
           Fire off a custom event handler
         """
         event.target(*event.args)
+        event.lock.release()
         event.Skip()
 
     def OnAbout(self, event):
@@ -701,7 +697,9 @@ class wxApplication (wxApp):
           Post an asynchronous event that will call 'callback' with 'data'
         """
         evt = MainThreadCallbackEvent(callback, *args)
+        evt.lock.acquire()
         wxPostEvent(self, evt)
+        return evt.lock
 
     if __debug__:
         def DebugRoutine(self, event):
