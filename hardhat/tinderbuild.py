@@ -136,7 +136,7 @@ def RotateDirectories(dir):
     assumes the directories are named with timestamps (numbers) because it 
     uses normal sorting to determine the order."""
 
-    dirs = listdir(dir)
+    dirs = os.listdir(dir)
     dirs.sort()
     for dir in dirs[:-3]:
         hardhatutil.rmdirRecursive(dir)
