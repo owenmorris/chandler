@@ -20,7 +20,7 @@ static PyObject *openHFILE(PyObject *self, PyObject *args)
                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                        NULL,
                        OPEN_ALWAYS,
-                       FILE_FLAG_DELETE_ON_CLOSE | FILE_FLAG_POSIX_SEMANTICS,
+                       FILE_FLAG_DELETE_ON_CLOSE,
                        0L);
 
     return PyInt_FromLong((long) hFile);
