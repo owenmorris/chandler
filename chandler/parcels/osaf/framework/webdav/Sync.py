@@ -8,6 +8,9 @@ from repository.schema.Kind import Kind
 import Dav
 import DAVItem as DAVItem
 
+import logging
+log = logging.getLogger("Sharing")
+log.setLevel(logging.INFO)
 
 def syncItem(dav, item):
     # changes flags
@@ -36,13 +39,13 @@ def syncItem(dav, item):
         localChanges = True
         serverChanges = False
 
-    print 'Syncing %s (%s)'     % (unicode(dav.url), item.getItemDisplayName())
-    print '-- needsPut      %s' % (needsPut)
-    print '-- localChanges  %s' % (localChanges)
-    print '-- serverChanges %s' % (serverChanges)
+    log.info('Syncing %s (%s)' % (unicode(dav.url), item.getItemDisplayName()))
+    log.info('-- needsPut      %s' % (needsPut))
+    log.info('-- localChanges  %s' % (localChanges))
+    log.info('-- serverChanges %s' % (serverChanges))
     if serverChanges:
-        print '   |-- our etag  %s' % (etag)
-        print '   `-- svr etag  %s' % (davETag)
+        log.info('   |-- our etag  %s' % (etag))
+        log.info('   `-- svr etag  %s' % (davETag))
 
     if needsPut:
         dav.putResource(item.itsKind.itsName, 'text/plain')
@@ -79,7 +82,7 @@ def syncItem(dav, item):
 
 def merge(dav, item, davItem, hasLocalChanges):
     # for now, just pull changes from the server and overwrite local changes...
-    print 'Doing merge'
+    log.debug('Doing merge')
     item.etag = davItem.etag
     syncFromServer(item, davItem)
 
@@ -143,7 +146,7 @@ def syncToServer(dav, item):
                     durl = value.getAttributeValue('sharedURL')
                 except AttributeError:
                     durl = defaultURL
-                    print 'Cant export %s -- Not a ContentItem' % (str(value))
+                    log.debug('Cant export %s -- Not a ContentItem' % (str(value)))
 
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
                     
@@ -203,7 +206,7 @@ def syncFromServer(item, davItem):
         if not value:
             continue
 
-        print 'Getting:', name, '(' + attr.type.itsName + ')'
+        log.info('Getting:', name, '(' + attr.type.itsName + ')')
 
         # see if its an ItemRef or not
         if isinstance(attr.type, Kind):
@@ -225,16 +228,16 @@ def syncFromServer(item, davItem):
                     otherItem = DAV(node.content).get()
                     setfunc(name, otherItem)
                 except NotFound:
-                    print 'Cant access %s' % (node.content)
+                    log.warning('Cant access %s' % (node.content))
 
         else:
             if attr.cardinality == 'list':
                 nodes = nodesFromXml(value)
                 for node in nodes:
                     item.addValue(name, node.content)
-                    print 'Got.....: ', value
+                    log.info('Got.....: ', value)
             elif attr.cardinality == 'single':
-                print 'Got.....: ', value
+                log.info('Got.....: ', value)
                 item.setAttributeValue(name, attr.type.makeValue(value))
 
 
@@ -251,16 +254,16 @@ def syncFromServer(item, davItem):
             otherItem = DAV(node.content).get()
             serverCollectionResults.append(otherItem)
 
-        print 'Merging itemCollection'
+        log.debug('Merging itemCollection')
         # for now, just sync with whatever the server gave us
         for i in serverCollectionResults:
             if i not in item:
                 item.add(i)
-                print 'adding %s to collection %s' % (i, item)
+                log.debug('adding %s to collection %s' % (i, item))
         for i in item:
             if i not in serverCollectionResults:
                 item.remove(i)
-                print 'removing %s from collection %s' % (i, item)
+                log.debug('removing %s from collection %s' % (i, item))
 
     #
     # End refactor
@@ -312,7 +315,7 @@ def getItem(dav):
                     # we only support publishing content items
                     
                     if not k.isItemOf(contentItemKind):
-                        print 'Skipping %s -- Not a ContentItem' % (str(k))
+                        log.warning('Skipping %s -- Not a ContentItem' % (str(k)))
                         continue
                     if not k.hasAttributeValue('sharedURL'):
                         continue
