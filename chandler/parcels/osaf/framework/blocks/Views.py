@@ -96,7 +96,7 @@ class View(BoxContainer):
         focusWindow = wx.Window_FindFocus()
         while (focusWindow):
             try:
-                UUID = focusWindow.counterpartUUID
+                UUID = focusWindow.blockUUID
                 return Globals.repository.find (UUID)
             except AttributeError:
                 focusWindow = focusWindow.GetParent()

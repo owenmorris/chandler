@@ -99,7 +99,7 @@ class MainFrame(wx.Frame):
     def OnSize(self, event):
         event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.counterpartUUID)
+            block = Globals.repository.find (self.blockUUID)
             block.size.width = self.GetSize().x
             block.size.height = self.GetSize().y
             """
@@ -271,7 +271,7 @@ class wxApplication (wx.App):
                                        style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
             self.menuParent = None
-            self.mainFrame.counterpartUUID = mainView.itsUUID
+            self.mainFrame.blockUUID = mainView.itsUUID
             self.mainFrame.Bind(wx.EVT_SIZE, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/osaf/framework/blocks/Events/GlobalEvents')

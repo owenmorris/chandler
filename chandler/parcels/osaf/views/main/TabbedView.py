@@ -32,7 +32,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
                 page = tabbedContainer.GetPage(self.activeTab)
                 tabbedContainer.RemovePage(self.activeTab)
                 self.UnregisterEvents(newChild)
-                item = Globals.repository.find(page.counterpartUUID)
+                item = Globals.repository.find(page.blockUUID)
                 item.parentBlock = None
                 page.Destroy()
 
@@ -69,7 +69,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         self.tabTitles.remove(self.tabTitles[selection])
         page = tabbedContainer.GetPage(selection)
         tabbedContainer.RemovePage(selection)
-        item = Globals.repository.find(page.counterpartUUID)
+        item = Globals.repository.find(page.blockUUID)
         self.UnregisterEvents(item)
         item.parentBlock = None
         page.Destroy()
@@ -78,11 +78,11 @@ class TabbedView(ControlBlocks.TabbedContainer):
         tabbedContainer = Globals.association [self.itsUUID]
         page = tabbedContainer.GetPage(event.GetSelection())
         try:
-            page.counterpartUUID
+            page.blockUUID
         except AttributeError:
             pass
         else:    
-            item = Globals.repository.find(page.counterpartUUID)
+            item = Globals.repository.find(page.blockUUID)
             self.UnregisterEvents(item)
         event.Skip()
         
@@ -90,11 +90,11 @@ class TabbedView(ControlBlocks.TabbedContainer):
         tabbedContainer = Globals.association [self.itsUUID]
         page = tabbedContainer.GetPage(event.GetSelection())
         try:
-            page.counterpartUUID
+            page.blockUUID
         except AttributeError:
             pass
         else:    
-            item = Globals.repository.find(page.counterpartUUID)
+            item = Globals.repository.find(page.blockUUID)
             self.RegisterEvents(item)
             Globals.mainView.onSetActiveView(item)
         event.Skip()

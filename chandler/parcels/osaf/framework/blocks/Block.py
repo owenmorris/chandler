@@ -167,7 +167,7 @@ class ContainerChild(Block):
                 logging.warn("Bug #1177: item %s doesn't remove it's counterpart from the association",
                              str (Globals.repository.find (UUID).itsPath))
             Globals.association[UUID] = widget
-            widget.counterpartUUID = UUID
+            widget.blockUUID = UUID
             """
               After the blocks are wired up, give the window a chance
             to synchronize itself to any persistent state.
@@ -192,7 +192,7 @@ class wxRectangularChild (wx.Panel):
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.counterpartUUID)
+        block = Globals.repository.find (self.blockUUID)
         if block.open != self.IsShown():
             self.Show (block.open)
             parentWidget = Globals.association [block.parentBlock.itsUUID]
@@ -213,7 +213,7 @@ class wxRectangularChild (wx.Panel):
         """
         event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.counterpartUUID)
+            counterpart = Globals.repository.find (self.blockUUID)
             counterpart.size.width = event.GetSize().x
             counterpart.size.height = event.GetSize().y
             counterpart.setDirty()   # Temporary repository hack -- DJA

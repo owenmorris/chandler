@@ -21,7 +21,7 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
         self.item = item
 
     def PlaceItemOnCalendar(self):
-        counterpart = Globals.repository.find(self.canvas.counterpartUUID)
+        counterpart = Globals.repository.find(self.canvas.blockUUID)
         width = counterpart.dayWidth
         height = int(self.item.duration.hours * counterpart.hourHeight)
         position = counterpart.getPosFromDateTime(self.item.startTime)
@@ -71,7 +71,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         self.SetScrollRate(0,0)
 
     def wxSynchronizeWidget(self):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
         
         # populate canvas with drawable items for each event on the calendar
         for item in counterpart.contentSpec:
@@ -98,12 +98,12 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
 
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association[self.counterpartUUID]
+        del Globals.association[self.blockUUID]
 
     # Event handlers
 
     def OnSize(self, event):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
         newSize = self.GetSize()
         counterpart.size.width = newSize.width
         counterpart.size.height = newSize.height
@@ -122,7 +122,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         event.Skip()        
 
     def DrawBackground(self, dc):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
         
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
@@ -230,7 +230,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         self.SetScrollRate(0,0)
     
     def wxSynchronizeWidget(self):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
 
         # populate canvas with drawable items for each event on the calendar
         for item in counterpart.contentSpec:
@@ -256,12 +256,12 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
 
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association[self.counterpartUUID]
+        del Globals.association[self.blockUUID]
 
     # Events
 
     def OnSize(self, event):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
         newSize = self.GetSize()
         counterpart.size.width = newSize.width
         counterpart.size.height = newSize.height
@@ -279,7 +279,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
 
 
     def DrawBackground(self, dc):
-        counterpart = Globals.repository.find(self.counterpartUUID)
+        counterpart = Globals.repository.find(self.blockUUID)
         
         # Use the transparent pen for drawing the background rectangles
         dc.SetPen(wx.TRANSPARENT_PEN)

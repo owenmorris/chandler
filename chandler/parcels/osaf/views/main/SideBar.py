@@ -30,7 +30,7 @@ class SideBarDelegate:
         if notification.event.itsName == "item_changed":
             item = Globals.repository.find (itemUUID)
             itemUUID = item.itsParent.itsUUID
-        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart = Globals.repository.find (self.blockUUID)
         if counterpart.openedContainers.has_key (itemUUID):
             self.scheduleUpdate = True
 
