@@ -8,7 +8,7 @@ import Sync
 #@@@ Temporary way for retrieving webdav 'account' information
 import osaf.framework.sharing.Sharing
 
-import logging
+import logging, socket
 log = logging.getLogger("sharing")
 log.setLevel(logging.INFO)
 
@@ -39,32 +39,45 @@ class DAV(object):
     def newConnection(self):
         return DAVConnection(self.url)
 
+    def __request(self, func, *args):
+        for i in xrange(4):
+            try:
+                # since we need to do a new connection if a timeout happens
+                # this needs to go here and not in davlib's __request..
+                # oh well.
+                connection = self.newConnection()
+                return  getattr(connection, func)(*args)
+            except socket.timeout:
+                log.warning('connection timed out.. retrying')
+                continue
+        raise socket.timeout
+
     def getHeaders(self):
         """ Perform a HTTP HEAD operation """
-        r = self.newConnection().head(unicode(self.url))
+        r = self.__request('head', unicode(self.url))
         if r.status == 404:
             raise NotFound
         return r
 
     def putResource(self, body, type='text/plain'):
         """ Perform a HTTP PUT operation """
-        return self.newConnection().put(unicode(self.url), body, type, None)
+        return self.__request('put', unicode(self.url), body, type, None)
         # return status.. or maybe just throw an exception if the put failed
 
     def deleteResource(self):
         """ Perform a WebDAV DELETE operation """
-        return self.newConnection().delete(unicode(self.url))
+        return self.__request('delete', unicode(self.url))
 
     def getProps(self, body, depth=0):
         """ Perform a WebDAV PROPFIND operation """
-        r = self.newConnection().propfind(unicode(self.url), body, depth)
+        r = self.__request('propfind', unicode(self.url), body, depth)
         if r.status == 404:
             raise NotFound
         return r
 
     def setProps(self, props):
         """ Perform a WebDAV PROPPATCH """
-        r = self.newConnection().setprops2(unicode(self.url), props)
+        r = self.__request('setprops2', unicode(self.url), props)
         log.debug('PROPPATCH returned:')
         log.debug(r.read())
         if r.status == 404:
