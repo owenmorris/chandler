@@ -1,76 +1,87 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
 <Parcel itemName="DocumentSchema"
         xmlns="//Schema/Core"
-        xmlns:app="//Parcels/OSAF/AppSchema"
-        xmlns:doc="//Parcels/OSAF/AppSchema/DocumentSchema">
+        xmlns:docSchema="//Parcels/OSAF/AppSchema/DocumentSchema">
 
   <description>Schema for blocks that make up CPIA documents </description>
-  <version>0.1</version>
+  <version>0.3</version>
   
   <!-- global attributes for CPIA documents -->
-  <Attribute itemName="name">
-    <type itemref="String"/>
-  </Attribute>
-
   <Attribute itemName="font">
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="size">
+  <Attribute itemName="fontSize">
     <type itemref="Float"/>
   </Attribute>
 
-  <Attribute itemName="style">
+  <Attribute itemName="fontStyle">
     <type itemref="String"/>
   </Attribute>
 
+  <Type itemName="SizeType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.SizeType">
+    <fields>width</fields>
+    <fields>height</fields>
+  </Type>
+ 
   <!--
     Chandler Query
   -->
   <Kind itemName="Query">
     <classes key="python">OSAF.AppSchema.DocumentSchema.Query.Query</classes>
 
-    <Enumeration itemName="QueryType">
+    <Attribute itemName="usedInBlocks">
+      <type itemref="docSchema:Block"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="docSchema:Block/content-spec"/>
+    </Attribute>
+
+   <Enumeration itemName="queryEnumType">
       <values>ContainerSearch</values>
       <values>listOfItems</values>
     </Enumeration>
 
     <Attribute itemName="queryEnum">
-      <type itemref="doc:Query/QueryType"/>
+      <type itemref="docSchema:Query/queryEnumType"/>
     </Attribute>
 
     <Attribute itemName="data">
       <type itemref="String"/>
     </Attribute>
 
-    <attributes itemref="doc:Query/queryEnum"/>
-    <attributes itemref="doc:Query/data"/>
+    <attributes itemref="docSchema:Query/queryEnum"/>
+    <attributes itemref="docSchema:Query/data"/>
+    <attributes itemref="docSchema:Query/usedInBlocks"/>
   </Kind>
 
   <!--
     Named styles
   -->
   <Kind itemName="Style">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.Style.Style</classes>
-
+    <classes key="python">OSAF.AppSchema.DocumentSchema.Styles.Style</classes>
+    
     <Attribute itemName="usedInBlocks">
-      <type itemref="doc:Block"/>
+      <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="doc:Block/styles"/>
+      <inverseAttribute itemref="docSchema:Block/styles"/>
     </Attribute>
 
-    <attributes itemref="doc:name"/>
-    <attributes itemref="doc:Style/usedInBlocks"/>
+    <attributes itemref="docSchema:Style/usedInBlocks"/>
   </Kind>
 
   <Kind itemName="CharacterStyle">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.CharacterStyle.CharacterStyle</classes>
-    <superKinds itemref="doc:Style"/>
+    <classes key="python">OSAF.AppSchema.DocumentSchema.Styles.CharacterStyle</classes>
+    <superKinds itemref="docSchema:Style"/>
 
-    <attributes itemref="doc:font"/>
-    <attributes itemref="doc:size"/>
-    <attributes itemref="doc:style"/>
+    <attributes itemref="docSchema:font"/>
+    <attributes itemref="docSchema:fontSize"/>
+    <attributes itemref="docSchema:fontStyle"/>
   </Kind>
 
   <!--
@@ -80,36 +91,98 @@
     <classes key="python">OSAF.AppSchema.DocumentSchema.Block.Block</classes>
 
     <Attribute itemName="content-spec">
-      <type itemref="doc:Query"/>
+      <type itemref="docSchema:Query"/>
+      <inverseAttribute itemref="docSchema:Query/usedInBlocks"/>
     </Attribute>
 
     <Attribute itemName="parentBlock">
-      <type itemref="doc:Block"/>
+      <type itemref="docSchema:Block"/>
       <cardinality>single</cardinality>
-      <inverseAttribute itemref="doc:Block/childrenBlocks"/>
+      <inverseAttribute itemref="docSchema:Block/childrenBlocks"/>
     </Attribute>
   
     <Attribute itemName="childrenBlocks">
-      <type itemref="doc:Block"/>
+      <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="doc:Block/parentBlock"/>
+      <inverseAttribute itemref="docSchema:Block/parentBlock"/>
     </Attribute>
 
     <Attribute itemName="styles">
-      <type itemref="doc:Style"/>
+      <type itemref="docSchema:Style"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="doc:Style/usedInBlocks"/>
+      <inverseAttribute itemref="docSchema:Style/usedInBlocks"/>
     </Attribute>
 
     <Attribute itemName="open">
       <type itemref="Boolean"/>
     </Attribute>
 
-    <attributes itemref="doc:name"/>
-    <attributes itemref="doc:Block/content-spec"/>
-    <attributes itemref="doc:Block/childrenBlocks"/>
-    <attributes itemref="doc:Block/parentBlock"/>
-    <attributes itemref="doc:Block/styles"/>
+    <attributes itemref="docSchema:Block/content-spec"/>
+    <attributes itemref="docSchema:Block/childrenBlocks"/>
+    <attributes itemref="docSchema:Block/parentBlock"/>
+    <attributes itemref="docSchema:Block/styles"/>
+    <attributes itemref="docSchema:Block/open"/>
+  </Kind>
+  
+  <Kind itemName="ContainerChild">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.ContainerChild</classes>
+    <superKinds itemref="docSchema:Block"/>
+
+    <Attribute itemName="size">
+      <type itemref="docSchema:SizeType"/>
+    </Attribute>
+
+    <Attribute itemName="minimumSize">
+      <type itemref="docSchema:SizeType"/>
+    </Attribute>
+
+    <Attribute itemName="border">
+      <type itemref="Float"/>
+    </Attribute>
+    
+    <Enumeration itemName="alignmentEnumType">
+      <values>grow</values>
+      <values>growConstrainAspectRatio</values>
+      <values>alignCenter</values>
+      <values>alignCenterTop</values>
+      <values>alignCenterLeft</values>
+      <values>alignCenterBottom</values>
+      <values>alignCenterRight</values>
+      <values>alignTopLeft</values>
+      <values>alignTopRight</values>
+      <values>alignBottomLeft</values>
+      <values>alignBottomRight</values>
+    </Enumeration>
+
+    <Attribute itemName="alignmentEnum">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <Attribute itemName="stretchFactor">
+      <type itemref="Float"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:ContainerChild/size"/>
+    <attributes itemref="docSchema:ContainerChild/minimumSize"/>
+    <attributes itemref="docSchema:ContainerChild/border"/>
+    <attributes itemref="docSchema:ContainerChild/alignmentEnum"/>
+    <attributes itemref="docSchema:ContainerChild/stretchFactor"/>
+  </Kind>
+
+  <Kind itemName="BoxContainer">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.BoxContainer</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Enumeration itemName="orientationEnumType">
+      <values>Horizontal</values>
+      <values>Vertical</values>
+    </Enumeration>
+
+    <Attribute itemName="orientationEnum">
+      <type itemref="docSchema:BoxContainer/orientationEnumType"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:BoxContainer/orientationEnum"/>
   </Kind>
 
 </Parcel>

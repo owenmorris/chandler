@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel itemName="top"
+             xmlns:core="//Schema/Core"
+             xmlns="//Parcels/OSAF/AppSchema/DocumentSchema"
+             xmlns:doc="//Parcels/OSAF/templates/top">
+
+  <core:version>0.3</core:version>
+
+  <Query itemName="myQuery">
+    <queryEnum>listOfItems</queryEnum>
+    <data></data>
+  </Query>
+
+  <BoxContainer itemName="TopDocument">
+    <content-spec itemref="doc:myQuery"/>
+    <!-- <parentBlock></parentBlock> -->
+    <!-- <childrenBlocks></childrenBlocks> -->
+    <!-- <styles></styles> -->
+    <open>True</open>
+
+    <size>400,200</size>
+    <minimumSize>400,200</minimumSize>
+    <border>1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+</core:Parcel>
