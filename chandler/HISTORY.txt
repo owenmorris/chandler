@@ -1,6 +1,33 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.22 (CVS tag CHANDLER_0_3_22) 2004-08-10
+    * SMTP module added for mail
+    * Refactored mail messaging logic by moving imap specific code in to 
+      imap.py and message parsing code in to message.py
+    * Temporarily disabled WinXP native window dbl-buffering
+    * Updated Stamping for robustness
+    * Added Out Of The Box Menus
+    * Twisted+M2Crypto integration. Simple SSL client should work (server does 
+      not work), as well as reading email over IMAP (SSL).
+    * Changed event used by ChoiceContainers.
+    * EditText and StaticText now handle isShown in synchronizeWidget
+    * DetailView is now completely hidden when starting out
+    * Add cloud testing for mail item cloud which may demonstrate problems 
+      with clouds + mixins
+    * iterEndpoints( ) now yields tuples of (alias, endpoint, cloud)
+      This allows the repository servlet to display more complete cloud info.
+    * Added a simple dialog which will get hooked up to collection subscription.
+    * Added cloudAlias attribute to Endpoint
+    * Added onItemCopy() hook and update Item.copy()
+    * Added RefDict.get|setIndexEntryValue() 
+    * Fixed bug in ref collection with re-inserting a removed item
+    * Added support for sorted indexes, AttributeIndex, CompareIndex
+    * Started adding clouds for Block kinds in an effort to migrate from
+      attribute-based copying to cloud-based.
+    * 
+    * numerous bug fixes from previous milestone build
+
 Milestone 0.3.21 (CVS tag CHANDLER_0_3_21) 2004-07-27
     * IMAP can now retrieve mail from test server (no SSL auth yet, so we 
       can't use OSAF's server) 
@@ -12,7 +39,7 @@ Milestone 0.3.21 (CVS tag CHANDLER_0_3_21) 2004-07-27
       first use of this is for a new Test menu item ("Edit Mail Account")
       which lets you change the IMAP server, username, and password for the
       default IMAP account.
-    * numerous bug fixes from initial milestone build
+    * numerous bug fixes from previous milestone build
 
 Milestone 0.3.20_A (CVS tag CHANDLER_0_3_20_A) 2004-07-20
     * Chandler executable directories rearranged 
