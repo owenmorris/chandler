@@ -162,7 +162,7 @@ class ListDelegate:
         return block.contentSpec.len()
 
 
-class wxListBlock(wx.ListCtrl):
+class wxList (wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         wx.ListCtrl.__init__(self, *arguments, **keywords)
         self.scheduleUpdate = False
@@ -266,9 +266,9 @@ class List(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self, parent, parentWindow):
-        list = wxListBlock(parentWindow,
-                           Block.getWidgetID(self),
-                           style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
+        list = wxList (parentWindow,
+                       Block.getWidgetID(self),
+                       style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
         return list, None, None
 
 
