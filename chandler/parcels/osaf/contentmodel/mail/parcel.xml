@@ -342,13 +342,6 @@
         <displayName value="MIME Base Kind" />
         <description value="Super kind for MailMessage and the various MIME kinds" />
 
-        <Attribute itsName="headers">
-            <description value="Catch-all for headers" />
-            <cardinality value="dict" />
-            <type itemref="String" />
-            <initialValue />
-        </Attribute>
-
         <Attribute itsName="mimeType">
             <displayName value="mimeType" />
             <type itemref="String" />
@@ -394,7 +387,63 @@
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMENote" />
         <displayName value="MIME Note" />
         <description value="MIMEBase and Note, rolled into one" />
+
+        <Attribute itsName="charset">
+            <displayName value="Character set" />
+            <type itemref="String" />
+            <initialValue type="String" value="ISO=8859-1" />
+        </Attribute>
+
+        <Attribute itsName="filename">
+            <displayName value="File name" />
+            <type itemref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="filesize">
+            <displayName value="File Size" />
+            <type itemref="Long" />
+        </Attribute>
     </Kind>
+
+    <Kind itsName="MIMEText">
+        <superKinds itemref="mail:MIMENote" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEText" />
+        <displayName value="MIME Text Kind" />
+    </Kind>
+
+    <Kind itsName="MIMEBinary">
+        <superKinds itemref="mail:MIMENote" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBinary" />
+        <displayName value="MIME Binary Kind" />
+    </Kind>
+
+
+    <Kind itsName="MIMEContainer">
+        <superKinds itemref="mail:MIMEBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEContainer" />
+        <displayName value="MIME Container Kind" />
+
+        <Attribute itsName="hasMimeParts">
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+        <Attribute itsName="mimeParts">
+            <displayName value="MIME Parts" />
+            <cardinality value="list" />
+            <type itemref="mail:MIMEBase" />
+            <initialValue />
+            <inverseAttribute itemref="mail:MIMEBase/mimeContainer" />
+        </Attribute>
+    </Kind>
+
+    <Kind itsName="MIMESecurity">
+        <superKinds itemref="mail:MIMEBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMESecurity" />
+        <displayName value="MIME Security Kind" />
+    </Kind>
+
+
 
     <Kind itsName="MailMessage">
         <superKinds itemref="mail:MailMessageMixin" />
@@ -499,6 +548,13 @@
             <initialValue type="String" value="" />
         </Attribute>
 
+        <Attribute itsName="headers">
+            <description value="Catch-all for headers" />
+            <cardinality value="dict" />
+            <type itemref="String" />
+            <initialValue />
+        </Attribute>
+
         <Attribute itsName="chandlerHeaders">
             <type itemref="String" />
             <cardinality value="dict" />
@@ -565,61 +621,6 @@
           <endpoints itemref="mail:MailMessageMixin/Cloud/mimeParts"/>
         </Cloud>
         <clouds alias="default" itemref="mail:MailMessageMixin/Cloud"/>
-    </Kind>
-
-    <Kind itsName="MIMEBinary">
-        <superKinds itemref="mail:MIMENote" />
-        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBinary" />
-        <displayName value="MIME Binary Kind" />
-
-        <Attribute itsName="filename">
-            <displayName value="File name" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="filesize">
-            <displayName value="File Size" />
-            <type itemref="Long" />
-        </Attribute>
-    </Kind>
-
-    <Kind itsName="MIMEText">
-        <superKinds itemref="mail:MIMENote" />
-        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEText" />
-        <displayName value="MIME Text Kind" />
-
-        <Attribute itsName="charset">
-            <displayName value="Character set" />
-            <type itemref="String" />
-            <initialValue type="String" value="ISO=8859-1" />
-        </Attribute>
-
-    </Kind>
-
-    <Kind itsName="MIMEContainer">
-        <superKinds itemref="mail:MIMEBase" />
-        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEContainer" />
-        <displayName value="MIME Container Kind" />
-
-        <Attribute itsName="hasMimeParts">
-            <initialValue type="Boolean" value="False" />
-        </Attribute>
-
-        <Attribute itsName="mimeParts">
-            <displayName value="MIME Parts" />
-            <cardinality value="list" />
-            <type itemref="mail:MIMEBase" />
-            <initialValue />
-            <inverseAttribute itemref="mail:MIMEBase/mimeContainer" />
-        </Attribute>
-
-    </Kind>
-
-    <Kind itsName="MIMESecurity">
-        <superKinds itemref="mail:MIMEBase" />
-        <classes key="python" value="osaf.contentmodel.mail.Mail.MIMESecurity" />
-        <displayName value="MIME Security Kind" />
     </Kind>
 
 

@@ -374,7 +374,6 @@ class MailMessageMixin(MIMEContainer):
         return super(MailMessageMixin, self).getAnyWhoFrom()
 
 
-
     def outgoingMessage(self, type="SMTP", account=None):
         assert type == "SMTP", "Only SMTP currently supported"
 
@@ -402,6 +401,19 @@ class MailMessageMixin(MIMEContainer):
 
         self.isInbound = True
         self.parentAccount = account
+
+    def getAttachements(self):
+        """ First pass at API will be expanded upon later """
+        # Anything not in the body of the message will have a filename, and size with it
+        return self.mimeParts
+
+    def getNumberOfAttachments(self):
+        """ First pass at API will be expanded upon later """
+        return len(self.mimeParts)
+
+    def hasAttachments(self):
+        """ First pass at API will be expanded upon later """
+        return self.hasMimeParts
 
 
     def shareSend(self):
