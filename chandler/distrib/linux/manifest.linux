@@ -36,6 +36,7 @@ python2.3
 
 # Grab the WX GTK library
 libwx_gtk-2.4.so
+libwx_gtk2-2.4.so
 
 # Grab Chandler.py and LICENSE.txt
 src=Chandler
