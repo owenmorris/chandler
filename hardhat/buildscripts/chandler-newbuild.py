@@ -42,6 +42,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     # Do external setup for both debug and release here
     for releaseMode in ('debug', 'release'):
         releaseModeDir = os.path.join(workingDir, releaseMode)
+        if not os.path.existsreleaseModeDir:
+            os.mkdir(releaseModeDir)
         os.chdir(releaseModeDir)
         if releaseMode == "debug":
             dbgStr = "DEBUG=1"
