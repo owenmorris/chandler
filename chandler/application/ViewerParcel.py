@@ -129,7 +129,7 @@ class ViewerParcel (Parcel):
         """
         return []
  
-    def GetViewObjects(self, url):
+    def GetViewObjects(self, url, jabberID):
         """
            return a list of objects from the view specified by the url
            return the empty list here in the base class; packages override

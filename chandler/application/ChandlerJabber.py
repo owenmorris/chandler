@@ -362,11 +362,13 @@ class JabberClient:
     # handle receiving a request for objects from a url 
     # ask the application for the objects, then send them back to the requestor
     def HandleObjectRequest(self, fromAddress, url):
-        objectList = self.application.GetViewObjects(url)
+        objectList = self.application.GetViewObjects(url, fromAddress)
     
         # we can send the objects back in ask many responses as we like
-        # for simplicity's sake, we'll send them back one at a time at
-        # first, and then later tweak for better performance
+        # the granularity constant specifies how many objects it sends back
+        # in one message.  Right now, it's arbitrarily set at 3 but we need
+        # to tune it better - perhaps it should be proportional to the number
+        # in the request
         resultList = []
         granularity = 3
         for resultObject in objectList:

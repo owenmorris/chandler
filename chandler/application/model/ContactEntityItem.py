@@ -186,9 +186,9 @@ class ContactEntityItem(InformationItem):
         
         attributeValue = self.attributes.GetAttribute(attributeKey)
         
-        # hack for sharing - return 'private' instead of none
+        # hack for sharing - default to public, since the views default to private
         if attributeKey == 'sharing' and attributeValue == None:
-            attributeValue = 'private'
+            attributeValue = 'public'
             
         return attributeValue
         
