@@ -57,10 +57,10 @@ class ContentItemTest(ContentModelTestCase):
 
         
         # Check that the globals got created by the parcel
-        self.assert_(ContentModel.ContentItemParent)
-        self.assert_(ContentModel.ContentItemKind)
-        self.assert_(ContentModel.ProjectKind)
-        self.assert_(ContentModel.GroupKind)
+        self.assert_(ContentModel.ContentModel.getContentItemParent())
+        self.assert_(ContentModel.ContentModel.getContentItemKind())
+        self.assert_(ContentModel.ContentModel.getProjectKind())
+        self.assert_(ContentModel.ContentModel.getGroupKind())
 
         # Construct a sample item
         genericContentItem = ContentModel.ContentItem("genericContentItem")
@@ -73,12 +73,10 @@ class ContentItemTest(ContentModelTestCase):
         self.assert_(genericGroup)
 
         # Check each item's parent, make sure it has a path
-        self.assertEqual(genericContentItem.getItemParent(),
-                         ContentModel.ContentItemParent)
-        self.assertEqual(genericProject.getItemParent(),
-                         ContentModel.ContentItemParent)
-        self.assertEqual(genericGroup.getItemParent(),
-                         ContentModel.ContentItemParent)
+        contentItemParent = ContentModel.ContentModel.getContentItemParent()
+        self.assertEqual(genericContentItem.getItemParent(), contentItemParent)
+        self.assertEqual(genericProject.getItemParent(), contentItemParent)
+        self.assertEqual(genericGroup.getItemParent(), contentItemParent)
         
         self.assertEqual(repr(genericContentItem.getItemPath()),
                          '//userdata/contentitems/genericContentItem')

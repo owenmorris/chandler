@@ -8,48 +8,85 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
+
 import OSAF.contentmodel.ContentModel as ContentModel
+import application.Globals as Globals
+
 import mx.DateTime as DateTime
 
-# Module globals for Kinds
-CalendarEventKind = None
-LocationKind = None
-CalendarKind = None
-RecurrencePatternKind = None
-ReminderKind = None
 
 class CalendarParcel(Parcel.Parcel):
+
     def __init__(self, name, parent, kind):
         Parcel.Parcel.__init__(self, name, parent, kind)
 
+    def _setUUIDs(self):
+        calendarEventKind = self.find('CalendarEvent')
+        CalendarParcel.calendarEventKindID = calendarEventKind.getUUID()
+
+        locationKind = self.find('Location')
+        CalendarParcel.locationKindID = locationKind.getUUID()
+        
+        calendarKind = self.find('Calendar')
+        CalendarParcel.calendarKindID = calendarKind.getUUID()
+        
+        recurrenceKind = self.find('RecurrencePattern')
+        CalendarParcel.recurrencePatternKindID = recurrenceKind.getUUID()
+        
+        reminderKind = self.find('Reminder')
+        CalendarParcel.reminderKindID = reminderKind.getUUID()
+
+    def onItemLoad(self):
+        super(CalendarParcel, self).onItemLoad()
+        self._setUUIDs()
+
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
+        self._setUUIDs()
 
-        global CalendarEventKind
-        CalendarEventKind = self.find('CalendarEvent')
-        assert CalendarEventKind
+    def getCalendarEventKind(cls):
+        assert cls.calendarEventKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.calendarEventKindID]
 
-        global LocationKind
-        LocationKind = self.find('Location')
-        assert LocationKind
+    getCalendarEventKind = classmethod(getCalendarEventKind)
 
-        global CalendarKind
-        CalendarKind = self.find('Calendar')
-        assert CalendarKind
+    def getLocationKind(cls):
+        assert cls.locationKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.locationKindID]
 
-        global RecurrencePatternKind
-        RecurrencePatternKind = self.find('RecurrencePattern')
-        assert RecurrencePatternKind
+    getLocationKind = classmethod(getLocationKind)
 
-        global ReminderKind
-        ReminderKind = self.find('Reminder')
-        assert ReminderKind
+    def getCalendarKind(cls):
+        assert cls.calendarKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.calendarKindID]
+
+    getCalendarKind = classmethod(getCalendarKind)
+
+    def getRecurrencePatternKind(cls):
+        assert cls.recurrencePatternKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.recurrencePatternKindID]
+
+    getRecurrencePatternKind = classmethod(getRecurrencePatternKind)
+
+    def getReminderKind(cls):
+        assert cls.reminderKindID, "CalendarParcel not yet loaded"
+        return Globals.repository[cls.reminderKindID]
+
+    getReminderKind = classmethod(getReminderKind)
+
+
+    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
+    calendarEventKindID = None
+    locationKindID = None
+    calendarKindID = None
+    recurrencePatternKindID = None
+    reminderKindID = None
 
 class CalendarEvent(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
-            kind = CalendarEventKind
+            kind = CalendarParcel.getCalendarEventKind()
         ContentModel.ContentItem.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
@@ -88,32 +125,32 @@ class CalendarEvent(ContentModel.ContentItem):
 class Location(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = LocationKind
+            kind = CalendarParcel.getLocationKind()
         Item.Item.__init__(self, name, parent, kind)
         
 
 class Calendar(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = CalendarKind
+            kind = CalendarParcel.getCalendarKind()
         Item.Item.__init__(self, name, parent, kind)
 
 class RecurrencePattern(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = RecurrencePatternKind
+            kind = CalendarParcel.getRecurrencePatternKind()
         Item.Item.__init__(self, name, parent, kind)
 
 class Reminder(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = ReminderKind
+            kind = CalendarParcel.getReminderKind()
         Item.Item.__init__(self, name, parent, kind)

@@ -28,13 +28,13 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         mailPath = '//parcels/OSAF/contentmodel/mail/%s'
 
-        self.assertEqual(Mail.AttachmentKind,
+        self.assertEqual(Mail.MailParcel.getAttachmentKind(),
                          self.rep.find(mailPath % 'Attachment'))
-        self.assertEqual(Mail.EmailAccountKind,
+        self.assertEqual(Mail.MailParcel.getEmailAccountKind(),
                          self.rep.find(mailPath % 'EmailAccount'))
-        self.assertEqual(Mail.EmailAddressKind,
+        self.assertEqual(Mail.MailParcel.getEmailAddressKind(),
                          self.rep.find(mailPath % 'EmailAddress'))
-        self.assertEqual(Mail.MailMessageKind,
+        self.assertEqual(Mail.MailParcel.getMailMessageKind(),
                          self.rep.find(mailPath % 'MailMessage'))
 
         # Construct sample items
@@ -44,10 +44,14 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mailMessageItem = Mail.MailMessage("mailMessageItem")
 
         # Double check kinds
-        self.assertEqual(attachmentItem.kind, Mail.AttachmentKind)
-        self.assertEqual(emailAccountItem.kind, Mail.EmailAccountKind)
-        self.assertEqual(emailAddressItem.kind, Mail.EmailAddressKind)
-        self.assertEqual(mailMessageItem.kind, Mail.MailMessageKind)
+        self.assertEqual(attachmentItem.kind,
+                         Mail.MailParcel.getAttachmentKind())
+        self.assertEqual(emailAccountItem.kind,
+                         Mail.MailParcel.getEmailAccountKind())
+        self.assertEqual(emailAddressItem.kind,
+                         Mail.MailParcel.getEmailAddressKind())
+        self.assertEqual(mailMessageItem.kind,
+                         Mail.MailParcel.getMailMessageKind())
 
         # Literal properties
         mailMessageItem.subject = "Hello"

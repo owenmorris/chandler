@@ -29,14 +29,14 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         notesPath = '//parcels/OSAF/contentmodel/notes/%s'
 
-        self.assertEqual(Notes.NoteKind,
+        self.assertEqual(Notes.NotesParcel.getNoteKind(),
                          self.rep.find(notesPath % 'Note'))
 
         # Construct sample items
         noteItem = Notes.Note("noteItem")
 
         # Double check kinds
-        self.assertEqual(noteItem.kind, Notes.NoteKind)
+        self.assertEqual(noteItem.kind, Notes.NotesParcel.getNoteKind())
 
         # Literal properties
         noteItem.title = "sample note"

@@ -9,14 +9,32 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
 
-ContentItemParent = None
-ContentItemKind = None
-ProjectKind = None
-GroupKind = None
+import application.Globals as Globals
 
 class ContentModel(Parcel.Parcel):
+
+    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
+    contentItemKindID = None
+    projectKindID = None
+    groupKindID = None
+
+    # The parcel knows the UUID for the parent, once the parcel is loaded
+    contentItemParentID = None
+    
     def __init__(self, name, parent, kind):
         Parcel.Parcel.__init__(self, name, parent, kind)
+
+    def _setUUIDs(self, parent):
+        ContentModel.contentItemParentID = parent.getUUID()
+        ContentModel.contentItemKindID = self.find('ContentItem').getUUID()
+        ContentModel.projectKindID = self.find('Project').getUUID()
+        ContentModel.groupKindID = self.find('Group').getUUID()
+
+    def onItemLoad(self):
+        super(ContentModel, self).onItemLoad()
+        repository = self.getRepository()
+        parent = repository.find('//userdata/contentitems')
+        self._setUUIDs(parent)
 
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
@@ -28,29 +46,38 @@ class ContentModel(Parcel.Parcel):
             if not userdata:
                 userdata = itemKind.newItem('userdata', repository)
             parent = itemKind.newItem('contentitems', userdata)
+        self._setUUIDs(parent)
 
-        global ContentItemParent
-        ContentItemParent = parent
-        assert ContentItemParent
+    def getContentItemParent(cls):
+        assert cls.contentItemParentID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.contentItemParentID]
 
-        global ContentItemKind
-        ContentItemKind = self.find('ContentItem')
-        assert ContentItemKind
+    getContentItemParent = classmethod(getContentItemParent)
 
-        global ProjectKind
-        ProjectKind = self.find('Project')
-        assert ProjectKind
+    def getContentItemKind(cls):
+        assert cls.contentItemKindID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.contentItemKindID]
 
-        global GroupKind
-        GroupKind = self.find('Group')
-        assert GroupKind
+    getContentItemKind = classmethod(getContentItemKind)
+
+    def getProjectKind(cls):
+        assert cls.projectKindID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.projectKindID]
+
+    getProjectKind = classmethod(getProjectKind)
+    
+    def getGroupKind(cls):
+        assert cls.groupKindID, "ContentModel parcel not yet loaded"
+        return Globals.repository[cls.groupKindID]
+
+    getGroupKind = classmethod(getGroupKind)
 
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentItemParent
+            parent = ContentModel.getContentItemParent()
         if not kind:
-            kind = ContentItemKind
+            kind = ContentModel.getContentItemKind()
         Item.Item.__init__(self, name, parent, kind)
         self.projects = []
         self.groups = []
@@ -58,9 +85,9 @@ class ContentItem(Item.Item):
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentItemParent
+            parent = ContentModel.getContentItemParent()
         if not kind:
-            kind = ProjectKind
+            kind = ContentModel.getProjectKind()
         Item.Item.__init__(self, name, parent, kind)
         self.itemsInProject = []
         self.name = ''
@@ -68,9 +95,9 @@ class Project(Item.Item):
 class Group(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentItemParent
+            parent = ContentModel.getContentItemParent()
         if not kind:
-            kind = GroupKind
+            kind = ContentModel.getGroupKind()
         ContentItem.__init__(self, name, parent, kind)
         self.itemsInGroup = []
         self.name = ''

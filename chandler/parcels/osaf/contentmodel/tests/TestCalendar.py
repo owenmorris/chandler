@@ -47,15 +47,15 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # Check that the globals got created by the parcel
         calendarPath = '//parcels/OSAF/contentmodel/calendar/%s'
         
-        self.assertEqual(Calendar.CalendarEventKind,
+        self.assertEqual(Calendar.CalendarParcel.getCalendarEventKind(),
                          self.rep.find(calendarPath % 'CalendarEvent'))
-        self.assertEqual(Calendar.CalendarKind,
+        self.assertEqual(Calendar.CalendarParcel.getCalendarKind(),
                          self.rep.find(calendarPath % 'Calendar'))
-        self.assertEqual(Calendar.LocationKind,
+        self.assertEqual(Calendar.CalendarParcel.getLocationKind(),
                          self.rep.find(calendarPath % 'Location'))
-        self.assertEqual(Calendar.RecurrencePatternKind,
+        self.assertEqual(Calendar.CalendarParcel.getRecurrencePatternKind(),
                          self.rep.find(calendarPath % 'RecurrencePattern'))
-        self.assertEqual(Calendar.ReminderKind,
+        self.assertEqual(Calendar.CalendarParcel.getReminderKind(),
                          self.rep.find(calendarPath % 'Reminder'))
 
         # Construct a sample item

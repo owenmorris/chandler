@@ -9,12 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
 import OSAF.contentmodel.ContentModel as ContentModel
-
-# Module globals for Kinds
-# AttachmentKind ==> //parcels/OSAF/contentmodel/mail/Attachment
-# EmailAccountKind ==> //parcels/OSAF/contentmodel/mail/EmailAccount
-# EmailAddressKind ==> //parcels/OSAF/contentmodel/mail/EmailAddress
-# MailMessageKind ==> //parcels/OSAF/contentmodel/mail/MailMessage
+import application.Globals as Globals
 
 class MailParcel(Parcel.Parcel):
     def __init__(self, name, parent, kind):
@@ -22,51 +17,82 @@ class MailParcel(Parcel.Parcel):
 
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
+        self._setUUIDs()
 
-        global AttachmentKind
-        AttachmentKind = self.find('Attachment')
-        assert AttachmentKind
+    def onItemLoad(self):
+        Parcel.Parcel.onItemLoad(self)
+        self._setUUIDs()
 
-        global EmailAccountKind
-        EmailAccountKind = self.find('EmailAccount')
-        assert EmailAccountKind
+    def _setUUIDs(self):
+        attachmentKind = self.find('Attachment')
+        MailParcel.attachmentKindID = attachmentKind.getUUID()
+        
+        emailAccountKind = self.find('EmailAccount')
+        MailParcel.emailAccountKindID = emailAccountKind.getUUID()
+        
+        emailAddressKind = self.find('EmailAddress')
+        MailParcel.emailAddressKindID = emailAddressKind.getUUID()
+        
+        mailMessageKind = self.find('MailMessage')
+        MailParcel.mailMessageKindID = mailMessageKind.getUUID()
 
-        global EmailAddressKind
-        EmailAddressKind = self.find('EmailAddress')
-        assert EmailAddressKind
+    def getAttachmentKind(cls):
+        assert cls.attachmentKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.attachmentKindID]
 
-        global MailMessageKind
-        MailMessageKind = self.find('MailMessage')
-        assert MailMessageKind
+    getAttachmentKind = classmethod(getAttachmentKind)
+
+    def getEmailAccountKind(cls):
+        assert cls.emailAccountKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.emailAccountKindID]
+
+    getEmailAccountKind = classmethod(getEmailAccountKind)
+
+    def getEmailAddressKind(cls):
+        assert cls.emailAddressKindID, "Mail parcel not yet loaded"
+        return Globals.repository[cls.emailAddressKindID]
+
+    getEmailAddressKind = classmethod(getEmailAddressKind)
+
+    def getMailMessageKind(cls):
+        assert cls.mailMessageKindID, "Mail message not yet loaded"
+        return Globals.repository[cls.mailMessageKindID]
+
+    getMailMessageKind = classmethod(getMailMessageKind)
+
+    attachmentKindID = None
+    emailAccountKindID = None
+    emailAddressKindID = None
+    mailMessageKindID = None
 
 class MailMessage(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
-            kind = MailMessageKind
+            kind = MailParcel.getMailMessageKind()
         ContentModel.ContentItem.__init__(self, name, parent, kind)
 
 class Attachment(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = AttachmentKind
+            kind = MailParcel.getAttachmentKind()
         Item.Item.__init__(self, name, parent, kind)
 
 class EmailAccount(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = EmailAccountKind
+            kind = MailParcel.getEmailAccountKind()
         Item.Item.__init__(self, name, parent, kind)
 
 class EmailAddress(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentItemParent
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = EmailAddressKind
+            kind = MailParcel.getEmailAddressKind()
         Item.Item.__init__(self, name, parent, kind)
 
 

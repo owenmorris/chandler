@@ -32,15 +32,15 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         contactsPath = '//parcels/OSAF/contentmodel/contacts/%s'
 
-        self.assertEqual(Contacts.ContactKind,
+        self.assertEqual(Contacts.ContactsParcel.getContactKind(),
                          self.rep.find(contactsPath % 'Contact'))
-        self.assertEqual(Contacts.ContactSectionKind,
+        self.assertEqual(Contacts.ContactsParcel.getContactSectionKind(),
                          self.rep.find(contactsPath % 'ContactSection'))
-        self.assertEqual(Contacts.ContactNameKind,
+        self.assertEqual(Contacts.ContactsParcel.getContactNameKind(),
                          self.rep.find(contactsPath % 'ContactName'))
-        self.assertEqual(Contacts.StreetAddressKind,
+        self.assertEqual(Contacts.ContactsParcel.getStreetAddressKind(),
                          self.rep.find(contactsPath % 'StreetAddress'))
-        self.assertEqual(Contacts.PhoneNumberKind,
+        self.assertEqual(Contacts.ContactsParcel.getPhoneNumberKind(),
                          self.rep.find(contactsPath % 'PhoneNumber'))
 
         # Construct sample items
@@ -51,11 +51,16 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         phoneNumberItem = Contacts.PhoneNumber("phoneNumberItem")
 
         # Double check kinds
-        self.assertEqual(contactItem.kind, Contacts.ContactKind)
-        self.assertEqual(contactSectionItem.kind, Contacts.ContactSectionKind)
-        self.assertEqual(contactNameItem.kind, Contacts.ContactNameKind)
-        self.assertEqual(streetAddressItem.kind, Contacts.StreetAddressKind)
-        self.assertEqual(phoneNumberItem.kind, Contacts.PhoneNumberKind)
+        self.assertEqual(contactItem.kind,
+                         Contacts.ContactsParcel.getContactKind())
+        self.assertEqual(contactSectionItem.kind,
+                         Contacts.ContactsParcel.getContactSectionKind())
+        self.assertEqual(contactNameItem.kind,
+                         Contacts.ContactsParcel.getContactNameKind())
+        self.assertEqual(streetAddressItem.kind,
+                         Contacts.ContactsParcel.getStreetAddressKind())
+        self.assertEqual(phoneNumberItem.kind,
+                         Contacts.ContactsParcel.getPhoneNumberKind())
 
         # Literal properties
         contactNameItem.firstName = "Sylvia"
