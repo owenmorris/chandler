@@ -1,5 +1,5 @@
---- PyLucene-0.9.3-127/Makefile	Mon Dec  6 16:20:40 2004
-+++ PyLucene-0.9.3-127-patched/Makefile	Mon Dec  6 16:44:19 2004
+--- PyLucene-0.9.3-136/Makefile	Sat Dec 11 18:59:22 2004
++++ PyLucene-0.9.3-136-patched/Makefile	Mon Dec 13 12:02:45 2004
 @@ -245,17 +245,17 @@
  PYLUCENE_CP:=$(PYLUCENE_CP):$(DB)/java/src
  
@@ -38,27 +38,7 @@
  SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" -DDB_VER=$(subst .,,$(DB_LIB_VER))
  
  $(BINDIR)/db_const.o:
-@@ -652,16 +652,19 @@
- 
- all: env sources $(BINDIR) $(LIBS)
- 	@echo build of $(PYLUCENE_LIB) complete
- 
- install:: all
- 	mkdir -p $(PYTHON_SITE)
- 	install PyLucene.py $(PYTHON_SITE)
- 	install $(PYLUCENE_LIB) $(PYTHON_SITE)
-+	mkdir -p $(PYTHON_SITE)/security
-+	install $(GCJ_HOME)/lib/security/classpath.security $(PYTHON_SITE)/security
-+	install $(GCJ_HOME)/lib/security/libgcj.security $(PYTHON_SITE)/security
- 
- ifeq ($(OS),Darwin)
- install::
- ifdef DB
- 	mkdir -p $(PREFIX_DB)/lib
- 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
- 	install libdb_java-$(DB_LIB_VER).la.osx $(PREFIX_DB)/lib/libdb_java-$(DB_LIB_VER).la
- endif
-@@ -672,23 +675,27 @@
+@@ -671,23 +671,27 @@
  else
  
  ifeq ($(OS),Linux)
@@ -87,42 +67,3 @@
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
---- PyLucene-0.9.3-127/PyLucene.i	Sat Dec  4 23:18:12 2004
-+++ PyLucene-0.9.3-127-patched/PyLucene.i	Mon Dec  6 16:48:18 2004
-@@ -2762,16 +2762,36 @@
- 
-     nextThread = new java::lang::Thread();
-     objects = new java::util::Hashtable();
- 
-     java::util::Hashtable *props = (java::util::Hashtable *)
-         java::lang::System::getProperties();
-     props->put(JvNewStringUTF("inPython"), objects);
- 
-+    PyObject *sys = PyImport_ImportModule("sys");
-+    PyObject *path = PyObject_GetAttrString(sys, "path");
-+    int count = PyList_Size(path);
-+
-+    while (count-- > 0) {
-+        PyObject *pp = PyList_GET_ITEM(path, count);
-+        char *p = PyString_AsString(pp);
-+       int l = strlen(p);
-+
-+        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
-+        {
-+            jstring jp = JvNewStringUTF(p);
-+            props->put(JvNewStringUTF("gnu.classpath.home.url"),
-+                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
-+            break;
-+        }
-+    }
-+    Py_DECREF(path);
-+    Py_DECREF(sys);
-+
-     JvInitClass(&java::util::Locale::class$);
-     JvInitClass(&org::apache::lucene::analysis::StopAnalyzer::class$);
-     JvInitClass(&org::apache::lucene::document::Field::class$);
-     JvInitClass(&org::apache::lucene::document::DateField::class$);
-     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
-     JvInitClass(&org::apache::lucene::search::BooleanQuery::class$);
-     JvInitClass(&org::apache::lucene::search::DateFilter::class$);
-     JvInitClass(&org::apache::lucene::search::SortField::class$);
