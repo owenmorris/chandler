@@ -1,6 +1,12 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.20_A (CVS tag CHANDLER_0_3_20_A) 2004-07-20
+    * Chandler executable directories rearranged 
+    * Changed DynamicContainer Blocks to work more like regular Blocks
+    * Changing the ItemCollection API
+    * numerous bug fixes from initial milestone build
+
 Milestone 0.3.20 (CVS tag CHANDLER_0_3_20) 2004-07-13
     * Parcel reloading enabled
     * WebDAV sharing enabled (manual process - no GUI)
