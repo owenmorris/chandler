@@ -31,8 +31,8 @@ class Attribute(Item):
             return self.getAttributeValue(name)
 
         if self.hasAttributeValue('superAttribute'):
-            return self.getAttributeValue('superAttribute').getAspect(name,
-                                                                      **kwds)
+            superAttribute = self.getAttributeValue('superAttribute')
+            return superAttribute.getAspect(name, **kwds)
 
         if self._kind is not None:
             aspectAttr = self._kind.getAttribute(name)

@@ -220,18 +220,24 @@ class Item(object):
               set for this attribute. This default value is owned by the
               attribute item and is a read-only when it is a collection. By
               default, an attribute has no default value. See
-              C{initialValue} and C{inheritFrom} below. This aspect takes
-              any type of value.
+              C{initialValue}, C{inheritFrom} and C{redirectTo} below. This
+              aspect takes any type of value.
             - C{initialValue}: similar to C{defaultValue} but the initial
               value is set as the value of the attribute the first time it is
               returned. A copy of the initial value is set when it is a
               collection. This aspect takes any type of value.
             - C{inheritFrom}: one or several attribute names chained
-              together by periods naming attributes to inherit a value
-              from. When several names are used, all but the last name are
-              expected to name attributes containing a reference to the next
-              item to inherit from by applying the next name. This aspect
-              takes a string value.
+              together by periods naming attributes to recursively inherit a
+              value from. When several names are used, all but the last name
+              are expected to name attributes containing a reference to the
+              next item to inherit from by applying the next name. This
+              aspect takes a string value.
+            - C{redirectTo}: one or several attribute names chained
+              together by periods naming attributes to recursively obtain a
+              value from or set a value to. When several names are used, all
+              but the last name are expected to name attributes containing a
+              reference to the next item to inherit from by applying the
+              next name. This aspect takes a string value.
             - C{otherName}: for bi-directional reference attributes, this
               aspect names the attribute used to attach the other endpoint
               on the other item, ie the referenced item. This is the aspect
@@ -278,6 +284,16 @@ class Item(object):
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
             if attribute is not None:
+                if aspect != 'redirectTo':
+                    redirect = attribute.getAspect('redirectTo', default=None)
+                    if redirect is not None:
+                        item = self
+                        names = redirect.split('.')
+                        for i in xrange(len(names) - 1):
+                            item = item.getAttributeValue(names[i])
+                        return item.getAttributeAspect(names[-1], aspect,
+                                                       **kwds)
+                    
                 return attribute.getAspect(aspect, **kwds)
 
         return kwds.get('default', None)
