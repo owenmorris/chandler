@@ -30,6 +30,7 @@ endif
 ifeq ($(REAL_OS),WINNT)
 # Build using Visual C++ compiler
 # TODO: debug version, and the ability to build both debug & release simult.
+#       Do we need patches file or can we get rid of it?
 
 openssl:
 	cd $(SRC); \
