@@ -10,3 +10,4 @@ randpool.dat
 *.inst
 *.gz
 *.md5
+*.lock

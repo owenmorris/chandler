@@ -1,2 +1,4 @@
-*.pyc *.pyo
+*.pyc
+*.pyo
 __repository__
+*.lock

@@ -12,6 +12,7 @@ from repository.item.Access import ACL
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
+from repository.item.ItemError import *
 
 from repository.util.SingleRef import SingleRef
 from chandlerdb.util.UUID import UUID
@@ -290,7 +291,7 @@ class Item(object):
         redirected just like C{getAttributeValue}.
 
         If the attribute is not defined for the item's kind,
-        C{AttributeError} is raised.
+        a subclass of C{AttributeError} is raised.
 
         @param name: the name of the attribute being queried
         @type name: a string
@@ -380,7 +381,7 @@ class Item(object):
             card = self.getAttributeAspect(name, 'cardinality')
 
             if card != 'single':
-                raise ValueError, 'cardinality %s of %s.%s requires collection' %(self, name, card)
+                raise CardinalityError, (self, name, 'single-valued')
 
             if _attrDict is self._values:
                 if isItem:
@@ -471,10 +472,10 @@ class Item(object):
                 _attrDict = self._references
             elif self.getAttributeAspect(name, 'redirectTo',
                                          default=None) is not None:
-                raise IndirectValueError, (self, name, 'redirectTo')
+                raise IndirectAttributeError, (self, name, 'redirectTo')
             elif self.getAttributeAspect(name, 'inheritFrom',
                                          default=None) is not None:
-                raise IndirectValueError, (self, name, 'inheritFrom')
+                raise IndirectAttributeError, (self, name, 'inheritFrom')
             else:
                 _attrDict = self._values
 
@@ -506,8 +507,8 @@ class Item(object):
             4. If the attribute has a C{defaultValue} aspect set then it is
                returned. If this default value is a collection then it is
                read-only.
-            5. And finally, if all of the above failed, an C{AttributeError}
-               is raised.
+            5. And finally, if all of the above failed, a subclass of
+               C{AttributeError} is raised.
 
         @param name: the name of the attribute
         @type name: a string
@@ -564,12 +565,12 @@ class Item(object):
                     value.setReadOnly(True)
                 return value
 
-            raise AttributeError, "%s (Kind: %s) has no value for '%s'" %(self.itsPath, self._kind.itsPath, name)
+            raise NoValueForAttributeError, (self, name)
 
         elif 'default' in kwds:
             return kwds['default']
 
-        raise AttributeError, "%s has no value for '%s'" %(self.itsPath, name)
+        raise NoValueForAttributeError, (self, name)
 
     def removeAttributeValue(self, name, _attrDict=None):
         """
@@ -590,7 +591,7 @@ class Item(object):
             elif self._references.has_key(name):
                 _attrDict = self._references
             else:
-                raise AttributeError, 'no value for %s' %(name)
+                raise NoLocalValueForAttributeError, (self, name)
 
         if _attrDict is self._values:
             del _attrDict[name]
@@ -643,9 +644,9 @@ class Item(object):
         """
 
         if not (child.itsParent is self):
-            raise ValueError, '%s not a child of %s' %(child, self)
+            raise InvalidChildError, (self, child)
         if not (after is None or after.itsParent is self):
-            raise ValueError, '%s not a child of %s' %(after, self)
+            raise InvalidChildError, (self, after)
         
         key = child._uuid
         if after is None:
@@ -798,7 +799,7 @@ class Item(object):
             else:
                 return default
 
-        raise TypeError, "%s is not multi-valued" %(attribute)
+        raise CardinalityError, (self, attribute, 'multi-valued')
 
     def setValue(self, attribute, value, key=None, alias=None, _attrDict=None):
         """
@@ -996,7 +997,7 @@ class Item(object):
             elif isinstance(value, list):
                 return 0 <= key and key < len(value)
             elif value is not None:
-                raise TypeError, "%s is not multi-valued" %(attribute)
+                raise CardinalityError, (self, attribute, 'multi-valued')
 
         return False
 
@@ -1786,7 +1787,7 @@ class Item(object):
                 children = parent._roots
 
             if name is not None and children.resolveAlias(name) is not None:
-                raise ValueError, "%s already has a child named '%s'" %(parent.itsPath, name)
+                raise ChildNameError, (parent, name)
                 
             self._name = name
             children.setAlias(self._uuid, name)
@@ -1855,7 +1856,7 @@ class Item(object):
             if name is not None:
                 loading = self.getRepositoryView().isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
-                    raise ValueError, "%s already has a child named '%s'" %(self.itsPath, item._name)
+                    raise ChildNameError, (self, item._name)
 
         else:
             self._children = self.getRepositoryView()._createChildren(self)
@@ -2192,7 +2193,7 @@ class Item(object):
     def _unloadItem(self, reloadable):
 
         if self._status & Item.DIRTY:
-            raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.itsPath)
+            raise DirtyItemError, self
 
         if hasattr(type(self), 'onItemUnload'):
             self.onItemUnload()
@@ -2460,23 +2461,3 @@ class Children(LinkedMap):
     def _saveValues(self, version):
 
         pass
-
-
-class ItemError(ValueError):
-    "All item related exceptions go here"
-
-    def getItem(self):
-        return self.args[0]
-
-
-class StaleItemError(ItemError):
-    "Item is stale"
-
-    def __str__(self):
-        return self.getItem()._repr_()
-
-class IndirectValueError(ValueError):
-    "Indirect values on %s.%s via %s are not supported"
-
-    def __str__(self):
-        return self.__doc__ %(self.args)

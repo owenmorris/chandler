@@ -9,6 +9,7 @@ from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexes import NumericIndex, AttributeIndex, CompareIndex
+from repository.item.ItemError import *
 
 
 class RefList(LinkedMap):
@@ -171,7 +172,7 @@ class RefList(LinkedMap):
 
         if self._indexes is not None:
             if indexName in self._indexes:
-                raise IndexAlreadyExists, (self, indexName)
+                raise IndexAlreadyExists, (self._item, self._name, indexName)
         else:
             self._indexes = {}
 
@@ -205,7 +206,7 @@ class RefList(LinkedMap):
     def removeIndex(self, indexName):
 
         if self._indexes is None or indexName not in self._indexes:
-            raise NoSuchIndexError, (self, indexName)
+            raise NoSuchIndexError, (self._item, self._name, indexName)
 
         del self._indexes[indexName]
         self._setDirty(noMonitors=True)
@@ -322,7 +323,7 @@ class RefList(LinkedMap):
                     load=True, direct=True):
 
         if direct:
-            raise ValueError, '%s: direct set not supported' %(self)
+            raise AssertionError, '%s: direct set not supported' %(self)
 
         loading = self._getRepository().isLoading()
         
@@ -439,7 +440,7 @@ class RefList(LinkedMap):
     def _removeRef(self, other):
 
         if self._flags & RefList.READONLY:
-            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
+            raise ReadOnlyAttributeError, (self._item, self._name)
 
         self._setDirty()
         key = other._uuid
@@ -462,7 +463,7 @@ class RefList(LinkedMap):
             loading = repository._setLoading(True)
             other = repository.find(key)
             if other is None:
-                raise DanglingRefError, "%s: %s" %(self, key)
+                raise DanglingRefError, (self._item, self._name, key)
             
             self._setRef(other, previous=ref[0], next=ref[1], alias=ref[2],
                          load=False)
@@ -483,7 +484,7 @@ class RefList(LinkedMap):
                     del self._aliases[link._alias]
                 self._remove(key)
             else:
-                raise ValueError, '%s: unloading non-loaded ref %s' %(self, other.itsPath)
+                raise AssertionError, '%s: unloading non-loaded ref %s' %(self, other.itsPath)
 
     def _unload(self):
 
@@ -497,7 +498,7 @@ class RefList(LinkedMap):
     def linkChanged(self, link, key):
 
         if self._flags & RefList.READONLY:
-            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
+            raise ReadOnlyAttributeError, (self._item, self._name)
 
         if key is not None:
             self._setDirty(noMonitors=True)
@@ -622,7 +623,8 @@ class RefList(LinkedMap):
         """
         Return the position of an item in an index of this collection.
 
-        Raises C{NoSuchItemError} if the item is not in this collection.
+        Raises C{NoSuchItemInCollectionError} if the item is not in this
+        collection.
 
         @param indexName: the name of the index to search
         @type indexName: a string
@@ -634,7 +636,7 @@ class RefList(LinkedMap):
         if item in self:
             return self._index(indexName).getPosition(item._uuid)
         else:
-            raise NoSuchItemError, (self, item)
+            raise NoSuchItemInCollectionError, (self._item, self._name, item)
 
     def getIndexEntryValue(self, indexName, item):
         """
@@ -801,7 +803,8 @@ class RefList(LinkedMap):
             if key in self:
                 raise
             else:
-                raise ValueError, '%s not in collection %s' %(previous, self)
+                raise NoSuchItemInCollectionError, (self._item, self._name,
+                                                    previous)
 
         if nextKey is not None:
             return self[nextKey]
@@ -832,7 +835,8 @@ class RefList(LinkedMap):
             if key in self:
                 raise
             else:
-                raise ValueError, '%s not in collection %s' %(next, self)
+                raise NoSuchItemInCollectionError, (self._item, self._name,
+                                                    next)
 
         if previousKey is not None:
             return self[previousKey]
@@ -858,7 +862,6 @@ class RefList(LinkedMap):
         if indexName is None:
             for value in super(RefList, self).itervalues():
                 yield value
-
         else:
             for key in self.iterkeys(indexName):
                 yield self[key]
@@ -876,12 +879,12 @@ class RefList(LinkedMap):
     def _index(self, indexName):
 
         if self._indexes is None:
-            raise NoSuchIndexError, (self, indexName)
+            raise NoSuchIndexError, (self._item, self._name, indexName)
 
         try:
             return self._indexes[indexName]
         except KeyError:
-            raise NoSuchIndexError, (self, indexName)
+            raise NoSuchIndexError, (self._item, self._name, indexName)
 
     def check(self, logger, name, item):
         """
@@ -942,27 +945,3 @@ class TransientRefList(RefList):
 
     def _setDirty(self, noMonitors=False):
         pass
-
-
-class DanglingRefError(ValueError):
-    pass
-
-class IndexError:
-
-    def getCollection(self):
-        return self.args[0]
-
-    def getIndexName(self):
-        return self.args[1]
-
-    def __str__(self):
-        return self.__doc__ %(self.getIndexName(), self.getCollection())
-    
-class NoSuchIndexError(IndexError, KeyError):
-    "No index named '%s' on %s"
-
-class IndexAlreadyExists(IndexError, KeyError):
-    "An index named '%s' already exists on %s"
-
-class NoSuchItemError(IndexError, ValueError):
-    "No item %s in %s"

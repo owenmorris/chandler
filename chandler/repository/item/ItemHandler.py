@@ -8,6 +8,8 @@ from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.Values import Values, References, ItemValue
+from repository.persistence.RepositoryError import NoSuchItemError
+from repository.item.ItemError import *
 
 from repository.util.SingleRef import SingleRef
 from chandlerdb.util.UUID import UUID
@@ -44,7 +46,7 @@ class RefArgs(object):
         if other is None:
             other = item.find(self.ref, load=False)
             if other is None:
-                raise ValueError, 'item not found: %s' %(self.ref)
+                raise DanglingRefError, (item, self.name, self.ref)
 
         item._references._setValue(self.name, other, self.otherName,
                                    **self.kwds)

@@ -9,10 +9,10 @@ from new import classobj
 from repository.item.Item import Item
 from repository.item.Values import ItemValue
 from repository.item.PersistentCollections import PersistentCollection
+from repository.item.ItemError import NoSuchAttributeError
 from repository.util.Path import Path
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.util.SingleRef import SingleRef
-
 
 class Kind(Item):
 
@@ -142,7 +142,7 @@ class Kind(Item):
         Get an attribute definition item.
 
         The attribute is sought on the kind and on its superKinds in a left
-        to right depth-first manner. If no attribute is found
+        to right depth-first manner. If no attribute is found a subclass of
         C{AttributeError} is raised.
 
         @param name: the name of the attribute sought
@@ -167,7 +167,7 @@ class Kind(Item):
                 attribute = self._inheritAttribute(name)
 
         if attribute is None and noError is False:
-            raise AttributeError, "Kind %s has no definition for attribute '%s'" %(self.itsPath, name)
+            raise NoSuchAttributeError, (self, name)
 
         return attribute
 

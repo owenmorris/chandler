@@ -8,6 +8,7 @@ from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.RefCollections import RefList
+from repository.item.ItemError import *
 from repository.util.SingleRef import SingleRef
 
 
@@ -73,14 +74,14 @@ class Values(dict):
     def __setitem__(self, key, value):
 
         if self._getFlags(key) & Values.READONLY:
-            raise AttributeError, 'Value for %s on %s is read-only' %(key, self._item.itsPath)
+            raise ReadOnlyAttributeError, (self._item, key)
 
         return super(Values, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
         if self._getFlags(key) & Values.READONLY:
-            raise AttributeError, 'Value for %s on %s is read-only' %(key, self._item.itsPath)
+            raise ReadOnlyAttributeError, (self._item, key)
 
         return super(Values, self).__delitem__(key)
 
@@ -343,7 +344,7 @@ class References(Values):
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
             elif cardinality != 'single':
-                raise ValueError, 'bogus cardinality %s' %(cardinality)
+                raise CardinalityError, (item, name, 'list or single')
 
         if value is not None and value._isRefList():
             value._setRef(other, **kwds)
@@ -364,10 +365,10 @@ class References(Values):
             if value._isUUID():
                 other = self._item.find(value)
                 if other is None:
-                    raise ValueError, 'bad ref for %s.%s: %s' %(self._item.itsPath, name, value)
+                    raise DanglingRefError, (self._item, name, value)
                 self[name] = other
                 if self._item.itsKind is None:
-                    raise ValueError, '%s: no kind' %(self._item.itsPath)
+                    raise AssertionError, '%s: no kind' %(self._item.itsPath)
                 other._references._getRef(self._item.itsKind.getOtherName(name),
                                           self._item)
                 return other
@@ -379,12 +380,12 @@ class References(Values):
             if value._isUUID():
                 other = self._item.find(value)
                 if other is None:
-                    raise ValueError, 'bad ref for %s.%s: %s' %(self._item.itsPath, name, value)
+                    raise DanglingRefError, (self._item, name, value)
             self[name] = other
             return other
 
         if value is self or value is None:
-            raise ValueError, 'no ref for %s.%s, should be %s' %(self._item.itsPath, name, other)
+            raise BadRefError, (self._item, name, value, other)
 
         if value == other._uuid:
             self[name] = other
@@ -393,8 +394,7 @@ class References(Values):
         if value._isRefList() and other in value:
             return other
 
-        raise ValueError, 'refs mismatch for %s.%s' %(self._item.itsPath, name,
-                                                      value, other)
+        raise BadRefError, (self._item, name, value, other)
     
     def _removeValue(self, name, other, otherName):
 
@@ -406,7 +406,7 @@ class References(Values):
 
         value = self.get(name, self)
         if value is self:
-            raise ValueError, '_removeRef: no value for %s' %(name)
+            raise AssertionError, '_removeRef: no value for %s' %(name)
 
         if value is other:
             if other is not None and other._isRefList():
@@ -418,7 +418,7 @@ class References(Values):
         elif value._isRefList():
             value._removeRef(other)
         else:
-            raise ValueError, '_removeRef: %s is not %s' %(other, value)
+            raise BadRefError, (self._item, name, other, value)
         
     def _unloadValue(self, name, other, otherName):
 
@@ -434,8 +434,7 @@ class References(Values):
             elif value is other:
                 self[name] = other._uuid
             else:
-                raise ValueError, '%s.%s: _unloadRef: %s' %(self._item.itsPath,
-                                                            name, other)
+                raise BadRefError, (self._item, name, other, value)
 
     def clear(self):
 
@@ -642,7 +641,7 @@ class References(Values):
 
         if other is not None:
             if other._kind is None:
-                raise ValueError, 'no kind for %s' %(other.itsPath)
+                raise AssertionError, 'no kind for %s' %(other.itsPath)
             otherOtherName = other._kind.getOtherName(otherName, default=None)
             if otherOtherName != name:
                 logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
@@ -706,7 +705,7 @@ class ItemValue(object):
     def _setItem(self, item, attribute):
 
         if self._item is not None and self._item is not item:
-            raise ValueError, 'item attribute value %s is already owned by another item %s' %(self, self._item)
+            raise OwnedValueError, (self._item, self._attribute, self)
         
         self._item = item
         self._attribute = attribute
@@ -734,7 +733,7 @@ class ItemValue(object):
     def _setDirty(self):
 
         if self._isReadOnly():
-            raise AttributeError, 'Value for %s on %s is read-only' %(self._attribute, self._item.itsPath)
+            raise ReadOnlyAttributeError, (self._item, self._attribute)
 
         self._dirty = True
         item = self._item

@@ -7,11 +7,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.UUID import UUID
 from repository.util.SingleRef import SingleRef
+from repository.item.ItemError import *
 
-
-class ReadOnlyError(ValueError):
-    "thrown when a read-only collection is modified"
-    
 
 class PersistentCollection(object):
     """
@@ -54,7 +51,7 @@ class PersistentCollection(object):
         from repository.item.Values import ItemValue
 
         if self._item is not None and self._item is not item:
-            raise ValueError, "Collection already owned by %s" %(self._item)
+            raise OwnedValueError, (self._item, self._attribute, self)
 
         self.__setItem(item, attribute, companion)
         for value in self.itervalues():
@@ -72,7 +69,7 @@ class PersistentCollection(object):
     def _setDirty(self):
 
         if self._readOnly:
-            raise ReadOnlyError, 'collection is read-only'
+            raise ReadOnlyAttributeError, (self._item, self._attribute)
 
         item = self._item
         if item is not None:
