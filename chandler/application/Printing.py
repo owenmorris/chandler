@@ -43,8 +43,10 @@ class Printing(object):
         printer = wx.Printer(data)
         printout = CanvasPrintout(self.canvas)
         
-        if not printer.Print(self.frame, printout, True):
-            wx.MessageBox("There was a problem printing.\nPerhaps your current printer is not set correctly?", "Printing", wx.OK)
+        printSuccess = printer.Print(self.frame, printout, True)
+        if not printSuccess:
+            if printer.GetLastError() != wx.PRINTER_CANCELLED:
+                wx.MessageBox("There was a problem printing.\nPerhaps your current printer is not set correctly?", "Printing", wx.OK)
         else:
             self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
         printout.Destroy()
