@@ -26,7 +26,7 @@ def main():
         os.chdir(curDir)
 
         if not firstRound:
-            print "Sleeping 5 minutes (" + buildName + ")"
+            print "Sleeping 5 minutes"
             time.sleep(5 * 60)
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
