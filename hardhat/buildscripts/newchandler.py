@@ -82,7 +82,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         log.write("- - - - tree setup - - - - - - -\n")
         
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
+         [cvsProgram, "-q -z3", "checkout", cvsVintage, "chandler"])
         hardhatutil.dumpOutputList(outputList, log)
     
         os.chdir(chanDir)
@@ -213,7 +213,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
         # print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn", "update", "-d", cvsVintage])
+         [cvsProgram, "-qn -z3", "update", "-d", cvsVintage])
         # hardhatutil.dumpOutputList(outputList, log)
         (filenameChanged, changesAtAll) = NeedsUpdate(outputList, filename)
         if changesAtAll:
@@ -223,7 +223,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
             log.write("Getting changed sources\n")
             
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [cvsProgram, "-q", "update", "-Ad"])
+            [cvsProgram, "-q -z3", "update", "-dP", cvsVintage])
             hardhatutil.dumpOutputList(outputList, log)
         
         else:
