@@ -39,7 +39,7 @@ fromAddr = "builds@osafoundation.org"
 def main():
     global buildscriptFile
     
-    parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.1")
+    parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
       default="buildreport@osafoundation.org", help="Where to mail script reports\n"
       " [default] buildreport@osafoundation.org")
@@ -49,6 +49,9 @@ def main():
     parser.add_option("-o", "--output", action="store", type="string", dest="outputDir",
       default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
+    parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
+      default="buildman@osafoundation.org", help="E-mail to notify on build errors \n"
+      " [default] buildman@osafoundation.org")
 #     parser.add_option("-D", "--distrib", action="store_true", dest="doDistrib",
 #       default=False, help="Shall distribution archives be prepared and uploaded?\n"
 #       " [default] False")
@@ -128,12 +131,28 @@ def main():
             print "Tinderbuild:  Build failed"
             log.write("Tinderbuild:  Build failed\n")
             status = "build_failed"
+            log.close()
+    
+            log = open(logFile, "r")
+            logContents = log.read()
+            log.close()
+            SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+             treeName, logContents)
+            log = open(logFile, "w")
 
         except Exception, e:
             print e
             print "Build failed"
             log.write("Build failed\n")
             status = "build_failed"
+            log.close()
+    
+            log = open(logFile, "r")
+            logContents = log.read()
+            log.close()
+            SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+             treeName, logContents)
+            log = open(logFile, "w")
 
         else:
             if ret == "success-nochanges":
@@ -146,9 +165,9 @@ def main():
                 status = "success"
 
                 newDir = os.path.join(outputDir, buildVersion)
-                print "Renaming " + os.path.join(buildDir, "output") + " to " + newDir 
-                log.write("Renaming " + os.path.join(buildDir, "output") + " to " + newDir + "\n")
-                os.rename(os.path.join(buildDir, "output"), newDir)
+                print "Renaming " + os.path.join(buildDir, "output", buildVersion) + " to " + newDir 
+                log.write("Renaming " + os.path.join(buildDir, "output", buildVersion) + " to " + newDir + "\n")
+                os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
                 if os.path.exists(outputDir+os.sep+"time.js"):
@@ -172,11 +191,28 @@ def main():
                 print "The build failed"
                 log.write("The build failed\n")
                 status = "build_failed"
+                log.close()
+        
+                log = open(logFile, "r")
+                logContents = log.read()
+                log.close()
+                SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+                 treeName, logContents)
+                log = open(logFile, "w")
+
             
             elif ret == "test_failed":
                 print "Unit tests failed"
                 log.write("Unit tests failed\n")
                 status = "test_failed"
+                log.close()
+        
+                log = open(logFile, "r")
+                logContents = log.read()
+                log.close()
+                SendMail(fromAddr, options.alertAddr, startTime, buildName, "Unit tests failed", 
+                 treeName, logContents)
+                log = open(logFile, "w")
             
             else:
                 print "There were no changes"
