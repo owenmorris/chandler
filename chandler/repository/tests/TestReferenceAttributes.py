@@ -65,16 +65,58 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assert_(item2 in item1.items)
         self.assert_(item3 in item1.items)
 
-        # test removeAttribueValue
-        print item3.kind
-        print len(item1.items)
+        # test removeAttributeValue
         item3.removeAttributeValue('kind')
-        print item3.kind
-        print len(item1.items)
-#TODO        self.failUnlessRaises(AttributeError, lambda x: item3.kind, None)
-#        print item3.kind
+        self.failUnlessRaises(AttributeError, lambda x: item3.kind, None)
         self.assertEquals(len(item1.items),1)
         self.failIf(item3 in item1.items)
+
+    def testListReferenceAttributes(self):
+        kind = self.rep.find('//Schema/Core/Kind')
+        itemKind = self.rep.find('//Schema/Core/Item')
+        attrKind = itemKind.getAttribute('kind').kind
+
+        managerKind = kind.newItem('manager', self.rep)
+        employeesAttribute = Attribute('employees',managerKind, attrKind)
+        employeesAttribute.setAttributeValue('cardinality','list')
+        employeesAttribute.setAttributeValue('otherName', 'manager')
+        managerKind.addValue('employees', employeesAttribute,alias='employees')
+        employeeKind = kind.newItem('employee', self.rep)
+        managerAttribute = Attribute('manager',employeeKind, attrKind)
+        managerAttribute.setAttributeValue('otherName', 'employees')
+        employeeKind.addValue('manager', managerAttribute,alias='manager')
+
+        manager = managerKind.newItem('boss', self.rep)
+
+        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp4 = employeeKind.newItem('employee4', self.rep)
+
+        manager.setValue('employees', emp1)
+        print manager
+        print managerKind.getAttribute('employees')
+        print manager.getAttributeAspect('employees','cardinality')
+        print manager.employees
+        print manager.getValue('employees',0)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        manager.addValue('employees', emp2)
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        manager.addValue('employees', emp3)
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        manager.addValue('employees', emp4)
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+        print manager.employees
+        print emp1.manager
+        print emp2.manager
+        print emp3.manager
+        print emp4.manager
 
     def testSubAttributes(self):
         itemKind = self.rep.find('//Schema/Core/Item')
@@ -103,8 +145,6 @@ class ReferenceAttributesTest(unittest.TestCase):
         issuesAttr.addValue('subAttributes',subAttr)
         self.assert_(subAttr.superAttribute == issuesAttr)
         self.assert_(subAttr in issuesAttr.subAttributes)
-
-        print "getValue(): ",issuesAttr.getValue('subAttributes','minor')
 
     def tearDown(self):
         self.rep.close()
