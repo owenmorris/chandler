@@ -651,7 +651,8 @@ class wxTreeAndList:
         event.Skip()
 
     def OnExpanding(self, event):
-        self.LoadChildren(event.GetItem())
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            self.LoadChildren(event.GetItem())
 
     def LoadChildren(self, parentId):
         """
@@ -675,7 +676,7 @@ class wxTreeAndList:
                     self.SetItemText (childNodeId, value, index)
                     index += 1
                 self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
-    
+ 
             block.openedContainers [parentUUID] = True
 
     def OnCollapsing(self, event):
@@ -685,11 +686,8 @@ class wxTreeAndList:
           if the data passed in has a UUID we'll keep track of the
         state of the opened tree
         """
-        try:
-            del block.openedContainers [self.GetItemData(id).GetData()]
-        except AttributeError:
-            pass
-        self.CollapseAndReset (id)
+        del block.openedContainers [self.GetItemData(id).GetData()]
+        self.DeleteChildren (id)
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -717,16 +715,16 @@ class wxTreeAndList:
             try:
                 expand = openedContainers [self.GetItemData(id).GetData()]
             except KeyError:
-                return
-
-            self.LoadChildren(id)
-
-            if self.IsVisible(id):
+                pass
+            else:
+                self.LoadChildren(id)
+    
                 self.Expand(id)
-            child, cookie = self.GetFirstChild (id)
-            while child.IsOk():
-                ExpandContainer (self, openedContainers, child)
-                child = self.GetNextSibling (child)
+
+                child, cookie = self.GetFirstChild (id)
+                while child.IsOk():
+                    ExpandContainer (self, openedContainers, child)
+                    child = self.GetNextSibling (child)
 
         block = Globals.repository.find (self.blockUUID)
         mixinAClass (self, block.elementDelegate)
@@ -760,8 +758,8 @@ class wxTreeAndList:
             self.SetItemText (rootNodeId, value, index)
             index += 1
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
-        self.LoadChildren(rootNodeId)
-        ExpandContainer (self, block.openedContainers, self.GetRootItem ())
+        self.LoadChildren (rootNodeId)
+        ExpandContainer (self, block.openedContainers, rootNodeId)
 
         selection = block.selection
         if not selection:
