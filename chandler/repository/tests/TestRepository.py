@@ -7,13 +7,11 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, os
+import RepositoryTestCase, os, unittest
 
 from bsddb.db import DBNoSuchFileError
-from repository.persistence.XMLRepository import XMLRepository
-from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 
-class RepositoryTest(unittest.TestCase):
+class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
     """ Very basic repository tests """
 
     def _repositoryExists(self):
@@ -22,14 +20,6 @@ class RepositoryTest(unittest.TestCase):
             self.fail()
         except DBNoSuchFileError:
             self.assert_(True)
-
-    def setUp(self):
-        self.rootdir = os.environ['CHANDLERDIR']
-        self.rep = XMLRepository('RepositoryUnitTest-Repository')
-        self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'repository', 'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
-        self.loader = DomainSchemaLoader(self.rep)
 
     def testCommit(self):
         pass
@@ -79,10 +69,6 @@ class RepositoryTest(unittest.TestCase):
     def testGetUUID(self):
         #TODO -- can't rely on UUID to be the same
         self.assert_(self.rep.getUUID() is not None)
-
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,26 +7,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, os
+import RepositoryTestCase, os, unittest
 
-from bsddb.db import DBNoSuchFileError
 from repository.item.Item import Item
-from repository.item.ItemRef import RefDict
 from repository.schema.Attribute import Attribute
-from repository.schema.Kind import ItemKind
-from repository.schema.Kind import Kind
-from repository.persistence.XMLRepository import XMLRepository
-import repository.schema.Types
 
-class ReferenceAttributesTest(unittest.TestCase):
+class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
     """ Test Reference Attributes """
-
-    def setUp(self):
-        rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(rootdir, 'repository', 'packs', 'schema.pack')
-        self.rep = XMLRepository('ReferenceAttributesUnitTest-Repository')
-        self.rep.create()
-        self.rep.loadPack(schemaPack)
 
     def testReferenceAttributes(self):
         kind = self.rep.find('//Schema/Core/Kind')
@@ -65,8 +52,39 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assert_(item2 in item1.items)
         self.assert_(item3 in item1.items)
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        kind = self.rep.find('//Schema/Core/Kind')
+        itemKind = self.rep.find('//Schema/Core/Item')
+        item1 = self.rep.find('//item1')
+        item2 = self.rep.find('//item2')
+        item3 = self.rep.find('//item3')
+        # check kind
+        self.assertEquals(item1.kind, kind)
+        self.assert_(item1 in kind.items)
+        # set kind Attribute (update bidirectional ref)
+        self.assertEquals(item2.kind, item1)
+        # now test that  otherName side of kind now = items of item1
+        self.assert_(item2 in item1.items)
+        # and verify item2 no longer in kind.items (old otherName)
+        self.assert_(item2 not in kind.items)
+        # again, verify kind
+        self.assertEquals(item3.kind, item1)
+        # now verify that otherName side of kind is list cardinality
+        self.assertEquals(len(item1.items), 2)
+        self.assert_(item2 in item1.items)
+        self.assert_(item3 in item1.items)
+
         # test removeAttributeValue
         item3.removeAttributeValue('kind')
+        self.failUnlessRaises(AttributeError, lambda x: item3.kind, None)
+        self.assertEquals(len(item1.items),1)
+        self.failIf(item3 in item1.items)
+
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item1 = self.rep.find('//item1')
+        item3 = self.rep.find('//item3')
         self.failUnlessRaises(AttributeError, lambda x: item3.kind, None)
         self.assertEquals(len(item1.items),1)
         self.failIf(item3 in item1.items)
@@ -87,6 +105,18 @@ class ReferenceAttributesTest(unittest.TestCase):
         managerAttribute.setAttributeValue('otherName', 'employees')
         employeeKind.addValue('attributes',
                               managerAttribute,alias='manager')
+
+        # now write what we've done and read it back
+        self._reopenRepository()
+        managerKind = self.rep.find('//manager')
+        employeesAttribute = managerKind.getAttribute('employees')
+        self.assert_(employeesAttribute is not None)
+        self.assertEquals(employeesAttribute.cardinality,'list')
+        self.assertEquals(employeesAttribute.getAttributeValue('otherName'),'manager')        
+        employeeKind = self.rep.find('//employee')
+        managerAttribute = employeeKind.getAttribute('manager')
+        self.assert_(managerAttribute is not None)
+        self.assertEquals(managerAttribute.otherName,'employees')
 
         # add employees to manager
         manager = managerKind.newItem('boss', self.rep)
@@ -109,6 +139,23 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assertEquals(emp4.manager, manager)
         self.assert_(manager.hasValue('employees',emp4))
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        manager = self.rep.find('//boss')
+        emp1 = self.rep.find('//employee1')
+        emp2 = self.rep.find('//employee2')
+        emp3 = self.rep.find('//employee3')
+        emp4 = self.rep.find('//employee4')
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+        
+
         # now do it from the other end add manager to employees
         manager = managerKind.newItem('boss', self.rep)
 
@@ -121,6 +168,22 @@ class ReferenceAttributesTest(unittest.TestCase):
         emp4 = employeeKind.newItem('employee4', self.rep)
         emp4.manager = manager
 
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+        # now write what we've done and read it back
+        self._reopenRepository()
+        manager = self.rep.find('//boss')
+        emp1 = self.rep.find('//employee1')
+        emp2 = self.rep.find('//employee2')
+        emp3 = self.rep.find('//employee3')
+        emp4 = self.rep.find('//employee4')
         self.assertEquals(emp1.manager, manager)
         self.assert_(manager.hasValue('employees',emp1))
         self.assertEquals(emp2.manager, manager)
@@ -147,6 +210,18 @@ class ReferenceAttributesTest(unittest.TestCase):
         employeeKind.addValue('attributes',
                               managerAttribute,alias='manager')
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        managerKind = self.rep.find('//manager')
+        employeesAttribute = managerKind.getAttribute('employees')
+        self.assert_(employeesAttribute is not None)
+        self.assertEquals(employeesAttribute.cardinality,'dict')
+        self.assertEquals(employeesAttribute.getAttributeValue('otherName'),'manager')        
+        employeeKind = self.rep.find('//employee')
+        managerAttribute = employeeKind.getAttribute('manager')
+        self.assert_(managerAttribute is not None)
+        self.assertEquals(managerAttribute.otherName,'employees')
+
         # add employees to manager
         manager = managerKind.newItem('boss', self.rep)
 
@@ -165,6 +240,22 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assertEquals(emp3.manager, manager)
         self.assert_(manager.hasValue('employees',emp3))
         manager.addValue('employees', emp4)
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+        # now write what we've done and read it back
+        self._reopenRepository()
+        manager = self.rep.find('//boss')
+        emp1 = self.rep.find('//employee1')
+        emp2 = self.rep.find('//employee2')
+        emp3 = self.rep.find('//employee3')
+        emp4 = self.rep.find('//employee4')
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
         self.assertEquals(emp4.manager, manager)
         self.assert_(manager.hasValue('employees',emp4))
 
@@ -189,6 +280,23 @@ class ReferenceAttributesTest(unittest.TestCase):
         self.assertEquals(emp4.manager, manager)
         self.assert_(manager.hasValue('employees',emp4))
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        manager = self.rep.find('//boss')
+        emp1 = self.rep.find('//employee1')
+        emp2 = self.rep.find('//employee2')
+        emp3 = self.rep.find('//employee3')
+        emp4 = self.rep.find('//employee4')
+        self.assertEquals(emp1.manager, manager)
+        self.assert_(manager.hasValue('employees',emp1))
+        self.assertEquals(emp2.manager, manager)
+        self.assert_(manager.hasValue('employees',emp2))
+        self.assertEquals(emp3.manager, manager)
+        self.assert_(manager.hasValue('employees',emp3))
+        self.assertEquals(emp4.manager, manager)
+        self.assert_(manager.hasValue('employees',emp4))
+
+
     def testSubAttributes(self):
         itemKind = self.rep.find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
@@ -199,29 +307,44 @@ class ReferenceAttributesTest(unittest.TestCase):
         # subattributes are created by assigning the "parent" attribute
         # to the superAttribute attribute of the "child" attribute
         issuesAttr = itemKind.getAttribute('issues')
-        subAttr = Attribute('critical', issuesAttr, attrKind)
-        subAttr.superAttribute = issuesAttr
-        self.assert_(subAttr.superAttribute == issuesAttr)
-        self.assert_(subAttr in issuesAttr.subAttributes)
+        criticalSubAttr = Attribute('critical', issuesAttr, attrKind)
+        criticalSubAttr.superAttribute = issuesAttr
+        self.assert_(criticalSubAttr.superAttribute == issuesAttr)
+        self.assert_(criticalSubAttr in issuesAttr.subAttributes)
 
         # now do it by assigning to the subAttributes list to ensure that
         # the bidirectional ref is getting updated.
-        subAttr = Attribute('normal', issuesAttr, attrKind)
-        issuesAttr.subAttributes.append(subAttr)
-        self.assert_(subAttr.superAttribute == issuesAttr)
-        self.assert_(subAttr in issuesAttr.subAttributes)
+        normalSubAttr = Attribute('normal', issuesAttr, attrKind)
+        issuesAttr.subAttributes.append(normalSubAttr)
+        self.assert_(normalSubAttr.superAttribute == issuesAttr)
+        self.assert_(normalSubAttr in issuesAttr.subAttributes)
         
         # now do it by callin addValue on the Attribute item
-        subAttr = Attribute('minor', issuesAttr, attrKind)
-        issuesAttr.addValue('subAttributes',subAttr)
-        self.assert_(subAttr.superAttribute == issuesAttr)
-        self.assert_(subAttr in issuesAttr.subAttributes)
+        minorSubAttr = Attribute('minor', issuesAttr, attrKind)
+        issuesAttr.addValue('subAttributes',minorSubAttr)
+        self.assert_(minorSubAttr.superAttribute == issuesAttr)
+        self.assert_(minorSubAttr in issuesAttr.subAttributes)
 
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-        pass
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item = self.rep.find('//item1')
+        itemKind = item.kind
+        issuesAttr = itemKind.getAttribute('issues')
 
+        attMap = {}
+        for i in issuesAttr.subAttributes:
+            attMap[i.getItemName()] = i 
+            
+        criticalSubAttr = attMap['critical']
+        normalSubAttr = attMap['normal']
+        minorSubAttr = attMap['minor']
+        self.assert_(criticalSubAttr.superAttribute == issuesAttr)
+        self.assert_(criticalSubAttr in issuesAttr.subAttributes)
+        self.assert_(normalSubAttr.superAttribute == issuesAttr)
+        self.assert_(normalSubAttr in issuesAttr.subAttributes)
+        self.assert_(minorSubAttr.superAttribute == issuesAttr)
+        self.assert_(minorSubAttr in issuesAttr.subAttributes)
+        
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')

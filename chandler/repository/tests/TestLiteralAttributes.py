@@ -7,26 +7,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, os
+import RepositoryTestCase, os, unittest
 
-from bsddb.db import DBNoSuchFileError
+
 from repository.item.Item import Item
-from repository.item.ItemRef import RefDict
 from repository.schema.Attribute import Attribute
-from repository.schema.Kind import ItemKind
-from repository.schema.Kind import Kind
-from repository.persistence.XMLRepository import XMLRepository
-import repository.schema.Types
 
-class LiteralAttributesTest(unittest.TestCase):
+class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
-
-    def setUp(self):
-        rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(rootdir, 'repository', 'packs', 'schema.pack')
-        self.rep = XMLRepository('LiteralAttributesUnitTest-Repository')
-        self.rep.create()
-        self.rep.loadPack(schemaPack)
 
     def testLiteralAttributes(self):
         kind = self.rep.find('//Schema/Core/Kind')
@@ -113,6 +101,37 @@ class LiteralAttributesTest(unittest.TestCase):
         self.assertEquals(item.strings[2],'Donald')
         self.assertEquals(item.strings[3],'Goofy')
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item = self.rep.find('//item')
+        # verify list length
+        self.assertEquals(len(item.strings),4)
+
+        # test to see that there is a key at every position
+        self.assert_(item.hasKey('strings',0))
+        self.assert_(item.hasKey('strings',1))
+        self.assert_(item.hasKey('strings',2))
+        self.assert_(item.hasKey('strings',3))
+                                     
+        # test to see that every value is in the attribute
+        self.assert_(item.hasValue('strings','Goofy'))
+        self.assert_(item.hasValue('strings','Donald'))
+        self.assert_(item.hasValue('strings','Minnie'))
+        self.assert_(item.hasValue('strings','Mickey'))
+
+        # verify list contents using getValue() method
+        self.assertEquals(item.getValue('strings',0),'Mickey')
+        self.assertEquals(item.getValue('strings',1),'Minnie')
+        self.assertEquals(item.getValue('strings',2),'Donald')
+        self.assertEquals(item.getValue('strings',3),'Goofy')
+
+        # verify list contents using python list notation
+        self.assertEquals(item.strings[0],'Mickey')
+        self.assertEquals(item.strings[1],'Minnie')
+        self.assertEquals(item.strings[2],'Donald')
+        self.assertEquals(item.strings[3],'Goofy')
+
+
         #test removeValue by removing values and checking
         #that value is removed and length has decreased
         item.removeValue('strings',0)
@@ -125,6 +144,15 @@ class LiteralAttributesTest(unittest.TestCase):
         self.failIf(item.hasValue('strings','Donald'))
         self.assertEquals(len(item.strings),1)
         item.removeValue('strings',0)
+        self.failIf(item.hasValue('strings','Minnie'))
+        self.assertEquals(len(item.strings),0)
+
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item = self.rep.find('//item')
+        self.failIf(item.hasValue('strings','Mickey'))
+        self.failIf(item.hasValue('strings','Goofy'))
+        self.failIf(item.hasValue('strings','Donald'))
         self.failIf(item.hasValue('strings','Minnie'))
         self.assertEquals(len(item.strings),0)
 
@@ -171,6 +199,37 @@ class LiteralAttributesTest(unittest.TestCase):
         self.assertEquals(item.strings['Donald'],'Duck')
         self.assertEquals(item.strings['Goofy'], 'Dog')
 
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item = self.rep.find('//item')
+
+        self.assertEquals(len(item.strings),4)
+
+        # test to see that all keys were inserted
+        self.assert_(item.hasKey('strings','Mickey'))
+        self.assert_(item.hasKey('strings','Minnie'))
+        self.assert_(item.hasKey('strings','Donald'))
+        self.assert_(item.hasKey('strings','Goofy'))
+                                     
+        # test to see that every value is in the attribute
+        self.assert_(item.hasValue('strings','Mouse'))
+        self.assert_(item.hasValue('strings','Mouse'))
+        self.assert_(item.hasValue('strings','Duck'))
+        self.assert_(item.hasValue('strings','Dog'))
+
+        # verify dict contents using getValue() method
+        self.assertEquals(item.getValue('strings','Mickey'),'Mouse')
+        self.assertEquals(item.getValue('strings','Minnie'),'Mouse')
+        self.assertEquals(item.getValue('strings','Donald'),'Duck')
+        self.assertEquals(item.getValue('strings','Goofy'), 'Dog')
+
+        # verify dict contents using python dict notation
+        self.assertEquals(item.strings['Mickey'],'Mouse')
+        self.assertEquals(item.strings['Minnie'],'Mouse')
+        self.assertEquals(item.strings['Donald'],'Duck')
+        self.assertEquals(item.strings['Goofy'], 'Dog')
+
+
         #test removeValue by removing values and checking
         #that value is removed and length has decrease
         item.removeValue('strings','Mickey')
@@ -186,10 +245,13 @@ class LiteralAttributesTest(unittest.TestCase):
         self.failIf(item.hasValue('strings','Mouse'))
         self.assertEquals(len(item.strings),0)
 
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-        pass
+        # now write what we've done and read it back
+        self._reopenRepository()
+        item = self.rep.find('//item')
+        self.failIf(item.hasValue('strings','Dog'))
+        self.failIf(item.hasValue('strings','Duck'))
+        self.failIf(item.hasValue('strings','Mouse'))
+        self.assertEquals(len(item.strings),0)
 
 if __name__ == "__main__":
 #    import hotshot
