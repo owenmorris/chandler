@@ -93,13 +93,18 @@ int SetLibraryPath(char *dir){
      * variable.
      */
 
+    char *newLibraryPath;
     char *curLibraryPath = getenv("LD_LIBRARY_PATH");
-    char *newLibraryPath = malloc((strlen(dir) + strlen(curLibraryPath) + 2) *
-     sizeof(char));
-    strcpy(newLibraryPath, dir);
-    strcat(newLibraryPath, ":");
-    strcat(newLibraryPath, curLibraryPath);
-    return setenv("LD_LIBRARY_PATH", newLibraryPath, 1);
+    if(curLibraryPath) {
+        newLibraryPath = malloc((strlen(dir) + strlen(curLibraryPath) + 2) *
+         sizeof(char));
+        strcpy(newLibraryPath, dir);
+        strcat(newLibraryPath, ":");
+        strcat(newLibraryPath, curLibraryPath);
+        return setenv("LD_LIBRARY_PATH", newLibraryPath, 1);
+    } else{
+        return setenv("LD_LIBRARY_PATH", dir, 1);
+    }
 }
 
 
