@@ -36,4 +36,4 @@ class AttrDef(Item):
 
         for attr in self._references.items():
             if self.getAttrAspect(attr[0], 'Persist', True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema)
+                attr[1]._saveValue(attr[0], self, generator, withSchema)

@@ -123,7 +123,7 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema=False):
+    def _saveValue(self, name, item, generator, withSchema=False):
 
         def typeName(value):
             
@@ -204,7 +204,7 @@ class References(Attributes):
 
     def _detach(self, itemRef, item, name, other, otherName):
         pass
-        
+
 
 class RefDict(References):
 
@@ -372,7 +372,7 @@ class RefDict(References):
         else:
             return 'list'
 
-    def _xmlValue(self, name, item, generator, withSchema=False):
+    def _saveValue(self, name, item, generator, withSchema=False):
 
         if len(self) > 0:
 
@@ -390,12 +390,12 @@ class RefDict(References):
                 attrs['otherCard'] = otherCard
 
             generator.startElement('ref', attrs)
-            self._xmlValues(generator)
+            self._saveValues(generator)
             generator.endElement('ref')
 
-    def _xmlValues(self, generator):
+    def _saveValues(self, generator):
 
-        raise NotImplementedError, 'RefDict._xmlValues'
+        raise NotImplementedError, 'RefDict._saveValues'
 
     def values(self):
 

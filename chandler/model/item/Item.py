@@ -113,7 +113,6 @@ class Item(object):
                 otherName = name + '__for'
             print 'Warning: Undefined endpoint for %s.%s' %(self.getPath(),
                                                             name)
-            raise ValueError, "__for"
 
         return otherName
 
@@ -455,8 +454,10 @@ class Item(object):
         items. It is an error to access deleted item reference."""
 
         if (not (self._status & Item.DELETED) and
-            not hasattr(self, '_deleting')):
-            self._deleting = True
+            not (self._status & Item.DELETING)):
+
+            self.setDirty()
+            self._status |= Item.DELETING
             others = []
             
             if self.__dict__.has_key('_children'):
@@ -481,7 +482,7 @@ class Item(object):
             self._setRoot(None)
 
             self._status |= Item.DELETED
-            del self._deleting
+            self._status &= ~Item.DELETING
 
             for other in others:
                 if other.refCount() == 0:
@@ -549,8 +550,11 @@ class Item(object):
 
         if oldRepository is not newRepository:
 
-            if oldRepository is not None:
+            if oldRepository is not None and newRepository is not None:
                 raise NotImplementedError, 'changing repositories'
+
+            if oldRepository is not None:
+                oldRepository._unregisterItem(self)
 
             if newRepository is not None:
                 newRepository._registerItem(self)
@@ -686,8 +690,7 @@ class Item(object):
 
         return None
 
-    def toXML(self, generator, withSchema=False):
-        'Generate the XML representation for this item.'
+    def _saveItem(self, generator, withSchema=False):
 
         kind = self._kind
         generator.startElement('item', { 'uuid': self._uuid.str64() })
@@ -724,7 +727,7 @@ class Item(object):
 
         for attr in self._references.iteritems():
             if self.getAttrAspect(attr[0], 'Persist', True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema)
+                attr[1]._saveValue(attr[0], self, generator, withSchema)
 
     def _xmlTag(self, tag, attrs, value, generator):
 
@@ -799,8 +802,10 @@ class Item(object):
             raise ImportError, "Module %s has no class %s" %(module, name)
 
     loadClass = classmethod(loadClass)
-    DELETED = 0x1
-    DIRTY   = 0x2
+    
+    DELETED  = 0x1
+    DIRTY    = 0x2
+    DELETING = 0x4
     
 
 class ItemHandler(xml.sax.ContentHandler):

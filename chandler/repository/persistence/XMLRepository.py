@@ -100,7 +100,7 @@ class XMLRepository(Repository):
     def purge(self):
         pass
 
-    def save(self, purge=False, verbose=False):
+    def commit(self, purge=False, verbose=False):
 
         if not self.isOpen():
             raise DBError, "Repository is not open"
@@ -129,24 +129,40 @@ class XMLRepository(Repository):
 
     def saveItem(self, item, **args):
 
-        if args.get('verbose'):
-            print item.getPath()
-            
         container = args['container']
         for oldDoc in container.find(item.getUUID()):
             container.deleteDocument(oldDoc)
 
-        out = cStringIO.StringIO()
-        generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
-        generator.startDocument()
-        item.toXML(generator, args.get('withSchema', False))
-        generator.endDocument()
+        if item.isDeleted():
+            if args.get('verbose'):
+                print 'Removing', item.getPath()
 
-        doc = XmlDocument()
-        doc.setContent(out.getvalue())
-        out.close()
+            self._refs.deleteItem(item)
 
-        container.putDocument(doc)
+        else:
+            if args.get('verbose'):
+                print 'Saving', item.getPath()
+            
+            out = cStringIO.StringIO()
+            generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
+            generator.startDocument()
+            item._saveItem(generator, args.get('withSchema', False))
+            generator.endDocument()
+
+            doc = XmlDocument()
+            doc.setContent(out.getvalue())
+            out.close()
+
+            container.putDocument(doc)
+
+    def removeItem(self, item, **args):
+
+        if args.get('verbose'):
+            print 'Removing', item.getPath()
+            
+        container = args['container']
+        for oldDoc in container.find(item.getUUID()):
+            container.deleteDocument(oldDoc)
 
     def createRefDict(self, item, name, otherName, ordered=False):
 
@@ -246,6 +262,19 @@ class XMLRepository(Repository):
 
             return self._db.cursor()
 
+        def deleteItem(self, item):
+
+            cursor = self._db.cursor()
+            key = item.getUUID()._uuid
+            
+            val = cursor.set_range(key)
+            while val is not None and val[0].startswith(key):
+                print 'deleting', key
+                cursor.delete()
+                val = cursor.next()
+
+            cursor.close()
+
 
 class XMLRefDict(RefDict):
 
@@ -254,7 +283,6 @@ class XMLRefDict(RefDict):
         self._log = []
         self._item = None
         self._uuid = UUID()
-        self._buffer = cStringIO.StringIO()
         self._repository = repository
 
         super(XMLRefDict, self).__init__(item, name, otherName, ordered)
@@ -329,11 +357,11 @@ class XMLRefDict(RefDict):
 
         self._uuid = uuid
 
-        self._buffer.reset()
+        self._buffer = cStringIO.StringIO()
         self._buffer.write(uItem._uuid)
         self._buffer.write(uuid._uuid)
             
-    def _xmlValues(self, generator):
+    def _saveValues(self, generator):
 
         for entry in self._log:
             if entry[0] == 0:

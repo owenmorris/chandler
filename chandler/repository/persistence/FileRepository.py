@@ -86,7 +86,7 @@ class FileRepository(Repository):
                             os.remove(os.path.join(path, item))
             os.path.walk(self._dir, purge, None)
 
-    def save(self, purge=False, verbose=False):
+    def commit(self, purge=False, verbose=False):
         '''Save all items into the directory this repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
@@ -119,11 +119,11 @@ class FileRepository(Repository):
 
     def _saveRoot(self, root, withSchema=False, verbose=False):
 
-        def save(item, repository, **args):
+        def commit(item, repository, **args):
 
             repository.saveItem(item, **args)
             for child in item:
-                save(child, repository, **args)
+                commit(child, repository, **args)
 
         name = root.getName()
         dir = os.path.join(self._dir, name)
@@ -134,8 +134,8 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        save(root, self, contents = rootContents, withSchema = withSchema,
-             verbose = verbose)
+        commit(root, self, contents = rootContents, withSchema = withSchema,
+               verbose = verbose)
         rootContents.close()
 
     def saveItem(self, item, **args):
@@ -150,7 +150,7 @@ class FileRepository(Repository):
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
 
         generator.startDocument()
-        item.toXML(generator, args.get('withSchema', False))
+        item._saveItem(generator, args.get('withSchema', False))
         generator.endDocument()
 
         args['contents'].write(uuid)
@@ -169,7 +169,7 @@ class FileRepository(Repository):
 
 class FileRefDict(RefDict):
 
-    def _xmlValues(self, generator):
+    def _saveValues(self, generator):
 
         for ref in self._iteritems():
-            ref[1]._xmlValue(ref[0], self._item, generator)
+            ref[1]._saveValue(ref[0], self._item, generator)

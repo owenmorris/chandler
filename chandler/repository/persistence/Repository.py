@@ -42,8 +42,8 @@ class Repository(object):
     def isOpen(self):
         raise NotImplementedError, "Repository.isOpen"
 
-    def save(self, purge=False, verbose=False):
-        raise NotImplementedError, "Repository.save"
+    def commit(self, purge=False, verbose=False):
+        raise NotImplementedError, "Repository.commit"
     
     def createRefDict(self, item, name, otherName, ordered=False):
         raise NotImplementedError, "Repository.createRefDict"
@@ -97,6 +97,11 @@ class Repository(object):
         'Return the root as named or None if not found.'
         
         return self._roots.get(name)
+
+    def getRoots(self, name):
+        'Return a list of the roots in the repository.'
+
+        return self._roots.values()
 
     def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.

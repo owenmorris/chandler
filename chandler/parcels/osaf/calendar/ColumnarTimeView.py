@@ -137,7 +137,7 @@ class wxColumnarTimeView(wxColumnarSubView):
             self.DeleteItem(objectToRemove)
             del objectToRemove
         
-            # @@@commit when the api supports it, we'll want to commit here
+            app.repository.commit()
             
             self.editor.ClearItem()
             self.Refresh()
@@ -283,8 +283,8 @@ class wxColumnarTimeView(wxColumnarSubView):
         newItemObject = ColumnarItem(self, item)
         newItemObject.PlaceItemOnCalendar()
 
-        # @@@commit when the api supports it, we'll want to commit here
-
+        app.repository.commit()
+        
         return newItemObject
     
     def CreateNewDrawableObject(self, dragRect, startDrag, endDrag):
@@ -306,6 +306,6 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.editor.ClearItem()
         
         # add object to the local repository (addObject commits the object)
-        # @@@commit when the api supports it, we want to commit here
+        app.repository.commit()
         
         return newEventObject
