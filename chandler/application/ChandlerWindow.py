@@ -224,7 +224,7 @@ class wxChandlerWindow(wxFrame):
         """
           Closing the last window causes the application to quit.
         """
-        application.Application.app.repository.close(purge=True)
+        application.Application.app.repository.close()
         del application.Application.app.association[id(self.model)]
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         del application.Application.app.applicationResources
