@@ -41,6 +41,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     for releaseMode in ('debug', 'release'):
         releaseModeDir = os.path.join(workingDir, releaseMode)
         os.chdir(releaseModeDir)
+        if releaseMode == "debug":
+            dbgStr = "DEBUG=1"
+            relStr = "debug"
+        else:
+            dbgStr = ""
+            relStr = "release"
+        
         # Find out if the initialization was ever done
 
         extModuleDir = os.path.join(releaseModeDir, "external")
@@ -59,28 +66,26 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             hardhatutil.dumpOutputList(outputList, log)
 
             # Now need to do the setup for external - "expand" and "make"
-            os.chdir("external")
+            os.chdir(extModuleDir)
             os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
-            print "Building debug"
+            print "Building " + relStr
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Building debug..." + "\n")
+            log.write("Expanding external sources")
             outputList = hardhatutil.executeCommandReturnOutput(
-             ['make', "expand" ],
-             "Expanding external sources")
+             ['make', "expand" ])
             outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], "DEBUG=1" ],
-             "Making external (debug) programs")
+             [buildenv['make'], dbgStr ])
+            log.write("Making external (debug) binaries")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], "DEBUG=1", "binaries" ],
-             "Making external (debug) binaries")
+             [buildenv['make'], dbgStr, "binaries" ])
 
-            os.chdir("../internal")
+            os.chdir(intModuleDir)
+            log.write("Making internal (debug) programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], "DEBUG=1" ],
-             "Making internal (debug) programs")
+             [buildenv['make'], dbgStr ])
+            log.write("Making internal (debug) binaries")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], "DEBUG=1", "binaries" ],
-             "Making internal (debug) binaries")
+             [buildenv['make'], dbgStr, "binaries" ])
 
     # do debug
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
@@ -138,6 +143,13 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         if sys.platform == 'cygwin':
             osName = 'win'
 
+    if mode == "debug":
+        dbgStr = "DEBUG=1"
+        relStr = "debug"
+    else:
+        dbgStr = ""
+        relStr = "release"
+    
     if clobber:
         if os.path.exists(modeDir):
             hardhatutil.rmdirRecursive(modeDir)
@@ -211,19 +223,19 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Scrubbing all modules" + "\n")
         try:
-            if mode == "debug":
-                os.chdir(extModuleDir)
-                log.write("Cleaning external")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], "DEBUG=1", "clean" ])
-                os.chdir(intModuleDir)
-                log.write("Cleaning internal")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], "DEBUG=1", "clean" ])
-                os.chdir(mainModuleDir)
-                log.write("Cleaning chandler")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [hardhatScript, "-ns"])
+            os.chdir(extModuleDir)
+            log.write("Cleaning external")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], dbgStr, "clean" ])
+            os.chdir(intModuleDir)
+            log.write("Cleaning internal")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], dbgStr, "clean" ])
+            os.chdir(mainModuleDir)
+            log.write("Cleaning chandler")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-ns"])
+
         except Exception, e:
             log.write("***Error during scrub***" + "\n")
             CopyLog(os.path.join(modeDir, logPath), log)
@@ -251,13 +263,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     
 
     try: # build
-        if mode == "debug":
-            dbgStr = "DEBUG=1"
-            relStr = "debug"
-        else:
-            dbgStr = ""
-            relStr = "release"
-        
         if needToScrubAll or newModules:
             print "Building all in " + relStr
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
