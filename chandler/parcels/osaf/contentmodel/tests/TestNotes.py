@@ -22,58 +22,35 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("OSAF/contentmodel/notes")
 
-        def _verifyKinds(note, bookmark, document):
+        def _verifyNote(note):
             self.assertEqual(note.title, "sample note")
             self.assertEqual(note.body, "more elaborate sample note body")
-
-            self.assertEqual(bookmark.name, "sample bookmark")
-            self.assertEqual(bookmark.url, "http://www.osafoundation.org/")
-
-            self.assertEqual(document.name, "sample document")
-            self.assertEqual(document.filePath,
-                             "c:/somedirectory/somefile.txt")
 
         # Test the globals
         notesPath = '//parcels/OSAF/contentmodel/notes/%s'
 
         self.assertEqual(Notes.NoteKind,
                          self.rep.find(notesPath % 'Note'))
-        self.assertEqual(Notes.BookmarkKind,
-                         self.rep.find(notesPath % 'Bookmark'))
-        self.assertEqual(Notes.DocumentKind,
-                         self.rep.find(notesPath % 'Document'))
 
         # Construct sample items
         noteItem = Notes.Note("noteItem")
-        bookmarkItem = Notes.Bookmark("bookmarkItem")
-        documentItem = Notes.Document("documentItem")
 
         # Double check kinds
         self.assertEqual(noteItem.kind, Notes.NoteKind)
-        self.assertEqual(bookmarkItem.kind, Notes.BookmarkKind)
-        self.assertEqual(documentItem.kind, Notes.DocumentKind)
 
         # Literal properties
         noteItem.title = "sample note"
         noteItem.body = "more elaborate sample note body"
 
-        bookmarkItem.name = "sample bookmark"
-        bookmarkItem.url = "http://www.osafoundation.org/"
-        
-        documentItem.name = "sample document"
-        documentItem.filePath = "c:/somedirectory/somefile.txt"
-
-        _verifyKinds(noteItem, bookmarkItem, documentItem)
+        _verifyNote(noteItem)
 
         self._reopenRepository()
 
         contentItemParent = self.rep.find("//userdata/contentitems")
         
         noteItem = contentItemParent.find("noteItem")
-        bookmarkItem = contentItemParent.find("bookmarkItem")
-        documentItem = contentItemParent.find("documentItem")
         
-        _verifyKinds(noteItem, bookmarkItem, documentItem)
+        _verifyNote(noteItem)
         
 
 if __name__ == "__main__":

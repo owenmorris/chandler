@@ -12,8 +12,6 @@ import OSAF.contentmodel.ContentModel as ContentModel
 
 # Module globals for Kinds
 # NoteKind ==> //parcels/OSAF/contentmodel/notes/Note
-# BookmarkKind ==> //parcels/OSAF/contentmodel/notes/Bookmark
-# DocumentKind ==> //parcels/OSAF/contentmodel/notes/Document
 
 class NotesParcel(Parcel.Parcel):
     def __init__(self, name, parent, kind):
@@ -26,31 +24,12 @@ class NotesParcel(Parcel.Parcel):
         NoteKind = self.find('Note')
         assert NoteKind
 
-        global BookmarkKind
-        BookmarkKind = self.find('Bookmark')
-        assert BookmarkKind
-
-        global DocumentKind
-        DocumentKind = self.find('Document')
-        assert DocumentKind
-
 class Note(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = NoteKind
         ContentModel.ContentItem.__init__(self, name, parent, kind)
 
-class Bookmark(ContentModel.ContentItem):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = BookmarkKind
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
-
-class Document(ContentModel.ContentItem):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = DocumentKind
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
 
 
 
