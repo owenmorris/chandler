@@ -4,6 +4,7 @@
    * Added participant to calendar model
    * Changed table view to use wxListCtrl instead of wxGrid
    * Added Generate Events feature (menu item, unit test)
+   * Added displayAttribute to calendar kinds
 
 2003-08-11 Katie Capps Parlante <capps@osafoundation.org>
    * Added Location to calendar model

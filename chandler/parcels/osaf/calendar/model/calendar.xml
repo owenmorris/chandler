@@ -76,6 +76,7 @@
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:endTime"/>
     <attributes itemref="cal:location"/>
+    <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.calendar.model.CalendarEvent.CalendarEvent</classes>
   </Kind>
 
@@ -84,12 +85,14 @@
     <displayName>Location</displayName>
     <attributes itemref="cal:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
+    <displayAttribute itemref="cal:name"/>
     <classes key="python">OSAF.calendar.model.Location.Location</classes>
   </Kind>
 
   <Kind itemName="cal:Calendar">
     <displayName>Calendar</displayName>
     <attributes itemref="cal:name"/>
+    <displayAttribute itemref="cal:name"/>
     <classes key="python">OSAF.calendar.model.Calendar.Calendar</classes>
   </Kind>
 
