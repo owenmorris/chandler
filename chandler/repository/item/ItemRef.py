@@ -448,7 +448,16 @@ class RefArgs(object):
 
 
 class RefDict(LinkedMap):
-
+    """
+    This class implements a collection of bi-directional item references, a
+    ref collection. A ref collection is a double-linked list mapping UUIDs
+    to item references with predictable order. In addition to the UUID-based
+    keys used by the implementation, an optional second set of keys, called
+    aliases, can be used to name and access the references contained by a
+    ref collection. A ref collection can be iterated over its referenced
+    items.
+    """
+    
     class link(LinkedMap.link):
 
         def __init__(self, value):
@@ -457,7 +466,12 @@ class RefDict(LinkedMap):
             self._alias = None
 
     def __init__(self, item, name, otherName, readOnly=False):
-
+        """
+        The constructor for this class. A RefDict should not be instantiated
+        directly but created through the item and attribute it is going to
+        be used with instead, as for example with: C{item.name = []}.
+        """
+        
         self._name = name
         self._otherName = otherName
         self._setItem(item)
@@ -527,6 +541,12 @@ class RefDict(LinkedMap):
                                   self._name, self._otherName)
 
     def __contains__(self, obj):
+        """
+        The C{in} operator works both with C{Item} values or C{UUID} keys.
+
+        To verify if there is a value for an alias, use the
+        L{resolveAlias} method instead.
+        """
 
         if isinstance(obj, ItemPackage.Item.Item):
             return self.has_key(obj._refName(self._name))
@@ -534,25 +554,56 @@ class RefDict(LinkedMap):
         return self.has_key(obj)
 
     def extend(self, valueList):
-
+        """
+        As with regular python lists, this method appends all items in the
+        list to this ref collection.
+        """
+        
         for value in valueList:
             self.append(value)
 
-    def update(self, dictionary):
+    def update(self, dictionary, setAliases=False):
+        """
+        As with regular python dictionary, this method appends all items in
+        the dictionary to this ref collection.
 
-        for value in dictionary.itervalues():
-            self.append(value)
+        @param setAliases: if C{True}, the keys in the dictionary are used
+        as aliases for the references added to this ref collection. The keys
+        should be strings.
+        @type setAliases: boolean
+        """
+
+        if setAliases:
+            for alias, value in dictionary.iteritems():
+                self.append(value, alias)
+        else:
+            for value in dictionary.itervalues():
+                self.append(value)
 
     def append(self, item, alias=None):
+        """
+        Append an item to this ref collection.
+
+        @param alias: if this optional argument is specified it becomes an
+        alias with which the item can be looked up using the L{getByAlias}
+        or L{resolveAlias} methods.
+        @type alias: a string
+        """
 
         self.__setitem__(item._refName(self._name), item, alias=alias)
 
     def clear(self):
-
+        """
+        Remove all references from this ref collection.
+        """
+        
         for key in self.keys():
             del self[key]
 
     def dir(self):
+        """
+        Debugging: print all items referenced in this ref collection.
+        """
 
         for item in self:
             print item
@@ -615,7 +666,13 @@ class RefDict(LinkedMap):
         Place an item in this collection after another one.
 
         Both items must already belong to the collection. To place an item
-        first,  pass None for 'after'.
+        first, pass C{None} for C{after}.
+
+        @param item: the item to place, must belong to the collection.
+        @type item: an C{Item} instance
+        @param after: the item to place C{item} after or C{None} if C{item} is
+        to be first in this ref collection.
+        @type after: an C{Item} instance
         """
         
         key = item._refName(self._name)
@@ -627,7 +684,12 @@ class RefDict(LinkedMap):
         super(RefDict, self).place(key, afterKey)
 
     def removeItem(self, item):
-        "Remove a referenced item from this reference collection."
+        """
+        Remove a referenced item from this reference collection.
+
+        @param item: the item whose reference to remove.
+        @type item: an C{Item} instance
+        """
         
         del self[item._refName(self._name)]
             
@@ -704,6 +766,21 @@ class RefDict(LinkedMap):
         return super(RefDict, self).__getitem__(key, load)
 
     def get(self, key, default=None, load=True):
+        """
+        Get the item referenced at C{key}.
+
+        To get an item through its alias, use L{getByAlias} instead.
+
+        @param key: the UUID of the item referenced.
+        @type key: L{UUID<repository.util.UUID.UUID>}
+        @param default: the default value to return if there is no reference
+        for C{key} in this ref collection, C{None} by default.
+        @type default: anything
+        @param load: if the reference exists but hasn't been loaded yet,
+        this method will return C{default} if this parameter is C{False}.
+        @type load: boolean
+        @return: an C{Item} instance or C{default}
+        """
 
         value = super(RefDict, self).get(key, default, load)
         if value is not default:
@@ -712,8 +789,20 @@ class RefDict(LinkedMap):
         return default
 
     def getByAlias(self, alias, default=None, load=True):
-        'Get the item referenced through the alias.'
-
+        """
+        Get the item referenced through its alias.
+        
+        @param alias: the alias of the item referenced.
+        @type key: a string
+        @param default: the default value to return if there is no reference
+        for C{key} in this ref collection, C{None} by default.
+        @type default: anything
+        @param load: if the reference exists but hasn't been loaded yet,
+        this method will return C{default} if this parameter is C{False}.
+        @type load: boolean
+        @return: an C{Item} instance or C{default}
+        """
+        
         key = None
 
         if self._aliases is not None:
@@ -731,7 +820,10 @@ class RefDict(LinkedMap):
         """
         Resolve the alias to its corresponding reference key.
 
-        Returns None if alias does not exist.
+        @param alias: the alias to resolve.
+        @type alias: a string
+        @return: a L{UUID<repository.util.UUID.UUID>} or C{None} if the
+        alias does not exist.
         """
         
         if self._aliases:
@@ -786,10 +878,21 @@ class RefDict(LinkedMap):
                                   alias=link._alias)
 
     def copy(self):
+        """
+        This method is not directly supported on this class.
 
+        To copy a ref collection into another one, call L{extend} with this
+        collection on the target collection.
+        """
+        
         raise NotImplementedError, 'RefDict.copy is not supported'
 
     def first(self):
+        """
+        Get the first item referenced in this ref collection.
+
+        @return: an C{Item} instance or C{None} if empty.
+        """
 
         firstKey = self.firstKey()
         if firstKey is not None:
@@ -798,6 +901,11 @@ class RefDict(LinkedMap):
         return None
 
     def last(self):
+        """
+        Get the last item referenced in this ref collection.
+
+        @return: an C{Item} instance or C{None} if empty.
+        """
 
         lastKey = self.lastKey()
         if lastKey is not None:
@@ -806,10 +914,14 @@ class RefDict(LinkedMap):
         return None
 
     def next(self, previous):
-        """Return the next referenced item relative to previous.
+        """
+        Get the next referenced item relative to previous.
 
-        Returns None if previous is the last referenced item in the
-        collection."""
+        @param previous: the previous item relative to the item sought.
+        @type previous: a C{Item} instance
+        @return: an C{Item} instance or C{None} if C{previous} is the last
+        referenced item in the collection.
+        """
 
         nextKey = self.nextKey(previous._refName(self._name))
         if nextKey is not None:
@@ -818,10 +930,14 @@ class RefDict(LinkedMap):
         return None
 
     def previous(self, next):
-        """Return the previous referenced item relative to next.
+        """
+        Get the previous referenced item relative to next.
 
-        Returns None if next is the first referenced item in the
-        collection."""
+        @param next: the next item relative to the item sought.
+        @type next: a C{Item} instance
+        @return: an C{Item} instance or C{None} if next is the first
+        referenced item in the collection.
+        """
 
         previousKey = self.previousKey(next._refName(self._name))
         if previousKey is not None:
@@ -830,6 +946,13 @@ class RefDict(LinkedMap):
         return None
 
     def check(self, item, name):
+        """
+        Debugging: verify this ref collection for consistency.
+
+        Consistency errors are logged.
+
+        @return: C{True} if no errors were found, {False} otherwise.
+        """
 
         l = len(self)
         logger = self._getRepository().logger
@@ -853,7 +976,8 @@ class RefDict(LinkedMap):
                                  other._kind.itsPath)
                     return False
                 else:
-                    name = other.getAttributeAspect(self._otherName, 'otherName', default=None)
+                    name = other.getAttributeAspect(self._otherName,
+                                                    'otherName', default=None)
                     if name != self._name:
                         logger.error("OtherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
                                      other._kind.itsPath,
@@ -874,6 +998,9 @@ class RefDict(LinkedMap):
 
 
 class TransientRefDict(RefDict):
+    """
+    A ref collection class for transient attributes.
+    """
 
     def linkChanged(self, link, key):
         pass

@@ -234,10 +234,11 @@ class Item(object):
               aspect takes a string value.
             - C{redirectTo}: one or several attribute names chained
               together by periods naming attributes to recursively obtain a
-              value from or set a value to. When several names are used, all
-              but the last name are expected to name attributes containing a
-              reference to the next item to inherit from by applying the
-              next name. This aspect takes a string value.
+              value or aspect value from or set a value to. When several
+              names are used, all but the last name are expected to name
+              attributes containing a reference to the next item to redirect
+              to by applying the next name. This aspect takes a string
+              value.
             - C{otherName}: for bi-directional reference attributes, this
               aspect names the attribute used to attach the other endpoint
               on the other item, ie the referenced item. This is the aspect
@@ -271,6 +272,9 @@ class Item(object):
               C{countPolicy} is set to C{count}. By default, an attribute's
               C{countPolicy} is C{none}. This aspect takes a string value.
 
+        If an attribute's C{redirectTo} aspect is set, this method is
+        redirected just like C{getAttributeValue}.
+
         @param name: the name of the attribute being queried
         @type name: a string
         @param aspect: the name of the aspect being queried
@@ -298,7 +302,8 @@ class Item(object):
 
         return kwds.get('default', None)
 
-    def setAttributeValue(self, name, value=None, _attrDict=None):
+    def setAttributeValue(self, name, value=None, setAliases=False,
+                          _attrDict=None):
         """
         Set a value on a Chandler attribute.
 
@@ -308,6 +313,11 @@ class Item(object):
         @type name: a string.
         @param value: the value being set
         @type value: anything compatible with the attribute's type
+        @param setAliases: when the attribute is to contain a
+        L{ref collection<repository.item.ItemRef.RefDict>} and the C{value}
+        is a dictionary, use the keys in the dictionary as aliases into the
+        ref collection when this parameter is C{True}
+        @type setAliases: boolean
         @return: the value actually set.
         """
 
@@ -358,8 +368,6 @@ class Item(object):
                         # can't reuse ItemRef
                         old.detach(self, name, old.other(self),
                                    self._kind.getOtherName(name))
-                    else:
-                        raise TypeError, type(value)
 
                 elif isinstance(old, RefDict):
                     old.clear()
@@ -407,8 +415,7 @@ class Item(object):
                 else:
                     assert isinstance(old, RefDict)
                     refDict = old
-                for item in value.itervalues():
-                    refDict.append(item)
+                refDict.update(value, setAliases)
                 value = refDict
             else:
                 companion = self.getAttributeAspect(name, 'companion',
@@ -765,22 +772,27 @@ class Item(object):
 
         return result
         
-    def getValue(self, attribute, key, default=None, _attrDict=None):
+    def getValue(self, attribute, key=None, alias=None,
+                 default=None, _attrDict=None):
         """
         Return a value from a Chandler collection attribute.
 
         The collection is obtained using
         L{getAttributeValue} and the return value is extracted by using the
-        C{key} argument. If the collection does not exist or there is no
-        value for C{key}, C{default} is returned, C{None} by default. Unless
-        this defaulting behavior is needed, there is no reason to use this
-        method instead of the regular python syntax for accessing instance
-        attributes and collection elements.
+        C{key} or C{alias} argument. If the collection does not exist or
+        there is no value for C{key} or C{alias}, C{default} is returned,
+        C{None} by default. Unless this defaulting behavior is needed, there
+        is no reason to use this method instead of the regular python syntax
+        for accessing instance attributes and collection elements. The
+        C{alias} argument can be used instead of C{key} when the collection
+        is a L{ref collection<repository.item.ItemRef.RefDict>}.
 
         @param attribute: the name of the attribute
         @type attribute: a string
-        @param key: the key into the collection
+        @param key: the key into the collection, optional if C{alias} is used
         @type key: integer for lists, anything for dictionaries
+        @param alias: the alias into the ref collection
+        @type alias: a string
         @param default: an optional C{default} value, C{None} by default
         @type default: anything
         @return: a value
@@ -791,6 +803,9 @@ class Item(object):
             
         if value is Item.Nil:
             return default
+
+        if alias is not None:
+            return value.getByAlias(alias, default)
 
         if isinstance(value, dict):
             return value.get(key, default)
@@ -817,14 +832,17 @@ class Item(object):
         @param attribute: the name of the attribute
         @type attribute: a string
         @param key: the key into the collection, not used when the
-        collection is a collection of item references
+        collection is a L{ref collection<repository.item.ItemRef.RefDict>}.
         @type key: integer for lists, anything for dictionaries
+        @param alias: when the collection is a
+        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
+        used to specify an alias for the reference to insert into the
+        collection
+        @type alias: a string
         @param value: the value to set
         @type value: anything compatible with the attribute's type
         @return: the collection that was changed or created
         """
-
-        self.setDirty(attribute=attribute)
 
         if _attrDict is None:
             if self._values.has_key(attribute):
@@ -834,11 +852,24 @@ class Item(object):
             elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
-                _attrDict = self._values
+                redirect = self.getAttributeAspect(attribute, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    attributes = redirect.split('.')
+                    for i in xrange(len(attributes) - 1):
+                        item = item.getAttributeValue(attributes[i])
+
+                    return item.setValue(attributes[-1], value, key, alias)
+
+                else:
+                    _attrDict = self._values
 
         isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
             
+        self.setDirty(attribute=attribute)
+
         if attrValue is Item.Nil:
             card = self.getAttributeAspect(attribute, 'cardinality',
                                            default='single')
@@ -872,8 +903,7 @@ class Item(object):
             _attrDict[attribute] = attrValue
 
         if isItem:
-            attrValue.__setitem__(value._refName(attribute),
-                                  value, alias=alias)
+            attrValue.append(value, alias)
         else:
             attrValue[key] = value
 
@@ -891,8 +921,14 @@ class Item(object):
         
         @param attribute: the name of the attribute
         @type attribute: a string
-        @param key: the key into the collection, not used with lists
+        @param key: the key into the collection, not used with lists or
+        L{ref collections<repository.item.ItemRef.RefDict>}
         @type key: anything
+        @param alias: when the collection is a
+        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
+        used to specify an alias for the reference to insert into the
+        collection
+        @type alias: a string
         @param value: the value to set
         @type value: anything compatible with the attribute's type
         @return: the collection that was changed or created
@@ -906,7 +942,18 @@ class Item(object):
             elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
-                _attrDict = self._values
+                redirect = self.getAttributeAspect(attribute, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    attributes = redirect.split('.')
+                    for i in xrange(len(attributes) - 1):
+                        item = item.getAttributeValue(attributes[i])
+
+                    return item.addValue(attributes[-1], value, key, alias)
+
+                else:
+                    _attrDict = self._values
 
         isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
@@ -919,8 +966,7 @@ class Item(object):
 
             if isinstance(attrValue, dict):
                 if isItem and _attrDict is self._references:
-                    attrValue.__setitem__(value._refName(attribute),
-                                          value, alias=alias)
+                    attrValue.append(value, alias)
                 else:
                     attrValue[key] = value
             elif isinstance(attrValue, list):
@@ -930,7 +976,7 @@ class Item(object):
 
             return attrValue
 
-    def hasKey(self, attribute, key, _attrDict=None):
+    def hasKey(self, attribute, key=None, alias=None, _attrDict=None):
         """
         Tell if a Chandler collection attribute has a value for a given key.
 
@@ -943,6 +989,10 @@ class Item(object):
         @type attribute: a string
         @param key: the key into the collection, not used with lists
         @type key: anything
+        @param alias: when the collection is a
+        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
+        used to specify an alias for the reference to check
+        @type alias: a string
         @return: C{True} or C{False}
         """
 
@@ -951,6 +1001,8 @@ class Item(object):
 
         if value is not Item.Nil:
             if isinstance(value, dict):
+                if alias is not None:
+                    return value.resolveAlias(alias) is not None
                 return value.has_key(key)
             elif isinstance(value, list):
                 return 0 <= key and key < len(value)
@@ -992,7 +1044,7 @@ class Item(object):
 
         return False
 
-    def removeValue(self, attribute, key=None, _attrDict=None):
+    def removeValue(self, attribute, key=None, alias=None, _attrDict=None):
         """
         Remove a value from a Chandler collection attribute, for a given key.
 
@@ -1001,11 +1053,18 @@ class Item(object):
         L{getAttributeValue}.
 
         If there is no value for the provided key, C{KeyError} is raised.
+        The C{alias} argument can be used instead of C{key} when the
+        collection is a L{ref collection<repository.item.ItemRef.RefDict>}.
 
         @param attribute: the name of the attribute
         @type attribute: a string
         @param key: the key into the collection
         @type key: integer for lists, anything for dictionaries
+        @param alias: when the collection is a
+        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
+        used instead to specify an alias for the reference to insert into the
+        collection
+        @type alias: a string
         """
 
         if _attrDict is None:
@@ -1016,10 +1075,26 @@ class Item(object):
             elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
-                _attrDict = self._values
+                redirect = self.getAttributeAspect(attribute, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    attributes = redirect.split('.')
+                    for i in xrange(len(attributes) - 1):
+                        item = item.getAttributeValue(attributes[i])
+
+                    return item.removeValue(attributes[-1], key, alias)
+
+                else:
+                    _attrDict = self._values
 
         value = _attrDict.get(attribute, Item.Nil)
+
         if value is not Item.Nil:
+            if alias is not None:
+                key = value.resolveAlias(alias)
+                if key is None:
+                    raise KeyError, 'No value for alias %s' %(alias)
             del value[key]
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
