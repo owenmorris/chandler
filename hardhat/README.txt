@@ -179,3 +179,23 @@ For example, to run the wxPython demo using the Python you built, cd to
 osaf/chandler/wxpython and run:
 
 hardhat.py wxPython/demo/demo.py
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Other files in this directory:
+
+- hardhatlib.py is where most of the work takes place, and hardhat.py is
+  just the command line interface to it.  Eventually I'd like to write a
+  GUI front end to hardhatlib.
+
+- nightly.py is modified version of hardhat.py which is geared toward building
+  the nightly distributions.
+
+- wrapper.py is a script that gets spawned by HardHat in order to capture
+  stdout and stderr to the log file (without disrupting the stdout and
+  stderr of the parent process.
+
+- os_win.py contains some Windows-specific code for finding the Microsoft
+  compiler by examing in the registry.
+
+- cygwinreg.py is a module I wrote to make os_win.py work under Cygwin.
