@@ -38,7 +38,7 @@ def main():
         parser.error("You must provide M | R and a release number")
         
     print "Making index pages for", rFormat, release
-#    CreateIndex(release)
+    CreateIndex(release)
     MakeMaster(release, rFormat)
     MakeJS(release, rFormat)
 
