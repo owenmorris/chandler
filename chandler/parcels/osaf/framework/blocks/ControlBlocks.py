@@ -899,8 +899,8 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged')
-            event.Post({'item':item, 'type':'Normal'})
+            self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                 {'item':item})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection:
