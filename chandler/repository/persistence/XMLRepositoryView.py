@@ -276,11 +276,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 after = datetime.now()
 
                 if count > 0:
-                    delta = after - before
-                    self.logger.info('%s committed %d items (%ld bytes) in %s, %d/s',
-                                     self, count, size, delta,
-                                     round(count / (delta.seconds +
-                                                    delta.microseconds / 1e6)))
+                    self.logger.info('%s committed %d items (%ld bytes) in %s',
+                                     self, count, size, after - before)
 
 
                 if len(self._notifications) > 0:
