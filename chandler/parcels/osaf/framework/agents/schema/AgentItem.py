@@ -3,13 +3,18 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from application.Application import app
 from repository.item.Item import Item
 
 """
 The Agent Class is the base class for all agents.  It holds the transient dynamic state of an agent,
 and refers to its sister class, AgentItem, for the agent's persistent state
 """
+
 class AgentItem(Item):
+    def __init__(self, *args):
+        Item.__init__(self, *args)
+        app.agentManager.Register(self)
 
     def GetName(self):
         """ return the name of the agent """

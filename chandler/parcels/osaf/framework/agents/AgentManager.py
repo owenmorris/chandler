@@ -3,6 +3,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from repository.item.Item import Item
+
 from Agent import Agent
 import AgentControl
 import application.Application
@@ -11,6 +13,21 @@ import application.Application
 The AgentManager Class is responsible for loading agents from the repository and launching them at
 start-up.  It maintains a directory of agents and allows callers to manipulate them
 """
+def findAgentManager(repository):
+    am = repository.find('//Data/AgentManager')
+    if am:
+        return am
+
+    data = repository.find('//Data')
+    if not data:
+        data = Item('Data', repository, None)
+
+    # make new agent manager
+    KIND_PATH = '//Parcels/OSAF/AppSchema/AgentSchema/AgentManager'
+    kind = repository.find(KIND_PATH)
+    am = kind.newItem('AgentManager', data)
+
+    return am
 
 class AgentManager:
     
@@ -23,65 +40,54 @@ class AgentManager:
         self.agentMap = {}
         self.activeAgents = {}
         self.notificationHandledStatus = {}
+        self.model = None
 
     def Startup(self):
-        self._RegisterAgents()
+        if not self.model:
+            self.model = findAgentManager(application.Application.app.repository)
+
+        self._BuildMap()
         self.StartAll()
 
     def Shutdown(self):
         self.StopAll()
 
-    def _RegisterAgents(self):
-        """ Iterate through the AgentItems in the repository and register them """
-
-        agentItemKind = application.Application.app.repository.find('//Parcels/OSAF/AppSchema/AgentSchema/AgentItem')
-
-        try:
-            items = agentItemKind.items
-        except AttributeError:
-            items = []
-
-        for item in items:
+    def _BuildMap(self):
+        for item in self.model.items:
             agentID = item.getUUID()
-            self.Register(agentID)
-            # hook up the widget
-            #widget = AgentControl.wxAgentControl(agentID)
-            #widget.AddToToolBar()
+            if not self.agentMap.has_key(agentID):
+                self.agentMap[agentID] = Agent(agentID)
 
-    def IsRegistered(self, agentID):
-        return self.agentMap.has_key(agentID)
+    def IsRegistered(self, agentItem):
+        try:
+            return agentItem in self.model.items
+        except:
+            return False
 
-    def Register(self, agentID):
-        """ register an agent with the agent manager """
-        if self.IsRegistered(agentID):
+    def Register(self, agentItem):
+        """ register an agent with the agent manager """        
+        if self.IsRegistered(agentItem):
             return
 
-        # register with the notification manager and subscribe to notifications
-        if not self.notificationManager.IsRegistered(agentID):
-            self.notificationManager.Register(agentID)
+        if not self.model:
+            self.model = findAgentManager(application.Application.app.repository)
 
-        # subscribe to notifications
-        agentItem = application.Application.app.repository.find(agentID)
-        agentItem.SubscribeToNotifications(self.notificationManager)
-
-        # add to the map
-        agent = Agent(agentID)
-        self.agentMap[agentID] = agent
-
+        self.model.addValue('items', agentItem)
         application.Application.app.repository.commit()
 
-    def Unregister(self, agentID):
+        agentID = agentItem.getUUID()
+        self.agentMap[agentID] = Agent(agentID)
+
+    def Unregister(self, agentItem):
         """ unregister an agent from the agent manager """
-        if not self.IsRegistered(agentID):
+        if not self.IsRegistered(agentItem):
             raise KeyError, 'Agent Not Registered'
 
-        # unsubscribe to notifications
-        agentItem = application.Application.app.repository.find(agentID)
-        agentItem.UnsubscribeFromNotifications(self.notificationManager)
-
-        del self.agentMap[agentID]
-
+        self.model.removeValue('items', agentItem)
         application.Application.app.repository.commit()
+
+        agentID = agentItem.getUUID()
+        del self.agentMap[agentID]
 
     def AgentMatches(self, agent, name, role, owner):
         """ 
@@ -111,6 +117,19 @@ class AgentManager:
     def Start(self, agentID):
         if not self.IsRegistered(agentID):
             raise KeyError, 'Agent Not Registered'
+
+        # register with the notification manager and subscribe to notifications
+        if not self.notificationManager.IsRegistered(agentID):
+            self.notificationManager.Register(agentID)
+
+        # subscribe to notifications
+        agentItem = application.Application.app.repository.find(agentID)
+        agentItem.SubscribeToNotifications(self.notificationManager)
+
+        # hook up the widget
+        #widget = AgentControl.wxAgentControl(agentID)
+        #widget.AddToToolBar()
+
         self.agentMap[agentID].Resume()
 
     def StartAll(self):
@@ -122,6 +141,10 @@ class AgentManager:
         if not self.IsRegistered(agentID):
             raise KeyError, 'Agent Not Registered'
         self.agentMap[agentID].Suspend()
+
+        # unsubscribe to notifications
+        agentItem = application.Application.app.repository.find(agentID)
+        agentItem.UnsubscribeFromNotifications(self.notificationManager)
 
     def StopAll(self):
         """ Stops all the Agents """
