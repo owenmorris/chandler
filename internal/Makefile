@@ -3,7 +3,7 @@ include Makefile.inc
 
 SYSTEMS=PyLucene \
         UUIDext \
-        wx
+        wxPython-2.5
 
 .PHONY: binaries $(SYSTEMS)
 
