@@ -71,12 +71,9 @@ swig:   $(SRC)/$(BUILD)/Makefile
 
 endif
 
+# snap target can be empty since we don't actually need swig when
+# running Chandler
 snap: 
-	cd $(BUILD_ROOT); \
-	tar -cvzf $(SWIG)/$(SNAP).tar.gz \
-                  $(SNAP)/bin/swig$(EXECUTABLE) \
-                  $(SNAP)/share/aclocal/swig.m4 \
-                  $(SNAP)/lib/swig1.3 
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
