@@ -10,33 +10,33 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
-build: $(PYTHON)
-	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)" \
+build:
 	$(PYTHON) setup.py \
-		build_ext --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
-			--include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
-		build --build-base=$(BUILD) $(DIST_OPT) \
-		install --force; \
-	cp -f $(BUILD_ROOT)/$(SNAP)/bin/libeay32.dll $(BUILD_ROOT)/$(MANIFEST); \
+          build_ext --swig=`cygpath -aw $(SWIG)` \
+                    --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
+                    --include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
+	cp -f $(BUILD_ROOT)/$(SNAP)/bin/libeay32.dll $(BUILD_ROOT)/$(MANIFEST)
 	cp -f $(BUILD_ROOT)/$(SNAP)/bin/ssleay32.dll $(BUILD_ROOT)/$(MANIFEST)
 
 else
 
-build: $(PYTHON)
-	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)" \
+build:
 	$(PYTHON) setup.py \
-		build_ext --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
-			--include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
-		build --build-base=$(BUILD) $(DIST_OPT) \
-		install --force
+          build_ext --swig=$(SWIG) \
+                    --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
+                    --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
+          build --build-base=$(BUILD) $(DIST_OPT) \
+          install --force
 
 endif
 
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
-	find $(MANIFEST) -name "*.pyo" | xargs rm -f; \
-	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	find $(MANIFEST) -name "*.pyo" | xargs rm -f
+	tar -C $(BUILD_ROOT) -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) m2crypto-$(SNAP)-$(RELVER).tar.gz > m2crypto-$(SNAP)-$(RELVER).tar.gz.md5
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
@@ -49,9 +49,8 @@ install:
 
 clean:
 	rm -rf $(BUILD)
-	rm -f _m2crypto.py
-	rm -f SWIG/_m2crypto.c
+	rm -f SWIG/_m2crypto.py SWIG/_m2crypto_wrap.c
 
 realclean: clean
-	rm -fr build_debug build_release
+	rm -rf build_debug build_release
 	rm -f m2crypto-debug-*.tar.gz* m2crypto-release-*.tar.gz*
