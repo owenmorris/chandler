@@ -194,7 +194,7 @@ When this parcel is loaded, three new items will be added to the repository:
 <li>A parcel item at <span class="path">//parcels/simple/data</span>
 <li>A TestKind item at <span class="path">//parcels/simple/data/item1</span> (with TestAttribute="xyzzy")
 <li>A SubKind item at <span class="path">//parcels/simple/data/item2</span> (with TestAttribute="plugh")
-<li>A TestKind item at <span class="path">//parcels/simple/data/item3</span> 
+<li>A TestKind item at <span class="path">//parcels/simple/data/item3</span> (with TestAttribute="xyzzy" - because the initialValue for TestAttribute is "xyzzy")
 </ul>
 </p>
 
@@ -427,7 +427,7 @@ You can test whether or not an item has any children
 <p />
 You can iterate through the children of an item
 <p />
-<pre class="codebox">for child in data:
+<pre class="codebox">for child in data.iterChildren():
     print child
 </pre>
 <p />
@@ -501,8 +501,6 @@ Which will produce output that looks like this:
 <p> However, this list only includes attributes that were directly
 assigned to the <span class="path">//Schema/Core/Parcel</span> kind -- this kind is a subkind of
 <span class="path">//Schema/Core/Item</span> and therefore it inherits Item's attributes as well.
-To get the entire list of available attributes (including those inherited
-from superkinds), you need to traverse the kind's superKinds.  
 <p>
 There are two kinds of attributes. Literal valued attributes store
 literal values of various types, such as numbers (integers, longs,
@@ -513,7 +511,7 @@ Multiple valued attributes are treated as either lists, accessible by
 numeric index, or as dictionaries, accessible by keys.  Multivalued
 reference attributes are treated as lists. 
 
-The <span class="code">Item.iterAttributeValues()</span> method will produce an iterator that will let you access all the attributes for an item:
+The <span class="code">Item.iterAttributeValues()</span> method will produce an iterator that will let you access all the attributes for an item, including thos attributes inherited from superkinds:
 <pre class="codebox">
 parcel = rep.findPath("//parcels/simple")
 for i in parcel.iterAttributeValues():
@@ -622,7 +620,9 @@ between the time that you read it and the time you tried to commit it.
 When this happens the <span class="code">commit</span> method will raise an exception.
 At this point it is up to you redo the work in your transaction.  </p>
 
-
+<h2>For Reference</h2>
+You can view the API documentation on line.  You'll probably want to start with 
+<a href="http://osafoundation.org/docs/current/api/repository.item.Item.Item-class.html">Item</a>, <a href="http://osafoundation.org/docs/current/api/repository.schema.Kind.Kind-class.html">Kind</a>, and <a href="http://osafoundation.org/docs/current/api/repository.schema.Attribute.Attribute-class.html">Attribute</a>.
 <hr />
 
 <h2>Additional Topics</h2>
@@ -640,6 +640,10 @@ $Revision$<br>
 $Date$<br>
 $Author$<br>
 $Log$
+Revision 1.10  2004/10/15 18:31:04  twl
+Bugs 2112, 2113 (Doc bugs)
+Incorporate review feedback
+
 Revision 1.9  2004/10/12 20:06:12  twl
 Fix bug 2113 - update repository overview for 0.4
 
