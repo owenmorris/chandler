@@ -166,10 +166,10 @@ class StampAttributeEditor (StringAttributeEditor):
             super (StampAttributeEditor, self).Draw(dc, rect, item, attributeName, isSelected)
     
     def GetAttributeValue (self, item, attributeName):
-        if isinstance(item, Calendar.CalendarEventMixin):
-            return 'smKindFilterEvent'
-        elif isinstance(item, Task.TaskMixin):
-            return 'smKindFilterTask'
+        if isinstance(item, Task.TaskMixin):
+            return 'taskStamp'
+        elif isinstance(item, Calendar.CalendarEventMixin):
+            return 'eventStamp'
         else:
             return ''
 
