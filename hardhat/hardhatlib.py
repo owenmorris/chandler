@@ -850,7 +850,7 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
     execute_str = "exit_code = os.spawnl(os.P_WAIT," + args_str + ")"
 
     log(buildenv, HARDHAT_MESSAGE, name, message)
-    log(buildenv, HARDHAT_MESSAGE, name, ",".join(args[1:]))
+    log(buildenv, HARDHAT_MESSAGE, name, ",".join(args[0:]))
     
 
     print "\nExecution output - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
