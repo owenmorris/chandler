@@ -1,6 +1,6 @@
 #!bin/env python
 
-"""Base classes for RDF objects in Chandler
+"""Mixin class implementing the observer/observable pattern
 """
 
 __author__ = "Katie Capps Parlante"
@@ -9,9 +9,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.persist import Persist
-
-class ObservableItem:
+class Observable:
     """Mixin class, used to make an object observable"""
     def __init__(self):
         self._observerList = []
@@ -26,12 +24,6 @@ class ObservableItem:
     def notifyObservers(self):
         for observer in self._observerList :
             observer.notify(self)    
-    
-class RdfObject(object, Persist.Persistent):
-    """Base class for any RDF model object in Chandler"""
-    
-    def __init__(self):
-        Persist.Persistent.__init__(self)
     
 
     
