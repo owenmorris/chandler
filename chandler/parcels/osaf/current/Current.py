@@ -14,7 +14,7 @@ class Current(application.Parcel.Parcel):
     def get(cls, view, pointerName):
         current = view.findPath(cls.CURRENT)
         ptr = current.findPath(pointerName)
-        if ptr is None:
+        if ptr is None or not hasattr(ptr, 'item'):
             return None
         return ptr.item
 
@@ -33,7 +33,7 @@ class Current(application.Parcel.Parcel):
     def isCurrent(cls, view, pointerName, item):
         current = view.findPath(cls.CURRENT)
         ptr = current.findPath(pointerName)
-        if ptr is not None and ptr.item is item:
+        if ptr is not None and hasattr(ptr, 'item') and ptr.item is item:
             return True
         else:
             return False

@@ -948,6 +948,12 @@ class IllegalOperation(SharingError):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+class WebDAVAccount(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
 class ImportExportFormat(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ImportExportFormat"
@@ -1324,7 +1330,6 @@ def newInboundShare(view, url):
             account.path = parentPath
             account.username = username
             account.password = password
-            # account.isDefault = False
             account.useSSL = useSSL
             account.port = port
 
@@ -1490,9 +1495,9 @@ def isIMAPSetUp(view):
 
     # Find imap account, and make sure email address is valid
     imap = Mail.MailParcel.getIMAPAccount(view)
-    if not imap.emailAddress:
-        return False
-    return True
+    if imap is not None and imap.replyToAddress and imap.replyToAddress.emailAddress:
+        return True
+    return False
 
 
 def isSMTPSetUp(view):
@@ -1505,11 +1510,10 @@ def isSMTPSetUp(view):
     """
 
     # Find smtp account, and make sure server field is set
-    imap = Mail.MailParcel.getIMAPAccount(view)
-    smtp = imap.defaultSMTPAccount
-    if not smtp.host:
-        return False
-    return True
+    (smtp, replyTo) = Mail.MailParcel.getSMTPAccount(view)
+    if smtp is not None and smtp.host:
+        return True
+    return False
 
 
 def isMailSetUp(view):

@@ -6,6 +6,7 @@ from repository.item.Query import KindQuery
 import osaf.contentmodel.mail.Mail as Mail
 import application.dialogs.Util
 import osaf.framework.sharing.WebDAV as WebDAV
+import osaf.framework.sharing.Sharing as Sharing
 import application.Parcel
 import osaf.current.Current as Current
 
@@ -16,14 +17,6 @@ SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
 
 # Special handlers referenced in the PANELS dictionary below:
 
-def IMAPValidationHandler(item, fields, values):
-    """ Return False if any invalid fields, True otherwise """
-    if not Mail.EmailAddress.isValidEmailAddress(values['IMAP_EMAIL_ADDRESS']):
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-         "Invalid Email Address", "The email address, '%s', is invalid" % \
-         (values['IMAP_EMAIL_ADDRESS']))
-        return False
-    return True
 
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
@@ -32,24 +25,20 @@ def IMAPSaveHandler(item, fields, values):
     # If there isn't already an emailAddress set up, just reuse the empty
     # default EmailAddress item.  Otherwise, possibly fetch a new EmailAddress
     # item.
-    if item.replyToAddress.emailAddress:
-        # Use the getEmailAddress( ) factory method to retrieve the appropriate
-        # EmailAddress item (could be an existing one if the fields match, or
-        # a new one could be created)
-        item.replyToAddress = \
-         Mail.EmailAddress.getEmailAddress(item.itsView, newAddressString,
-         newFullName)
-        if item.replyToAddress is None:
-            print "Error, got None from getEmailAddress(%s, %s)" % \
-             (newAddressString, newFullName)
 
+    item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
+                                                            newAddressString,
+                                                            newFullName)
     # process as normal:
     for (field, desc) in fields.iteritems():
         if desc['type'] == 'currentPointer':
             if values[field]:
                 Current.Current.set(item.itsView, desc['pointer'], item)
         else:
-            item.setAttributeValue(desc['attr'], values[field])
+            try:
+                item.setAttributeValue(desc['attr'], values[field])
+            except:
+                pass
 
 
 # Used to map form fields to item attributes:
@@ -59,6 +48,7 @@ PANELS = {
             "IMAP_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "default": "New IMAP account"
             },
             "IMAP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -83,21 +73,28 @@ PANELS = {
             "IMAP_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
+                "default": 143
             },
             "IMAP_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
             },
+            "IMAP_DEFAULT" : {
+                "type" : "currentPointer",
+                "pointer" : "IMAPAccount",
+                "exclusive" : True,
+            },
         },
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
-        "validationHandler" : IMAPValidationHandler,
+        "displayName" : "IMAP_DESCRIPTION",
     },
     "SMTP" : {
         "fields" : {
             "SMTP_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "default" : "New SMTP account"
             },
             "SMTP_SERVER" : {
                 "attr" : "host",
@@ -106,6 +103,7 @@ PANELS = {
             "SMTP_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
+                "default": 25
             },
             "SMTP_USE_SSL" : {
                 "attr" : "useSSL",
@@ -123,14 +121,21 @@ PANELS = {
                 "attr" : "password",
                 "type" : "string",
             },
+            "SMTP_DEFAULT" : {
+                "type" : "currentPointer",
+                "pointer" : "SMTPAccount",
+                "exclusive" : True,
+            },
         },
         "id" : "SMTPPanel",
+        "displayName" : "SMTP_DESCRIPTION",
     },
     "WebDAV" : {
         "fields" : {
             "WEBDAV_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
+                "default" : "New WebDAV account"
             },
             "WEBDAV_SERVER" : {
                 "attr" : "host",
@@ -164,6 +169,7 @@ PANELS = {
             },
         },
         "id" : "WebDAVPanel",
+        "displayName" : "WEBDAV_DESCRIPTION",
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
         )
@@ -211,6 +217,16 @@ class AccountPreferencesDialog(wx.Dialog):
         self.outerSizer.Fit(self)
 
         self.accountsList = wx.xrc.XRCCTRL(self, "ACCOUNTS_LIST")
+        self.choiceNewType = wx.xrc.XRCCTRL(self, "CHOICE_NEW_ACCOUNT")
+
+        typeNames = []
+        for (key, value) in PANELS.iteritems():
+            typeNames.append(key)
+        typeNames.sort()
+        for name in typeNames:
+            self.choiceNewType.Append(name)
+        self.choiceNewType.SetSelection(0)
+
         self.currentIndex = None # the list index of account in detail panel
         self.currentPanelType = None
         self.currentPanel = None # whatever detail panel we swap in
@@ -225,8 +241,18 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.__PopulateAccountsList(account)
 
+        # If the user deletes an account, its data will be moved here:
+        self.deletions = [ ]
+
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+
+
+        self.Bind(wx.EVT_CHOICE, self.OnNewAccount,
+                  id=wx.xrc.XRCID("CHOICE_NEW_ACCOUNT"))
+        self.Bind(wx.EVT_BUTTON, self.OnDeleteAccount,
+                  id=wx.xrc.XRCID("BUTTON_DELETE"))
+
 
         self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
          id=wx.xrc.XRCID("ACCOUNTS_LIST"))
@@ -253,22 +279,17 @@ class AccountPreferencesDialog(wx.Dialog):
 
         accounts = []
 
-        imapAccount = None
         for item in KindQuery().run([imapAccountKind]):
-            imapAccount = item
-            if item.isDefault:
-                break
-        accounts.append(imapAccount)
+            if hasattr(item, 'displayName'):
+                accounts.append(item)
 
-        smtpAccount = None
         for item in KindQuery().run([smtpAccountKind]):
-            smtpAccount = item
-            if item.isDefault:
-                break
-        accounts.append(smtpAccount)
+            if hasattr(item, 'displayName'):
+                accounts.append(item)
 
-        for webdavAccount in KindQuery().run([webDavAccountKind]):
-            accounts.append(webdavAccount)
+        for item in KindQuery().run([webDavAccountKind]):
+            if hasattr(item, 'displayName'):
+                accounts.append(item)
 
         i = 0
         for item in accounts:
@@ -312,9 +333,19 @@ class AccountPreferencesDialog(wx.Dialog):
          self.data[self.currentIndex]['values'])
 
         for account in self.data:
-            item = self.view.findUUID(account['item'])
+            uuid = account['item']
+            if uuid:
+                item = self.view.findUUID(account['item'])
+            else:
+                if account['type'] == "IMAP":
+                    item = Mail.IMAPAccount(view=self.view)
+                elif account['type'] == "SMTP":
+                    item = Mail.SMTPAccount(view=self.view)
+                elif account['type'] == "WebDAV":
+                    item = Sharing.WebDAVAccount(view=self.view)
+
             values = account['values']
-            panel = PANELS[item.accountType]
+            panel = PANELS[account['type']]
             if panel.has_key("saveHandler"):
                 panel["saveHandler"](item, panel['fields'], values)
             else:
@@ -328,6 +359,13 @@ class AccountPreferencesDialog(wx.Dialog):
                     else:
                         item.setAttributeValue(desc['attr'], values[field])
 
+    def __ApplyDeletions(self):
+        for data in self.deletions:
+            uuid = data['item']
+            if uuid:
+                item = self.view.findUUID(uuid)
+                item.delete()
+
     def __Validate(self):
 
         # First store the current form values to the data structure
@@ -336,9 +374,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
         i = 0
         for account in self.data:
-            item = self.view.findUUID(account['item'])
+            uuid = account['item']
+            if uuid:
+                item = self.view.findUUID(uuid)
+            else:
+                item = None
             values = account['values']
-            panel = PANELS[item.accountType]
+            panel = PANELS[account['type']]
             if panel.has_key("validationHandler"):
                 valid = panel["validationHandler"](item, panel['fields'],
                  values)
@@ -350,10 +392,17 @@ class AccountPreferencesDialog(wx.Dialog):
             i += 1
         return True
 
+    def __GetDisplayName(self, index):
+        data = self.data[self.currentIndex]
+        accountType = data['type']
+        panel = PANELS[accountType]
+        values = self.data[self.currentIndex]['values']
+        return values[panel["displayName"]]
+
     def __SwapDetailPanel(self, index):
         """ Given an index into the account list, store the current panel's
             (if any) contents to the data list, destroy current panel, determine
-            type of panel to pull in, load it, populated it. """
+            type of panel to pull in, load it, populate it. """
 
         if index == self.currentIndex: return
 
@@ -361,12 +410,13 @@ class AccountPreferencesDialog(wx.Dialog):
             # Get current form data and tuck it away
             self.__StoreFormData(self.currentPanelType, self.currentPanel,
              self.data[self.currentIndex]['values'])
+            self.accountsList.SetString(self.currentIndex,
+                                        self.__GetDisplayName(self.currentIndex))
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
 
         self.currentIndex = index
-        item = self.view.findUUID(self.data[index]['item'])
-        self.currentPanelType = item.accountType
+        self.currentPanelType = self.data[index]['type']
         self.currentPanel = self.panels[self.currentPanelType]
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
          self.data[index]['values'])
@@ -390,6 +440,16 @@ class AccountPreferencesDialog(wx.Dialog):
             elif isinstance(control, wx.RadioButton):
                 fieldInfo = PANELS[self.currentPanelType]['fields'][field]
                 if fieldInfo.get('exclusive', False):
+                    try:
+                        # On GTK if you want to have a radio button which can
+                        # be set to False, you really need to create a second
+                        # radio button and set that guy's value to True, thus
+                        # setting the visible button to False:
+                        hidden = wx.xrc.XRCCTRL(self.currentPanel,
+                                                "%s_HIDDEN" % field)
+                        hidden.Hide()
+                    except:
+                        pass
                     wx.EVT_RADIOBUTTON(control, control.GetId(),
                                        self.OnExclusiveRadioButton)
 
@@ -421,18 +481,74 @@ class AccountPreferencesDialog(wx.Dialog):
             elif valueType == "boolean":
                 control.SetValue(data[field])
             elif valueType == "currentPointer":
-                control.SetValue(data[field])
+                try:
+                    # On GTK if you want to have a radio button which can
+                    # be set to False, you really need to create a second
+                    # radio button and set that guy's value to True, thus
+                    # setting the visible button to False:
+                    if data[field]:
+                        control.SetValue(True)
+                    else:
+                        hidden = wx.xrc.XRCCTRL(panel, "%s_HIDDEN" % field)
+                        hidden.SetValue(True)
+                except:
+                    pass
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
 
     def OnOk(self, evt):
         if self.__Validate():
             self.__ApplyChanges()
+            self.__ApplyDeletions()
             self.EndModal(True)
             self.view.commit()
 
     def OnCancel(self, evt):
         self.EndModal(False)
+
+    def OnNewAccount(self, evt):
+
+        selection = self.choiceNewType.GetSelection()
+        if selection == 0:
+            return
+
+        accountType = self.choiceNewType.GetString(selection)
+        self.choiceNewType.SetSelection(0)
+
+        accountName = "New %s account" % accountType
+
+        values = { }
+
+        for (field, desc) in PANELS[accountType]['fields'].iteritems():
+
+            if desc['type'] == 'currentPointer':
+                setting = False
+            else:
+                try:
+                    setting = desc['default']
+                except KeyError:
+                    setting = DEFAULTS[desc['type']]
+
+            values[field] = setting
+
+        self.data.append( { "item" : None,
+                            "values" : values,
+                            "type" : accountType } )
+
+        index = self.accountsList.Append(accountName)
+        self.accountsList.SetSelection(index)
+        self.__SwapDetailPanel(index)
+
+    def OnDeleteAccount(self, evt):
+        index = self.accountsList.GetSelection()
+        self.accountsList.Delete(index)
+        self.deletions.append(self.data[index])
+        del self.data[index]
+        self.innerSizer.Detach(self.currentPanel)
+        self.currentPanel.Hide()
+        self.currentIndex = None
+        self.accountsList.SetSelection(0)
+        self.__SwapDetailPanel(0)
 
     def OnTestWebDAV(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,

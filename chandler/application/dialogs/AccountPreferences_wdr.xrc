@@ -25,7 +25,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
                         <size>300,-1</size>
@@ -42,7 +42,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_DESCRIPTION">
                         <size>300,-1</size>
@@ -59,7 +59,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_SERVER">
                         <size>300,-1</size>
@@ -120,7 +120,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_USERNAME">
                         <size>300,-1</size>
@@ -137,12 +137,41 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_PASSWORD">
                         <size>300,-1</size>
                         <style>wxTE_PASSWORD</style>
                         <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL</flag>
+                    <border>5</border>
+                    <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="SMTP_DEFAULT">
+                                <style>wxRB_GROUP</style>
+                                <label>Use as default account for sending email</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="SMTP_DEFAULT_HIDDEN">
+                                <label></label>
+                            </object>
+                        </object>
                     </object>
                 </object>
             </object>
@@ -171,7 +200,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
                         <size>300,-1</size>
@@ -188,7 +217,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_DESCRIPTION">
                         <size>300,-1</size>
@@ -205,7 +234,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_EMAIL_ADDRESS">
                         <size>300,-1</size>
@@ -222,7 +251,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_FULL_NAME">
                         <size>300,-1</size>
@@ -239,7 +268,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_SERVER">
                         <size>300,-1</size>
@@ -256,7 +285,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_USERNAME">
                         <size>300,-1</size>
@@ -273,7 +302,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_PASSWORD">
                         <size>300,-1</size>
@@ -311,6 +340,35 @@
                         </object>
                     </object>
                 </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL</flag>
+                    <border>5</border>
+                    <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="IMAP_DEFAULT">
+                                <style>wxRB_GROUP</style>
+                                <label>Use this account for receiving email</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="IMAP_DEFAULT_HIDDEN">
+                                <label></label>
+                            </object>
+                        </object>
+                    </object>
+                </object>
             </object>
         </object>
     </object>
@@ -337,7 +395,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
                         <size>300,-1</size>
@@ -354,7 +412,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_DESCRIPTION">
                         <size>300,-1</size>
@@ -371,7 +429,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_SERVER">
                         <size>300,-1</size>
@@ -388,7 +446,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_PATH">
                         <size>300,-1</size>
@@ -405,7 +463,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_USERNAME">
                         <size>300,-1</size>
@@ -422,7 +480,7 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_PASSWORD">
                         <size>300,-1</size>
@@ -468,10 +526,25 @@
                     </object>
                 </object>
                 <object class="sizeritem">
-                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <flag>wxALIGN_CENTER_VERTICAL</flag>
                     <border>5</border>
-                    <object class="wxRadioButton" name="WEBDAV_DEFAULT">
-                        <label>Use as default account for sharing</label>
+                    <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="WEBDAV_DEFAULT">
+                                <style>wxRB_GROUP</style>
+                                <label>Use as default account for sharing</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="WEBDAV_DEFAULT_HIDDEN">
+                                <label></label>
+                            </object>
+                        </object>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -497,10 +570,10 @@
     <object class="wxBoxSizer">
         <orient>wxVERTICAL</orient>
         <object class="sizeritem">
-            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-                <label>Accounts</label>
+                <label>Accounts:</label>
             </object>
         </object>
         <object class="sizeritem">
@@ -511,6 +584,23 @@
                 <style>wxLB_SINGLE</style>
                 <content>
                 </content>
+            </object>
+        </object>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxChoice" name="CHOICE_NEW_ACCOUNT">
+                <size>180,-1</size>
+                <content>
+                    <item>Create new account...</item>
+                </content>
+            </object>
+        </object>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxButton" name="BUTTON_DELETE">
+                <label>Delete account...</label>
             </object>
         </object>
     </object>

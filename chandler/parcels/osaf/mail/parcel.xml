@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="mail"
-             xmlns="http://osafoundation.org/parcels/core"
-             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-             xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
+     xmlns="http://osafoundation.org/parcels/core"
+     xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+     xmlns:current="http://osafoundation.org/parcels/osaf/current"
+     xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
 
-  <content:IMAPAccount itsName="IMAPAccountOne">
+  <content:IMAPAccount itsName="PredefinedIMAPAccount">
     <displayName>IMAP</displayName>
     <!-- This points replyToAddress to the email address item below-->
-    <replyToAddress itemref="mail:ReplyAddress" />
+    <replyToAddress itemref="mail:PredefinedReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
-    <defaultSMTPAccount itemref="mail:SMTPAccountOne" />
+    <defaultSMTPAccount itemref="mail:PredefinedSMTPAccount" />
+    <currentItemOf itemref="current:IMAPAccount"/>
   </content:IMAPAccount>
 
-  <content:EmailAddress itsName="ReplyAddress" />
+  <content:EmailAddress itsName="PredefinedReplyAddress" />
 
-
-  <content:SMTPAccount itsName="SMTPAccountOne">
+  <content:SMTPAccount itsName="PredefinedSMTPAccount">
     <displayName>SMTP</displayName>
+    <currentItemOf itemref="current:SMTPAccount"/>
   </content:SMTPAccount>
+
 </Parcel>

@@ -139,12 +139,6 @@
             <redirectTo value="replyToAddress.fullName" />
         </Attribute>
 
-        <Attribute itsName="isDefault">
-            <issues value="This is a temporary attribute that will be removed once we rethink which item represents the notion of 'Me'." />
-            <type itemref="Boolean" />
-            <initialValue type="Boolean" value="False"/>
-        </Attribute>
-
     </Kind>
 
     <Kind itsName="SMTPAccount">
@@ -175,12 +169,6 @@
             <inverseAttribute itemref="mail:IMAPAccount/defaultSMTPAccount" />
             <cardinality value="list" />
             <initialValue />
-        </Attribute>
-
-        <Attribute itsName="isDefault">
-            <issues value="This is a temporary attribute that will be removed once we rethink which item represents the notion of 'Me'." />
-            <type itemref="Boolean" />
-            <initialValue type="Boolean" value="False"/>
         </Attribute>
 
         <Attribute itsName="signature">

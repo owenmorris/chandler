@@ -190,6 +190,7 @@
 
     <Kind itsName="WebDAVAccount">
         <superKinds itemref="cm:ChandlerItem" />
+        <classes key="python" value="osaf.framework.sharing.Sharing.WebDAVAccount"/>
         <displayName value="WebDAV Account" />
         <description value="A WebDAV 'Account'" />
         <issues value="Long term we're probably not going to treat WebDAV as an account, but rather how a web browser maintains URL-to-ACL mappings." />

@@ -10,6 +10,7 @@ import application
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
+import osaf.current.Current as Current
 import application.Globals as Globals
 import repository.query.Query as Query
 import repository.item.Query as ItemQuery
@@ -65,7 +66,7 @@ class MailParcel(application.Parcel.Parcel):
     def getSMTPAccount(cls, view, UUID=None):
         """
             This method returns a tuple containing:
-            1. An C{SMTPAccount} account in the Repository.
+            1. The default C{SMTPAccount} account in the Repository.
             2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
                parent which will either be a POP or IMAP Acccount.
 
@@ -80,35 +81,29 @@ class MailParcel(application.Parcel.Parcel):
         @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
         """
 
-        accountKind = SMTPAccount.getKind(view)
-        account = None
+        smtpAccount = None
+        imapAccount = None
         replyToAddress = None
 
         if UUID is not None:
             assert isinstance(UUID.UUID), "The UUID argument must be of type UUID.UUID"
-            account = accountKind.findUUID(UUID)
+            smtpAccount = view.findUUID(UUID)
 
         else:
-            """Get the first SMTP Account"""
-            for acc in ItemQuery.KindQuery().run([accountKind]):
-                account = acc
-                if account.isDefault:
-                    break
+            """Get the default SMTP Account"""
+            smtpAccount = Current.Current.get(view, "SMTPAccount")
 
-        assert account is not None, "No SMTP Account found"
+        assert smtpAccount is not None, "No SMTP Account found"
 
-        accList = account.accounts
-
-        assert accList is not None, "No Parent Accounts associated with the SMTP account. Can not get replyToAddress."
-
-        """Get the first IMAP Account"""
-        for parentAccount in accList:
-            replyToAddress = parentAccount.replyToAddress
-            break
+        """Get the default IMAP Account"""
+        imapAccount = Current.Current.get(view, "IMAPAccount")
+        assert imapAccount is not None, "No IMAP Account found"
+        if imapAccount is not None and hasattr(imapAccount, 'replyToAddress'):
+            replyToAddress = imapAccount.replyToAddress
 
         assert replyToAddress is not None, "No replyToAddress found for IMAP Account"
 
-        return(account, replyToAddress)
+        return(smtpAccount, replyToAddress)
 
     getSMTPAccount = classmethod(getSMTPAccount)
 
@@ -116,8 +111,7 @@ class MailParcel(application.Parcel.Parcel):
         """
         This method returns a C{IMAPAccount} in the Repository. If UUID is not
         None will try and retrieve the C{IMAPAccount} that has the UUID passed.
-        Otherwise the method will try and retrieve the first C{IMAPAccount}
-        found in the Repository.
+        Otherwise the method will try and retrieve the default C{IMAPAccount}.
 
         It will throw a C{IMAPException} if there is either no C{IMAPAccount}
         matching the UUID passed or if there is no C{IMAPAccount}
@@ -129,17 +123,13 @@ class MailParcel(application.Parcel.Parcel):
         @return C{IMAPAccount}
         """
 
-        accountKind = IMAPAccount.getKind(view)
         account = None
 
         if UUID is not None:
-            account = accountKind.findUUID(UUID)
+            account = view.findUUID(UUID)
 
         else:
-            for acc in ItemQuery.KindQuery().run([accountKind]):
-                account = acc
-                if account.isDefault:
-                    break
+            account = Current.Current.get(view, "IMAPAccount")
 
         assert account is not None, "No IMAP Account exists in Repository"
 

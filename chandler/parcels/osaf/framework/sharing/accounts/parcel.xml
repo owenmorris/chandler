@@ -42,8 +42,4 @@
         <port value="80"/>
     </share:WebDAVAccount>
 
-    <share:WebDAVAccount itsName="CustomWebDAVAccount">
-        <displayName value="Custom WebDAV"/>
-    </share:WebDAVAccount>
-
 </Parcel>
