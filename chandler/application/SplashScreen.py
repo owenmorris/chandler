@@ -20,10 +20,13 @@ class SplashScreen(wxFrame):
           Sets up the splash screen and starts its timer.
         """
         wxFrame.__init__(self, None, -1, title, 
-                         size = (700,450),
                          style=wxSTAY_ON_TOP|\
                          wxDEFAULT_FRAME_STYLE)
-        panel = HTMLPanel(self, pageLocation)
+        panel = HTMLPanel(self, pageLocation, size=(700, -1))
+        internalRep = panel.GetInternalRepresentation()
+        panel.SetSize((internalRep.GetWidth(), internalRep.GetHeight()))
+        self.SetClientSize(panel.GetSize())
+        
         self.CentreOnScreen()
         
         if useTimer:
@@ -46,11 +49,12 @@ class HTMLPanel(wxHtmlWindow):
     """
       Displays the html message.
     """
-    def __init__(self, parent, pageLocation):
+    def __init__(self, parent, pageLocation, size):
         """
           Sets up the wxHtmlWindow and loads the proper page to be displayed.
         """
-        wxHtmlWindow.__init__(self, parent, style = wxHW_SCROLLBAR_NEVER)
+        wxHtmlWindow.__init__(self, parent, size=size,
+                              style=wxHW_SCROLLBAR_NEVER)
         self.parent = parent
         self.LoadPage(pageLocation)
         
