@@ -90,7 +90,7 @@ def main():
 
         except Exception, e:
             print e
-            eStr = e.__str__()
+            eStr = e.__repr__()
             print eStr
             print "something failed"
             log.write("Failed:\n")
@@ -159,7 +159,6 @@ def CreateIndex(dir):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(dir+os.sep+"index.html", "w")
-    fileOut.write("hey!\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(dir+os.sep+x)
         fileOut.write("<p><a href=" + actual + ">" + x + "</a></p>\n")
