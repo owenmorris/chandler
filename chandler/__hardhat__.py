@@ -6,7 +6,7 @@ info = {
 
 dependencies = (
                 'Python-2.2.2', 
-                'wxWindows',
+                'wxWindows-2.4',
                 'distutils',
                 'egenix-mx-base-2.0.4',
                 'ZODB4',
@@ -28,12 +28,12 @@ def run(buildenv):
     
     if buildenv['version'] == 'debug':
         path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + os.pathsep + buildenv['path']
-        python = buildenv['python_d']
+        python = buildenv['python_d.run']
 
 
     if buildenv['version'] == 'release':
         path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + os.pathsep + buildenv['path']
-        python = buildenv['python']
+        python = buildenv['python.run']
 
 
     hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
