@@ -24,7 +24,7 @@ xerces-c_2_4_0D.dll
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=chandler/debug/bin
 dest=debug/bin
-glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
+glob=*.py,*.so,*.dll
 recursive=yes
 DLLs
 Lib

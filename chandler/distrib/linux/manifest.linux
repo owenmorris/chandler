@@ -24,7 +24,7 @@ lib
 src=chandler/release/lib
 dest=release/lib
 recursive=yes
-glob=*.py,*.pyc,*.pyo,*.pyd,*.so
+glob=*.py,*.so
 python2.3/bsddb
 python2.3/compiler
 python2.3/curses

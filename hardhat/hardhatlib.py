@@ -18,7 +18,7 @@ to a structured log, and alert hardhatlib of problems via Exceptions.
 
 """
 
-import os, sys, glob, errno, string, shutil, fileinput, re, popen2
+import os, sys, glob, fnmatch, errno, string, shutil, fileinput, re, popen2
 
 
 # Earlier versions of Python don't define these, so let's include them here:
@@ -50,7 +50,7 @@ def init(buildenv):
             - compiler: full path to C compiler (currently windows only)
             - python: full path to release version of python we are building
             - python_d: full path to debug version of python we are building
-            - verbose: 0 for quiet, > 0 for messages displayed to stdout
+            - verbosity: 0 for quiet, > 0 for messages displayed to stdout
             - log: a time-ordered list of log entries
             - version: 'debug' or 'release'
     """
@@ -1169,8 +1169,8 @@ def executeShell(buildenv):
 
 # A manifest file describes which files to copy and where they should go in
 # order to create a binary distribution.  Comments are denoted by #; empty
-# lines are skipped.  There are four "variables" that you set in order to
-# control what's going on:  src, dest, recursive, and glob.  The file is
+# lines are skipped.  There are five "variables" that you set in order to
+# control what's going on:  src, dest, recursive, exclude and glob.  The file is
 # processed sequentially; variables maintain their values until reassigned.
 # The "src" variable should be set to a path relative to buildenv['root'],
 # and "dest" should be set to a path relative to buildenv['distdir']; either
@@ -1181,7 +1181,8 @@ def executeShell(buildenv):
 # then the patterns specified in the most recent "glob" line are used to
 # look for matching files to copy.  Then if "recursive" is set to "yes",
 # subdirectories are recursively copied (but only the files matching the
-# current pattern).
+# current pattern). If any file or directory matches any pattern in the 
+# "excludes" parameter/list, it is skipped.
 
 def handleManifest(buildenv, filename):
 
@@ -1289,21 +1290,49 @@ def expandVars(line):
     
 
 def _copyTree(srcdir, destdir, recursive, patterns, excludes):
+    """
+       This function implements a directory-tree copy
+       from one place (srcdir) to another (destdir),
+       whether it should be recursive, 
+       what file patterns to copy (may be a list),
+       and what file patterns to exclude (may be a list)
+    """
     os.chdir(srcdir)
+    # iterate over the file patterns to be copied
     for pattern in patterns:
+        # matches contains a list of files matching the current pattern
         matches = glob.glob(pattern)
+        excludesMatch = []
+        # prepare a list of files to be excluded
+        for filePat in excludes:
+            # add to the excludes list all files in the match list which match the current exclude pattern
+            excludesMatch += fnmatch.filter(matches, filePat)
+            # (debug) display current excludes list
+            # print "%s matches %s " % (excludesMatch, filePat)
+
+        # (debug) display current excludes list
+        # print "excluding %s for %s " % (excludesMatch, srcdir)
+
+        # iterate over the match list for each file
         for match in matches:
-            if os.path.isfile(match) and not match in excludes:
-                if not os.path.exists(destdir):
-                    _mkdirs(destdir)
-                if os.path.islink(match):
-                    linkto = os.readlink(match)
-                    os.symlink(linkto, os.path.join(destdir,match))
-                else:
-                    shutil.copy(match, destdir)
+            # if the current match is a file that is NOT in the excludes list, then try to copy
+            if os.path.isfile(match) and not match in excludesMatch:
+                try:
+                    if not os.path.exists(destdir):
+                        _mkdirs(destdir)
+                    if os.path.islink(match):
+                        linkto = os.readlink(match)
+                        os.symlink(linkto, os.path.join(destdir,match))
+                    else:
+                        shutil.copy(match, destdir)
+                except (IOError, os.error), why:
+                    print "Can't copy %s to %s: %s" % (match, destdir, str(why))
     if recursive:
         for name in os.listdir(srcdir):
             full_name = os.path.join(srcdir, name)
+            # we are only checking one pattern here; 
+            # directory excludes so far only being for one pattern - CVS
+            # if we need to add more, this will have to change to match method of file excludes above
             if os.path.isdir(full_name) and not name in excludes:
                 _copyTree(full_name, os.path.join(destdir, name), True, 
                  patterns, excludes)
@@ -1331,16 +1360,48 @@ def copyFiles(srcdir, destdir, patterns):
                 shutil.copy(match, destdir)
 
 def copyTree(srcdir, destdir, patterns, excludes):
+    """
+       This function implements a directory-tree copy
+       from one place (srcdir) to another (destdir),
+       whether it should be recursive, 
+       what file patterns to copy (may be a list),
+       and what file patterns to exclude (may be a list)
+    """
+    # iterate over the file patterns to be copied
     for pattern in patterns:
+        # matches contains a list of files matching the current pattern
         matches = glob.glob(os.path.join(srcdir, pattern))
+        excludesMatch = []
+        # prepare a list of files to be excluded
+        for filePat in excludes:
+            # add to the excludes list all files in the match list which match the current exclude pattern
+            excludesMatch += fnmatch.filter(matches, filePat)
+            # (debug) display current excludes list
+            # print "%s matches %s " % (excludesMatch, filePat)
+
+        # (debug) display current excludes list
+        # print "excluding %s for %s " % (excludesMatch, srcdir)
+
+        # iterate over the match list for each file
         for match in matches:
-            if os.path.isfile(match) and not match in excludes:
-                if not os.path.exists(destdir):
-                    _mkdirs(destdir)
-                shutil.copy(match, destdir)
+            # if the current match is a file that is NOT in the excludes list, then try to copy
+            if os.path.isfile(match) and not match in excludesMatch:
+                try:
+                    if not os.path.exists(destdir):
+                        _mkdirs(destdir)
+                    if os.path.islink(match):
+                        linkto = os.readlink(match)
+                        os.symlink(linkto, os.path.join(destdir,match))
+                    else:
+                        shutil.copy(match, destdir)
+                except (IOError, os.error), why:
+                    print "Can't copy %s to %s: %s" % (match, destdir, str(why))
     for name in os.listdir(srcdir):
         fullpath = os.path.join(srcdir, name)
-        if os.path.isdir(fullpath) and not name in excludes:
+        # we are only checking one pattern here; 
+        # directory excludes so far only being for one pattern - CVS
+        # if we need to add more, this will have to change to match method of file excludes above
+        if os.path.isdir(fullpath) and not fnmatch.fnmatch(name, excludes):
             copyTree(fullpath, os.path.join(destdir, name), patterns, excludes)
 
 

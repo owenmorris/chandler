@@ -12,6 +12,7 @@
 src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.3/lib
 dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
 glob=*
+exclude=*.pyc,*.pyo
 recursive=yes
 python2.3
 
