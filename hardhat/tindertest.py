@@ -31,9 +31,10 @@ mailtoAddr = "buildreport"
 alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
+defaultRsyncServer = "192.168.101.46"      #  IP of current server
 
 def main():
-    global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain
+    global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
@@ -48,6 +49,9 @@ def main():
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
       default=alertAddr, help="E-mail to notify on build errors \n"
       " [default] " + alertAddr + defaultDomain)
+    parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
+      default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
+      " [default] " + defaultRsyncServer)
 
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -185,7 +189,7 @@ def main():
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
                  outputDir + os.sep, 
-                 "192.168.101.46:continuous/" + buildNameNoSpaces])
+                 rsyncServer + ":continuous/" + buildNameNoSpaces])
                 hardhatutil.dumpOutputList(outputList, log)
 
             elif ret == "build_failed":
@@ -239,8 +243,8 @@ def main():
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
     nowTime  = str(int(time.time()))
-    msg  = ("From: %s\r\nTo: %s\r\n\r\n" % (fromAddr, toAddr))
-    msg += "Subject: " + status + " from " + buildName + "\n"
+    subject = "[tindertest] " + status + " from " + buildName
+    msg  = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, toAddr, subject))
     msg += "tinderbox: tree: " + treeName + "\n"
     msg += "tinderbox: buildname: " + buildName + "\n"
     msg += "tinderbox: starttime: " + startTime + "\n"
