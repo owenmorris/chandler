@@ -12,6 +12,7 @@ import application.Parcel
 from repository.persistence.XMLRepository import XMLRepository
 from crypto import Crypto
 
+
 """
   Event used to post callbacks on the UI thread
 """
@@ -248,12 +249,11 @@ class wxApplication (wx.App):
 
         """
           The Twisted Reactor should be started before other Managers
-          and stopped last. Is this true?
-        
+          and stopped last.
         """
-        from osaf.framework.twisted.TwistedReactorManager import TwistedReactorManager
-        Globals.twistedReactorManager = TwistedReactorManager()
-        Globals.twistedReactorManager.startReactor()
+        import osaf.framework.twisted.TwistedReactorManager as TwistedReactorManager 
+        self.__twistedReactorManager = TwistedReactorManager.TwistedReactorManager()
+        self.__twistedReactorManager.startReactor()
 
         """
           Start the notification manager
@@ -434,9 +434,9 @@ class wxApplication (wx.App):
         """
           Main application termination.
         """
-        print "Shutting down..."
+
         Globals.taskManager.stop()
-        Globals.twistedReactorManager.stopReactor()
+        self.__twistedReactorManager.stopReactor()
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
