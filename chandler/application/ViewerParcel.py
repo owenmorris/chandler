@@ -15,7 +15,12 @@ from application.Parcel import Parcel
 from application.Application import app
 
 class ViewerParcel (Parcel):
-    
+    """
+      The ViewerParcel set's up the following data for the parcel's use:
+
+    self.path                      the path to the parcel directory
+    self.resources                 the parcel's resources
+    """
     def Install(theClass):
         """
           The class method that is used to install the parcel Viewer. Check
@@ -44,16 +49,17 @@ class ViewerParcel (Parcel):
     def synchronizeView (self):
         if not app.association.has_key(id(self)):
             module = sys.modules[self.__class__.__module__]
-            basename = os.path.basename (module.__file__)
-            basename = os.path.splitext (basename)[0]
-            path = self.path + os.sep + basename + ".xrc"
+            modulename = os.path.basename (module.__file__)
+            modulename = os.path.splitext (modulename)[0]
+            path = self.path + os.sep + modulename + ".xrc"
             """
-              ViewerParcels must have a resource file named parcel.xrc
+              ViewerParcels must have a resource file with the same name as the
+            module with an .xrc extension
             """
             assert (os.path.exists (path))
-            resources = wxXmlResource(path)
+            self.resources = wxXmlResource(path)
             wxMainFrame = app.association[id(app.model.mainFrame)]
-            panel = resources.LoadObject(wxMainFrame, "CalendarView", "wxPanel")
+            panel = self.resources.LoadObject(wxMainFrame, modulename, "wxPanel")
             app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
             panel.model = self
             panel.OnInit ()
