@@ -89,12 +89,12 @@ class AgentManager:
  
         parser.setContentHandler(handler)
         
-        #try:
-        parser.parse(filePath)
-        item = handler.agentItem      
-        #except:
-            #print "failed to load agent", filePath
-            #item = None
+        try:
+            parser.parse(filePath)
+            item = handler.agentItem      
+        except:
+            print "failed to load agent", filePath
+            item = None
             
         return item
     
@@ -289,7 +289,13 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
                                 
     def endElement(self, name):
         if name == 'attribute':
-            self.currentItem.setAttributeValue(self.attributeName, self.buffer)
+            value = self.buffer
+            if value == 'True':
+                value = True
+            elif value == 'False':
+                value = False
+                
+            self.currentItem.setAttributeValue(self.attributeName, value)
         elif name == 'agent':
             self.agentItem.setAttributeValue('sourceFile', self.filePath)
             

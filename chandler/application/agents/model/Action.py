@@ -6,6 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os
 import os.path
 
+from wxPython.wx import *
+
 
 from model.item.Item import Item
 
@@ -49,6 +51,18 @@ class Action(Item):
             return self.wxThreadFlag
         
         return False
+
+    def NeedsConfirmation(self):
+        """
+          if the confirmFlag is True, we require that the user confirms the action
+        """
+        if self.hasAttributeValue('confirmFlag'):
+            return self.confirmFlag
+        
+        return False
+    
+    def GetName(self):
+        return self.GetItemName()
     
     def Execute(self, agent, data):
         '''
@@ -98,12 +112,34 @@ The DeferredAction class is a simple wrapper for an action that allows an action
 passing any parameters.
 """
 class DeferredAction:
-    def __init__(self, action, agent, actionData):
+    def __init__(self, action, agent, needConfirm, actionData):
         self.action = action
         self.agent = agent
+        self.needConfirm = needConfirm
         self.actionData = actionData
-        
+    
+    def _GetPermissionMessage(self):
+        if self.action.hasAttributeValue('actionPermissionRequest'):
+            message = self.action.actionPermissionRequest
+        else:
+            message = _('Agent [agentname] needs your permission.  Do you grant it?')
+           
+        message = message.replace('[agentname]', self.agent.GetName())
+        return message
+    
     def Execute(self):
+        if self.needConfirm:
+            application = self.agent.agentManager.application
+            message = self._GetPermissionMessage()
+            confirmDialog = wxMessageDialog(application.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+                        
+            result = confirmDialog.ShowModal()
+            confirmDialog.Destroy()
+       
+            if result != wxID_YES:
+                return False
+            
+             
         result = self.action.Execute(self.agent, self.actionData)
         
         

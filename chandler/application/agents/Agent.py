@@ -122,11 +122,12 @@ class Agent:
             if action.IsAsynchronous():
                 self.MakeTask(action, actionData)
             else:
-                if action.UseWxThread():
-                    actionProxy = DeferredAction(action, self, actionData)
+                confirmFlag = action.NeedsConfirmation()
+                if action.UseWxThread() or confirmFlag:
+                    actionProxy = DeferredAction(action, self, confirmFlag, actionData)
                     self.agentManager.application.deferredActions.append(actionProxy)
                     
-                     # call wxWakeUpIdle to give a chance for idle handlers to process the deferred action
+                    # call wxWakeUpIdle to give a chance for idle handlers to process the deferred action
                     wxWakeUpIdle()
                     
                 else:

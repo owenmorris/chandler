@@ -49,7 +49,7 @@
     <cardinality>single</cardinality>
   </Attribute>
 
-    <Attribute itemName="agents:actionFilePath">
+  <Attribute itemName="agents:actionFilePath">
     <displayName>Action Script</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
@@ -61,12 +61,24 @@
     <cardinality>single</cardinality>
   </Attribute>
 
-   <Attribute itemName="agents:wxThreadFlag">
+  <Attribute itemName="agents:wxThreadFlag">
     <displayName>Asynchronous Flag</displayName>
     <type itemref="types:Boolean"/>
     <cardinality>single</cardinality>
   </Attribute>
-   
+    
+  <Attribute itemName="agents:confirmFlag">
+    <displayName>Request Confirmation Flag</displayName>
+    <type itemref="types:Boolean"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="agents:actionPermissionRequest">
+    <displayName>Action Script</displayName>
+    <type itemref="types:String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
   <Attribute itemName="agents:actionOwner">
     <displayName>Action Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
@@ -90,8 +102,10 @@
       <attributes itemref="agents:actionScript"/>
       <attributes itemref="agents:actionValue"/>
       <attributes itemref="agents:actionFilePath"/>     
+      <attributes itemref="agents:actionPermissionRequest"/>     
       <attributes itemref="agents:asyncFlag"/>
       <attributes itemref="agents:wxThreadFlag"/>
+      <attributes itemref="agents:confirmFlag"/>
       <attributes itemref="agents:actionOwner"/>
       <attributes itemref="agents:actionRepertoireOwner"/>
       <classes key="python">application.agents.model.Action.Action</classes>
