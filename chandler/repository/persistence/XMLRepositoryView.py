@@ -66,10 +66,14 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def queryItems(self, query, load=True):
 
         store = self.repository.store
-        docs = store.queryItems(self.version, query)
+        items = []
+        
+        for doc in store.queryItems(self.version, query):
+            uuid = store.getDocUUID(doc)
+            if not uuid in self._deletedRegistry:
+                items.append(self.find(uuid, load=load and doc))
 
-        return [self.find(store.getDocUUID(doc),
-                          load=load and doc) for doc in docs]
+        return items
 
 
 class XMLRepositoryLocalView(XMLRepositoryView):

@@ -262,7 +262,7 @@ class RepositoryView(object):
                 except KeyError:
                     if load is True:
                         return self._loadItem(spec)
-                    elif load:
+                    elif load and not spec in self._deletedRegistry:
                         return self._loadDoc(load)
 
         elif isinstance(spec, str) or isinstance(spec, unicode):
