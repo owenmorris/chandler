@@ -73,6 +73,7 @@ class AgentManager:
     def UnInstall(self, filePath):
         """
            uninstall the agent referenced by the passed-in path
+           FIXME: this isn't implemented yet
         """
         if self.IsInstalled(filePath):
             pass
@@ -80,26 +81,26 @@ class AgentManager:
     def AddAgentFromFile(self, filePath):
         """
            Create an agent item in the repository from the passed-in xml file,
-           and then load it
+           and then load it.
         """
         parser = xml.sax.make_parser()
         handler = AgentXMLFileHandler(self, filePath)
  
         parser.setContentHandler(handler)
         
-        #try:
-        parser.parse(filePath)
-        item = handler.agentItem
-           
-        #except:
-            #print "failed to load agent", filePath
-            #item = None
+        try:
+            parser.parse(filePath)
+            item = handler.agentItem      
+        except:
+            print "failed to load agent", filePath
+            item = None
             
         return item
     
     def AgentMatches(self, agent, name, role, owner):
         """ 
-          return True if the passed-in agents matches the passed-in criteria
+          return True if the passed-in agent matches the passed-in criteria
+          FIXME: this isn't implemented yet
         """
         return True
     
@@ -222,10 +223,7 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             conditionName = self._GetOptionalAttribute('name', attributes)
             conditionFactory = ConditionFactory(repository)
             self.currentItem = conditionFactory.NewItem(conditionName)
-            
-            if conditionName != None:
-                self.currentItem.setAttributeValue('actionName', conditionName)
-            
+                        
             self.lastInstruction.SetCondition(self.currentItem) 
             
         elif name == 'action':

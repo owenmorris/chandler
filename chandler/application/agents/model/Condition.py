@@ -3,8 +3,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
-from Action import Action
+import re
+from model.item.Item import Item
 
 """
 The Condition Class is a persistent object that's a kind of action.  Conditions are periodically evaluated,
@@ -20,7 +20,7 @@ class ConditionFactory:
         item = Condition(name, self._container, self._kind)                            
         return item
 
-class Condition(Action):
+class Condition(Item):
 
     def __init__(self, name, parent, kind, **_kwds):
         super(Condition, self).__init__(name, parent, kind, **_kwds)
@@ -29,12 +29,10 @@ class Condition(Action):
         """
           return a list of notifications used by this condition
         """
-        resultList = []
-        if self.conditionType == 'notification':
-            try:
-                resultList = self.conditionNotification.split(',')  
-            except AttributeError:
-                resultList = []
+        try:
+            resultList = self.conditionNotification.split(',')  
+        except AttributeError:
+            resultList = []
                 
         return resultList
          
@@ -43,20 +41,39 @@ class Condition(Action):
            this is the key routine that evaluates a condition based on it's type,
            returning True if the condition is satisifed
            For now, we only handle notification type conditions, but that will change soon
-        """        
-        notificationData = None
-        
-        if self.conditionType == 'notification':
-            # we know that the condition fired, but check to make sure it's in our list
-            # as a redundancy check
-            notificationList = self.GetNotifications()
+        """                
+        # we know that the condition fired, but check to make sure it's in our list
+        # as a redundancy check
+        notificationList = self.GetNotifications()
    
+        try:
+            index = notificationList.index(notification.GetName())
+        except ValueError:
+            return False
+        
+        # if there's no filter mode, we're done, so return True
+        if not self.hasAttributeValue('conditionFilterMode'):
+            return True
+        
+        compareMode = self.conditionFilterMode
+        if compareMode == 'none':
+            return True
+         
+        attributeValue = str(notification.data[self.conditionAttribute])
+        conditionValue = str(self.conditionValue)
+                
+        if compareMode == 'equals':
+            return attributeValue == conditionValue
+        
+        if compareMode == 'contains':
+            return attributeValue.find(conditionValue) >= 0
+        
+        if compareMode == 'matches': 
             try:
-                index = notificationList.index(notification.GetName())
-                return True
-            except ValueError:
-                pass
-                    
+                result = re.match(conditionValue, attributeValue)
+                return result != None
+            except:
+               return False               
+        
         return False
-    
     

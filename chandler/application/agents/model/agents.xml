@@ -82,16 +82,29 @@
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
   </Attribute>
-  
-  <Attribute itemName="agents:conditionMinimum">
-    <displayName>Minimum Value</displayName>
-    <type itemref="types:Integer"/>
+   
+   <Attribute itemName="agents:conditionDescription">
+    <displayName>Condition Description</displayName>
+    <type itemref="types:String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <!-- the following should be an enum, but for now it's a string-->
+  <Attribute itemName="agents:conditionFilterMode">
+    <displayName>Filter comparison mode</displayName>
+    <type itemref="types:String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+ 
+  <Attribute itemName="agents:conditionValue">
+    <displayName>Value for filtering</displayName>
+    <type itemref="types:String"/>
     <cardinality>single</cardinality>
   </Attribute>
   
-  <Attribute itemName="agents:conditionMaximum">
-    <displayName>Maximum Value</displayName>
-    <type itemref="types:Integer"/>
+  <Attribute itemName="agents:conditionAttribute">
+    <displayName>Attribute of data to compare with</displayName>
+    <type itemref="types:String"/>
     <cardinality>single</cardinality>
   </Attribute>
   
@@ -111,13 +124,14 @@
   <!-- Condition Item Definition -->
   
   <Kind itemName="agents:Condition">
-    <displayName>Action</displayName>
+    <displayName>Condition</displayName>
     <attributes itemref="agents:conditionType"/>
-    <attributes itemref="agents:conditionMinimum"/>
-    <attributes itemref="agents:conditionMaximum"/>
+    <attributes itemref="agents:conditionDescription"/>
+    <attributes itemref="agents:conditionFilterMode"/>
+    <attributes itemref="agents:conditionValue"/>
+    <attributes itemref="agents:conditionAttribute"/>    
     <attributes itemref="agents:conditionNotification"/>
     <attributes itemref="agents:conditionOwner"/>
-    <superKinds itemref="agents:Action"/>
     <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
   
@@ -161,7 +175,7 @@
   
   <!-- Attributes used in Repertoire -->
   <Attribute itemName="agents:possibleActions">
-    <displayName>POssible Actions</displayName>
+    <displayName>Possible Actions</displayName>
     <type itemref="agents:Action"/>
     <cardinality>list</cardinality>
   </Attribute>

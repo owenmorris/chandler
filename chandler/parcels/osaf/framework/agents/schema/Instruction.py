@@ -27,7 +27,10 @@ class Instruction(Item):
     
     def IsEnabled(self):
         return self.enabled
-    
+
+    def SetEnabled(self, enableFlag):
+        self.enabled = enableFlag
+        
     def SetCondition(self, newCondition):
         self.condition = newCondition
     
@@ -53,7 +56,7 @@ class Instruction(Item):
     
     def GetNewActions(self, notification):
         """
-          key routine to evaluate an instructions condition, and return
+          evaluate an instruction's condition, and return
           a list of actions to be executed if the condition is satisfied
         """
         actionsToLaunch = []
