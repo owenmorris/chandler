@@ -1,0 +1,5 @@
+rijndael-*
+*.py *.pyc *.pyo
+rijndael_wrap.cxx
+debug release
+*.gz
