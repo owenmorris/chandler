@@ -12,6 +12,7 @@
         <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
         <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>
         <ref name="OtherName" type="path">//Schema/Model/Attributes/OtherName</ref>
+        <ref name="DisplayName" type="path">//Schema/Model/Attributes/DisplayName</ref>
         <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
     </ref>
     <attribute name="Class" type="class">model.schema.AttrDef.AttrDef</attribute>

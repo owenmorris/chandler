@@ -6,4 +6,5 @@
 
     <ref name="Type" type="path">//Schema/Model/Types/Class</ref>
     <attribute name="Cardinality">single</attribute>
+    <attribute name="Default">model.schema.item.Item</attribute>
 </item>
