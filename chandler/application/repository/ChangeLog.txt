@@ -1,0 +1,3 @@
+2003-04-13 Katie Capps Parlante <capps@osafoundation.org>
+
+   * First pass at the new data model, created this change log.
