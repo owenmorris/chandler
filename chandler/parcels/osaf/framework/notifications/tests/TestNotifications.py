@@ -20,7 +20,7 @@ def MakeEvent():
     return event
 
 
-def repositoryCallback(uuid, notification, reason):
+def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'ItemChanged':
         eventPath = '//parcels/OSAF/framework/item_' + reason
     elif notification == 'CollectionChanged':
