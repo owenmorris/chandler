@@ -1,6 +1,12 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
+    * Addition of swig to our build environment
+    * Begin addition of openssl/m2crypto libs]
+    * Many chandler improvements
+    * Additional changes to follow
+
 
 Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
    * Added Principal kind and type
