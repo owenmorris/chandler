@@ -39,7 +39,7 @@ class Query(Item.Item):
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
 
-    def onItemLoad(self, view):
+    def _warm_init(self):
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
         try:
@@ -52,6 +52,12 @@ class Query(Item.Item):
         except AttributeError:
             self._queryStringIsStale = True
             self.stale = True
+
+    def onItemLoad(self, view):
+        self._warm_init()
+
+    def onItemCopy(self, original):
+        self.warm_init()
 
     def getQueryString(self):
         return self._queryString
