@@ -26,7 +26,7 @@
 		<h2>
 			<a>
 				<xsl:attribute name="href">
-					<xsl:text>Detail.html#</xsl:text>
+					<xsl:text>Kinds.html#</xsl:text>
 					<!-- Link to the relevant anchor by removing spaces in the displayName -->
 					<xsl:value-of select="@itemName"/>
 				</xsl:attribute>
@@ -38,7 +38,7 @@
 				<li>
 					<a>
 						<xsl:attribute name="href">
-							<xsl:text>Detail.html#</xsl:text>
+							<xsl:text>Kinds.html#</xsl:text>
 							<xsl:value-of select="../@itemName"/>
 							<xsl:text>_</xsl:text>
 							<xsl:value-of select="substring-after(@itemref, ':')"/>
