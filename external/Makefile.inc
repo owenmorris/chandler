@@ -119,7 +119,7 @@ ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
             echo GCJ_HOME is incorrect; \
             echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1-3.4.1; \
             false; \
         else \
             $(GCJ_HOME)/bin/gcj.exe --v; \
@@ -154,17 +154,19 @@ COMPILERS=http://downloads.osafoundation.org/compilers
 
 ifeq ($(OS),Cygwin)
 
-compiler=$(BUILD_ROOT)/mingw-3.1
+MINGW_VERSION=3.1-3.4.1
 
-$(compiler): $(BUILD_ROOT)/mingw-3.1.zip
-	cd $(BUILD_ROOT); \
-	unzip mingw-3.1.zip
+compiler=$(BUILD_ROOT)/mingw-$(MINGW_VERSION)
 
-$(BUILD_ROOT)/mingw-3.1.zip:
+$(compiler): $(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz
 	cd $(BUILD_ROOT); \
-	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip
-	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip.md5
-	$(MD5CHECK) mingw-3.1.zip.md5
+	tar -xvzf mingw-$(MINGW_VERSION).tar.gz
+
+$(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz:
+	cd $(BUILD_ROOT); \
+	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz
+	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz.md5
+	$(MD5CHECK) mingw-3.1.$(MINGW_VERSION).md5
 
 endif
 
