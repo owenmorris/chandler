@@ -5,8 +5,9 @@
 <H1>Welcome to Chandler Release 0.2!</H1>
 Welcome to the 0.2 release of Chandler!
 
-This release incorporates many improvements to Chandler's fundamental 
-architecture.
+The .2 release focuses on underlying infrastructure and is not useful for 
+ordinary users.  There has been little if any work on the user interface 
+since the previous release.
 <P>
 <UL>
 <LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerRepository">Repository</A></B>: We have converted most of Chandler code to use our
@@ -19,12 +20,9 @@ changes, so
 <LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/DataModel">Data Model</A></B>: Chandler now incorporates a very flexible 
 data model that allows a full spectrum of data representations, from loosely
 structured to highly structured. 
-<LI><B><A HREF="http://wiki.osafoundation.org/bin/view/Main/NotificationModel">Notification Manager</A></B>: The Notification Manager provides a richer 
-framework for what are usually called "events."  (We use "Events" for "Calendar
-Events", hence the different name.)
+<LI><B><A HREF="http://wiki.osafoundation.org/bin/view/Main/NotificationModel">Notification Manager</A></B>: The notification manager provides a publish and subscribe mechanism for various parts of Chandler to communicate high level events.
 <LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/AgentFrameworkPoint2Status">Agent 
-Framework</A></B>: The underlying framework for Agents is in place,
-with three example agents.
+Framework</A></B>: The Agent Framework is partially implemented in the .2 release.  The underlying machinery for defining agents that automatically respond to conditions as they arise is present, but there's no user interface yet.  There are two test agents that don't do much yet.
 <LI> <B><A HREF="http://wiki.osafoundation.org/bin/view/Main/ChandlerPresentationAndInteractionArchitecture">Chandler Presentation and Interaction Architecture</A></B>: The 
 rudimentary beginnings of a novel presentation and interaction framework 
 are now in Chandler.  See the Document parcel for an example.
