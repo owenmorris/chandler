@@ -190,11 +190,15 @@
     <superKinds itemref="cm:ContentItem"/>
     <classes key="python">osaf.contentmodel.Notes.Note</classes>
 
-    <!-- redirections -->
+    <!-- temporarily make this a real attribute instead of a redirection,
+         because we want don't want to redirect this anywhere -->
     <Attribute itsName="who">
-      <redirectTo>creator</redirectTo>
+        <cardinality value="single"/>
+        <type itemref="String"/>
+        <initialValue value=""/>
     </Attribute>
 
+    <!-- redirections -->
     <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
     </Attribute>
