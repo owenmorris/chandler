@@ -1,5 +1,5 @@
 --- PyLucene-0.5/Makefile	Thu Jul  1 10:03:18 2004
-+++ PyLucene-0.5-patched/Makefile	Tue Jul 13 03:30:33 2004
++++ PyLucene-0.5-patched/Makefile	Tue Jul 13 10:49:02 2004
 @@ -86,6 +86,10 @@
  OS=Cygwin
  endif
@@ -11,16 +11,22 @@
  ifeq ($(DEBUG),1)
  COMP_OPT=DEBUG=1
  SUFFIX=d
-@@ -133,7 +137,7 @@
+@@ -133,11 +137,13 @@
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
 -CCFLAGS=-O -g 
-+CCFLAGS=-O -g -DPy_TRACE_REFS
++CCFLAGS=-O -g
++PYDBG=-DPy_TRACE_REFS
  LDFLAGS=-g
  else
  CCFLAGS=-O2
-@@ -200,7 +204,7 @@
+ LDFLAGS=
++PYDBG=
+ endif
+ else
+ 
+@@ -200,7 +206,7 @@
  else
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
  DB_CONST=$(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java
