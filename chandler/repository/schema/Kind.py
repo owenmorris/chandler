@@ -421,12 +421,17 @@ class MixinKind(Kind):
                 superClasses.append(c)
                 duplicates[c.__name__] = c
 
-            if len(superClasses) == 1:
-                c = superClasses[0]
-            else:
-                c = classobj(self._name, tuple(superClasses), {})
-                
-        self.classes = { 'python': c }
-        self._values._setFlag('classes', self._values.TRANSIENT)
+        count = len(superClasses)
+
+        if count == 0:
+            c = None
+        elif count == 1:
+            c = superClasses[0]
+        else:
+            c = classobj(self._name, tuple(superClasses), {})
+
+        if c is not None:
+            self.classes = { 'python': c }
+            self._values._setFlag('classes', self._values.TRANSIENT)
 
         return c

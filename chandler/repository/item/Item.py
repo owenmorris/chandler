@@ -1534,7 +1534,7 @@ class Item(object):
         performed on other items of this item's kind, they get assigned the
         same resulting kind as this item after this call completes.
 
-        The class of the item is set to the kind's item class which maybe a
+        The class of the item is set to the kind's item class which may be a
         combination of the item classes of the kinds making up the mixin kind.
 
         The *kinds arguments passed in are tuples as follows:
@@ -1579,13 +1579,12 @@ class Item(object):
         count = len(superKinds)
         kind = self._kind
         
-        if count == 0 and (kind is None or
-                           kind is not None and kind.isMixin()):
+        if count == 0 and (kind is None or kind.isMixin()):
             kind = None
         elif count == 1 and kind is not None and kind.isMixin():
             kind = superKinds[0]
         else:
-            if kind is None:
+            if kind is None or kind.isMixin():
                 kind = superKinds.pop(0)
             kind = kind.mixin(superKinds)
 
