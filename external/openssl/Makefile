@@ -10,14 +10,24 @@ BUILD=build_$(SNAP)
 
 .PHONY: openssl
 
+ifeq ($(OS),Cygwin)
+BINFILE=openssl.exe
+else
+BINFILE=openssl
+endif
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(SRC)/openssl-$(SNAP)-$(RELVER).tar.gz \
                    $(SNAP)/openssl.cnf \
                    $(SNAP)/bin/c_rehash \
-                   $(SNAP)/bin/openssl \
-                   $(SNAP)/include/openssl \
+                   $(SNAP)/bin/$(BINFILE) \
+                   $(SNAP)/include/ \
+                   $(SNAP)/lib/libcrypto.a \
+                   $(SNAP)/lib/libssl.a  \
+                   $(SNAP)/lib/pkgconfig/openssl.pc \
                    $(SNAP)/misc \
+                   $(SNAP)/private \
                    $(SNAP)/certs
 
 upload: openssl-$(SNAP)-$(RELVER).tar.gz
@@ -35,10 +45,10 @@ expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
 	rm -f openssl-$(VERSION)/Makefile
 
-apply: $(SRC)/Makefile.ssl patches
+apply: expand patches
 	patch -Nup0 < patches; echo ok
 
 clean:
-	cd $(SRC); make clean; rm -f Makefile
+	rm -rf $(SRC)
 
 build: apply openssl
