@@ -90,11 +90,10 @@ class TestPerfWithRSS(unittest.TestCase):
                 self.rep.logger.error("%s in %s" % (e,feed.url))
 
         try:
-            import hotshot
-            profiler = hotshot.Profile('/tmp/TestPerfWithRss.stressTest.hotshot')
-            profiler.runcall(repository.commit)
-            profiler.close()
-#            repository.commit()
+#            profiler = hotshot.Profile('/tmp/TestPerfWithRss.stressTest.hotshot')
+#            profiler.runcall(repository.commit)
+#            profiler.close()
+            repository.commit()
         except Exception, e:
             print e
             self.rep.logger.error("Final commit:")
@@ -137,9 +136,10 @@ class TestPerfWithRSS(unittest.TestCase):
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         self.rep.open()
         RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
-        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
-        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.kind)
-        profiler.close()
+        self._readItems(RSSItem.kind)
+#        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
+#        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.kind)
+#        profiler.close()
 
     def tearDown(self):
         self.rep.close()
