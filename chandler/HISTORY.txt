@@ -1,6 +1,9 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.18 (CVS tag CHANDLER_0_3_18) 2004-06-15
+    * Details to be provided soon
+
 Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
     * Added Principal kind and type
     * Added ACL and ACE types
