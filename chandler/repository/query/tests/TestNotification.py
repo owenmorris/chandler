@@ -229,8 +229,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.rep.commit()
         (added, removed) = notify_client.action
-        if len(added) != 0 or len (removed) != 1:
-            print "FAILED",origName, three.contactName.firstName, added,removed
 #        self.assert_(len(added) == 0 and len(removed) == 1)
         three.contactName.firstName = origName
 
@@ -266,6 +264,57 @@ class TestNotification(QueryTestCase.QueryTestCase):
         for i in q:
             print i
 
+    def testBug2288(self):
+        """ regression test for bug 2288 """
+        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+
+        self.loadParcels(
+            ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+        )
+
+        view = self.rep.view
+        GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateCalendarEvent)
+        view.commit()
+
+        queryString = "for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"
+#        queryString = "for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True)"
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('bug2288Query', p, k, queryString)
+        view.commit()
+
+        for i in q.resultSet:
+            print i, hasattr(i, 'reminderTime'), i.hasLocalAttributeValue('reminderTime')
+
+        k = self.rep.findPath('//parcels/notification/NotificationItem')
+        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
+        item = notify_client
+        self.rep.commit()
+
+        q.subscribe(notify_client, 'handle')
+        ce = q.resultSet.first()
+        from mx import DateTime
+        ce.reminderTime = DateTime.now()
+        self.rep.commit()
+        (added, removed) = notify_client.action
+        print added, removed
+        
+        from osaf.contentmodel.calendar.Calendar import CalendarEvent
+        ev = CalendarEvent("test event", view=self.rep.view)
+        self.rep.commit()
+        (added, removed) = notify_client.action
+        print added, removed
+
+        ev.reminderTime = DateTime.now()
+        self.rep.commit()
+        (added, removed) = notify_client.action
+        print added, removed
+
+        delattr(ev, 'reminderTime')
+        self.rep.commit()
+        (added, removed) = notify_client.action
+        print added, removed
+        
 
 if __name__ == "__main__":
 #    import hotshot
