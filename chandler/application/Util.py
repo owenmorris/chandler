@@ -30,7 +30,7 @@ def repository(directory, destroy=False):
     from repository.persistence.XMLRepository import XMLRepository
     rep = XMLRepository(directory)
 
-    kwds = { 'create' : True, 'recover' : True, }
+    kwds = { 'create' : True, 'recover' : True, 'refcounted' : True }
     if destroy:
         rep.create(**kwds)
     else:
