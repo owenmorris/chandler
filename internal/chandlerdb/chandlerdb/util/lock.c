@@ -81,10 +81,9 @@ static PyMethodDef methods[] = {
 void initlock(void)
 {
     PyObject *module = Py_InitModule3("lock", methods, "windows file locking");
-    PyObject *dict = PyModule_GetDict(module);
 
-    PyDict_SetItemString(dict, "LOCK_SH", PyInt_FromLong(LOCK_SH));
-    PyDict_SetItemString(dict, "LOCK_EX", PyInt_FromLong(LOCK_EX));
-    PyDict_SetItemString(dict, "LOCK_NB", PyInt_FromLong(LOCK_NB));
-    PyDict_SetItemString(dict, "LOCK_UN", PyInt_FromLong(LOCK_UN));
+    PyModule_AddIntConstant(module, "LOCK_SH", LOCK_SH);
+    PyModule_AddIntConstant(module, "LOCK_EX", LOCK_EX);
+    PyModule_AddIntConstant(module, "LOCK_NB", LOCK_NB);
+    PyModule_AddIntConstant(module, "LOCK_UN", LOCK_UN);
 }
