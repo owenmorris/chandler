@@ -13,6 +13,7 @@ from wxPython.xrc import *
 from application.ParcelV2 import ParcelV2
 from application.Application import app
 from repository.schema.AutoItem import AutoItem
+import application.Globals as Globals
 
 wxEVT_POST_PAINT = wxNewEventType()
 def EVT_POST_PAINT(win, func):
@@ -165,7 +166,7 @@ class ViewerParcel (ParcelV2):
         self.newAttribute ('description', 'The ' + self.displayName + ' parcel')
 
         # register with the notification manager
-        app.model.notificationManager.Register(self.GetClientID())
+        Globals.notificationManager.Register(self.GetClientID())
         
     def SynchronizeView (self):
         """
@@ -229,9 +230,9 @@ class ViewerParcel (ParcelV2):
         
         for notification_name in list:
             if subscribeFlag:
-                app.model.notificationManager.Subscribe(notification_name, clientID)
+                Globals.notificationManager.Subscribe(notification_name, clientID)
             else:
-                 app.model.notificationManager.Unsubscribe(notification_name, clientID)
+                Globals.notificationManager.Unsubscribe(notification_name, clientID)
 
     def GetNotificationList(self):
         """
@@ -591,7 +592,7 @@ class wxViewerParcel(wxPanel):
         """
         # XXX don't do these for now until the notification manager is fixed
         return
-        notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
+        notification = Globals.notificationManager.GetNextNotification(self.model.GetClientID())
         if notification != None:
             self.model.ReceiveNotification(notification)
 

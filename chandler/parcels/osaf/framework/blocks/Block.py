@@ -5,6 +5,8 @@ class Block(Item):
 
     def __init__(self, *arguments, **keywords):
         super (Block, self).__init__ (*arguments, **keywords)
+        self.childrenBlocks = []
+        self.styles = []
  
     def Render(self, data):
         self.RenderOneBlock (data)

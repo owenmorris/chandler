@@ -21,7 +21,7 @@ import thread
 from wxPython.wx import wxWakeUpIdle
 
 from repository.schema.AutoItem import AutoItem
-import application.Application
+import application.Globals as Globals
 
 DuplicateClient = "Duplicate Client"
 SchemaNotFound = "Schema not found"
@@ -456,7 +456,7 @@ class Declarations(AutoItem):
     #associate a subscriber with a declaration
     def AddSubscriber(self, name, clientID):
         try:
-            item = application.Application.app.repository.find (self.subscriptions[name])
+            item = Globals.repository.find (self.subscriptions[name])
             assert (item)
         except KeyError:
             raise SchemaNotFound, name
@@ -471,7 +471,7 @@ class Declarations(AutoItem):
        
     def DeleteDeclaration(self, name, clientID=0):
         try:
-            item = application.Application.app.repository.find (self.subscriptions[name])
+            item = Globals.repository.find (self.subscriptions[name])
             assert (item)
             item.delete()
             del self.subscriptions[name]
@@ -483,7 +483,7 @@ class Declarations(AutoItem):
        
     def DeleteSubscriber(self, name, clientID):
         try:
-            item = application.Application.app.repository.find (self.subscriptions[name])
+            item = Globals.repository.find (self.subscriptions[name])
             assert (item)
             subscriptionList = item.GetSubscriptionList()
             del subscriptionList[subscriptionList.index(clientID)]
@@ -496,7 +496,7 @@ class Declarations(AutoItem):
     # NOTE this ought to throw an error
     def GetDeclarationDescription(self,name):
         try:
-            item = application.Application.app.repository.find (self.subscriptions[name])
+            item = Globals.repository.find (self.subscriptions[name])
             assert (item)
             result = item.GetDescription()
         except KeyError:
@@ -510,7 +510,7 @@ class Declarations(AutoItem):
     #get the list of subscribers associated with a declaration type
     def GetSubscriptionList(self, name):
         try:
-            item = application.Application.app.repository.find (self.subscriptions[name])
+            item = Globals.repository.find (self.subscriptions[name])
             assert (item)
             subscriptionList = item.GetSubscriptionList()
         

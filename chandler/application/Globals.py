@@ -18,11 +18,13 @@ __all__ = [ 'application',
             'wxMainFrame' ]
 
 
-agentManager = None       # The wxApplication object
-application = None        # The wxApplication object
-association = {}          # A dictionary mapping persistent object ids
-                          #    to non-persistent wxPython counterparts
-chandlerDirectory = None  # Directory containing chandler executable
-repository = None         # The repository
-jabberClient = None       # State of jabber client including presence dictionary
-wxMainFrame = None        # Active wxChandlerWindow
+agentManager = None           # AgentManager
+notificationManager = None    # NotificationManager
+application = None            # The wxApplication object
+association = {}              # A dictionary mapping persistent object ids
+                              #    to non-persistent wxPython counterparts
+chandlerDirectory = None      # Directory containing chandler executable
+repository = None             # The repository
+jabberClient = None           # State of jabber client including presence dictionary
+wxMainFrame = None            # Active wxChandlerWindow
+

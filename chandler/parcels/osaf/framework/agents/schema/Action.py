@@ -8,7 +8,7 @@ import os, os.path, time
 from wxPython.wx import *
 
 from repository.item.Item import Item
-import application.Application # for repository
+import application.Globals as Globals # for repository
 
 """
 The Action Class is a persistent object containing information about a
@@ -128,8 +128,7 @@ class DeferredAction:
         return message
 
     def Execute(self, agentID, notification):
-        app = application.Application.app
-        repository = app.repository
+        repository = Globals.repository
 
         repository.commit()
 
@@ -138,7 +137,7 @@ class DeferredAction:
 
         if action.NeedsConfirmation():
             message = self._GetPermissionMessage(action, agent)
-            confirmDialog = wxMessageDialog(app.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+            confirmDialog = wxMessageDialog(Globals.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
 
             result = confirmDialog.ShowModal()
             confirmDialog.Destroy()

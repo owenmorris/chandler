@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import threading, logging
 import Scheduler
-import application.Application # for repository
+import application.Globals as Globals # for repository
 
 class AgentThread(threading.Thread):
     """
@@ -35,12 +35,10 @@ class AgentThread(threading.Thread):
         return result
 
     def run(self):
-        app = application.Application.app
-        repository = app.repository
-
         # XXX
         # it isn't clear why this is needed here, but if it isn't here
         # the repository deadlocks when we try to find()
+        repository = Globals.repository
         repository.commit()
 
         # Get this threads agent item view
@@ -53,7 +51,7 @@ class AgentThread(threading.Thread):
 
         # XXX Set up a scheduler to look for new notifications until the
         #     notification manager can give us callbacks
-        notificationManager = app.model.notificationManager
+        notificationManager = Globals.notificationManager
         self.scheduler.schedule(0.1, True, 0.1, self._CheckForNotifications, notificationManager, agentItem)
 
         # Start the scheduler

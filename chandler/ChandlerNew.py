@@ -21,8 +21,6 @@ def main():
     """
       The details of unhandled exceptions are now handled by the logger,
     and logged to a file: chandler.log
-    
-      Reraising the exception, so wing catches it.
     """
     handler = logging.FileHandler('chandler.log')
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -30,12 +28,12 @@ def main():
     root = logging.getLogger()
     root.addHandler(handler)
 
-    message = "while trying to start."
     try:
         """
           Don't redirect stdio to a file. useBestVisual, uses best screen
         resolutions on some old computers. See wxApp.SetUseBestVisual
         """
+        exceptionMessage = "while trying to start."
         application = wxApplicationNew(redirect=False, useBestVisual=True)
 
         exceptionMessage = "and had to shut down."
@@ -45,11 +43,13 @@ def main():
         application.OnTerminate()
 
     except Exception, e:
-        message = "Chandler encountered an unexpected problem " + message
+        message = "Chandler encountered an unexpected problem %s" % exceptionMessage
         logging.exception(message)
         dialog = wxMessageDialog(None, message, "Chandler", wxOK | wxICON_INFORMATION)
         dialog.ShowModal()
         dialog.Destroy()
+        
+        # Reraising the exception, so wing catches it.
         raise
 
 if __name__=="__main__":

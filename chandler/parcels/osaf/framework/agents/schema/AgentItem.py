@@ -3,7 +3,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from application.Application import app
+import application.Globals as Globals
 from repository.item.Item import Item
 
 """
@@ -14,7 +14,7 @@ and refers to its sister class, AgentItem, for the agent's persistent state
 class AgentItem(Item):
     def __init__(self, *args):
         Item.__init__(self, *args)
-        app.agentManager.Register(self)
+        Globals.agentManager.Register(self)
 
     def GetName(self):
         """ return the name of the agent """

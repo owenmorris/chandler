@@ -7,7 +7,7 @@ from repository.item.Item import Item
 from Action import Action
 import logging
 import time
-import application.Application # for application
+import application.Globals as Globals # for application
 
 class Timer:
     def __init__(self):
@@ -103,7 +103,7 @@ class Instruction(Item):
             elif action.UseWxThread() or action.NeedsConfirmation():
                 actionProxy = DeferredAction(action.getUUID())
 
-                app = application.Application.app
+                app = Globals.app
                 lock = app.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
                 #while lock.locked():
                 #    yield 'wait', 1.0

@@ -7,7 +7,7 @@ from repository.item.Item import Item
 
 from Agent import Agent
 import AgentControl
-import application.Application
+import application.Globals as Globals
 
 """
 The AgentManager Class is responsible for loading agents from the repository and launching them at
@@ -35,7 +35,7 @@ class AgentManager:
         """
            initialize data structures then load the agents
         """
-        self.notificationManager = application.Application.app.model.notificationManager
+        self.notificationManager = Globals.notificationManager
 
         self.agentMap = {}
         self.activeAgents = {}
@@ -44,7 +44,7 @@ class AgentManager:
 
     def Startup(self):
         if not self.model:
-            self.model = findAgentManager(application.Application.app.repository)
+            self.model = findAgentManager(Globals.repository)
 
         self._BuildMap()
         self.StartAll()
@@ -125,7 +125,7 @@ class AgentManager:
             self.notificationManager.Register(agentID)
 
         # subscribe to notifications
-        agentItem = application.Application.app.repository.find(agentID)
+        agentItem = Globals.repository.find(agentID)
         agentItem.SubscribeToNotifications(self.notificationManager)
 
         # hook up the widget
@@ -145,7 +145,7 @@ class AgentManager:
         self.agentMap[agentID].Suspend()
 
         # unsubscribe to notifications
-        agentItem = application.Application.app.repository.find(agentID)
+        agentItem = Globals.repository.find(agentID)
         agentItem.UnsubscribeFromNotifications(self.notificationManager)
 
     def StopAll(self):

@@ -24,6 +24,7 @@ from application.agents.Notifications.NotificationManager import NotificationMan
 from application.agents.Notifications.Notification import Notification
 
 import application.Application
+import application.Globals as Globals
 
 # jabber callbacks
 def messageCallback(connection, messageElement):
@@ -123,19 +124,19 @@ class JabberClient:
     def DeclareNotifications(self):
         # presence subscription request
         description = _("Someone has requested a subscription to your presence.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        Globals.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
 
         # presence changed
         description = _("Someone's presence state has changed.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        Globals.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
 
         # instant message arrived
         description = _("You have received a new instant message.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        Globals.notificationManager.DeclareNotification('chandler/im/message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
         
         # instant message sent
         description = _("You have sent a new instant message.")
-        self.application.model.notificationManager.DeclareNotification('chandler/im/message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        Globals.notificationManager.DeclareNotification('chandler/im/message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
                                                 
     # login to the Jabber server
     def Login(self):
@@ -423,7 +424,7 @@ class JabberClient:
         messageData['subject'] = subject
         
         messageNotification.SetData(messageData)
-        self.application.model.notificationManager.PostNotification(messageNotification)
+        Globals.notificationManager.PostNotification(messageNotification)
 
         if self.rosterParcel != None:
             self.rosterParcel.ReceivedMessage(fromAddress, subject, body)
@@ -556,7 +557,7 @@ class JabberClient:
         data['who'] = who
         data['subscriptionType'] = subscriptionType
         subRequestNotification.SetData(data)
-        self.application.model.notificationManager.PostNotification(subRequestNotification)
+        Globals.notificationManager.PostNotification(subRequestNotification)
        
         # set up a timer to test if the notification was handled, and put up a dialog if it wasn't
 #        timer = SubscriptionRequestTimer(self, subscriptionType, who, subRequestNotification)
@@ -601,7 +602,7 @@ class JabberClient:
         data = {}
         data['who'] = who
         presenceChangedNotification.SetData(data)
-        self.application.model.notificationManager.PostNotification(presenceChangedNotification)
+        Globals.notificationManager.PostNotification(presenceChangedNotification)
         
         # we should eventually get rid of these callbacks and use notifications instead. One
         # issue is the roster parcel needs to receive its notification even when it's not

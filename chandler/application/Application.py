@@ -69,7 +69,6 @@ class Application(AutoItem):
         self.preferences         object containing all application preferences
         self.mainFrame           ChandlerWindow
         self.URLTree             tree of URL's
-        self.notificationManager notification manager
         self.splashCount         how many times the splash screen has been shown
         self.version             used for schema evolution
         """
@@ -77,7 +76,6 @@ class Application(AutoItem):
         self.newAttribute ('preferences', Preferences ())
         self.newAttribute ('mainFrame', ChandlerWindow ())
         self.newAttribute ('URLTree', URLTree ())
-        self.newAttribute ('notificationManager', NotificationManager ())
         self.newAttribute ('version', Application.VERSION)
         self.newAttribute ('splashCount', 0)
 
@@ -285,14 +283,17 @@ class wxApplication (wxApp):
 
         # set the new global repository
         Globals.repository = self.repository
-
+        
         AutoItem.SetRepository (app.repository)  #AutoItem needs to know the repository
         self.model = self.repository.find('//Application')
         if not self.model:
             self.model = Application(name='Application', parent=self.repository)        
 
+        # Create the notification manager
+        Globals.notificationManager = NotificationManager()
+            
         # Create the agent manager.. don't start it until later
-        self.agentManager = AgentManager.AgentManager()
+        Globals.agentManager = AgentManager.AgentManager()
 
         """
           The model persists, so it can't store a reference to self, which
@@ -354,7 +355,7 @@ class wxApplication (wxApp):
         #"""
         #initialize the non-persistent part of the NotificationManager
         #"""
-        self.model.notificationManager.PrepareSubscribers()
+        Globals.notificationManager.PrepareSubscribers()
                 
         """
           allocate the Jabber client, logging in if possible
@@ -365,7 +366,7 @@ class wxApplication (wxApp):
         self.jabberClient.Login()
 
         # start the agent manager
-        self.agentManager.Startup()
+        Globals.agentManager.Startup()
         
         #self.OpenStartingURL()
 
@@ -384,7 +385,7 @@ class wxApplication (wxApp):
         """
           Main application termination.
         """
-        self.agentManager.Shutdown()
+        Globals.agentManager.Shutdown()
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
@@ -420,7 +421,7 @@ class wxApplication (wxApp):
         # FIXME:  This will not fully quit the app if a stdout window has been
         # opened by a print statement.  We should also close that stdout window.
         self.wxMainFrame.Close()
-        self.agentManager.Shutdown()
+        Globals.agentManager.Shutdown()
 
     def OnMainThreadCallbackEvent(self, event):
         """

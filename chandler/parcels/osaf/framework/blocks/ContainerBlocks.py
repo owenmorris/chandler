@@ -5,9 +5,8 @@ from wxPython.wx import *
 class ContainerChild(Block):
     def Render (self, parent, parentWindow):
         (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
-        if self.hasAttributeValue ('childrenBlocks'):
-            for child in self.childrenBlocks:
-                child.RenderOneBlock (parent, parentWindow)
+        for child in self.childrenBlocks:
+            child.RenderOneBlock (parent, parentWindow)
 
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':

@@ -3,7 +3,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Application
+import application.Globals as Globals
 from wxPython.wx import *
 from application.agents.model.Action import Action
 
@@ -40,8 +40,7 @@ class DialogAction(Action):
         message = self._SubstituteAttributes(template, notification.GetData())
         
         if self.NeedsConfirmation():
-            app = application.Application.app
-            confirmDialog = wxMessageDialog(app.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+            confirmDialog = wxMessageDialog(Globals.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
                         
             result = confirmDialog.ShowModal()
             confirmDialog.Destroy()

@@ -7,7 +7,9 @@ import gettext, os, sys
 from wxPython.wx import *
 import Globals, ChandlerJabber
 import repository.schema.LoadParcels as LoadParcels
-from repository.schema.AutoItem import AutoItem
+import repository.schema.AutoItem as AutoItem
+import application.agents.AgentManager as AgentManager
+import application.agents.Notifications.NotificationManager as NotificationManager
 
 
 """
@@ -137,8 +139,14 @@ class wxApplicationNew (wxApp):
                                                      "packs",
                                                      "schema.pack"))
 
+        # AutoItem needs to know the repository
+        AutoItem.AutoItem.SetRepository (Globals.repository) 
+
+        # Create the notification manager.
+        Globals.notificationManager = NotificationManager.NotificationManager()
+
         # Create the agent manager. Don't start it until later
-#        Globals.agentManager = AgentManager.AgentManager()
+        Globals.agentManager = AgentManager.AgentManager()
 
         # Load Parcels
         parcelSearchPath = parcelDir
@@ -153,12 +161,12 @@ class wxApplicationNew (wxApp):
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
         # initialize the non-persistent part of the NotificationManager
-        #self.model.notificationManager.PrepareSubscribers()
+        Globals.notificationManager.PrepareSubscribers()
                 
         #allocate the Jabber client, logging in if possible
-        Globals.jabberClient = ChandlerJabber.JabberClient(self)
+        # Globals.jabberClient = ChandlerJabber.JabberClient(self)
         
-        Globals.jabberClient.Login()
+        # Globals.jabberClient.Login()
 
         # start the agent manager
         Globals.agentManager.Startup()

@@ -19,9 +19,6 @@
 
 
   <StaticText itemName="StaticText1">
-    <!-- <parentBlock></parentBlock> -->
-    <!-- <childrenBlocks></childrenBlocks> -->
-    <!-- <styles></styles> -->
     <open>True</open>
 
     <size>100,20</size>
@@ -33,9 +30,6 @@
 
 
   <StaticText itemName="StaticText2">
-    <!-- <parentBlock></parentBlock> -->
-    <!-- <childrenBlocks></childrenBlocks> -->
-    <!-- <styles></styles> -->
     <open>True</open>
 
     <size>100,20</size>
@@ -47,9 +41,6 @@
 
 
   <StaticText itemName="StaticText3">
-    <!-- <parentBlock></parentBlock> -->
-    <!-- <childrenBlocks></childrenBlocks> -->
-    <!-- <styles></styles> -->
     <open>True</open>
 
     <size>100,20</size>
@@ -62,11 +53,9 @@
 
   <BoxContainer itemName="TopDocument">
     <content-spec itemref="doc:myQuery"/>
-    <!-- <parentBlock></parentBlock> -->
     <childrenBlocks itemref="doc:StaticText1"/>
     <childrenBlocks itemref="doc:StaticText2"/>
     <childrenBlocks itemref="doc:StaticText3"/>
-    <!-- <styles></styles> -->
     <open>True</open>
 
     <size>400,200</size>

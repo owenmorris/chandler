@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os
 
 from wxPython.wx import *
-import application.Application
+import application.Globals as Globals
 import AgentThread
 
 __all__ = ['wxAgentControl']
@@ -19,7 +19,7 @@ class wxAgentControl(wxPyControl):
                              -1, wxDefaultPosition, wxSize(32,32),
                              wxNO_BORDER, wxDefaultValidator, 'wxAgentControl')
 
-        self.agent = application.Application.app.repository.find(agentID)
+        self.agent = Globals.repository.find(agentID)
         self.image = AgentImage()
         self.status = "idle"
 
@@ -65,7 +65,7 @@ class wxAgentControl(wxPyControl):
         return False
 
     def _GetToolBar(self):
-        wxMainFrame = application.Application.app.wxMainFrame
+        wxMainFrame = Globals.wxMainFrame
         return wxMainFrame.navigationBar
 
     def _GetStatus(self):
