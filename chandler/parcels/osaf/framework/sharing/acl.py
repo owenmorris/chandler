@@ -77,13 +77,23 @@ Let's play with the ACE object some more:
 </D:grant>
 </D:ace>
 <BLANKLINE>
->>> allACE._deny = _Deny(())
+>>> allACE.removeDeny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
 >>> print allACE
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
 <D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
+</D:grant>
+</D:ace>
+<BLANKLINE>
+>>> allACE.mapPrefixes({'http://www.xythos.com/namespaces/StorageServer/acl/': 'XA'})
+>>> print allACE
+<D:ace>
+<D:principal><D:all/></D:principal>
+<D:grant>
+<D:privilege><D:read/></D:privilege>
+<D:privilege><XA:write/></D:privilege>
 </D:grant>
 </D:ace>
 <BLANKLINE>
@@ -204,6 +214,9 @@ Let's parse real life XML now:
 </D:acl>
 
 TODO:
+   * BUG: Should be able to have deny and grant rules where local name
+     is the same but namespace differs. Currently we can only have one name
+     (trying to add replaces previous entry).
    * Higher level API:
       - pythonic (raise exceptions on errors, return python objects
         instead of XML etc.)
@@ -241,15 +254,45 @@ class ACE(object):
         self.protected = False
 
     def deny(self, privilege, namespace='DAV:'):
+        """
+        Deny a privilege. In effect this adds a privilege to the deny
+        list.
+        """
         self._deny.add(privilege, namespace)
 
     def grant(self, privilege, namespace='DAV:'):
+        """
+        Grant a privilege. In effect this adds a privilege to the grant
+        list.
+        """
         self._grant.add(privilege, namespace)
 
+    def removeDeny(self, privilege, namespace='DAV:'):
+        """
+        Remove a privilege from the deny list.
+        """
+        self._deny.remove(privilege, namespace)
+
+    def removeGrant(self, privilege, namespace='DAV:'):
+        """
+        Remove a privilege from the grant list.
+        """
+        self._grant.remove(privilege, namespace)
+
     def namespaces(self):
+        """
+        Get the tuple list of namespace prefixes and strings.
+        """
         return self._deny.namespaces() + self._grant.namespaces()
 
     def mapPrefixes(self, map):
+        """
+        Specify namespace prefixes. They are automatically specified,
+        but in some instances it is useful to override the defaults.
+
+        @param map: A dictionary where keys are namespace URIs and values
+                    the corresponding prefixes.
+        """
         self._deny.mapPrefixes(map)
         self._grant.mapPrefixes(map)
 
@@ -276,11 +319,17 @@ class ACL(object):
         self.acl = acl
 
     def add(self, ace):
+        """
+        Add an ACE to the ACL.
+        """
         if ace in self.acl:
             raise ValueError, 'ace already added'
         self.acl += [ace]
 
     def remove(self, ace):
+        """
+        Remove an ACE from the ACL.
+        """
         self.acl.remove(ace)
 
     def __str__(self):
@@ -485,6 +534,9 @@ class _Privileges(object):
             self.nsCounter += 1
             prefix = 'ns-%d' %(self.nsCounter)
         self.privileges[name] = [prefix, namespace]
+
+    def remove(self, name, namespace='DAV:'):
+        self.privileges.pop(name)
 
     def namespaces(self):
         return self.privileges.values()
