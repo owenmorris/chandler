@@ -6,7 +6,7 @@ Environments
 
  - OS X, 10.3.x, dev tools gcc + 3.4 build for gcj
    An archive of gcc 3.4 built for OS X 10.3.x may be downloaded from:
-     http://downloads.osafoundation.org/compilers/osx/gcc-3.4-20040107.tar.bz2 
+     http://downloads.osafoundation.org/compilers/osx/gcc-3.4-20040407.tar.bz2 
    make compilers will download this for you
 
  - Win2k/XP, MSVC 7.1, MinGW 3.1 with gcj 3.3.1, 

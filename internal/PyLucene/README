@@ -46,10 +46,10 @@
   -----------------------
 
   Mac OS X 10.3 development tools do not ship with gcj. A separate version
-  of gcc, with gcj, needs to be built. At the time of this writing, January
-  8th, 2004, the gcc 3.4 snapshot dated 20040107 should be used. It may be
+  of gcc, with gcj, needs to be built. At the time of this writing, April
+  16th, 2004, the gcc 3.4 snapshot dated 20040407 should be used. It may be
   downloaded from a number of gcc download mirrors such as:
-      ftp://mirrors.rcn.net/pub/sourceware/gcc/snapshots/3.4-20040107/gcc-3.4-20040107.tar.bz2
+      ftp://mirrors.rcn.net/pub/sourceware/gcc/snapshots/3.4-20040407/gcc-3.4-20040407.tar.bz2
   For build instructions, please refer to http://gcc.gnu.org or carefully
   follow the simple instructions below. In any case, this separate gcc build
   should not supercede or be installed in your OS X gcc install tree.
@@ -58,6 +58,7 @@
     - mkdir gcc-3.4
     - cd gcc-3.4
     - bunzip2 -c ../gcc-3.4-20040107.tar.bz2 | tar -xvf -
+    add #define LARGE_CONFIG to boehm-gc/include/private/gc_priv.h
     - mkdir build install
     - cd build
     - ../gcc-3.4-20040107/configure --enable-threads=posix --prefix=$CWD/gcc-3.4/install

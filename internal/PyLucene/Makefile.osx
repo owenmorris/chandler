@@ -93,7 +93,7 @@ install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib
 	install $(BINDIR)/libdb_java-4.2.jnilib $(RELDIR)/db/lib
 	install libdb_java-4.2.la.osx $(RELDIR)/db/lib/libdb_java-4.2.la
 	mkdir -p $(RELDIR)/lib
-	install $(GCJ)/lib/libgcj.4.dylib $(RELDIR)/lib
+	install $(GCJ)/lib/libgcj.5.dylib $(RELDIR)/lib
 	install $(GCJ)/lib/libstdc++.6.dylib $(RELDIR)/lib
 	install $(GCJ)/lib/libgcc_s.1.0.dylib $(RELDIR)/lib
 

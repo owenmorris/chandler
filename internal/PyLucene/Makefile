@@ -59,7 +59,7 @@ snap:
                   $(SNAP)/db/lib/libdb_java-4.2.jnilib \
                   $(SNAP)/db/lib/libdb_java-4.2.la \
                   $(SNAP)/lib/libgcc_s.1.0.dylib \
-                  $(SNAP)/lib/libgcj.4.dylib \
+                  $(SNAP)/lib/libgcj.5.dylib \
                   $(SNAP)/lib/libstdc++.6.dylib
 
 else
