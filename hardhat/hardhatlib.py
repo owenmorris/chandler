@@ -895,7 +895,11 @@ def setupEnvironment(buildenv):
     if prevPath:
         pythonpaths.append(prevPath)
 
-    # need to add Chandler and Chandler/parcels to PYTHONPATH
+    # need to add chandler and chandler/parcels to PYTHONPATH
+    pythonpaths.append(os.path.join(buildenv['root'], "chandler"))
+    pythonpaths.append(os.path.join(buildenv['root'], "chandler", "parcels"))
+    # (until we switch over to new build completely, we also need to keep
+    # adding capital-C Chandler to the sys.path:)
     pythonpaths.append(os.path.join(buildenv['root'], "Chandler"))
     pythonpaths.append(os.path.join(buildenv['root'], "Chandler", "parcels"))
     pythonpath = os.pathsep.join(pythonpaths)
