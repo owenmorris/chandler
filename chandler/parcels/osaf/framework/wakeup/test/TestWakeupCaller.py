@@ -62,7 +62,7 @@ class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
         Globals.wakeupCaller.refresh()
 
         #Wait for the WakeupCaller to call the WakeupCallTest 2 times
-        time.sleep(15)
+        time.sleep(60)
 
         wakeupCall.delete()
         Globals.repository.view.commit()
