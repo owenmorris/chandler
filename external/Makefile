@@ -1,5 +1,5 @@
 
-VERSION=0.3-2
+VERSION=0.3-3
 
 include Makefile.inc
 
@@ -27,6 +27,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         persistence/dbxml/dbxml-1.2.1.tar.gz \
         persistence/libxml2/libxml2-2.6.3.tar.gz \
         persistence/libxslt/libxslt-1.1.2.tar.gz \
+        openssl/openssl-0.9.7d.tar.gz \
         pyxml/PyXML-0.8.3.tar.gz \
         egenix-mx/egenix-mx-base-2.1.0.tar.gz \
         jabber-py/jabberpy0.4-0.tar.gz \
