@@ -78,9 +78,12 @@
     <rule itemref="view:mixedQuery"/>
   </contentModel:NamedCollection>
 
+  <contentModel:Query itsName="untitledQuery">
+  </contentModel:Query>
+
   <contentModel:NamedCollection itsName="untitledItemCollection">
     <displayName>Untitled</displayName>
-    <rule itemref="view:mixedQuery"/>
+    <rule itemref="view:untitledQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
@@ -358,9 +361,16 @@
     <columnWidths>170</columnWidths>
   </Table>
 
+  <!-- Untitled Summary -->
+  <BoxContainer itsName="UntitledSummary">
+    <childrenBlocks itemref="view:LayoutSelector7"/>
+    <childrenBlocks itemref="view:UntitledTable"/>
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
   <!-- Untitled Table -->
   <Table itsName="UntitledTable">
-    <contents itemref="view:inItemCollection"/>
+    <contents itemref="view:untitledItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
@@ -470,6 +480,21 @@
     <childrenBlocks itemref="view:MonthViewButton6"/>
     <childrenBlocks itemref="view:WeekViewButton6"/>
     <childrenBlocks itemref="view:DayViewButton6"/>
+    <!-- Attributes -->
+    <colorStyle itemref="detail:GrayBackground3"/>
+    <toolSize>16,16</toolSize>
+    <separatorWidth>100</separatorWidth>
+    <stretchFactor>0.0</stretchFactor>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
+  </Toolbar>
+
+  <!-- LayoutSelector7 -->
+  <Toolbar itemName="LayoutSelector7">
+    <blockName>LayoutSelector7</blockName>
+    <childrenBlocks itemref="view:ListViewButton7"/>
+    <childrenBlocks itemref="view:MonthViewButton7"/>
+    <childrenBlocks itemref="view:WeekViewButton7"/>
+    <childrenBlocks itemref="view:DayViewButton7"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -727,6 +752,54 @@
     <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
+  <ToolbarItem itsName="ListViewButton7">
+    <blockName>ListViewButton7</blockName>
+    <location>LayoutSelector7</location>
+    <dynamicParent itemref="view:LayoutSelector7"/>
+    <title>List View</title>
+    <bitmap>application/images/list.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in list mode</helpString>
+    <event itemref="view:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="MonthViewButton7">
+    <blockName>MonthViewButton7</blockName>
+    <location>LayoutSelector7</location>
+    <dynamicParent itemref="view:LayoutSelector7"/>
+    <title>Month View</title>
+    <bitmap>application/images/month.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in month mode</helpString>
+    <event itemref="view:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="WeekViewButton7">
+    <blockName>WeekViewButton7</blockName>
+    <location>LayoutSelector7</location>
+    <dynamicParent itemref="view:LayoutSelector7"/>
+    <title>Week View</title>
+    <bitmap>application/images/week.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in week mode</helpString>
+    <event itemref="view:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DayViewButton7">
+    <blockName>DayViewButton7</blockName>
+    <location>LayoutSelector7</location>
+    <dynamicParent itemref="view:LayoutSelector7"/>
+    <title>Day View</title>
+    <bitmap>application/images/day.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in day mode</helpString>
+    <event itemref="view:SelectionChanged"/>
+  </ToolbarItem>
+
   <!-- Note View -->
   <SplitterWindow itsName="NoteTableView">
     <contents itemref="view:notesItemCollection"/>
@@ -847,7 +920,7 @@
   <SplitterWindow itsName="UntitledView">
     <contents itemref="view:untitledItemCollection"/>
 
-    <childrenBlocks itemref="view:UntitledTable"/>
+    <childrenBlocks itemref="view:UntitledSummary"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
