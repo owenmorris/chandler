@@ -5,7 +5,7 @@
 #
 
 # these get installed into release or debug
-BIN_ARCHIVES=../$(SNAP)-0.3-14.tar.gz \
+BIN_ARCHIVES=../$(SNAP)-0.3-15.tar.gz \
              ../wxPython-$(SNAP)-2.5-4.tar.gz \
              ../UUIDext-$(SNAP)-0.3-2.tar.gz \
              ../m2crypto-$(SNAP)-0.12-1.tar.gz \
