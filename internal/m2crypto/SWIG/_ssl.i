@@ -1,4 +1,8 @@
 /* Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved. */
+/*
+** Portions created by Open Source Applications Foundation (OSAF) are
+** Copyright (C) 2004 OSAF. All Rights Reserved.
+*/
 /* $Id$ */
 
 %{
@@ -116,6 +120,12 @@
 
 %constant int SSL_SENT_SHUTDOWN	          = 1;
 %constant int SSL_RECEIVED_SHUTDOWN	  = 2;
+
+%constant int SSL_OP_ALL                  = 0x00000FFFL;
+
+%constant int SSL_OP_NO_SSLv2             = 0x01000000L;
+%constant int SSL_OP_NO_SSLv3             = 0x02000000L;
+%constant int SSL_OP_NO_TLSv1             = 0x04000000L;
 
 %inline %{
 static PyObject *_ssl_err;
@@ -237,6 +247,11 @@ void ssl_ctx_set_tmp_rsa_callback(SSL_CTX *ctx,  PyObject *pyfunc) {
 
 int ssl_ctx_load_verify_locations(SSL_CTX *ctx, const char *cafile) {
     return SSL_CTX_load_verify_locations(ctx, cafile, NULL);
+}
+
+/* SSL_CTX_set_options is a macro. */
+long ssl_ctx_set_options(SSL_CTX *ctx, long op) {
+    return SSL_CTX_set_options(ctx, op);
 }
 
 int bio_set_ssl(BIO *bio, SSL *ssl, int flag) {

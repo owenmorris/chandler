@@ -1,6 +1,10 @@
 """M2Crypto.SSL.Context
 
-Copyright (c) 1999-2001 Ng Pheng Siong. All rights reserved."""
+Copyright (c) 1999-2001 Ng Pheng Siong. All rights reserved.
+
+Portions created by Open Source Applications Foundation (OSAF) are
+Copyright (C) 2004 OSAF. All Rights Reserved.
+"""
 
 RCS_id='$Id$'
 
@@ -198,3 +202,6 @@ class Context:
 
     def get_session_cache_mode(self):
         return m2.ssl_ctx_get_session_cache_mode(self.ctx)
+
+    def set_options(self, op):
+        return m2.ssl_ctx_set_options(self.ctx, op)
