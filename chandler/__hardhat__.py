@@ -204,18 +204,15 @@ def _createVersionFile(buildenv):
 
 def generateDocs(buildenv):
 
-    # Generate the content model docs
-    xslDir = os.path.join("distrib","transforms")
-    targetDir = os.path.join("..",buildenv['version'],"docs","model")
-    hardhatlib.copyFile(os.path.join(xslDir,"includes","schema.css"), targetDir)
-    hardhatlib.copyFile(os.path.join("distrib", "docs", "automatic-docs-help.html"), targetDir)
-    hardhatlib.copyFile(os.path.join("distrib", "docs", "repository-intro.html"), targetDir)
-
-    args = [os.path.join(xslDir, "generateDocs.py"), targetDir, xslDir, "."]
+    # Generate the content model docs (configure your webserver to map
+    # /docs/current/model to chandler/docs/model)
+    args = [os.path.join('distrib', 'docgen', 'genmodeldocs.py'), '-u',
+     '/docs/current/model']
     hardhatlib.executeScript(buildenv, args)
 
     # Generate the epydocs
-    targetDir = os.path.join("..",buildenv['version'],"docs","api")
+    targetDir = os.path.join("docs","api")
+    hardhatlib.mkdirs(targetDir)
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
