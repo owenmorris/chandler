@@ -108,14 +108,14 @@ class FileRepository(Repository):
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
-            count += self._saveItems(self.getRoot('Schema'), True)
+            count += self._saveItems(self.getRoot('Schema'))
             contents.write('Schema')
             contents.write('\n')
         
         for root in self._roots.itervalues():
             name = root.getItemName()
             if name != 'Schema':
-                count += self._saveItems(root, not hasSchema)
+                count += self._saveItems(root)
                 contents.write(name)
                 contents.write('\n')
                 
@@ -154,8 +154,7 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        count = commit(root, self, rootContents,
-                       withSchema = withSchema, verbose = self.verbose)
+        count = commit(root, self, rootContents, verbose = self.verbose)
         rootContents.close()
 
         return count
@@ -172,7 +171,7 @@ class FileRepository(Repository):
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
 
         generator.startDocument()
-        item._saveItem(generator, args.get('withSchema', False))
+        item._saveItem(generator)
         generator.endDocument()
 
         out.write('\n')

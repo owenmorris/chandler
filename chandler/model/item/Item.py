@@ -282,6 +282,11 @@ class Item(object):
         return (self.__dict__.has_key('_children') and
                 self._children.has_key(name, load))
 
+    def hasChildren(self):
+
+        return (self.__dict__.has_key('_children') and
+                self._children._firstKey is not None)
+
     def placeChild(self, child, after):
         """Place a child after another one in this item's children collection.
 
@@ -558,10 +563,11 @@ class Item(object):
 
         return False
 
-    def delete(self):
+    def delete(self, recursive=False):
         """Delete this item and disconnect all its item references.
 
-        If this item has children, they are recursively deleted first.
+        If this item has children, they are recursively deleted first if
+        'recursive' is True.
         If this item has references to other items and the references delete
         policy is 'cascade' then these other items are deleted last.
         A deleted item is no longer reachable through the repository or other
@@ -570,12 +576,15 @@ class Item(object):
         if (not (self._status & Item.DELETED) and
             not (self._status & Item.DELETING)):
 
+            if not recursive and self.hasChildren():
+                raise ValueError, 'item %s has children, delete must be recursive' %(self)
+
             self.setDirty()
             self._status |= Item.DELETING
             others = []
-            
+
             for child in self:
-                child.delete()
+                child.delete(True)
 
             self._values.clear()
 
@@ -857,16 +866,19 @@ class Item(object):
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
             generator.startDocument()
-            self._xmlItem(generator, self.getRoot().getItemName() == 'Schema')
+            self._xmlItem(generator,
+                          withSchema = (self._status & Item.SCHEMA) != 0)
             generator.endDocument()
 
             return out.getvalue()
         finally:
             out.close()
 
-    def _saveItem(self, generator, withSchema='False'):
+    def _saveItem(self, generator):
 
-        self._xmlItem(generator, withSchema, 'save')
+        self._xmlItem(generator,
+                      withSchema = (self._status & Item.SCHEMA) != 0,
+                      mode = 'save')
 
     def _xmlItem(self, generator, withSchema=False, mode='serialize'):
 
@@ -986,6 +998,7 @@ class Item(object):
     DELETING  = 0x04
     RAW       = 0x08
     ATTACHING = 0x10
+    SCHEMA    = 0x20
 
 
 class Children(LinkedMap):

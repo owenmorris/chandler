@@ -160,6 +160,9 @@ class ItemHandler(xml.sax.ContentHandler):
                        previous = self.previous, next = self.next,
                        afterLoadHooks = self.afterLoadHooks)
 
+        if self.withSchema or item.getRoot().getItemName() == 'Schema':
+            item._status |= item.SCHEMA
+
         if self.first or self.last:
             item._children = model.item.Item.Children(item)
             item._children._firstKey = self.first
@@ -189,7 +192,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 if self.afterLoadHooks is not None:
                     self.afterLoadHooks.append(self._setKind)
             else:
-                raise ValueError, "Kind %s not found" %(self.kindRef)
+                raise ValueError, "While loading %s, kind %s not found" %(self.name, self.kindRef)
 
     def _setKind(self):
 

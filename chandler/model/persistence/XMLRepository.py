@@ -40,7 +40,7 @@ class XMLRepository(OnDemandRepository):
 
         self._env = None
         self._ctx = XmlQueryContext()
-        self._transaction = {}
+        self._transaction = []
         
     def create(self, verbose=False, notxn=False):
 
@@ -153,8 +153,6 @@ class XMLRepository(OnDemandRepository):
         before = datetime.now()
         count = 0
         
-        hasSchema = self._roots.has_key('Schema')
-
         try:
             if not self._notxn:
                 txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
@@ -163,14 +161,13 @@ class XMLRepository(OnDemandRepository):
             else:
                 txn = None
 
-            if hasSchema:
-                count += self._saveItems(self.getRoot('Schema'),
-                                         self._store, True)
-
-            for root in self._roots.itervalues():
-                name = root.getItemName()
-                if name != 'Schema':
-                    count += self._saveItems(root, self._store, not hasSchema)
+            if self._transaction:
+                count = len(self._transaction)
+                for item in self._transaction:
+                    self._saveItem(item, container = self._store,
+                                   verbose = self.verbose)
+                    item.setDirty(False)
+                del self._transaction[:]
 
         except DBError:
             if txn:
@@ -186,20 +183,6 @@ class XMLRepository(OnDemandRepository):
                 self._refs.txnEnded(self._env, txn)
             after = datetime.now()
             print 'committed %d items in %s' %(count, after - before)
-
-    def _saveItems(self, root, container, withSchema=False):
-
-        log = self._transaction.get(root.getItemName(), [])
-        count = len(log)
-
-        if log:
-            for item in log:
-                self._saveItem(item, container = container,
-                               withSchema = withSchema, verbose = self.verbose)
-                item.setDirty(False)
-            del log[:]
-
-        return count
 
     def _saveItem(self, item, **args):
 
@@ -222,7 +205,7 @@ class XMLRepository(OnDemandRepository):
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
             generator.startDocument()
-            item._saveItem(generator, args.get('withSchema', False))
+            item._saveItem(generator)
             generator.endDocument()
 
             doc = XmlDocument()
@@ -230,16 +213,6 @@ class XMLRepository(OnDemandRepository):
             out.close()
             container.putDocument(doc)
             
-    def removeItem(self, item, **args):
-
-        if args.get('verbose'):
-            print 'Removing', item.getItemPath()
-            
-        container = args['container']
-        oldDoc = container.loadItem(item.getUUID())
-        if oldDoc is not None:
-            container.deleteDocument(oldDoc)
-
     def createRefDict(self, item, name, otherName, persist):
 
         if persist:
@@ -253,12 +226,7 @@ class XMLRepository(OnDemandRepository):
             raise RepositoryError, 'Repository is not open'
 
         if not self.isLoading():
-            name = item.getRoot().getItemName()
-            if self._transaction.has_key(name):
-                self._transaction[name].append(item)
-            else:
-                self._transaction[name] = [ item ]
-
+            self._transaction.append(item)
             return True
         
         return False
