@@ -146,7 +146,7 @@ class TestPerfWithRSS(unittest.TestCase):
         self.rep.delete()
 
 if __name__ == "__main__":
-#    import hotshot
+    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestPerfWithRss.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
