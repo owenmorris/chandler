@@ -70,9 +70,8 @@ model
 locale
 
 
-# Grab the launcher script and linux README
+# Grab the linux README
 src=Chandler/distrib/linux
-Chandler.sh
 README.linux.txt
 
 # Grab the launcher programs
