@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<resource version="2.4.0.0">
+    <object class="wxPanel" subclass="parcels.OSAF.contacts.ContactsView.wxContactsViewer" name="ContactsView">
+    <style>wxNO_FULL_REPAINT_ON_RESIZE</style>	
+    </object>
+
+    <object class="wxMenu" name="ViewerParcelMenu">
+    <label>Contacts</label>
+    <object class="wxMenuItem" name="NewContactMenuItem">
+        <label>Add New Contact...</label>
+        <accel>Ctrl+N</accel>
+    </object>
+    <object class="wxMenuItem" name="DeleteContactMenuItem">
+        <label>Delete Selected Contact</label>
+    </object>
+    <object class="separator" name="Separator"/>
+    <object class="wxMenuItem" name="NewAddressMenuItem">
+        <label>Add Contact Method To Current Contact...</label>
+    </object>
+    <object class="wxMenuItem" name="AttributesMenuItem">
+        <label>Add or Remove Attributes To Current Contact...</label>
+    </object>
+    <object class="wxMenuItem" name="ChangeImageMenuItem">
+        <label>Add or Change Contact Image...</label>
+    </object>
+   <object class="separator" name="Separator"/>
+    <object class="wxMenuItem" name="AddViewMenuItem">
+        <label>Add a New View...</label>
+    </object>
+    <object class="wxMenuItem" name="EditViewMenuItem">
+        <label>Edit Current View...</label>
+    </object>
+    <object class="wxMenuItem" name="DeleteViewMenuItem">
+        <label>Delete Current View</label>
+    </object>
+    <object class="separator" name="Separator"/>
+    <object class="wxMenuItem" name="TemplatesMenuItem">
+        <label>Edit Contact Templates...</label>
+    </object>
+    <object class="separator" name="Separator"/>
+    <object class="wxMenuItem" name="GenerateContacts">
+        <label>Generate 25 Contacts</label>
+    </object>
+
+    </object>
+
+</resource>
+

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<ContactTemplates>
+
+<ContactTemplate type="Friend">
+    <ContactMethod name="Main Email" />
+    <ContactMethod name="Home Phone" />
+    <ContactMethod name="Home Address" />
+    <ContactMethod name="Jabber ID" />
+    <Attribute position="header" name="http://www.osafoundation.org/2003/nickname"/>
+    <Attribute position="header" name="http://www.osafoundation.org/2003/birthday"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/relationship"/>
+    <Group name="Friends"/>
+</ContactTemplate>
+
+<ContactTemplate type="Company">
+    <ContactMethod name="Main Email" />
+    <ContactMethod name="Main Phone" />
+    <ContactMethod name="Main Office Address" />
+    <ContactClass type="Company"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Group name="Companies"/>
+</ContactTemplate>
+
+<ContactTemplate type="Relative">
+    <ContactMethod name="Main Email" />
+    <ContactMethod name="Home Phone" />
+    <ContactMethod name="Home Address" />
+    <ContactMethod name="Jabber ID" />
+    <Attribute position="header" name="http://www.osafoundation.org/2003/gender"/>
+    <Attribute position="header" name="http://www.osafoundation.org/2003/birthday"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/relationship"/>
+    <Group name="Family"/>
+</ContactTemplate>
+
+<ContactTemplate type="Coworker">
+    <ContactMethod name="Work Phone" />
+    <ContactMethod name="Jabber ID" />
+    <Attribute position="header" name="http://www.osafoundation.org/2003/jobTitle"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/relationship"/>
+    <Group name="Coworkers"/>
+</ContactTemplate>
+
+<ContactTemplate type="Business Associate">
+    <ContactMethod name="Main Email" />
+    <ContactMethod name="Work Phone" />
+    <ContactMethod name="Jabber ID" />
+    <Attribute position="header" name="http://www.osafoundation.org/2003/companyName"/>
+    <Attribute position="header" name="http://www.osafoundation.org/2003/jobTitle"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/relationship"/>
+</ContactTemplate>
+
+<ContactTemplate type="Professional">
+    <ContactMethod name="Main Email" />
+    <ContactMethod name="Work Phone" />
+    <ContactMethod name="Website" />
+    <ContactMethod name="Jabber ID" />
+    <Attribute position="header" name="http://www.osafoundation.org/2003/occupation"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/sharing"/>
+    <Attribute position="body" name="http://www.osafoundation.org/2003/relationship"/>
+</ContactTemplate>
+
+</ContactTemplates>

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<Contacts>
+<Contact type="Person">
+	<ContactName first="Andy" last="Hertzfeld"/>
+	<ContactAddress type="phone" location="Home Phone" number="(650) 322-8696"/>
+	<ContactAddress type="postal" location="Home Address" street="329 Lincoln Ave" city="Palo Alto" state="CA" zipcode="94301"/>
+	<ContactAddress type="email" location="Main Email" address="andy@differnet.com"/>
+	<ContactAddress type="jabberID" location="Jabber ID" address="andy@differnet.com"/>
+	<ContactAddress type="phone" location="Cellphone" number="(650) 283-9419" comment="Andy rarely answers calls on his cellphone"/>
+	<ContactAddress type="phone" location = "Home Fax" number="(650) 322-6366" />
+	<ContactAddress type="website" location="Website" address="http://www.differnet.com"/>
+	<Attribute key="photourl" value="http://differnet.com/andy.jpg"/>
+	<Attribute key="company" position="header" value="Open Source Applications Foundation"/>
+	<Attribute key="jobtitle" position="header" value="Software Wizard"/>
+	<Attribute key="relationship" value="Me"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+<Contact type="Person">
+	<ContactName first="Joyce" last="McClure"/>
+	<ContactAddress type="phone" location="Home Phone" number="(650) 322-8696"/>
+	<ContactAddress type="email" location="Main Email" address="joyce@differnet.com"/>
+	<Attribute key="relationship" value="wife"/>
+	<Attribute key="groups" value="Family,Friends"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+<Contact type="Person">
+	<ContactName first="Nick" last="Tanaka"/>
+	<ContactAddress type="phone" location="Home Phone" number="(650) 322-8696"/>
+	<ContactAddress type="email" location="Main Email" address="nick@differnet.com"/>
+	<Attribute key="groups" value="Family"/>
+	<Attribute key="relationship" value="stepson"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+<Contact type="Person">
+	<ContactName first="Bruce" last="Hertzfeld"/>
+	<ContactAddress type="phone" location="Home Phone" number="(610) 649-6188"/>
+	<ContactAddress type="email" location="Main Email" address="bruce@differnet.com"/>
+	<Attribute key="groups" value="Family"/>
+	<Attribute key="relationship" value="brother"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+<Contact type="Person">
+	<ContactName first="Mitch" last="Kapor"/>
+	<ContactAddress type="email" location="Main Email" address="mitch@osafoundation.org"/>
+	<ContactAddress type="website" location="Website" address="http://www.kei.com/homepages/mkapor"/>
+	<Attribute key="photourl" value="http://differnet.com/mitch.64.gif"/>
+	<Attribute key="company" position="header" value="Open Source Applications Foundation"/>
+	<Attribute key="jobtitle" position="header" value="founder"/>
+	<Attribute key="groups" value="Coworkers"/>
+	<Attribute key="relationship" value="Coworker"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+<Contact type="Person">
+	<ContactName first="John" last="Anderson"/>
+	<ContactAddress type="email" location="Main Email" address="john@appmagic.com"/>
+	<ContactAddress type="email" location="Work Email" address="john@osafoundation.org"/>
+	<Attribute key="company" position="header" value="Open Source Applications Foundation"/>
+	<Attribute key="jobtitle" position="header" value="System Architect"/>
+	<Attribute key="groups" value="Coworkers"/>
+	<Attribute key="relationship" value="Coworker"/>
+	<Attribute key="sharing" value="private"/>
+</Contact>
+
+</Contacts>
