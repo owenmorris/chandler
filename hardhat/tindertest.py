@@ -146,27 +146,24 @@ def main():
                 status = "success"
 
                 newDir = os.path.join(outputDir, buildVersion)
-                print "Renaming " + os.path.join(buildDir, "output") + " to " + newDir 
-                log.write("Renaming " + os.path.join(buildDir, "output") + " to " + newDir + "\n")
-                os.rename(os.path.join(buildDir, "output"), newDir)
-#                 log.write("Calling CreateIndex with " + newDir + "\n")
-#                 if os.path.exists(outputDir+os.sep+"index.html"):
-#                     os.remove(outputDir+os.sep+"index.html")
-#                 if os.path.exists(outputDir+os.sep+"time.js"):
-#                     os.remove(outputDir+os.sep+"time.js")
-#                 for x in ["enduser"]:      # was  ["enduser", "developer"]:
-#                     if os.path.exists(outputDir+os.sep+x+".html"):
-#                         os.remove(outputDir+os.sep+x+".html")
-#                 RotateDirectories(outputDir)
-#                 CreateIndex(outputDir, buildVersion, nowString, buildName)
-# 
-#                 buildNameNoSpaces = buildName.replace(" ", "")
-#                 print "Rsyncing..."
-#                 outputList = hardhatutil.executeCommandReturnOutputRetry(
-#                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
-#                  outputDir + os.sep, 
-#                  "192.168.101.46:continuous/" + buildNameNoSpaces])
-#                 hardhatutil.dumpOutputList(outputList, log)
+                if os.path.exists(outputDir+os.sep+"index.html"):
+                    os.remove(outputDir+os.sep+"index.html")
+                if os.path.exists(outputDir+os.sep+"time.js"):
+                    os.remove(outputDir+os.sep+"time.js")
+                print "Calling RotateDirectories"
+                log.write("Calling RotateDirectories\n")
+                RotateDirectories(outputDir)
+                print "Calling CreateIndex with " + newDir
+                log.write("Calling CreateIndex with " + newDir + "\n")
+                CreateIndex(outputDir, buildVersion, nowString, buildName)
+
+                buildNameNoSpaces = buildName.replace(" ", "")
+                print "Rsyncing..."
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+                 outputDir + os.sep, 
+                 "192.168.101.46:continuous/" + buildNameNoSpaces])
+                hardhatutil.dumpOutputList(outputList, log)
 
             elif ret == "build_failed":
                 print "The build failed"
@@ -229,7 +226,9 @@ def RotateDirectories(dir):
     dirs = os.listdir(dir)
     dirs.sort()
     for subdir in dirs[:-3]:
-        hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
+        # print "  subdir = ", subdir
+        if os.path.isdir(subdir):
+            hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
@@ -264,7 +263,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     fileOut = file(outputDir+os.sep+"index.html", "w")
     fileOut.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
     fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
-    for x in ["enduser"]:      # was  ["enduser", "developer"]:
+    for x in ["enduser", "developer"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+x+".html> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
         fileOut2 = file(outputDir+os.sep+x+".html", "w")
