@@ -221,8 +221,12 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-qn", "update", "-d", cvsVintage])
         # hardhatutil.dumpOutputList(outputList, log)
-        (filenameChanged, changesAtAll) = NeedsUpdate(outputList, filename)
-        if changesAtAll:
+        (filenameChangedInMod, changesAtAllInMod) = NeedsUpdate(outputList,
+                                                                filename)
+        if filenameChangedInMod:
+            filenameChanged = True
+        if changesAtAllInMod:
+            changesAtAll = True
             print "" + module + " needs updating"
             # update it
             print "Getting changed sources"
@@ -315,6 +319,8 @@ def NeedsUpdate(outputList, filename):
              empty and there were some changes or the filename was changed.
              The second is true if there were any changes.
     """
+    filenameChanged = False
+    anyfileChanged = False
     for line in outputList:
         if line.lower().find("ide scripts") != -1:
             # this hack is for skipping some Mac-specific files that
@@ -325,14 +331,17 @@ def NeedsUpdate(outputList, filename):
             continue
         if line[0] == "U":
             print "needs update because of", line
-            return ((not filename or line[2:-1] == filename), True)
+            filenameChanged = not filename or line[2:-1] == filename
+            anyfileChanged = True
         if line[0] == "P":
             print "needs update because of", line
-            return ((not filename or line[2:-1] == filename), True)
+            filenameChanged = not filename or line[2:-1] == filename
+            anyfileChanged = True
         if line[0] == "A":
             print "needs update because of", line
-            return ((not filename or line[2:-1] == filename), True)
-    return (False, False)
+            filenameChanged = not filename or line[2:-1] == filename
+            anyfileChanged = True
+    return (filenameChanged, anyfileChanged)
 
 def CopyLog(file, fd):
     input = open(file, "r")
