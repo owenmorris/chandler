@@ -56,7 +56,7 @@ class Release:
                                      'application',
                                      'welcome.html'),
                         r'\?rev=CHANDLER_[a-zA-Z0-9_]+&',
-                        '?rev=CHANDLER_' + self.version + '&')
+                        '?rev=CHANDLER_' + self.cvsVersion + '&')
 
 
     def updatePLists(self):
