@@ -295,13 +295,23 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             words = line.split(' ')
             for word in words:
                 width, height = dc.GetTextExtent(word)
-                if (x + width > rect.x + rect.width):
+
+                # first see if we want to jump to the next line
+                # (careful not to jump if we're already at the beginning of the line)
+                if (x != rect.x and x + width > rect.x + rect.width):
                     y += height
                     x = rect.x
-
-                if ((y + height > rect.y + rect.height) or
-                    (x + width > rect.x + rect.width)):
+                
+                # if we're out of vertical space, just return
+                if (y + height > rect.y + rect.height):
                     return y
+                   
+                # if we wrapped but we still can't fit the word,
+                # just truncate it    
+                if (x == rect.x and width > rect.width):
+                    self.DrawClippedText(dc, word, x, y, rect.width)
+                    y += height
+                    continue
                 
                 dc.DrawText(word, x, y)
                 x += width
@@ -311,6 +321,15 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             y += height
         return y
 
+    def DrawClippedText(self, dc, word, x, y, maxWidth):
+        # keep shortening the word until it fits
+        for i in xrange(len(word), 0, -1):
+            smallWord = word[0:i] + "..."
+            width, height = dc.GetTextExtent(smallWord)
+            if width <= maxWidth:
+                dc.DrawText(smallWord, x, y)
+                return
+        
     def DrawCenteredText(self, dc, text, rect):
         textExtent = dc.GetTextExtent(text)
         middleRect = rect.width / 2
