@@ -407,7 +407,32 @@ class Item(object):
 
     def check(self):
 
+        logger = self.getRepository().logger
         result = True
+
+        def checkValue(name, value, attrType):
+
+            if not attrType.recognizes(value):
+                logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self.getItemPath(), attrType.getItemPath())
+
+                return False
+
+            return True
+
+        for key, value in self._values.iteritems():
+            attrType = self.getAttributeAspect(key, 'type', default=None)
+            if attrType is not None:
+                attrCard = self.getAttributeAspect(key, 'cardinality',
+                                                   default='single')
+                if attrCard == 'single':
+                    result = result and checkValue(key, value, attrType)
+                elif attrCard == 'list':
+                    for v in value:
+                        result = result and checkValue(key, v, attrType)
+                elif attrCard == 'dict':
+                    for v in value.itervalues():
+                        result = result and checkValue(key, v, attrType)
+        
         for key, value in self._references.iteritems():
             result = result and value.check(self, key)
 
