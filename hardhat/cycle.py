@@ -9,6 +9,7 @@ homeDir = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 stopFile = os.path.join(buildDir, "stop")
 defaultDomain = "osafoundation.org"
+defaultRsyncServer = "192.168.101.46"      #  IP of current server
 
 def main():
     
@@ -25,6 +26,9 @@ def main():
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
       default="buildman", help="E-mail to notify on build errors \n"
       " [default] buildman (at) osafoundation.org")
+    parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
+      default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
+      " [default] " + defaultRsyncServer)
     parser.add_option("-s", "--script", action="store", dest="doScript",
       default="tinderbox.py", help="Script to run for the build\n"
       " [default] tinderbox.py")
@@ -91,6 +95,7 @@ def main():
              [os.path.join(curDir, options.doScript), "-o", options.outputDir, 
              "-a", alertAddr, 
              "-t", mailtoAddr,
+             "-r", options.rsyncServer,
              "-p", options.project, args[0] ])
             hardhatutil.dumpOutputList(outputList)
         except:
