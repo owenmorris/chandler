@@ -159,6 +159,13 @@ class wxApplication (wxApp):
         self.outputHandler = StandardOutputHandler("stdout.log")
         sys.stdout = sys.stderr = self.outputHandler
 
+        # Install a custom displayhook to keep Python from setting the global
+        # _ (underscore) to the value of the last evaluated expression.  If 
+        # we don't do this, our mapping of _ to gettext can get overwritten.
+        def _displayHook(obj):
+            sys.stdout.write(str(obj))
+        sys.displayhook = _displayHook
+
         # Tell wxApp not to do redirection
         wxApp.__init__(self, False)
 
