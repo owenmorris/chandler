@@ -91,7 +91,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         for releaseMode in ('release', 'debug'):
             doInstall(releaseMode, workingDir, log)
 
-            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript)
+            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
             
             ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
@@ -117,7 +117,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             log.write("Changes in CVS require making distributions\n")
             changes = "-changes"
             for releaseMode in ('debug', 'release'):
-                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript)
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
         if not makeInstall and not makeDistribution:
             log.write("No changes\n")
@@ -166,7 +166,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
     return "success"  # end of doTests( )
 
 
-def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript):
+def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
     #   Create end-user, developer distributions
     print "Making distribution files for " + releaseMode
     log.write(separator)
