@@ -17,7 +17,6 @@ log = logging.getLogger("repository.query")
 log.setLevel(logging.INFO)
 
 import time
-#import wingdbstub
 
 class Query(Item.Item):
 
@@ -29,7 +28,7 @@ class Query(Item.Item):
         @param queryString: A string containing the query to be processed
         @type queryString: string
         """
-        log.debug("RepoQuery.__init__: ")
+        log.debug(u"RepoQuery.__init__: ")
 
         super(Query, self).__init__(name, parent, kind)
 
@@ -73,11 +72,11 @@ class Query(Item.Item):
         if not self.queryString or self.queryString == "":
             return
 
-        log.debug("RepoQuery.compile(): %s" % self.queryString)
+        log.debug(u"RepoQuery.compile(): %s" % self.queryString)
 
         if self.queryString:
             self.ast = QueryParser.parse('stmt', self.queryString)
-            log.debug("compile: AST = %s" % self.ast)
+            log.debug(u"compile: AST = %s" % self.ast)
             self._logical_plan = self.__analyze(self.ast)
             self._queryStringIsStale = False
             self.stale = True
@@ -97,7 +96,7 @@ class Query(Item.Item):
         """
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
-        log.debug("RepoQuery<>.subscribe(): %s" % (self.queryString))
+        log.debug(u"RepoQuery<>.subscribe(): %s" % (self.queryString))
         self.itsView.addNotificationCallback(self.queryCallback)
         
     def unsubscribe(self, callbackItem=None):
@@ -134,7 +133,7 @@ class Query(Item.Item):
         if self.itsView != view:
             return
         start = time.time()
-        log.debug("RepoQuery.queryCallback for %s" % self.queryString)
+        log.debug(u"RepoQuery.queryCallback for %s" % self.queryString)
 
         # we can commit before we've compiled the query
         #@@@ This should be an error, I think
@@ -152,7 +151,7 @@ class Query(Item.Item):
             i = view.findUUID(uuid)
            #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
-                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
+                log.debug(u"RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
                 flag = self._logical_plan.changed(i)
                 if flag is not None:
                     changed = True
@@ -167,12 +166,12 @@ class Query(Item.Item):
                             removed.append(i.itsUUID)
 
         if changed:
-            log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
+            log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, action))
             for callbackUUID in self._callbacks:
                 item = view.find (callbackUUID)
                 method = getattr (type(item), self._callbacks [callbackUUID])
                 method (item, (added,removed))
-        log.debug("queryCallback: %s:%f" % (self.queryString, time.time()-start))
+        log.debug(u"queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __iter__(self):
         """
@@ -214,7 +213,7 @@ class Query(Item.Item):
         @param ast: A list (tree) containg the AST tree
         @type ast: list
         """                   
-        log.debug("__analyze %s" % ast)
+        log.debug(u"__analyze %s" % ast)
         queryType = ast[0]
         queryArgs = ast[1:]
 
@@ -359,16 +358,16 @@ class ForPlan(LogicalPlan):
             """
             Helper function to construct an infix operator
             """
-            log.debug("infix op: %s %s" % (op, args))
+            log.debug(u"infix op: %s %s" % (op, args))
             return "%s %s %s" % (self.compile_predicate(args[0]), op, self.compile_predicate(args[1]))
 
-        log.debug("compile_predicate: ast=%s, ast[0]=%s" % (ast,ast[0]))
+        log.debug(u"compile_predicate: ast=%s, ast[0]=%s" % (ast,ast[0]))
         # function
         token = ast[0]
         if token == 'fn':
             fn = ast[1]
             args = ast [2:][0]
-            log.debug("%s %s %s" % (token, fn, args))
+            log.debug(u"%s %s %s" % (token, fn, args))
             if fn in unary_fns and len(args) == 1:
                 if fn == 'date':
                     pred = "mx.DateTime.ISO.ParseDateTime(%s)" % self.compile_predicate(args[0])
@@ -461,7 +460,7 @@ class ForPlan(LogicalPlan):
         @param ast: the abstract syntax tree for a query
         @type ast: list
         """
-        log.debug("analyze_for: %s" % ast)
+        log.debug(u"analyze_for: %s" % ast)
         
         self.iter_var = ast[0]
         self.iter_source = ast[1]
@@ -471,13 +470,13 @@ class ForPlan(LogicalPlan):
         predicate = ast[2]
         self.recursive = ast[3]
         
-        log.debug("analyze_for: var = %s, source = %s, predicate = %s" % (self.iter_var, self.iter_source, predicate))
+        log.debug(u"analyze_for: var = %s, source = %s, predicate = %s" % (self.iter_var, self.iter_source, predicate))
         
         self.collection = self.lookup_source(self.iter_source)
         self.closure = self.compile_predicate(predicate) #@@@ duplicate
         self._predicate = self.closure
         
-        log.debug("analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
+        log.debug(u"analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
             
         self.plan= (self.collection, compile(self.closure,'<string>','eval'))
         if len(self.__item.monitorCallbacks) > 0:
@@ -529,7 +528,7 @@ class ForPlan(LogicalPlan):
                     yield i
             except AttributeError, ae:
                 #@@@ log
-                log.debug("AttributeError, %s" % ae)
+                log.debug(u"AttributeError, %s" % ae)
                 pass
 
     def _getSourceIterator(self, source):
@@ -594,11 +593,11 @@ class ForPlan(LogicalPlan):
 
         if rightKind:
             result = eval(self._predicate)
-            log.debug("change(): %s %s %s" % (i, self._predicate, result))
+            log.debug(u"change(): %s %s %s" % (i, self._predicate, result))
         else:
             result = None
 
-        #log.debug("changed: %s, %s" % (i, result))
+        #log.debug(u"changed: %s, %s" % (i, result))
         return result
 
 class UnionPlan(LogicalPlan):
@@ -635,7 +634,7 @@ class UnionPlan(LogicalPlan):
         Execute the query plan for a union statement
         """
         plans = self.__plans
-        log.debug("__execute_union: plan = %s" % plans)
+        log.debug(u"__execute_union: plan = %s" % plans)
         
         #@@@ DANGER - hack for self._sourceKind - fix with notification upgrade
 #        self._sourceKind = None
@@ -701,7 +700,7 @@ class IntersectionPlan(LogicalPlan):
         Execute the query plan for an intersect statement
         """
         plans = self.__plans
-        log.debug("__execute_intersect: plan = %s" % plans)
+        log.debug(u"__execute_intersect: plan = %s" % plans)
         s1 = sets.Set(plans[0].execute())
         s2 = sets.Set(plans[1].execute())
         return s1.intersection(s2)
@@ -759,7 +758,7 @@ class DifferencePlan(LogicalPlan):
         Execute the query plan for a difference statement
         """
         plans = self.__plans
-        log.debug("__execute_difference: plan = %s" % plans)
+        log.debug(u"__execute_difference: plan = %s" % plans)
         s1 = sets.Set(plans[0].execute())
         s2 = sets.Set(plans[1].execute())
         return s1.difference(s2)
