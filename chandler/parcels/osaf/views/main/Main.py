@@ -597,10 +597,6 @@ class MainView(View):
         return Sharing.getWebDavPath() != None
         
 class ReminderTimer(Timer):
-    def __init__(self, *args, **kwds):
-        super(ReminderTimer, self).__init__(*args, **kwds)
-        self.reminderDialog = None
-    
     def synchronizeWidget (self):
         # print "*** Synchronizing ReminderTimer widget!"
         super(ReminderTimer, self).synchronizeWidget()
@@ -624,26 +620,46 @@ class ReminderTimer(Timer):
         # print "*** Got reminders collection changed!"
         pending = self.getPendingReminders()
         closeIt = False
-        if self.reminderDialog is not None:
-            (nextReminderTime, closeIt) = self.reminderDialog.UpdateList(pending)
+        reminderDialog = self.getReminderDialog(False)
+        if reminderDialog is not None:
+            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
         elif len(pending) > 0:
             nextReminderTime = pending[0].reminderTime
         else:
             nextReminderTime = None
         if closeIt:
-            self.reminderDialog.Destroy()
-            self.reminderDialog = None            
+            self.closeReminderDialog();
         self.setFiringTime(nextReminderTime)
     
     def onReminderTimeEvent(self, notification):
         # Run the reminders dialog and re-queue our timer if necessary
         # print "*** Got reminders time event!"
         pending = self.getPendingReminders()
-        if self.reminderDialog is None:
-            self.reminderDialog = ReminderDialog.ReminderDialog(Globals.wxApplication.mainFrame, -1)
-        (nextReminderTime, closeIt) = self.reminderDialog.UpdateList(pending)
+        reminderDialog = self.getReminderDialog(True)
+        assert reminderDialog is not None
+        (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
         if closeIt:
             # print "*** closing the dialog!"
-            self.reminderDialog.Destroy()
-            self.reminderDialog = None            
+            self.closeReminderDialog()
         self.setFiringTime(nextReminderTime)
+
+    def getReminderDialog(self, createIt):
+        try:
+            reminderDialog = self.widget.reminderDialog
+        except AttributeError:
+            if createIt:
+                reminderDialog = ReminderDialog.ReminderDialog(Globals.wxApplication.mainFrame, -1)
+                self.widget.reminderDialog = reminderDialog
+            else:
+                reminderDialog = None
+        return reminderDialog
+
+    def closeReminderDialog(self):
+        try:
+            reminderDialog = self.widget.reminderDialog
+        except AttributeError:
+            pass
+        else:
+            del self.widget.reminderDialog
+            reminderDialog.Destroy()
+
