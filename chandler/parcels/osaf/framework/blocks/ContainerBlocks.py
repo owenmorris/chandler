@@ -1,6 +1,7 @@
 import application.Globals as Globals
 from Block import Block
 from Node import Node
+from repository.util.UUID import UUID
 from wxPython.wx import *
 from wxPython.gizmos import *
 from wxPython.html import *
@@ -566,11 +567,15 @@ class TreeNode:
         self.treeList = treeList
 
     def AddChildNode (self, item, names, hasChildren):
+        try:
+            data = item.getUUID()
+        except AttributeError:
+            data = item
         childNodeId = self.treeList.AppendItem (self.nodeId,
                                                 names.pop(0),
                                                 -1,
                                                 -1,
-                                                wxTreeItemData (item.getUUID()))
+                                                wxTreeItemData (data))
         index = 1
         for name in names:
             self.treeList.SetItemText (childNodeId, name, index)
@@ -579,10 +584,14 @@ class TreeNode:
         self.treeList.SetItemHasChildren (childNodeId, hasChildren)
 
     def AddRootNode (self, item, names, hasChildren):
+        try:
+            data = item.getUUID()
+        except AttributeError:
+            data = item
         rootNodeId = self.treeList.AddRoot (names.pop(0),
                                             -1,
                                             -1,
-                                            wxTreeItemData (item.getUUID()))
+                                            wxTreeItemData (data))
         index = 1
         for name in names:
             SetItemText (rootNodeId, name, index)
@@ -606,9 +615,14 @@ class wxTreeList(wxTreeListCtrl):
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
- 
+
     def GetItemData(self, id):
-        return Globals.repository.find (self.GetPyData (id))
+        data = self.GetPyData (id)
+        try:
+            data = Globals.repository [data]
+        except TypeError:
+            pass
+        return data
 
     def OnExpanding(self, event):
         """
@@ -621,10 +635,8 @@ class wxTreeList(wxTreeListCtrl):
           if the data passed in has a UUID we'll keep track of the
         state of the opened tree
         """
-        try:
+        if isinstance (self.GetPyData(id), UUID):
             counterpart.openedContainers [self.GetPyData(id)] = True
-        except AttributeError:
-            pass
 
     def OnCollapsing(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -698,6 +710,17 @@ class wxTreeList(wxTreeListCtrl):
 
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
         self.GoToPath (counterpart.selection)
+        try:
+            subscription = self.subscriptionUUID
+        except AttributeError:
+            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            self.subscriptionUUID = UUID()
+            Globals.notificationManager.Subscribe (events,
+                                                   self.subscriptionUUID,
+                                                   counterpart.ItemModified)
 
     def GoToPath(self, path):
         treeNode = self.GetRootItem()
@@ -787,6 +810,17 @@ class RepositoryTreeList(TreeList):
         wxTreeListWindow = Globals.association[self.getUUID()]
         path = str (notification.GetData()['item'].getItemPath())
         wxTreeListWindow.GoToPath (path)
+
+    def ItemModified(self, notification):
+        try:
+            parentUUID = notification.data['parent']
+            i = 1
+        except KeyError:
+            item = Globals.repository.find (notification.data['uuid'])
+            parentUUID = item.getItemParent().getUUID()
+        if self.hasKey ('openedContainers', parentUUID):
+            wxTreeListWindow = Globals.association[self.getUUID()]
+            wxTreeListWindow.SynchronizeFramework()
 
 
 class Sidebar(TreeList):

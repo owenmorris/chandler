@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import gettext, os, sys, threading
 from wxPython.wx import *
 import Globals
+from repository.util.UUID import UUID
 import repository.parcel.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
 from repository.persistence.XMLRepository import XMLRepository
@@ -191,11 +192,6 @@ class wxApplication (wxApp):
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
-        """
-          Temporarily disable agents to avoid repository bug that prevents
-        objects from changing in other threads. This allows me to continue
-        working -- DJA
-        """
         Globals.agentManager.Startup()
 
         EVT_MENU(self, -1, self.OnCommand)
@@ -227,17 +223,17 @@ class wxApplication (wxApp):
 
             GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
 
-            events = []
-            for event in GlobalEvents.blockEvents:
-                events.append (event)
-            try:
-                for event in mainView.blockEvents:
-                    events.append (event)
-            except AttributeError:            
-                pass
-            Globals.notificationManager.Subscribe (events,
-                                                   Globals.mainView.getUUID(),
+            Globals.notificationManager.Subscribe (GlobalEvents.blockEvents,
+                                                   UUID(),
                                                    Globals.mainView.dispatchEvent)
+            try:
+                events = mainView.blockEvents
+            except AttributeError:
+                pass
+            else:
+                Globals.notificationManager.Subscribe (events,
+                                                       UUID(),
+                                                       Globals.mainView.dispatchEvent)
 
             # @@@ KCP Hack to register the event
             viewBlock = Globals.repository.find("//parcels/OSAF/views/content/MixedListView")
