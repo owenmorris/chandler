@@ -12,8 +12,8 @@
 # a Source/Source0 entry)
 #
 
-Version: $DISTRIB_VERSION
-Release: $DISTRIB_RELEASE
+Version: %{_dv}
+Release: %{_dr}
 Summary: Chandler - an Open Source Personal Information Manager
 Name: Chandler
 License: GPLv2

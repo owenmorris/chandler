@@ -8,8 +8,8 @@ SPEC_PATH="$1"
 SPEC_FILE="$2"
 DISTRIB_PATH="$3"
 DISTRIB_FILE="$4"
-export DISTRIB_VERSION="$5"
-export DISTRIB_RELEASE="$6"
+DISTRIB_VERSION="$5"
+DISTRIB_RELEASE="$6"
 
 RPM_PATH=$HOME/rpm
 
@@ -23,6 +23,10 @@ if [ -z "$DISTRIB_RELEASE" ]; then
 fi
 
 if [ -d "$RPM_PATH/BUILD" ]; then
+    echo "Clearing RPMS/i386 tree"
+    if [ -d "$RPM_PATH/RPMS/i386" ]; then
+        rm -rf $RPM_PATH/RPMS/i386/*
+    fi
     echo "Preparing build tree"
     if [ -d "$RPM_PATH/BUILD/OSAF" ]; then
         rm -rf $RPM_PATH/BUILD/OSAF
@@ -38,7 +42,7 @@ if [ -d "$RPM_PATH/BUILD" ]; then
     chmod -R a+r $RPM_PATH/BUILD/OSAF/usr/local/chandler/
     cd $SPEC_PATH
     echo "Calling rpm -ba $SPEC_FILE"
-    rpmbuild -ba $SPEC_FILE
+    rpmbuild -ba --define "_dv $DISTRIB_VERSION" --define "_dr $DISTRIB_RELEASE" $SPEC_FILE
     echo "Moving $RPM_PATH/RPMS/i386/Chandler-$DISTRIB_VERSION-$DISTRIB_RELEASE.i386.rpm to $DISTRIB_PATH/$DISTRIB_FILE.i386.rpm"
     mv $RPM_PATH/RPMS/i386/Chandler-$DISTRIB_VERSION-$DISTRIB_RELEASE.i386.rpm $DISTRIB_PATH/$DISTRIB_FILE.i386.rpm
     echo "Clearing build tree"

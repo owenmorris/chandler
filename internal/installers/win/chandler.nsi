@@ -29,14 +29,8 @@
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
-; Language Selection Dialog Settings
-!define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
-!define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
-!define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
-
 ; Wizard pages
 !insertmacro MUI_PAGE_WELCOME
-; !insertmacro MUI_PAGE_LICENSE "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -52,10 +46,6 @@
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
-!insertmacro MUI_LANGUAGE "French"
-!insertmacro MUI_LANGUAGE "German"
-!insertmacro MUI_LANGUAGE "Japanese"
-!insertmacro MUI_LANGUAGE "Spanish"
 
 ; MUI end ------
 
@@ -67,12 +57,6 @@ InstallDir "$PROGRAMFILES\Chandler"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow
-
-  ; show the language selection dialog before any UI pages are displayed
-
-Function .onInit
-  ;!insertmacro MUI_LANGDLL_DISPLAY
-FunctionEnd
 
 Function change_cancel_text
 
@@ -132,7 +116,6 @@ Function un.onUninstSuccess
 FunctionEnd
 
 Function un.onInit
-  ;!insertmacro MUI_UNGETLANGUAGE
   MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
   Abort
 FunctionEnd
