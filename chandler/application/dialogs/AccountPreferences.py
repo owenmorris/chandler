@@ -178,6 +178,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
          id=wx.xrc.XRCID("ACCOUNTS_LIST"))
+        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
     def __PopulateAccountsList(self, account):
         """ Find all AccountBase items and put them in the list; also build
