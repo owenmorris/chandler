@@ -10,8 +10,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, sys
 
-from application.model.InformationItem import InformationItem
-from application.model.RdfRestriction import RdfRestriction
+from application.model_deprecated.InformationItem import InformationItem
+from application.model_deprecated.RdfRestriction import RdfRestriction
 
 class TestEmptyProperties(unittest.TestCase):
     """Set of tests that look at empty properties on an InformationItem"""

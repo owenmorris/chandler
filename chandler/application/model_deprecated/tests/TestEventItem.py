@@ -10,7 +10,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, sys
 
-from application.model.EventItem import EventItem
+from application.model_deprecated.EventItem import EventItem
 
 class TestEmptyProperties(unittest.TestCase):
     """Set of tests that look at empty properties on an Event Item"""
