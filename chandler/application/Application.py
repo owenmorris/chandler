@@ -335,15 +335,20 @@ class wxApplication (wxApp):
         If the event the viewerParcel doesn't handle the event we'll get
         recursively called, so we use InCommand to ignore recursive calls.
         """
+	applicationCommand = true
+
         if not self.InCommand:
             self.InCommand = true
             if hasattr(self.wxMainFrame, 'activeParcel'):
                 activeParcel = self.wxMainFrame.activeParcel
                 if activeParcel != None:
                     activeParcel.GetEventHandler().ProcessEvent(event)
+		    applicationCommand = false
             self.InCommand = false
+
         # This gives a chance for the app to respond to the events as well
-        event.Skip()
+	if applicationCommand:
+	    event.Skip()
 
     # handler for the Show/Hide Presence Window command
     def TogglePresenceWindow(self, event):
