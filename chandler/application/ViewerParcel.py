@@ -589,6 +589,8 @@ class wxViewerParcel(wxPanel):
           we don't need to call RequestMore, since the notification manager will wake
           us up when new events are posted.
         """
+        # XXX don't do these for now until the notification manager is fixed
+        return
         notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
         if notification != None:
             self.model.ReceiveNotification(notification)
