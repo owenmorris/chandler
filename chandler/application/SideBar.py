@@ -67,15 +67,14 @@ class SideBar(Persistent):
                 itemId = wxWindow.AppendItem(parentItem, name)
                 wxWindow.uriDictMap[uri] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                sideBarLevel[name] = URLTreeEntry(parcel, false,
-                                                          itemId, {}, false)
+                sideBarLevel[name] = URLTreeEntry(parcel, false, 
+                                                  {}, false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parentItem, name)
                     wxWindow.uriDictMap[uri] = itemId
-                    sideBarLevel[name].wxId = itemId
                 else:
-                    itemId = sideBarLevel[name].wxId
+                    itemId = wxWindow.uriDictMap[uri]
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarLevel[name].isOpen:
                     self.__UpdateURLTree(sideBarLevel[name].children, 
@@ -86,10 +85,12 @@ class SideBar(Persistent):
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
         for key in sideBarLevel.keys():
+            uriToDelete = parentUri + key
             item = sideBarLevel[key]
             if not item.isMarked:
-          #      del wxWindow.uriDictMap[uri]
-                wxWindow.Delete(item.wxId)
+                itemId = wxWindow.uriDictMap[uriToDelete]
+                wxWindow.Delete(itemId)
+                del wxWindow.uriDictMap[uriToDelete]
                 del sideBarLevel[key]
             else:
                 item.isMarked = false
@@ -117,10 +118,9 @@ class URLTreeEntry:
       URLTreeEntry is just a container class for items inserted into the
     SideBar's URLTree dictionary.
     """
-    def __init__(self, instance, isOpen, wxId, children, isMarked):
+    def __init__(self, instance, isOpen, children, isMarked):
         self.instance = instance
         self.isOpen = isOpen
-        self.wxId = wxId
         self.children = children
         self.isMarked = isMarked        
 
@@ -183,7 +183,7 @@ class wxSideBar(wxTreeCtrl):
         if len(uri) != 0:
             newUri = newUri + '/' + uri
         return self.BuildUriFromItem(self.GetItemParent(item), newUri)
-            
+
     def OnItemExpanding(self, event):
         """
           Whenever a disclosure box is expanded, we mark it as such in the
