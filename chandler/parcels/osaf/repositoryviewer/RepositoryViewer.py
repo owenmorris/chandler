@@ -24,14 +24,40 @@ from application.SplashScreen import SplashScreen
 class RepositoryViewer(ViewerParcel):
     def __init__(self):
         ViewerParcel.__init__(self)
+        self.detailItem = ""
+
+    def GoToURL(self, remoteaddress, url):
+        if remoteaddress != None:
+            print "Odd error. Remote addresses not supported by repository viewer, now what?"
+            return
+
+        try:
+            url = url[url.index("Repository Viewer")+17:]
+        except ValueError:
+            pass
+        url = url.strip()
+        self.SetDetailItem(url)
+
+    def SetDetailItem(self, item):
+        self.SynchronizeView()
+        self.detailItem = str(item)
+        viewer = app.association[id(self)]
+        viewer.UpdateDisplay()
+
+    def GetDetailItem(self):
+        di = self.detailItem
+        if (di == "") or (type(di) != type("")):
+            return None
+        else:
+            an_item = app.repository.getRoots()[0]
+            return an_item.find(di)
+
 
 class wxRepositoryViewerDetail(wxHtmlWindow):
 
     def OnLinkClicked(self, wx_linkinfo):
         uri = wx_linkinfo.GetHref()
-        an_item = app.repository.getRoots()[0]
-        item = an_item.find(uri)
-        self.DisplayItem(item)
+        app.wxMainFrame.GoToURL(uri, true)
 
     def _formatReference(self, ref):
         """ formats the a reference attribute to be clickable, etcetera
@@ -40,7 +66,7 @@ class wxRepositoryViewerDetail(wxHtmlWindow):
         if ref.hasAttributeValue('kind'):
             kind = ref.kind.getItemName()
         else:
-            kind = "(Kind not found)"
+            kind = "(kindless)"
         # Originally I was masking the fallback to itemName here just like in
         # the listview, but that doesn't work for many of the more primitive
         # repository items, so I stopped doing that.
@@ -50,17 +76,21 @@ class wxRepositoryViewerDetail(wxHtmlWindow):
         kind = kind.replace("<", "&lt;").replace(">", "&gt;")
         dn = dn.replace("<", "&lt;").replace(">", "&gt;")
 
-        return "<a href=\"%(url)s\">%(kind)s: %(dn)s</a>" % locals()
+        return "<a href=\"Repository Viewer%(url)s\">%(kind)s: %(dn)s</a>" % locals()
 
     def DisplayItem(self, item):
         """Display the given Item's details in an HTML window.
         """
+        if item is None:
+            self.SetPage("<html><body><h5>Item Viewer</h5></body></html>")
+            return
+
         displayName = item.getItemDisplayName()
                 
         if item.hasAttributeValue('kind'):
             kind = item.kind.getItemName()
         else:
-            kind = "Kind not found"
+            kind = "(kindless)"
         
         htmlString = "<html><body><h5>%s: %s</h5><ul>" % (kind, displayName)
         htmlString = htmlString + "<li><b>Path:</b> %s" % item.getItemPath()
@@ -148,6 +178,7 @@ class wxRepositoryViewer(wxViewerParcel):
         self.container.Add(self.splitter, 1, wxEXPAND)
         self.SetSizerAndFit(self.container)
         
+        self.treeItemsByUUID = {}
         self.LoadTree()
 
     def OnSelChanged(self, event):
@@ -155,18 +186,26 @@ class wxRepositoryViewer(wxViewerParcel):
         """
         itemId = event.GetItem()
         item = self.treeCtrl.GetItemData(itemId).GetData()
-
         if (item == "Repository"):
-            self.detail.SetPage("<html><body><h5>Item Viewer</h5></body></html>")
+            item == ""
         else:
-            self.DisplayItem(item)
+            item = item.getItemPath()
+        app.wxMainFrame.GoToURL("Repository Viewer%s" % (item,), true)
         
-    def DisplayItem(self, item):
-        """Display the given Item's details in an HTML window.
-        """
-        
+    def UpdateDisplay(self):
+        item = self.model.GetDetailItem()
         self.detail.DisplayItem(item)
         
+        if not item: return
+
+        uuid = str(item.getUUID())
+
+        old = self.treeCtrl.GetSelection()
+        node = self.treeItemsByUUID[uuid]
+        
+        if old != node:
+            self.treeCtrl.EnsureVisible(node)
+            self.treeCtrl.SelectItem(node)
         
     def LoadTree(self, item=None, path=None, parent=None):
         """Load the repository data into the tree.
@@ -201,11 +240,13 @@ class wxRepositoryViewer(wxViewerParcel):
         if item.hasAttributeValue('kind'):
             kind = item.kind.getItemName()
         else:
-            kind = "Kind not found"
+            kind = "(kindless)"
         
         self.treeCtrl.SetItemText(node, displayName, 1)
         self.treeCtrl.SetItemText(node, kind, 2)
-        self.treeCtrl.SetItemText(node, str(item.getUUID()), 3)
+        u = str(item.getUUID())
+        self.treeCtrl.SetItemText(node, u, 3)
+        self.treeItemsByUUID[u] = node
         self.treeCtrl.SetItemText(node, str(item.getItemPath()), 4)
         
         
