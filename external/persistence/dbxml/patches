@@ -1,23 +1,46 @@
---- dbxml-1.2.1/src/python/setup.py	Tue Jan 27 08:12:03 2004
-+++ dbxml-1.2.1-patched/src/python/setup.py	Fri Mar 12 12:08:11 2004
-@@ -46,10 +46,16 @@
+--- dbxml-1.2.1/src/python/setup.py	2004-03-18 15:04:52.451960000 -0800
++++ dbxml-1.2.1-patched/src/python/setup.py	2004-03-18 15:05:59.858886400 -0800
+@@ -65,14 +65,13 @@
+ 
+ elif os.name == "nt":
+   INCLUDES =    ["../../include",
+-                 os.path.join(db_home, "build_win32"),
+-                 os.path.join(db_home, "dbinc"),
++                 os.path.join(db_home, "include", "db"),
                   os.path.join(pathan_home, "include"),
                   os.path.join(xerces_home, "include")]
  
--  LIBDIRS =     ["../../build_unix/.libs",
--                 os.path.join(db_home, "lib"),
--                 os.path.join(pathan_home, "lib"),
--                 os.path.join(xerces_home, "lib")]
-+  if debug:
-+    LIBDIRS =     ["../../build_debug/.libs",
-+                   os.path.join(db_home, "lib"),
-+                   os.path.join(pathan_home, "lib"),
-+                   os.path.join(xerces_home, "lib")]
-+  else:
-+    LIBDIRS =     ["../../build_release/.libs",
-+                   os.path.join(db_home, "lib"),
-+                   os.path.join(pathan_home, "lib"),
-+                   os.path.join(xerces_home, "lib")]
+   if debug:
+     LIBDIRS =   ["../../build_win32/Debug",
+-                 os.path.join(db_home, "build_win32/Debug"),
++                 os.path.join(db_home, "lib"),
+                  os.path.join(pathan_home, "lib"),
+                  os.path.join(xerces_home, "lib")]
+   
+@@ -80,13 +79,9 @@
+                  "libdb42D",
+                  "pathanD", "xerces-c_2D"]
  
-   LIBS =        ["dbxml-1.2",
-                  "db_cxx-4.2",
+-    DATAFILES = [("", ["../../build_win32/Debug/libdbxml12D.dll",
+-                       os.path.join(db_home, "/build_win32/Debug/libdb42D.dll"),
+-                       os.path.join(pathan_home, "/lib/PathanD.dll"),
+-                       os.path.join(xerces_home, "/lib/xerces-c_2_4_0D.dll")])]
+   else:
+     LIBDIRS =   ["../../build_win32/Release",
+-                 os.path.join(db_home, "build_win32/Release"),
++                 os.path.join(db_home, "lib"),
+                  os.path.join(pathan_home, "lib"),
+                  os.path.join(xerces_home, "lib")]
+   
+@@ -94,10 +89,7 @@
+                  "libdb42",
+                  "pathan", "xerces-c_2"]
+ 
+-    DATAFILES = [("", ["../../build_win32/Release/libdbxml12.dll",
+-                       os.path.join(db_home, "build_win32/Release/libdb42.dll"),
+-                       os.path.join(pathan_home, "lib/Pathan.dll"),
+-                       os.path.join(xerces_home, "lib/xerces-c_2_4_0.dll")])]
++  DATAFILES = []
+ 
+ else:
+   print "I don't know anything about your platform '%s'." % os.name
