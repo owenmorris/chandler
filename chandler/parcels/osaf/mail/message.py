@@ -566,15 +566,13 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
         logging.warn("Chandler Mail Service does not support multipart/form-data at this time")
         return
 
-    elif subtype == "signed":
-        logging.warn("Chandler Mail Service does not support multipart/signed at this time")
-        return
-
-    elif subtype == "encrypted":
-        logging.warn("Chandler Mail Service does not support multipart/encrypted at this time")
-        return
-
     else:
+        if subtype == "signed":
+            logging.warn("Chandler Mail Service does not validate multipart/signed at this time")
+
+        elif subtype == "encrypted":
+            logging.warn("Chandler Mail Service does not validate multipart/encrypted at this time")
+
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
