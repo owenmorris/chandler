@@ -6,30 +6,30 @@ ifeq ($(SNAP),debug)
 
 DLLS=$(DLLS_DIR)/msvcp71d.dll $(DLLS_DIR)/msvcr71d.dll $(DLLS_DIR)/msvcrtd.dll
 
-build:	winlaunch2/chandlerDebug.exe winlaunch1/chandler.exe
+build:	winlaunch/chandlerDebug.exe winlaunch_bin/chandler.exe
 
-winlaunch2/chandlerDebug.exe: winlaunch2/winlaunch2.cpp
-	devenv.com winlaunch2/winlaunch2.sln /build $(SNAP)
-	cp winlaunch2/$(Snap)/chandlerDebug.exe $(BUILD_ROOT)
+winlaunch/chandlerDebug.exe: winlaunch/winlaunch.cpp
+	devenv.com winlaunch/winlaunch.sln /build $(SNAP)
+	cp winlaunch/$(Snap)/chandlerDebug.exe $(BUILD_ROOT)
 
-winlaunch1/chandler.exe: winlaunch1/winlaunch1.cpp
-	devenv.com winlaunch1/winlaunch1.sln /build $(SNAP)
-	cp winlaunch1/$(Snap)/chandler.exe $(BUILD_ROOT)/$(SNAP)/bin
+winlaunch_bin/chandler.exe: winlaunch_bin/winlaunch_bin.cpp
+	devenv.com winlaunch_bin/winlaunch_bin.sln /build $(SNAP)
+	cp winlaunch_bin/$(Snap)/chandler.exe $(BUILD_ROOT)/$(SNAP)/bin
 	cp $(DLLS) $(BUILD_ROOT)/$(SNAP)/bin
 
 else
 
 DLLS=$(DLLS_DIR)/msvcp71.dll $(DLLS_DIR)/msvcr71.dll
 
-build:	winlaunch2/chandler.exe winlaunch1/chandler.exe
+build:	winlaunch/chandler.exe winlaunch_bin/chandler.exe
 
-winlaunch2/chandler.exe: winlaunch2/winlaunch2.cpp
-	devenv.com winlaunch2/winlaunch2.sln /build $(SNAP)
-	cp winlaunch2/$(Snap)/chandler.exe $(BUILD_ROOT)
+winlaunch/chandler.exe: winlaunch/winlaunch.cpp
+	devenv.com winlaunch/winlaunch.sln /build $(SNAP)
+	cp winlaunch/$(Snap)/chandler.exe $(BUILD_ROOT)
 
-winlaunch1/chandler.exe: winlaunch1/winlaunch1.cpp
-	devenv.com winlaunch1/winlaunch1.sln /build $(SNAP)
-	cp winlaunch1/$(Snap)/chandler.exe $(BUILD_ROOT)/$(SNAP)/bin
+winlaunch_bin/chandler.exe: winlaunch_bin/winlaunch_bin.cpp
+	devenv.com winlaunch_bin/winlaunch_bin.sln /build $(SNAP)
+	cp winlaunch_bin/$(Snap)/chandler.exe $(BUILD_ROOT)/$(SNAP)/bin
 	cp $(DLLS) $(BUILD_ROOT)/$(SNAP)/bin
 
 clean:

@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="winlaunch2"
-	ProjectGUID="{90AD6487-6195-4CEB-A81F-DD83DDB6B96C}"
+	Name="winlaunch_bin"
+	ProjectGUID="{13A625A4-35EE-4942-8654-A23F42EAB567}"
+	RootNamespace="winlaunch"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,10 +20,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\external\debug\bin\Include; ..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\python\Python-2.3.3\PC"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -31,17 +33,19 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/chandlerDebug.exe"
+				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python23_d.lib"
+				OutputFile="$(OutDir)\chandler.exe"
 				LinkIncremental="2"
+				IgnoreDefaultLibraryNames=""
+				DelayLoadDLLs="python23_d.dll"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/winlaunch2.pdb"
+				ProgramDatabaseFile="$(OutDir)/winlaunch_bin.pdb"
 				SubSystem="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy $(OutDir)\chandlerDebug.exe $(ProjectDir)..\..\..\..\chandler\chandlerDebug.exe"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -67,8 +71,14 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\release\include;..\..\..\..\external\python\Python-2.3.3\PC"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="0"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -77,8 +87,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/chandler.exe"
+				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python23.lib"
+				OutputFile="$(OutDir)\chandler.exe"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames=""
+				DelayLoadDLLs="python23.dll"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -87,8 +100,7 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="copy $(OutDir)\chandler.exe $(ProjectDir)..\..\..\..\chandler\chandler.exe"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -112,21 +124,18 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath=".\winlaunch2.cpp">
+				RelativePath=".\winlaunch_bin.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			Filter="h;hpp;hxx;hm;inl;inc">
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 		</Filter>
 	</Files>
 	<Globals>
