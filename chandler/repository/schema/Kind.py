@@ -103,35 +103,75 @@ class Kind(Item):
         else:
             return self._inheritAttribute(name) is not None
 
+    def iterAttributes(self, inherited=True,
+                       localOnly=False, globalOnly=False):
+        """
+        Return a generator of C{(name, attribute)} pairs for iterating over the
+        Chandler attributes defined for and inherited by this kind.
+
+        @param inherited: if C{True}, iterate also over attributes that are
+        inherited by this kind via its superKinds.
+        @type inherited: boolean
+        @param localOnly: if C{True}, only pairs for local attributes are
+        returned. Local attributes are defined as direct children items
+        of the kinds they're defined on and are not meant to be shared
+        except through inheritance. The name of a local attribute is defined
+        to be the name of its corresponding attribute item.
+        @type localOnly: boolean
+        @param globalOnly: if C{True}, only pairs for the global attributes
+        are returned. Global attributes are not defined as direct children
+        items and are intended to be shareable by multiple kinds. The name
+        of a global attribute is defined to be the alias with which it was
+        added into the kind's C{attributes} attribute. This alias name may
+        of course be the same as the corresponding attribute's item name.
+        @type globalOnly: boolean
+        """
+
+        if inherited:
+            for superKind in self._getSuperKinds():
+                for pair in superKind.iterAttributes(inherited,
+                                                     localOnly, globalOnly):
+                    yield pair
+
+        if not localOnly:
+            attributes = self.getAttributeValue('attributes', default=None)
+            if attributes is not None:
+                aliases = attributes._aliases
+                if aliases:
+                    for (alias, uuid) in aliases.iteritems():
+                        yield (alias, attributes[uuid])
+
+        if not globalOnly:
+            for attribute in self.iterChildren():
+                yield (attribute._name, attribute)
+
     def _inheritAttribute(self, name):
 
         if self.hasValue('notFoundAttributes', name):
             return None
 
-        inheritingKinds = self._getInheritingKinds()
-        if inheritingKinds is not None:
-            cache = True
-            for inheritingKind in inheritingKinds:
-                if inheritingKind is not None:
-                    attribute = inheritingKind.getAttribute(name)
-                    if attribute is not None:
-                        self.addValue('inheritedAttributes', attribute,
-                                      alias=name)
-                        return attribute
-                else:
-                    cache = False
+        cache = True
+        for superKind in self._getSuperKinds():
+            if superKind is not None:
+                attribute = superKind.getAttribute(name)
+                if attribute is not None:
+                    self.addValue('inheritedAttributes', attribute, alias=name)
+                    return attribute
+            else:
+                cache = False
                     
-            if cache:
-                self.addValue('notFoundAttributes', name)
+        if cache:
+            self.addValue('notFoundAttributes', name)
 
         return None
 
-    def _getInheritingKinds(self):
+    def _getSuperKinds(self):
 
-        if self.hasAttributeValue('superKinds'):
-            return self.superKinds
-
-        raise ValueError, 'No superKind for %s' %(self.getItemPath())
+        try:
+            return self.getAttributeValue('superKinds',
+                                          _attrDict=self._references)
+        except AttributeError:
+            raise ValueError, 'No superKind for %s' %(self.getItemPath())
 
     def _xmlRefs(self, generator, withSchema, version, mode):
 
@@ -146,9 +186,7 @@ class Kind(Item):
 
     def isSubKindOf(self, superKind):
 
-        superKinds = self.getAttributeValue('superKinds',
-                                            _attrDict=self._references,
-                                            default=[])
+        superKinds = self._getSuperKinds()
 
         if superKinds:
             for kind in superKinds:
@@ -220,10 +258,5 @@ class Kind(Item):
 
 class ItemKind(Kind):
 
-    def _getInheritingKinds(self):
-
-        return None
-
-
-class SchemaRoot(Item):
-    pass
+    def _getSuperKinds(self):
+        return []

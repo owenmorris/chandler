@@ -74,7 +74,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
 
 #        newKind = self.kind.newItem('newKind', self.rep)
 #        print k
-        for a in self.alias.iterAttributes():
+        for a in self.alias.iterAttributeValues():
 #            print a
             a1 =  self.kind.getAttribute(a[0])
             print a1

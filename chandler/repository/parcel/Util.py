@@ -33,7 +33,7 @@ def PrintItem(uri, rep, level=0):
         else:
             print attr.getItemPath(), "(from %s)" % source.getItemPath()
 
-    for (name, value) in item.iterAttributes():
+    for (name, value) in item.iterAttributeValues():
 
         t = type(value)
 

@@ -105,7 +105,7 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             # all reference-only. Then we concatenate the two lists and sort
             # the result, and append that to the HTMLText.
             valueAttr = []
-            for k, v in item.iterAttributes(valuesOnly=True):
+            for k, v in item.iterAttributeValues(valuesOnly=True):
                 if isinstance(v, dict):
                     tmpList = ["<li><b>%s:</b></li><ul>" % k]
                     for attr in v:
@@ -122,7 +122,7 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
                     valueAttr.append((k,"<li><b>%s: </b>%s</li>" % (k, value)))
     
             refAttrs = []
-            for k, v in item.iterAttributes(referencesOnly=True):
+            for k, v in item.iterAttributeValues(referencesOnly=True):
                 if isinstance(v, dict) or isinstance(v, list):
                     tmpList = ["<li><b>%s:</b></li><ul>" % k]
                     for attr in v:

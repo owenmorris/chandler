@@ -162,7 +162,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test iterating over literal attributes
         literalAttributeNames = ['notFoundAttributes', 'classes'] 
-        for i in kind.iterAttributes(valuesOnly=True):
+        for i in kind.iterAttributeValues(valuesOnly=True):
             self.failUnless(i[0] in literalAttributeNames)
 
         # Test hasAttributeValue
@@ -172,7 +172,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         # Test iterating over reference attributes
         referenceAttributeNames = ['superKinds', 'attributes', 'kind',
                                    'inheritedAttributes', 'items']
-        for i in kind.iterAttributes(referencesOnly=True):
+        for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames)
             self.failUnless(isinstance(i[1], RefDict) or
                             isinstance(i[1], Kind))

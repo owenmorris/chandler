@@ -617,7 +617,7 @@ class Item(object):
             for child in self._children:
                 yield child
 
-    def iterAttributes(self, valuesOnly=False, referencesOnly=False):
+    def iterAttributeValues(self, valuesOnly=False, referencesOnly=False):
         """
         Return a generator of C{(name, value)} tuples for iterating over
         Chandler attribute values of this item. 
