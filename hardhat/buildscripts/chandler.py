@@ -25,7 +25,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
      buildVersion, clobber, log)
 
     if not ret:
-        return False
+        return 0
 
     # do release
     ret = Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
@@ -164,7 +164,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     if not changesAtAll:
         log.write("There were no changes")
-        return False
+        return 0
 
     if needToScrubAll:
         os.chdir(mainModuleDir)
