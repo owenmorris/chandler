@@ -58,6 +58,7 @@ cvsModules = (
     'osaf/chandler/pyxml',
     'osaf/chandler/SOAPpy',
     'osaf/chandler/4suite',
+    'osaf/chandler/epydoc',
 )
 
 # If any of these modules have changed, scrub everything before building
@@ -71,6 +72,7 @@ scrubAllModules = {
     'osaf/chandler/pyxml':1,
     'osaf/chandler/SOAPpy':1,
     'osaf/chandler/4suite':1,
+    'osaf/chandler/epydoc':1,
 }
 
 mainModule = 'osaf/chandler/Chandler'
