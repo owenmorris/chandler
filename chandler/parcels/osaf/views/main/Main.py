@@ -44,6 +44,9 @@ class MainView(View):
                               None, html, False, False)
         splash.Show(True)
 
+    def onDeleteEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
     def onQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
 

@@ -439,7 +439,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         shouldShow = not isinstance (item, ItemCollection.ItemCollection)
         return shouldShow
 
-    def onButtonPressed (self, notification):
+    def onButtonPressedEvent (self, notification):
         # Rekind the item by adding or removing the associated Mixin Kind
         self.finishSelectionChanges () # finish changes to editable fields 
         tool = notification.data['sender']
@@ -457,7 +457,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             # notify the world that the item has a new kind.
             self.resynchronizeDetailView ()
 
-    def onButtonPressedUpdateUI (self, notification):
+    def onButtonPressedEventUpdateUI (self, notification):
         item = self.selectedItem()
         if item is not None:
             enable = item.isItemOf(ContentModel.ContentModel.getNoteKind())

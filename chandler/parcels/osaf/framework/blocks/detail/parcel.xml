@@ -59,7 +59,7 @@
   
   <BlockEvent itsName="ButtonPressed">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onButtonPressed</methodName>
+    <methodName>onButtonPressedEvent</methodName>
     <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
 

@@ -1125,7 +1125,7 @@
     KindFilterBar ToolbarItems
   -->
   <ToolbarItem itsName="KindFilterAllItem">
-    <blockName>KindFilterAll</blockName>
+    <blockName>KindFilterAllItem</blockName>
     <title>All</title>
     <bitmap>application/images/KindFilterAll.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
@@ -1141,7 +1141,7 @@
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterMessageItem">
-    <blockName>KindFilterMessage</blockName>
+    <blockName>KindFilterMessageItem</blockName>
     <title>Messages</title>
     <bitmap>application/images/KindFilterMessage.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
@@ -1157,7 +1157,7 @@
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterEventItem">
-    <blockName>KindFilterEvent</blockName>
+    <blockName>KindFilterEventItem</blockName>
     <title>Calendar</title>
     <bitmap>application/images/KindFilterEvent.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
@@ -1173,7 +1173,7 @@
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterTaskItem">
-    <blockName>KindFilterTask</blockName>
+    <blockName>KindFilterTaskItem</blockName>
     <title>Taskpad</title>
     <bitmap>application/images/KindFilterTask.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
@@ -1380,7 +1380,6 @@
     <subscribeWhenVisibleEvents itemref="doc:AddNotesView"/>    
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddTasksView"/>
-    <subscribeWhenVisibleEvents itemref="doc:CheckRepository"/>
     <subscribeWhenVisibleEvents itemref="doc:CheckRepository"/>
     <subscribeWhenVisibleEvents itemref="doc:CommitRepository"/>
     <subscribeWhenVisibleEvents itemref="doc:GenerateCalendarEventItems"/>    

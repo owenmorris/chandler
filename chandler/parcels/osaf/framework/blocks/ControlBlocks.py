@@ -787,9 +787,7 @@ class Table (RectangularChild):
         self.widget.DeleteSelection()
         
     def onDeleteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-        # @@@ Temporarily disable deletion for 0.4
-        #notification.data ['Enable'] = len (self.selection) != 0
+        notification.data ['Enable'] = len (self.selection) != 0
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):
