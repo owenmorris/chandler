@@ -220,10 +220,20 @@ class wxApplication (wx.App):
         Globals.repository.commit()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
+        
+        """
+          The Twisted Reactor should be started before other Managers
+          and stopped last. Is this true?
+        
+        """
+        from osaf.framework.twisted.TwistedReactorManager import TwistedReactorManager
+        Globals.twistedReactorManager = TwistedReactorManager()
+        Globals.twistedReactorManager.startReactor()
         """
           Create and start the notification manager. Delay imports to avoid
-        circular references.
+          circular references.
         """
+        
         from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
@@ -399,7 +409,7 @@ class wxApplication (wx.App):
         """
         Globals.agentManager.Shutdown()
         Globals.taskManager.stop()
-
+        Globals.twistedReactorManager.stopReactor()
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
