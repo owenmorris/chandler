@@ -91,14 +91,16 @@ def cb_filelist(args):
         return
 
     entryList = []
-    import application.Globals
-    from repository.item.Query import KindQuery
-    noteKind = application.Globals.repository.findPath("//parcels/osaf/contentmodel/Note")
-    for note in KindQuery().run([noteKind]):
-        print "Found item:", note.itsPath
-        newEntry = BlogEntry(request)
-        newEntry.setItem(note)
-        entryList.append(newEntry)
+
+    # @@@MOR: This code needs a way to find the repository...
+    #
+    # from repository.item.Query import KindQuery
+    # noteKind = repo.findPath("//parcels/osaf/contentmodel/Note")
+    # for note in KindQuery().run([noteKind]):
+    #     print "Found item:", note.itsPath
+    #     newEntry = BlogEntry(request)
+    #     newEntry.setItem(note)
+    #     entryList.append(newEntry)
 
     return entryList
 
