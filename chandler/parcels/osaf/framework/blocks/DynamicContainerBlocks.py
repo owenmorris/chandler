@@ -129,7 +129,7 @@ class RefCollectionDictionary(object):
         itemIndex, coll = self._index(key) # find the keyed item
         self.insert(itemIndex, value) # insert before
         if itemIndex is not None:
-            coll.removeItem(itemIndex) # remove keyed original
+            coll.remove(itemIndex) # remove keyed original
             
     def insert(self, index, item):
         """
@@ -154,7 +154,7 @@ class RefCollectionDictionary(object):
         @type key: C{immutable}, typically C{String}
         """
         itemIndex, coll = self._index(key)
-        coll.removeItem(itemIndex)
+        coll.remove(itemIndex)
 
     def __str__ (self):
         barList = []
