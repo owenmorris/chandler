@@ -112,7 +112,7 @@ def main():
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
                 RotateDirectories(outputDir)
-                CreateIndex(outputDir, buildVersion)
+                CreateIndex(outputDir, buildVersion, nowString)
 
                 buildNameNoSpaces = buildName.replace(" ", "")
     # rsync -e ssh -avzp --delete /home/builder/output/ 192.168.101.46:continuous/kilauea-osx
@@ -169,13 +169,21 @@ def RotateDirectories(dir):
     for subdir in dirs[:-3]:
         hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
-def CreateIndex(outputDir, newDirName):
+_descriptions = {
+    enduser => ["End-User", "Description of end-user distro"],
+    developer => ["Developer", "Description of developer distro"],
+    release => ["Lazy Developer:  Release", "Description of release distro"],
+    debug => ["Lazy Developer:  Debug", "Description of debug distro"],
+}
+
+def CreateIndex(outputDir, newDirName, nowString):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(outputDir+os.sep+"index.html", "w")
+    fileOut.write("<p>" + nowString + "</p>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
-        fileOut.write("<p><a href="+newDirName+"/"+actual+">"+x+"</a></p>\n")
+        fileOut.write("<p><a href="+newDirName+"/"+actual+">"+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
     fileOut.close()
 
 def _readFile(path):
