@@ -108,9 +108,19 @@ class XMLRepository(OnDemandRepository):
             self.create(**kwds)
 
         elif not self.isOpen():
+            fromPath = kwds.get('fromPath', None)
+            if fromPath is not None:
+                self.delete()
+                if not os.path.exists(self.dbHome):
+                    os.mkdir(self.dbHome)
+                import shutil
+                for f in os.listdir(fromPath):
+                    if f.startswith('__') or f.startswith('log.'):
+                        shutil.copy2(os.path.join(fromPath,f), self.dbHome)
+
             super(XMLRepository, self).open(**kwds)
             self._env = self._createEnv()
-            
+
             try:
                 if kwds.get('recover', False):
                     before = datetime.now()

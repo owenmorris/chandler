@@ -53,7 +53,12 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(self.rep.findPath(uri))
 
     def setUp(self):
-        RepositoryTestCase.RepositoryTestCase.setUp(self)
+        super(NMTest,self)._setup(self)
+
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels',
+         'osaf', 'framework', 'notifications', 'tests')
+
+        super(NMTest,self)._openRepository(self)
 
         # set Globals.repository
         Globals.repository = self.rep

@@ -24,7 +24,9 @@ class BasicRepositoryTest(unittest.TestCase):
 
     def setUp(self):
         self.rootdir = os.environ['CHANDLERDIR']
-        self.rep = XMLRepository('RepositoryUnitTest-Repository')
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
+                                    'tests')
+        self.rep = XMLRepository(os.path.join(self.testdir,'__repository__'))
 
     def testNonExistent(self):
         """ The repository should not exist at this point """

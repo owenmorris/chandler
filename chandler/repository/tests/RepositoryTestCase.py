@@ -14,8 +14,11 @@ from repository.util.Path import Path
 
 class RepositoryTestCase(TestCase):
 
-    def setUp(self, ramdb=True):
+    def _setup(self, ramdb=True):
         self.rootdir = os.environ['CHANDLERHOME']
+        self.schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
+                                  'packs', 'schema.pack')
+
         handler = logging.FileHandler(os.path.join(self.rootdir,'chandler','chandler.log'))
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
@@ -23,17 +26,31 @@ class RepositoryTestCase(TestCase):
         root.addHandler(handler)
 
         self.ramdb = ramdb
+
+    def _openRepository(self, ramdb=True):
+        preloadedRepositoryPath = os.path.join(self.testdir, '__preloaded_repository__')
+        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+
+        if os.path.exists(preloadedRepositoryPath):
+            self.ramdb =  False
+            self.rep.open(ramdb=False, fromPath=preloadedRepositoryPath)
+            self.rep.logger.info('Using preloaded repository')
+        else:
+            self.rep.create(ramdb=self.ramdb)
+
+            self.rep.loadPack(self.schemaPack)
+            self.rep.commit()
+
+    def setUp(self, ramdb=True):
+        self._setup(ramdb)
+        
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
-        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
-        self.rep.create(ramdb=self.ramdb)
-        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
-                                  'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
-        self.rep.commit()
+        self._openRepository(ramdb)
 
     def tearDown(self):
         self.rep.close()
+        self.rep.logger.debug('RAMDB = %s', self.ramdb)
         if not self.ramdb:
             self.rep.delete()
 

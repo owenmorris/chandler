@@ -16,7 +16,12 @@ import application.Globals as Globals
 
 class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        RepositoryTestCase.RepositoryTestCase.setUp(self)
+        super(ContentModelTestCase,self)._setup(self)
+
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels',
+         'osaf', 'contentmodel', 'tests')
+
+        super(ContentModelTestCase,self)._openRepository(self)
 
         Globals.repository = self.rep
         self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')

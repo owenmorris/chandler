@@ -10,22 +10,16 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os, sys
 
 from repository.persistence.XMLRepository import XMLRepository
+import repository.tests.RepositoryTestCase as RepositoryTestCase
 import application.Globals as Globals
 
-class ParcelLoaderTestCase(unittest.TestCase):
+class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
 
     def setUp(self):
-        self.rootdir = os.environ['CHANDLERHOME']
+        super(ParcelLoaderTestCase,self)._setup(self)
+
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
          'parcel', 'tests')
-        self.rep = XMLRepository(os.path.join(self.testdir,'__repository__'))
-        Globals.repository = self.rep # to keep indexer happy
-        self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
-         'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
-        self.rep.commit()
 
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
+        super(ParcelLoaderTestCase,self)._openRepository(self)
+        Globals.repository = self.rep # to keep indexer happy
