@@ -575,14 +575,18 @@ def test(buildenv, module_name):
     under the folder "module_name" that live in any folder called "tests"
     and that has a file named "Test*.py"
     """
+    pathList = []
+    if module_name != "Chandler":
+        pathList.append(os.path.join(buildenv['root'], modulename))
+    pathList.append(os.path.join(buildenv['root'], "Chandler", "parcels"))
+    paths = os.pathsep.join(pathList)
 
-    os.putenv('PYTHONPATH', os.path.join(buildenv['root'], module_name))
-
-    buildenv['test_failures'] = 0
+    buildenv['pythonpath'] = paths
+    print paths
 
     os.chdir(buildenv['root'])
+    buildenv['test_failures'] = 0
     recursiveTest(buildenv, module_name)
-
     failures = buildenv['test_failures']
 
     if failures == 0:
@@ -780,7 +784,16 @@ def setupEnvironment(buildenv):
 
     # to run Chandler-related scripts from directories other than 
     # osaf/chandler/Chandler, PYTHONPATH is needed
-    os.putenv('PYTHONPATH', os.path.join(buildenv['root'], "Chandler"))
+    pythonpaths = []
+    prevPath = os.getenv('PYTHONPATH')
+    if prevPath:
+        pythonpaths.append(prevPath)
+    if buildenv.has_key('pythonpath') and buildenv['pythonpath']:
+        pythonpaths.append(buildenv['pythonpath'])
+    pythonpaths.append(os.path.join(buildenv['root'], "Chandler"))
+
+    os.putenv('PYTHONPATH', os.pathsep.join(pythonpaths))
+    os.putenv('CHANDLERDIR', buildenv['root']+os.sep+"Chandler")
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
