@@ -58,6 +58,7 @@ setup(
     cmdclass = {'test':TestCommand},
 
     packages = PACKAGES,
+    py_modules = ['spike_uuids'],
     package_dir = {'':'src'},   # all packages are found in src/ directory
     package_data = {'': ALL_EXTS},
     scripts = SCRIPTS,

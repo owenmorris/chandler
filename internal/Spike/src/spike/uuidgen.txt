@@ -7,7 +7,7 @@ UUIDs (Universally Unique Identifiers) so that your schema can be used in a
 Chandler repository without naming conflicts with other schemas.
 
 Manually specifying UUIDs, however, is a tedious and error-prone task.  The
-``spike.uuidgen`` module (and the ``spike_it`` command line tool) help by
+``spike.uuidgen`` module (and the ``spike_uuids`` command line tool) help by
 automatically generating UUIDs and adding them to your schema module (at the
 bottom, where they won't interfere with your code's readability.)
 
@@ -18,18 +18,22 @@ The Command-Line Tool
 
 Once Spike is installed, you can run the command-line tool using::
 
-    RunPython -m spike_it path/to/module.py ...
+    RunPython -m spike_uuids path/to/module.py ...
 
 Where ``path/to/module.py`` designates the source of the module you wish to add
 UUIDs to.  You may specify more than one module on the command line.  The files
 must be writable, as the tool may add UUID declarations to the end of the file.
 
+Various options are available to control the output; use::
+
+    RunPython -m spike_uuids --help
+
+to get information on usage.
+
 Note that each module's code will be executed, in order for the tool to
 identify what contained schema items are lacking UUIDs.  So the modules must
 be syntactically correct, and anything they import must be available on
 ``PYTHONPATH`` at the time you run the tool.
-
-TODO: Actually implement the command-line version!
 
 
 ---------------------------
@@ -201,4 +205,91 @@ tool should just look something like this::
 
 But maybe with a help option, some argument error checking, and perhaps some
 progress reporting as well.
+
+
+Command Line Parsing
+====================
+
+``UUIDGenerator`` objects also have a ``parseArgs()`` method that sets various
+attributes according to command line options::
+
+    >>> g = UUIDGenerator()
+    >>> g.show_help
+    False
+    >>> g.parseArgs(['spike_uuids', '-h'])  # Help option
+    >>> g.show_help
+    True
+    >>> print g.parse_error
+    None
+
+    >>> g = UUIDGenerator()
+    >>> print g.parse_error
+    None
+    >>> g.parseArgs(['spike_uuids', '--nonsense'])  # invalid option
+    >>> g.show_help
+    True
+    >>> g.parse_error
+    'spike_uuids: Invalid option(s)'
+
+    >>> g = UUIDGenerator()
+    >>> g.parseArgs(['spike_uuids', '-n'])  # no-exec, but no files either
+    >>> g.show_help
+    False
+    >>> g.verbose
+    False
+    >>> g.no_execute
+    True
+    >>> g.parse_error
+    'spike_uuids: no files specified'
+
+    >>> g = UUIDGenerator()
+    >>> g.parseArgs(['spike_uuids', '--no-ex']) # ditto, but long form
+    >>> g.show_help
+    False
+    >>> g.verbose
+    False
+    >>> g.no_execute
+    True
+
+    >>> g = UUIDGenerator()
+    >>> g.parseArgs(['spike_uuids', '-v'])  # verbose
+    >>> g.no_execute
+    False
+    >>> g.verbose
+    True
+
+    >>> g = UUIDGenerator()
+    >>> g.parseArgs(['spike_uuids', '--verbose'])   # and verbose long form
+    >>> g.no_execute
+    False
+    >>> g.verbose
+    True
+
+    >>> g = UUIDGenerator()
+    >>> g.parseArgs(['spike_uuids', 'src/some_module.py'])  # with argument
+    >>> g.args
+    ['src/some_module.py']
+
+
+And there's a ``main()`` method that implements the command-line tool::
+
+    >>> try:
+    ...     UUIDGenerator().main(['spike_uuids'])
+    ... except SystemExit,v:
+    ...     assert v.args==(2,)    # catch the sys.exit(2)
+    spike_uuids -- generate UUIDs for schema modules
+    ...
+    Usage:
+        RunPython -m spike_uuids [options] path/to/mod1.py [path/to/mod2.py...]
+    ...
+    Edits the specified Python modules to include newly-generated UUIDs for any
+    schema elements defined by the module that do not already have a UUID assigned
+    to them.
+    ...
+    Options:
+        -h, --help      Display this help message
+        -v, --verbose   Display status information and generated UUIDs
+        -n, --no-exec   Just display additions, don't actually alter files
+    ...
+    spike_uuids: no files specified
 
