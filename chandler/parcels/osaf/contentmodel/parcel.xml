@@ -30,6 +30,8 @@
   </core:Attribute>
 
   <core:Enumeration itemName="PriorityLevel">
+    <core:displayName>Priority Level Enum</core:displayName>
+    <core:issues>Should we call this 'PriorityLevelEnum' instead of 'PriorityLevel', to be consistent with how we've named other Enumerations?</core:issues>
     <core:values>high</core:values>
     <core:values>medium</core:values>
     <core:values>low</core:values>
@@ -38,6 +40,7 @@
   <core:Attribute itemName="priority">
     <core:displayName>Priority</core:displayName>
     <core:description>Priority can be 'high', 'medium', or 'low'.</core:description>
+    <core:description>This 'priority' attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="PriorityLevel"/>
   </core:Attribute>
@@ -52,9 +55,9 @@
   </core:Attribute>
 
   <core:Attribute itemName="groups">
-    <core:displayName>Item Collections</core:displayName>
-    <core:description>List of item collections this item belongs to.</core:description>
-    <core:issues>We still need to work out some issues about how item collections are modeled.</core:issues>
+    <core:displayName>"Playlists"/"Item Collections"</core:displayName>
+    <core:description>List of "playlists"/"item collections" this item belongs to.</core:description>
+    <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="Group"/>
     <core:inverseAttribute itemref="itemsInGroup"/>
@@ -63,7 +66,7 @@
   <core:Attribute itemName="fyiLinks">
     <core:displayName>References</core:displayName>
     <core:description>Items that the user wants to keep reference pointers to from this item.</core:description>
-    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Item Collections" attribute.</core:issues>
+    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Playlists"/"Item Collections" attribute.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="fyiLinkedToItems"/>
@@ -72,7 +75,7 @@
   <core:Attribute itemName="fyiLinkedToItems">
     <core:displayName>Items with References to this item</core:displayName>
     <core:description>List of items that have references pointing to this item.</core:description>
-    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Item Collections" attribute.</core:issues>
+    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Playlists"/"Item Collections" attribute.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="fyiLinks"/>
@@ -137,17 +140,18 @@
 
 <!-- Group -->
   <core:Attribute itemName="itemsInGroup">
-    <core:displayName>Items in the Item Collection</core:displayName>
-    <core:description>List of items in the item collection.</core:description>
+    <core:displayName>Items in the "Playlist"/"Item Collection"</core:displayName>
+    <core:description>List of items in the "playlist"/"item collection".</core:description>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="groups"/>
   </core:Attribute>
 
   <core:Kind itemName="Group">
-    <core:displayName>Item Collection</core:displayName>
+    <core:displayName>"Playlist"/"Item Collection"</core:displayName>
     <core:description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</core:description>
-    <core:issues>We still need to work out some issues about how item collections are modeled.</core:issues>
+    <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
+    <core:issues>We need to find a name for these things.</core:issues>
     <core:superKinds itemref="ContentItem"/>
     <core:displayAttribute itemref="name"/>
     <core:attributes itemref="name"/>

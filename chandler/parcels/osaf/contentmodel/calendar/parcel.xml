@@ -78,6 +78,20 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="taskVsEvent">
+    <displayName>Task/Event</displayName>
+    <issues>How does this attribute interact with other attributes? Should the value of this attribute be derived, based on whether or not other attributes have non-null values?</issues>
+    <cardinality>single</cardinality>
+    <type itemref="cal:TaskVsEventEnum"/>
+  </Attribute>
+
+  <Enumeration itemName="TaskVsEventEnum">
+    <displayName>Task/Event Enum</displayName>
+    <values>task</values>
+    <values>event</values>
+    <values>both</values>
+  </Enumeration>
+
   <!-- Task attributes -->
 
   <Attribute itemName="requestor">
@@ -91,7 +105,7 @@
 
   <Attribute itemName="requestedTasks">
     <displayName>Requested Tasks</displayName>
-    <cardinality></cardinality>
+    <cardinality>list</cardinality>
     <type itemref="cal:CalendarEvent"/>
     <inverseAttribute itemref="cal:requestor"/>
   </Attribute>
@@ -135,6 +149,7 @@
 
   <Enumeration itemName="Status">
     <displayName>Task Status</displayName>
+    <issues>Should we call this 'TaskStatusEnum', to be consistent with how we've named other Enumerations?</issues>
     <values>done</values>
     <values>not_done</values>
     <values>not_started</values>
@@ -146,9 +161,12 @@
   <!-- Calendar Event Attributes -->
   <Enumeration itemName="TimeTransparency">
     <displayName>Time Transparency</displayName>
+    <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
+    <issues>Should we call this 'TimeTransparencyEnum' instead of 'TimeTransparency', to be consistent with how we've named other Enumerations?</issues>
     <values>busy</values>
     <values>free</values>
     <values>tentative</values>
+    <values>cancelled</values>
   </Enumeration>
 
   <Attribute itemName="endTime">
@@ -197,6 +215,7 @@
 
   <Attribute itemName="priority">
     <displayName>Priority</displayName>
+    <issues>Why is this an Integer instead of an Enumeration?  Do we really need a new 'priority' attribute here in the 'calendar' schema, or would it be better to re-use the 'priority' attribute already defined in 'contentmodel'? What do we need to do to interoperate with iCalendar?</issues>
     <cardinality>single</cardinality>
     <type itemref="Integer"/>
   </Attribute>
@@ -205,6 +224,8 @@
     <displayName>Calendar Event/Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
+    <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
+    <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
     <superKinds itemref="content:ContentItem"/>
 
     <!-- general -->
@@ -215,6 +236,7 @@
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
     <attributes itemref="cal:resources"/>
+    <attributes itemref="cal:taskVsEvent"/>
 
     <!-- task -->
     <attributes itemref="cal:requestor"/>

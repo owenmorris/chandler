@@ -199,15 +199,15 @@
 
   <Attribute itemName="replyAddress">
     <displayName>Reply Address</displayName>
-    <description>...add description here...</description>
+    <description>The Email address listed as the reply to address in the header of this message.</description>
     <cardinality>single</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="mail:replyAddressInverse"/>
   </Attribute>
 
   <Attribute itemName="replyAddressInverse">
-    <displayName>Reply Address Inverse</displayName>
-    <description>Messages that list this email address as a reply address</description>
+    <displayName>Used as Reply Address In</displayName>
+    <description>A list of mail messages that give this email address as a reply address.</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:replyAddress"/>
@@ -259,7 +259,8 @@
 
   <Attribute itemName="relatedMessages">
     <displayName>Related Messages</displayName>
-    <description>...add description here...</description>
+    <description>This 'relatedMessages' attribute is the super-attribute of attributes like 'forwardedIn' and 'repliedToIn'.</description>
+    <issues>This should have itself as an inverseAttribute.</issues>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
   </Attribute>
@@ -291,6 +292,7 @@
   <Attribute itemName="attachments">
     <displayName>Attachments</displayName>
     <description>...add description here...</description>
+    <issues>This should have as an inverseAttribute an 'attachedTo' attribute on the 'Attachment'.</issues>
     <cardinality>list</cardinality>
     <type itemref="mail:Attachment"/>
   </Attribute>
@@ -354,8 +356,9 @@
   </Attribute>
 
   <Attribute itemName="stronglyLinkedMail">
-    <displayName>Related Mail</displayName>
+    <displayName>Related Mail Message</displayName>
     <description>This task was created when a user 'stamped' the linked mail message to indicate that some task needs to get done.</description>
+    <issues>Mitch would like to come up with a better name for this than 'Related Mail Message'.</issues>
     <cardinality>single</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:stronglyLinkedTask"/>
@@ -368,8 +371,8 @@
   </Attribute>
 
   <Kind itemName="MailMessage">
-    <displayName>Email Message</displayName>
-    <description>An Email Message represents any sort of email message, sent or received.</description>
+    <displayName>Mail Message</displayName>
+    <description>A Mail Message represents any sort of email message, sent or received.</description>
     <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
     <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
     <superKinds itemref="content:ContentItem"/>
