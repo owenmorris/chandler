@@ -90,6 +90,12 @@ def end(name):
         # raise "End called without a Begin on %s" % name
     trackers[name].end()
 
+def reset():
+    global trackers
+    trackers = {}
+    totalCounts = 0
+    totalTime = 0.0
+
 def results():
     keys = trackers.keys()
     keys.sort()
@@ -98,7 +104,7 @@ def results():
     bannerFormat = "%-30s %6s %6s %6s"
     lines = bannerFormat % \
      ("------------------------------", "------", "------", "------")
-    dataFormat = "%-30s %6d %6.3f %6.3f"
+    dataFormat = "%-30s %6d %6.5f %6.5f"
     print bannerFormat % ("Operation", "Count", "Total", "Avg")
     print lines
     for key in keys:
