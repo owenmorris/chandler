@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>CalendarEvent</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+  <class module="model.schema.Kind">KindKind</class>
+
+  <ref name="AttrDefs">
+    <ref name="CalendarHeadline" type="path">//Schema/CalendarHeadline</ref>
+    <ref name="CalendarStartTime" type="path">//Schema/CalendarStartTime</ref>
+    <ref name="CalendarEndTime" type="path">//Schema/CalendarEndTime</ref>
+  </ref>
+
+  <attribute name="Class" type="model.schema.Types.Class">parcels.calendar.model.CalendarEvent.CalendarEvent</attribute>
+
+</item>

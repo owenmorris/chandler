@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<resource>
+<object class="wxMenu" name="ViewerParcelMenu">
+   <label>Calendar</label>
+   <object class="wxMenuItem" name="MenuGoToday">
+      <label>Go To Today</label>
+   </object>
+   <object class="wxMenuItem" name="MenuGoDate">
+      <label>Go To Date...</label>
+   </object>
+   <object class="separator"/>
+   <object class="wxMenuItem" name="MenuFreeBusy">
+      <label>Display Free-Busy Attribute</label>
+      <checkable>1</checkable>
+   </object>
+   <object class="wxMenuItem" name="MenuSharingPolicy">
+      <label>Accessible to Public</label>
+      <checkable>1</checkable>
+   </object>
+  <object class="wxMenuItem" name="MenuOverlayRemote">
+      <label>Overlay Remote and Local</label>
+      <checkable>1</checkable>
+   </object>
+   <object class="separator"/>
+   <object class="wxMenuItem" name="MenuDeleteCalendar">
+      <label>Delete Calendar Item</label>
+   </object>
+</object>
+
+<object class="wxPanel" 
+        subclass="parcels.OSAF.calendar.CalendarViewer.wxCalendarViewer"
+        name="CalendarViewer">
+   <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="sizeritem">
+         <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+               <object class="wxStaticText" name="CalendarLabel">
+                  <label>Calendar</label>
+                  <size>500, 25</size>
+               </object>
+               <option>0</option>
+               <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP</flag>
+               <border>5</border>
+            </object>
+            <object class="sizeritem">
+               <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                     <object class="wxBitmapButton" name="Prev">
+                     <style>wxNO_BORDER</style>
+                     <bitmap>right_arrow.bmp</bitmap>
+                     </object>
+                     <option>0</option>
+                  </object>
+                  <object class="sizeritem">
+                     <object class="wxStaticText" name="RangeLabel">
+                     <style>wxALIGN_CENTRE | wxST_NO_AUTORESIZE</style>
+                     <label>September 32 - September 32, 2003</label>
+                     </object>
+                     <option>0</option>
+                     <flag>wxALIGN_CENTRE</flag>
+                  </object>
+                  <object class="sizeritem">
+                     <object class="wxBitmapButton" name="Next">
+                     <style>wxNO_BORDER</style>
+                     <bitmap>left_arrow.bmp</bitmap>
+                     </object>
+                     <option>0</option>
+                  </object>
+                  <object class="sizeritem">
+                  <object class="wxButton" name="Today">
+                  <label>Today</label>
+              </object>
+              <option>0</option>
+              <flag>wxALIGN_CENTER</flag>
+          </object>
+          <object class="spacer">
+              <option>1</option>
+          </object>
+              <object class="sizeritem">
+                     <object class="wxChoice" name="ViewTypeList">
+                     </object>
+                     <option>0</option>
+                     <flag>wxALIGN_CENTER</flag>
+                  </object>
+               </object>
+               <option>0</option>
+               <flag>wxEXPAND</flag>
+            </object>
+         </object>
+         <option>1</option>
+         <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+         <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+         <object class="sizeritem">
+               <object class="wxStaticText" name="EmptyStaticText">
+                  <size>25, 25</size>
+               </object>
+               <option>0</option>
+               <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP</flag>
+               <border>5</border>
+            </object>
+            <object class="sizeritem">
+               <object class="wxCalendarCtrl"
+                   subclass="parcels.OSAF.calendar.MonthNavigator.wxMonthNavigator"
+                       name="MonthNavigator">
+                  <style>wxSUNKEN_BORDER</style>
+               </object>
+               <option>0</option>
+               <border>5</border>
+               <flag>wxEXPAND | wxALL</flag>
+            </object>
+            <object class="spacer">
+               <option>1</option>
+               <flag>wxEXPAND | wxALL</flag>
+            </object>
+            <object class="sizeritem">
+               <object class="wxStaticText" name="EmptyPanel">
+                  <label>This area intentionally left blank</label>
+                  <style>wxALIGN_CENTRE</style>
+               </object>
+               <option>0</option>
+               <flag>wxALIGN_CENTRE</flag>
+            </object>
+            <object class="spacer">
+               <option>1</option>
+               <flag>wxEXPAND</flag>
+            </object>
+         </object>
+         <option>0</option>
+         <flag>wxEXPAND</flag>
+      </object>
+   </object>
+</object>
+
+<object class="wxScrolledWindow"
+        subclass = "parcels.OSAF.calendar.MonthViewer.wxMonthViewer"
+        name="MonthViewer">
+   <style>wxSUNKEN_BORDER</style>
+   <size>500, 500</size>
+</object>
+
+<object class="wxPanel"
+        subclass = "parcels.OSAF.calendar.TableViewer.wxTableViewer"
+        name="TableViewer">
+    <style>wxSUNKEN_BORDER</style>
+    <size>500, 500</size>
+</object>
+
+<object class="wxPanel" 
+        subclass="parcels.OSAF.calendar.ColumnarViewer.wxColumnarViewer"
+        name="ColumnarViewer">
+   <style>wxSUNKEN_BORDER</style>
+   <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+         <object class="wxScrolledWindow"
+                 subclass="parcels.OSAF.calendar.ColumnarHeadView.wxColumnarHeadView" 
+                 name="ColumnarHeadView">
+            <label>Columnar Head View</label>
+            <size>500, 20</size>
+         </object>
+         <option>0</option>
+         <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+         <object class="wxScrolledWindow"
+                 subclass="parcels.OSAF.calendar.ColumnarTimeView.wxColumnarTimeView"
+                 name="ColumnarTimeView">
+         <label>Columnar Time View</label>
+            <size>500, 500</size>
+         </object>
+         <option>1</option>
+         <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+         <object class="wxScrolledWindow"
+                 subclass="parcels.OSAF.calendar.ColumnarFootView.wxColumnarFootView"
+                 name="ColumnarFootView">
+         <label>Columnar Foot View</label>
+            <size>500, 0</size>
+         </object>
+         <option>0</option>
+         <flag>wxEXPAND</flag>
+      </object>
+   </object>
+</object>
+
+<object class="wxDialog" name="CalendarCtrlDialog">
+   <title>Go To Date</title>
+   <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+         <object class="wxCalendarCtrl" name="CalendarCtrl">
+            <style>wxCAL_SUNDAY_FIRST | wxCAL_SHOW_HOLIDAYS</style>
+         </object>
+         <option>1</option>
+         <flag>wxEXPAND|wxALL</flag>
+      </object>
+      <object class="sizeritem">
+         <object class="wxBoxSizer">
+         <orient>wxHORIZONTAL</orient>
+            <object class="sizeritem">
+               <object class="wxButton" name="wxID_OK">
+               <label>Ok</label>
+              <default>1</default>
+            </object>
+            </object>
+            <object class="sizeritem">
+               <object class="wxButton" name="wxID_CANCEL">
+               <label>Cancel</label>
+           </object>
+           <flag>wxLEFT</flag>
+            </object>
+     </object>
+     <flag>wxLEFT|wxRIGHT|wxBOTTOM|wxALIGN_RIGHT</flag>
+     <border>10</border>
+      </object>
+   </object>
+</object>
+
+</resource>
