@@ -9,7 +9,7 @@ import os.path
 import os
 
 from model.util.UUID import UUID
-from model.persistence.Repository import Repository
+from model.persistence.Repository import Repository, RepositoryError
 from model.item.ItemRef import RefDict
 
 
@@ -30,8 +30,8 @@ class FileRepository(Repository):
 
         if not self.isOpen():
             super(FileRepository, self).open()
-            self._load(verbose=verbose)
             self._status |= Repository.OPEN
+            self._load(verbose=verbose)
 
     def close(self):
 
@@ -86,6 +86,9 @@ class FileRepository(Repository):
 
         After save is complete a contents.lst file contains the UUIDs of all
         items that were saved to their own uuid.item file.'''
+
+        if not self.isOpen():
+            raise DBError, "Repository is not open"
 
         if not os.path.exists(self.dbHome):
             os.mkdir(self.dbHome)
@@ -162,6 +165,9 @@ class FileRepository(Repository):
         return FileRefDict(item, name, otherName, ordered)
     
     def addTransaction(self, item):
+
+        if not self.isOpen():
+            raise RepositoryError, 'Repository is not open'
 
         return not self.isLoading()
     

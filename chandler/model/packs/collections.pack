@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<pack name="Collections" cwd="collections">
+
+  <item path="//Schema">
+    <item file="Collections.container" cwd="schema">
+      <item files="*.kind" />
+      <item file="Attributes.container" cwd="attributes">
+        <item files="*.attr" />
+      </item>
+    </item>
+  </item>
+  
+  <item file="Collections.root">
+    <item files="*.item" />
+  </item>
+
+</pack>

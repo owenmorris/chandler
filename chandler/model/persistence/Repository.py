@@ -15,6 +15,10 @@ from model.item.ItemRef import ItemStub, DanglingRefError
 from model.persistence.PackHandler import PackHandler
 
 
+class RepositoryError(ValueError):
+    "All repository related exceptions go here"
+    
+
 class Repository(object):
     """An abstract item repository.
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>Dictionary</name>
+    <kind type="path">//Schema/Model/Attribute</kind>
+
+    <attribute name="Cardinality">single</attribute>
+    <ref name="Type" type="path">/Model/Types/Dictionary</ref>
+</item>

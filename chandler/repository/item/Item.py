@@ -792,55 +792,15 @@ class Item(object):
                 attrType = self.getAttributeAspect(attr[0], 'Type')
                 attrCard = self.getAttributeAspect(attr[0], 'Cardinality',
                                                    'single')
-                self._xmlValue(attr[0], attr[1], 'attribute',
-                               attrType, attrCard, generator, withSchema)
+                ItemHandler.xmlValue(attr[0], attr[1], 'attribute',
+                                     attrType, attrCard, generator,
+                                     withSchema)
 
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.iteritems():
             if self.getAttributeAspect(attr[0], 'Persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)
-
-    def _xmlValue(self, name, value, tag, attrType, attrCard,
-                  generator, withSchema):
-
-        attrs = {}
-            
-        if name is not None:
-            if isinstance(name, UUID):
-                attrs['nameType'] = 'uuid'
-                attrs['name'] = name.str64()
-            elif not isinstance(name, str) and not isinstance(name, unicode):
-                attrs['nameType'] = ItemHandler.typeName(name)
-                attrs['name'] = str(name)
-            else:
-                attrs['name'] = name
-
-        if attrCard == 'single':
-            if not isinstance(value, str):
-                if attrType is None:
-                    attrs['type'] = ItemHandler.typeName(value)
-                elif withSchema:
-                    attrs['type'] = attrType.handlerName()
-        else:
-            attrs['cardinality'] = attrCard
-
-        generator.startElement(tag, attrs)
-
-        if isinstance(value, dict):
-            for val in value.iteritems():
-                self._xmlValue(val[0], val[1], 'value', attrType, 'single',
-                               generator, withSchema)
-        elif isinstance(value, list):
-            for val in value:
-                self._xmlValue(None, val, 'value', attrType, 'single',
-                               generator, withSchema)
-        elif withSchema or attrType is None:
-            generator.characters(ItemHandler.makeString(value))
-        else:
-            attrType.typeXML(value, generator)
-
-        generator.endElement(tag)
 
     def _refDict(self, name, otherName, ordered=False):
 
@@ -1140,19 +1100,49 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def valueStart(self, itemHandler, attrs):
 
-        self.setupTypeDelegate(attrs)
+        typeName = attrs.get('type')
+        if typeName == 'dict':
+            self.collections.append({})
+        elif typeName == 'list':
+            self.collections.append([])
+        else:
+            self.setupTypeDelegate(attrs)
 
+    # valueEnd is called when parsing 'dict' or 'list' cardinality values of
+    # one type (type specified with cardinality) or of unspecified type
+    # (type specified with value) or 'dict' or 'list' type values of 'single'
+    # or unspecified cardinality or values of type 'Dictionary' or 'List' of
+    # any cardinality. A mess of overloading.
+    
     def valueEnd(self, itemHandler, attrs, **kwds):
 
+        # case of parsing 'Dictionary' or 'List' of non 'single' cardinality
         if kwds.has_key('value'):
             value = kwds['value']
         else:
-            typeName = attrs.get('type', None)
-            if typeName is None:
-                typeName = self.getTypeName(self.attributes[-1],
-                                            self.tagAttrs[-1])
+            typeName = attrs.get('type')
+            if typeName == 'dict' or typeName == 'list':
+                # case of parsing 'single' 'list' or 'dict' type value
+                value = self.collections.pop()
 
-            value = self.makeValue(typeName, self.data)
+            else:
+                if typeName is None:
+                    cardinality = self.getCardinality(self.attributes[-1],
+                                                      self.tagAttrs[-1])
+                    if cardinality == 'dict' or cardinality == 'list':
+                        # case of parsing non 'single' 'list' or 'dict' type
+                        # value of one type specified with cardinality
+                        typeName = self.getTypeName(self.attributes[-1],
+                                                    self.tagAttrs[-1])
+                    else:
+                        # case of parsing a collection value of type string
+                        # which is unspecified
+                        typeName = 'str'
+                else:
+                    # case of parsing a collection value of a specific type
+                    pass
+
+                value = self.makeValue(typeName, self.data)
 
         name = attrs.get('name')
 
@@ -1290,5 +1280,48 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             return str(value)
             
+    def xmlValue(cls, name, value, tag, attrType, attrCard,
+                 generator, withSchema):
+
+        attrs = {}
+            
+        if name is not None:
+            if isinstance(name, UUID):
+                attrs['nameType'] = 'uuid'
+                attrs['name'] = name.str64()
+            elif not isinstance(name, str) and not isinstance(name, unicode):
+                attrs['nameType'] = cls.typeName(name)
+                attrs['name'] = str(name)
+            else:
+                attrs['name'] = name
+
+        if attrCard == 'single':
+            if not isinstance(value, str) and not isinstance(value, unicode):
+                if attrType is None:
+                    attrs['type'] = cls.typeName(value)
+                elif withSchema:
+                    attrs['type'] = attrType.handlerName()
+        else:
+            attrs['cardinality'] = attrCard
+
+        generator.startElement(tag, attrs)
+
+        if withSchema or attrType is None or attrCard != 'single':
+            if isinstance(value, dict):
+                for val in value.iteritems():
+                    cls.xmlValue(val[0], val[1], 'value', attrType, 'single',
+                                 generator, withSchema)
+            elif isinstance(value, list):
+                for val in value:
+                    cls.xmlValue(None, val, 'value', attrType, 'single',
+                                 generator, withSchema)
+            else:
+                generator.characters(cls.makeString(value))
+        else:
+            attrType.typeXML(value, generator)
+
+        generator.endElement(tag)
+
     typeName = classmethod(typeName)
     makeString = classmethod(makeString)
+    xmlValue = classmethod(xmlValue)

@@ -26,8 +26,11 @@ class Kind(Item):
         return self.getItemClass()(name, parent, self)
 
     def getItemClass(self):
+        """Return the class used to create items of this Kind.
 
-        return self.getAttributeValue('Classes')['python']
+        By default, the Item class is returned."""
+        
+        return self.getAttributeValue('Classes').get('python', Item)
         
     def getAttribute(self, name):
 

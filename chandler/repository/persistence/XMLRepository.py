@@ -11,7 +11,7 @@ import cStringIO
 from model.util.UUID import UUID
 from model.item.Item import Item, ItemHandler
 from model.item.ItemRef import ItemRef, ItemStub, RefDict
-from model.persistence.Repository import Repository
+from model.persistence.Repository import Repository, RepositoryError
 
 from struct import pack, unpack
 from bsddb.db import DBEnv, DB
@@ -21,7 +21,7 @@ from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
 
-class DBError(ValueError):
+class DBError(RepositoryError):
     "All DBXML related exceptions go here"
     
 

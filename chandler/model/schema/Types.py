@@ -308,6 +308,55 @@ class RelativeDateTime(Type):
                                             weeks=flds.get('weeks', 0))
 
     makeValue = classmethod(makeValue)
+
+
+class Collection(Type):
+    
+    def getValue(self, itemHandler, data):
+        return itemHandler.collections.pop()
+
+    def valuesStart(self, itemHandler, attrs):
+        itemHandler.attributes.append(None)
+        itemHandler.collections.append(self._empty())
+
+    def valuesEnd(self, itemHandler, attrs):
+        itemHandler.attributes.pop()
+        
+    def valueStart(self, itemHandler, attrs):
+        itemHandler.valueStart(itemHandler, attrs)
+
+    def valueEnd(self, itemHandler, attrs):
+        itemHandler.valueEnd(itemHandler, attrs)
+
+
+class Dictionary(Collection):
+
+    def typeXML(self, value, generator):
+
+        generator.startElement('values', {})
+        for val in value.iteritems():
+            ItemHandler.xmlValue(val[0], val[1], 'value', None, 'single',
+                                 generator, False)
+        generator.endElement('values')
+
+    def _empty(self):
+
+        return {}
+
+
+class List(Collection):
+
+    def typeXML(self, value, generator):
+
+        generator.startElement('values', {})
+        for val in value:
+            ItemHandler.xmlValue(None, val, 'value', None, 'single',
+                                 generator, False)
+        generator.endElement('values')
+    
+    def _empty(self):
+
+        return []
     
 
 ItemHandler.typeHandlers[type] = Class
