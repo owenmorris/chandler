@@ -29,7 +29,7 @@ chandler-source -a \
     osaf/chandler/PyXML \
     osaf/chandler/Python-2.2.2 \
     osaf/chandler/WingIDE \
-    osaf/chandler/ZODB4 \
+    osaf/chandler/zodb \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx-base-2.0.4 \
     osaf/chandler/hardhat \
