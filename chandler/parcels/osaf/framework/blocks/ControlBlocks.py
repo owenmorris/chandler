@@ -1462,6 +1462,7 @@ class wxAEBlock(wxRectangularChild):
         # create the control to use for editing
         control = self.editor.Create(self.blockItem.widget, -1)
         control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromControl)
+        control.Bind(wx.EVT_KEY_UP, self.OnKeyPressedFromControl)
         self.control = control # remember the widget created (aka the control)
 
     def destroyControl(self):
@@ -1485,6 +1486,12 @@ class wxAEBlock(wxRectangularChild):
 
         self.wxSynchronizeWidget() #resync, so we'll draw without the control.
         event.Skip()
+
+    def OnKeyPressedFromControl(self, event):
+        if event.m_keyCode == wx.WXK_RETURN:
+            self.editor.EndControlEdit(self.blockItem.getItem(), self.blockItem.getAttributeName(), self.control)
+        else:
+            event.Skip()
 
 class AEBlock(RectangularChild):
     """

@@ -666,7 +666,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         
     def onKeyPressed (self, event):
         # called when we get an event; to saves away the data and skips the event
-        self.saveTextValue()
+        self.saveTextValue(validate = event.m_keyCode == wx.WXK_RETURN)
         event.Skip()
         
     def OnDataChanged (self):
