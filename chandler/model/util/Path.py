@@ -53,9 +53,13 @@ class Path(object):
 
         return path
 
-    def __getitem__(self, key):
+    def __getslice__(self, start, end):
 
-        return self._names[key]
+        return apply(Path, self._names.__getslice__(start, end))
+
+    def __getitem__(self, index):
+
+        return self._names[index]
 
     def __len__(self):
 

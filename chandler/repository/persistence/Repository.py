@@ -161,6 +161,32 @@ class Repository(object):
 
         return self.find(spec)
 
+    def walk(self, path, callable, _index=0, **kwds):
+
+        if _index == 0 and not isinstance(path, Path):
+            path = Path(path)
+
+        l = len(path)
+
+        if l == 0:
+            return None
+
+        if path[_index] == '//':
+            _index += 1
+
+        if _index >= l:
+            return None
+
+        root = self.getRoot(path[_index], kwds.get('load', True))
+        if not callable(self, path[_index], root, **kwds):
+            return False
+        if root is not None:
+            if _index == l - 1:
+                return root
+            return root.walk(path, callable, _index + 1, **kwds)
+
+        return None
+
     def find(self, spec, _index=0, load=True):
         '''Find an item as specified or return None if not found.
         
@@ -169,24 +195,8 @@ class Repository(object):
         to the first name element in the path, a root in the repository.'''
         
         if isinstance(spec, Path):
-            l = len(spec)
-
-            if l == 0:
-                return None
-
-            if spec[_index] == '//':
-                _index += 1
-
-            if _index >= l:
-                return None
-
-            root = self.getRoot(spec[_index], load)
-            if root is not None:
-                if _index == l - 1:
-                    return root
-                return root.find(spec, _index + 1, load)
-
-            return None
+            return self.walk(spec, lambda parent, name, child, **kwds: True,
+                             load=load)
 
         elif isinstance(spec, UUID):
             if spec == self.ROOT_ID:
@@ -203,7 +213,9 @@ class Repository(object):
                 (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
                 return self.find(UUID(spec), 0, load)
             else:
-                return self.find(Path(spec), 0, load)
+                return self.walk(Path(spec),
+                                 lambda parent, name, child, **kwds: True,
+                                 0, load=load)
 
         return None
 

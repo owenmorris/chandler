@@ -846,6 +846,50 @@ class Item(object):
 
         return False
 
+    def walk(self, path, callable, _index=0, **kwds):
+        """Walk a path and invoke a callable along the way.
+
+        The callable's arguments should be (parent, childName, child, **kwds).
+        If the callable returns a false condition, the walking recursion is
+        aborted."""
+
+        if _index == 0 and not isinstance(path, Path):
+            path = Path(path)
+
+        l = len(path)
+        if l == 0 or _index >= l:
+            return None
+
+        if _index == 0:
+            if path[0] == '//':
+                return self.getRepository().walk(path, callable, 1, **kwds)
+
+            elif path[0] == '/':
+                if self._root is self:
+                    return self.walk(path, callable, 1, **kwds)
+                else:
+                    return self._root.walk(path, callable, 1, **kwds)
+
+        if path[_index] == '.':
+            if _index == l - 1:
+                return self
+            return self.walk(path, callable, _index + 1, **kwds)
+
+        if path[_index] == '..':
+            if _index == l - 1:
+                return self._parent
+            return self._parent.walk(path, callable, _index + 1, **kwds)
+
+        child = self.getItemChild(path[_index], kwds.get('load', True))
+        if not callable(self, path[_index], child, **kwds):
+            return False
+        if child is not None:
+            if _index == l - 1:
+                return child
+            return child.walk(path, callable, _index + 1, **kwds)
+
+        return None
+
     def find(self, spec, _index=0, load=True):
         """Find an item as specified or return None if not found.
         
@@ -854,36 +898,8 @@ class Item(object):
         to the item unless the path is absolute."""
 
         if isinstance(spec, Path):
-            l = len(spec)
-
-            if l == 0 or _index >= l:
-                return None
-
-            if _index == 0:
-                if spec[0] == '//':
-                    return self.getRepository().find(spec, 1, load)
-
-                elif spec[0] == '/':
-                    if self._root is self:
-                        return self.find(spec, 1, load)
-                    else:
-                        return self._root.find(spec, 1, load)
-
-            if spec[_index] == '.':
-                if _index == l - 1:
-                    return self
-                return self.find(spec, _index + 1, load)
-
-            if spec[_index] == '..':
-                if _index == l - 1:
-                    return self._parent
-                return self._parent.find(spec, _index + 1, load)
-
-            child = self.getItemChild(spec[_index], load)
-            if child is not None:
-                if _index == l - 1:
-                    return child
-                return child.find(spec, _index + 1, load)
+            return self.walk(spec, lambda parent, name, child, **kwds: True,
+                             load=load)
 
         elif isinstance(spec, UUID):
             return self.getRepository().find(spec, 0, load)
@@ -893,7 +909,9 @@ class Item(object):
                 (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
                 return self.find(UUID(spec), 0, load)
 
-            return self.find(Path(spec), 0, load)
+            return self.walk(Path(spec),
+                             lambda parent, name, child, **kwds: True,
+                             0, load=load)
 
         return None
 
