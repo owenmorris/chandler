@@ -56,7 +56,8 @@
                         <border>2</border>
                         <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
                             <size>140,10</size>
-                            <style>wxSUNKEN_BORDER|wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_NO_LINES</style>
+                            <style>wxSUNKEN_BORDER|wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|
+                                   wxTR_NO_LINES|wxTR_FULL_ROW_HIGHLIGHT</style>
                         </object>
                     </object>
                     <object class="sizeritem">
