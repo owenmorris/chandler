@@ -206,10 +206,11 @@ class JabberClient:
             if name != key:
                 return name
  
-        name = self.application.LookupInRepository(key)
-        if name == None:
-            name = str(jabberID)
-            
+        #name = self.application.LookupInRepository(key)
+        #if name == None:
+        #    name = str(jabberID)
+        name = str(jabberID)
+
         self.nameMap[key] = name
         return name
     
@@ -411,19 +412,20 @@ class JabberClient:
                 return
         
         # it's a mainstream instant message (not one of our structured ones).
-        if self.rosterParcel != None:
-            # post a message-arrived notification
-            messageNotification = Notification("chandler/im/message-arrived","messageType", None)
-            
-            messageData = {}
-            messageData['body'] = body
-            messageData['fromAddress'] = fromAddress
-            messageData['toAddress'] = toAddress
-            messageData['subject'] = subject
-            
-            messageNotification.SetData(messageData)
-            self.application.model.notificationManager.PostNotification(messageNotification)
 
+        # post a message-arrived notification
+        messageNotification = Notification("chandler/im/message-arrived","messageType", None)
+        
+        messageData = {}
+        messageData['body'] = body
+        messageData['fromAddress'] = fromAddress
+        messageData['toAddress'] = toAddress
+        messageData['subject'] = subject
+        
+        messageNotification.SetData(messageData)
+        self.application.model.notificationManager.PostNotification(messageNotification)
+
+        if self.rosterParcel != None:
             self.rosterParcel.ReceivedMessage(fromAddress, subject, body)
         
     # handle incoming presence requests by automatically accepting them
@@ -557,8 +559,8 @@ class JabberClient:
         self.application.model.notificationManager.PostNotification(subRequestNotification)
        
         # set up a timer to test if the notification was handled, and put up a dialog if it wasn't
-        timer = SubscriptionRequestTimer(self, subscriptionType, who, subRequestNotification)
-        timer.Start(3000)
+#        timer = SubscriptionRequestTimer(self, subscriptionType, who, subRequestNotification)
+#        timer.Start(3000)
  
     # utility to accept a subscription request
     def AcceptSubscriptionRequest(self, who):
@@ -584,11 +586,9 @@ class JabberClient:
         
         if result == wxID_YES:
             if subscriptionType == 'subscribe':
-                self.connection.send(Presence(to=who, type='subscribed'))
-                self.connection.send(Presence(to=who, type='subscribe'))
+                self.AcceptSubscriptionRequest(who)
             elif subscriptionType == 'unsubscribe':
-                self.connection.send(Presence(to=who, type='unsubscribed'))
-                self.connection.send(Presence(to=who, type='unsubscribe'))
+                self.DeclineSubscriptionRequest(who)
             
             self.NotifyPresenceChanged(who)
         
