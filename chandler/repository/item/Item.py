@@ -295,13 +295,6 @@ class Item(object):
         @return: the value actually set.
         """
 
-        self.setDirty(attribute=name)
-        
-        isItem = isinstance(value, Item)
-        isRef = not isItem and (isinstance(value, ItemRef) or
-                                isinstance(value, RefDict))
-        old = None
-
         if _attrDict is None:
             if self._values.has_key(name):
                 _attrDict = self._values
@@ -310,8 +303,26 @@ class Item(object):
             elif self._kind.getOtherName(name, default=None):
                 _attrDict = self._references
             else:
-                _attrDict = self._values
+                redirect = self.getAttributeAspect(name, 'redirectTo',
+                                                   default=None)
+                if redirect is not None:
+                    item = self
+                    names = redirect.split('.')
+                    for i in xrange(len(names) - 1):
+                        item = item.getAttributeValue(names[i])
 
+                    return item.setAttributeValue(names[-1], value)
+
+                else:
+                    _attrDict = self._values
+
+        isItem = isinstance(value, Item)
+        isRef = not isItem and (isinstance(value, ItemRef) or
+                                isinstance(value, RefDict))
+        old = None
+
+        self.setDirty(attribute=name)
+        
         if _attrDict is self._references:
             if value is None:
                 value = NoneRef
@@ -454,23 +465,37 @@ class Item(object):
         except KeyError:
             pass
 
-        inherit = self.getAttributeAspect(name, 'inheritFrom', default=None)
-        if inherit is not None:
-            value = self
-            for attr in inherit.split('.'):
-                value = value.getAttributeValue(attr)
-            if isinstance(value, PersistentCollection):
-                value.setReadOnly(True)
-            return value
+        if self._kind is not None:
+            attribute = self._kind.getAttribute(name)
+        else:
+            attribute = None
+            
+        if attribute is not None:
+            inherit = attribute.getAspect('inheritFrom', default=None)
+            if inherit is not None:
+                value = self
+                for attr in inherit.split('.'):
+                    value = value.getAttributeValue(attr)
+                if isinstance(value, PersistentCollection):
+                    value.setReadOnly(True)
+                return value
 
-        elif kwds.has_key('default'):
+            redirect = attribute.getAspect('redirectTo', default=None)
+            if redirect is not None:
+                value = self
+                for attr in redirect.split('.'):
+                    value = value.getAttributeValue(attr)
+                return value
+
+        if kwds.has_key('default'):
             return kwds['default']
 
-        value = self.getAttributeAspect(name, 'defaultValue', default=Item.Nil)
-        if value is not Item.Nil:
-            if isinstance(value, PersistentCollection):
-                value.setReadOnly(True)
-            return value
+        if attribute is not None:
+            value = attribute.getAspect('defaultValue', default=Item.Nil)
+            if value is not Item.Nil:
+                if isinstance(value, PersistentCollection):
+                    value.setReadOnly(True)
+                return value
 
         raise AttributeError, "%s has no value for '%s'" %(self.itsPath,
                                                            name)
