@@ -1338,7 +1338,8 @@ def createInstaller(buildenv, directory, distName):
 
     else:
         return compressDirectory(buildenv, directory,
-         buildenv['module'] + "_" + buildenv['oslabel'] + "_" + releaseId)
+         buildenv['module'] + "_" + buildenv['oslabel'] + "_" + \
+          buildenv['releaseId'])
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
