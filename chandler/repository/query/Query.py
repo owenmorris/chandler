@@ -662,4 +662,4 @@ class DifferencePlan(LogicalPlan):
         @return: true if the item entered, false if it exited, None if it was unaffected
         """
         flags = [ x.changed(item, attribute) for x in self.__plans ]
-        return x and not y
+        return flags[0] and not flags[1]
