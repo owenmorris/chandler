@@ -33,7 +33,7 @@ def main():
 
     try:
         application = wxApplication(sys.argv)
-    except:
+    except Exception, e:
         logging.exception("Unhandled exception during initialization")
         ShowExceptionDialog("Chandler", "Chandler encountered an unexpected problem while trying to start.")
         raise
