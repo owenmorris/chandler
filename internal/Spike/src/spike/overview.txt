@@ -623,40 +623,107 @@ changed item.  It would also allow the system to warn you when installing
 a new version of some parcel that you won't be able to reverse the procedure.
 
 
-Event Model
------------
+Domain Events
+-------------
 
-Entity events:
+Division of repsonsibilities:
 
-* Get attribute (autoload)
-* Get attribute (setup/default)
-* Get association (autoload)
-* Set attribute (override/convert value)
-* Set attribute (validation)
-* Set attribute (validation failure)
-* Set attribute (post-change success notification)
-* Object loaded w/outdated schema (?)
+* Entity is role->set mapping (single, dict, and other cardinalities can be
+  treated as a special case of sets)
 
-Set/Dict events:
+* Sets (incl. special cases) issue post-action events after add or delete item;
+  rollback issues reverse event.  (This makes the event model really simple;
+  no need for pre-op validation and other event hooks.  OTOH, see below re:
+  sync vs. async events and txn./undo logs; maybe we should distinguish between
+  sync. validation events and async notices, since we can then push e.g. UI
+  or DB errors out of the realm of sets' processing.  But that idea can wait
+  until a later stage of development.)
 
-* Add item (override/convert value)
-* Add item (validation)
-* Add item (validation failure)
-* Add item (post-change success notification)
-* Remove item (validation)
-* Remove item (validation failure)
-* Remove item (post-change success notification)
-* Collection autoload
-* Collection proxy?
+* Requesting a currently unknown role for an entity triggers a load event for
+  that role, falling back to a role-defined calculation, default, or empty set
+  (Storage system subscribes to load events in order to lazily supply
+  persistent data.)
 
-Misc.:
+* Attribute descriptors know their roles, and can cache the sets in entity
+  __dict__
+
+* Operation failures due to validation should fire validation events for the
+  set; entities should link set validation failures to entity-level validation
+  events
+
+Misc. issues:
+
+* how should unhandled exceptions in event receivers be treated?  Log and
+  suppress, or crash safely?  Probably the sane thing to do is to force a
+  shutdown, since the system's sanity can't be guaranteed otherwise.  There
+  are probably a couple of different ways to do that, such as having an error
+  handling method in the event classes, and/or having a CallbackError event
+  class, so the platform can have listeners that handle the situation.
+
+  At a more basic level, components can ensure their own integrity by wrapping
+  event sends in try-except-finally blocks such that they roll back work in
+  progress if an exception occurs.
+
+* At what point do failure events become exceptions?  Or does the system just
+  track "active failures" and refuse commit if any?  (In general, validation
+  seems to need more thought.)
+
+* Event aggregation and suppression (probably can be handled via simple
+  delegates; we'll see when we get to UI level, and it's not clear to me that
+  Chandler currently needs this anyway)  Idea: "async" events vs. synchronous
+  events.  I.e., async events can be queued, aggregated, and even cancelled
+  before sending.  Interestingly, this has strong similarities to an undo log;
+  i.e., it's useful to aggregate and merge redundant diffs.
+
+* Event for object loaded w/outdated schema (this probably doesn't actually
+  make any sense w/latest schema evolution plan; it can probably be subsumed
+  under normal "load a set/compute default" events)
 
 * workspace loaded event (monitor object states to roll back upon error?)
-* inverse links
-* atomic operations (rollback current operation on error)
-* undo log via event listeners?
-* event aggregation?  suppression?
-* receiver prioritization (override getReceivers())
+
+* undo log via event listeners?  (Snapshot would suffice for single-item sets
+  and small sets, but large sets could reasonably use diffs.  OTOH, diffs
+  would always work, and therefore be simpler.  Not clear yet how this would
+  work though.)
+
+* Idea: receiver prioritization (via override getReceivers()) and uniqueness
+  (e.g. create a ``Hook`` subclass of ``Event`` for events that should only
+  have a single subscriber for a given sender at any one time, and perhaps
+  ``Callback`` for hook events that should only be called once.
 
 
+Schema Responsibilities
+-----------------------
 
+* All schema objects except descriptors know their fully-qualified import name
+  (for UUID lookups).
+  
+* Descriptors and Roles exist for each cardinality
+
+* Descriptors create default role if given a type (problem: this requires
+  descriptors to know their name, because role needs to know its name and
+  location, which means we'll need peak.binding-style attribute activation.)
+
+* Descriptor asks Role to subscribe a set so that its inverse reference is
+  automatically updated, if it has one (Q: should we do this for
+  "unidirectional" relationships too?  or let the repository handle it?)
+
+* Role knows how to create a default set of the right type for its cardinality,
+  etc.
+
+* Role knows its Relationship and inverse Role (if bidirectional)
+
+* Role knows its required type, requiredness, and other metadata (policies?)
+
+* Entity can be asked to retrieve a set for a given Role
+
+* Sets can be told their "owner", in which case they also publish object-level
+  events
+  
+* Should we have a general hook for attribute metadata, like in peak.binding?
+  Since we have to scan and activate descriptors so they know their name, it
+  seems reasonable to allow other metadata here.  It would also prevent an
+  explosion of keyword options to descriptors and roles as Chandler's metadata
+  needs evolve, while allowing third parties to define and use their own kinds
+  of structural metadata.
+ 
