@@ -935,96 +935,6 @@ class CloudXMLFormat(ImportExportFormat):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/CloudXMLFormat"
 
-    # This dictionary helps convert XML nodes to items.  Its keys are XML
-    # element names, and the values are dictionaries storing the corresponding
-    # Kind and 'fingerprint' -- a fingerprint is a list of attributes that make
-    # up the Kind's 'primary key'.  One item is considered to be the same as
-    # another if all of the attributes in their fingerprint list have the
-    # same values.  Set 'useFingerprintSearch' to True to enable this feature.
-    # At the moment it is turned off because we have UUIDs in the XML and we
-    # can simply look those up.
-
-    # @@@MOR At some point, the __nodeDescriptors information might be better off
-    # living inside the schema itself somewhere, rather than in this module.
-
-    useFingerprintSearch = False
-
-    __nodeDescriptors = {
-        'CalendarEvent' : {
-            'kind' : '//parcels/osaf/contentmodel/calendar/CalendarEvent',
-            'fingerprint' : (
-                'organizer.contactName.firstName',
-                'organizer.contactName.lastName'
-            ),
-        },
-        'Contact' : {
-            'kind' : '//parcels/osaf/contentmodel/contacts/Contact',
-            'fingerprint' : (
-                'contactName.firstName',
-                'contactName.lastName'
-            ),
-        },
-        'ContactName' : {
-            'kind' : '//parcels/osaf/contentmodel/contacts/ContactName',
-            'fingerprint' : (
-                'firstName',
-                'lastName'
-            ),
-        },
-        'EmailAddress' : {
-            'kind' : '//parcels/osaf/contentmodel/mail/EmailAddress',
-            'fingerprint' : (),
-        },
-        'EventTask' : {
-            'kind' : '//parcels/osaf/contentmodel/EventTask',
-            'fingerprint' : (),
-        },
-        'ItemCollection' : {
-            'kind' : '//parcels/osaf/contentmodel/ItemCollection',
-            'fingerprint' : (),
-        },
-        'Location' : {
-            'kind' : '//parcels/osaf/contentmodel/calendar/Location',
-            'fingerprint' : (),
-        },
-        'MailedEvent' : {
-            'kind' : '//parcels/osaf/contentmodel/MailedEvent',
-            'fingerprint' : (),
-        },
-        'MailedEventTask' : {
-            'kind' : '//parcels/osaf/contentmodel/MailedEventTask',
-            'fingerprint' : (),
-        },
-        'MailMessage' : {
-            'kind' : '//parcels/osaf/contentmodel/mail/MailMessage',
-            'fingerprint' : (),
-        },
-        'Note' : {
-            'kind' : '//parcels/osaf/contentmodel/Note',
-            'fingerprint' : (),
-        },
-        'Photo' : {
-            'kind' : '//parcels/osaf/framework/webserver/servlets/photos/Photo',
-            'fingerprint' : (),
-        },
-        'RSSChannel' : {
-            'kind' : '//parcels/osaf/examples/zaobao/RSSChannel',
-            'fingerprint' : (),
-        },
-        'RSSItem' : {
-            'kind' : '//parcels/osaf/examples/zaobao/RSSItem',
-            'fingerprint' : (),
-        },
-        'Share' : {
-            'kind' : '//parcels/osaf/framework/sharing/Share',
-            'fingerprint' : (),
-        },
-        'Task' : {
-            'kind' : '//parcels/osaf/contentmodel/tasks/Task',
-            'fingerprint' : (),
-        },
-    }
-
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  cloudAlias='sharing'):
         super(CloudXMLFormat, self).__init__(name, parent, kind, view)
@@ -1058,7 +968,9 @@ class CloudXMLFormat(ImportExportFormat):
         attributes = self.__collectAttributes(item)
 
         result = indent * depth
-        result += "<%s uuid='%s'>\n" % (item.itsKind.itsName, item.itsUUID)
+        result += "<%s kind='%s' uuid='%s'>\n" % (item.itsKind.itsName,
+                                                  item.itsKind.itsPath,
+                                                  item.itsUUID)
 
         depth += 1
 
@@ -1166,43 +1078,24 @@ class CloudXMLFormat(ImportExportFormat):
         return None
 
 
-    def __iterMatchingItems(self, node):
-
-        query = Query.Query(self.itsView.repository, "")
-        desc = self.__nodeDescriptors[node.name]
-
-        kindPath = desc['kind']
-        kind = self.itsView.findPath(kindPath)
-
-        argString = ""  # everthing after 'where'
-        args = {}       # the query.args dictionary
-        i = 0
-        for arg in desc['fingerprint']:    # build the query
-            if i > 0:
-                argString += " and "
-            argString += "i.%s == $%d" % (arg, i)
-            args[i] = self.__getNode(node, arg).content
-            i += 1
-        queryString = "for i in '%s' where %s" % (kindPath, argString)
-
-        print "Fingerprint query with", args
-        query.queryString = queryString
-        query.args = args
-        query.execute()
-
-        for i in query:
-            yield i
-
-    def __getMatchingItems(self, node):
-        results = []
-        for item in self.__iterMatchingItems(node):
-            results.append(item)
-        return results
-
     def __importNode(self, node, item=None):
-        desc = self.__nodeDescriptors[node.name]
-        kindPath = desc['kind']
-        kind = self.itsView.findPath(kindPath)
+
+        kind = None
+        kindPath = None
+
+        kindNode = node.hasProp('kind')
+        if kindNode:
+            kindPath = kindNode.content
+            kind = self.itsView.findPath(kindNode.content)
+
+        if kind is None:
+            # No kind provided, or we don't have that kind in repository
+            if kindPath:
+                logger.info("No kind found for %s" % kindPath)
+            else:
+                logger.info("Can't import an item without a kind provided")
+            return None
+
 
         if item is None:
 
@@ -1213,24 +1106,8 @@ class CloudXMLFormat(ImportExportFormat):
             else:
                 uuid = None
 
-            if self.useFingerprintSearch and item is None:
-                # then look for items matching the "fingerprint"...
-                matches = self.__getMatchingItems(node)
-                length = len(matches)
-                if length == 0:
-                    pass
-                elif length == 1:
-                    # a single match; use that item
-                    item = matches[0]
-                else:
-                    # multiple matches!  hmm, use the first
-                    item = matches[0]
-                if item is not None:
-                    print "Fingerprint match found", item
-
         if item is None:
-            # item searches turned up empty, so create an item...
-            # print "Creating item of kind", kind.itsPath, kind.getItemClass()
+            # item search turned up empty, so create an item...
             if uuid:
                 # @@@MOR This needs to use the new defaultParent framework
                 # to determine the parent
@@ -1239,7 +1116,7 @@ class CloudXMLFormat(ImportExportFormat):
                                             withInitialValues=True)
             else:
                 item = kind.newItem(None, None)
-            # print "created item", item.itsPath, item.itsKind
+
         else:
             # there is a chance that the incoming kind is different than the
             # item's kind
@@ -1268,14 +1145,16 @@ class CloudXMLFormat(ImportExportFormat):
                         valueNode = valueNode.next
                     if valueNode:
                         valueItem = self.__importNode(valueNode)
-                        item.setAttributeValue(attrName, valueItem)
+                        if valueItem is not None:
+                            item.setAttributeValue(attrName, valueItem)
 
                 elif cardinality == 'list':
                     valueNode = attrNode.children
                     while valueNode:
                         if valueNode.type == "element":
                             valueItem = self.__importNode(valueNode)
-                            item.addValue(attrName, valueItem)
+                            if valueItem is not None:
+                                item.addValue(attrName, valueItem)
                         valueNode = valueNode.next
 
                 elif cardinality == 'dict':
