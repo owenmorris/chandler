@@ -433,14 +433,12 @@ class Block(Item):
                 member = getattr (type(block), methodName)
             except AttributeError:
                 return False
-
             """
               Comment in this code to see which events are dispatched -- DJA
               ... to which blocks -- BJS
 
             print "Calling %s.%s" % (block.itsPath, methodName)
             """
-
             member (block, event)
             return True
         
@@ -454,15 +452,6 @@ class Block(Item):
                 block = block.parentBlock
         
         def broadcast (block, methodName, event, childTest):
-            
-            #"""
-            #commented out for testing new dispatch mechanism
-              #Call method named methodName on every block and it's children
-            #who pass the childTest except for the block that posted the event,
-            #to avoid recursive calls.
-            #"""
-            #if block != event.arguments['sender']:
-                #callMethod (block, methodName, event)
             callMethod (block, methodName, event)
             for child in block.childrenBlocks:
                 if childTest (child):
