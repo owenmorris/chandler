@@ -44,7 +44,7 @@ class TimeclockView(ViewerParcel):
         ViewerParcel.__init__ (self)
         self.displayName = _('Timeclock')
         self.currencyName = "dollars"
-
+        self.startTime = 0
         self.InitializeCustomerList()
 
     def InitializeCustomerList(self):
