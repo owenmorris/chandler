@@ -25,7 +25,6 @@ BIN_ARCHIVES=../twisted-$(SNAP)-r11303-1.tar.gz \
              ../yapps-$(SNAP)-2.1.1-1.tar.gz \
              ../zopeinterface-$(SNAP)-3.0.0b1-1.tar.gz \
              ../jabberpy-$(SNAP)-0.4-0-1.tar.gz \
-             ../libxslt-$(SNAP)-1.1.2-1.tar.gz \
              ../libxml2-$(SNAP)-2.6.10-1.tar.gz \
              ../dbxml-$(SNAP)-1.2.1-1.tar.gz \
              ../pathan-$(SNAP)-1.2-1.tar.gz \
