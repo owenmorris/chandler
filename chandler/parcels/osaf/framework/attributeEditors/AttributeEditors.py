@@ -244,6 +244,7 @@ class RepositoryAttributeEditor (StringAttributeEditor):
             else:
                 valueString = str (value)
         else:
+            value = item.getAttributeValue (attributeName)
             try:
                 valueString = attrType.makeString (value)
             except:
@@ -352,11 +353,11 @@ class LabeledAttributeEditor (StringAttributeEditor):
             drawItalic = self._IsAttributeLabel (item, attributeName)
             if drawItalic:
                 style = wx.ITALIC
-                textColor = wx.SYS_COLOUR_HIGHLIGHTTEXT # SYS_COLOUR_GREYTEXT is too light on Mac
+                textColor = wx.Colour(64, 64, 64)
             else:
                 style = wx.NORMAL
-                textColor = wx.SYS_COLOUR_BTNTEXT
-            dc.SetTextForeground (wx.SystemSettings.GetColour(textColor))
+                textColor = wx.SystemSettings.GetColour (wx.SYS_COLOUR_BTNTEXT)
+            dc.SetTextForeground (textColor)
             font = dc.GetFont ()
             font.SetStyle (style)
             dc.SetFont (font)
@@ -482,18 +483,6 @@ class LocationAttributeEditor (LabeledAttributeEditor):
             # lookup an existing item by name, if we can find it, 
             value = Calendar.Location.getLocation (valueString)
             setattr (item, attributeName, value)
-
-    def Create (self, parent, id):
-        control = super (LocationAttributeEditor, self).Create (parent, id)
-        control.Bind (wx.EVT_TEXT, self.onTextChanged) # any time the text changes
-        return control
-
-    def onTextChanged(self, event):
-        """
-          Text changed, for any reason.
-        """
-        event.Skip()
-        self.showingTheLabel = False # remember we've edited the value
 
     def onKeyPressed(self, event):
         """
