@@ -294,7 +294,7 @@ class List(RectangularChild):
 
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.itsUUID]
-        wxWndow.scheduleUpdate = True    
+        wxWindow.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
@@ -498,7 +498,7 @@ class Summary(RectangularChild):
 
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.itsUUID]
-        wxWndow.scheduleUpdate = True    
+        wxWindow.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
