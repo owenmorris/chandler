@@ -114,7 +114,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         return p
 
     def clientConnectionFailed(self, connector, reason):
-        logging.error("Unable to connect to server ", reason)
+        logging.error("Unable to connect to server; reason: '%s'", reason)
 
 
 class MailException(Exception):
