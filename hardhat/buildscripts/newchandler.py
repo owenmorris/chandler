@@ -56,16 +56,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         raise e
         sys.exit(1)
     
-    # make sure workingDir is absolute, remove it if it exists, and create it
+    # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, mainModule)
     # test if we've been thruough the loop at least once
     if clobber == 1:
-        if os.path.exists(workingDir):
-            if os.path.exists(chanDir):
-                hardhatutil.rmdirRecursive(chanDir)
-        else:
-            os.mkdir(workingDir)
+        if os.path.exists(chanDir):
+            hardhatutil.rmdirRecursive(chanDir)
             
     os.chdir(workingDir)
 
@@ -128,16 +125,18 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     if changesInCVS(testDir, workingDir, cvsVintage, log):
         log.write("Changes in CVS, do a " + mode + " install\n")
         doInstall(mode, workingDir, log)
+        changes = "-changes"
 #     elif changesInModules(mode):
 #         log.write("Changes in module tarballs, updating modules\n")
 #         getChangedModules(mode)
 #         doBuild(mode)
     else:
         log.write("No changes, " + mode + " install skipped\n")
+        changes = "-nochanges"
 
-    doTests(hardhatScript, testDir, workingDir, mode, log)
+    testRet = doTests(hardhatScript, testDir, workingDir, mode, log)
 
-    return "success"  # end of Do( )
+    return testRet + changes # end of Do( )
 
 def doTests(hardhatScript, testDir, workingDir, mode, log):
 
