@@ -75,9 +75,6 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # CalendarEvent properties
         calendarEventItem.displayName = "simple headline"
         calendarEventItem.importance = "fyi"
-        calendarEventItem.transparency = "confirmed"
-        calendarEventItem.allDay = False
-        calendarEventItem.anyTime = False
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 

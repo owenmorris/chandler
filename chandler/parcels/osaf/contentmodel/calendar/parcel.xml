@@ -43,11 +43,13 @@
       <Attribute itsName="allDay">
         <displayName>All-Day</displayName>
         <type itemref="Boolean"/>
+        <initialValue type="Boolean" value="False" />
       </Attribute>
       
       <Attribute itsName="anyTime">
         <displayName>Any-Time</displayName>
         <type itemref="Boolean"/>
+        <initialValue type="Boolean" value="False" />
       </Attribute>
       
       <Attribute itsName="location">
@@ -96,6 +98,7 @@
         </Enumeration>
         
         <type itemref="cal:CalendarEventMixin/transparency/TimeTransparencyEnum"/>
+        <initialValue type="cal:CalendarEventMixin/transparency/TimeTransparencyEnum" value="confirmed" />
       </Attribute>
 
     <Attribute itsName="calendar">

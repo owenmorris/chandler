@@ -73,10 +73,6 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
             self.displayName = self.getAnyAbout ()
         except AttributeError:
             pass
-
-        self.transparency = 'confirmed'
-        self.allDay = False
-        self.anyTime = False
         
         """ @@@ Commenting out this block
 
