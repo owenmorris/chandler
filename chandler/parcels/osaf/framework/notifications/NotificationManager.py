@@ -3,6 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application.Globals as Globals
 import OSAF.framework.utils.indexer as indexer
 import Queue
 import re
@@ -22,7 +23,7 @@ class NotificationManager(object):
         # XXX Ideally declIndex and declarations would be the same object
         self.__declIndex = indexer.getIndex('events')
         self.declarations = LockableDict()
-        self.subscribers = LockableDict()
+        self.subscriptions = LockableDict()
 
     # Public Methods
     def PrepareSubscribers(self):
@@ -30,29 +31,50 @@ class NotificationManager(object):
         self.declarations.acquire()
         try:
             for item in self.__declIndex.items:
-                self.declarations[item.name] = DeclarationFromEvent(item)
+                self.declarations[item.name] = Declaration(item)
         finally:
             self.declarations.release()
 
-    def FindNotifications(self, wildcard):
-        results = []
-        regex = re.compile(wildcard,re.IGNORECASE)
+    def __find(self, wildcard):
+        assert self.declarations.locked(), 'lock not acquired'
 
-        for name in self.declarations.keys():
-               matchObject = regularExpression.match(declaration)
-               if matchObject != None:
-                  results.append(matchObject.group())
+        results = []
+        regex = re.compile(wildcard, re.IGNORECASE)
+
+        for key, value in self.declarations.iteritems():
+            matchObject = regex.match(key)
+            if matchObject != None:
+                results.append(value)
 
         return results
 
-    def Subscribe(self, name, clientID, source = None):
+    def FindNotifications(self, wildcard):
+        self.declarations.acquire()
+        try:
+            return self.__find(wildcard)
+        finally:
+            self.declarations.release()
+
+    def Subscribe(self, name, clientID, callback = None, *args):
+        # make a subscription object
         self.declarations.acquire()
         try:
             if not self.declarations.has_key(name):
-                #raise NotDeclared, '%s %s' % (name, clientID)
-                return
+                raise NotDeclared, '%s %s' % (name, clientID)
 
-            self.subscribers.acquire()
+            # look for all declarations matching name
+            decls = self.__find(name)
+            
+            # make a new subscription object
+            sub = Subscription(decls, callback, *args)
+            for decl in decls:
+                # add the subscription to the declaration's list of subscribers
+                decl.subscribers[clientID] = sub
+
+            self.subscriptions[clientID] = sub
+
+            return clientID
+            """
             try:
                 try:
                     subscriber = self.subscribers[clientID]
@@ -63,15 +85,18 @@ class NotificationManager(object):
                 self.subscribers.release()
 
             self.declarations[name].subscribers[clientID] = subscriber
+            """
         finally:
             self.declarations.release()
 
     def Unsubscribe(self, name, clientID):
+        # this function doesn't work correctly right now
+        return
+    
         self.declarations.acquire()
         try:
             if not self.declarations.has_key(name):
-                #raise NotDeclared, '%s %s' % (name, clientID)
-                return
+                raise NotDeclared, '%s %s' % (name, clientID)
 
             # eventually if the subscriber isn't subscribed to anything
             # we should remove it from self.subscribers as well
@@ -95,146 +120,75 @@ class NotificationManager(object):
 
             subscribers = self.declarations[name].subscribers.values()
             for sub in subscribers:
-                sub.queue.put(notification)
+                sub.post(notification)
         finally:
             self.declarations.release()
 
     def GetNextNotification(self, clientID):
-        self.subscribers.acquire()
+        self.subscriptions.acquire()
         try:
             try:
-                return self.subscribers[clientID].queue.get(False)
+                return self.subscriptions[clientID].queue.get(False)
             except (KeyError, Queue.Empty):
                 # KeyError: this clientID has never subscribed for anything
                 # Queue.Empty: empty queue
                 return None
         finally:
-            self.subscribers.release()
+            self.subscriptions.release()
 
     def WaitForNextNotification(self, clientID):
-        self.subscribers.acquire()
+        self.subscriptions.acquire()
         try:
             try:
-                return self.subscribers[clientID].queue.get()
+                subscriber = self.subscriptions[clientID]
             except KeyError:
                 raise NotSubscribed
         finally:
-            self.subscribers.release()
+            self.subscriptions.release()
+
+        return subscriber.queue.get()
 
     def CancelNotification(self, notificationID, clientID = 0):
         # we need a way to remove the notification from all the queues its in
         pass
 
-
-
     ##
-    # OBSOLETE FUNCTIONS
+    # Deprecated methods
     ##
-    BLOCKING = 1
-    NONBLOCKING = 0
-    SYSTEM_CLIENT = 1
-    """ Enumerated error codes """
-    OKAY = 0
-    DECLARATION_NOT_FOUND = 1
-    SUBSCRIBER_NOT_FOUND = 2
-    DUPLICATE_CLIENT = 3
-    DUPLICATE_DECLARATION = 4
-
-    def Register(self,clientID):
-        pass
-        
-    def Unregister(self,clientID):
-        pass
- 
-    def IsRegistered(self, clientID):
-        return self.subscribers.has_key(clientID)
-
-    def DeleteDeclaration(self, name):
-        del self.declarations[name]
-    
-    def GetDeclarationNames(self):
-        return self.declarations.keys()
-    
-    def GetMessage(self, subscriber, mode):
-        #return self.messageTable.GetMessage(subscriber, mode)
-        return None
-        
-    def GetSubscriptionList(self, schemaName):
-        #return self.declarations.GetSubscriptionList(schemaName)
-        return []
-
     def IsDeclared(self, name):
-        return self.declarations.has_key(name)
-
-    def GetDescription(self, name):
-        try:
-            return self.declarations[name].description
-        except (KeyError, AttributeError):
-            return None
-
-    def PutMessage(self, subscriber, notification):
-        subscriber.queue.put(notification)
-        
-    def RemoveMessage(self,notificationID, subscriber):
-        # we really dont want to get it.. just remove it
-        subscriber.queue.get(notification)
-
-    def Lock(self):
-        pass
-
-    def Unlock(self):
-        pass
-            
-    def DeclareNotification(self, name, clientID, schema, description):
         self.declarations.acquire()
         try:
-            if self.declarations.has_key(name):
-                #raise AlreadyDeclared
-                return
-
-            self.declarations[name] = Declaration(name, clientID,
-                                                  schema, description)
-
+            return self.declarations.has_key(name)
         finally:
             self.declarations.release()
 
-    def UndeclareNotification(self,name,clientID):
-        # figure out what clientID does here
-        self.declarations.acquire()
-        try:
-            if not self.declarations.has_key(name):
-                raise NotDeclared
-
-            del self.declarations[name]
-
-        finally:
-            self.declarations.release()
-
-
-
-
-
-
-def DeclarationFromEvent(event):
-    name = event.name
-    desc = event.getAttributeValue('description', default=None)
-    return Declaration(name, None, None, desc)
-    
 class Declaration(object):
-    def __init__(self, entryName, clientID, type, description):
-        super(Declaration, self).__init__()
-        self.name = entryName
-        self.owner = clientID
-        self.type = type
-        self.description = description
+    __slots__ = [ 'subscribers', '__uuid' ]
+    def __init__(self, event):
         self.subscribers = {}
+        self.__uuid = event.getUUID()
+    def __repr__(self):
+        return '<Declaration> ' +  self.event.name
+    def __getEvent(self):
+        return Globals.repository[self.__uuid]
+    event = property(__getEvent)
 
-class Subscriber(object):
-    def __init__(self, clientID, source):
-        super(Subscriber, self).__init__()
-        self.clientID = clientID
-        self.source = source
-        self.queue = Queue.Queue()
+class Subscription(object):
+    __slots__ = [ 'declarations', 'queue', 'callback', 'args' ]
+    def __init__(self, declarations, callback, *args):
+        super(Subscription, self).__init__()
+        self.declarations = declarations
+        self.callback = callback
+        self.args = args
+        if not callable(callback):
+            self.queue = Queue.Queue()
+
+    def post(self, notification):
+        if callable(self.callback):
+            self.callback(*self.args)
+        else:
+            self.queue.put(notification)
+
 
 class LockableDict(dict):
     def __init__(self, *args, **kwds):
@@ -244,3 +198,5 @@ class LockableDict(dict):
         self.__lock.acquire()
     def release(self):
         self.__lock.release()
+    def locked(self):
+        return self.__lock.locked()
