@@ -61,24 +61,24 @@ class SideBar(Persistent):
             hasChildren = len(children) > 0            
             uri = parentUri + name
 
-            if not sideBarURLTree.has_key(instanceId):
+            if not sideBarURLTree.has_key(uri):
                 itemId = wxWindow.AppendItem(parent, name)
                 wxWindow.uriDictMap[uri] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                sideBarURLTree[instanceId] = URLTreeEntry(instance, false,
+                sideBarURLTree[uri] = URLTreeEntry(instance, false,
                                                           itemId, {}, false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parent, name)
                     wxWindow.uriDictMap[uri] = itemId
-                    sideBarURLTree[instanceId].wxId = itemId
+                    sideBarURLTree[uri].wxId = itemId
                 else:
-                    itemId = sideBarURLTree[instanceId].wxId
+                    itemId = sideBarURLTree[uri].wxId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                if sideBarURLTree[instanceId].isOpen:
-                    self.__UpdateURLTree(sideBarURLTree[instanceId].children, 
+                if sideBarURLTree[uri].isOpen:
+                    self.__UpdateURLTree(sideBarURLTree[uri].children, 
                                          item[2], itemId, false, uri + '/')
-            sideBarURLTree[instanceId].isMarked = true
+            sideBarURLTree[uri].isMarked = true
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
         for key in sideBarURLTree.keys():
@@ -186,6 +186,7 @@ class wxSideBar(wxTreeCtrl):
         items that are now visible (from the app) or just display them.
         """
         item = event.GetItem()
+        uri = self.BuildUriFromItem(item)
         text = self.GetItemText(item)
         for item in app.model.URLTree:
             parcel = item[0]
@@ -194,8 +195,7 @@ class wxSideBar(wxTreeCtrl):
             """
             assert (hasattr (parcel, 'displayName'))
             if parcel.displayName == text:
-                instanceId = id(parcel)
-                self.model.sideBarURLTree[instanceId].isOpen = true
+                self.model.sideBarURLTree[uri].isOpen = true
         self.model.SynchronizeView()
             
     def OnDestroy(self, event):
