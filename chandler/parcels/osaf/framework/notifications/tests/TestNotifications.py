@@ -14,10 +14,9 @@ import repository.item.Item as Item
 
 from OSAF.framework.notifications.Notification import Notification
 
-def MakeEvent(name):
+def MakeEvent():
     eventKind = Globals.repository.find('//parcels/OSAF/framework/notifications/schema/Event')
     event = eventKind.newItem(None, Globals.repository)
-    event.name = name
     return event
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
@@ -56,6 +55,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
     def test_FindNotifications(self):
         """ tests FindNotifications() """
+        """
         nm = Globals.notificationManager
 
         e1 = MakeEvent('dumb/event')
@@ -79,30 +79,41 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         events = nm.FindEvents('dumbevent')
         self.assert_(e1 not in events)
         self.assert_(e2 in events)
+        """
 
 
     def test_Subscribe(self):
         """ tests Subscribe() """
         nm = Globals.notificationManager
 
-        MakeEvent('dumbevent')
+        event = MakeEvent()
 
         # need to call this after all events are made or else they don't currently get picked up
         nm.PrepareSubscribers()
 
-
+        # test a callback
         self.callbackCalled = False
         def dummyCallback(notification):
             self.callbackCalled = True
 
-        nm.Subscribe('dumbevent', 'thisShouldBeAnUUID', dummyCallback)
+        nm.Subscribe(event, 'thisShouldBeAnUUID', dummyCallback)
 
-        notification = Notification('dumbevent', None, None)
+        notification = Notification(event, None, None)
         nm.PostNotification(notification)
 
         # this will break when notifications are done async
         self.assert_(self.callbackCalled)
         del self.callbackCalled
+
+        # test duplicate subscription
+        try:
+            nm.Subscribe(event, 'thisShouldBeAnUUID', dummyCallback)
+        except:
+            pass
+        else:
+            self.assert_(False)
+
+
 
     #def test_Unsubscribe(self):
     #    """ tests Unsubscribe() """

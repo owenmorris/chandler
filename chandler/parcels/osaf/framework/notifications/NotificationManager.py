@@ -34,48 +34,7 @@ class NotificationManager(object):
         self.declarations.acquire()
         try:
             for item in self.__declIndex.items:
-                self.declarations[item.name] = Declaration(item)
-        finally:
-            self.declarations.release()
-
-    def __find(self, wildcard):
-        assert self.declarations.locked(), 'lock not acquired'
-
-        results = []
-        regex = re.compile(wildcard, re.IGNORECASE)
-
-        for key, value in self.declarations.iteritems():
-            matchObject = regex.match(key)
-            if matchObject != None:
-                results.append(value)
-
-        return results
-
-    def FindNotifications(self, wildcard):
-        self.declarations.acquire()
-        try:
-            return self.__find(wildcard)
-        finally:
-            self.declarations.release()
-
-
-    def __findEvents(self, wildcard):
-        assert self.declarations.locked(), 'lock not acquired'
-
-        results = []
-        regex = re.compile(wildcard, re.IGNORECASE)
-
-        for key, value in self.declarations.iteritems():
-            matchObject = regex.match(key)
-            if matchObject != None:
-                results.append(value.event)
-
-        return results
-
-    def FindEvents(self, wildcard):
-        self.declarations.acquire()
-        try:
-            return self.__findEvents(wildcard)
+                self.declarations[item.getUUID()] = Declaration(item)
         finally:
             self.declarations.release()
 
@@ -90,13 +49,11 @@ class NotificationManager(object):
             
         self.declarations.acquire()
         try:
-            if type(name) == types.ListType:
-                decls = []
-                for n in name:
-                    decls = decls + self.__find(n)
-            else:
-                # look for all declarations matching name
-                decls = self.__find(name)
+            if type(name) != types.ListType:
+                name = [name]
+            decls = []
+            for n in name:
+                decls.append(self.declarations[n.getUUID()])
 
             #print decls
 
@@ -141,12 +98,11 @@ class NotificationManager(object):
         # future version should check notification for validity
         self.declarations.acquire()
         try:
-            name = notification.GetName()
-            if not self.declarations.has_key(name):
-                raise NotDeclared, '%s %s' % (name, clientID)
+            eventID = notification.event.getUUID()
+            if not self.declarations.has_key(eventID):
+                raise NotDeclared, '%s %s' % (eventID, clientID)
 
-            decl = self.declarations[name]
-            notification._eventUUID = decl.event.getUUID()
+            decl = self.declarations[eventID]
 
             subscribers = decl.subscribers.values()
         finally:
@@ -187,16 +143,6 @@ class NotificationManager(object):
     def CancelNotification(self, notificationID, clientID = 0):
         # we need a way to remove the notification from all the queues its in
         pass
-
-    ##
-    # Deprecated methods
-    ##
-    def IsDeclared(self, name):
-        self.declarations.acquire()
-        try:
-            return self.declarations.has_key(name)
-        finally:
-            self.declarations.release()
 
 class Declaration(object):
     __slots__ = [ 'subscribers', '__uuid' ]
