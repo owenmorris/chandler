@@ -1,0 +1,56 @@
+--- PyLucene-0.5.1/Makefile	2004-07-03 18:14:54.440244800 -0700
++++ PyLucene-0.5.1-patched/Makefile	2004-07-03 18:26:26.946019200 -0700
+@@ -86,6 +86,10 @@
+ OS=Cygwin
+ endif
+ 
++ifeq ($(findstring WINNT,$(OS)),WINNT)
++OS=Cygwin
++endif
++
+ ifeq ($(DEBUG),1)
+ COMP_OPT=DEBUG=1
+ SUFFIX=d
+@@ -127,19 +151,20 @@
+ else
+ 
+ ifeq ($(OS),Cygwin)
+ PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
+ PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
+ PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
+ PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
+ LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
+ ifeq ($(DEBUG),1)
+-CCFLAGS=-O -g 
++CCFLAGS=-O -g 
++PYDBG=-DPy_TRACE_REFS
+ LDFLAGS=-g
+ else
+ CCFLAGS=-O2
+ LDFLAGS=
+ endif
+ else
+ 
+ PYTHON=unknown
+ PYTHON_SITE=unknown
+@@ -201,19 +225,19 @@
+ 	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db; echo ok
+ 
+ ifeq ($(OS),Cygwin)
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
+ DB_CONST=`cygpath -aw $(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java`
+ DB_INC=-I`cygpath -aw $(PREFIX_DB)` -I`cygpath -aw $(PREFIX_DB)/dbinc` -I`cygpath -aw $(PREFIX_DB)/build_win32`
+ else
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
+ DB_CONST=$(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java
+-DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/build_unix
++DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/$(BUILD_DB)
+ endif
+ 
+ STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+ OBJS:=$(BINDIR)/store.o $(BINDIR)/db_const.o $(BINDIR)/db.o $(OBJS)
+ LIBS:=$(LIBDB_JAVA_LIB) $(LIBS)
+ SWIG_OPT=-D_WITH_DB_DIRECTORY=1
+ 
+ $(BINDIR)/db_const.o:
+ 	$(JCC) -C -d $(CLASSES) $(DB_CONST)
