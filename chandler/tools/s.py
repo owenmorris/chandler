@@ -128,6 +128,8 @@ def setup(directory, destroy=False):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 r = setup(os.environ['CHANDLERHOME'])
+import osaf.framework.twisted.TwistedReactorManager as trm
+
 
 # Bind some useful variables:
 pm = application.Parcel.Manager.getManager()
@@ -149,6 +151,17 @@ def lp(uri=None):
         application.Parcel.Manager.getManager().loadParcels()
     else:
         application.Parcel.Manager.getManager().loadParcels([uri])
+
+def start():
+    global twistedmgr
+    twistedmgr = trm.TwistedReactorManager()
+    twistedmgr.startReactor()
+    print "Started webserver.  Be sure to stop() it before exiting."
+
+def stop():
+    global twistedmgr
+    twistedmgr.stopReactor()
+    print "Stopped webserver."
 
 import osaf.contentmodel.ContentModel as cm
 import osaf.contentmodel.calendar.Calendar as cal
