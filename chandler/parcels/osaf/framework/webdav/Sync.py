@@ -113,8 +113,7 @@ def syncToServer(dav, item):
                     DAV(durl).put(i)
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
-                    # XXX TODO add literal list stuff here
-                    pass
+                    listData += '<value>' + value + '</value>'
             props += makePropString(name, namespace, listData)
 
         elif acard == 'single':
@@ -156,6 +155,18 @@ def syncToServer(dav, item):
 
 
 
+def nodesFromXml(data):
+    """
+    Given a chunk of text that is a flat xml tree like:
+      '<foo/><foo/><foo/>'
+    parse it and return a list of the nodes
+    """
+    xmlgoop = davlib.XML_DOC_HEADER + \
+              '<doc>' + data + '</doc>'
+    doc = libxml2.parseDoc(xmlgoop)
+    nodes = doc.xpathEval('/doc/*')
+    return nodes
+
 
 def syncFromServer(item, davItem):
     from Dav import DAV
@@ -173,13 +184,7 @@ def syncFromServer(item, davItem):
         if isinstance(attr.type, Kind):
             # time for some xml parsing! yum!
 
-            # given a chunk of text that is a flat xml tree like:
-            # "<foo/><foo/><foo/>"
-            # parse it and return a list of the nodes
-            xmlgoop = davlib.XML_DOC_HEADER + \
-                      '<doc>' + value + '</doc>'
-            doc = libxml2.parseDoc(xmlgoop)
-            nodes = doc.xpathEval('/doc/*')
+            nodes = nodesFromXml(value)
 
             if attr.cardinality == 'list':
                 setfunc = item.addValue
@@ -195,8 +200,14 @@ def syncFromServer(item, davItem):
                 setfunc(name, otherItem)
 
         else:
-            print 'Got.....: ', value
-            item.setAttributeValue(name, attr.type.makeValue(value))
+            if attr.cardinality == 'list':
+                nodes = nodesFromXml(value)
+                for node in nodes:
+                    item.addValue(name, node.content)
+                    print 'Got.....: ', value
+            elif attr.cardinality == 'single':
+                print 'Got.....: ', value
+                item.setAttributeValue(name, attr.type.makeValue(value))
 
 
     #
@@ -205,15 +216,7 @@ def syncFromServer(item, davItem):
     if item.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
         value = davItem._getAttribute('results', '//special/case')
 
-        # time for some xml parsing! yum!
-
-        # given a chunk of text that is a flat xml tree like:
-        # "<foo/><foo/><foo/>"
-        # parse it and return a list of the nodes
-        xmlgoop = davlib.XML_DOC_HEADER + \
-                  '<doc>' + value + '</doc>'
-        doc = libxml2.parseDoc(xmlgoop)
-        nodes = doc.xpathEval('/doc/*')
+        nodes = nodesFromXml(value)
 
         serverCollectionResults = []
         for node in nodes:
