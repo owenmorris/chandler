@@ -75,7 +75,7 @@ zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib: zlib-$(ZLIBVERSION)/$(BUILD)/win32/makefi
 
 zlib: zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
 
-build: expand apply compile installext
+all: expand apply compile installext
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
 compile: $(SRC)/PCbuild/pcbuild.sln bzip2 zlib
@@ -137,7 +137,7 @@ $(SRC)/$(BUILD)/Makefile:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                      --enable-framework=$(PREFIX)/Library/Frameworks
 
-build: expand $(SRC)/$(BUILD)/Makefile apply
+all: expand $(SRC)/$(BUILD)/Makefile apply
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
@@ -162,7 +162,7 @@ $(SRC)/$(BUILD)/Makefile:
 bzip2-$(BZIP2VERSION)/libbz2.a:
 	make -C bzip2-$(BZIP2VERSION) libbz2.a
 
-build: expand bzip2-$(BZIP2VERSION)/libbz2.a $(SRC)/$(BUILD)/Makefile apply
+all: expand bzip2-$(BZIP2VERSION)/libbz2.a $(SRC)/$(BUILD)/Makefile apply
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
 	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
 	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) install
@@ -226,6 +226,8 @@ upload: python-$(SNAP)-$(RELVER).tar.gz
 
 install: python-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf python-$(SNAP)-$(RELVER).tar.gz
+
+build: all
 
 _realclean::
 	@rm -rf zlib-* bzip2-*
