@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel itsName="starthere" xmlns="http://osafoundation.org/parcels/core" />
+<Parcel itsName="starthere" 
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:doc="http://osafoundation.org/examples/starthere"
+    xmlns:schema="http://osafoundation.org/examples/starthere/schema">
+    
+    <namespace value="http://osafoundation.org/examples/starthere"/>
+    
+</Parcel>

@@ -7,12 +7,13 @@
 
 <core:Parcel itsName="zaobao"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:doc="http://osafoundation.org/examples/zaobao"
              xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/views/zaobao"
-             xmlns:zbSchema="http://osafoundation.org/parcels/osaf/examples/zaobao"
+             xmlns:zbSchema="http://osafoundation.org/examples/zaobao/schema"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup">
 
+  <core:namespace value="http://osafoundation.org/examples/zaobao"/>
   <core:version>0.3</core:version>
 
   

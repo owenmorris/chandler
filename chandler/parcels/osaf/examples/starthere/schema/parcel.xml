@@ -4,9 +4,10 @@
 <!-- the doc namespace refers to the current document -->
 <Parcel itsName="schema"
         xmlns="http://osafoundation.org/parcels/core"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/examples/starthere/schema"
+        xmlns:doc="http://osafoundation.org/examples/starthere/schema"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
 
+  <namespace value="http://osafoundation.org/examples/starthere/schema"/>
   <displayName>Start Here Example</displayName>
   <description>This is a skeleton parcel for writing schemas</description>
 
