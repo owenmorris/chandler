@@ -35,4 +35,6 @@ chandler-all -a \
     chandler \
     hardhat
 	
+# This alias is used by a cron job that checks out the current documentation
+# to a directory on the main webserver
 0.3 chandler/distrib/docs
