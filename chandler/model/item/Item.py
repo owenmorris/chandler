@@ -233,6 +233,23 @@ class Item(object):
             elif isinstance(value, RefDict):
                 value.clear()
 
+    def attributes(self, attributesOnly=False, referencesOnly=False):
+        '''Get a generator of (name, value) tuples for attributes of this item.
+
+        By setting attributesOnly to True, no item references are returned.
+        By setting referencesOnly to True, only references are returned.'''
+
+        if not referencesOnly:
+            for attr in self._attributes.iteritems():
+                yield attr
+
+        if not attributesOnly:
+            for ref in self._references.iteritems():
+                if isinstance(ref[1], ItemRef):
+                    yield (ref[0], ref[1].other(self))
+                else:
+                    yield ref
+
     def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'
 
