@@ -110,7 +110,7 @@
 
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
@@ -123,56 +123,56 @@
   
   <ModifyContentsEvent itsName="AddDemoView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddRepositoryView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedListView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MixedListView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddStockQuoteView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="stockQuote:StockQuoteView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNoteListView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NoteListView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddTaskListView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:TaskListView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMailListView">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MailListView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NoteListView"/>
     <items itemref="content:TaskListView"/>
@@ -676,9 +676,9 @@
 
   <calendar:MiniCalendar itsName="MiniCalendar"/>
 
-  <BoxContainer itsName="Sidebar">
+  <BoxContainer itsName="SidebarBoxContainer">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarTree"/>
+    <childrenBlocks itemref="doc:Sidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar"/>
 
     <!-- Attributes -->
@@ -695,18 +695,19 @@
     <inclusions uuidOf="content:TrashListView"/>
   </contentModel:NamedCollection>
 
-  <Table itsName="SidebarTree">
+  <Table itsName="Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
     <selection itemref="content:InListView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
-    <columnData>displayName</columnData>
+    <columnHeadings></columnHeadings>
+    <columnAttributeNames>displayName</columnAttributeNames>
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>
   </Table>
  
   <SplitterWindow itsName="MainSplitter">
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:Sidebar"/>
+    <childrenBlocks itemref="doc:SidebarBoxContainer"/>
     <childrenBlocks itemref="doc:TabbedView"/>
 
     <!-- Attributes -->

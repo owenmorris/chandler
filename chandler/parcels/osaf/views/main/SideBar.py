@@ -14,7 +14,7 @@ class SideBarDelegate (AttributeDelegate):
             item = item.contents
         except AttributeError:
             pass
-        attributeName = self.blockItem.columnData [column]
+        attributeName = self.blockItem.columnAttributeNames [column]
         try:
             value = item.getAttributeValue (attributeName)
         except AttributeError:
@@ -28,7 +28,7 @@ class SideBarDelegate (AttributeDelegate):
             item = item.contents
         except AttributeError:
             pass
-        attributeName = self.blockItem.columnData [column]
+        attributeName = self.blockItem.columnAttributeNames [column]
         item.setAttributeValue (attributeName, value)
         view.synchronizeWidget()
 

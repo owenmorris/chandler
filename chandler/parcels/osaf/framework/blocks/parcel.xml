@@ -92,7 +92,13 @@
     <defaultValue type="docSchema:orientationEnumType">Horizontal</defaultValue>
   </Attribute>
 
-  <Attribute itsName="columnData">
+  <Attribute itsName="columnHeadings">
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+    <required>True</required>
+  </Attribute>
+
+  <Attribute itsName="columnAttributeNames">
     <type itemref="String"/>
     <cardinality>list</cardinality>
   </Attribute>
@@ -100,6 +106,7 @@
   <Attribute itsName="columnWidths">
     <type itemref="Integer"/>
     <cardinality>list</cardinality>
+    <required>True</required>
   </Attribute>
 
   <Attribute itsName="elementDelegate">
@@ -687,7 +694,8 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <attributes itemref="docSchema:columnData"/>
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnAttributeNames"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
@@ -711,7 +719,8 @@
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <attributes itemref="docSchema:columnData"/>
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnAttributeNames"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
@@ -751,7 +760,8 @@
       <type itemref="Item"/>
     </Attribute>
 
-    <attributes itemref="docSchema:columnData"/>
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnAttributeNames"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>

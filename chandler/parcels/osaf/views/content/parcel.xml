@@ -153,9 +153,13 @@
   <List itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -172,9 +176,13 @@
   <Table itsName="InList">
     <contents itemref="view:inItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -191,9 +199,13 @@
   <Table itsName="OutList">
     <contents itemref="view:outItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -213,9 +225,13 @@
   <Table itsName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -232,9 +248,13 @@
   <Table itsName="ContactList">
     <contents itemref="view:contactItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -245,9 +265,13 @@
   <Table itsName="NoteList">
     <contents itemref="view:notesItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -258,9 +282,13 @@
   <Table itsName="TaskList">
     <contents itemref="view:taskItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -271,9 +299,13 @@
   <Table itsName="MailList">
     <contents itemref="view:mailItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -290,9 +322,13 @@
   <Table itsName="JunkList">
     <contents itemref="view:junkItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -309,9 +345,13 @@
   <Table itsName="TrashList">
     <contents itemref="view:trashItemCollection"/>
 
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>

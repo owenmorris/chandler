@@ -189,7 +189,7 @@ class ListDelegate (object):
     to customize your behavior.
     """
     def GetColumnCount (self):
-        return len (self.blockItem.columnData)
+        return len (self.blockItem.columnHeadings)
 
     def GetElementCount (self):
         return len (self.blockItem.contents)
@@ -198,13 +198,16 @@ class ListDelegate (object):
         return "string"
 
     def GetColumnHeading (self, column, item):
-        return self.blockItem.columnData [column]
+        return self.blockItem.columnHeadings [column]
 
 
 class AttributeDelegate (ListDelegate):
+    def GetColumnCount (self):
+        return len (self.blockItem.columnAttributeNames)
+
     def GetElementValue (self, row, column):
         item = self.blockItem.contents [row]
-        attributeName = self.blockItem.columnData [column]
+        attributeName = self.blockItem.columnAttributeNames [column]
         try:
             value = item.getAttributeValue (attributeName)
         except AttributeError:
@@ -221,13 +224,12 @@ class AttributeDelegate (ListDelegate):
 
     def SetElementValue (self, row, column, value):
         item = self.blockItem.contents[row]
-        attributeName = self.blockItem.columnData [column]
+        attributeName = self.blockItem.columnAttributeNames [column]
         item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
-        heading = ""
         if item:
-            attributeName = self.blockItem.columnData [column]
+            attributeName = self.blockItem.columnAttributeNames [column]
             attribute = item.itsKind.getAttribute (attributeName)
             heading = attribute.getItemDisplayName()
             redirect = item.getAttributeAspect(attributeName, 'redirectTo')
@@ -237,6 +239,9 @@ class AttributeDelegate (ListDelegate):
                     item = item.getAttributeValue (name)
                 actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
                 heading = "%s (%s)" % (heading, actual)
+            self.blockItem.columnHeadings [column] = heading
+        else:
+            heading = self.blockItem.columnHeadings [column]
         return heading
 
 class wxList (DraggableWidget, wx.ListCtrl):
@@ -442,7 +447,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
 
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
-            self.blockItem.selectedColumn = self.blockItem.columnData [event.GetCol()]
+            self.blockItem.selectedColumn = self.blockItem.columnAttributeNames [event.GetCol()]
         event.Skip()
 
     def Reset(self): 
@@ -515,7 +520,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             pass
         else:
             for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                if self.blockItem.columnData [columnIndex] == selectedColumn:
+                if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
                     cursorColumn = columnIndex
                     break
 
