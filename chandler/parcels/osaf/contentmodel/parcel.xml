@@ -444,6 +444,10 @@
       <redirectTo>sharees</redirectTo>
     </core:Attribute>
 
+    <core:Attribute itsName="whoFrom">
+      <redirectTo>sharer</redirectTo>
+    </core:Attribute>
+
     <core:Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
     </core:Attribute>

@@ -99,6 +99,14 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         item = self.selectedItem()
         item.shareSend() # tell the ContentItem to share/send itself.
 
+    def resynchronizeDetailView (self):
+        # Called to resynchronize the whole Detail View
+        # Called when an itemCollection gets new sharees,
+        #  because the Notify button should then be enabled.
+        # DLDTBD - devise a block-dependency-notification scheme.
+        item= self.selectedItem()
+        self.synchronizeDetailView(item)
+
     """
     This is a copy of the global NULL event
     We need to have a copy here, because of limitations
@@ -125,6 +133,10 @@ class DetailSynchronizer(object):
     def selectedItem (self):
         # delegate to our parent until we get outside our event boundary
         return self.parentBlock.selectedItem()
+
+    def resynchronizeDetailView (self):
+        # delegate to our parent until we get to the DetailRoot.
+        self.parentBlock.resynchronizeDetailView ()
 
     def relayoutParents (self):
         # relayout the parent block
@@ -158,6 +170,12 @@ class DetailSynchronizer(object):
     def whichAttribute(self):
         # define the attribute to be used
         return self.parentBlock.selectedItemsAttribute
+
+    def nonEditableIfSharedCollection (self, item):
+        # make editable/noneditable based on shared collection status
+        if isinstance (item, ItemCollection.ItemCollection):
+            shouldAllowEdits = not Sharing.isShared (item)
+            self.widget.SetEditable (shouldAllowEdits)
 
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
@@ -231,9 +249,12 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     Doesn't need to synchronizeItemDetail, because
     the individual ToolbarItems synchronizeItemDetail.
     """
-    def selectedItem (self):
-        # return the ContentItem being viewed
-        return self.parentBlock.selectedItem()
+    def shouldShow (self, item):
+        if item is None:
+            return False
+        # if the item is a collection, we should not show ourself
+        shouldShow = not isinstance (item, ItemCollection.ItemCollection)
+        return shouldShow
 
     def onButtonPressed (self, notification):
         # Rekind the item by adding or removing the associated Mixin Kind
@@ -413,28 +434,57 @@ class ToEditField (EditTextAttribute):
                 processedAddresses.append (str (whoAddress))
                 validAddresses.append (whoAddress)
 
+        # remember the old value for nice change detection
+        oldWhoString = item.ItemWhoString ()
+
         # reassign the list to the attribute
-        if len (validAddresses) > 0:
-            try:
-                item.who = validAddresses
-            except:
-                pass
+        try:
+            item.who = validAddresses
+        except:
+            pass
+
+        # Detect changes from none to some, and resynchronizeDetailView
+        #  so we can reenable the Notify button when sharees are added.
+        if isinstance (item, ItemCollection.ItemCollection):
+            whoString = item.ItemWhoString ()
+            oneEmpty = len (whoString) == 0 or len (oldWhoString) == 0
+            oneOK = len (whoString) > 0 or len (oldWhoString) > 0
+            if oneEmpty and oneOK:
+                self.resynchronizeDetailView ()
 
         # redisplay the processed addresses in the widget
         widget.SetValue (', '.join (processedAddresses))
 
     def loadAttributeIntoWidget (self, item, widget):
-        try:
-            whoString = item.ItemWhoString ()
-        except AttributeError:
-            whoString = ""
+        whoString = item.ItemWhoString ()
         widget.SetValue (whoString)
+
+        # also update editability based on shared collection status
+        self.nonEditableIfSharedCollection (item)
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
     def saveAttributeFromWidget(self, item, widget):  
-        pass       
+        pass
+
     def loadAttributeIntoWidget(self, item, widget):
+        """
+          Load the widget based on the attribute associated with whoFrom.
+        """
+        try:
+            whoFrom = item.whoFrom
+        except AttributeError:
+            whoFrom = None
+
+        if whoFrom is None:
+            # Hack to set up whoFrom for Items with no value... like ItemCollections
+            # Can't set the whoFrom at creation time, because many start life in
+            # XML before the user account is setup.
+            if item.itsKind.hasAttribute ('whoFrom'):
+                meAddress = item.getCurrentMeEmailAddress ()
+                if meAddress is not None:
+                    item.whoFrom = meAddress
+
         try:
             whoString = item.ItemWhoFromString ()
         except AttributeError:
@@ -456,6 +506,9 @@ class EditRedirectAttribute (EditTextAttribute):
             value = ''
         widget.SetValue(value)
 
+        # also update editablility based on shared collection status
+        self.nonEditableIfSharedCollection (item)
+
 class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         if item is None:
@@ -470,8 +523,8 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
         # if the button should be visible, enable/disable
         if self.shouldShow (item):
             if isinstance (item, ItemCollection.ItemCollection):
-                # collection: label should read "share"
-                label = "Share"
+                # collection: label should read "Notify"
+                label = "Notify"
                 # disable this button if the collection is already shared
                 try:
                     shouldEnable = not Sharing.isShared (item)
@@ -480,6 +533,12 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
                 else:
                     if not shouldEnable:
                         label = "Shared"
+                # disable the button if no sharees
+                try:
+                    sharees = item.sharees
+                except AttributeError:
+                    sharees = []
+                shouldEnable = shouldEnable and len (sharees) > 0
             else:
                 # not a collection, so it's probably Mail
                 label = "Send"

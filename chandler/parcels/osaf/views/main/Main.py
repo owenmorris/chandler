@@ -20,6 +20,7 @@ from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
+import repository.item.Query as ItemQuery
 import osaf.mail.sharing as MailSharing
 import osaf.framework.webdav.Dav as Dav
 
@@ -230,7 +231,7 @@ class MainView(View):
         Update the menu to reflect the selected collection name
         """
         # Only enable it user has set their webdav account up
-        if Sharing.getWebDavPath() == None:
+        if not self.webDAVAccountIsSetup ():
             notification.data ['Enable'] = False
             return
 
@@ -265,23 +266,65 @@ class MainView(View):
             menuTitle = 'Sync a collection'
         notification.data ['Text'] = menuTitle
 
+    def onSyncWebDAVEvent (self, notification):
+        """
+          Synchronize WebDAV sharing.
+        """
+        # find all the shared collections and sync them.
+        self.setStatusText ("checking shared collections")
+        collections = self.sharedWebDAVCollections ()
+        if len (collections) == 0:
+            self.setStatusText ("No shared collections found")
+            return
+        for collection in collections:
+            self.setStatusText ("synchronizing %s" % collection)
+            Sharing.syncCollection(collection)
+
+        # synch mail
+        self.setStatusText ("Sharing synchronized.")
+
+    def onSyncWebDAVEventUpdateUI (self, notification):
+        accountOK = self.webDAVAccountIsSetup ()
+        sharedCollections = self.sharedWebDAVCollections ()
+        enable = accountOK and len (sharedCollections) > 0
+        notification.data ['Enable'] = enable
+        # DLDTBD set up the help string to let the user know why it's disabled
+
+    def webDAVAccountIsSetup (self):
+        # return True iff the webDAV account is set up
+        return Sharing.getWebDavPath() != None
+        
+    def sharedWebDAVCollections (self):
+        # return the list of all the shared collections
+        # DLDTBD - use new query, once it can handle method calls, or when our item.isShared
+        #  attribute is correctly set.
+        UseNewQuery = False
+        if UseNewQuery:
+            qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where len (i.sharedURL) > 0"
+            collQuery = Query.Query (Globals.repository, qString)
+            collQuery.recursive = False
+            collections = []
+            for item in collQuery:
+                collections.append (item)
+        else:
+            itemCollectionKind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
+            allCollections = ItemQuery.KindQuery().run([itemCollectionKind])
+            collections = []
+            for collection in allCollections:
+                if Sharing.isShared (collection):
+                    collections.append (collection)
+        return collections
+
     def onSyncAllEvent (self, notification):
         """
           Synchronize Mail and all sharing.
         """
         # find all the shared collections and sync them.
-        self.setStatusText ("checking shared collections")
-        qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where contains(i.isShared,True)"
-        collQuery = Query.Query (Globals.repository, qString)
-        collQuery.recursive = False
-        for collection in collQuery:
-            self.setStatusText ("synchronizing %s" % collection)
-            Sharing.syncCollection(collection)
+        self.onSyncWebDAVEvent (notification)
 
         # synch mail
         self.setStatusText ("Getting new Mail")
         self.onGetNewMailEvent (notification)
-
 
     def onShareOrManageEvent (self, notification):
         """
@@ -305,10 +348,11 @@ class MainView(View):
 
     def onShareOrManageEventUpdateUI (self, notification):
         """
-        Update the Toolbar button to reflect the selected collection name
+        Update the menu to reflect the selected collection name
         """
         collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
+        accountOK = self.webDAVAccountIsSetup ()
+        if accountOK and collection is not None:
             notification.data['Enable'] = True
             if Sharing.isShared (collection):
                 menuTitle = 'Manage collection "%s"' % collection.displayName
@@ -341,27 +385,21 @@ class MainView(View):
         # call the method with params
         member (self, *args, **keys)
 
-    def ShareCollection (self, itemCollection):
-        # put a "committing" message into the status bar
-        self.setStatusText ('Committing changes...')
-
-        # commit changes, since we'll be switching to Twisted thread
-        Globals.repository.commit()
-    
-        # API to tell the collection to share itself.
-        self.setStatusText ("Sharing collection %s" % itemCollection.displayName)
+    def SharingInvitees (self, itemCollection):
+        # return the list of sharing invitees
+        inviteeStringsList = []
         try:
             invitees = itemCollection.sharees
         except AttributeError:
             invitees = []
-        if len (invitees) == 0:
-            self.setStatusText ("No sharees!")
-            return
+        for entity in invitees:
+            inviteeStringsList.append (entity.emailAddress)
+        return inviteeStringsList
 
-        #account = Sharing.getWebDavAccount ()
+    def SharingURL (self, itemCollection):
+        # Return the url used to share the itemCollection.
         if Sharing.isShared (itemCollection):
             url = str (itemCollection.sharedURL)
-            self.setStatusText ("Collection %s is already shared - resharing" % itemCollection.displayName)
         else:
             path = Sharing.getWebDavPath()
             if path:
@@ -370,6 +408,43 @@ class MainView(View):
                 self.setStatusText ("You need to set up the server and path in the account dialog!")
                 return
             url = url.encode ('utf-8')
+        return url
+
+    def SendSharingInvitations (self, itemCollection, url):
+        inviteeStringsList = self.SharingInvitees (itemCollection)
+        MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
+
+    def onResendSharingInvitations (self, notification):
+        """
+          Resend the sharing invitations for the selected collection.
+        This is a Test menu item handler.
+        """
+        itemCollection = self.getSidebarSelectedCollection ()
+        url = self.SharingURL (itemCollection)
+        self.SendSharingInvitations (itemCollection, url)
+
+    def onResendSharingInvitationsUpdateUI (self, notification):
+        collection = self.getSidebarSelectedCollection ()
+        isShared = Sharing.isShared (collection)
+        notification.data ['Enable'] = isShared
+
+    def ShareCollection (self, itemCollection):
+        # put a "committing" message into the status bar
+        self.setStatusText ('Committing changes...')
+
+        # commit changes, since we'll be switching to Twisted thread
+        Globals.repository.commit()
+
+        # show status
+        self.setStatusText ("Sharing collection %s" % itemCollection.displayName)
+    
+        # check that it's not already shared, and we have the sharing account set up.
+        url = self.SharingURL (itemCollection)
+
+        # build list of invitees.
+        if len (self.SharingInvitees (itemCollection)) == 0:
+            self.setStatusText ("No sharees!")
+            return
 
         # change the name to include "Shared"
         if not "Shared" in itemCollection.displayName:
@@ -380,11 +455,12 @@ class MainView(View):
         Dav.DAV(url).put(itemCollection)
 
         # Send out sharing invites
-        inviteeStringsList = []
-        for entity in invitees:
-            inviteeStringsList.append (entity.emailAddress)
+        inviteeStringsList = self.SharingInvitees (itemCollection)
         self.setStatusText ("inviting %s" % inviteeStringsList)
-        MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
+        self.SendSharingInvitations (itemCollection, url)
+
+        # set the isShared attribute on the collection, so queries can find them
+        itemCollection.isShared = True
 
         # Done
         self.setStatusText ("Sharing initiated.")

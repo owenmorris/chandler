@@ -52,6 +52,12 @@
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
+  <BlockEvent itemName="SyncWebDAV">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onSyncWebDAVEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
   <BlockEvent itemName="ShareOrManage">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShareOrManageEvent</methodName>
@@ -99,6 +105,12 @@
   </BlockEvent>
   
   <BlockEvent itsName="SyncCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+  
+  <BlockEvent itsName="ResendSharingInvitationsEvent">
+    <methodName>onResendSharingInvitations</methodName>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
@@ -274,6 +286,7 @@
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
+    <childrenBlocks itemref="doc:ResendSharingInvitations"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
@@ -426,7 +439,7 @@
     <blockName>SyncAllItem</blockName>
     <title>All</title>
     <helpString>Sync All</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:SyncAll"/>
   </MenuItem>
   
   <MenuItem itsName="SyncIMAPItem">
@@ -440,7 +453,7 @@
     <blockName>SyncWebDAVItem</blockName>
     <title>WebDAV</title>
     <helpString>Sync WebDAV</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:SyncWebDAV"/>
   </MenuItem>
   
   <Menu itsName="PreferencesMenu">
@@ -767,6 +780,13 @@
     <title>Subscribe to Collection...</title>
     <event itemref="events:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ResendSharingInvitations">
+    <blockName>ResendSharingInvitations</blockName>
+    <title>Resend Sharing Invitations</title>
+    <event itemref="doc:ResendSharingInvitationsEvent"/>
+    <helpString>Resend the invitations to share this collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">
@@ -1281,6 +1301,7 @@
     <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
+    <subscribeWhenVisibleEvents itemref="doc:ResendSharingInvitationsEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
     <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
     <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
@@ -1290,6 +1311,7 @@
     <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncWebDAV"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

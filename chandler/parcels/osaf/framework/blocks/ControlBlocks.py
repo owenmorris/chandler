@@ -1081,6 +1081,11 @@ class ContentItemDetail(BoxContainer):
             self.colorStyle.synchronizeColor(self)
            
     def selectedItem(self):
+        # return the item viewed by the ContentItemDetail block
         # delegate to our parent, until we get to a SelectionContainer
         return self.parentBlock.selectedItem()
 
+    def resynchronizeDetailView (self):
+        # Resynchronize the item viewed by the ContentItemDetail block
+        # delegate to our parent until we get to a SelectionContainer
+        self.parentBlock.resynchronizeDetailView ()
