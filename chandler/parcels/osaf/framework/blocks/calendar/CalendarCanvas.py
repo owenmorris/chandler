@@ -567,6 +567,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
             self.Refresh()
 
     def GrabFocusHack(self):
+        self.editor.SaveItem()
         self.editor.Hide()
 
     def OnEditItem(self, box):
@@ -763,6 +764,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
     # handle mouse related actions: move, resize, create, select
 
     def GrabFocusHack(self):
+        self.editor.SaveItem()
         self.editor.Hide()
 
     def OnEditItem(self, box):
@@ -902,9 +904,12 @@ class wxInPlaceEditor(wx.TextCtrl):
         parent = self.GetParent()
         parent.Bind(wx.EVT_SIZE, self.OnSize)
 
-    def OnTextEnter(self, event):
+    def SaveItem(self):
         if self.item != None:
             self.item.displayName = self.GetValue()
+        
+    def OnTextEnter(self, event):
+        self.SaveItem()
         self.Hide()
         event.Skip()
 
