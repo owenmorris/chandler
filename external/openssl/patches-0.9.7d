@@ -1,0 +1,10 @@
+--- openssl-0.9.7d/Makefile.org	Fri May 28 14:35:35 2004
++++ openssl-0.9.7d-patched/Makefile.org	Fri May 28 14:30:47 2004
+@@ -832,7 +832,6 @@
+ 			echo 'OpenSSL shared libraries have been installed in:'; \
+ 			echo '  $(INSTALLTOP)'; \
+ 			echo ''; \
+-			sed -e '1,/^$$/d' doc/openssl-shared.txt; \
+ 		fi; \
+ 	fi
+ 	cp openssl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/lib/pkgconfig
