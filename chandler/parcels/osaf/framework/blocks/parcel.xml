@@ -484,14 +484,6 @@
   </Kind>  
   
   <!--
-    EmbeddedContainer
-  -->
-  <Kind itsName="EmbeddedContainer">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.EmbeddedContainer</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
-  </Kind>
-  
-  <!--
     Dynamic Containers are built dynamically when the Active View changes.
     They include Menus, and Toolbars.
     Used as a mixin class for other blocks.

@@ -147,41 +147,6 @@ class ChoiceContainer(BoxContainer):
             self.widget.setSelectedChoice(pos)
         self.synchronizeWidget()
 
-class EmbeddedContainer(RectangularChild):
-    def instantiateWidget (self):
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        panel = wx.Panel(self.parentBlock.widget, -1)
-        panel.SetSizer(sizer)
-        try:
-            newChild = self.contents.data[0]
-        except IndexError:
-            return None
-        else:
-            newChild.parentBlock = self
-            self.RegisterEvents(newChild)
-            Globals.mainView.onSetActiveView(newChild)
-            return panel
-    
-    def onSelectionChangedEvent(self, notification):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            node = notification.data['item']
-            if node and isinstance(node, Node):
-                newChild = node.item
-                if isinstance(newChild, Block):
-                    embeddedSizer = self.widget.GetSizer ()
-                    assert self.contents.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
-                    oldChild = self.contents.data[0]
-                    self.UnregisterEvents(oldChild)
-                    oldChild.parentBlock = None
-                
-                    self.contents.data = [newChild]
-                    newChild.parentBlock = self
-                    newChild.render()
-                    self.RegisterEvents(newChild)
-                    Globals.mainView.onSetActiveView(newChild)
-                    
-                    embeddedSizer.Layout()
-
         
 class wxScrolledContainer (wx.ScrolledWindow):
     def wxSynchronizeWidget(self, *arguments, **keywords):
@@ -349,10 +314,7 @@ class wxSplitterWindow(wx.SplitterWindow):
 
     def CalculateWXStyle(self, block):
         style = wx.SP_LIVE_UPDATE
-        parent = block.parentBlock
-        while isinstance (parent, EmbeddedContainer):
-            parent = parent.parentBlock
-        if isinstance (parent, SplitterWindow):
+        if isinstance (block.parentBlock, SplitterWindow):
             style |= wx.SP_3DSASH
         else:
             style |= wx.SP_3D
