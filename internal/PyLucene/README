@@ -145,7 +145,7 @@
      archives while in the d:\mingw-3.1 directory
 
   For the hardhat build to succeed you need to set the GCJ_HOME environment
-  variable to d:\mingw-3.1 (using a backslash).
+  variable to /cygdrive/d/mingw-3.1 (using a cygwin unix style path).
 
 
   Manual source code changes
