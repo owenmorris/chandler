@@ -65,7 +65,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
  clobber, log):
 
     print "Do " + mode
-    log.write("Performing " + mode + "build, version " + buildVersion + "\n")
+    log.write("Performing " + mode + " build, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
     print buildVersion, buildVersionEscaped
