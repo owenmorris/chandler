@@ -60,7 +60,9 @@ parser Query:
                    ( name_expr 'where' and_or_expr 
                      {{ return [ 'for', ID, name_expr, and_or_expr ] }} END 
                    | STRING 'where' and_or_expr 
-                     {{ return [ 'for', ID, STRING, and_or_expr ] }} END )
+                     {{ return [ 'for', ID, STRING, and_or_expr ] }} END 
+                   | stmt 'where' and_or_expr )
+                     {{ return [ 'for', stmt, and_or_expr ] }} END
 
     rule and_or_expr: rel_expr
          {{ result = rel_expr }}
@@ -85,7 +87,8 @@ parser Query:
     rule unary_expr: {{ UNOP = None }} [ UNOP ] value_expr
          {{ return if_none_set(UNOP,value_expr,[ UNOP, value_expr ]) }}
 
-    rule value_expr: constant {{ return constant }}
+    rule value_expr: constant {{ return constant }} 
+         | PARAM {{ return PARAM }}
          | ID {{ result = ID }}
            [ "\(" {{ arg_list = [] }} [ arg_list ] {{ result = make_op(result,'fn',arg_list) }} "\)"
              | {{ result = [result] }} ("\\." ID {{ result.append(ID) }} )+
@@ -101,6 +104,11 @@ parser Query:
                     ( ',' and_or_expr {{ result.append(and_or_expr) }} )*
                     {{ return result }}
 
-    rule name_expr: ID {{ return ID }} | PARAM {{ return PARAM }}
+    rule str_list: STRING {{ result = [ STRING ]  }}
+                   ( ',' STRING {{ result.append(STRING) }} )*
+                   {{ return result }}
+
+    rule name_expr: ID {{ return ID }} | PARAM {{ return PARAM }} 
+                    | 'ftcontains' "\(" str_list "\)" {{ return ('ftcontains', str_list) }}
 
 %%
