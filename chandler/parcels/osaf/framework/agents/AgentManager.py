@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from Agent import Agent
-from AgentControl import *
+import AgentControl
 import application.Application
 
 """
@@ -32,22 +32,21 @@ class AgentManager:
         self.StopAll()
 
     def _RegisterAgents(self):
-        """
-          Iterate through the agentItem in the repository and create their dynamic counterparts
-        """
-        PATH = "//Parcels/OSAF/AppSchema/AgentSchema/TestAgents"
+        """ Iterate through the AgentItems in the repository and register them """
 
-        list = application.Application.app.repository.find(PATH)
-        if list == None:
-            return
+        agentItemKind = application.Application.app.repository.find('//Parcels/OSAF/AppSchema/AgentSchema/AgentItem')
 
-        for item in list:
-            if item.kind.getItemName() == 'AgentItem':
-                agentID = item.getUUID()
-                self.Register(agentID)
-                # hook up the widget
-                #widget = wxAgentControl(agentID)
-                #widget.AddToToolBar()
+        try:
+            items = agentItemKind.items
+        except AttributeError:
+            items = []
+
+        for item in items:
+            agentID = item.getUUID()
+            self.Register(agentID)
+            # hook up the widget
+            #widget = AgentControl.wxAgentControl(agentID)
+            #widget.AddToToolBar()
 
     def IsRegistered(self, agentID):
         return self.agentMap.has_key(agentID)
