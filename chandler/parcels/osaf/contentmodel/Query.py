@@ -4,7 +4,7 @@ import repository.query.Query as RepositoryQuery
 
 import logging
 log = logging.getLogger("ContentQuery")
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 class Query(Item.Item):
 
