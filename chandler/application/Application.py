@@ -336,7 +336,7 @@ class wxApplication (wxApp):
             coreSchemaPath = os.path.join(self.chandlerDirectory,
                                           'model', 'schema',
                                           'CoreSchema.xml')
-            loader.load(coreSchemaPath)
+            # loader.load(coreSchemaPath)
                     
         # initialize the agent manager
         self.agentManager = AgentManager(self)
