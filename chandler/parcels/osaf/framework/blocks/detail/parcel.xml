@@ -57,6 +57,12 @@
     <dispatchToBlock itemref="doc:MarkupBar1"/>
   </BlockEvent>
 
+  <BlockEvent itemName="SendMailMessage">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onSendMailMessageEvent</methodName>
+    <dispatchToBlock itemref="doc:DetailRoot"/>
+  </BlockEvent>
+
   <!--
     Layout blocks
   -->
@@ -65,6 +71,7 @@
   <SelectionContainer itemName="DetailRoot"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <childrenBlocks itemref="doc:DetailTrunk"/>
+    <subscribeWhenVisibleEvents itemref="doc:SendMailMessage"/>
   </SelectionContainer>
 
   <ContentItemDetail itemName="DetailTrunk">
@@ -73,12 +80,12 @@
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:NotesArea"/>
+    <childrenBlocks itemref="doc:SendBar"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
-    <isShown>False</isShown>
   </ContentItemDetail>
 
   <!-- MarkupBar -->
@@ -108,7 +115,6 @@
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:DummyEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
-    <isShown>False</isShown>
   </Toolbar>
 
   <!--
@@ -303,7 +309,6 @@
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="FromArea"
@@ -313,17 +318,15 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
-    <isShown>False</isShown>
   </ContentItemDetail>
 
   <StaticText itsName="FromString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticTextAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <title>From: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -334,7 +337,6 @@
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </EditText>
 
   <ContentItemDetail itsName="ToArea"
@@ -344,17 +346,15 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>who</selectedItemsAttribute>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <StaticText itsName="ToString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticTextAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <title>To: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </StaticText>
   
   <EditText itsName="ToEditField1"
@@ -362,10 +362,9 @@
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>True</readOnly>
+    <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </EditText>
 
   <!-- CoreIndent -->
@@ -375,32 +374,28 @@
     <childrenBlocks itemref="doc:Indent2"/>
     <!-- Attributes -->
     <stretchFactor>2</stretchFactor>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="Indent">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="Indent2">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <!-- CoreArea -->
   <ContentItemDetail itsName="CoreArea">
     <childrenBlocks itemref="doc:KindLabel"/>
-    <childrenBlocks itemref="doc:Headline"/>
+    <childrenBlocks itemref="doc:HeadlineArea"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>2</stretchFactor>
-    <isShown>False</isShown>
   </ContentItemDetail>
  
   <StaticText itsName="KindLabel"
@@ -410,19 +405,39 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </StaticText>
   
-  <StaticText itsName="Headline"
-              itemClass="osaf.framework.blocks.detail.Detail.Headline">
-    <title>Core</title>
+  <ContentItemDetail itsName="HeadlineArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <childrenBlocks itemref="doc:StaticHeadline"/>
+    <childrenBlocks itemref="doc:EditHeadline"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>about</selectedItemsAttribute>
+    <minimumSize>380, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="StaticHeadline"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <title>Subject</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </StaticText>
   
+  <EditText itsName="EditHeadline"
+            itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>280, 24</minimumSize>
+  </EditText>
+
   <StaticText itsName="DateTime"
               itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
     <title>Date/Time</title>
@@ -430,7 +445,6 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
-    <isShown>False</isShown>
   </StaticText>
   
   <!-- NotesArea -->
@@ -441,9 +455,46 @@
     <textStyleEnum>RichText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>1</stretchFactor>
+    <stretchFactor>3</stretchFactor>
     <minimumSize>380, 120</minimumSize>
-    <isShown>False</isShown>
   </EditText>
+
+  <!-- Send Bar -->
+  <ContentItemDetail itsName="SendBar"
+                     itemClass="osaf.framework.blocks.detail.Detail.MailMessageBlock">
+    <childrenBlocks itemref="doc:NotifyRadioBox"/>
+    <childrenBlocks itemref="doc:SendButton"/>
+    <!-- Attributes -->
+    <minimumSize>300,40</minimumSize>
+    <stretchFactor>1</stretchFactor>
+    <orientationEnum>Horizontal</orientationEnum>
+  </ContentItemDetail>
+ 
+  <RadioBox itsName="NotifyRadioBox">
+    <!-- Attributes -->
+    <title>Notify</title>
+    <choices>All</choices>
+    <choices>New</choices>
+    <radioAlignEnum>Across</radioAlignEnum>
+    <itemsPerLine>2</itemsPerLine>
+
+    <size>200,24</size>
+    <minimumSize>200,30</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <stretchFactor>0.0</stretchFactor>
+  </RadioBox>
+  
+  <Button itsName="SendButton">
+    <!-- Attributes -->
+    <title>Send</title>
+    <buttonKind>Text</buttonKind>
+
+    <size>60,30</size>
+    <minimumSize>60,30</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <event itemref="doc:SendMailMessage"/>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </Button>
 
 </core:Parcel>

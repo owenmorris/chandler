@@ -92,10 +92,10 @@ class Block(Item):
                 except:
                     pass
                 else:
-                    if not subscribedBlocks.has_key (block.itsUUID):
-                        subscribedBlocks [block.itsUUID] = UUID()
+                    if not subscribedBlocks.has_key (self.itsUUID):
+                        subscribedBlocks [self.itsUUID] = UUID()
                         Globals.notificationManager.Subscribe (subscribeAlwaysEvents,
-                                                               subscribedBlocks [block.itsUUID],
+                                                               subscribedBlocks [self.itsUUID],
                                                                Globals.mainView.dispatchEvent)
 
                 doFreeze = isinstance (widget, wx.Window)

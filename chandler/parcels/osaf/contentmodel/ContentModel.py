@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from application.Parcel import Parcel
 import repository.item.Item as Item
 import repository.item.Query as Query
+import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import logging
 
 import application.Globals as Globals
@@ -418,6 +419,55 @@ class ContentItem(Item.Item):
                 clone.append(item)
         
         return clone
+
+    def ItemWhoString (self):
+        import osaf.contentmodel.contacts.Contacts as Contacts
+        """
+        return str(item.who)
+        DLDTBD - XMLRefDicts that have EmailAddress items should know how to do this
+        """
+        try:
+            whoContacts = self.who # get redirected who list
+        except AttributeError:
+            return ''
+        try:
+            numContacts = len(whoContacts)
+        except TypeError:
+            numContacts = 0            
+        if numContacts > 0:
+            whoNames = []
+            for whom in whoContacts.values():
+                whoNames.append(whom.getItemDisplayName())
+            whoString = ', '.join(whoNames)
+        else:
+            whoString = ''
+            if isinstance(whoContacts, Contacts.ContactName):
+                whoString = whoContacts.firstName + ' ' + whoContacts.lastName
+        return whoString
+
+    def ItemBodyString (self):
+        """
+        return str(item.body) converts from text to string 
+        """
+        try:
+            noteBody = self.body
+        except AttributeError:
+            noteBody = ''
+        else:
+            if isinstance(noteBody, XMLRepositoryView.XMLText):
+                # Read the unicode stream from the XML
+                noteBody = noteBody.getInputStream().read()
+        return noteBody
+
+    def ItemAboutString (self):
+        """
+        return str(item.about)
+        """
+        try:
+            about = self.about
+        except AttributeError:
+            about = ''
+        return about
 
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):

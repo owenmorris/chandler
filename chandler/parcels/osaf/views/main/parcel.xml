@@ -15,6 +15,7 @@
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
              xmlns:stockQuote="http://osafoundation.org/parcels/osaf/examples/stockquote/views">
 
@@ -60,11 +61,12 @@
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="New">
+  <KindParameterizedEvent itemName="NewMailMessage">
+    <kindParameter itemref="mail:MailMessage"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarNew</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
+    <methodName>onNewEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </KindParameterizedEvent>
 
   <BlockEvent itemName="Reply">
     <dispatchEnum>SendToBlock</dispatchEnum>
@@ -345,7 +347,7 @@
     <blockName>NewMessageItem</blockName>
     <title>Message</title>
     <helpString>Create a new Message</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="doc:NewMailMessage"/>
   </MenuItem>
   
   <MenuItem itsName="NewTaskItem">
@@ -1132,7 +1134,6 @@
     <subscribeWhenVisibleEvents itemref="doc:GoBack"/>
     <subscribeWhenVisibleEvents itemref="doc:GoForward"/>
     <subscribeWhenVisibleEvents itemref="doc:Sync"/>
-    <subscribeWhenVisibleEvents itemref="doc:New"/>
     <subscribeWhenVisibleEvents itemref="doc:Reply"/>
     <subscribeWhenVisibleEvents itemref="doc:Discuss"/>
     <subscribeWhenVisibleEvents itemref="doc:Forward"/>
@@ -1202,7 +1203,7 @@
     <bitmap>application/images/new.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
-    <event itemref="doc:New"/>
+    <event itemref="doc:NewMailMessage"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ReplyButton">
@@ -1287,6 +1288,69 @@
   <StatusBar itsName="StatusBar">
   </StatusBar>
 
+  <!-- LayoutSelector -->
+  <Toolbar itemName="LayoutSelector">
+    <blockName>LayoutSelector</blockName>
+    <childrenBlocks itemref="doc:ListViewButton"/>
+    <childrenBlocks itemref="doc:MonthViewButton"/>
+    <childrenBlocks itemref="doc:WeekViewButton"/>
+    <childrenBlocks itemref="doc:DayViewButton"/>
+    <!-- Attributes -->
+    <toolSize>16,16</toolSize>
+    <separatorWidth>100</separatorWidth>
+    <stretchFactor>0.0</stretchFactor>
+    <subscribeWhenVisibleEvents itemref="doc:SelectionChanged"/>
+  </Toolbar>
+
+  <BlockEvent itemName="SelectionChanged">
+    <methodName>onSelectionChanged</methodName>
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  </BlockEvent>
+
+  <!--
+    ToolbarItems
+  -->
+  <ToolbarItem itsName="ListViewButton">
+    <blockName>ListViewButton1</blockName>
+    <title>List View</title>
+    <bitmap>application/images/list.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in list mode</helpString>
+    <event itemref="doc:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="MonthViewButton">
+    <blockName>MonthViewButton1</blockName>
+    <title>Month View</title>
+    <bitmap>application/images/month.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in month mode</helpString>
+    <event itemref="doc:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="WeekViewButton">
+    <blockName>WeekViewButton1</blockName>
+    <title>Week View</title>
+    <bitmap>application/images/week.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in week mode</helpString>
+    <event itemref="doc:SelectionChanged"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DayViewButton">
+    <blockName>DayViewButton1</blockName>
+    <title>Day View</title>
+    <bitmap>application/images/day.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in day mode</helpString>
+    <event itemref="doc:SelectionChanged"/>
+  </ToolbarItem>
+
+
   <!--
     Layout blocks
   -->
@@ -1314,6 +1378,7 @@
   </BoxContainer>
 
   <contentModel:NamedCollection itsName="sidebarItemCollection">
+    <inclusions uuidOf="content:AllTableView"/>
     <inclusions uuidOf="content:InTableView"/>
     <inclusions uuidOf="content:OutTableView"/>
     <inclusions uuidOf="content:CalendarTableView"/>
@@ -1378,6 +1443,7 @@
     <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

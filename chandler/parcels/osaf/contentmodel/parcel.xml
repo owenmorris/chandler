@@ -333,6 +333,11 @@
     <copyPolicy value="cascade"/>
   </core:Attribute>
 
+  <core:Attribute itsName="exactKind">
+    <core:type itemref="core:Boolean"/>
+    <initialValue type="core:Boolean" value="False"/>
+  </core:Attribute>
+
   <core:Kind itsName="Query">
     <core:classes key="python">osaf.contentmodel.Query.Query</core:classes>
     <core:superKinds itemref="core:Item"/>
@@ -342,6 +347,7 @@
     <core:attributes itemref="queryEnum"/>
     <core:attributes itemref="data"/>
     <core:attributes itemref="results"/>
+    <core:attributes itemref="exactKind"/>
 
     <core:Cloud itsName="DefaultCloud">
         <core:Endpoint itsName="queryOwner">

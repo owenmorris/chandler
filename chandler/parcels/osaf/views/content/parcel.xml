@@ -17,6 +17,7 @@
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
+             xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
 	     xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
@@ -33,6 +34,7 @@
 
   <contentModel:Query itsName="notesQuery">
     <data itemref="contentModel:Note"/>
+    <exactKind>True</exactKind>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="notesItemCollection">
@@ -86,6 +88,11 @@
     <rule itemref="view:untitledQuery"/>
   </contentModel:NamedCollection>
 
+  <contentModel:NamedCollection itsName="allItemCollection">
+    <displayName>All</displayName>
+    <rule itemref="view:mixedQuery"/>
+  </contentModel:NamedCollection>
+
   <contentModel:Query itsName="inQuery">
     <data itemref="mailModel:MailMessage"/>
   </contentModel:Query>
@@ -96,6 +103,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="outQuery">
+    <data itemref="mailModel:MailMessage"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="outItemCollection">
@@ -175,8 +183,32 @@
     <columnWidths>170</columnWidths>
   </List>
 
+  <!-- All Summary View -->
+  <BoxContainer itsName="AllSummary">
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
+    <childrenBlocks itemref="view:AllTable"/>
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <!-- All Table -->
+  <Table itsName="AllTable">
+    <contents itemref="view:allItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
   <BoxContainer itsName="InSummary">
-    <childrenBlocks itemref="view:LayoutSelector3"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <childrenBlocks itemref="view:InTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -199,7 +231,7 @@
   </Table>
 
   <BoxContainer itsName="OutSummary">
-    <childrenBlocks itemref="view:LayoutSelector2"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <childrenBlocks itemref="view:OutTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -222,7 +254,7 @@
   </Table>
   
   <ChoiceContainer itsName="CalendarSummary">
-    <childrenBlocks itemref="view:LayoutSelector1"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <choices itemref="view:CalendarTable"/>
     <choices itemref="view:SummaryMonth"/>
     <choices itemref="view:SummaryWeek"/>
@@ -316,7 +348,7 @@
   </Table>
 
   <BoxContainer itsName="JunkSummary">
-    <childrenBlocks itemref="view:LayoutSelector5"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <childrenBlocks itemref="view:JunkTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -339,7 +371,7 @@
   </Table>
 
   <BoxContainer itsName="TrashSummary">
-    <childrenBlocks itemref="view:LayoutSelector6"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <childrenBlocks itemref="view:TrashTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -363,7 +395,7 @@
 
   <!-- Untitled Summary -->
   <BoxContainer itsName="UntitledSummary">
-    <childrenBlocks itemref="view:LayoutSelector7"/>
+    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <childrenBlocks itemref="view:UntitledTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -413,393 +445,6 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <!-- LayoutSelector1 -->
-  <Toolbar itemName="LayoutSelector1">
-    <blockName>LayoutSelector1</blockName>
-    <childrenBlocks itemref="view:ListViewButton1"/>
-    <childrenBlocks itemref="view:MonthViewButton1"/>
-    <childrenBlocks itemref="view:WeekViewButton1"/>
-    <childrenBlocks itemref="view:DayViewButton1"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <!-- LayoutSelector2 -->
-  <Toolbar itemName="LayoutSelector2">
-    <blockName>LayoutSelector2</blockName>
-    <childrenBlocks itemref="view:ListViewButton2"/>
-    <childrenBlocks itemref="view:MonthViewButton2"/>
-    <childrenBlocks itemref="view:WeekViewButton2"/>
-    <childrenBlocks itemref="view:DayViewButton2"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <!-- LayoutSelector3 -->
-  <Toolbar itemName="LayoutSelector3">
-    <blockName>LayoutSelector3</blockName>
-    <childrenBlocks itemref="view:ListViewButton3"/>
-    <childrenBlocks itemref="view:MonthViewButton3"/>
-    <childrenBlocks itemref="view:WeekViewButton3"/>
-    <childrenBlocks itemref="view:DayViewButton3"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <!-- LayoutSelector5 -->
-  <Toolbar itemName="LayoutSelector5">
-    <blockName>LayoutSelector5</blockName>
-    <childrenBlocks itemref="view:ListViewButton5"/>
-    <childrenBlocks itemref="view:MonthViewButton5"/>
-    <childrenBlocks itemref="view:WeekViewButton5"/>
-    <childrenBlocks itemref="view:DayViewButton5"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <!-- LayoutSelector6 -->
-  <Toolbar itemName="LayoutSelector6">
-    <blockName>LayoutSelector6</blockName>
-    <childrenBlocks itemref="view:ListViewButton6"/>
-    <childrenBlocks itemref="view:MonthViewButton6"/>
-    <childrenBlocks itemref="view:WeekViewButton6"/>
-    <childrenBlocks itemref="view:DayViewButton6"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <!-- LayoutSelector7 -->
-  <Toolbar itemName="LayoutSelector7">
-    <blockName>LayoutSelector7</blockName>
-    <childrenBlocks itemref="view:ListViewButton7"/>
-    <childrenBlocks itemref="view:MonthViewButton7"/>
-    <childrenBlocks itemref="view:WeekViewButton7"/>
-    <childrenBlocks itemref="view:DayViewButton7"/>
-    <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
-  </Toolbar>
-
-  <BlockEvent itemName="SelectionChanged">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onSelectionChanged</methodName>
-    <dispatchToBlock itemref="view:CalendarSummary"/>
-  </BlockEvent>
-
-  <!--
-    ToolbarItems
-  -->
-  <ToolbarItem itsName="ListViewButton1">
-    <blockName>ListViewButton1</blockName>
-    <location>LayoutSelector1</location>
-    <dynamicParent itemref="view:LayoutSelector1"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton1">
-    <blockName>MonthViewButton1</blockName>
-    <location>LayoutSelector1</location>
-    <dynamicParent itemref="view:LayoutSelector1"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton1">
-    <blockName>WeekViewButton1</blockName>
-    <location>LayoutSelector1</location>
-    <dynamicParent itemref="view:LayoutSelector1"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton1">
-    <blockName>DayViewButton1</blockName>
-    <location>LayoutSelector1</location>
-    <dynamicParent itemref="view:LayoutSelector1"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ListViewButton2">
-    <blockName>ListViewButton2</blockName>
-    <location>LayoutSelector2</location>
-    <dynamicParent itemref="view:LayoutSelector2"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton2">
-    <blockName>MonthViewButton2</blockName>
-    <location>LayoutSelector2</location>
-    <dynamicParent itemref="view:LayoutSelector2"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton2">
-    <blockName>WeekViewButton2</blockName>
-    <location>LayoutSelector2</location>
-    <dynamicParent itemref="view:LayoutSelector2"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton2">
-    <blockName>DayViewButton2</blockName>
-    <location>LayoutSelector2</location>
-    <dynamicParent itemref="view:LayoutSelector2"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ListViewButton3">
-    <blockName>ListViewButton3</blockName>
-    <location>LayoutSelector3</location>
-    <dynamicParent itemref="view:LayoutSelector3"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton3">
-    <blockName>MonthViewButton3</blockName>
-    <location>LayoutSelector3</location>
-    <dynamicParent itemref="view:LayoutSelector3"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton3">
-    <blockName>WeekViewButton3</blockName>
-    <location>LayoutSelector3</location>
-    <dynamicParent itemref="view:LayoutSelector3"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton3">
-    <blockName>DayViewButton3</blockName>
-    <location>LayoutSelector3</location>
-    <dynamicParent itemref="view:LayoutSelector3"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ListViewButton5">
-    <blockName>ListViewButton5</blockName>
-    <location>LayoutSelector5</location>
-    <dynamicParent itemref="view:LayoutSelector5"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton5">
-    <blockName>MonthViewButton5</blockName>
-    <location>LayoutSelector5</location>
-    <dynamicParent itemref="view:LayoutSelector5"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton5">
-    <blockName>WeekViewButton5</blockName>
-    <location>LayoutSelector5</location>
-    <dynamicParent itemref="view:LayoutSelector5"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton5">
-    <blockName>DayViewButton5</blockName>
-    <location>LayoutSelector5</location>
-    <dynamicParent itemref="view:LayoutSelector5"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ListViewButton6">
-    <blockName>ListViewButton6</blockName>
-    <location>LayoutSelector6</location>
-    <dynamicParent itemref="view:LayoutSelector6"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton6">
-    <blockName>MonthViewButton6</blockName>
-    <location>LayoutSelector6</location>
-    <dynamicParent itemref="view:LayoutSelector6"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton6">
-    <blockName>WeekViewButton6</blockName>
-    <location>LayoutSelector6</location>
-    <dynamicParent itemref="view:LayoutSelector6"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton6">
-    <blockName>DayViewButton6</blockName>
-    <location>LayoutSelector6</location>
-    <dynamicParent itemref="view:LayoutSelector6"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ListViewButton7">
-    <blockName>ListViewButton7</blockName>
-    <location>LayoutSelector7</location>
-    <dynamicParent itemref="view:LayoutSelector7"/>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton7">
-    <blockName>MonthViewButton7</blockName>
-    <location>LayoutSelector7</location>
-    <dynamicParent itemref="view:LayoutSelector7"/>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton7">
-    <blockName>WeekViewButton7</blockName>
-    <location>LayoutSelector7</location>
-    <dynamicParent itemref="view:LayoutSelector7"/>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton7">
-    <blockName>DayViewButton7</blockName>
-    <location>LayoutSelector7</location>
-    <dynamicParent itemref="view:LayoutSelector7"/>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="view:SelectionChanged"/>
-  </ToolbarItem>
-
   <!-- Note View -->
   <SplitterWindow itsName="NoteTableView">
     <contents itemref="view:notesItemCollection"/>
@@ -845,6 +490,18 @@
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- All View -->
+  <SplitterWindow itsName="AllTableView">
+    <contents itemref="view:allItemCollection"/>
+
+    <childrenBlocks itemref="view:AllSummary"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
 
   <!-- In View -->

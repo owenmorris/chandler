@@ -226,6 +226,18 @@
     <attributes itemref="docSchema:ChoiceEvent/choice"/>
   </Kind>
 
+  <Kind itsName="KindParameterizedEvent">
+    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <superKinds itemref="docSchema:BlockEvent"/>
+
+    <Attribute itsName="kindParameter">
+      <type itemref="Kind"/>
+      <required>True</required>
+    </Attribute>
+
+    <attributes itemref="docSchema:KindParameterizedEvent/kindParameter"/>
+  </Kind>
+
   <Kind itsName="ModifyContentsEvent">
     <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>

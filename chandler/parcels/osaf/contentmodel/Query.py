@@ -49,7 +49,7 @@ class Query (Item):
     def __refresh(self):
         self.results = []
 
-        for item in RepositoryQuery.KindQuery().run(self.data):
+        for item in RepositoryQuery.KindQuery(recursive = not self.exactKind).run(self.data):
             self.results.append(item)
 
         self.__dirty()

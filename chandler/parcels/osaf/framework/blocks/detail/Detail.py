@@ -8,13 +8,11 @@ import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.contacts.Contacts as Contacts
+import repository.item.Query as Query
 import wx
 
 """
@@ -61,6 +59,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         def reNotifyInside(block, item):
             notifyParent = False
             try:
+                # process from the children up
                 for child in block.childrenBlocks:
                     notify = reNotifyInside (child, item)
                     notifyParent = notifyParent or notify
@@ -84,6 +83,24 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         self.synchronizeDetailView(item)
         super(DetailRoot, self).synchronizeWidget ()
         
+    def onDestroyWidget (self):
+        # Hack - DLDTBD - remove
+        # set ourself to be shown, to work around Windows DetailView garbage problem.
+        def showReentrant (block):
+            block.isShown = True
+            for child in block.childrenBlocks:
+                showReentrant (child)
+        super(DetailRoot, self).onDestroyWidget ()
+        showReentrant (self)
+
+    def onSendMailMessageEvent (self, notification):
+        item = self.selectedItem()
+        # DLDTBD - Brian, paste a call to the mail service here
+        # item is the MailMessage
+        print "Email Subject is %s" % item.ItemAboutString ()
+        print "Email To field is %s" % item.ItemWhoString ()
+        print "Email Body is %s" % item.ItemBodyString ()
+
 class DetailSynchronizer(object):
     """
       Mixin class that handles synchronizeWidget and
@@ -107,22 +124,23 @@ class DetailSynchronizer(object):
         shouldShow = item is not None
         return self.show(shouldShow)
         
-    def show(self, shouldShow):
+    def show (self, shouldShow):
         # if the show status has changed, tell our widget, and return True
-        if shouldShow != self.isShown:
-            try:
-                widget = self.widget
-            except AttributeError:
-                return False
+        try:
+            widget = self.widget
+        except AttributeError:
+            return False
+        if shouldShow != widget.IsShown():
             # we have a widget
-            if shouldShow:
-                widget.Show(True)
-                self.isShown = True
-            else:
-                widget.Show(False)
-                self.isShown = False
+            # make sure widget shown state is what we want
+            widget.Show (shouldShow)
+            self.isShown = shouldShow
             return True
         return False
+
+    def whichAttribute(self):
+        # define the attribute to be used
+        return self.parentBlock.selectedItemsAttribute
 
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
@@ -164,12 +182,7 @@ class KindLabel (StaticTextLabel):
         """
         return item.itsKind.displayName
         
-class Headline (StaticTextLabel):
-    """Headline, or Title field of the Content Item, as static text"""
-    def staticTextLabelValue (self, item):
-        return item.about
-        
-class StaticTextAttribute(StaticTextLabel):
+class StaticRedirectAttribute (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
@@ -181,11 +194,7 @@ class StaticTextAttribute(StaticTextLabel):
             redirectAttr = ' ' + redirectAttr + ': '
         return redirectAttr
 
-    def whichAttribute(self):
-        # define the attribute to be used
-        return self.parentBlock.selectedItemsAttribute
-
-class LabeledTextAttributeBlock(ControlBlocks.ContentItemDetail):
+class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
         try:
@@ -194,6 +203,18 @@ class LabeledTextAttributeBlock(ControlBlocks.ContentItemDetail):
         except AttributeError:
             self.isShown = item.hasAttributeAspect(whichAttr, 'redirectTo')
         self.synchronizeWidget()
+
+class MailMessageBlock (DetailSynchronizer, ControlBlocks.ContentItemDetail):
+    """
+    A block whose contents are shown only when the item is a Mail Message.
+    """
+    def synchronizeItemDetail(self, item):
+        mailKind = Mail.MailParcel.getMailMessageKind ()
+        try:
+            shouldShow = item.itsKind.isKindOf (mailKind)
+        except AttributeError:
+            shouldShow = False
+        return self.show(shouldShow)
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
@@ -301,9 +322,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     def instantiateWidget (self):
         widget = super (EditTextAttribute, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
-        # Currently looks like OnLoseFocus is not getting called every time we lose focus,
-        #   only when focus moves to another EditText block.
-        widget.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+        # Hopefully OnLoseFocus is getting called every time we lose focus.
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
         return widget
 
@@ -358,10 +377,7 @@ class NoteBody (EditTextAttribute):
     def loadAttributeIntoWidget (self, item, widget):  
         if item.hasAttributeValue("body"):
             # get the character string out of the Text LOB
-            noteBody = item.body
-            if isinstance(noteBody, XMLRepositoryView.XMLText):
-                # Read the unicode stream from the XML
-                noteBody = noteBody.getInputStream().read()
+            noteBody = item.ItemBodyString ()
             widget.SetValue(noteBody)
         else:
             widget.Clear()
@@ -372,29 +388,36 @@ class ToEditField (EditTextAttribute):
     """
     def saveAttributeFromWidget(self, item, widget):  
         toFieldString = widget.GetValue()
-        # DLDTBD - need to parse the string and lookup the contacts
-        #  because it's really the contacts that are stored in the "who" attribute!
-       
+
+        # get the user's addresses into a list
+        addresses = toFieldString.split(',')
+
+        # get all known addresses
+        addressKind = Mail.MailParcel.getEmailAddressKind()
+        knownAddresses = Query.KindQuery().run([addressKind])
+
+        # for each address, strip white space, and match with existing
+        addressList = []
+        for address in addresses:
+            address.strip()
+            if '.' in address and '@' in address:
+                for candidate in knownAddresses:
+                    if candidate.emailAddress == address:
+                        # found an existing address!
+                        addressList.append(candidate)
+                        break
+                else:
+                    # make a new EmailAddress
+                    newAddress = Mail.EmailAddress()
+                    newAddress.emailAddress = address
+                    addressList.append(newAddress)
+
+        # reassign the list to the attribute
+        item.who = addressList
+
     def loadAttributeIntoWidget (self, item, widget):
-        try:
-            whoContacts = item.who # get redirected who list
-        except AttributeError:
-            widget.SetValue('')
-            return
-        try:
-            numContacts = len(whoContacts)
-        except TypeError:
-            numContacts = 0            
-        if numContacts > 0:
-            whoNames = []
-            for whom in whoContacts.values():
-                whoNames.append(whom.getItemDisplayName())
-            whoString = ', '.join(whoNames)
-        else:
-            whoString = ''
-            if isinstance(whoContacts, Contacts.ContactName):
-                whoString = whoContacts.firstName + ' ' + whoContacts.lastName
-        widget.SetValue(whoString)
+        whoString = item.ItemWhoString ()
+        widget.SetValue (whoString)
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
@@ -402,4 +425,20 @@ class FromEditField (EditTextAttribute):
         pass       
     def loadAttributeIntoWidget(self, item, widget):
         pass
+
+class EditRedirectAttribute (EditTextAttribute):
+    """
+    An attribute-based edit field
+    Our parent block knows which attribute we edit.
+    """
+    def saveAttributeFromWidget(self, item, widget):
+        item.setAttributeValue(self.whichAttribute(), widget.GetValue())
+
+    def loadAttributeIntoWidget(self, item, widget):
+        try:
+            value = item.getAttributeValue(self.whichAttribute())
+        except AttributeError:
+            value = ''
+        widget.SetValue(value)
+
 

@@ -8,7 +8,9 @@ from osaf.framework.blocks.Views import View
 from osaf.framework.notifications.Notification import Notification
 import wx
 import os
+from mx import DateTime
 import application.Application
+import osaf.contentmodel.mail.Mail as Mail
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 from osaf.mail.imap import IMAPDownloader
@@ -108,6 +110,43 @@ class MainView(View):
         accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')]
         account = accountList[0]
         IMAPDownloader (account).getMail()
+
+    def NewItemName (cls):
+        """
+        Return a unique name of a new item
+        """
+        itemNumber = MainView.AnonymousItemNumber
+        MainView.AnonymousItemNumber += 1
+        return "Anonymous" + str (itemNumber)
+    NewItemName = classmethod (NewItemName)
+    AnonymousItemNumber = 1
+
+    def onNewEvent (self, notification):
+        # create a new mail message
+        event = notification.event
+        newMessage = event.kindParameter.newItem (self.NewItemName(), self)
+        newMessage.date = DateTime.now()
+        Globals.repository.commit()
+
+        # lookup our selectionChangedEvents
+        rootPath = '//parcels/osaf/framework/blocks/Events/'
+        sidebarSelectionChanged = Globals.repository.findPath \
+                                (rootPath + 'SelectionChangedSentToSidebar')
+        activeViewSelectionChanged = Globals.repository.findPath \
+                                   (rootPath + 'SelectionChangedBroadcastEverywhere')
+
+        # Tell the sidebar we want to go to the 'All' box
+        args = {}
+        args['itemName'] = 'AllTableView'
+        self.Post(sidebarSelectionChanged, args)
+
+        # Tell the ActiveView to select our new item
+        args = {}
+        args['item'] = newMessage
+        self.Post(activeViewSelectionChanged, args)
+
+    def onNewEventUpdateUI (self, notification):
+        notification.data ['Enable'] = True
 
     # Test Methods
 

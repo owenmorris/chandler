@@ -33,6 +33,8 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:EditMailAccount"/>
     <subscribeAlwaysEvents itemref="events:GetNewMail"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
+    <subscribeAlwaysEvents itemref="events:SelectionChangedSentToSidebar"/>
+    <subscribeAlwaysEvents itemref="events:SelectionChangedBroadcastEverywhere"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
     <subscribeAlwaysEvents itemref="events:GenerateContentItems"/>
     <subscribeAlwaysEvents itemref="events:GenerateContacts"/>
@@ -112,6 +114,15 @@ of a limitation of the XML format, which will be eliminated</description>
 
   <BlockEvent itsName="SelectionChanged">
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="SelectionChangedSentToSidebar">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="SelectionChangedBroadcastEverywhere">
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="EnterPressed">

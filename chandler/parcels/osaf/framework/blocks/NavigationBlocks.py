@@ -62,13 +62,6 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
     def navbarSyncUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def navbarNew(self, notification):
-        # placeholder for a nav bar button
-        pass
-    
-    def navbarNewUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-
     def navbarReply(self, notification):
         # placeholder for a nav bar button
         pass

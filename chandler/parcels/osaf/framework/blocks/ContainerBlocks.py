@@ -28,8 +28,7 @@ class wxBoxContainer (wxRectangularChild):
                                childBlock.stretchFactor, 
                                wxRectangularChild.CalculateWXFlag(childBlock), 
                                wxRectangularChild.CalculateWXBorder(childBlock))
-        self.Layout()
-
+            self.Layout()
 
 class BoxContainer (RectangularChild):
     def instantiateWidget (self):

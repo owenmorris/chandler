@@ -644,6 +644,38 @@ class Table(RectangularChild):
         self.selection = notification.data['item']
         self.widget.GoToItem (self.selection)
 
+    def onSelectionChangedSentToSidebarEvent (self, notification):
+        # Request the sidebar to change selection
+        # Item specified is usually by name
+        try:
+            item = notification.data['item']
+        except KeyError:
+            # find the item by name
+            itemName = notification.data['itemName']
+            for item in self.contents:
+                if item.itsName == itemName:
+                    notification.data['item'] = item
+                    break
+            else:
+                return
+
+        # Got the item. First tell ourself about it.
+        self.onSelectionChangedEvent (notification)
+
+        # Next broadcast inside our boundary to tell dependent
+        self.Post (Globals.repository.findPath \
+                   ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                   {'item':item})
+
+    def onSelectionChangedBroadcastEverywhereEvent (self, notification):
+        # request the Table part of the Active View to change selection
+        newSelection = notification.data['item']
+        if newSelection in self.contents:
+            self.onSelectionChangedEvent (notification)
+            self.Post (Globals.repository.findPath \
+                       ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                       {'item':newSelection})
+
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):
@@ -665,7 +697,6 @@ class wxStaticText(wx.StaticText):
     def wxSynchronizeWidget(self):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
-
 
 class StaticText(RectangularChild):
     def instantiateWidget (self):
