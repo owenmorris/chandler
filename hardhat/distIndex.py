@@ -97,10 +97,11 @@ def CreateIndex(buildName):
     files = os.listdir(os.path.join("/home/builder/snapshots", buildName))
     for thisFile in files:
         fileName = os.path.join("/home/builder/snapshots", buildName,thisFile)
+        urlPath = os.path.join("/chandler/snapshots", buildName,thisFile)
         if fileName.find("_src_") > 0:
             print "Generating data for ", thisFile
             fileOut.write("<tr><td>\n")
-            fileOut.write("<h3><a href=http://builds.osafoundation.org" + fileName + ">" + thisFile + "</a></h3>\n</td></tr>\n")
+            fileOut.write("<h3><a href=http://builds.osafoundation.org" + urlPath + ">" + thisFile + "</a></h3>\n</td></tr>\n")
             fileOut.write("<tr><td>\n")
             fileOut.write(" MD5 checksum: " + hardhatutil.MD5sum(fileName) +\
                           "<br>")
@@ -110,7 +111,7 @@ def CreateIndex(buildName):
         elif fileName.find("Chan") > 0:
             print "Generating data for ", thisFile
             fileOut.write("<tr><td>\n")
-            fileOut.write("<h3><a href=http://builds.osafoundation.org" + fileName + ">" + thisFile + "</a></h3>\n</td></tr>\n")
+            fileOut.write("<h3><a href=http://builds.osafoundation.org" + urlPath + ">" + thisFile + "</a></h3>\n</td></tr>\n")
             fileOut.write("<tr><td>\n")
             fileOut.write("<tr><td>\n")
             if fileName.find("_debug_") > 0:
