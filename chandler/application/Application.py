@@ -175,6 +175,8 @@ class wxApplication (wxApp):
 		self.jabberClient = None
 		self.presenceWindow = None
 		
+		self.initInProgress = true
+		
 		global app
 		assert app == None     #More than one app object doesn't make sense
 		app = self
@@ -258,6 +260,7 @@ class wxApplication (wxApp):
 
 		self.OpenStartingUri()
 		
+		self.initInProgress = false
 		return true                     #indicates we succeeded with initialization
 
 	if __debug__:
