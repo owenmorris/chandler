@@ -30,7 +30,8 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         exclusions.
         """
         if item not in self.exclusions:
-            self.exclusions.append (item)
+            if self._rule:
+                self.exclusions.append (item)
             if item in self.inclusions:
                 self.inclusions.remove (item)
             if item in self._resultSet:
