@@ -79,6 +79,20 @@ class wxChoiceContainer(wxBoxContainer):
                       wxRectangularChild.CalculateWXBorder(choice))
             self.Layout()    
 
+    def setSelectedChoice(self, selectedIndex):
+        index = 0
+        for childBlock in self.blockItem.childrenBlocks:
+            if isinstance(childBlock, Toolbar):
+                for toolbarItem in childBlock.widget.toolItemList:
+                    toolbarItemId = toolbarItem.widget.GetId()
+                    if index == selectedIndex:
+                        if not childBlock.widget.GetToolState(toolbarItemId):                                
+                            childBlock.widget.ToggleTool(toolbarItemId, True)                            
+                    else:
+                        if childBlock.widget.GetToolState(toolbarItemId):
+                            childBlock.widget.ToggleTool(toolbarItemId, False)
+                    index += 1
+                                        
     def _getSelectedChoice(self):
         index = 0
         for childBlock in self.blockItem.childrenBlocks:
@@ -91,6 +105,16 @@ class wxChoiceContainer(wxBoxContainer):
         # This is a bug in wxWidgets that should be fixed.
         return 0
             
+    def getIdPos(self, id):
+        index = 0
+        for childBlock in self.blockItem.childrenBlocks:
+            if isinstance(childBlock, Toolbar):
+                for toolbarItem in childBlock.widget.toolItemList:
+                    if id == toolbarItem.widget.GetId():
+                        return index
+                    index += 1
+        return -1
+    
 
 class ChoiceContainer(BoxContainer):
     def instantiateWidget (self):
@@ -108,26 +132,20 @@ class ChoiceContainer(BoxContainer):
 
         return widget
 
+    def changeSelection(self, selectionIndex):
+        self.widget.setSelectedChoice(selectionIndex)
+        self.synchronizeWidget()
+
     def onSelectionChanged(self, notification):
         # @@@ On the Mac, radio buttons do not work as radio
         # buttons, but rather they behave as individual toggle
         # buttons.  As a workaround, we deselect the other 
         # radio buttons.
         if '__WXMAC__' in wx.PlatformInfo:
-            for childBlock in self.childrenBlocks:
-                if isinstance(childBlock, Toolbar):
-                    for toolbarItem in childBlock.widget.toolItemList:
-                        if toolbarItem != notification.data['sender']:
-                            if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
-                                childBlock.widget.ToggleTool(toolbarItem.widget.GetId(), False)
-                        else:
-                            if not childBlock.widget.GetToolState(toolbarItem.widget.GetId()):                                
-                                childBlock.widget.ToggleTool(toolbarItem.widget.GetId(), True)                            
-        try:
-            self.widget.wxSynchronizeWidget()    
-        except AttributeError:
-            pass
-
+            itemId = notification.data['sender'].widget.GetId()
+            pos = self.widget.getIdPost(itemId)
+            self.widget.SetSelectedChoice(pos)
+        self.synchronizeWidget()
 
 class EmbeddedContainer(RectangularChild):
     def instantiateWidget (self):
