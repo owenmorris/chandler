@@ -49,11 +49,12 @@ class wxRepositoryViewer(wxViewerParcel):
     def LoadTree(self, item=None, path=None, parent=None):
 
         if item is None:
-            path = Path('//Schema')
-            item = app.repository.find(path)
-            root = self.treeCtrl.AddRoot(item.getName())
-            self.LoadItem(item, root)
-            self.LoadTree(item, path, root)
+            root = self.treeCtrl.AddRoot("\\\\")
+            for item in app.repository.getRoots():
+                path = item.getPath()
+                node = self.treeCtrl.AppendItem(root, item.getName())
+                self.LoadItem(item, node)
+                self.LoadTree(item, path, node)
             self.treeCtrl.Expand(root)
         else:
             path.append(item.getName())
