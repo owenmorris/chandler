@@ -7,12 +7,14 @@ Environments
  - OS X, 10.3.x, dev tools gcc + 3.4 build for gcj
    An archive of gcc 3.4 built for OS X 10.3.x may be downloaded from:
      http://downloads.osafoundation.org/compilers/osx/gcc-3.4-20040107.tar.bz2 
+   make compilers will download this for you
 
  - Win2k/XP, MSVC 7.1, MinGW 3.1 with gcj 3.3.1, 
    The Cygwin environment with bash, make, cvs, tar, uname and, install is
    REQUIRED on Windows.
    An archive of MinGW 3.1 binaries with gcj 3.3.1 may be downloaded from:
      http://downloads.osafoundation.org/compilers/windows/mingw-3.1.zip
+   make compilers will download this for you
 
 Be ready to provide lots of disk space, especially on Windows (~ 1 gb).
 
