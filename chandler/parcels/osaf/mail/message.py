@@ -10,23 +10,57 @@ import email.Message as Message
 import email.Utils as Utils
 import re as re
 
+__exp = re.compile("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z2-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}")
+
 def isValidEmailAddress(emailAddress):
     """
     This method tests an email address for valid syntax as defined RFC 822
-    ***Warning*** This method  will return False if Name and Address is past 
+    ***Warning*** This method  will return False if Name and Address is past
     i.e. John Jones <john@jones.com>. The method only validates against the actual
     email address i.e. john@jones.com
 
-    @param emailAddress: A string containing a email address to validate. Please see ***Warning*** for more 
+    @param emailAddress: A string containing a email address to validate. Please see ***Warning*** for more
                          details
     @type addr: C{String}
     @return: C{Boolean}
     """
+    if type(emailAddress) != str:
+        return False
 
-    if hasValue(emailAddress) and len(emailAddress.strip()) > 3:
-        if re.match("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}", emailAddress) is not None:
+    emailAddress = emailAddress.strip()
+
+    #XXX: Test id the address is in the form John test <john@test.com and handle it>
+    #emailAddress = Utils.parseaddr(emailAddress)[1]
+
+    if len(emailAddress) > 3:
+        if __exp.match(emailAddress) is not None:
             return True
+
     return False
+
+def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
+    """
+    This method tests whether two email addresses are the same.
+    Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
+    The method strips off the username and <> brakets if they exist and just compares
+    the actual email addresses for equality. It will not look to see if each
+    address is RFC 822 compliant only that the strings match. Use C{message.isValidEmailAddress}
+    to test for validity.
+
+    @param emailAddressOne: A string containing a email address to compare.
+    @type emailAddressOne: C{String}
+    @param emailAddressTwo: A string containing a email address to compare.
+    @type emailAddressTwo: C{String}
+    @return: C{Boolean}
+    """
+
+    if type(emailAddressOne) != str or type(emailAddressTwo) != str:
+        return False
+
+    emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
+    emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
+
+    return emailAddressOne.lower() == emailAddressTwo.lower()
 
 
 def hasValue(value):
