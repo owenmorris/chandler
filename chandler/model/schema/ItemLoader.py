@@ -2,6 +2,7 @@
 
     @@@ Known Issues (most require resolving data model and repository issues)
     (1) Special case for the 'root' element, aka where do we put odd items?
+    (2) Special case for attributes (set the alias)
     (3) Special case for inverseAttribute and displayAttribute
     (4) Plumbing is available for better error handling, not all there yet
     (5) Types not all handled (assumes strings)
@@ -80,6 +81,14 @@ class ItemHandler(xml.sax.ContentHandler):
             self.currentValue = self.currentValue + content
 
     def startElementNS(self, (uri, local), qname, attrs):
+
+        # @@@ Special case for parcel?
+        if attrs.has_key((None, 'parcelName')):
+            element = 'Parcel'
+
+            nameString = attrs.getValue((None, 'parcelName'))
+            self.currentItem = self.createParcel(uri, local, nameString)
+            self.currentAttributes = []
 
         if attrs.has_key((None, 'itemName')):
             # If it has an item name, its an item
@@ -175,6 +184,15 @@ class ItemHandler(xml.sax.ContentHandler):
 
         return item
 
+    def createParcel(self, uri, local, nameString):
+        # @@@ Ick!
+        parcelKind = self.repository.find("//Schema/Model/Item")
+        schema = self.repository.find("//Schema")
+        parcels = self.repository.find("//Parcels")
+        schemaItem = parcelKind.newItem(name, schema)
+        parcelItem = parcelKind.newItem(name, parcels)
+        return schemaItem
+
     def createItem(self, uri, local, nameString):
 
         # Find the item represented by the tag, schema information
@@ -183,8 +201,6 @@ class ItemHandler(xml.sax.ContentHandler):
         (prefix, name) = nameString.split(':') 
         namespace = self.mapping[prefix]
 
-        # @@@ (1) Hack for the root
-        if namespace == '//':
             parent = self.repository
         else:
             parent = self.repository.find(namespace)
@@ -206,6 +222,9 @@ class ItemHandler(xml.sax.ContentHandler):
                 item.addValue('otherName', reference.getItemName())
             elif attributeName == 'displayAttribute':
                 item.addValue('displayAttribute', reference.getItemName())
+            elif attributeName == 'attributes':
+                item.addValue('attributes', reference,
+                              alias=reference.getItemName())
             else:
                 item.addValue(attributeName, reference)
 
