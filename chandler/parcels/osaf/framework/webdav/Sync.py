@@ -178,7 +178,12 @@ def syncToServer(dav, item):
                     
             elif atype is not None:
                 atypepath = "%s" % (atype.itsPath)
-                props += makePropString(name, namespace, atype.makeString(value))
+                try:
+                    # this will only succeed if the attribute is Text
+                    dataString = value.getReader().read()
+                except AttributeError:
+                    dataString = value
+                props += makePropString(name, namespace, dataString)
 
         elif acard == 'dict':
             # XXX implement me
@@ -356,4 +361,3 @@ def getItem(dav):
     dav.sync(newItem)
 
     return newItem
-
