@@ -25,6 +25,7 @@ class InboundParcel(application.Parcel.Parcel):
                 urls.remove(channel.url)
         for url in urls:
             try:
+                url = url.strip()
                 logger.info("Adding channel from file: %s" % url)
                 newChannel = NewChannelFromURL(view, url, update=False)
             except Exception, e:
@@ -113,7 +114,7 @@ def RenderChannelList(repoView, theItem):
     for channel in repository.item.Query.KindQuery().run([ChannelKind]):
         if hasattr(channel, 'displayName'):
             channels.append(channel)
-    channels.sort(lambda x, y: cmp(x.displayName, y.displayName))
+    channels.sort(lambda x, y: cmp(str(x.displayName).lower(), str(y.displayName).lower()))
 
     if theItem is not None:
         theItem.isRead = True
