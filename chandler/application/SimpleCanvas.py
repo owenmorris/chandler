@@ -124,6 +124,7 @@ class wxCanvasDropTarget (wxPyDropTarget):
 class wxSimpleDrawableObject (wxEvtHandler):
     def __init__(self, canvas):
         wxEvtHandler.__init__ (self)
+
         self.bounds = wxRect ()
         self.canvas = canvas
         self.visible = True
@@ -298,6 +299,11 @@ class wxSimpleCanvas (wxScrolledWindow):
 
     def __init__ (self, *_args, **_kwargs):
         wxScrolledWindow.__init__ (self, *_args, **_kwargs)
+
+    def __del__(self):
+        for item in self.zOrderedDrawableObjects:
+            item.Destroy()
+        wxScrolledWindow.__del__(self)
 
     def OnInit (self, dropTargetDataObject):
         """
