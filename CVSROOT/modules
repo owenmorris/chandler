@@ -37,6 +37,8 @@ chandler-system -a \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/persistence \
+    osaf/chandler/pyxml \
+    osaf/chandler/4suite \
     osaf/chandler/zodb \
     osaf/chandler/egenix-mx \
     osaf/chandler/wxpython \
@@ -47,6 +49,8 @@ chandler-small -a \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/persistence \
+    osaf/chandler/pyxml \
+    osaf/chandler/4suite \
     osaf/chandler/zodb \
     osaf/chandler/egenix-mx \
     osaf/chandler/wxpython \
