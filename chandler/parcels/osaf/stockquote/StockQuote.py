@@ -4,6 +4,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+# TODO: Bring into CPIA world
+
 from application.Application import app
 from application.ViewerParcel import *
 from SOAPpy import WSDL
