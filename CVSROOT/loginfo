@@ -24,6 +24,7 @@
 #DEFAULT (echo ""; id; echo %s; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
-ALL /disk1/twisted/python/bin/loginfo  %{sVv}
+# Turning this off for now too, morgen
+# ALL /disk1/twisted/python/bin/loginfo  %{sVv}
 # Bonsai, new checkins
 ALL $CVSROOT/CVSROOT/dolog.pl -r /usr/local/cvsrep bonsai-checkin-daemon@hula.osafoundation.org
