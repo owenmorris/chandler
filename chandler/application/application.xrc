@@ -79,6 +79,7 @@
                                wxTR_NO_LINES|wxTR_FULL_ROW_HIGHLIGHT|wxNO_FULL_REPAINT_ON_RESIZE</style>
                     </object>
                     <object class="unknown" name="ViewerParcel">
+                        <style>wxNO_FULL_REPAINT_ON_RESIZE</style>
                     </object>
                 </object>
             </object>
