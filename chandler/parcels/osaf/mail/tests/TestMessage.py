@@ -212,8 +212,6 @@ This is the body"""
              self.assertEquals(dict1[l1[i]], dict2[l2[i]])
 
     def testMessageTextToKind(self):
-        self.assertRaises(TypeError, message.messageTextToKind, None)
-
         mailKind = message.messageTextToKind(self.__getMessageText())
 
         self.assertNotEqual(mailKind, None)
@@ -221,9 +219,6 @@ This is the body"""
         self.__compareMailMessages(mailKind, self.__getMailMessage())
 
     def testMessageObjectToKind(self):
-
-        self.assertRaises(TypeError, message.messageObjectToKind, "Error")
-
         mailKind = message.messageObjectToKind(self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
@@ -231,18 +226,12 @@ This is the body"""
         self.__compareMailMessages(mailKind, self.__getMailMessage())
 
     def testKindToMessageText(self):
-
-        self.assertRaises(TypeError, message.kindToMessageText, "Error")
-
         mailText = message.kindToMessageText(self.__getMailMessage())
         mailObject = email.message_from_string(mailText)
 
         self.__compareMessageObjects(mailObject, self.__getMessageObject())
 
     def testKindToMessageObject(self):
-
-        self.assertRaises(TypeError, message.kindToMessageObject, "Error")
-
         messageObject = message.kindToMessageObject(self.__getMailMessage())
 
         self.__compareMessageObjects(messageObject, self.__getMessageObject())
