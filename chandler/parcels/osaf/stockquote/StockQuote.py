@@ -16,6 +16,7 @@ class wxStockQuoteViewer(wxViewerParcel):
     def OnInit(self):
         self.quoteLabel = XRCCTRL(self, "QuoteLabel")
         self.stockSymbol = XRCCTRL(self, "StockSymbol")
+        EVT_TEXT_ENTER(self, self.stockSymbol.GetId(), self.OnGetQuote)
         EVT_MENU(self, XRCID('GetQuoteMenuItem'), self.OnGetQuote)
         EVT_BUTTON(self, XRCID('GetQuoteButton'), self.OnGetQuote)
 
