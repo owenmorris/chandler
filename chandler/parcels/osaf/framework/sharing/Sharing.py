@@ -1636,9 +1636,12 @@ def syncShare(share):
     try:
         share.sync()
     except SharingError, err:
-        msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
-        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
-        msg += err.message
+        try:
+            msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
+            msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
+            msg += err.message
+        except:
+            msg = "Error during sync"
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     "Synchronization Error", msg)
 
