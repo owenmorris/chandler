@@ -6,7 +6,7 @@
 ARCHIVES=../$(SNAP)-0.3-9.tar.gz \
          ../wxPython-$(SNAP)-2.5-2.tar.gz \
          ../PyLucene-$(SNAP)-0.3-1.tar.gz \
-         ../UUIDext-$(SNAP)-0.3-1.tar.gz \
+         ../UUIDext-$(SNAP)-0.3-2.tar.gz \
          ../m2crypto-$(SNAP)-0.12.tar.gz \
          ../Launchers-$(SNAP)-0.3-2.tar.gz
 
