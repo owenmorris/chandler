@@ -94,9 +94,14 @@
     <!-- child blocks -->
     <blockName value="DetailTrunk"/>
     <childrenBlocks itemref="doc:MarkupBar"/>
-    <childrenBlocks itemref="doc:ToAndFromArea"/>
+    <childrenBlocks itemref="doc:ToArea"/>
+    <childrenBlocks itemref="doc:FromArea"/>
     <childrenBlocks itemref="doc:ContactFullNameArea"/>
-    <childrenBlocks itemref="doc:CoreArea"/>
+    <childrenBlocks itemref="doc:HeadlineArea"/>
+    <childrenBlocks itemref="doc:EmailAddressArea"/>
+    <childrenBlocks itemref="doc:DateKindArea"/>
+    <childrenBlocks itemref="doc:CalendarStartTime"/>
+    <childrenBlocks itemref="doc:CalendarDuration"/>
     <childrenBlocks itemref="doc:NotesArea"/>
     <childrenBlocks itemref="doc:SendShareButton"/>
     <!-- Attributes -->
@@ -119,6 +124,7 @@
     <toolSize>24,24</toolSize>
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
+    <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
   <!--
@@ -156,16 +162,6 @@
     <helpString>Put this item onto the Calendar</helpString>
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
-
-  <!-- ToAndFromArea -->
-  <ContentItemDetail itsName="ToAndFromArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
-    <blockName value="ToAndFromArea"/>
-    <childrenBlocks itemref="doc:ToArea"/>
-    <childrenBlocks itemref="doc:FromArea"/>
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-  </ContentItemDetail>
  
   <ContentItemDetail itsName="FromArea"
                      itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
@@ -175,6 +171,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
+    <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
   <StaticText itsName="FromString"
@@ -206,6 +203,7 @@
     <!-- Attributes -->
     <selectedItemsAttribute>contactName</selectedItemsAttribute>
     <orientationEnum>Horizontal</orientationEnum>
+    <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
   <StaticText itsName="ContactFullNameString">
@@ -236,6 +234,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>who</selectedItemsAttribute>
+    <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
   <StaticText itsName="ToString"
@@ -258,19 +257,6 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
   </EditText>
-
-  <!-- CoreArea -->
-  <ContentItemDetail itsName="CoreArea">
-    <blockName value="CoreArea"/>
-    <childrenBlocks itemref="doc:HeadlineArea"/>
-    <childrenBlocks itemref="doc:EmailAddressArea"/>
-    <childrenBlocks itemref="doc:DateKindArea"/>
-    <childrenBlocks itemref="doc:CalendarStartTime"/>
-    <childrenBlocks itemref="doc:CalendarDuration"/>
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>2</stretchFactor>
-  </ContentItemDetail>
 
   <ContentItemDetail itsName="HeadlineArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
@@ -387,6 +373,7 @@
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>startTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarStartTime"
@@ -418,6 +405,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <minimumSize>300, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarDuration"
