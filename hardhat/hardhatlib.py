@@ -1138,7 +1138,16 @@ def cvsClean(buildenv, dirs):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Nightly-build-handling methods
 
-def buildComplete(buildenv, releaseId, cvsModule, module):
+def buildComplete(buildenv):
+
+    """
+    buildenv['releaseId'] = releaseId
+    buildenv['cvsModule'] = cvsModule
+    buildenv['module'] = module
+    buildenv['revision'] = revision
+    buildenv['skipBinaries'] = skipBinaries
+    """
+
     if buildenv['cvs'] and buildenv['scp'] and \
      buildenv['tar'] and \
      (buildenv['os'] == 'win' and buildenv['zip'] or \
@@ -1152,12 +1161,16 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 	raise HardHatError
 
 
-    buildPrepareSource(buildenv, releaseId, module, cvsModule, True)
-    buildRelease(buildenv, releaseId, module)
-    buildPrepareSource(buildenv, releaseId, module, cvsModule, False)
-    buildDebug(buildenv, releaseId, module)
+    buildPrepareSource(buildenv, True)
+    buildRelease(buildenv)
+    buildPrepareSource(buildenv, False)
+    buildDebug(buildenv)
 
-def buildPrepareSource(buildenv, releaseId, module, cvsModule, doCheckout=True):
+def buildPrepareSource(buildenv, doCheckout=True):
+    releaseId = buildenv['releaseId']
+    module = buildenv['module']
+    cvsModule = buildenv['cvsModule']
+    revision = buildenv['revision']
 
     sourceName = module + "_src_" + releaseId
 
@@ -1174,19 +1187,24 @@ def buildPrepareSource(buildenv, releaseId, module, cvsModule, doCheckout=True):
 	"Untarring previous source")
 
     if doCheckout:
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['cvs'], "checkout", cvsModule], 
-	"Checking out " + cvsModule + " from CVS")
+	if revision:
+	    executeCommand(buildenv, "HardHat", 
+	     [buildenv['cvs'], "checkout", "-r", revision, cvsModule], 
+	    "Checking out " + cvsModule + " using tag " + revision)
+	else:
+	    executeCommand(buildenv, "HardHat", 
+	     [buildenv['cvs'], "checkout", "-A", cvsModule], 
+	    "Checking out " + cvsModule + " from HEAD")
 
 	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", sourceName+".tar", "osaf"], 
-	"Tarring current source to " + sourceName+".tar")
+	 [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
+	"Tarring current source to " + "latest-temp.tar")
 
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Copying " +sourceName+".tar to latest.tar")
+	 "Renaming latest-temp.tar to latest.tar")
 	if os.path.exists("latest.tar"):
 	    os.remove("latest.tar")
-	shutil.copy(sourceName+".tar", "latest.tar")
+	os.rename("latest-temp.tar", "latest.tar")
 
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
@@ -1196,7 +1214,10 @@ def buildPrepareSource(buildenv, releaseId, module, cvsModule, doCheckout=True):
      "Latest source code prepared")
 
 
-def buildRelease(buildenv, releaseId, module):
+def buildRelease(buildenv):
+    releaseId = buildenv['releaseId']
+    module = buildenv['module']
+
     compressedFileRoot = module + "_" + buildenv['oslabel'] + \
      "_dev_release_" + releaseId 
     distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
@@ -1247,7 +1268,10 @@ def buildRelease(buildenv, releaseId, module):
     except Exception, e:
 	print e
 	
-def buildDebug(buildenv, releaseId, module):
+def buildDebug(buildenv):
+    releaseId = buildenv['releaseId']
+    module = buildenv['module']
+
     compressedFileRoot = module + "_" + buildenv['oslabel'] + \
      "_dev_debug_" + releaseId 
 

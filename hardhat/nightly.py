@@ -29,6 +29,8 @@ def usage():
     print "-i RELEASE-ID   what to call this release"
     print "-m MODULE  	   module to build (path relative to project path)"
     print "-p PROJECT  	   project path (relative to workdir)"
+    print "-r TAG 	   which cvs revision tag to use (default is HEAD)"
+    print "-s              skip the building of the binaries"
     print "-w DIR   	   work directory (top level where source gets checked out)"
 
 # Earlier versions of Python don't define these, so let's include them here:
@@ -42,11 +44,12 @@ cvsModule = "chandler-source"
 project = "osaf/chandler"
 module = "Chandler"
 releaseId = None
-
+revision = None
+skipBinaries = False
 workRoot = None
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "c:h:i:m:p:w:")
+    opts, args = getopt.getopt(sys.argv[1:], "c:h:i:m:p:r:sw:")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -69,6 +72,12 @@ for opt, arg in opts:
 
     if opt == "-p":
 	project = arg
+
+    if opt == "-r":
+	revision = arg
+
+    if opt == "-s":
+	skipBinaries = True
 
     if opt == "-w":
 	workRoot = arg
@@ -134,7 +143,12 @@ hardhatlib.log_rotate(buildenv)
 
 
 try:
-    hardhatlib.buildComplete(buildenv, releaseId, cvsModule, module)
+    buildenv['releaseId'] = releaseId
+    buildenv['cvsModule'] = cvsModule
+    buildenv['module'] = module
+    buildenv['revision'] = revision
+    buildenv['skipBinaries'] = skipBinaries
+    hardhatlib.buildComplete(buildenv)
 
 except hardhatlib.HardHatExternalCommandError:
     print 
