@@ -154,7 +154,6 @@
     </Attribute>
 
     <Cloud itsName="Cloud">
-      <kind itemref="cal:CalendarEventMixin"/>
       <Endpoint itsName="attendees">
         <attribute value="attendees"/>
         <includePolicy value="byValue"/>
@@ -191,6 +190,7 @@
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/participants"/>
     </Cloud>
+    <clouds alias="default" itemref="cal:CalendarEventMixin/Cloud"/>
 
   </Kind>
 

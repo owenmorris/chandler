@@ -400,7 +400,6 @@
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessageMixin</classes>
       
     <Cloud itsName="Cloud">
-      <kind itemref="mail:MailMessageMixin"/>
       <Endpoint itsName="sentTo">
         <attribute value="sentTo"/>
         <includePolicy value="byValue"/>
@@ -443,8 +442,9 @@
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/downloadAccount"/>
 
-
     </Cloud>
+    <clouds alias="default" itemref="mail:MailMessageMixin/Cloud"/>
+
     <issues>Once we have attributes and a cloud defined for Attachment, we need to include
     attachments by cloud, and not by value.</issues>
       

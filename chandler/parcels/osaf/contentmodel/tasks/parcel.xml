@@ -124,7 +124,6 @@
     <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
       
     <Cloud itsName="Cloud">
-      <kind itemref="tasks:TaskMixin"/>
       <Endpoint itsName="requestor">
         <attribute value="requestor"/>
         <includePolicy value="byValue"/>
@@ -150,6 +149,7 @@
       <endpoints itemref="tasks:TaskMixin/Cloud/preventsProgressOn"/>
 
     </Cloud>
+    <clouds alias="default" itemref="tasks:TaskMixin/Cloud"/>
       
   </Kind>
 
