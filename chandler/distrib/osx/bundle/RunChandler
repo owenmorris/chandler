@@ -1,0 +1,16 @@
+#!/bin/sh
+
+execdir=$(dirname "${0}")
+executable="${execdir}/python"
+resdir=$(dirname "${execdir}")/Resources
+main="${resdir}/Chandler.py"
+DYLD_LIBRARY_PATH="$resdir/lib"
+export DYLD_LIBRARY_PATH
+DYLD_FRAMEWORK_PATH="$resdir/Library/Frameworks"
+export DYLD_FRAMEWORK_PATH
+PYTHONPATH="$resdir"
+export PYTHONPATH
+PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.3"
+export PYTHONHOME
+cd ${resdir}
+exec "${executable}" "${main}" "$@"
