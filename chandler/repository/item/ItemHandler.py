@@ -492,8 +492,6 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if typeHandler is not None:
             return typeHandler.makeString(value)
-        elif value is repository.item.Item.Item.Nil:
-            raise ValueError, 'Cannot persist Item.Nil'
         else:
             return str(value)
             
@@ -549,6 +547,8 @@ class ItemHandler(xml.sax.ContentHandler):
                     raise TypeError, 'list is not persistent'
             elif isinstance(value, repository.item.Item.Item):
                 raise TypeError, 'Item %s cannot be stored in a collection of literals' %(value.getItemPath())
+            elif value is repository.item.Item.Item.Nil:
+                raise ValueError, 'Cannot persist Item.Nil'
             else:
                 generator.characters(cls.makeString(value))
 
