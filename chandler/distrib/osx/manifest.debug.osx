@@ -38,13 +38,14 @@ libdb-4.1.dylib
 src=debug/lib
 libxerces-c.23.dylib
 
-# Grab Chandler.py, version.py and LICENSE.txt
+# Grab Chandler.py and others
 src=Chandler
 dest=Contents/Resources
 Chandler.py
 version.py
 HISTORY.txt
 LICENSE.txt
+Chandler-project.wpr
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
