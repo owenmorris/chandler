@@ -224,6 +224,9 @@ class wxChandlerWindow(wxFrame):
         """
           Closing the last window causes the application to quit.
         """
+        if hasattr(self, "wasClosed"):
+            return
+        self.wasClosed = True
 
         application.Application.app.repository.commit(purge=True)
         application.Application.app.repository.close()
