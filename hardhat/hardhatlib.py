@@ -1038,7 +1038,7 @@ def cvsFindRemovables(dir):
     removables = []
     dir = os.path.abspath(dir)
     cvsEntriesFile = os.path.join(dir, "CVS", "Entries")
-    cvsEntriesLogFile = os.path.join(dir, "CVS", "Entries.log")
+    cvsEntriesLogFile = os.path.join(dir, "CVS", "Entries.Log")
     if(os.path.isfile(cvsEntriesFile)):
 
         """
