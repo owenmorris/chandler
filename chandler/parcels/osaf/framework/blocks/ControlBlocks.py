@@ -649,14 +649,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         
         self.ClearSelection()
         firstSelectedRow = None
-        for range in self.blockItem.selection:
-            if range [2]:
-                if firstSelectedRow is None:
-                    firstSelectedRow = range[0]
-                self.SelectBlock (range[0], 0, range[1], newColumns, True)
-            else:
-                for row in xrange (range[0], range[1] + 1):
-                    self.DeselectRow (row)            
+        if len (self.blockItem.contents) > 0:
+            for range in self.blockItem.selection:
+                if range [2]:
+                    if firstSelectedRow is None:
+                        firstSelectedRow = range[0]
+                    self.SelectBlock (range[0], 0, range[1], newColumns, True)
+                else:
+                    for row in xrange (range[0], range[1] + 1):
+                        self.DeselectRow (row)            
         self.EndBatch() 
 
         #Update all displayed values
