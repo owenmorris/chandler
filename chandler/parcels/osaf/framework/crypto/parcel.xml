@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/osaf/framework/crypto"
+        itsName="crypto"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:crypto="http://osafoundation.org/parcels/osaf/framework/crypto"
+        xmlns:utils="http://osafoundation.org/parcels/osaf/framework/utils"
+        >
+
+  <displayName>Crypto Kinds</displayName>
+  <description>Crypto Kinds</description>
+  <version>0.3</version>
+
+  <!-- Kind: PrivateKey -->
+
+  <Kind itsName="PrivateKey">
+    <displayName>Private Key</displayName>
+
+    <!-- cipher -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="cipher">
+      <displayName>cipher</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- isEncrypted -->
+    <Attribute itsName="isEncrypted">
+      <displayName>isEncrypted</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- bits -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="bits">
+      <displayName>bits</displayName>
+      <type itemref="Integer"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- pem -->
+    <Attribute itsName="pem">
+      <displayName>pem</displayName>
+      <type itemref="Text"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <attributes itemref="crypto:PrivateKey/cipher"/>
+    <attributes itemref="crypto:PrivateKey/isEncrypted"/>
+    <attributes itemref="crypto:PrivateKey/bits"/>
+    <attributes itemref="crypto:PrivateKey/pem"/>
+
+    <superKinds itemref="Item"/>
+    <classes key="python">osaf.framework.crypto.PrivateKeyItem.PrivateKeyItem</classes>
+  </Kind>
+
+  <!-- Kind: Certificate -->
+
+  <Kind itsName="Certificate">
+    <displayName>Certificate</displayName>
+    <!-- notBefore -->
+    <Attribute itsName="notBefore">
+      <displayName>notBefore</displayName>
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- notAfter -->
+    <Attribute itsName="notAfter">
+      <displayName>notAfter</displayName>
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- isCA -->
+    <Attribute itsName="isCA">
+      <displayName>isCA</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- fingerprint -->
+    <!-- XXX Might want this to be a number -->
+    <Attribute itsName="fingerprint">
+      <displayName>fingerprint</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- subjectName -->
+    <!-- XXX subject might need to be a more complex object -->
+    <Attribute itsName="subjectName">
+      <displayName>subjectName</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- issuerName -->
+    <!-- XXX issuer might need to be a more complex object -->
+    <Attribute itsName="issuerName">
+      <displayName>issuerName</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- serialNumber -->
+    <!-- XXX can this be limited to positive? -->
+    <Attribute itsName="serialNumber">
+      <displayName>serialNumber</displayName>
+      <type itemref="Integer"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- version -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="version">
+      <displayName>version</displayName>
+      <type itemref="Integer"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- signatureAlgorithm -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="signatureAlgorithm">
+      <displayName>signatureAlgorithm</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- publicKeyAlgorithm -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="publicKeyAlgorithm">
+      <displayName>publicKeyAlgorithm</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- rsaPublicKeyBits -->
+    <!-- XXX should probably choose from enum -->
+    <Attribute itsName="rsaPublicKeyBits">
+      <displayName>rsaPublicKeyBits</displayName>
+      <type itemref="Integer"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- asText -->
+    <Attribute itsName="asText">
+      <displayName>asText</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- pem -->
+    <Attribute itsName="pem">
+      <displayName>pem</displayName>
+      <type itemref="Text"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- markedTrusted -->
+    <!-- XXX is this just an external property of the cert, or can we sign the cert? --> 
+    <Attribute itsName="markedTrusted">
+      <displayName>markedTrusted</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- private key -->
+    <Attribute itsName="privateKey">
+      <displayName>privateKey</displayName>
+      <type itemref="crypto:PrivateKey"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <attributes itemref="crypto:Certificate/notBefore"/>
+    <attributes itemref="crypto:Certificate/notAfter"/>
+    <attributes itemref="crypto:Certificate/isCA"/>
+    <attributes itemref="crypto:Certificate/fingerprint"/>
+    <attributes itemref="crypto:Certificate/subjectName"/>
+    <attributes itemref="crypto:Certificate/issuerName"/>
+    <attributes itemref="crypto:Certificate/isCA"/>
+    <attributes itemref="crypto:Certificate/serialNumber"/>
+    <attributes itemref="crypto:Certificate/version"/>
+    <attributes itemref="crypto:Certificate/signatureAlgorithm"/>
+    <attributes itemref="crypto:Certificate/publicKeyAlgorithm"/>
+    <attributes itemref="crypto:Certificate/rsaPublicKeyBits"/>
+    <attributes itemref="crypto:Certificate/asText"/>
+    <attributes itemref="crypto:Certificate/markedTrusted"/>
+    <attributes itemref="crypto:Certificate/pem"/>
+    <attributes itemref="crypto:Certificate/privateKey"/>
+
+    <superKinds itemref="Item"/>
+    <classes key="python">osaf.framework.crypto.CertificateItem.CertificateItem</classes>
+  </Kind>
+
+</Parcel>

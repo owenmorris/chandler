@@ -189,7 +189,7 @@ class wxApplication (wx.App):
 
         Globals.crypto = Crypto.Crypto()
         Globals.crypto.init()
-        
+
         """
           Open the repository.
         -create argument forces a new repository.
@@ -232,6 +232,10 @@ class wxApplication (wx.App):
 
         Globals.repository.commit()
 
+        # XXX Repository should call crypto service to create certs
+        # XXX when needed
+        Globals.crypto.createRepositoryCertKey()
+        
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
         """
