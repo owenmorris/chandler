@@ -43,6 +43,10 @@ class ParcelLoader(object):
         if not parcelParent:
             self.callback(self.repository, parentUri, self.callbackArg)
 
+        if self.repository.findPath(uri):
+            # this parcel is already loaded
+            return
+
         contentHandler = self.parser.getContentHandler()
         contentHandler.uri = uri
 
