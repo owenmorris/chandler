@@ -4,10 +4,10 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Application
-from model.item.Item import Item
-from model.schema.AutoKind import AutoKind
-from model.util.ThreadLocal import ThreadLocal
-from model.util.UUID import UUID
+from repository.item.Item import Item
+from repository.schema.AutoKind import AutoKind
+from repository.util.ThreadLocal import ThreadLocal
+from repository.util.UUID import UUID
 
 class AutoItem (Item, AutoKind):
     def __init__(self, name = None, parent = None, kind = None):

@@ -1,0 +1,472 @@
+<Parcel itemName="Core"
+        xmlns="//Schema/Core">
+
+  <displayName>Core Schema</displayName>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+  <Type itemName="Integer"/>
+  <Type itemName="Long"/>
+  <Type itemName="Float"/>
+  <Type itemName="Boolean"/>
+  <Type itemName="String"/>
+  <Type itemName="Symbol"/>
+  <Type itemName="Class"/>
+  <Type itemName="Path"/>
+  <Type itemName="UUID"/>
+  <Type itemName="Dictionary"/>
+  <Type itemName="List"/>
+  <Type itemName="Complex"/>
+  <Alias itemName="Anything"/>
+
+  <Enumeration itemName="Cardinality">
+    <values>single</values>
+    <values>list</values>
+    <values>dict</values>
+  </Enumeration>
+
+  <Enumeration itemName="CopyPolicy">
+    <values>remove</values>
+    <values>copy</values>
+    <values>cascade</values>
+  </Enumeration>
+
+  <Enumeration itemName="DeletePolicy">
+    <values>remove</values>
+    <values>cascade</values>
+  </Enumeration>
+
+  <Enumeration itemName="CountPolicy">
+    <values>none</values>
+    <values>count</values>
+  </Enumeration>
+
+  <Type itemName="DateTime">
+    <fields>year</fields>
+    <fields>month</fields>
+    <fields>day</fields>
+    <fields>hour</fields>
+    <fields>minute</fields>
+    <fields>second</fields>
+  </Type>
+
+  <Type itemName="DateTimeDelta">
+    <fields>day</fields>
+    <fields>hour</fields>
+    <fields>minute</fields>
+    <fields>second</fields>
+  </Type>
+
+  <Type itemName="RelativeDateTime">
+    <fields>year</fields>
+    <fields>years</fields>
+    <fields>month</fields>
+    <fields>months</fields>
+    <fields>weekday</fields>
+    <fields>weeks</fields>
+    <fields>day</fields>
+    <fields>days</fields>
+    <fields>hour</fields>
+    <fields>hours</fields>
+    <fields>minute</fields>
+    <fields>minutes</fields>
+    <fields>second</fields>
+    <fields>seconds</fields>
+  </Type>
+
+  <Attribute itemName="description">
+    <displayName>Description</displayName>
+    <type itemref="String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="displayName">
+    <displayName>Display Name</displayName>
+    <description>A human-readable display name for an item.</description>
+    <type itemref="String"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itemName="annotations">
+    <displayName>Annotation</displayName>
+    <description>Any sort of description or annotation for an item.</description>
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itemName="examples">
+    <displayName>Example</displayName>
+    <description>An example of this item, usually for schema items.</description>
+    <superAttribute itemref="annotations"/>
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itemName="issues">
+    <displayName>Open Issue</displayName>
+    <description>Any open issue with this item, usually for schema items.</description>
+    <superAttribute itemref="annotations"/>
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Kind itemName="Item">
+    <attributes itemref="displayName"/>
+    <attributes itemref="description"/>
+    <attributes itemref="examples"/>
+    <attributes itemref="issues"/>
+    <classes key="python">repository.item.Item.Item</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="kind">
+      <displayName>instance of</displayName>
+      <description>The Kind that this item is an instance of. An item can be an instance of only one main Kind, although it can have additional kinds that it is also considered to be an instance of.</description>
+      <issues>Brian suggests changing the name to "instanceOf" or "instanceOfKind"</issues>
+      <type itemref="Kind"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="items"/>
+    </Attribute>
+
+  </Kind>
+
+  <Kind itemName="Attribute">
+    <displayName>Attribute</displayName>
+    <examples>('name', text string)</examples>
+    <examples>('height', integer)</examples>
+    <examples>('author', Person)</examples>
+
+    <classes key="python">repository.schema.Attribute.Attribute</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="required">
+    <displayName>required</displayName>
+    <description>TRUE if this attribute is not allowed to have a NULL value.</description>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue>False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="persist">
+      <displayName>persist</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue>True</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="cardinality">
+      <displayName>cardinality</displayName>
+      <description>How many values can this attribute have?</description>
+      <type itemref="Cardinality"/>
+      <cardinality>single</cardinality>
+      <defaultValue>single</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="type">
+      <displayName>Type</displayName>
+      <description>What sorts of values can this field or attribute have?</description>
+      <type itemref="Taxon"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="typeFor"/>
+      <defaultValue itemref="Anything"/>
+    </Attribute>
+
+    <Attribute itemName="defaultValue">
+      <displayName>default value</displayName>
+      <description>What default value is 'copied' into new instances?</description>
+      <type itemref="Anything"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="inheritFrom">
+      <displayName>inherit from</displayName>
+      <description>Another attribute that this attribute inherits its value from.</description>
+      <issues>Brian suggests changing the name to "inheritValuesFrom"</issues>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="otherName">
+      <displayName>inverse attribute</displayName>
+      <description>On the item that this attribute points to, what attribute points to this item?  Similar to the RDF/OWL property 'owl:inverseOf'.</description>
+      <issues>Parcel files understand inverseAttribute, a reference to an attribute. The repository understands otherName, just the symbol used for the attribute.</issues>
+      <type itemref="Symbol"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="deletePolicy">
+      <displayName>delete policy</displayName>
+      <description>If A has a reference to B, and vice-versa, what do we do when A is deleted?  Do we delete B also, or do we just remove B's reference to A, or do we delete B only if nobody else now references B?</description>
+      <type itemref="DeletePolicy"/>
+      <cardinality>single</cardinality>
+      <defaultValue>remove</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="copyPolicy">
+      <displayName>copy policy</displayName>
+      <description>If A has a reference to B, and vice-versa, what do we do when A is copied?  Do we copy B also (deep copy), or do we just set the new copy of A to point to the old version of B (shallow copy)?</description>
+      <type itemref="CopyPolicy"/>
+      <cardinality>single</cardinality>
+      <defaultValue>remove</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="countPolicy">
+      <displayName>count policy</displayName>
+      <type itemref="CountPolicy"/>
+      <cardinality>single</cardinality>
+      <defaultValue>none</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="inheritingKinds">
+      <displayName>Inheriting Kinds</displayName>
+      <description>@@@ Add description</description>
+      <type itemref="Kind"/>
+      <cardinality>list</cardinality>
+      <persist>False</persist>
+      <inverseAttribute itemref="inheritedAttributes"/>
+    </Attribute>
+
+    <Attribute itemName="kinds">
+      <displayName>Kinds</displayName>
+      <description>Kinds that have this attribute</description>
+      <type itemref="Kind"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="attributes"/>
+    </Attribute>
+
+    <Attribute itemName="superAttribute">
+      <displayName>super attribute</displayName>
+      <description>What attribute is this a sub-attribute of?</description>
+      <type itemref="Attribute"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="subAttributes"/>
+    </Attribute>
+
+    <Attribute itemName="subAttributes">
+      <displayName>sub attributes</displayName>
+      <description>What attributes have this one as their super attribute?</description>
+      <type itemref="Attribute"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="superAttribute"/>
+    </Attribute>
+
+  </Kind>
+
+  <Kind itemName="Taxon">
+    <superKinds itemref="Item"/>
+
+    <!-- local attributes -->
+    <Attribute itemName="aliasedBy">
+      <displayName>Aliased By</displayName>
+      <description>What are all the various Aliases that include this taxon?</description>
+      <type itemref="Alias"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="types"/>
+    </Attribute>
+
+    <Attribute itemName="typeFor">
+      <displayName>used as type in</displayName>
+      <description>What attributes use this taxon as their type?</description>
+      <type itemref="Attribute"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="type"/>
+    </Attribute>
+  </Kind>
+
+  <Kind itemName="Kind">
+    <displayName>Kind</displayName>
+    <examples>Calendar Event</examples>
+    <examples>Contact</examples>
+    <examples>Sailing Ship</examples>
+    <examples>Homework Assignment</examples>
+    <description>
+      A Kind represents a 'type', or 'class', or 'category' of items. 
+      A Kind can represent: new user-defined Kind ('Book', 'Sailing Ship', 'Course', 'Homework Assignment', 'Grade', etc.).
+      A Kind can represent: a Kind from a standard Parcel ('Calendar Event', 'Task', 'Contact', etc.)
+      A Kind can represent: a basic Kind of system Item ('Kind', 'Item', 'Change')
+    </description>
+    <superKinds itemref="Taxon"/>
+    <classes key="python">repository.schema.Kind.Kind</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="notFoundAttributes">
+      <displayName>Not Found Attributes</displayName>
+      <description>Used for repository implementation</description>
+      <type itemref="Symbol"/>
+      <cardinality>list</cardinality>
+      <persist>False</persist>
+    </Attribute>
+
+    <Attribute itemName="inheritedAttributes">
+      <displayName>Inherited Attributes</displayName>
+      <description>@@@ add description here</description>
+      <type itemref="Attribute"/>
+      <cardinality>list</cardinality>
+      <persist>False</persist>
+      <inverseAttribute itemref="inheritingKinds"/>
+    </Attribute>
+
+    <Attribute itemName="superKinds">
+      <displayName>super kind</displayName>
+      <description>The superkinds for this kind.</description>
+      <type itemref="Kind"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="subKinds"/>
+    </Attribute>
+
+    <Attribute itemName="subKinds">
+      <displayName>sub kind</displayName>
+      <description>The subkinds of this kind.</description>
+      <type itemref="Kind"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="superKinds"/>
+    </Attribute>
+
+    <Attribute itemName="items">
+      <displayName>Items: instances</displayName>
+      <description>The Items that are instances of this Kind.</description>
+      <issues>Brian suggests changing the name to "instanceItems"</issues>
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="kind"/>
+      <persist>False</persist>
+    </Attribute>
+
+    <Attribute itemName="attributes">
+      <displayName>implied attributes</displayName>
+      <description>A set of attributes typically found on items of this Kind.</description>
+      <type itemref="Attribute"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="kinds"/>
+    </Attribute>
+
+    <Attribute itemName="classes">
+      <displayName>classes</displayName>
+      <description>Language bindings for this kind.</description>
+      <type itemref="Class"/>
+      <cardinality>dict</cardinality>
+      <defaultValue key="python">repository.item.Item.Item</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="displayAttribute">
+      <displayName>display attribute</displayName>
+      <description>For items of this kind, what attribute should we look in to find a human readable name for this item?</description>
+      <examples>For an Email Message, 'subject'</examples>
+      <examples>For a Contact item, 'person name'</examples>
+      <type itemref="Symbol"/>
+      <cardinality>single</cardinality>
+      <defaultValue>displayName</defaultValue>
+    </Attribute>
+  </Kind>
+
+  <Kind itemName="Alias">
+    <displayName>Alias</displayName>
+    <description>
+      Let's say 'String' is a type that's an alias for either 'Unicode String' or 'Polyglot String'. Then, if an Attribute Definition is supposed to be of type 'String', that means the attribute value can be a Unicode String or a Polyglot String
+    </description>
+    <examples>'String' = 'ASCII String' | 'Unicode String' | 'Polyglot String'</examples>
+    <examples>'Datetime' = 'Rigid Datetime' | 'Flexible Datetime'</examples>
+    <examples>'Anything' = 'Item' | 'Literal'</examples>
+    <superKinds itemref="Taxon"/>
+    <classes key="python">repository.schema.Alias.Alias</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="types">
+      <displayName>types (alias for)</displayName>
+      <description>What are all the various Types or Kinds that this is an alias for?</description>
+      <issues>Brian suggests calling this aliasFor</issues>
+      <type itemref="Taxon"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="aliasedBy"/>
+    </Attribute>
+  </Kind>
+
+  <Kind itemName="Type">
+    <displayName>Type</displayName>
+    <description>Items have attributes. Each attribute can have some associated type, and the attribute values for that attribute are restricted to being values of that type. An attribute's values can be completely unrestricted, or they can be restricted to some specific Kind, or some specific Type.
+    </description>
+    <issues>What is the list of supported types?</issues>
+    <issues>Can a new Parcel create a new Type?</issues>
+    <issues>What's actually involved in supporting a new Type? Beyond simply creating a new instance in the repository, what Chandler code has to be changed?</issues>
+    <issues>What's the relationship between (a) a Type and (b) the formatting options for that Type? Should 'percentage' really be its own Type, or should it just be a way of formatting 'float'?</issues>
+    <examples>'integer'</examples>
+    <examples>'boolean'</examples>
+    <examples>'string'</examples>
+    <superKinds itemref="Taxon"/>
+    <classes key="python">repository.schema.Types.Type</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="fields">
+      <displayName>Fields</displayName>
+      <description>The fields in a compound type.</description>
+      <type itemref="Symbol"/>
+      <cardinality>list</cardinality>
+      <defaultValue>None</defaultValue>
+    </Attribute>
+
+  </Kind>
+
+  <Kind itemName="Enumeration">
+    <displayName>Enumeration</displayName>
+    <superKinds itemref="Type"/>
+    <classes key="python">repository.schema.Types.Enumeration</classes>
+    
+    <!-- local attributes -->
+    <Attribute itemName="values">
+      <displayName>values</displayName>
+      <description>The list of available values for this enumeration</description>
+      <type itemref="Symbol"/>
+      <cardinality>list</cardinality>
+      <required/>
+    </Attribute>
+  </Kind>
+
+  <Kind itemName="Parcel">
+    <displayName>Parcel</displayName>
+    <description>Collection of items that gets loaded into the repository from xml. Replaceable unit of functionality.</description>
+    <superKinds itemref="Item"/>
+    <classes key="python">repository.schema.Parcel.Parcel</classes>
+
+    <!-- local attributes -->
+    <Attribute itemName="author">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="publisher">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="status">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="summary">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="icon">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="version">
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="createdOn">
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="modifiedOn">
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+  </Kind>
+
+</Parcel>

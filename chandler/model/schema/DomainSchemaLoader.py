@@ -21,10 +21,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 import xml.sax.handler
 
-from model.item.Item import Item
-from model.schema.Kind import Kind
-from model.schema.Attribute import Attribute
-from model.schema import Types
+from repository.item.Item import Item
+from repository.schema.Kind import Kind
+from repository.schema.Attribute import Attribute
+from repository.schema import Types
 
 
 # XML format tag is the key, Repository expected kind is the value

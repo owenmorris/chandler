@@ -1,10 +1,8 @@
 """ Support SAX2 parsing of XML format for repository items
 
     @@@ Known Issues (most require resolving data model and repository issues)
-    (2) Special case for attributes (set the alias)
-    (3) Special case for inverseAttribute and displayAttribute
-    (5) Types not all handled (assumes strings)
-    (6) Special case for classes attribute, to load a python class
+    (1) Special case for attributes (set the alias)
+    (2) Special case for inverseAttribute and displayAttribute
 """
 
 __revision__  = "$Revision$"
@@ -15,11 +13,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 import xml.sax.handler
 
-from model.item.Item import Item
-from model.schema.Kind import Kind
-from model.schema.Attribute import Attribute
-from model.schema.Parcel import Parcel
-import model.schema.Types
+from repository.item.Item import Item
+from repository.schema.Kind import Kind
+from repository.schema.Attribute import Attribute
+from repository.schema.Parcel import Parcel
+import repository.schema.Types
 
 class ParcelLoader(object):
     """ Load items defined in the XML file into the repository,
@@ -99,7 +97,12 @@ class ItemHandler(xml.sax.ContentHandler):
             element = 'Item'
             
             nameString = attrs.getValue((None, 'itemName'))
-            self.currentItem = self.createItem(uri, local, nameString)
+            if attrs.has_key((None, 'itemClass')):
+                classString = attrs.getValue((None, 'itemClass'))
+            else:
+                classString = None
+            self.currentItem = self.createItem(uri, local,
+                                               nameString, classString)
             self.currentReferences = []
             
         elif attrs.has_key((None, 'itemref')):
@@ -138,36 +141,14 @@ class ItemHandler(xml.sax.ContentHandler):
         # We have an attribute, append to the current item
         elif element == 'Attribute':
 
-            assert self.currentItem, \
-                   "No parent item at %s:%s" % (self.locator.getSystemId(),
-                                                self.locator.getLineNumber())
-            
-            # If the element is empty, treat the value as a boolean
-            if self.currentValue == '':
-                self.currentItem.addValue(local, True)
+            value = self.makeValue(uri, local)
+            self.currentItem.addValue(local, value)
                 
-            # Otherwise, add the value as a string
-            else:
-                self.currentItem.addValue(local, self.currentValue)
-                
-        # We have a dictionary
+        # We have a dictionary, similar to attribute, but we have a key
         elif element == 'Dictionary':
-            
-            # @@@ (6) Special case, we know we're loading a class
-            if local == 'classes':
-                self.currentValue = Item.loadClass(self.currentValue)
 
-                assert self.currentValue, \
-                       "No class at %s:%s" % (self.locator.getSystemId(),
-                                              self.locator.getLineNumber())
-
-            assert self.currentItem, \
-                   "Error at %s:%s" % (self.locator.getSystemId(),
-                                       self.locator.getLineNumber())
-                
-            self.currentItem.setValue(local,
-                                      self.currentValue,
-                                      self.currentKey)
+            value = self.makeValue(uri, local)
+            self.currentItem.setValue(local, value, self.currentKey)
             
         # We have an item, add the collected attributes to the list
         elif element == 'Item':
@@ -197,6 +178,24 @@ class ItemHandler(xml.sax.ContentHandler):
     def endPrefixMapping(self, prefix):
         """ SAX2 callback for namespace prefixes """
         self.mapping[prefix] = None
+
+    def makeValue(self, uri, local):
+        """ Creates a value from a string, based on the type
+            of the attribute.
+        """
+        assert self.currentItem, \
+               "No parent item at %s:%s" % (self.locator.getSystemId(),
+                                            self.locator.getLineNumber())
+
+        kindItem = self.currentItem.kind
+        attributeItem = kindItem.getAttribute(local)
+
+        assert attributeItem, \
+               "Attribute not found at %s:%s" % (self.locator.getSystemId(),
+                                                 self.locator.getLineNumber())
+        
+        value = attributeItem.type.makeValue(self.currentValue)
+        return value
 
     def findItem(self, namespace, name, line):
         """ Find the item with the namespace indicated by prefix,
@@ -244,22 +243,11 @@ class ItemHandler(xml.sax.ContentHandler):
         
         return (namespace, name)
 
-    def createItem(self, uri, local, name):
+    def createItem(self, uri, local, name, className):
         """ Create a new item, with the kind defined by the tag.
             The new item's namespace is derived from nameString.
             The new item's kind is derived from (uri, local).
         """
-
-        # Find the kind represented by the tag (uri, local). The
-        # parser has already mapped the prefix to the namespace (uri).
-        kind = self.findItem(uri, local,
-                             self.locator.getLineNumber())
-
-        assert kind, \
-               "No kind (%s/%s) at %s:%s" % (uri, local,
-                                             self.locator.getSystemId(),
-                                             self.locator.getLineNumber())
-
 
         # If we have the document root, use the parcel parent.
         # Otherwise, the currentItem is the parent.
@@ -267,9 +255,24 @@ class ItemHandler(xml.sax.ContentHandler):
             parent = self.currentItem
         else:
             parent = self.parcelParent
+
+        # Find the kind represented by the tag (uri, local). The
+        # parser has already mapped the prefix to the namespace (uri).
+        kind = self.findItem(uri, local,
+                             self.locator.getLineNumber())
             
-        # The kind knows how to instantiate an instance of the item
-        item = kind.newItem(name, parent)
+        assert kind, \
+               "No kind (%s/%s) at %s:%s" % (uri, local,
+                                             self.locator.getSystemId(),
+                                             self.locator.getLineNumber())
+
+        if className:
+            # Use the given class to instantiate the item
+            cls = Item.loadClass(className)
+            item = cls(name, parent, kind)
+        else:
+            # The kind knows how to instantiate an instance of the item
+            item = kind.newItem(name, parent)
 
         assert item, \
                "Item not created at %s:%s" % (self.locator.getSystemId(),
@@ -283,7 +286,7 @@ class ItemHandler(xml.sax.ContentHandler):
         for (attributeName, namespace, name, line) in attributes:
             reference = self.findItem(namespace, name, line)
             
-            # @@@ (3) Special cases to resolve
+            # @@@ Special cases to resolve
             if attributeName == 'inverseAttribute':
                 item.addValue('otherName', reference.getItemName())
             elif attributeName == 'displayAttribute':

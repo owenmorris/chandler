@@ -7,8 +7,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, string
 
-from model.schema.ParcelLoader import ParcelLoader
-from model.schema.Parcel import Parcel
+from repository.schema.ParcelLoader import ParcelLoader
+from repository.schema.Parcel import Parcel
 
 def LoadDependency(repository, uri, searchPath):
     # Don't load if we find the parcel
