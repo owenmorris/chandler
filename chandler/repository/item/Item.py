@@ -9,9 +9,8 @@ import cStringIO
 from repository.item.RefCollections import RefList
 from repository.item.Values import Values, References, ItemValue
 from repository.item.Access import ACL
-from repository.item.PersistentCollections import PersistentCollection
-from repository.item.PersistentCollections import PersistentList
-from repository.item.PersistentCollections import PersistentDict
+from repository.item.PersistentCollections \
+     import PersistentCollection, PersistentList, PersistentDict
 from repository.item.ItemError import *
 
 from repository.util.SingleRef import SingleRef
@@ -19,6 +18,13 @@ from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 
+
+__access__ = 0L
+
+def _countAccess():
+    global __access__; __access__ += 1
+    return __access__
+    
 
 class Item(object):
     'The root class for all items.'
@@ -456,7 +462,7 @@ class Item(object):
         if self._status & Item.STALE:
             raise StaleItemError, self
 
-        self._lastAccess = Item._countAccess()
+        self._lastAccess = _countAccess()
 
         try:
             if (_attrDict is self._values or
@@ -1267,7 +1273,7 @@ class Item(object):
                 if not noMonitors:
                     Item._monitorsClass.invoke('set', self, attribute)
                 
-            self._lastAccess = Item._countAccess()
+            self._lastAccess = _countAccess()
             if self._status & Item.DIRTY == 0:
                 view = self.getRepositoryView()
                 if view is not None and not view.isLoading():
@@ -2237,13 +2243,6 @@ class Item(object):
 
         self._status &= ~Item.MERGED
 
-    def _countAccess(cls):
-
-        cls.__access__ += 1
-        return cls.__access__
-
-    _countAccess = classmethod(_countAccess)
-
     def __new__(cls, *args, **kwds):
 
         item = object.__new__(cls, *args, **kwds)
@@ -2290,8 +2289,6 @@ class Item(object):
     SAVEMASK   = (DIRTY | ADIRTY |
                   NEW | DELETED |
                   SCHEMA | CORESCHEMA | CONTAINER)
-
-    __access__ = 0L
 
     itsName = property(fget = __getName,
                        fset = rename,
