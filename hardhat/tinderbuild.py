@@ -180,8 +180,8 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(outputDir+os.sep+"index.html", "w")
-    fileOut.write("<h2>Chandler Build: " + buildName + " </h2>\n")
-    fileOut.write("<p>CVS Timestamp:" + nowString + " (Pacific)</p>\n")
+    fileOut.write("<h2>Chandler Build: " + nowString + " (Pacific)</h2>\n")
+    fileOut.write("<h3>Build machine: '" + buildName + "'</h3>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+newDirName+"/"+actual+">"+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
