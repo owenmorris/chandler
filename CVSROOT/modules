@@ -33,6 +33,7 @@ chandler-source -a \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx-base-2.0.4 \
     osaf/chandler/hardhat \
+    osaf/chandler/jabber-py \
     osaf/chandler/wxWindows-2.4
 
 dbxml-module -a \
