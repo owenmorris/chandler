@@ -455,6 +455,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         @return: C{None}
         """
 
+        assert self.account.itsView.isRefCounted(), "not refcounting doesn't make sense" 
         self.account = None
         self.mailMessage = None
 
@@ -490,6 +491,8 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         if self.mailMessage is None:
             raise SMTPException("No MailMessage for UUID: %s" % self.mailMessageUUID)
+
+        assert self.account.itsView.isRefCounted(), "not refcounting doesn't make sense" 
 
 def getSMTPAccount(UUID=None):
     """
