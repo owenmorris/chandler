@@ -1,0 +1,5 @@
+# ChangeLog for Document Parcel
+
+2003-09-04 Jed Burges <jed@osafoundation.org>
+   * Created the document parcel
+   

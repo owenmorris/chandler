@@ -315,6 +315,14 @@ class wxApplication (wxApp):
                                     'contacts.xml')
             loader.load(contactsPath)
 
+            
+        # Load the document parcel
+        if not self.repository.find('//Document'):
+            documentPath = os.path.join(self.chandlerDirectory, 'parcels',
+                                        'OSAF', 'document', 'model', 
+                                        'document.xml')
+            loader.load(documentPath)
+
         # Load the agent schema
         if not self.repository.find('//Agents'):       
             agentsPath = os.path.join(self.chandlerDirectory,

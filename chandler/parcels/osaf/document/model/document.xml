@@ -1,0 +1,75 @@
+<DomainSchema itemName="doc:DocumentSchema"
+              root="Document"
+              xmlns="http://osafoundation.org/2003/08/schema_definition">
+
+  <displayName>Document Schema</displayName>
+  <description>Document block schema for the 0.2 release</description>
+  <version>0.1</version>
+
+  <itemPathMapping prefix="types"
+                   path="//Schema/Model/Types/"/>
+  <itemPathMapping prefix="doc"
+                   path="//Schema/DocumentSchema/"/>
+
+
+  <Attribute itemName="doc:blocktype">
+    <displayName>Block Type</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </Attribute>
+
+  <Attribute itemName="doc:contentspec">
+    <displayName>Content Specification</displayName>
+    <cardinality>dict</cardinality>
+    <type itemref="types:String"/>
+  </Attribute>
+
+  <Attribute itemName="doc:style">
+    <displayName>Style</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="types:Dictionary"/>s
+  </Attribute>
+
+  <Attribute itemName="doc:notifications">
+    <displayName>Notifications</displayName>
+    <cardinality>dict</cardinality>
+    <type itemref="types:String"/>
+  </Attribute>
+
+  <Attribute itemName="doc:isOpen">
+    <displayName>Is Open?</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="types:Bool"/>
+  </Attribute>
+
+  <Kind itemName="doc:Document">
+    <displayName>Document</displayName>
+    <attributes itemref="doc:blocktype"/>
+    <attributes itemref="doc:contentspec"/>
+    <attributes itemref="doc:style"/>
+    <attributes itemref="doc:notifications"/>
+
+    <classes key="python">OSAF.document.model.Document.Document</classes>
+  </Kind>
+
+  <Kind itemName="doc:BoxContainer">
+    <displayName>Box Container</displayName>
+    <attributes itemref="doc:blocktype"/>
+    <attributes itemref="doc:contentspec"/>
+    <attributes itemref="doc:style"/>
+    <attributes itemref="doc:notifications"/>
+
+    <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
+  </Kind>
+
+  <Kind itemName="doc:Block">
+    <displayName>Block</displayName>
+    <attributes itemref="doc:blocktype"/>
+    <attributes itemref="doc:contentspec"/>
+    <attributes itemref="doc:style"/>
+    <attributes itemref="doc:notifications"/>
+    <attributes itemref="doc:isOpen"/>
+
+    <classes key="python">OSAF.document.model.Block.Block</classes>
+  </Kind>
+</DomainSchema>
