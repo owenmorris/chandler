@@ -45,7 +45,7 @@ class Parcel(application.Parcel.Parcel):
     def _errorCallback(self, error):
         # When we receive this event, display the error
         application.dialogs.Util.ok( \
-         Globals.wxApplication.mainFrame, error)
+         Globals.wxApplication.mainFrame, "Error", error)
 
 
 def subscribeToWebDavCollection(url):
@@ -58,6 +58,7 @@ def subscribeToWebDavCollection(url):
     if collection is not None:
         application.dialogs.Util.ok( \
          Globals.wxApplication.mainFrame,
+         "Already subscribed",
          "Already subscribed to collection '%s':\n"
          "%s" % (collection.displayName, url))
         return
