@@ -311,10 +311,14 @@ class wxApplication (wxApp):
 
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
-            self.repository.loadPack(os.path.join(self.chandlerDirectory,
-                                                  "parcels", "OSAF",
-                                                  "contacts", "model", 
-                                                  "contacts.pack"))
+            #self.repository.loadPack(os.path.join(self.chandlerDirectory,
+            #                                      "parcels", "OSAF",
+            #                                      "contacts", "model", 
+            #                                      "contacts.pack"))
+            contactsPath = os.path.join(self.chandlerDirectory, 'parcels',
+                                        'OSAF', 'contacts', 'model',
+                                        'contacts.xml')
+            loader.load(contactsPath)
 
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
