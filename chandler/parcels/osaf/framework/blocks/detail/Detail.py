@@ -215,6 +215,11 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         # DLDTBD - use self instead of bar here, once block copy problem is fixed.
         bar = tool.dynamicParent
         item = bar.selectedItem()
+        # DLDTBD - once block copy problem is fixed, we won't
+        # need this check, because the buttons will not be enabled.
+        isANoteKind = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())
+        if not isANoteKind:
+            return
         if item is not None:
             mixinKind = tool.stampMixinKind()
             if bar.widget.GetToolState(tool.toolID):
@@ -233,7 +238,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         # DLDTBD - fix the line below to False when the block copy problem is fixed.
         enable = True
         if item is not None:
-            enable = item.itsKind.isKindOf(ContentModel.getNoteKind())            
+            enable = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())            
         notification.data ['Enable'] = enable
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
