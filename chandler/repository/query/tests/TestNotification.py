@@ -167,8 +167,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         event.displayName = "Meeting"
         note = GenerateItems.GenerateNote(view)
         note.displayName = "story idea"
-#        contact = GenerateItems.GenerateContact(view)
-#        contact.contactName.firstName = "Alexis"
+        contact = GenerateItems.GenerateContact(view)
+        contact.contactName.firstName = "Alexis"
         view.commit()
 
         queryString = 'union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i"))'
