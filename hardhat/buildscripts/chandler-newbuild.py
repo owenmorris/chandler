@@ -80,7 +80,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
                 except Exception, e:
                     print "an initialization error"
-                    log.write("***Error during initialization*** " + e + "\n")
+                    log.write("***Error during initialization*** " + e.str() + "\n")
                     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
                     ret = "init_failed"
 
@@ -115,7 +115,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
         except Exception, e:
             print "an initialization error"
-            log.write("***Error during initialization***" + e + "\n")
+            log.write("***Error during initialization***" + e.str() + "\n")
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             ret = "init_failed"
 
@@ -275,7 +275,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             hardhatutil.dumpOutputList(outputList, log)
 
         except Exception, e:
-            log.write("***Error during scrub*** " + e + "\n")
+            log.write("***Error during scrub*** " + e.str() + "\n")
             if os.path.exists(os.path.join(modeDir, logPath)) :
                 CopyLog(os.path.join(modeDir, logPath), log)
             raise e
@@ -292,7 +292,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-ns"])
         except Exception, e:
-            log.write("***Error during scrub*** " + e + "\n")
+            log.write("***Error during scrub*** " + e.str() + "\n")
             if os.path.exists(os.path.join(modeDir, logPath)) :
                 CopyLog(os.path.join(modeDir, logPath), log)
             raise e
@@ -330,7 +330,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         
     except Exception, e:
         print "a build error"
-        log.write("***Error during build*** " + e + "\n")
+        log.write("***Error during build*** " + e.str() + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Build log:" + "\n")
         if os.path.exists(os.path.join(modeDir, logPath)) :
@@ -364,7 +364,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     except Exception, e:
         print "a testing error"
-        log.write("***Error during tests*** " + e + "\n")
+        log.write("***Error during tests*** " + e.str() + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Tests log:" + "\n")
         if os.path.exists(os.path.join(modeDir, logPath)) :
