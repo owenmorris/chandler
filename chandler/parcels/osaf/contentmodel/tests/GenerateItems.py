@@ -32,6 +32,7 @@ def GenerateCalendarParticipant(view):
     return email
 
 IMPORTANCE = ["important", "normal", "fyi"]
+LOCATIONS  = ["Home", "Office", "School"]
 
 def GenerateCalendarEvent(view, days=30):
     event = Calendar.CalendarEvent(view=view)
@@ -53,6 +54,10 @@ def GenerateCalendarEvent(view, days=30):
     reminderInterval = random.choice(REMINDERS)
     if reminderInterval is not None:
         event.reminderTime = event.startTime - DateTime.RelativeDateTime(minutes=reminderInterval)
+        
+    # Add a location to 2/3 of the events
+    if random.randrange(3) > 0:
+        event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
     event.importance = random.choice(IMPORTANCE)
     return event
