@@ -27,35 +27,12 @@ def clean(buildenv):
 def run(buildenv):
 
     if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + os.pathsep + buildenv['path']
         python = buildenv['python_d.run']
 
-
     if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + os.pathsep + buildenv['path']
         python = buildenv['python.run']
 
-
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "Using " + python)
-    os.putenv('path', path)
-
-
-    if buildenv['os'] == 'posix':
-	ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
-	if buildenv['version'] == 'debug':
-	    additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	     'lib'
-	    additional_path_rel = buildenv['root'] + os.sep + 'release' + \
-	     os.sep + 'lib'
-	    additional_path = additional_path + os.pathsep + additional_path_rel
-	else:
-	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + 'lib'
-	ld_library_path = additional_path + os.pathsep + ld_library_path
-	os.putenv('LD_LIBRARY_PATH', ld_library_path)
-	
-
-    hardhatlib.executeCommand( buildenv, info['name'],
+    hardhatlib.executeCommandNoCapture( buildenv, info['name'],
      [python, "Chandler.py"], "Running Chandler" )
 
 
