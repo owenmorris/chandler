@@ -152,7 +152,7 @@
     <agent:Schedule itemName="ZaoBaoSchedule">
       <agent:startTime>2003-11-11 12:56:00+0800</agent:startTime>
       <agent:repeatFlag>True</agent:repeatFlag>
-      <agent:repeatDelay>00:10:00:00</agent:repeatDelay>
+      <agent:repeatDelay>00:00:05:00</agent:repeatDelay>
     </agent:Schedule>
 
     <agent:Action itemName="GetFeeds" itemClass="OSAF.examples.zaobao.ZaoBaoAgent.UpdateAction">
