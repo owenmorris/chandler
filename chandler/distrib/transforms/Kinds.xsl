@@ -34,56 +34,191 @@
 				</title>
 				<link rel="stylesheet" type="text/css">
 				   <xsl:attribute  name = "href" >
-				      <xsl:value-of select="$constants.cssPath" />
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				   <xsl:value-of select="$constants.cssFile" />
 				   </xsl:attribute>
 				</link>
 			</head>
 			<body>
+			    <div style="float: left;">
 				<h1>
-					<a href="index.html">
-					   <xsl:apply-templates select="." mode="getDisplayName"/>
-					</a>
+                    <xsl:apply-templates select="." mode="getDisplayName"/>
 					<xsl:text> - </xsl:text>
 					<xsl:apply-templates select="$coreDoc/core:Parcel/*[@itemName=$pagetype]" mode="getHrefAnchor">
 					   <xsl:with-param name="text" select="$title"/>
 					</xsl:apply-templates>
 				</h1>
-				<ul>
-					<li>
-						<span class="attributeTitle">description: </span>
-						<xsl:value-of select="core:description"/>
-					</li>
-					<li>
-						<span class="attributeTitle">version: </span>
-						<xsl:value-of select="core:version"/>
-					</li>
-					<li>
-						<span class="attributeTitle">author: </span>
-						<xsl:value-of select="core:author"/>
-					</li>
-					<li>
-					    <span class="attributeTitle">issues:</span>
-					    <xsl:if test = "core:issues">
-					       <br/>
-					       <ul>
-					           <xsl:for-each select = "core:issues">
-					              <li><xsl:value-of select="."/></li>
-					           </xsl:for-each>
-					       </ul>
-					    </xsl:if>
-					</li>
-				</ul>
+				</div>
+				<div style="float: right;">Back to the 
+				<a>
+				<xsl:attribute  name = "href" >
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				</xsl:attribute>
+                Parcel Index
+				</a>
+				</div>
+				<br clear="all"/>
+
+				<xsl:call-template name="hierarchyTop"/>
+                <div class="topDetailBox">
+                   <xsl:apply-templates select = "core:description" />
+                   <xsl:apply-templates select = "core:version" />
+                   <xsl:apply-templates select = "core:author" />
+                   <xsl:apply-templates select = "core:examples" />
+                   <xsl:apply-templates select = "core:issues" />
+                </div>				
 				<xsl:apply-templates select="core:Kind"/>
 			</body>
 		</html>
 	</xsl:template>
+
+	<xsl:template match="core:description">
+       <div class="description">
+       <span class="detailLabel">Description </span>
+       <xsl:value-of select="."/>
+       </div>
+	</xsl:template>
+
+	<xsl:template match="core:author">
+       <div class="author">
+       <span class="detailLabel">Author </span>
+       <xsl:value-of select="."/>
+       </div>
+	</xsl:template>
+
+	<xsl:template match="core:version">
+       <div class="version">
+       <span class="detailLabel">Version </span>
+       <xsl:value-of select="."/>
+       </div>
+	</xsl:template>
+
+	<xsl:template match="core:examples">
+	   <xsl:if test = "position()=1">
+          <div class="detailLabel">Examples </div>
+	   </xsl:if>
+       <li class="examples"><xsl:value-of select="."/></li>	
+	</xsl:template>
+
+	<xsl:template match="core:issues">
+	   <xsl:if test = "position()=1">
+          <div class="detailLabel">Issues </div>
+	   </xsl:if>
+       <li class="issues"><xsl:value-of select="."/></li>	
+	</xsl:template>
+
+	<xsl:template name="displayAttribute">
+       <div class="displayAttribute">
+       <span class="detailLabel">displayAttribute </span>
+				<xsl:variable name = "displayAttribute" select = "func:getAttributeValue(., 'displayAttribute')" />
+				
+ 				<xsl:choose>
+					<xsl:when test="$displayAttribute/@itemName">
+					   <xsl:apply-templates select="$displayAttribute" mode="getHrefAnchor" />
+					</xsl:when>
+				  
+					<xsl:otherwise>
+					   <xsl:value-of select="$displayAttribute" />
+					</xsl:otherwise>
+				</xsl:choose>
+       </div>
+	</xsl:template>
+
+	<xsl:template name="hierarchyTop">
+	<xsl:variable name = "isCore" select = "$root/core:Parcel/@describes = $constants.coreURI" />
+	<div class="inheritanceBox">
+	   <div class="detailLabel">Inheritance Structure </div>
+	   <div class="inheritanceBranch">
+       <xsl:apply-templates select = "$coreDoc//core:Kind[@itemName='Item']" mode="hierarchy">
+          <xsl:with-param name="local" select="$isCore"/>
+       </xsl:apply-templates>
+       </div>
+
+       <xsl:if test = "not($isCore)">
+	      <div class="inheritanceBranch">
+          <xsl:apply-templates select = "func:accumulateNonLocalParents($root//core:Kind[core:superKinds])" mode="hierarchy">
+             <xsl:with-param name="local" select="false()"/>
+          </xsl:apply-templates>
+          </div>
+       </xsl:if>
+       <div class="rightSpacer"><xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+       </div>
+    </div>
+       <br clear="all"/>
+
+	</xsl:template>
+	
+<func:function name="func:accumulateNonLocalParents">
+   <xsl:param name="set" />
+   <xsl:param name="parents" select="/empty"/> 
+   <xsl:choose>
+   	<xsl:when test="$set">
+   <xsl:variable name = "currentParent" select = "func:deref($set[func:deref(core:superKinds/@itemref)/@itemName!='Item'
+   	    and func:deref(core:superKinds/@itemref)/ancestor::core:Parcel/@describes != $root//core:Parcel/@describes][1]/core:superKinds/@itemref)" />
+
+   	 <func:result select="func:accumulateNonLocalParents($set[func:refPrimary(core:superKinds/@itemref)!=$currentParent/@itemName], $parents | $currentParent)"/>
+   	</xsl:when>
+     
+   	<xsl:otherwise>
+   	 <func:result select="$parents"/>
+   	</xsl:otherwise>
+   </xsl:choose>   
+</func:function>
+
+
+	<xsl:template match="*" mode="hierarchy">
+	   <xsl:param name="local" select="true()" />
+       <xsl:variable name = "name" select = "@itemName" />
+	      
+	      <xsl:choose>
+	      	<xsl:when test="$local">
+	      	   <xsl:choose>
+	      	   	<xsl:when test="$name='Item'">
+                  <xsl:apply-templates select="." mode="getHrefAnchor">
+                     <xsl:with-param name="text" select="'#'"/>
+                  </xsl:apply-templates>
+                  <xsl:text> </xsl:text>
+                  <xsl:apply-templates select = "." mode="getDisplayName"/>
+	      	   	</xsl:when>
+	      	     
+	      	   	<xsl:otherwise>
+               <li class="inheritanceTreeItem">
+                  <xsl:apply-templates select="." mode="getHrefAnchor">
+                     <xsl:with-param name="text" select="'#'"/>
+                  </xsl:apply-templates>
+                  <xsl:text> </xsl:text>
+                  <xsl:apply-templates select = "." mode="getDisplayName"/>
+	           </li>	      	   	 
+	      	   	</xsl:otherwise>
+	      	   </xsl:choose>
+	      	</xsl:when>
+	        
+	      	<xsl:otherwise>
+                  <xsl:apply-templates select = "." mode="getDisplayName"/>
+	      	</xsl:otherwise>
+	      </xsl:choose>
+	      <xsl:variable name = "children" select = "$root//core:Kind[func:getAttributeValue(.,'superKinds')/@itemName=$name and ./@itemName != $name]" />
+	      <xsl:if test = "$children">
+             <ul class="inheritanceTreeItem">
+                <xsl:apply-templates select = "$children" mode="hierarchy"/>
+             </ul>
+	      </xsl:if>
+	</xsl:template>
+
 	
 	<xsl:template match="core:Kind">
-		<hr/>
+       <div class="sectionBox">
 		<h2>
-            <xsl:apply-templates select="." mode="getHrefAnchor">
-               <xsl:with-param name="text" select="'#'"/>
-            </xsl:apply-templates>
             <xsl:apply-templates select = "." mode="getNameAnchor"/>
             <xsl:text> - inherits from </xsl:text>
             
@@ -96,50 +231,15 @@
                    <xsl:apply-templates select="$coreDoc//core:Kind[@itemName='Item']" mode="getHrefAnchor"/>
             	</xsl:otherwise>
             </xsl:choose>
-
-       
-			<br/>
 		</h2>
-		<ul>
-			<li>
-				<span class="attributeTitle">description: </span>
-				<xsl:value-of select="core:description"/>
-			</li>
-			<li>
-				<span class="attributeTitle">examples: </span>
-                <ul>
-				<xsl:for-each select="core:examples">
-					<li><xsl:value-of select="." /></li>
-				</xsl:for-each>
-                </ul>
-            </li>
-			<li>
-				<span class="attributeTitle">issues: </span>
-				<ul>
-				<xsl:for-each select="core:issues">
-					<li><xsl:value-of select="." /></li>
-				</xsl:for-each>
-				</ul>
-			</li>
-			<li>
-				<span class="attributeTitle">displayAttribute: </span>
-				
-				<xsl:variable name = "displayAttribute" select = "func:getAttributeValue(., 'displayAttribute')" />
-				
- 				<xsl:choose>
-					<xsl:when test="$displayAttribute/@itemName">
-					   <xsl:apply-templates select="$displayAttribute" mode="getHrefAnchor" />
-					</xsl:when>
-				  
-					<xsl:otherwise>
-					   <xsl:value-of select="$displayAttribute" />
-					</xsl:otherwise>
-				</xsl:choose>
-			
-			</li>
-		</ul>
-		
-           <table cellpadding="5" cellspacing="0" border="0" style="width: 100%; text-align: left;">
+		<div class="detailBox">
+				<xsl:call-template name="displayAttribute" select="."/>
+				<xsl:apply-templates select = "core:description" />
+				<xsl:apply-templates select = "core:examples" />
+				<xsl:apply-templates select = "core:issues" />
+		</div>
+		   <div class="tableBox">
+           <table cellpadding="2" cellspacing="2" border="0" style="width: 100%; text-align: left;">
               <tbody>
                  <xsl:call-template name = "attributesTableHeaderRow" />
                  <xsl:if test = "core:attributes">
@@ -155,24 +255,26 @@
                  </xsl:if>
               </tbody>
            </table>
-		
+           </div>
+       </div>
 	</xsl:template>
 
 
 <xsl:variable name = "columns">
   <column>displayName</column>
   <column>itemName</column>
-  <column>cardinality</column>
   <column>type</column>
+  <column>cardinality</column>
   <column>inverseAttribute</column>
+  <column>superAttribute</column>
   <column>required</column>
   <column>defaultValue</column>
 </xsl:variable>
 
 <xsl:template name="attributesTableTitleRow">
    <xsl:param name="text" select="'Attributes'"/>
-   <tr><td class="tableHeaderCell" colspan="{count(exsl:node-set($columns)/column)}"
-           style="width: 100%; text-align: center;">
+   <tr><td class="tableTitleRow" colspan="{count(exsl:node-set($columns)/column)}"
+           style="width: 100%; text-align: left; font-weight: bold;">
            <xsl:copy-of select="$text" />
        </td>
    </tr>
@@ -214,19 +316,20 @@
          </xsl:apply-templates>
       </td>
       <td>
+         <!-- type -->
+         <xsl:apply-templates select = "func:getAspect(., 'type')" mode="derefHref"/>
+      </td>
+      <td>
          <!-- cardinality -->
          <xsl:value-of select="func:getAspect(., 'cardinality')" />
       </td>
       <td>
-         <!-- type -->
-         <xsl:apply-templates select = "func:getAspect(., 'type')" mode="derefHref"/>
-         <xsl:text> (</xsl:text>
-         <xsl:apply-templates select = "func:getAspect(., 'type')/@itemref" mode="getSchema"/>
-         <xsl:text>)</xsl:text>
-      </td>
-      <td>
          <!-- inverseAttribute -->
          <xsl:apply-templates select = "core:inverseAttribute" mode="derefHref"/>
+      </td>
+      <td>
+         <!-- superAttribute -->
+         <xsl:apply-templates select = "core:superAttribute" mode="derefHref"/>
       </td>
       <td>
          <!-- required -->
