@@ -17,6 +17,7 @@ import email as email
 import email.Utils as Utils
 import logging as logging
 import repository.util.UUID as UUID
+import common as common
 
 #XXX: Need to make sure all the flags are in place to prevent a non-ssl session if 
 #     ssl required
@@ -97,7 +98,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         logging.error("Unable to connect to server; reason: '%s'", reason)
 
 
-class MailException(Exception):
+class IMAPMailException(common.MailException):
     pass
 
 class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
@@ -111,7 +112,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         """
 
         if account is None:
-            raise MailException("You must pass in a Mail Account instance")
+            raise IMAPMailException("You must pass in a Mail Account instance")
 
         viewName = "%s_%s" % (account.displayName, str(UUID.UUID()))
         super(IMAPDownloader, self).__init__(Globals.repository, viewName)
@@ -326,9 +327,14 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             for msg in msgs:
                 repMessage = message.messageTextToKind(msgs[msg]['RFC822'])
-                self.account.downloadedMail.append(repMessage)
-
                 uid = long(msgs[msg]['UID'])
+
+                repMessage.incomingMessage(account=self.account)
+
+                repMessage.deliveryExtension.folder = "INBOX"
+                repMessage.deliveryExtension.uid = uid
+
+                self.account.downloadedMail.append(repMessage)
 
                 if uid > self.__getLastUID():
                     self.__setLastUID(uid)

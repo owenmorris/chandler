@@ -12,9 +12,19 @@ import email.Utils as Utils
 
 CHANDLER_USERAGENT = "Open Source Applications Foundation Chandler .4B Release"
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
-ATTACHMENT_BODY_WARNING = "The body of this message consists of Multiple Mime Parts.\nFor .4B Chandler does not support MIME Parts"
+ATTACHMENT_BODY_WARNING = "\tThe body of this message consists of Multiple Mime Parts.\n\tFor .4B Chandler does not support MIME Parts"
+
+"""MIME TYPE SPECS"""
 
 MIME_TEXT_PLAIN = "text/plain"
+
+MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
+MIME_BINARY = ["image", "application", "audio", "video"]
+MIME_SECURITY = ["encrypted", "signed"]
+MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "digest"]
+
+class MailException(Exception):
+    pass
 
 def getChandlerTransportMessage():
     message = """Subject: ***FOR CHANDLER INTERNAL USE - DO NOT DELETE ***

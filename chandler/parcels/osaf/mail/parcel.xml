@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<core:Parcel itsName="mail"
-             xmlns:core="http://osafoundation.org/parcels/core"
+<Parcel itsName="mail"
+             xmlns="http://osafoundation.org/parcels/core"
              xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:mail="http://osafoundation.org/parcels/osaf/mail"
              xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks">
 
-  <content:IMAPAccount itsName="IMAPAccount One">
-    <content:displayName>IMAP Server Account One</content:displayName>
-    <content:host>code-bear.com</content:host>
-    <content:username>osafuser</content:username>
-    <content:password>chandler</content:password>
-    <content:port>143</content:port>
-    <content:useSSL>NoSSL</content:useSSL>
+  <content:IMAPAccount itsName="IMAPAccountOne">
+    <displayName>IMAP Server Account One</displayName>
+    <host>code-bear.com</host>
+    <username>osafuser</username>
+    <password>chandler</password>
+    <useSSL>NoSSL</useSSL>
+    <!-- This points replyToAddress to the email address item below-->
+    <replyToAddress ref="mail:ReplyAddress" />
+    <!-- This points to the SMTPAccount item below -->
+    <defaultSMTPAccount ref="mail:SMTPAccountOne" />
   </content:IMAPAccount>
+
+  <content:EmailAddress itsName="ReplyAddress">
+    <emailAddress value="osafuser@code-bear.com" />
+    <fullName value="OSAFTest Account" />
+  </content:EmailAddress>
+
+
+  <content:SMTPAccount itsName="SMTPAccountOne">
+    <displayName>SMTP Server Account One</displayName>
+    <host>code-bear.com</host>
+    <username>osafuser</username>
+    <password>chandler</password>
+    <useSSL>NoSSL</useSSL>
+    <useAuth>False</useAuth>
+  </content:SMTPAccount>
+
 
   <task:Task itsName="IMAPMailClient">
     <task:Schedule itsName="MailSchedule">
@@ -38,4 +57,4 @@
     <task:actions itemref="mail:SMTPClient/sendmail"/-->
   </task:Task>
 
-</core:Parcel>
+</Parcel>

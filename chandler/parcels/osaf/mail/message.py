@@ -209,11 +209,15 @@ def messageObjectToKind(messageObject, messageText = None):
     if messageObject.is_multipart():
         mimeParts = messageObject.get_payload()
         found = False
+        m.hasMimeParts = True
+        m.mimeParts = []
 
         for mimePart in mimeParts:
             if isPlainTextContentType(mimePart.get_content_type()):
                 m.body = strToText(m, "body",  mimePart.get_payload())
                 found = True
+
+
 
         if not found:
             m.body = strToText(m, "body", common.ATTACHMENT_BODY_WARNING)
