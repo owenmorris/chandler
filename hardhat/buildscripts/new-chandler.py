@@ -33,7 +33,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
+    print "Check for working dir..."
     if not os.path.exists(workingDir):
+        print "working dir does not exist, create it."
         os.mkdir(workingDir)
         os.chdir(workingDir)
 
@@ -122,6 +124,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
              [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
             hardhatutil.dumpOutputList(outputList, log)
 
+    print "working dir already exists???"
     # do debug
     if ret == "no_changes":
         ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
