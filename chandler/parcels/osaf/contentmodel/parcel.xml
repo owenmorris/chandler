@@ -79,6 +79,14 @@
     <core:attributes itemref="core:Parcel/modifiedOn"/>
     <core:attributes itemref="conversations"/>
 
+    <core:Attribute itsName="etag">
+      <core:type itemref="core:String"/>
+    </core:Attribute>
+    <core:Attribute itsName="lastModified">
+      <core:type itemref="core:String"/>
+    </core:Attribute>
+
+
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
 
