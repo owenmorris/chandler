@@ -151,6 +151,7 @@ def CreateIndex(dir):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(dir+os.sep+"index.html", "w")
+    fileOut.write("hey!\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(dir+os.sep+x)
         fileOut.write(x + "=" + actual)
