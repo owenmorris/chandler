@@ -688,6 +688,10 @@ class Dictionary(Collection):
         generator.endElement('values')
 
     def makeValue(self, data):
+        """Make a dict of string key/value pairs from comma separated pairs.
+
+        The implementation is very cheap, using split, so spaces are part of
+        the dict's elements and the strings cannot contain spaces or colons."""
 
         result = {}
         if data:
@@ -726,8 +730,12 @@ class List(Collection):
                                  None, val, 'value', None, 'single', None,
                                  generator, withSchema)
         generator.endElement('values')
-    
+
     def makeValue(self, data):
+        """Make a list of strings from comma separated strings.
+
+        The implementation is very cheap, using split, so spaces are part of
+        the list's elements and the strings cannot contain spaces."""
 
         if data:
             return data.split(',')
