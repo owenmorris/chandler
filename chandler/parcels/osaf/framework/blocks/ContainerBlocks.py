@@ -109,7 +109,7 @@ class ChoiceContainer(BoxContainer):
 
         return widget
 
-    def onButtonPressed(self, notification):
+    def onSelectionChanged(self, notification):
         # @@@ On the Mac, radio buttons do not work as radio
         # buttons, but rather they behave as individual toggle
         # buttons.  As a workaround, we deselect the other 
@@ -119,7 +119,7 @@ class ChoiceContainer(BoxContainer):
                 if isinstance(childBlock, Toolbar):
                     for toolbarItem in childBlock.widget.toolItemList:
                         if toolbarItem != notification.data['sender']:
-                            if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):                                
+                            if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
                                 childBlock.widget.ToggleTool(toolbarItem.widget.GetId(), False)
                         else:
                             if not childBlock.widget.GetToolState(toolbarItem.widget.GetId()):                                

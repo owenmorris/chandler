@@ -415,7 +415,7 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
   </Toolbar>
 
   <!-- LayoutSelector2 -->
@@ -430,7 +430,7 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
   </Toolbar>
 
   <!-- LayoutSelector3 -->
@@ -445,7 +445,7 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
   </Toolbar>
 
   <!-- LayoutSelector5 -->
@@ -460,7 +460,7 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
   </Toolbar>
 
   <!-- LayoutSelector6 -->
@@ -475,12 +475,12 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <subscribeWhenVisibleEvents itemref="view:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="view:SelectionChanged"/>
   </Toolbar>
 
-  <BlockEvent itemName="ButtonPressed">
+  <BlockEvent itemName="SelectionChanged">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onButtonPressed</methodName>
+    <methodName>onSelectionChanged</methodName>
     <dispatchToBlock itemref="view:CalendarSummary"/>
   </BlockEvent>
 
@@ -496,7 +496,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton1">
@@ -508,7 +508,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton1">
@@ -520,7 +520,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton1">
@@ -532,7 +532,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton2">
@@ -544,7 +544,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton2">
@@ -556,7 +556,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton2">
@@ -568,7 +568,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton2">
@@ -580,7 +580,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton3">
@@ -592,7 +592,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton3">
@@ -604,7 +604,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton3">
@@ -616,7 +616,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton3">
@@ -628,7 +628,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton5">
@@ -640,7 +640,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton5">
@@ -652,7 +652,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton5">
@@ -664,7 +664,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton5">
@@ -676,7 +676,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton6">
@@ -688,7 +688,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton6">
@@ -700,7 +700,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in month mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton6">
@@ -712,7 +712,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton6">
@@ -724,7 +724,7 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
-    <event itemref="view:ButtonPressed"/>
+    <event itemref="view:SelectionChanged"/>
   </ToolbarItem>
 
   <!-- Note View -->
