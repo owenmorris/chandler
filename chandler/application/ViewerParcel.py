@@ -172,14 +172,16 @@ class wxViewerParcel(wxPanel):
         viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
         del ignoreErrors
         if (viewerParcelMenu != None):
-            menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
-            index = menuBar.FindMenu (_('View'))
-            assert (index != wxNOT_FOUND)
-            if menuBar.FindMenu(_('Help')) == (index + 1):
-                menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
-            else:
-                oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, self.GetMenuName())
-                del oldMenu
+            mainFrameId = id(app.model.mainFrame)
+            if app.association.has_key(mainFrameId):
+                menuBar = app.association[mainFrameId].GetMenuBar ()
+                index = menuBar.FindMenu (_('View'))
+                assert (index != wxNOT_FOUND)
+                if menuBar.FindMenu(_('Help')) == (index + 1):
+                    menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
+                else:
+                    oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, self.GetMenuName())
+                    del oldMenu
         
     def AddViewParcelMenu(self):
         """
@@ -189,8 +191,10 @@ class wxViewerParcel(wxPanel):
         viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
         del ignoreErrors
         if (viewerParcelMenu != None):
-            menuBar = app.association[id(app.model.mainFrame)].GetMenuBar ()
-            index = menuBar.FindMenu (_('View'))
-            assert (index != wxNOT_FOUND)
-            menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
+            mainFrameId = id(app.model.mainFrame)
+            if app.association.has_key(mainFrameId):
+                menuBar = app.association[mainFrameId].GetMenuBar ()
+                index = menuBar.FindMenu (_('View'))
+                assert (index != wxNOT_FOUND)
+                menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
             
