@@ -41,8 +41,9 @@ class SideBar(Persistent):
         
         if not hasattr(wxWindow, 'root'):
             wxWindow.root = wxWindow.AddRoot('Root')
-
-        self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, wxWindow.root)
+        self.sideBarURLTree = PersistentDict.PersistentDict()
+        self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, 
+                             wxWindow.root)
 
     def __UpdateURLTree(self, sideBarURLTree, appURLTree, parent):
         """
@@ -50,6 +51,7 @@ class SideBar(Persistent):
         URLTree.  The sidebar only stores a dict mapping visible items
         in the sidebar to their instances in the application.
         """
+        wxWindow = app.association[id(self)]
         for item in appURLTree:
             instance = item[0]
             instanceId = id(instance)
@@ -58,15 +60,16 @@ class SideBar(Persistent):
             hasChildren = len(children) > 0
                         
             if not sideBarURLTree.has_key(instanceId):
-                itemId = app.association[id(self)].AppendItem(parent, name)
-                app.association[id(self)].SetItemHasChildren(itemId, hasChildren)
+                itemId = wxWindow.AppendItem(parent, name)
+                wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarURLTree[instanceId] = [instance, false, itemId, 
                                               {}, false]
             else:
                 itemId = sideBarURLTree[instanceId][2]
-                app.association[id(self)].SetItemHasChildren(itemId, hasChildren)
+                wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarURLTree[instanceId][1]: # If it is open
-                    self.__UpdateURLTree(sideBarURLTree[instanceId][3], item[2], itemId)
+                    self.__UpdateURLTree(sideBarURLTree[instanceId][3], 
+                                         item[2], itemId)
             # Mark the item as existing in the app's URLTree
             sideBarURLTree[instanceId][4] = true
         # Now we clean up items that exist in the dict, but not 
@@ -75,7 +78,7 @@ class SideBar(Persistent):
             item = sideBarURLTree[key]
             # If it was not marked, delete it
             if not item[4]:
-                app.association[id(self)].Delete(item[2])
+                wxWindow.Delete(item[2])
                 del sideBarURLTree[key]
             else:
                 # Clear the visited flag
@@ -136,6 +139,11 @@ class wxSideBar(wxTreeCtrl):
                 return
             
     def OnItemExpanding(self, event):
+        """
+          Whenever a disclosure box is expanded, we mark it as such in the
+        model's dict and call SynchronizeView so we can either get the new
+        items that are now visible (from the app) or just display them.
+        """
         item = event.GetItem()
         text = self.GetItemText(item)
         for item in app.model.URLTree:
