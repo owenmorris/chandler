@@ -18,6 +18,7 @@
   <Type itemName="Dictionary"/>
   <Type itemName="List"/>
   <Type itemName="Complex"/>
+  <Type itemName="Text"/>
   <Alias itemName="Anything"/>
 
   <Enumeration itemName="Cardinality">
