@@ -34,6 +34,8 @@ ifeq ($(CURL),)
 CURL=curl -O $(CHANDLER_CURL_OPTIONS)
 endif
 
+PYTHON_VER=2.3
+
 ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
@@ -43,16 +45,16 @@ MD5=md5sum.exe
 MD5CHECK=$(MD5) -c
 else
 ifeq ($(OS),Darwin)
-FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
+FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
 PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
-SITE=$(FRAMEWORK)/lib/python2.3/site-packages
+SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
 MD5=md5
 MD5CHECK=$(MD5) --check
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
-SITE=lib/python2.3/site-packages
+SITE=lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
 MD5=md5sum
@@ -207,6 +209,6 @@ _realclean::
 	elif [ "$(SRC)" = "/" ]; then \
 	    echo SRC is set to $(SRC); false; \
 	else \
-	    rm -rf $(SRC)*; \
+	    rm -rf $(SRC)* $(SRC)/../*-expanded; \
 	    rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC); \
 	fi
