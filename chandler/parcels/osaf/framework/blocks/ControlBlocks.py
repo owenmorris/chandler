@@ -705,7 +705,8 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.ProcessTableMessage (message) 
         self.ForceRefresh () 
 
-        if self.blockItem.selectedItemToView is None and firstSelectedRow is not None:
+        if (self.blockItem.selectedItemToView not in self.blockItem.contents and
+            firstSelectedRow is not None):
             selectedItemToView = self.blockItem.contents [firstSelectedRow]
             self.blockItem.selectedItemToView = selectedItemToView
             self.blockItem.postEventByName("SelectItemBroadcast", {'item':selectedItemToView})
@@ -913,8 +914,8 @@ class Table (RectangularChild):
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
-        assert isinstance (item, ItemCollection)
-        self.contents = item
+        if isinstance (item, ItemCollection):
+            self.contents = item
 
     def onSelectItemEvent (self, event):
         item = event.arguments ['item']
