@@ -373,7 +373,12 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def getDateTimeFromPosition(self, position):
         startDay = self.parent.blockItem.getStartDay()
-        deltaDays = (position.x - self.xOffset) / self.dayWidth
+        # @@@ fixes Bug#1831, but doesn't really address the root cause
+        # (the window is drawn with (0,0) virtual size on mac)
+        if self.dayWidth > 0:
+            deltaDays = (position.x - self.xOffset) / self.dayWidth
+        else:
+            deltaDays = 0
         deltaHours = (position.y) / self.hourHeight
         deltaMinutes = ((position.y % self.hourHeight) * 60) / self.hourHeight
         deltaMinutes = int(deltaMinutes/15) * 15
