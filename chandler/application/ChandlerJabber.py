@@ -341,28 +341,68 @@ class JabberClient:
         error = iqElement.getError()
  
     # initiate a request of objects from a remote view
+    # pass the desired URL in the subject
     def RequestRemoteObjects(self, jabberID, url):
-        pass
-    
+        messageText = _("Requesting remote objects from ") + url    
+        requestMessage = Message(jabberID, messageText)
+        requestMessage.setX('chandler:request-objects')
+        requestMessage.setSubject(url)
+        self.connection.send(requestMessage)
+
+    # send a response from an object request back to the requestor
+    def SendObjectResponse(self, jabberID, subject, body, responseType):
+        responseMessage = Message(jabberID, body)
+        responseMessage.setX(responseType)
+        responseMessage.setSubject(subject)
+        self.connection.send(responseMessage)
+        
     # send a message requesting a list of views that are accessible to this client
     def RequestAccessibleViews(self, jabberID):
-        requestMessage = Message(jabberID, 'Requesting accessible views')
+        messageText = _('Requesting accessible views')
+        requestMessage = Message(jabberID, messageText)
         requestMessage.setX('chandler:request-views')
-        requestMessage.setSubject('Requesting accessible views')
+        requestMessage.setSubject(messageText)
         self.connection.send(requestMessage)
  
     # handle receiving a request for objects from a url 
+    # ask the application for the objects, then send them back to the requestor
     def HandleObjectRequest(self, fromAddress, url):
-        pass
+        objectList = self.application.GetViewObjects(url)
     
+        # we can send the objects back in ask many responses as we like
+        # for simplicity's sake, we'll send them back one at a time at
+        # first, and then later tweak for better performance
+        resultList = []
+        granularity = 1
+        for resultObject in objectList:
+            resultList.append(resultObject)
+            if len(resultList) >= granularity:
+                resultString = self.EncodeObjectList(resultList)
+                self.SendObjectResponse(fromAddress, url, resultString, 'chandler:receive-objects')
+                resultList = []
+        
+        # send the objects left-over in the list, even if it's empty, so the
+        # application knows its the last response
+        resultString = self.EncodeObjectList(resultList)
+        self.SendObjectResponse(fromAddress, url, resultString, 'chandler:receive-objects-done')
+        
     # handle receiving a reponse to an object request.  The lastFlag
     # is true when it's the last response to the request, and the url
     # is the view that should display the objects, which is typically
     # the one that initiated the request
     def HandleObjectResponse(self, fromAddress, url, body, lastFlag):
-        pass
-    
+        # decode the string from the body of the received message to an objectlist
+        objectList = self.DecodeObjectList(body)
+        
+        # send the objects back to the relevant view
+        if len(objectList) > 0:
+            self.application.AddObjectsToView(url, objectList)
+            
+        if lastFlag:
+            self.application.ObjectResponseCompleted(url)
+            
     # handle receiving notification of an error to an object request
+    # FIXME: handle errors soon by telling the application to put up a dialog
     def HandleErrorResponse(self, fromAddress, body):
         pass
     

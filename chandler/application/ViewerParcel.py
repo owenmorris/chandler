@@ -145,6 +145,13 @@ class ViewerParcel (Parcel):
           override this so they can manage their own objectlist.
         """
         pass
+
+    def ObjectResponseCompleted(self, url):
+        """
+          this method notifies the parcel the response is done.
+          Parcels should override this for post-processing
+        """
+        pass
     
 class wxViewerParcel(wxPanel):
     def __init__(self):
