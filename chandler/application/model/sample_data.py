@@ -11,6 +11,8 @@ from mx.DateTime import *
 from PersonItem import PersonItem
 from EventItem import EventItem
 
+from application.persist import Persist
+
 _rdfItems = ((PersonItem, {'firstName':'Gina',
                            'lastName':'Durante',
                            'identifier':'person1'}),
@@ -50,22 +52,36 @@ _rdfItems = ((PersonItem, {'firstName':'Gina',
                           'endTime':(2002, 11, 4, 11, 30),
                           'identifier':'event4'}))
 
-ItemDict = {}
-for itemData in _rdfItems:
-    cls = itemData[0]
-    item = cls()
-    properties = itemData[1]
-    id = properties['identifier']
-    for key in properties.keys():
-        if key == 'relation':
-            setattr(item, key, ItemDict[properties[key]])
-        elif key == 'startTime' or key == 'endTime':
-            year, month, day, min, sec = properties[key]
-            setattr(item, key, DateTime(year, month, day, min, sec))
-        else:
-            setattr(item, key, properties[key])
+def load_sample_data():
+    for itemData in _rdfItems:
+        cls = itemData[0]
+        item = cls()
+        properties = itemData[1]
+        id = properties['identifier']
+        
+        for key in properties.keys():
+            if key == 'relation':
+                setattr(item, key, ItemDict[properties[key]])
+            elif key == 'startTime' or key == 'endTime':
+                year, month, day, min, sec = properties[key]
+                setattr(item, key, DateTime(year, month, day, min, sec))
+            else:
+                setattr(item, key, properties[key])
+                
+        ItemDict[id] = item
 
-    ItemDict[id] = item
+def commit_sample_data():
+    storage.commit()
+
+storage = Persist.Storage("_CHANDLER_")
+ItemDict = storage.persist('items', Persist.Dict())
+
+if ItemDict.keys() == []:
+    load_sample_data()
+
+storage.commit()
+
+
 
 
 
