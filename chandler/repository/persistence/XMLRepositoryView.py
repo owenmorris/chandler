@@ -197,15 +197,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 if newVersion > self.version:
                     histNotifications = RepositoryNotifications()
                     
-                    def unload(uuid, version, docId, status, parent):
+                    def unload(uuid, version, docId, status, parent, dirties):
 
                         if status & Item.DELETED:
                             histNotifications.history(uuid, 'deleted',
                                                       parent=parent)
                         elif status & Item.NEW:
-                            histNotifications.history(uuid, 'added')
+                            histNotifications.history(uuid, 'added',
+                                                      dirties=dirties)
                         else:
-                            histNotifications.history(uuid, 'changed')
+                            histNotifications.history(uuid, 'changed',
+                                                      dirties=dirties)
 
                         item = self._registry.get(uuid)
                         if (item is not None and
@@ -247,6 +249,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     item._version = newVersion
                 item._status &= ~(Item.NEW | Item.DIRTY |
                                   Item.MERGED | Item.SAVED)
+                item._values._clearDirties()
+                item._references._clearDirties()
             del self._log[:]
 
         if newVersion > self.version:
@@ -324,7 +328,9 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store.saveItem(xml, uuid, newVersion,
                        (item.itsParent.itsUUID, item._name), origPN,
-                       item._status)
+                       item._status,
+                       item._values._getDirties(),
+                       item._references._getDirties())
 
         if item._status & item.ADIRTY:
             for name, acl in item._acls.iteritems():
@@ -341,13 +347,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
 
-        def check(uuid, version, docId, status, parentId):
+        def check(uuid, version, docId, status, parentId, dirties):
             item = items.get(uuid)
             if item is not None:
                 newDirty = item.getDirty()
                 oldDirty = status & item.DIRTY
                 if newDirty & oldDirty:
-                    raise VersionConflictError, item
+                    raise VersionConflictError, (item, newDirty, oldDirty)
                 else:
                     if (newDirty == item.VDIRTY or oldDirty == item.VDIRTY or
                         newDirty == item.RDIRTY or oldDirty == item.RDIRTY or

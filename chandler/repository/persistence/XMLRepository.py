@@ -197,19 +197,11 @@ class XMLContainer(object):
 
     def loadItem(self, version, uuid):
 
-        store = self.store
-        txnStarted = False
-        try:
-            txnStarted = store.startTransaction()
-            docId = store._versions.getDocId(uuid, version)
+        docId = self.store._versions.getDocId(uuid, version)
 
-            # None -> not found, 0 -> deleted
-            if docId: 
-                return self.getDocument(docId)
-
-        finally:
-            if txnStarted:
-                store.abortTransaction()
+        # None -> not found, 0 -> deleted
+        if docId: 
+            return self.getDocument(docId)
 
         return None
             
@@ -558,7 +550,8 @@ class XMLStore(Store):
             self.repository._env.lock_put(lock)
         return None
 
-    def saveItem(self, xml, uuid, version, currPN, origPN, status):
+    def saveItem(self, xml, uuid, version, currPN, origPN, status,
+                 dirtyValues, dirtyRefs):
         
         doc = XmlDocument()
         doc.setContent(xml)
@@ -575,12 +568,14 @@ class XMLStore(Store):
         if status & Item.DELETED:
             parent, name = origPN
             self._versions.setDocVersion(uuid, version, 0)
-            self._history.writeVersion(uuid, version, 0, status, parent)
+            self._history.writeVersion(uuid, version, 0, status,
+                                       parent, [], [])
             self.writeName(version, parent, name, None)
 
         else:
             self._versions.setDocVersion(uuid, version, docId)
-            self._history.writeVersion(uuid, version, docId, status)
+            self._history.writeVersion(uuid, version, docId, status,
+                                       None, dirtyValues, dirtyRefs)
 
             if origPN is not None:
                 parent, name = origPN

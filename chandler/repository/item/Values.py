@@ -15,6 +15,15 @@ class Values(dict):
         super(Values, self).__init__()
         self._setItem(item)
 
+    def clear(self):
+
+        try:
+            del self._flags
+        except AttributeError:
+            pass
+
+        super(Values, self).clear()
+
     def _getItem(self):
 
         return self._item
@@ -68,9 +77,9 @@ class Values(dict):
 
     def _setFlag(self, key, flag):
 
-        if '_flags' in self.__dict__:
+        try:
             self._flags[key] = self._flags.get(key, 0) | flag
-        else:
+        except AttributeError:
             self._flags = { key: flag }
 
     def _clearFlag(self, key, flag):
@@ -81,17 +90,17 @@ class Values(dict):
 
     def _setFlags(self, key, flags):
 
-        if '_flags' in self.__dict__:
+        try:
             self._flags[key] = flags
-        else:
+        except AttributeError:
             self._flags = { key: flags }
 
     def _getFlags(self, key, default=0):
 
-        if '_flags' in self.__dict__:
+        try:
             return self._flags.get(key, default)
-
-        return default
+        except AttributeError:
+            return default
 
     def _isReadOnly(self, key):
 
@@ -113,13 +122,40 @@ class Values(dict):
 
         self._setFlag(key, Values.MONITORED)
 
+    def _setDirty(self, key):
+
+        self._setFlag(key, Values.DIRTY)
+
     def _clearTransient(self, key):
 
-        self._flags[key] &= ~Values.TRANSIENT
+        try:
+            self._flags[key] &= ~Values.TRANSIENT
+        except AttributeError:
+            pass
 
     def _clearMonitored(self, key):
 
-        self._flags[key] &= ~Values.MONITORED
+        try:
+            self._flags[key] &= ~Values.MONITORED
+        except AttributeError:
+            pass
+
+    def _getDirties(self):
+
+        try:
+            return [ key for key, flags in self._flags.iteritems()
+                     if flags & Values.DIRTY ]
+        except AttributeError:
+            return []
+
+    def _clearDirties(self):
+
+        try:
+            for key, flags in self._flags.iteritems():
+                if flags & Values.DIRTY:
+                    self._flags[key] &= ~Values.DIRTY
+        except AttributeError:
+            pass
 
     def _xmlValues(self, generator, withSchema, version, mode):
 
@@ -142,7 +178,8 @@ class Values(dict):
 
             if persist:
                 flags = self._getFlags(key)
-                persist = flags & self.TRANSIENT == 0
+                persist = flags & Values.TRANSIENT == 0
+                flags &= Values.SAVEMASK
 
             if persist:
                 if attribute is not None:
@@ -169,9 +206,11 @@ class Values(dict):
 
 
     READONLY  = 0x0001         # value is read-only
-    TRANSIENT = 0x0002         # value is transient
-    MONITORED = 0x0004         # value is monitored
-    
+    MONITORED = 0x0002         # value is monitored
+    DIRTY     = 0x0100         # value is dirty
+    TRANSIENT = 0x0200         # value is transient
+    SAVEMASK  = 0x00ff         # save these flags
+
 
 class References(Values):
 
@@ -206,7 +245,7 @@ class References(Values):
 
         for key, value in self.iteritems():
             if item.getAttributeAspect(key, 'persist', default=True):
-                flags = self._getFlags(key)
+                flags = self._getFlags(key) & Values.SAVEMASK
                 attrs = {}
                 if flags:
                     attrs['flags'] = str(flags)

@@ -9,6 +9,7 @@ import UUIDext, cStringIO
 from struct import pack, unpack
 
 from repository.item.Access import ACL, ACE
+from repository.item.Item import Item
 from repository.util.UUID import UUID
 from repository.persistence.Repository import Repository
 
@@ -389,17 +390,39 @@ class VerContainer(DBContainer):
 
 class HistContainer(DBContainer):
 
-    def writeVersion(self, uuid, version, docId, status, parentId=None):
+    def writeVersion(self, uuid, version, docId, status, parentId,
+                     dirtyValues, dirtyRefs):
 
-        if parentId is not None:
-            value = pack('>li16s', docId, status, parentId._uuid)
+        if status & Item.DELETED:
+            value = pack('>ll16s', status, docId, parentId._uuid)
+
         else:
-            value = pack('>li', docId, status)
+            buffer = cStringIO.StringIO()
+
+            buffer.write(pack('>ll', status, docId))
+            for name in dirtyValues:
+                if isinstance(name, unicode):
+                    name = name.encode('utf-8')
+                buffer.write(pack('>l', UUIDext.hash(name)))
+            for name in dirtyRefs:
+                if isinstance(name, unicode):
+                    name = name.encode('utf-8')
+                buffer.write(pack('>l', UUIDext.hash(name)))
+
+            value = buffer.getvalue()
+            buffer.close()
             
         self.put(pack('>l16s', version, uuid._uuid), value)
 
     # has to run within the commit transaction
     def apply(self, fn, oldVersion, newVersion):
+
+        class hashTuple(tuple):
+            def __contains__(self, name):
+                if isinstance(name, unicode):
+                    name = name.encode('utf-8')
+                hash = UUIDext.hash(name)
+                return super(hashTuple, self).__contains__(hash)
 
         try:
             cursor = self.cursor()
@@ -415,14 +438,22 @@ class HistContainer(DBContainer):
                 if version > newVersion:
                     break
 
-                if len(value[1]) == 24:
-                    docId, status, parentId = unpack('>li16s', value[1])
-                    parentId = UUID(parentId)
-                else:
-                    docId, status = unpack('>li', value[1])
-                    parentId = None
+                value = value[1]
+                status, = unpack('>l', value[0:4])
+                value = value[4:]
 
-                fn(UUID(uuid), version, docId, status, parentId)
+                if status & Item.DELETED:
+                    docId, parentId = unpack('>l16s', value)
+                    parentId = UUID(parentId)
+                    dirties = ()
+                else:
+                    docId, = unpack('>l', value[0:4])
+                    parentId = None
+                    value = value[4:]
+                    dirties = unpack('>%dl' %(len(value) >> 2), value)
+                    dirties = hashTuple(dirties)
+
+                fn(UUID(uuid), version, docId, status, parentId, dirties)
 
                 value = cursor.next()
 

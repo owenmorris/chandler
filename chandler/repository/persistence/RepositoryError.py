@@ -11,10 +11,11 @@ class RepositoryError(ValueError):
 
 
 class VersionConflictError(RepositoryError):
-    "Another thread changed %s and saved those changes before this thread got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved."
+    "Another view changed %s and saved those changes before this view - %s - got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved (0x%0.4x/0x%0.4x)."
 
     def __str__(self):
-        return self.__doc__ %(self.args[0].itsPath)
+        return self.__doc__ %(self.args[0].itsPath, self.args[0].itsView,
+                              self.args[1], self.args[2])
 
     def getItem(self):
         return self.args[0]

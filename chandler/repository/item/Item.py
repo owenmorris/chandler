@@ -1331,8 +1331,9 @@ class Item(object):
             if attrDict is not None:
                 assert attribute is not None
                 assert attrDict is not None
+                attrDict._setDirty(attribute)
                 self._invokeMonitors(attribute, attrDict)
-
+                
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepositoryView()
