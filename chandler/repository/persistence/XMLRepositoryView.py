@@ -12,7 +12,7 @@ from bsddb.db import DBLockDeadlockError, DBNotFoundError
 
 from repository.item.Item import Item
 from repository.item.ItemRef import TransientRefDict
-from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryError import RepositoryError, MergeError
 from repository.persistence.RepositoryError import VersionConflictError
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
@@ -161,7 +161,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         repository = self.repository
         store = repository.store
-        versions = store._versions
         history = store._history
 
         self._notifications.clear()
@@ -178,27 +177,17 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 txnStarted = self._startTransaction()
                 unloads = {}
 
-                newVersion = versions.getVersion()
+                newVersion = history.getVersion()
                 if count > 0:
                     lock = store.acquireLock()
                     newVersion += 1
-                    versions.setVersion(newVersion)
+                    history.setVersion(newVersion)
 
-                    ood = {}
-                    for item in self._log:
-                        if not item.isNew():
-                            uuid = item._uuid
-                            version = versions.getDocVersion(uuid)
-                            assert version is not None
-                            if version > item._version:
-                                ood[uuid] = item
-
-                    if ood:
-                        self._mergeItems(ood, self._version, newVersion,
-                                         history)
+                    if newVersion >= self._version + 1:
+                        self._mergeItems(self._version, newVersion - 1, history)
                 
                     for item in self._log:
-                        size += self._saveItem(item, newVersion, store, ood)
+                        size += self._saveItem(item, newVersion, store, {})
                     if self._dirty:
                         self._roots._saveValues(newVersion)
 
@@ -348,26 +337,51 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     
         return len(xml)
 
-    def _mergeItems(self, items, oldVersion, newVersion, history):
+    def _mergeItems(self, oldVersion, toVersion, history):
+
+        merges = {}
 
         def check(uuid, version, docId, status, parentId, dirties):
-            item = items.get(uuid)
-            if item is not None:
-                newDirty = item.getDirty()
+
+            item = self.find(uuid, False)
+
+            if item is not None and item.isDirty():
                 oldDirty = status & Item.DIRTY
-                if newDirty & oldDirty:
-                    if newDirty & oldDirty & Item.CDIRTY:
-                        item._children._mergeChanges(oldVersion, newVersion)
-                        oldDirty &= ~Item.CDIRTY
-                    else:
-                        raise VersionConflictError, (item, newDirty, oldDirty)
-
-                if newDirty & oldDirty:
-                    if newDirty == Item.VDIRTY or oldDirty == Item.VDIRTY:
-                        items[uuid] = (docId, oldDirty, newDirty)
-                    else:
-                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)
+                if uuid in merges:
+                    merges[uuid] = (merges[uuid][0] | oldDirty, parentId)
                 else:
-                    del items[uuid]
+                    merges[uuid] = (oldDirty, parentId)
+                    
+        history.apply(check, oldVersion, toVersion)
 
-        history.apply(check, oldVersion, newVersion)
+        for uuid, (oldDirty, parentId) in merges.iteritems():
+            
+            item = self.find(uuid, False)
+            newDirty = item.getDirty()
+            
+            if newDirty & oldDirty & Item.NDIRTY:
+                self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
+                oldDirty &= ~Item.NDIRTY
+
+            if newDirty & oldDirty & Item.CDIRTY:
+                item._children._mergeChanges(oldVersion, toVersion)
+                oldDirty &= ~Item.CDIRTY
+
+            if newDirty and oldDirty:
+                raise VersionConflictError, (item, newDirty, oldDirty)
+
+    def _mergeNDIRTY(self, item, parentId, oldVersion, toVersion):
+
+        newParentId = item.itsParent.itsUUID
+        if parentId != newParentId:
+            s, d, p, v = self.store._history.getDocRecord(item._uuid,
+                                                          oldVersion)
+            if p != parentId and p != newParentId:
+                raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item._uuid, p, newParentId), MergeError.MOVE)
+    
+        refs = self.store._refs
+        key = refs.prepareKey(parentId, parentId)
+        p, n, name = refs.loadRef(key, toVersion, item._uuid)
+
+        if name != item._name:
+            raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)

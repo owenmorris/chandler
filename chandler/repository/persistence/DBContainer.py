@@ -325,144 +325,80 @@ class RefContainer(DBContainer):
                 cursor.close()
 
 
-class VerContainer(DBContainer):
+class HistContainer(DBContainer):
 
     def __init__(self, store, name, txn, **kwds):
 
-        super(VerContainer, self).__init__(store, name, txn, **kwds)
+        super(HistContainer, self).__init__(store, name, txn,
+                                            dbname = 'data', **kwds)
+
+        if kwds.get('ramdb', False):
+            name = None
+            dbname = None
+        else:
+            dbname = 'versions'
+
+        self._versions = DB(store.env)
+
         if kwds.get('create', False):
-            self._db.put(Repository.itsUUID._uuid, pack('>l', 0), txn)
-            self._db.put(self.itsUUID._uuid, UUID()._uuid, txn)
+            self._versions.open(filename = name, dbname = dbname,
+                                dbtype = DB_BTREE,
+                                flags = DB_CREATE | DB_THREAD | self._flags,
+                                txn = txn)
+        else:
+            self._versions.open(filename = name, dbname = dbname,
+                                dbtype = DB_BTREE,
+                                flags = DB_THREAD | self._flags,
+                                txn = txn)
+
+        self._db.associate(secondaryDB = self._versions,
+                           callback = self._versionKey,
+                           flags = 0,
+                           txn = txn)
+
+        if kwds.get('create', False):
+            self.setVersion(0)
+
+    def close(self):
+
+        self._versions.close()
+        self._versions = None
+
+        super(HistContainer, self).close()
+
+    def _versionKey(self, key, value):
+
+        # version, uuid -> uuid, ~version
+        version, uuid = unpack('>l16s', key)
+
+        return pack('>16sl', uuid, ~version)
+
+    def setVersion(self, version, uuid=None):
+        
+        if uuid is None:
+            uuid = Repository.itsUUID
+
+        if version != 0:
+            versionId = self.getVersionId(uuid)
+        else:
+            versionId = UUID()
+            
+        self.writeVersion(uuid, version, -1, 0, versionId, (), ())
 
     def getVersion(self, versionId=None):
 
         if versionId is None:
             versionId = Repository.itsUUID
             
-        return unpack('>l', self.get(versionId._uuid))[0]
+        return self.getDocVersion(versionId)
 
-    def setVersion(self, version, versionId=None):
-        
-        if versionId is None:
-            versionId = Repository.itsUUID
-            
-        self.put(versionId._uuid, pack('>l', version))
+    def getVersionId(self, uuid):
 
-    def getVersionId(self, uuid=None):
-
-        if uuid is None:
-            uuid = self.itsUUID
-
-        return UUID(self.get(uuid._uuid))
+        return UUID(self._readHistory(uuid, 0)[2])
 
     def setVersionId(self, versionId, uuid):
 
-        self.put(uuid._uuid, versionId._uuid)
-
-    def setDocVersion(self, uuid, version, docId):
-
-        self.put(pack('>16sl', uuid._uuid, ~version), pack('>l', docId))
-
-    def getDocVersion(self, uuid, version=0):
-
-        while True:
-            txnStarted = False
-            cursor = None
-
-            try:
-                txnStarted = self.store.startTransaction()
-                cursor = self.cursor()
-                
-                try:
-                    key = uuid._uuid
-                    value = cursor.set_range(key, flags=self._flags)
-                except DBNotFoundError:
-                    return None
-                except DBLockDeadlockError:
-                    if txnStarted:
-                        self._logDL(6)
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while True:
-                        if value[0].startswith(key):
-                            docVersion = ~unpack('>l', value[0][16:20])[0]
-                            if version == 0 or docVersion <= version:
-                                return docVersion
-                        else:
-                            return None
-
-                        value = cursor.next()
-
-                except DBLockDeadlockError:
-                    if txnStarted:
-                        self._logDL(4)
-                        continue
-                    else:
-                        raise
-
-            finally:
-                if cursor:
-                    cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
-
-    def getDocId(self, uuid, version):
-
-        while True:
-            txnStarted = False
-            cursor = None
-
-            try:
-                txnStarted = self.store.startTransaction()
-                cursor = self.cursor()
-
-                try:
-                    key = uuid._uuid
-                    value = cursor.set_range(key, flags=self._flags)
-                except DBNotFoundError:
-                    return None
-                except DBLockDeadlockError:
-                    if txnStarted:
-                        self._logDL(7)
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(key):
-                        docVersion = ~unpack('>l', value[0][16:20])[0]
-
-                        if docVersion <= version:
-                            return unpack('>l', value[1])[0]
-                        
-                        value = cursor.next()
-
-                except DBLockDeadlockError:
-                    if txnStarted:
-                        self._logDL(5)
-                        continue
-                    else:
-                        raise
-                        
-                return None
-
-            finally:
-                if cursor:
-                    cursor.close()
-                if txnStarted:
-                    self.store.abortTransaction()
-
-    def deleteVersion(self, uuid):
-
-        self.delete(uuid._uuid)
-
-    itsUUID = UUID('00e956cc-a609-11d8-fae2-000393db837c')
-
-
-class HistContainer(DBContainer):
+        self.writeVersion(uuid, 0, -1, 0, versionId, (), ())
 
     def writeVersion(self, uuid, version, docId, status, parentId,
                      dirtyValues, dirtyRefs):
@@ -473,7 +409,7 @@ class HistContainer(DBContainer):
         else:
             buffer = cStringIO.StringIO()
 
-            buffer.write(pack('>ll', status, docId))
+            buffer.write(pack('>ll16s', status, docId, parentId._uuid))
             for name in dirtyValues:
                 if isinstance(name, unicode):
                     name = name.encode('utf-8')
@@ -507,32 +443,101 @@ class HistContainer(DBContainer):
             except DBNotFoundError:
                 return
 
+            repositoryId = Repository.itsUUID._uuid
+            
             while value is not None:
                 version, uuid = unpack('>l16s', value[0])
                 if version > newVersion:
                     break
 
-                value = value[1]
-                status, = unpack('>l', value[0:4])
-                value = value[4:]
-
-                if status & Item.DELETED:
-                    docId, parentId = unpack('>l16s', value)
-                    parentId = UUID(parentId)
-                    dirties = ()
-                else:
-                    docId, = unpack('>l', value[0:4])
-                    parentId = None
+                if uuid != repositoryId:
+                    value = value[1]
+                    status, = unpack('>l', value[0:4])
                     value = value[4:]
-                    dirties = unpack('>%dl' %(len(value) >> 2), value)
-                    dirties = hashTuple(dirties)
 
-                fn(UUID(uuid), version, docId, status, parentId, dirties)
+                    if status & Item.DELETED:
+                        docId, parentId = unpack('>l16s', value)
+                        parentId = UUID(parentId)
+                        dirties = ()
+                    else:
+                        docId, parentId = unpack('>l16s', value[0:20])
+                        parentId = UUID(parentId)
+                        value = value[20:]
+                        dirties = unpack('>%dl' %(len(value) >> 2), value)
+                        dirties = hashTuple(dirties)
+
+                    fn(UUID(uuid), version, docId, status, parentId, dirties)
 
                 value = cursor.next()
 
         finally:
             cursor.close()
+
+    def _readHistory(self, uuid, version):
+
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor(self._versions)
+
+                try:
+                    key = uuid._uuid
+                    value = cursor.set_range(key, flags=self._flags)
+                except DBNotFoundError:
+                    return None, None, None, None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(7)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(key):
+                        uuid, docVersion = unpack('>16sl', value[0])
+                        if uuid != key:
+                            return None, None, None, None
+                        
+                        if version == 0 or ~docVersion <= version:
+                            status, docId, parentId = unpack('>ll16s',
+                                                             value[1][0:24])
+                            return (status, docId, parentId, ~docVersion)
+                        
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(5)
+                        continue
+                    else:
+                        raise
+                        
+                return None, None, None, None
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
+
+    def getDocId(self, uuid, version):
+
+        return self._readHistory(uuid, version)[1]
+
+    def getDocVersion(self, uuid, version=0):
+
+        return self._readHistory(uuid, version)[3]
+
+    def getDocRecord(self, uuid, version=0):
+
+        status, docId, parentId, version = self._readHistory(uuid, version)
+        if parentId is not None:
+            parentId = UUID(parentId)
+
+        return status, docId, parentId, version
 
 
 class NamesContainer(DBContainer):

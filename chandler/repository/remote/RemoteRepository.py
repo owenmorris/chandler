@@ -52,8 +52,8 @@ class RemoteStore(XMLStore):
 
         doc = super(RemoteStore, self).loadItem(version, uuid)
         if doc is None:
-            versionId = self._versions.getVersionId(self.itsUUID)
-            remoteVersion = self._versions.getVersion(versionId)
+            versionId = self._history.getVersionId(self.itsUUID)
+            remoteVersion = self._history.getVersion(versionId)
             xml = self.transport.serveItem(remoteVersion, uuid)
             if xml is not None:
                 filter = RemoteFilter(self, versionId)
@@ -65,7 +65,7 @@ class RemoteStore(XMLStore):
     def getVersion(self):
 
         version = super(RemoteStore, self).getVersion()
-        versions = self._versions
+        history = self._history
         
         if version == 0:
             versionId, version = self.transport.getVersionInfo()
@@ -73,9 +73,9 @@ class RemoteStore(XMLStore):
             txnStarted = False
             try:
                 txnStarted = self.startTransaction()
-                versions.setVersion(version)
-                versions.setVersion(version, versionId)
-                versions.setVersionId(versionId, self.itsUUID)
+                history.setVersion(version)
+                history.setVersion(version, versionId)
+                history.setVersionId(versionId, self.itsUUID)
             except:
                 if txnStarted:
                     txnStarted = self.abortTransaction()
@@ -87,4 +87,3 @@ class RemoteStore(XMLStore):
         return version
 
     itsUUID = UUID('200a5564-a60f-11d8-fb65-000393db837c')
-

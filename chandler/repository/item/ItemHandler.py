@@ -184,8 +184,12 @@ class ItemHandler(ContentHandler):
 
         for attribute, value in self.values.iteritems():
             if isinstance(value, PersistentCollection):
-                companion = item.getAttributeAspect(attribute, 'companion',
-                                                    default=None)
+                if self.withSchema:
+                    # mixed collections not supported in core schema
+                    companion = None
+                else:
+                    companion = item.getAttributeAspect(attribute, 'companion',
+                                                        default=None)
                 value._setItem(item, attribute, companion)
             elif isinstance(value, ItemValue):
                 value._setItem(item, attribute)

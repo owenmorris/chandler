@@ -19,7 +19,7 @@ from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.RepositoryError import RepositoryError
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
-from repository.persistence.DBContainer import VerContainer, HistContainer
+from repository.persistence.DBContainer import HistContainer
 from repository.persistence.DBContainer import NamesContainer, ACLContainer
 from repository.persistence.DBContainer import IndexesContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
@@ -197,7 +197,7 @@ class XMLContainer(object):
 
     def loadItem(self, version, uuid):
 
-        docId = self.store._versions.getDocId(uuid, version)
+        docId = self.store._history.getDocId(uuid, version)
 
         # None -> not found, 0 -> deleted
         if docId: 
@@ -232,7 +232,7 @@ class XMLContainer(object):
         for uuid, (doc, ver) in docs.iteritems():
             # verify that match version is latest,
             # if not it is out of date for the view
-            if store._versions.getDocVersion(uuid, version) == ver:
+            if store._history.getDocVersion(uuid, version) == ver:
                 results.append(doc)
 
         return results
@@ -294,7 +294,6 @@ class XMLStore(Store):
             self._data = XMLContainer(self, "__data__", txn, **kwds)
             self._refs = RefContainer(self, "__refs__", txn, **kwds)
             self._names = NamesContainer(self, "__names__", txn, **kwds)
-            self._versions = VerContainer(self, "__versions__", txn, **kwds)
             self._history = HistContainer(self, "__history__", txn, **kwds)
             self._text = FileContainer(self, "__text__", txn, **kwds)
             self._binary = FileContainer(self, "__binary__", txn, **kwds)
@@ -311,7 +310,6 @@ class XMLStore(Store):
         self._data.close()
         self._refs.close()
         self._names.close()
-        self._versions.close()
         self._history.close()
         self._text.close()
         self._binary.close()
@@ -325,7 +323,6 @@ class XMLStore(Store):
         self._data.attachView(view)
         self._refs.attachView(view)
         self._names.attachView(view)
-        self._versions.attachView(view)
         self._history.attachView(view)
         self._text.attachView(view)
         self._binary.attachView(view)
@@ -339,7 +336,6 @@ class XMLStore(Store):
         self._data.detachView(view)
         self._refs.detachView(view)
         self._names.detachView(view)
-        self._versions.detachView(view)
         self._history.detachView(view)
         self._text.detachView(view)
         self._binary.detachView(view)
@@ -428,11 +424,11 @@ class XMLStore(Store):
 
     def getVersion(self):
 
-        return self._versions.getVersion()
+        return self._history.getVersion()
 
     def getVersionInfo(self):
 
-        return (self._versions.getVersionId(), self._versions.getVersion())
+        return (self._history.getVersionId(), self._history.getVersion())
 
     def startTransaction(self):
 
@@ -550,19 +546,17 @@ class XMLStore(Store):
             raise
 
         if status & Item.DELETED:
-            self._versions.setDocVersion(uuid, version, 0)
             self._history.writeVersion(uuid, version, 0, status,
                                        parent, [], [])
 
         else:
-            self._versions.setDocVersion(uuid, version, docId)
             self._history.writeVersion(uuid, version, docId, status,
-                                       None, dirtyValues, dirtyRefs)
+                                       parent, dirtyValues, dirtyRefs)
 
     def serveItem(self, version, uuid):
 
         if version == 0:
-            version = self._versions.getVersion()
+            version = self._history.getVersion()
         
         doc = self.loadItem(version, uuid)
         if doc is None:
@@ -574,7 +568,7 @@ class XMLStore(Store):
 
         try:
             attrs = { 'version': str(version),
-                      'versionId': self._versions.getVersionId().str64() }
+                      'versionId': self._history.getVersionId().str64() }
             generator.startElement('items', attrs)
             filter = CloudFilter(None, self, uuid, version, generator)
             filter.parse(xml, {})
@@ -587,7 +581,7 @@ class XMLStore(Store):
     def serveChild(self, version, uuid, name):
 
         if version == 0:
-            version = self._versions.getVersion()
+            version = self._history.getVersion()
         
         uuid = self.readName(version, uuid, name)
         if uuid is None:

@@ -448,10 +448,10 @@ class XMLChildren(Children):
         except AttributeError:
             pass
 
-    def _mergeChanges(self, oldVersion, newVersion):
+    def _mergeChanges(self, oldVersion, toVersion):
 
         self._mergeList = MergeList(self.view, self._item, oldVersion)
-        self._mergeList.collectHistory(newVersion - 1)
+        self._mergeList.collectHistory(toVersion)
         self._mergeList.applyChanges(self, self._changedRefs)
                         
         self.view.logger.info('%s merged children of %s with newer versions',
@@ -471,7 +471,6 @@ class MergeList(LinkedMap):
 
         self._changedRefs = {}
         self._key = self._getRefs().prepareKey(self.uuid, self.uuid)
-        self._value = StringIO()
         self._aliases = {}
         
         ref = self._getRefs().loadRef(self._key, version, self.uuid)
@@ -527,13 +526,20 @@ class MergeList(LinkedMap):
 
         link = children._get(child, False)
         prev = prevKey = link._previousKey
+        exists = child in self
+
+        if exists:
+            alias = self._get(child)._alias
+            if oldAlias is not None:
+                if oldAlias != alias and link._alias != alias:
+                    raise MergeError, ('merging children', self.item,
+                                       'child %s renamed to %s and %s' %(oldAlias, link._alias, alias), MergeError.RENAME)
 
         if prev is None:
-            if child in self:
+            if exists:
                 prevKey = self._firstKey
             else:
                 prev = prevKey = self._insertKey
-
         else:
             key = prevKey
             while key in self:
@@ -546,7 +552,7 @@ class MergeList(LinkedMap):
                 raise ValueError, op
             self.applyChange(children, changes, prevKey, oa)
 
-        exists, current = self.placeChange(child, prev, link._alias)
+        current = self.placeChange(child, prev, link._alias)
 
         link._previousKey = current._previousKey
         if exists:
@@ -576,7 +582,7 @@ class MergeList(LinkedMap):
 
         if exists:
             if current._previousKey == afterKey:
-                return exists, current
+                return current
             if current._previousKey is not None:
                 previous = self._get(current._previousKey)
             else:
@@ -607,7 +613,7 @@ class MergeList(LinkedMap):
 
         current._setPrevious(afterKey, key, self)
 
-        return exists, current
+        return current
             
     def linkChanged(self, link, key):
 
@@ -618,5 +624,6 @@ class MergeList(LinkedMap):
     def _load(self, key):
 
         raise MergeError, ('merging children', self.item,
-                           'of a bug: _load should not be called.')
+                           'of a bug: _load should not be called.',
+                           MergeError.BUG)
 

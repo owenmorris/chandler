@@ -33,3 +33,13 @@ class MergeError(VersionConflictError):
 
     def __str__(self):
         return self.__doc__ %(self.args[0], self.args[1].itsPath, self.args[2])
+
+    def getReasonCode(self):
+        return self.args[3]
+
+    def getItem(self):
+        return self.args[1]
+
+    BUG    = 0
+    RENAME = 1
+    MOVE   = 2

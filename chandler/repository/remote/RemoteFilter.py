@@ -130,8 +130,8 @@ class RemoteFilter(XMLFilter):
         self.itemUUID = UUID(attrs['uuid'])
         self.itemVersion = long(attrs['version'])
 
-        version = self.store._versions.getDocVersion(self.itemUUID,
-                                                     self.itemVersion)
+        version = self.store._history.getDocVersion(self.itemUUID,
+                                                    self.itemVersion)
         if not self.force and version == self.itemVersion:
             self._isSkipping = True
             self._isOn = False

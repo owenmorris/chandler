@@ -44,17 +44,19 @@ class Item(object):
         only the Chandler attributes are saved.
         @type kind: an item
         """
-        self._status = Item.NEW
-        self._version = 0L
-        self._lastAccess = 0L
-        self._uuid = UUID()
 
-        self._values = Values(self)
-        self._references = References(self)
-        
-        self._name = name or None
-        self._kind = kind
-        self._root = None
+        self.__dict__.update({ '_status': Item.NEW,
+                               '_version': 0L,
+                               '_lastAccess': 0L,
+                               '_uuid': UUID(),
+                               '_values': Values(self),
+                               '_references': References(self),
+                               '_name': name or None,
+                               '_kind': kind,
+                               '_root': None,
+                               '_parent': None,
+                               '_children': None,
+                               '_acls': None })
 
         if parent is None:
             raise ValueError, 'parent cannot be None'
@@ -70,23 +72,27 @@ class Item(object):
 
     def _fillItem(self, name, parent, kind, **kwds):
 
-        self._uuid = kwds['uuid']
-        self._name = name or None
-        self._kind = kind
-        self._root = None
-        self._status = 0
-        self._version = kwds['version']
-        self._lastAccess = 0L
-
         values = kwds.get('values')
+        references = kwds.get('references')
+
+        self.__dict__.update({ '_uuid': kwds['uuid'],
+                               '_name': name or None,
+                               '_kind': kind,
+                               '_root': None,
+                               '_status': 0,
+                               '_version': kwds['version'],
+                               '_lastAccess': 0L,
+                               '_values': values,
+                               '_references': references,
+                               '_parent': None,
+                               '_children': None,
+                               '_acls': None })
+
         if values is not None:
             values._setItem(self)
-            self._values = values
 
-        references = kwds.get('references')
         if references is not None:
             references._setItem(self)
-            self._references = references
 
         self._setParent(parent)
 
@@ -155,15 +161,19 @@ class Item(object):
         @return: the value actually set.
         """
 
-        if name[0] != '_':
-            if name in self._values:
-                return self.setAttributeValue(name, value,
-                                              _attrDict=self._values)
-            elif name in self._references:
-                return self.setAttributeValue(name, value,
-                                              _attrDict=self._references)
-            elif self._kind is not None and self._kind.hasAttribute(name):
-                return self.setAttributeValue(name, value)
+        if name in self.__dict__:
+            return super(Item, self).__setattr__(name, value)
+            
+        if name in self._values:
+            return self.setAttributeValue(name, value,
+                                          _attrDict=self._values)
+
+        if name in self._references:
+            return self.setAttributeValue(name, value,
+                                          _attrDict=self._references)
+
+        if self._kind is not None and self._kind.hasAttribute(name):
+            return self.setAttributeValue(name, value)
 
         return super(Item, self).__setattr__(name, value)
 
@@ -650,7 +660,7 @@ class Item(object):
         @return: C{True} or C{False}
         """
 
-        return ('_children' in self.__dict__ and
+        return (self._children is not None and
                 name is not None and
                 self._children.resolveAlias(name, load) is not None)
 
@@ -661,7 +671,7 @@ class Item(object):
         @return: C{True} or C{False}
         """
 
-        return ('_children' in self.__dict__ and
+        return (self._children is not None and
                 self._children._firstKey is not None)
 
     def placeChild(self, child, after):
@@ -726,11 +736,11 @@ class Item(object):
             raise ValueError, "item is stale: %s" %(self)
 
         if not load:
-            if self.__dict__.has_key('_children'):
+            if self._children is not None:
                 for child in self._children._itervalues():
                     yield child._value
 
-        elif self.__dict__.has_key('_children'):
+        elif self._children is not None:
             for child in self._children:
                 yield child
 
@@ -1360,7 +1370,7 @@ class Item(object):
             self._status &= ~(Item.DIRTY | Item.ADIRTY)
             self._values._clearDirties()
             self._references._clearDirties()
-            if '_children' in self.__dict__:
+            if self._children is not None:
                 self._children._clearDirties()
 
         return False
@@ -1739,7 +1749,7 @@ class Item(object):
         @type name: a string
         """
 
-        if not '_acls' in self.__dict__:
+        if self._acls is None:
             self._acls = { name: acl }
         else:
             self._acls[name] = acl
@@ -1774,7 +1784,7 @@ class Item(object):
         no ACL is set
         """
 
-        if '_acls' in self.__dict__:
+        if self._acls is not None:
             acl = self._acls.get(name, Item.Nil)
         else:
             acl = Item.Nil
@@ -1877,7 +1887,7 @@ class Item(object):
 
         name = item._name
         
-        if '_children' in self.__dict__:
+        if self._children is not None:
             if name is not None:
                 loading = self.getRepositoryView().isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
@@ -1913,7 +1923,7 @@ class Item(object):
             raise ValueError, "item is stale: %s" %(self)
 
         child = None
-        if name is not None and '_children' in self.__dict__:
+        if name is not None and self._children is not None:
             child = self._children.getByAlias(name, None, load)
 
         return child
@@ -2244,7 +2254,7 @@ class Item(object):
                        type(self).__name__, generator)
 
         attrs = { 'type': 'uuid' }
-        if '_children' in self.__dict__:
+        if self._children is not None:
             attrs['container'] = 'True'
             if mode == 'save':
                 self._children._saveValues(version)
@@ -2281,7 +2291,7 @@ class Item(object):
             repository._unregisterItem(self)
 
             self._parent._unloadChild(self)
-            if '_children' in self.__dict__ and len(self._children) > 0:
+            if self._children is not None:
                 repository._registerChildren(self._uuid, self._children)
 
             self._status |= Item.STALE
@@ -2310,7 +2320,7 @@ class Item(object):
     def __new__(cls, *args, **kwds):
 
         item = object.__new__(cls, *args, **kwds)
-        item._status = Item.RAW
+        item.__dict__['_status'] = Item.RAW
 
         return item
 

@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
+from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
 
 
@@ -71,6 +72,50 @@ class TestMerge(RepositoryTestCase):
             self.assert_(c.previousKey(am[i].itsUUID) == am[i - 1].itsUUID)
 
         self.assert_(c.lastKey() == am[m - 1].itsUUID)
+ 
+    def rename(self, o_name, m_name):
+
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+
+        cm = km.newItem('child', pm)
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        po = self.rep['p']
+        co = po['child']
+        co.rename(o_name)
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        cm.rename(m_name)
+        main.commit()
+
+    def move(self, o_name, m_name):
+
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+
+        cm = km.newItem('child', pm)
+        km.newItem(m_name, self.rep)
+        if o_name != m_name:
+            km.newItem(o_name, self.rep)
+            
+        self.rep.commit()
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        po = self.rep['p']
+        co = po['child']
+        co.move(self.rep[o_name])
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        cm.move(self.rep[m_name])
+        main.commit()
 
     def test1Merge1(self):
         self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
@@ -95,6 +140,24 @@ class TestMerge(RepositoryTestCase):
 
     def test0MergeN(self):
         self.merge(6, 9)
+
+    def testRenameSame(self):
+        self.rename('foo', 'foo')
+
+    def testRenameDifferent(self):
+        try:
+            self.rename('foo', 'bar')
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.RENAME)
+
+    def testMoveSame(self):
+        self.move('foo', 'foo')
+
+    def testMoveDifferent(self):
+        try:
+            self.move('foo', 'bar')
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.MOVE)
 
 
 if __name__ == "__main__":

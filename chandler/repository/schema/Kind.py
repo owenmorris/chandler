@@ -30,11 +30,12 @@ class Kind(Item):
         self._values['notFoundAttributes'] = []
         refDict = self._refDict('inheritedAttributes',
                                 'inheritingKinds', False)
+        
         self._references['inheritedAttributes'] = refDict
         self._status |= Item.SCHEMA | Item.PINNED
 
-        self._initialValues = None
-        self._initialReferences = None
+        self.__dict__['_initialValues'] = None
+        self.__dict__['_initialReferences'] = None
 
     def _fillItem(self, name, parent, kind, **kwds):
 

@@ -605,7 +605,7 @@ class RepositoryView(object):
         uuid = item.itsUUID
 
         old = self._registry.get(uuid)
-        if old and old is not item:
+        if old is not None and old is not item:
             raise ValueError, 're-registering %s with different object' %(item)
         
         self._registry[uuid] = item
@@ -769,7 +769,7 @@ class OnDemandRepositoryView(RepositoryView):
                                   
             uuid = item._uuid
             if uuid in self._childrenRegistry:
-                if '_children' in item.__dict__:
+                if item._children is not None:
                     first = item._children._firstKey
                     last = item._children._lastKey
                 else:
