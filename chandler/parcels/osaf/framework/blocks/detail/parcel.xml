@@ -515,7 +515,7 @@
   </ContentItemDetail>
  
   <StaticText itsName="StaticHeadline"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <blockName value="StaticHeadline"/>
     <title>subject</title>
     <characterStyle itemref="doc:LabelStyle"/>

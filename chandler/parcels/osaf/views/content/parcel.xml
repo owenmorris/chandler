@@ -149,6 +149,7 @@
 
   <!-- Calendar Table -->
   <Table itsName="CalendarTable">
+    <blockName>FreakinCalendarTable</blockName>
     <contents itemref="view:calendarItemCollection"/>
 
     <columnHeadings></columnHeadings>

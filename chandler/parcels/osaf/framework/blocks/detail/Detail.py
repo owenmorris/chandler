@@ -455,6 +455,17 @@ def GetRedirectAttribute(item, defaultAttr):
         
 class StaticRedirectAttribute (StaticTextLabel):
     """
+      Static text label that displays the attribute value
+    """
+    def staticTextLabelValue (self, item):
+        try:
+            theLabel = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
+        except AttributeError:
+            theLabel = ""
+        return theLabel
+        
+class StaticRedirectAttributeLabel (StaticTextLabel):
+    """
       Static Text that displays the name of the selected item's Attribute
     """
     def shouldShow (self, item):
@@ -468,9 +479,15 @@ class StaticRedirectAttribute (StaticTextLabel):
             redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
         return redirectAttr
 
-# basic class which makes a detail block visible if the given attribute is there
-# and never for contacts
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
+    """
+      basic class for a block in the detail view typically containing:
+        * a label (e.g. a StaticText with "Title:")
+        * an attribute value (e.g. in an EditText with the value of item.title)
+      it also handles visibility of the block, depending on if the attribute
+      exists on the item or not (with a special case for contacts, which is 
+      always hidden)
+    """ 
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
         contactKind = Contacts.Contact.getKind (self.itsView)
@@ -909,7 +926,7 @@ class ContactFullNameEditField (EditRedirectAttribute):
             value = item.ItemWhoString ()
         widget.SetValue(value)
 
-class StaticEmailAddressAttribute (StaticRedirectAttribute):
+class StaticEmailAddressAttribute (StaticRedirectAttributeLabel):
     """
       Static Text that displays the name of the selected item's Attribute.
     Customized for EmailAddresses

@@ -41,7 +41,9 @@
   <!-- Kind: RSSChannel -->
 
   <Kind itsName="RSSChannel">
-    <superKinds itemref="content:ContentItem"/>
+    <!-- <superKinds itemref="content:ContentItem"/> -->
+    <!-- make this into an item collection so we can appear natively in the sidebar -->
+    <superKinds itemref="content:ItemCollection"/>
     <!-- <superKinds itemref="content:Note"/> -->
     <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
     

@@ -129,6 +129,8 @@ class ZaoBaoItemDetail(Detail.HTMLDetailArea):
                 content = displayName
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
             HTMLText = HTMLText + '<p>' + content + '</p>\n\n'
+            #should find a good way to localize "more..."
+            HTMLText = HTMLText + '<br><a href="' + item.link + '">more...</a>'
 
             HTMLText = HTMLText + '</body></html>\n'
 

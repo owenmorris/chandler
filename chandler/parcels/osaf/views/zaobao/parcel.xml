@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="zaobao"
-             xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/zaobao"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:zb="http://osafoundation.org/parcels/osaf/examples/zaobao"
@@ -17,19 +17,6 @@
 
   <core:version>0.3</core:version>
 
-  <!-- RSS Channels -->
-  <zb:RSSChannel itsName="osaf-rss-channel">
-    <displayName>Loading... OSAF News</displayName>
-    <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
-   </zb:RSSChannel>
-  <zb:RSSChannel itsName="chandlerwiki-rss-channel">
-    <displayName>Loading... Chandler Wiki</displayName>
-    <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Chandler/WebRss?skin=rss</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="junglewiki-rss-channel">
-    <displayName>Loading... Jungle Wiki</displayName>
-    <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Jungle/WebRss?skin=rss</zb:url>
-  </zb:RSSChannel>
   
   <!-- Styles -->
   <CharacterStyle itsName="HeaderCharacterStyle">
@@ -74,59 +61,7 @@
     <minimumSize>900,580</minimumSize>
   </HTML>
 
-  <Tree itsName="ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <hideRoot>False</hideRoot>
-    <rootPath itemref="doc:osaf-rss-channel"/>
 
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-  
-  <SplitterWindow itsName="ZaoBaoChannelViewOld">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-
-    <childrenBlocks itemref="doc:ChannelList"/>
-    <childrenBlocks itemref="doc:ChannelItemDetail"/>
-  </SplitterWindow>
-
-  <contentModel:ItemCollection itsName="ZaoBaoItemView">
-    <displayName>RSS Items</displayName>
-    <_rule value="for i in '//parcels/osaf/examples/zaobao/RSSItem' where True"/>
-  </contentModel:ItemCollection>
-  <contentModel:ItemCollection itsName="ZaoBaoChannelView">
-    <displayName>RSS Channels</displayName>
-    <_rule value="for i in '//parcels/osaf/examples/zaobao/RSSChannel' where True"/>
-  </contentModel:ItemCollection>
-  
-  <BoxContainer itsName="ZaoBaoViewOld">
-    <displayName>ZaoBao</displayName>
- 
-    <!-- Menus -->
-    <!-- <childrenBlocks itemRef="doc:Menu"/> -->
-
-    <!-- MenuItems for dynamic containers? Have to look into this -->
-    
-    <!-- Toolbar buttons -->
-    <!-- <childrenBlocks itemref="doc:RefreshButton"/> -->
-
-    <!-- Layout children - how does it know where this goes? Does it have to be a tab container?-->
-    <childrenBlocks itemref="doc:ZaoBaoChannelViewOld"/>
-    
-    <!-- Attributes - what are these? -->
-    <orientationEnum>Vertical</orientationEnum>
-    <eventBoundary>True</eventBoundary>
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </BoxContainer>
-  
   <!-- ## detail view for RSSItems ## -->
   
   <!-- ContentItem will handle display of the channel title -->
@@ -140,15 +75,25 @@
   <!-- URL -->
   <ContentItemDetail itsName="LinkArea"
     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName>LinkArea</blockName>
+    <position>0.3</position>
     <selectedItemsAttribute>link</selectedItemsAttribute>
     <childrenBlocks itemref="doc:LinkLabel"/>
-    <childrenBlocks itemref="doc:LinkEditField"/>
+    <childrenBlocks itemref="doc:LinkAttribute"/>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
-  <StaticText itsName="LinkLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <blockName>LinkLabel</blockName>
+  <CharacterStyle itsName="LinkStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>10</fontSize>
+    <fontStyle>underline</fontStyle>
+  </CharacterStyle>
+  
+  <!-- huh, I only seem to be able to apply this to whole ContentItemDetail items -->
+  <ColorStyle itsName="LinkColor">
+    <foregroundColor>0,0,255,255</foregroundColor>
+  </ColorStyle>
+
+  <StaticText itsName="LinkLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>link</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
@@ -157,25 +102,25 @@
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
-  <EditText itsName="LinkEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
-    <blockName>LinkEditField</blockName>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-     <readOnly>True</readOnly>
-    <characterStyle itemref="detail:TextStyle"/>
-  </EditText>
+  <StaticText itsName="LinkAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <characterStyle itemref="doc:LinkStyle"/>
+    <!-- <colorStyle itemref="doc:LinkColor"/> -->
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>   
+    <title>linkattribute</title>
+  </StaticText>
   
   <!-- Category -->
   <ContentItemDetail itsName="CategoryArea"
     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName>CategoryArea</blockName>
+    <position>0.2</position>
     <selectedItemsAttribute>category</selectedItemsAttribute>
     <childrenBlocks itemref="doc:CategoryLabel"/>
-    <childrenBlocks itemref="doc:CategoryEditField"/>
+    <childrenBlocks itemref="doc:CategoryAttribute"/>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
-  <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <blockName>CategoryLabel</blockName>
+  <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>category</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
@@ -184,24 +129,23 @@
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
-  <EditText itsName="CategoryEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
-    <blockName>CategoryEditField</blockName>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>True</readOnly>
-    <characterStyle itemref="detail:TextStyle"/>
-  </EditText>
+  <StaticText itsName="CategoryAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <title>category</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>1.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+  </StaticText>
   
   <!-- Author area -->
   <ContentItemDetail itsName="AuthorArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName>AuthorArea</blockName>
+    <position>0.0</position>
     <selectedItemsAttribute>author</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
-    <childrenBlocks itemref="doc:AuthorEditField"/>
+    <childrenBlocks itemref="doc:AuthorAttribute"/>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <blockName>AuthorLabel</blockName>
+  <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>author</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
@@ -210,12 +154,12 @@
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
-  <EditText itsName="AuthorEditField" itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
-    <blockName>AuthorEditField</blockName>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>True</readOnly>
-    <characterStyle itemref="detail:TextStyle"/>
-  </EditText>
+  <StaticText itsName="AuthorAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <title>author</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
+  </StaticText>
   
   
     

@@ -12,7 +12,6 @@
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/main"
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:zaobao="http://osafoundation.org/parcels/osaf/views/zaobao"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
@@ -191,22 +190,6 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
-  </ModifyContentsEvent>
-
-  <ModifyContentsEvent itsName="AddZaoBaoChannelView">
-    <blockName>AddZaoBaoView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="zaobao:ZaoBaoChannelView"/>
-  </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddZaoBaoItemView">
-    <blockName>AddZaoBaoView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="zaobao:ZaoBaoItemView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
@@ -527,6 +510,7 @@
     <childrenBlocks itemref="doc:NewEventItem"/>
     <childrenBlocks itemref="doc:NewSeparator1"/>
     <childrenBlocks itemref="doc:NewContactItem"/>
+    <childrenBlocks itemref="doc:NewZaoBaoChannel"/>
   </Menu>
   
   <MenuItem itsName="NewNoteItem">
@@ -1140,8 +1124,6 @@
 
     <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
     <childrenBlocks itemref="doc:TestSeparator1"/>
-    <childrenBlocks itemref="doc:AddZaoBaoItemViewItem"/>
-    <childrenBlocks itemref="doc:AddZaoBaoChannelViewItem"/>
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddCPIAViewItem"/>
@@ -1172,20 +1154,20 @@
     <event itemref="doc:AddDemoView"/>
     <helpString>Adds the block demo view to the sidebar</helpString>
   </MenuItem>
-
-  <MenuItem itsName="AddZaoBaoChannelViewItem">
-    <blockName>AddZaoBaoChannelViewItem</blockName>
-    <title>Add ZaoBao Channels</title>
-    <event itemref="doc:AddZaoBaoChannelView"/>
-    <helpString>Adds the ZaoBao RSS reader channels</helpString>
+  
+  <!-- XXX temporary until we have a dynamic way to add this -->
+  <BlockEvent itsName="NewZaoBaoChannelEvent">
+    <blockName>NewZaoBaoChannel</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
+  <MenuItem itsName="NewZaoBaoChannel">
+    <blockName>NewZaoBaoChannelItem</blockName>
+    <title>New ZaoBao Channel</title>
+    <event itemref="doc:NewZaoBaoChannelEvent"/>
   </MenuItem>
-
-  <MenuItem itsName="AddZaoBaoItemViewItem">
-    <blockName>AddZaoBaoItemViewItem</blockName>
-    <title>Add ZaoBao RSS Items</title>
-    <event itemref="doc:AddZaoBaoItemView"/>
-    <helpString>Adds the ZaoBao RSS reader feed items</helpString>
-  </MenuItem>
+  <!-- end temporary -->
 
   <MenuItem itsName="AddRepositoryViewItem">
     <blockName>AddRepositoryViewItem</blockName>

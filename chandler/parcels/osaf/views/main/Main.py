@@ -343,6 +343,20 @@ class MainView(View):
     def onCommitRepositoryEvent(self, event):
         # Test menu item
         self.RepositoryCommitWithStatus ()
+        
+    # temporary until we can add this dynamically
+    def onNewZaoBaoChannelEvent(self, event):
+        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
+        if url and url != "":
+            # create the zaobao channel and send it to the sidebar
+            channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
+            if channel:
+                print "Adding " + str(channel) + " to sidebar"
+                self.postEventByName ('AddToSidebarWithoutCopying', {'items':[channel]})
+                self.itsView.commit()
+            else:
+                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", "Could not create channel for " + 
+                    url + "\nCheck the URL and try again.")
 
     def onGenerateCalendarEventItemsEvent(self, event):
         GenerateItems.generateCalendarEventItems(self.itsView, 10, 30)

@@ -5,6 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
 from osaf.contentmodel.ContentModel import ContentItem
+from osaf.contentmodel.ItemCollection import ItemCollection
 import mx.DateTime
 import feedparser
 
@@ -50,7 +51,7 @@ def NewChannelFromURL(view, url, update = True):
 
     return channel
 
-class RSSChannel(ContentItem):
+class RSSChannel(ItemCollection):
     myKindID = None
     myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
 
@@ -58,15 +59,16 @@ class RSSChannel(ContentItem):
         super(RSSChannel, self).__init__(name, parent, kind, view)
         self.items = []
 
-    def Update(self):
+    def Update(self, data=None):
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)
         if lastModified:
             lastModified = lastModified.tuple()
 
-        # fetch the data
-        data = feedparser.parse(str(self.url), etag, lastModified)
-
+        if not data:
+            # fetch the dat
+            data = feedparser.parse(str(self.url), etag, lastModified)
+                
         # set etag
         SetAttribute(self, data, 'etag')
 
@@ -100,21 +102,29 @@ class RSSChannel(ContentItem):
 
     def _DoItems(self, items):
         # make children
-        #print 'len items:', len(items)
-
+        
         # XXX because feedparser is currently broken and gives us
         # all new entries when a feed changes, we need to delete
         # all the existing items
-        if len(items) > 0:
-            for item in self.items:
-                item.delete()
-
+        
+        # instead, lets look for each existing item. This is ugly and is an O(n^2) problem
+        # if the items are unsorted. Bleah.
         view = self.itsView
-        for itemData in items:
-            #print 'new item'
-            rssItem = RSSItem(view=view)
-            rssItem.Update(itemData)
-            self.addValue('items', rssItem)
+        if len(items) > 0:
+            for newItem in items:
+                found = False
+                for oldItem in self.items:
+                    # check to see if this doesn't already exist
+                    if oldItem.isSimilar(newItem):
+                        found = True
+                    # how to break out of this loop?
+                        
+                if not found:
+                    # we have a new item - add it
+                    rssItem = RSSItem(view=view)
+                    rssItem.Update(newItem)
+                    self.addValue('items', rssItem)
+                    self.add(rssItem)
 
 ##
 # RSSItem
@@ -142,3 +152,22 @@ class RSSItem(ContentItem):
         date = data.get('date')
         if date:
             self.date = mx.DateTime.DateTimeFrom(str(date))
+            
+    def isSimilar(self, feedItem):
+        """
+            Returns True if the two items are the same, False otherwise
+        """
+        try:
+            # not every item has a date, so if neither item has a date, then
+            # in a sense their dates are equivalent
+            if self.displayName == feedItem.title and \
+                (('date' not in feedItem and not self.hasAttributeValue('date')) or \
+                 (self.date == mx.DateTime.DateTimeFrom(str(feedItem.date)))):
+                return True
+            else:
+                return False
+        except Exception, e:
+            print "oops: " + str(e)
+            return False
+
+            
