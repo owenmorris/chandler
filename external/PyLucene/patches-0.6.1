@@ -1,43 +1,6 @@
---- PyLucene-0.6.1/PyLucene.i	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/PyLucene.i	Tue Sep 21 16:11:17 2004
-@@ -918,14 +918,35 @@
- #endif
- 
-     objects = new java::util::Hashtable();
- 
-     java::util::Hashtable *props = (java::util::Hashtable *)
-         java::lang::System::getProperties();
-     props->put(JvNewStringUTF("inPython"), objects);
- 
-+    PyObject *sys = PyImport_ImportModule("sys");
-+    PyObject *path = PyObject_GetAttrString(sys, "path");
-+    int count = PyList_Size(path);
-+
-+    while (count-- > 0) {
-+        PyObject *pp = PyList_GET_ITEM(path, count);
-+        char *p = PyString_AsString(pp);
-+        int l = strlen(p);
-+
-+        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
-+        {
-+            jstring jp = JvNewStringUTF(p);
-+
-+            props->put(JvNewStringUTF("gnu.classpath.home.url"),
-+                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
-+            break;
-+        }
-+    }
-+    Py_DECREF(path);
-+    Py_DECREF(sys);
-+
-     JvInitClass(&org::apache::lucene::document::Field::class$);
-     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
-     JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
-     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
-     JvInitClass(&org::osafoundation::util::PythonRef::class$);
- %}
---- PyLucene-0.6.1/Makefile	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 22:49:22 2004
+diff -u8r PyLucene-0.6.1/Makefile PyLucene-0.6.1-patched/Makefile
+--- PyLucene-0.6.1/Makefile	2004-09-21 15:24:08.000000000 -0700
++++ PyLucene-0.6.1-patched/Makefile	2004-10-13 09:57:45.487196800 -0700
 @@ -134,20 +134,22 @@
  
  ifeq ($(OS),Cygwin)
@@ -81,6 +44,25 @@
  SWIG_OPT=-D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
+@@ -236,17 +238,17 @@
+ 
+ $(BINDIR)/db.o: $(BINDIR)/db_const.o
+ 	$(JCC) $(JCCFLAGS) -C -d $(CLASSES) --classpath=$(CLASSES) $(DB_SRCS)
+ 	$(JCC) -fjni $(JCCFLAGS) $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
+ 
+ ifeq ($(OS),Darwin)
+ # with gcc 3.4-20040407, libdb_java segfaults when compiled with -O2
+ $(LIBDB_JAVA_LIB):
+-	$(CC) -shared -bundle -o $@ -O $(LDFLAGS) $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.dylib
++	$(CC) -shared -bundle -o $@ -O $(LDFLAGS) $(DB_INC) -I$(GCJ_HOME)/include $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.dylib
+ else
+ 
+ ifeq ($(OS),Linux)
+ $(LIBDB_JAVA_LIB):
+ 	$(CC) -shared -o $@ $(CCFLAGS) $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-4.2.so
+ else
+ 
+ ifeq ($(OS),Cygwin)
 @@ -364,16 +366,20 @@
  
  
@@ -150,3 +132,43 @@
  ifdef DB
  	mkdir -p $(DISTRIB)/db
  	install $(LIBDB_JAVA_LIB) $(DISTRIB)/db
+Only in PyLucene-0.6.1-patched: Makefile~
+diff -u8r PyLucene-0.6.1/PyLucene.i PyLucene-0.6.1-patched/PyLucene.i
+--- PyLucene-0.6.1/PyLucene.i	2004-09-21 15:24:08.000000000 -0700
++++ PyLucene-0.6.1-patched/PyLucene.i	2004-10-13 09:54:48.823166400 -0700
+@@ -918,14 +918,35 @@
+ #endif
+ 
+     objects = new java::util::Hashtable();
+ 
+     java::util::Hashtable *props = (java::util::Hashtable *)
+         java::lang::System::getProperties();
+     props->put(JvNewStringUTF("inPython"), objects);
+ 
++    PyObject *sys = PyImport_ImportModule("sys");
++    PyObject *path = PyObject_GetAttrString(sys, "path");
++    int count = PyList_Size(path);
++
++    while (count-- > 0) {
++        PyObject *pp = PyList_GET_ITEM(path, count);
++        char *p = PyString_AsString(pp);
++        int l = strlen(p);
++
++        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
++        {
++            jstring jp = JvNewStringUTF(p);
++
++            props->put(JvNewStringUTF("gnu.classpath.home.url"),
++                       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
++            break;
++        }
++    }
++    Py_DECREF(path);
++    Py_DECREF(sys);
++
+     JvInitClass(&org::apache::lucene::document::Field::class$);
+     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+     JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
+     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
+     JvInitClass(&org::osafoundation::util::PythonRef::class$);
+ %}
