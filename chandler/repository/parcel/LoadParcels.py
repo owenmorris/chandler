@@ -56,7 +56,7 @@ def LoadParcels(searchPath, repository):
     for directory in string.split(searchPath, os.pathsep):
         for root, dirs, files in os.walk(directory):
             if 'parcel.xml' in files:
-                uri = "//parcels/%s" % string.lstrip(root, directory)
+                uri = "//parcels/%s" % root[len(directory)+1:]
                 uri = uri.replace(os.path.sep, "/")
                 parcel = repository.find(uri)
                 path = os.path.join(root, 'parcel.xml')
