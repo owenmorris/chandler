@@ -688,7 +688,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         
     def onKeyPressed (self, event):
         # called when we get an event; to saves away the data and skips the event
-        self.saveTextValue(validate = event.m_keyCode == wx.WXK_RETURN)
+        self.saveTextValue(validate = event.m_keyCode == wx.WXK_RETURN and self.lineStyleEnum != "MultiLine")
         event.Skip()
         
     def OnDataChanged (self):
@@ -718,15 +718,16 @@ class NoteBody (EditTextAttribute):
         return knowsBody
         
     def saveAttributeFromWidget (self, item, widget, validate):
-        attributeName = GetRedirectAttribute(item, 'body');
-        textType = item.getAttributeAspect(attributeName, 'type')
-        widgetText = widget.GetValue()
-        if widgetText:
-            #XXX: Ensures that any non-ascii text entered in to the detail view
-            #     is properly encoded to ascii. This is a short term fix
-            #     and will not address issues related to internationalization
-            text = unicode(widgetText, 'utf-8', 'ignore').encode('ascii', 'ignore')
-            item.body = textType.makeValue(text, encoding='ascii', indexed=True)
+        if validate:
+            attributeName = GetRedirectAttribute(item, 'body');
+            textType = item.getAttributeAspect(attributeName, 'type')
+            widgetText = widget.GetValue()
+            if widgetText:
+                #XXX: Ensures that any non-ascii text entered in to the detail view
+                #     is properly encoded to ascii. This is a short term fix
+                #     and will not address issues related to internationalization
+                text = unicode(widgetText, 'utf-8', 'ignore').encode('ascii', 'ignore')
+                item.body = textType.makeValue(text, encoding='ascii', indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
         attributeName = GetRedirectAttribute(item, 'body');
@@ -890,7 +891,8 @@ class EditRedirectAttribute (EditTextAttribute):
     Our parent block knows which attribute we edit.
     """
     def saveAttributeFromWidget(self, item, widget, validate):
-        item.setAttributeValue(self.whichAttribute(), widget.GetValue())
+        if validate:
+            item.setAttributeValue(self.whichAttribute(), widget.GetValue())
 
     def loadAttributeIntoWidget(self, item, widget):
         try:
