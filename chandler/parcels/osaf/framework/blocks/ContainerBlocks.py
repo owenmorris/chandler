@@ -486,11 +486,33 @@ class TabbedContainer(RectangularChild):
 
 class Toolbar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        return None, None, None
-
+        toolbar = wxToolBar(Globals.wxApplication.mainFrame, -1)
+        Globals.wxApplication.mainFrame.SetToolBar(toolbar)
+        return toolbar, None, None
+        
 
 class ToolbarItem(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
+        # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
+        toolbar = Globals.wxApplication.mainFrame.GetToolBar()
+        if self.toolbarItemKind == 'Button':
+            bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_BMP).ConvertToBitmap()
+            toolbar.AddSimpleTool (0, bitmap, self.title, self.statusMessage)
+        elif self.toolbarItemKind == 'Separator':
+            toolbar.AddSeparator()
+        elif self.toolbarItemKind == 'Check':
+            pass
+        elif self.toolbarItemKind == 'Radio':
+            pass
+        elif self.toolbarItemKind == 'Text':
+            textBox = wxTextCtrl (toolbar, -1, "", wxDefaultPosition, wxSize(300,-1), wxTE_PROCESS_ENTER)
+            textBox.SetName(self.title)
+            toolbar.AddControl (textBox)
+        elif __debug__:
+            assert (False)
+
+        toolbar.Realize()
+
         return None, None, None
 
 

@@ -783,6 +783,10 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
+    <Attribute itemName="toolbarLocation">
+      <type itemref="String"/>
+    </Attribute>
+    
     <Attribute itemName="title">
       <type itemref="String"/>
     </Attribute>
@@ -800,25 +804,22 @@
       <values>Separator</values>
       <values>Check</values>
       <values>Radio</values>
+      <values>Text</values>
     </Enumeration>
     
     <Attribute itemName="toolbarItemKind">
       <type itemref="docSchema:ToolbarItem/toolbarItemKindEnumType"/>
-    </Attribute>
-
-    <Attribute itemName="tooltip">
-      <type itemref="String"/>
     </Attribute>
     
     <Attribute itemName="statusMessage">
       <type itemref="String"/>
     </Attribute>
                 
+    <attributes itemref="docSchema:ToolbarItem/toolbarLocation"/>
     <attributes itemref="docSchema:ToolbarItem/title"/>
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>
     <attributes itemref="docSchema:ToolbarItem/selectedBitmap"/>
     <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
-    <attributes itemref="docSchema:ToolbarItem/tooltip"/>
     <attributes itemref="docSchema:ToolbarItem/statusMessage"/>
   </Kind>
 

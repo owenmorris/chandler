@@ -171,6 +171,61 @@
   </MenuItem>
 
   <!--
+    Toolbars
+  -->
+  <Toolbar itemName="Toolbar">
+    <!-- Attributes -->
+    <toolSize>16,16</toolSize>
+  </Toolbar>
+
+  <!--
+    ToolbarItems
+  -->
+  <ToolbarItem itemName="BackButton">
+    <!-- Attributes -->
+    <toolbarLocation>Toolbar</toolbarLocation>
+    <title>Back</title>
+    <bitmap>application/back.bmp</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Go to the previous view</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="ForwardButton">
+    <!-- Attributes -->
+    <toolbarLocation>Toolbar</toolbarLocation>
+    <title>Forward</title>
+    <bitmap>application/forward.bmp</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Go to the next view</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="ReloadButton">
+    <!-- Attributes -->
+    <toolbarLocation>Toolbar</toolbarLocation>
+    <title>Forward</title>
+    <bitmap>application/reload.bmp</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Reload the current view</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="Spacer">
+    <!-- Attributes -->
+    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="URLBox">
+    <!-- Attributes -->
+    <toolbarLocation>Toolbar</toolbarLocation>
+    <title>URLBox</title>
+    <toolbarItemKind>Text</toolbarItemKind>
+    <statusMessage></statusMessage>
+  </ToolbarItem>
+
+  <!--
     Layout blocks
   -->
   <EmbeddedContainer itemName="ParcelViewer">
@@ -236,8 +291,13 @@
     <blockEvents itemref="doc:ShowRepositoryViewer"/>
     
     <!-- Toolbar -->
-    <!-- @@@ MUST ADD -->
-
+    <childrenBlocks itemref="doc:Toolbar"/>
+    <childrenBlocks itemref="doc:BackButton"/>
+    <childrenBlocks itemref="doc:ForwardButton"/>
+    <childrenBlocks itemref="doc:ReloadButton"/>
+    <childrenBlocks itemref="doc:Spacer"/>
+    <childrenBlocks itemref="doc:URLBox"/>
+    
     <!-- Layout children -->
     <childrenBlocks itemref="doc:MainSplitter"/>
     
