@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys
+import gettext, os, sys, threading
 from wxPython.wx import *
 import Globals
 import repository.parcel.LoadParcels as LoadParcels
@@ -37,7 +37,6 @@ def repositoryCallback(uuid, notification, reason, **kwds):
 
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
-    import threading
     note.threadid = id(threading.currentThread())
     d = { 'uuid' : uuid, 'keywords' : kwds }
     note.SetData(d)
@@ -187,7 +186,7 @@ class wxApplication (wxApp):
         Globals.notificationManager.PrepareSubscribers()
 
         # Set it up so that repository changes generate notifications
-        Globals.repository.addNotificationCallback(repositoryCallback)
+        #Globals.repository.addNotificationCallback(repositoryCallback)
 
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
