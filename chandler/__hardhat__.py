@@ -45,7 +45,6 @@ def distribute(buildenv):
     # "Chandler_linux_M1.tar.gz")
     buildVersionShort = buildVersionShort.replace("CHANDLER_", "")
 
-    installSourceFile = None
     installTargetFile = None
 
     if buildenv['version'] == 'debug':
@@ -91,9 +90,11 @@ def distribute(buildenv):
 
             manifestFile = "distrib/linux/manifest.debug.linux"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            
             os.chdir(buildenv['root'])
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
-             distName)
+            
+            compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
         elif buildenv['os'] == 'win':
 
@@ -113,12 +114,9 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             
             hardhatlib.convertLineEndings(buildenv['distdir'])
-            installSourceFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
-            installSourceFile = os.path.join(installSourceFile, "Setup.exe")
-            installTargetFile = distName
-
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
     if buildenv['version'] == 'release':
 
@@ -133,9 +131,11 @@ def distribute(buildenv):
 
             manifestFile = "distrib/linux/manifest.linux"
             hardhatlib.handleManifest(buildenv, manifestFile)
+            
             os.chdir(buildenv['root'])
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
-             distName)
+            
+            compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
         if buildenv['os'] == 'osx':
 
@@ -184,28 +184,22 @@ def distribute(buildenv):
 
             os.chdir(buildenv['root'])
             hardhatlib.convertLineEndings(buildenv['distdir'])
-            installSourceFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
-            installSourceFile = os.path.join(installSourceFile, "Setup.exe")
-            installTargetFile = distName
-
-            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
 
     # put the compressed files in the right place if specified 'outputdir'
     if buildenv['outputdir']:
         if not os.path.exists(buildenv['outputdir']):
             os.mkdir(buildenv['outputdir'])
+
         # The end-user distro
         if os.path.exists(buildenv['outputdir'] + os.sep + compFile1):
             os.remove(buildenv['outputdir'] + os.sep + compFile1)
         os.rename(compFile1, buildenv['outputdir'] + os.sep + compFile1)
-        if buildenv['version'] == 'release':
-            _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
-        else:
-            _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
 
         # The end-user installer
-        if installSourceFile:
+        if installTargetFile:
             installTargetFile = '%s.exe' % installTargetFile
             installTarget     = os.path.join(buildenv['outputdir'], installTargetFile)
 
@@ -214,20 +208,15 @@ def distribute(buildenv):
 
             os.rename(installSourceFile, installTarget)
             
-            # write out the file name so it can be inserted into the various html files built later
             if buildenv['version'] == 'release':
                 _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
             else:
                 _outputLine(buildenv['outputdir'] + os.sep + "developer", installTargetFile)
-    else:
-        # we move the install file here so that it doesn't "pollute" the internal/installers/win tree
-        if installSourceFile:
-            installTarget = os.path.join(buildenv['root'], ('%s.exe' % installTargetFile))
-
-            if os.path.exists(installTarget):
-                os.remove(installTarget)
-
-            os.rename(installSourceFile, installTarget)
+        else:
+            if buildenv['version'] == 'release':
+                _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
+            else:
+                _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
