@@ -738,7 +738,9 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
 
         # Set up fonts and brushes for drawing the events
         dc.SetTextForeground(wx.BLACK)
+        dc.SetBrush(wx.WHITE_BRUSH)
 
+        selectedBox = None
         # Draw the events
         for item in self.parent.blockItem.getItemsByDate(date):
             time = item.startTime
@@ -753,47 +755,58 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             # keep track of the current drag/resize box
             if self._currentDragBox and self._currentDragBox.item == item:
                 self._currentDragBox = canvasItem                
-
-            # Draw one event
-            headline = time.Format('%I:%M %p ') + item.displayName
-
-            if (self.parent.blockItem.selection is item):
-                dc.SetBrush(wx.Brush(wx.Colour(229, 229, 229)))
+                
+            # save the selected box to be drawn last
+            if self.parent.blockItem.selection is item:
+                selectedBox = canvasItem
             else:
-                dc.SetBrush(wx.WHITE_BRUSH)
-
-            dc.SetPen(wx.Pen(wx.Colour(153, 153, 153)))
-            dc.DrawRoundedRectangleRect(itemRect, radius=10)
-
-            if (item.transparency == "confirmed"):
-                pen = wx.Pen(wx.BLACK, 3)
-            elif (item.transparency == "fyi"):
-                pen = wx.Pen(wx.LIGHT_GREY, 3)
-            elif (item.transparency == "tentative"):
-                pen = wx.Pen(wx.BLACK, 3, wx.DOT)
-
-            pen.SetCap(wx.CAP_BUTT)
-            dc.SetPen(pen)
-            dc.DrawLine(itemRect.x + 2, itemRect.y + 7,
-                        itemRect.x + 2, itemRect.y + itemRect.height - 7)
-
-            # Shift text
-            timeString = time.Format('%I:%M %p').lower()
-
-            timeRect = wx.Rect(itemRect.x + 3 + 5,
-                               itemRect.y + 3,
-                               itemRect.width - (3 + 10),
-                               15)
+                self.DrawCanvasItem(canvasItem, dc)
             
-            dc.SetFont(self.smallBoldFont)
-            y = self.DrawWrappedText(dc, timeString, timeRect)
+        # now draw the current item on top of everything else
+        if selectedBox:
+            dc.SetBrush(wx.Brush(wx.Colour(229, 229, 229)))
+            self.DrawCanvasItem(selectedBox, dc)
             
-            textRect = wx.Rect(itemRect.x + 3 + 5, y,
-                               itemRect.width - (3 + 10),
-                               itemRect.height - (y - itemRect.y))
+    def DrawCanvasItem(self, canvasItem, dc):
+        item = canvasItem.item
+        itemRect = canvasItem.bounds
+        time = item.startTime
 
-            dc.SetFont(self.smallFont)
-            self.DrawWrappedText(dc, item.displayName, textRect)
+        # Draw one event
+        headline = time.Format('%I:%M %p ') + item.displayName
+
+        dc.SetPen(wx.Pen(wx.Colour(153, 153, 153)))
+        dc.DrawRoundedRectangleRect(itemRect, radius=10)
+
+        if (item.transparency == "confirmed"):
+            pen = wx.Pen(wx.BLACK, 3)
+        elif (item.transparency == "fyi"):
+            pen = wx.Pen(wx.LIGHT_GREY, 3)
+        elif (item.transparency == "tentative"):
+            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        dc.DrawLine(itemRect.x + 2, itemRect.y + 7,
+                    itemRect.x + 2, itemRect.y + itemRect.height - 7)
+
+        # Shift text
+        timeString = time.Format('%I:%M %p').lower()
+
+        timeRect = wx.Rect(itemRect.x + 3 + 5,
+                           itemRect.y + 3,
+                           itemRect.width - (3 + 10),
+                           15)
+        
+        dc.SetFont(self.smallBoldFont)
+        y = self.DrawWrappedText(dc, timeString, timeRect)
+        
+        textRect = wx.Rect(itemRect.x + 3 + 5, y,
+                           itemRect.width - (3 + 10),
+                           itemRect.height - (y - itemRect.y))
+
+        dc.SetFont(self.smallFont)
+        self.DrawWrappedText(dc, item.displayName, textRect)
 
 
     # handle mouse related actions: move, resize, create, select
