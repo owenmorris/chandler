@@ -170,8 +170,14 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         print "Scrubbing all"
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Scrubbing all modules" + "\n")
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [hardhatScript, "-nS"])
+        try:
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-nS"])
+        except Exception, e:
+            log.write("***Error during scrub***" + "\n")
+            dumpOutputList(outputList, log)
+            raise e
+
         libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
         if os.path.exists(libraryDir):
             print "removing", libraryDir
@@ -182,8 +188,13 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         print "scrubbing only Chandler"
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Scrubbing only Chandler" + "\n")
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [hardhatScript, "-ns"])
+        try:
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-ns"])
+        except Exception, e:
+            log.write("***Error during scrub***" + "\n")
+            dumpOutputList(outputList, log)
+            raise e
 
     os.chdir(mainModuleDir)
 
