@@ -11,8 +11,6 @@ from crypto import Crypto
 import TestM2CryptoInitShutdown
 from M2Crypto import SSL
 
-# XXX This should not inherit from InitShutdown because that makes us
-#     run it's tests too
 class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
     
     def testSSL(self):
@@ -23,13 +21,9 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         
         ctx = Globals.crypto.getSSLContext(protocol='sslv3')
         conn = SSL.Connection(ctx)
-
-        # XXX Wrap this in try/except, we should not care about network
-        #     errors. Possible errors (check that they are ok):
-        #     - SSLError: (54, 'Connection reset by peer')
         self.assert_(conn.connect((site, 443)) >= 0)
 
-        Globals.crypto.sslPostConnectionCheck(conn, '0FA5B0527BA98FC66276CA166BA22E44A73636C9', host=site)
+        Globals.crypto.sslPostConnectionCheck(conn, 'FA5B0527BA98FC66276CA166BA22E44A73636C9', host=site)
 
         conn.clear()
 
