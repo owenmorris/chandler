@@ -7,6 +7,7 @@ from application.Globals import parcelManager as pm
 import osaf.mail.message
 import osaf.mail.sharing
 import application.dialogs.Util
+import osaf.framework.sharing.Sharing
 
 DEFAULT_URL = "http://code-bear.com/dav"
 
@@ -24,7 +25,10 @@ class PublishCollectionDialog(wx.Dialog):
          collection.displayName)
 
         self.urlText = wx.xrc.XRCCTRL(self, "ID_URL")
-        self.urlText.SetValue("%s/%s" % (DEFAULT_URL, collection.itsUUID))
+        if osaf.framework.sharing.Sharing.isShared(collection):
+            self.urlText.SetValue("%s" % collection.sharedURL)
+        else:
+            self.urlText.SetValue("%s/%s" % (DEFAULT_URL, collection.itsUUID))
 
         self.inviteesText = wx.xrc.XRCCTRL(self, "ID_INVITEES")
 
