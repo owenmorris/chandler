@@ -1,6 +1,6 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -422,78 +422,3 @@ class BlockEvent(Item):
         items[self.itsUUID] = self
         return [self]
 
-    
-class DetailBlock(Block):
-    def instantiateWidget (self):
-        return wxRectangularChild (self.parentBlock.widget)
-
-    def SetChildBlock (self):
-        newView = self.detailViewCache.GetViewForItem (self.contents)
-        children = iter (self.childrenBlocks)
-        try:
-            oldView = children.next()
-        except StopIteration:
-            oldView = None
-        if not newView is oldView:
-            self.childrenBlocks = []
-
-            if not oldView is None:
-                oldView.unRender()
-
-            if not newView is None:
-                self.childrenBlocks.append (newView)
-                """
-                  It's surprising the amount of work necessary to create an event --
-                  all because it's an Item
-                """
-                parent = Globals.repository.findPath ('//userdata')
-                kind = Globals.repository.findPath('//parcels/osaf/framework/blocks/BlockEvent')
-                event = BlockEvent (None, parent, kind)
-                event.arguments = {'item':self.contents}
-                newView.onSelectItemEvent (event)
-                event.delete()
-
-                newView.render()
-
-                sizer = wx.BoxSizer (wx.HORIZONTAL)
-                self.widget.SetSizer (sizer)
-
-                sizer.Add (newView.widget,
-                           newView.stretchFactor, 
-                           wxRectangularChild.CalculateWXFlag (newView), 
-                           wxRectangularChild.CalculateWXBorder (newView))
-                
-                # @@@BJS I think this is necessary after all, but I'll need to do more testing...
-                self.widget.Layout()
-
-    def onSelectItemEvent (self, event):
-        self.contents = event.arguments['item']
-        self.SetChildBlock()
-
-# @@@BJS: "reload parcels" needs to blow away this cache!
-
-class DetailViewCache (Item):
-    def GetViewForItem (self, item):
-        view = None
-        if not item is None:
-            kindUUID = item.itsUUID
-            try:
-                viewUUID = self.kindUUIDToViewUUID [kindUUID]
-            except KeyError:
-                kindString = str (item.itsKind.itsName)
-                try:
-                    name = {"MailMessage":"EmailRootTemplate",
-                            "CalendarEvent":"CalendarRootTemplate"} [kindString]
-                except KeyError:
-                    pass
-                else:
-                    # @@@BJS: work in progress...
-                    # NOT: For now, just use the old detail view
-                    # was: template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/DetailRootTemplate")
-                    template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
-                    view = template.copy (parent = Globals.repository.findPath ("//userdata"),
-                                          cloudAlias="default")
-                    self.kindUUIDToViewUUID [kindUUID] = view.itsUUID
-            else:
-                view = Globals.repository.findUUID (viewUUID)
-        return view

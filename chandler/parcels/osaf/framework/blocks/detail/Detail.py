@@ -1,14 +1,16 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import sys
 import application
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.sharing.Sharing as Sharing
+import osaf.framework.blocks.Trunk as Trunk
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
@@ -18,6 +20,8 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.Notes as Notes
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
+from repository.item.Item import Item
+from repository.item.Query import KindQuery
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import wx
@@ -27,26 +31,21 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-
-class DetailRoot (ControlBlocks.SelectionContainer):
+class DetailRoot (Trunk.TrunkParentBlock):
     """
       Root of the Detail View.
     """
     def onSelectItemEvent (self, event):
         """
-          We have an event boundary inside us, which keeps all
-        the events sent between blocks of the Detail View to
-        ourselves.
-          When we get a SelectItem event, we jump across
-        the event boundary and call synchronizeItemDetail on each
-        block to give it a chance to synchronize on the details of
-        the Item.  
-          Notify container blocks before their children.
+          A DetailTrunk is an event boundary; this keeps all the events 
+        sent between blocks of the Detail View to ourselves.
         """
-        self.finishSelectionChanges () # finish changes to previous selected item 
+        # Finish changes to previous selected item 
+        self.finishSelectionChanges () 
+           
         super(DetailRoot, self).onSelectItemEvent(event)
-        item= self.selectedItem()
-        assert item is event.arguments['item'], "can't track selection in DetailRoot.onSelectItemEvent"
+
+        # Synchronize to this item; this'll swap in an appropriate detail trunk.
         self.synchronizeWidget()
         if __debug__:
             dumpSelectItem = False
@@ -122,8 +121,8 @@ class DetailRoot (ControlBlocks.SelectionContainer):
 
     def synchronizeWidget (self):
         item= self.selectedItem()
-        self.synchronizeDetailView(item)
         super(DetailRoot, self).synchronizeWidget ()
+        self.synchronizeDetailView(item)
         if __debug__:
             dumpSynchronizeWidget = False
             if dumpSynchronizeWidget:
@@ -219,9 +218,13 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         # Called to resynchronize the whole Detail View
         # Called when an itemCollection gets new sharees,
         #  because the Notify button should then be enabled.
-        # @@@DLD - devise a block-dependency-event scheme.
-        item= self.selectedItem()
-        self.synchronizeDetailView(item)
+        # Also called after stamping.
+        
+        # @@@BJS: stripped-down for trees of blocks; used to be:
+        ## @@@DLD - devise a block-dependency-event scheme.        
+        #item= self.selectedItem()
+        #self.synchronizeDetailView(item)
+        self.synchronizeWidget()
 
     def finishSelectionChanges (self):
         """ 
@@ -240,6 +243,67 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         # return the detail root object
         return self
 
+
+class DetailTrunkDelegate (Trunk.TrunkDelegate):
+    """ 
+    Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
+    """    
+    def _mapItemToCacheKey(self, item):
+        """ 
+        Overrides to use the item's kind as our cache key
+        """
+        return item and item.itsKind
+    
+    def _makeTrunkForCacheKey(self, keyItem):
+        """ 
+        Handle a cache miss; build and return the detail tree-of-blocks for this keyItem, a Kind. 
+        """
+        # Walk through the keys we have subtrees for, and collect subtrees to use;
+        # we decide to use a subtree if _includeSubtree returns True for it.
+        # Each subtree we find has children that are the blocks that are to be 
+        # collected and sorted (by their 'position' attribute, then their paths
+        # to be deterministic in the event of a tie) into the tree we'll use.
+        # Blocks without 'position' attributes will naturally be sorted to the end.
+        # If we were given a reference to a 'stub' block, we'll copy that and use
+        # it as the root of the tree; otherwise, it's assumed that we'll only find
+        # one subtree for our key, and use it directly.
+        
+        # (Yes, I wrote this as a double nested list comprehension with filtering, 
+        # but I couldn't decide how to work in a lambda function, so I backed off and
+        # opted for clarity.)
+        decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
+        for subtree in self._getSubtrees():
+            if keyItem.isKindOf(subtree.key):
+                for block in subtree.rootBlocks:
+                    entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
+                                       block.itsPath,
+                                       self._copyItem(block))
+                    decoratedSubtreeList.append(entryTobeSorted) 
+                
+        if len(decoratedSubtreeList) == 0:
+            assert False, "Don't know how to build a trunk for this kind!"
+            # (We can continue here - we'll end up just caching an empty view.)
+
+        decoratedSubtreeList.sort()
+        
+        # Copy our stub block and move the new kids on(to) the block.
+        trunk = self._copyItem(self.trunkStub)
+        trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
+            
+        return trunk    
+    
+    def _getSubtrees(self):
+        """
+        Get a list of mappings from kind to subtree; by default, we generate it once at startup
+        """
+        try:
+            subtrees = self.subtreeList
+        except AttributeError:
+            trunkSubtreeKind = Globals.repository.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
+            subtrees = list(KindQuery().run([trunkSubtreeKind]))
+            self.subtreeList = subtrees
+        return subtrees
+        
 class DetailSynchronizer(object):
     """
       Mixin class that handles synchronizeWidget and
@@ -424,12 +488,8 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
             return False
         return True
 
-class EmailAddressBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # if the item is a Contact, we should show ourself
-        contactKind = Contacts.Contact.getKind ()
-        shouldShow = item.isItemOf (contactKind)
-        return shouldShow
+class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    pass
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
@@ -438,25 +498,6 @@ def ItemCollectionOrMailMessageMixin (item):
     isCollection = isinstance (item, ItemCollection.ItemCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
-
-class ToAndFromBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # if the item is a MailMessageMixin, or an ItemCollection,
-        # then we should show ourself
-        return ItemCollectionOrMailMessageMixin (item)
-
-class ToMailBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # if the item is a MailMessageMixin, or an ItemCollection,
-        # then we should show ourself
-        mailKind = Mail.MailMessageMixin.getKind ()
-        return item.isItemOf (mailKind)
-
-class ToCollectionBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # if the item is a MailMessageMixin, or an ItemCollection,
-        # then we should show ourself
-        return isinstance (item, ItemCollection.ItemCollection)
 
 class StaticToFromText (StaticTextLabel):
     def shouldShow (self, item):
@@ -798,13 +839,6 @@ class EditHeadlineRedirectAttribute (EditRedirectAttribute):
 """
 Classes to support Contact details
 """
-
-class ContactFullNameBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # if the item is a Contact, we should show ourself
-        contactKind = Contacts.Contact.getKind ()
-        shouldShow = item.isItemOf (contactKind)
-        return shouldShow
 
 class ContactFullNameEditField (EditRedirectAttribute):
     """
@@ -1168,11 +1202,6 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
     """
       "All Day" checkbox
     """
-    def shouldShow (self, item):
-        # @@@BJS For now, don't show
-        shown = False # item is not None and item.isItemOf (Calendar.CalendarEventMixin.getKind())
-        return shown
-
     def synchronizeItemDetail (self, item):
         hasChanged = super(AllDayCheckBox, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:

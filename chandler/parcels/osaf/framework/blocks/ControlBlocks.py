@@ -1,6 +1,6 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, sys
@@ -1163,7 +1163,7 @@ class ItemDetail(RectangularChild):
         self.synchronizeWidget ()
 
     
-class ContentItemDetail(BoxContainer):
+class ContentItemDetail(SelectionContainer):
     """
     ContentItemDetail
     Any container block in the Content Item's Detail View hierarchy.

@@ -2,14 +2,17 @@
 
 <!-- $Revision$ -->
 <!-- $Date$ -->
-<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- Copyright (c) 2003-2005 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="detail"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail">
 
   <!--   
@@ -82,34 +85,83 @@
   -->
   
   <!-- Root -->
-  <SelectionContainer itsName="DetailRootTemplate"
+  <!-- Each summary view copies one of these - when an Item is selected in it, 
+       it asks the DetailTrunkCache to build an appropriate DetailTrunk for that item. -->
+  <TrunkParentBlock itsName="DetailRootTemplate"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <blockName value="DetailRootTemplate"/>
-    <childrenBlocks itemref="doc:DetailTrunk"/>
-  </SelectionContainer>
+    <trunkDelegate itemref="doc:DetailTrunkDelegate"/>
+  </TrunkParentBlock>
 
-  <ContentItemDetail itsName="DetailTrunk">
-    <!-- child blocks -->
-    <blockName value="DetailTrunk"/>
-    <childrenBlocks itemref="doc:MarkupBar"/>
-    <childrenBlocks itemref="doc:ToMailArea"/>
-    <childrenBlocks itemref="doc:ToCollectionArea"/>
-    <childrenBlocks itemref="doc:FromArea"/>
-    <childrenBlocks itemref="doc:ContactFullNameArea"/>
-    <childrenBlocks itemref="doc:HeadlineArea"/>
-    <childrenBlocks itemref="doc:EmailAddressArea"/>
-    <childrenBlocks itemref="doc:DateKindArea"/>
-    <childrenBlocks itemref="doc:CalendarLocation"/>
-    <childrenBlocks itemref="doc:CalendarStartTime"/>
-    <childrenBlocks itemref="doc:CalendarDuration"/>
-    <childrenBlocks itemref="doc:CalendarDetailsArea"/>
-    <childrenBlocks itemref="doc:NotesArea"/>
+  <!-- We have one of this - it knows how to build a DetailTrunk for a given Item's Kind,
+       out of the trees of blocks below, and persists it. -->
+  <TrunkDelegate itsName="DetailTrunkDelegate"
+                 itemClass="osaf.framework.blocks.detail.Detail.DetailTrunkDelegate">
+    <trunkStub itemref="doc:DetailTrunkStub"/>
+  </TrunkDelegate>
+
+  <!-- The DetailTrunkCache starts each specific DetailTrunk by cloning this stub. -->
+  <ContentItemDetail itsName="DetailTrunkStub">
+    <blockName value="DetailTrunkStub"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
   </ContentItemDetail>
+
+  <!-- All our subtrees are of this kind, so we can find 'em. -->
+  <core:Kind itsName="DetailTrunkSubtree">
+    <superKinds itemref="TrunkSubtree"/>
+  </core:Kind>
+
+  <!-- 
+  Trees of blocks
+  -->
+  <!-- Content Item -->
+  <doc:DetailTrunkSubtree itsName="ContentItemSubtree">
+    <key itemref="content:ContentItem"/>
+    <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:DateKindArea"/>
+    <rootBlocks itemref="doc:NotesArea"/>
+  </doc:DetailTrunkSubtree>
+  
+  <!-- Note -->
+  <doc:DetailTrunkSubtree itsName="NoteSubtree">
+    <key itemref="content:Note"/>
+    <rootBlocks itemref="doc:MarkupBar"/>
+  </doc:DetailTrunkSubtree>
+
+  <!-- Calendar Event -->
+  <doc:DetailTrunkSubtree itsName="CalendarEventSubtree">
+    <key itemref="calendar:CalendarEventMixin"/>
+    <rootBlocks itemref="doc:CalendarDetails"/>
+  </doc:DetailTrunkSubtree>
+
+  <!-- Mail -->
+  <doc:DetailTrunkSubtree itsName="MailSubtree">
+    <key itemref="mail:MailMessage"/>
+    <rootBlocks itemref="doc:ToMailArea"/>
+    <rootBlocks itemref="doc:FromArea"/><!-- Shared with Item Collection-->
+  </doc:DetailTrunkSubtree>
+
+  <!-- Item Collection -->
+  <doc:DetailTrunkSubtree itsName="ItemCollectionSubtree">
+    <key itemref="content:ItemCollection"/>
+    <rootBlocks itemref="doc:ToCollectionArea"/>
+    <rootBlocks itemref="doc:FromArea"/><!-- Shared with Mail -->
+  </doc:DetailTrunkSubtree>
+
+  <!-- Contact -->
+  <doc:DetailTrunkSubtree itsName="ContactSubtree">
+    <key itemref="contact:Contact"/>
+    <rootBlocks itemref="doc:ContactFullNameArea"/>    
+    <rootBlocks itemref="doc:EmailAddressArea"/>
+  </doc:DetailTrunkSubtree>
+
+  <!--
+  The subtree blocks
+  -->
 
   <!-- MarkupBar -->
   <Toolbar itsName="MarkupBar"
@@ -122,6 +174,7 @@
     <childrenBlocks itemref="doc:ToolbarItemSeparator"/>
     <childrenBlocks itemref="doc:PrivateSwitchButton"/>
     <!-- Attributes -->
+    <position>0.0</position>
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
@@ -184,11 +237,12 @@
     Detail view attribute editors
   -->
   <ContentItemDetail itsName="FromArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="FromArea"/>
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField"/>
     <!-- Attributes -->
+    <position>0.3</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -216,11 +270,12 @@
   </EditText>
 
   <ContentItemDetail itsName="ContactFullNameArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ContactFullNameArea"/>
     <childrenBlocks itemref="doc:ContactFullNameString"/>
     <childrenBlocks itemref="doc:ContactFullNameEditField"/>
     <!-- Attributes -->
+    <position>0.4</position>
     <selectedItemsAttribute>contactName</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -247,11 +302,12 @@
   </EditText>
 
   <ContentItemDetail itsName="ToMailArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToMailBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ToArea"/>
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToMailEditField"/>
     <!-- Attributes -->
+    <position>0.1</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -279,11 +335,12 @@
   </EditText>
 
   <ContentItemDetail itsName="ToCollectionArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToCollectionBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ToArea"/>
     <childrenBlocks itemref="doc:ToString2"/>
     <childrenBlocks itemref="doc:ToCollectionEditField"/>
     <!-- Attributes -->
+    <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -316,6 +373,7 @@
     <childrenBlocks itemref="doc:StaticHeadline"/>
     <childrenBlocks itemref="doc:EditHeadline"/>
     <!-- Attributes -->
+    <position>0.5</position>
     <selectedItemsAttribute>about</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
@@ -344,11 +402,12 @@
   </EditText>
 
   <ContentItemDetail itsName="EmailAddressArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.EmailAddressBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="EmailAddressArea"/>
     <childrenBlocks itemref="doc:StaticEmailAddress"/>
     <childrenBlocks itemref="doc:EditEmailAddress"/>
     <!-- Attributes -->
+    <position>0.6</position>
     <selectedItemsAttribute>homeSection</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
@@ -382,6 +441,7 @@
     <childrenBlocks itemref="doc:DateTime"/>
     <childrenBlocks itemref="doc:KindLabel"/>
     <!-- Attributes -->
+    <position>0.7</position>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>450, 24</minimumSize>
   </ContentItemDetail>
@@ -493,7 +553,19 @@
     <minimumSize>300, 24</minimumSize>
     <viewAttribute value="duration"/>
   </AEBlock>
-
+  
+  <ContentItemDetail itsName="CalendarDetails">
+    <blockName value="CalendarDetails"/>
+    <childrenBlocks itemref="doc:CalendarLocation"/>
+    <childrenBlocks itemref="doc:CalendarStartTime"/>
+    <childrenBlocks itemref="doc:CalendarDuration"/>
+    <childrenBlocks itemref="doc:CalendarAllDayAndReminder"/>
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <position>0.8</position>
+  </ContentItemDetail>
+  
   <ContentItemDetail itsName="CalendarLocation"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
     <blockName value="CalendarLocation"/>
@@ -526,9 +598,9 @@
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="CalendarDetailsArea"
+  <ContentItemDetail itsName="CalendarAllDayAndReminder"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarDetailsArea"/>
+    <blockName value="CalendarAllDayAndReminder"/>
     <childrenBlocks itemref="doc:EditAllDay"/>
     <childrenBlocks itemref="doc:CalDetailsLeftSpacer"/>
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
@@ -599,6 +671,7 @@
   <EditText itsName="NotesArea"
                    itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
     <blockName value="NotesArea"/>
+    <position>0.9</position>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>RichText</textStyleEnum>
@@ -607,501 +680,5 @@
     <stretchFactor>3</stretchFactor>
     <minimumSize>300, 80</minimumSize>
   </EditText>
-
-  <!--
-    TREES OF BLOCKS
-  -->
-  <BlockEvent itsName="ButtonPressed1">
-    <blockName>ButtonPressed1</blockName>
-    <destinationBlockReference itemref="doc:MarkupBar1"/>
-  </BlockEvent>
-
-  <!-- EMAIL TREE Root Template -->
-  <SelectionContainer itsName="EmailRootTemplate"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
-    <blockName value="EmailRootTemplate"/>
-    <childrenBlocks itemref="doc:EmailTrunk"/>
-  </SelectionContainer>
-
-  <ContentItemDetail itsName="EmailTrunk">
-    <!-- child blocks -->
-    <blockName value="EmailTrunk"/>
-    <childrenBlocks itemref="doc:MarkupBar1"/>
-    <childrenBlocks itemref="doc:ToMailArea1"/>
-    <childrenBlocks itemref="doc:FromArea1"/>
-    <childrenBlocks itemref="doc:HeadlineArea1"/>
-    <childrenBlocks itemref="doc:EmailAddressArea1"/>
-    <childrenBlocks itemref="doc:DateKindArea1"/>
-    <childrenBlocks itemref="doc:NotesArea1"/>
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <size>80,20</size>
-    <minimumSize>80,40</minimumSize>
-    <eventBoundary>True</eventBoundary>
-  </ContentItemDetail>
-
-  <!-- MarkupBar -->
-  <Toolbar itsName="MarkupBar1"
-           itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
-    <blockName>MarkupBar1</blockName>
-    <!-- Children Blocks-->
-    <childrenBlocks itemref="doc:MailMessageButton1"/>
-    <childrenBlocks itemref="doc:TaskStamp1"/>
-    <childrenBlocks itemref="doc:CalendarStamp1"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <toolSize>20,20</toolSize>
-    <separatorWidth>50</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-  </Toolbar>
-
-  <!--
-    ToolbarItems
-  -->
-  <ToolbarItem itsName="MailMessageButton1"
-               itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
-    <blockName>MailMessageButton1</blockName>
-    <title>Send as message</title>
-    <bitmap>application/images/KindFilterMessage.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Send this item as a mail message</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="TaskStamp1"
-               itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
-    <blockName>TaskStamp1</blockName>
-    <title>Put on Taskpad</title>
-    <bitmap>application/images/KindFilterTask.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Put this item onto the Taskpad</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="CalendarStamp1"
-               itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
-    <blockName>CalendarStamp1</blockName>
-    <title>Put on Calendar</title>
-    <bitmap>application/images/KindFilterEvent.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Put this item onto the Calendar</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
- 
-  <ContentItemDetail itsName="FromArea1"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
-    <blockName value="FromArea1"/>
-    <childrenBlocks itemref="doc:FromString1"/>
-    <childrenBlocks itemref="doc:FromEditField1"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
-
-  <StaticText itsName="FromString1"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
-    <blockName value="FromString1"/>
-    <title>from</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="FromEditField1"
-            itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
-    <blockName value="FromEditField"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>True</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 24</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="ToMailArea1"
-                     itemClass="osaf.framework.blocks.detail.Detail.ToMailBlock">
-    <blockName value="ToMailArea1"/>
-    <childrenBlocks itemref="doc:ToString1"/>
-    <childrenBlocks itemref="doc:ToMailEditField1"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>who</selectedItemsAttribute>
-    <stretchFactor>0.0</stretchFactor>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-  </ContentItemDetail>
- 
-  <StaticText itsName="ToString1"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
-    <blockName value="ToString1"/>
-    <title>to</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="ToMailEditField1"
-            itemClass="osaf.framework.blocks.detail.Detail.ToMailEditField">
-    <blockName value="ToMailEditField1"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 24</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="HeadlineArea1"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
-    <blockName value="HeadlineArea1"/>
-    <childrenBlocks itemref="doc:StaticHeadline1"/>
-    <childrenBlocks itemref="doc:EditHeadline1"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>about</selectedItemsAttribute>
-    <minimumSize>300, 32</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticHeadline1"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <blockName value="StaticHeadline1"/>
-    <title>Subject</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 32</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="EditHeadline1"
-            itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
-    <blockName value="EditHeadline1"/>
-    <characterStyle itemref="doc:BigTextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 32</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="EmailAddressArea1"
-                     itemClass="osaf.framework.blocks.detail.Detail.EmailAddressBlock">
-    <blockName value="EmailAddressArea1"/>
-    <childrenBlocks itemref="doc:StaticEmailAddress1"/>
-    <childrenBlocks itemref="doc:EditEmailAddress1"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>homeSection</selectedItemsAttribute>
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticEmailAddress1"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticEmailAddressAttribute">
-    <blockName value="StaticEmailAddress1"/>
-    <title>email address</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
-  
-  <EditText itsName="EditEmailAddress1"
-            itemClass="osaf.framework.blocks.detail.Detail.EditEmailAddressAttribute">
-    <blockName value="EditEmailAddress"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="DateKindArea1">
-    <blockName value="DateKindArea1"/>
-    <childrenBlocks itemref="doc:EmptySpacer1"/>
-    <childrenBlocks itemref="doc:DateTime1"/>
-    <childrenBlocks itemref="doc:KindLabel1"/>
-    <!-- Attributes -->
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>450, 24</minimumSize>
-  </ContentItemDetail>
-
-  <StaticText itsName="EmptySpacer1">
-    <blockName value="EmptySpacer1"/>
-    <title></title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
-
-  <StaticText itsName="DateTime1"
-              itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
-    <blockName value="DateTime1"/>
-    <title>Date/Time</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>200, 24</minimumSize>
-  </StaticText>
-  
-  <StaticText itsName="KindLabel1"
-              itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
-    <blockName value="KindLabel1"/>
-    <title>Kind</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>150, 24</minimumSize>
-  </StaticText>
-  
-  <!-- NotesArea -->
-  <EditText itsName="NotesArea1"
-                   itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
-    <blockName value="NotesArea1"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>MultiLine</lineStyleEnum>
-    <textStyleEnum>RichText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>3</stretchFactor>
-    <minimumSize>300, 80</minimumSize>
-  </EditText>
-
-  <!-- CALENDAR TREE Root Template -->
-  
-  <BlockEvent itsName="ButtonPressed2">
-    <blockName>ButtonPressed2</blockName>
-    <destinationBlockReference itemref="doc:MarkupBar2"/>
-  </BlockEvent>
-
-  <SelectionContainer itsName="CalendarRootTemplate"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
-    <blockName value="CalendarRootTemplate"/>
-    <childrenBlocks itemref="doc:CalendarTrunk"/>
-  </SelectionContainer>
-
-  <ContentItemDetail itsName="CalendarTrunk">
-    <!-- child blocks -->
-    <blockName value="CalendarTrunk"/>
-    <childrenBlocks itemref="doc:MarkupBar2"/>
-    <childrenBlocks itemref="doc:HeadlineArea2"/>
-    <childrenBlocks itemref="doc:DateKindArea2"/>
-    <childrenBlocks itemref="doc:CalendarStartTime2"/>
-    <childrenBlocks itemref="doc:CalendarDuration2"/>
-    <childrenBlocks itemref="doc:NotesArea2"/>
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <size>80,20</size>
-    <minimumSize>80,40</minimumSize>
-    <eventBoundary>True</eventBoundary>
-  </ContentItemDetail>
-
-  <!-- MarkupBar -->
-  <Toolbar itsName="MarkupBar2"
-           itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
-    <blockName>MarkupBar2</blockName>
-    <!-- Children Blocks-->
-    <childrenBlocks itemref="doc:MailMessageButton2"/>
-    <childrenBlocks itemref="doc:TaskStamp2"/>
-    <childrenBlocks itemref="doc:CalendarStamp2"/>
-    <!-- Attributes -->
-    <colorStyle itemref="doc:GrayBackground3"/>
-    <toolSize>20,20</toolSize>
-    <separatorWidth>50</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-  </Toolbar>
-
-  <!--
-    ToolbarItems
-  -->
-  <ToolbarItem itsName="MailMessageButton2"
-               itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
-    <blockName>MailMessageButton2</blockName>
-    <title>Send as message</title>
-    <bitmap>application/images/KindFilterMessage.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Send this item as a mail message</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="TaskStamp2"
-               itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
-    <blockName>TaskStamp2</blockName>
-    <title>Put on Taskpad</title>
-    <bitmap>application/images/KindFilterTask.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Put this item onto the Taskpad</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="CalendarStamp2"
-               itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
-    <blockName>CalendarStamp2</blockName>
-    <title>Put on Calendar</title>
-    <bitmap>application/images/KindFilterEvent.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Put this item onto the Calendar</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
- 
-  <ContentItemDetail itsName="HeadlineArea2"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
-    <blockName value="HeadlineArea2"/>
-    <childrenBlocks itemref="doc:StaticHeadline2"/>
-    <childrenBlocks itemref="doc:EditHeadline2"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>about</selectedItemsAttribute>
-    <minimumSize>300, 32</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticHeadline2"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <blockName value="StaticHeadline2"/>
-    <title>Subject</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 32</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="EditHeadline2"
-            itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
-    <blockName value="EditHeadline2"/>
-    <characterStyle itemref="doc:BigTextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 32</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="DateKindArea2">
-    <blockName value="DateKindArea2"/>
-    <childrenBlocks itemref="doc:EmptySpacer2"/>
-    <childrenBlocks itemref="doc:DateTime2"/>
-    <childrenBlocks itemref="doc:KindLabel2"/>
-    <!-- Attributes -->
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>450, 24</minimumSize>
-  </ContentItemDetail>
-
-  <StaticText itsName="EmptySpacer2">
-    <blockName value="EmptySpacer2"/>
-    <title></title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
-
-  <StaticText itsName="DateTime2"
-              itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
-    <blockName value="DateTime2"/>
-    <title>Date/Time</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>200, 24</minimumSize>
-  </StaticText>
-  
-  <StaticText itsName="KindLabel2"
-              itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
-    <blockName value="KindLabel2"/>
-    <title>Kind</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>150, 24</minimumSize>
-  </StaticText>
-  
-  <ContentItemDetail itsName="CalendarStartTime2"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarStartTime2"/>
-    <childrenBlocks itemref="doc:StaticCalendarStartTime2"/>
-    <childrenBlocks itemref="doc:EditCalendarStartTime2"/>
-    <!-- Attributes -->
-    <selectedItemsAttribute>startTime</selectedItemsAttribute>
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticCalendarStartTime2"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticTimeAttribute">
-    <blockName value="StaticCalendarStartTime2"/>
-    <title>start time</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
-  
-  <EditText itsName="EditCalendarStartTime2"
-            itemClass="osaf.framework.blocks.detail.Detail.EditTimeAttribute">
-    <blockName value="EditCalendarStartTime2"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
-
-  <ContentItemDetail itsName="CalendarDuration2"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarDuration2"/>
-    <childrenBlocks itemref="doc:StaticCalendarDuration2"/>
-    <childrenBlocks itemref="doc:EditCalendarDuration2"/>
-    <!-- Attributes -->
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticCalendarDuration2"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticDurationAttribute">
-    <blockName value="StaticCalendarDuration2"/>
-    <title>duration</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
-  
-  <EditText itsName="EditCalendarDuration2"
-            itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
-    <blockName value="EditCalendarDuration2"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
-
-  <!-- NotesArea -->
-  <EditText itsName="NotesArea2"
-                   itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
-    <blockName value="NotesArea2"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>MultiLine</lineStyleEnum>
-    <textStyleEnum>RichText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>3</stretchFactor>
-    <minimumSize>300, 80</minimumSize>
-  </EditText>
-
-
-
 
 </core:Parcel>

@@ -2,7 +2,7 @@
 
 <!-- $Revision$ -->
 <!-- $Date$ -->
-<!-- Copyright (c) 2004 Open Source Applications Foundation -->
+<!-- Copyright (c) 2004-2005 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="content"
@@ -464,19 +464,11 @@
   </SplitterWindow>
 
   <!-- In View -->
-  <DetailBlock itsName="InDetailView">
-    <contents itemref="core:None"/>
-    <detailViewCache itemref="view:InDetailViewCache"/>
-  </DetailBlock>
-
-  <DetailViewCache itsName="InDetailViewCache">
-  </DetailViewCache>
-
   <SplitterWindow itsName="InView">
     <contents itemref="view:inItemCollection"/>
 
     <childrenBlocks itemref="view:InSummary"/>
-    <childrenBlocks itemref="view:InDetailView"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>

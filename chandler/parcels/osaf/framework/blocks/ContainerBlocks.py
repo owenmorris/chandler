@@ -1,6 +1,6 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -31,6 +31,17 @@ class wxBoxContainer (wxRectangularChild):
 
 class BoxContainer (RectangularChild):
     def instantiateWidget (self):
+        if self.parentBlock:
+            parentWidget = self.parentBlock.widget
+        else:
+            parentWidget = Globals.wxApplication.mainFrame
+ 
+        widget = wxBoxContainer (parentWidget, Block.getWidgetID(self))
+        widget.SetSizer (self.createSizer())
+
+        return widget
+    
+    def createSizer(self):
         if self.orientationEnum == 'Horizontal':
             orientation = wx.HORIZONTAL
         else:
@@ -38,16 +49,8 @@ class BoxContainer (RectangularChild):
 
         sizer = wx.BoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
-
-        if self.parentBlock:
-            parentWidget = self.parentBlock.widget
-        else:
-            parentWidget = Globals.wxApplication.mainFrame
- 
-        widget = wxBoxContainer (parentWidget, Block.getWidgetID(self))
-        widget.SetSizer (sizer)
-
-        return widget
+        
+        return sizer
 
 
 class wxLayoutChooser(wxBoxContainer):
@@ -120,16 +123,10 @@ class LayoutChooser(BoxContainer):
     
     def instantiateWidget (self):
         self.selection = LayoutChooser.NONE_SELECTED
-        if self.orientationEnum == 'Horizontal':
-            orientation = wx.HORIZONTAL
-        else:
-            orientation = wx.VERTICAL
 
-        sizer = wx.BoxSizer(orientation)
-        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
         parentWidget = self.parentBlock.widget 
         widget = wxLayoutChooser(parentWidget, Block.getWidgetID(self))
-        widget.SetSizer (sizer)
+        widget.SetSizer (self.createSizer())
 
         return widget
 
@@ -166,17 +163,9 @@ class wxScrolledContainer (wx.ScrolledWindow):
         
 class ScrolledContainer(BoxContainer):
     def instantiateWidget (self):
-        if self.orientationEnum == 'Horizontal':
-            orientation = wx.HORIZONTAL
-        else:
-            orientation = wx.VERTICAL
-
-        sizer = wx.BoxSizer(orientation)
-        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
-
         widget = wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))
-        widget.SetSizer (sizer)
-
+        widget.SetSizer (self.createSizer())
+        
         return widget
     
   
