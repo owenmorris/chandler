@@ -117,5 +117,16 @@ $(BUILD_ROOT)/gcc-3.4-20040407.tar.bz2:
 
 endif
 
+ifeq ($(OS),Linux)
+
+.PHONY: compiler
+
+compiler=compiler
+
+$(compiler):
+	echo you need to install a gcc 3.3.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
+
+endif
+
 compilers: $(compiler)
 
