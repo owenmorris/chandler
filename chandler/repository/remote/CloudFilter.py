@@ -14,10 +14,12 @@ from repository.persistence.RepositoryError import NoSuchItemError
 
 class CloudFilter(ItemFilter):
 
-    def __init__(self, cloud, store, uuid, version, generator):
+    def __init__(self, cloud, cloudAlias, store, uuid, version, generator):
 
         ItemFilter.__init__(self, store, uuid, version, generator)
+
         self.cloud = cloud
+        self.cloudAlias = cloudAlias
         self.endpoints = {}
 
     def parse(self, xml, uuids):
@@ -41,7 +43,7 @@ class CloudFilter(ItemFilter):
         kind = self.repository.find(UUID(self.data))
 
         if self.cloud is None:
-            clouds = kind.getClouds()
+            clouds = kind.getClouds(self.cloudAlias)
             if clouds:
                 self.cloud = clouds.first()
         elif not kind.isKindOf(self.cloud.kind):

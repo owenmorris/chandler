@@ -81,13 +81,13 @@ class Transport(object):
 
         return self.call('getVersionInfo', 'tui')
 
-    def serveItem(self, version, uuid):
+    def serveItem(self, version, uuid, cloudAlias):
 
-        return self.call('serveItem', 'x', version, uuid)
+        return self.call('serveItem', 'x', version, uuid, cloudAlias)
     
-    def serveChild(self, version, uuid, name):
+    def serveChild(self, version, uuid, name, cloudAlias):
 
-        return self.call('serveChild', 'x', version, uuid, name)
+        return self.call('serveChild', 'x', version, uuid, name, cloudAlias)
 
 
 class SOAPTransport(Transport):

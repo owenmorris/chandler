@@ -464,15 +464,12 @@ class Kind(Item):
 
     # end typeness of Kind as SingleRef
 
-    def getClouds(self, cloudAlias=None):
+    def getClouds(self, cloudAlias):
         """
         Get clouds for this kind, inheriting them if necessary.
 
         If there are no matching clouds, the matching clouds of the direct
         superKinds are returned, recursively.
-
-        if C{cloudAlias} is not specified or C{None}, the first cloud of
-        each cloud list traversed is returned.
 
         @return: a L{Cloud<repository.schema.Cloud.Cloud>} list, possibly empty
         """
@@ -481,16 +478,12 @@ class Kind(Item):
         clouds = self.getAttributeValue('clouds', default=None,
                                         _attrDict=self._references)
 
-        if clouds is None or (cloudAlias is not None and
-                              clouds.resolveAlias(cloudAlias) is None):
+        if clouds is None or clouds.resolveAlias(cloudAlias) is None:
             for superKind in self.superKinds:
                 results.extend(superKind.getClouds(cloudAlias))
 
-        elif cloudAlias is not None:
+        else:
             results.append(clouds.getByAlias(cloudAlias))
-
-        elif len(clouds) > 0:
-            results.append(clouds.first())
 
         return results
 

@@ -171,7 +171,8 @@ class Cloud(Item):
 
         return endpoints
 
-    def writeItems(self, uuid, version, generator, xml=None, uuids=None):
+    def writeItems(self, uuid, version, cloudAlias,
+                   generator, xml=None, uuids=None):
 
         if uuids is None:
             uuids = {}
@@ -187,7 +188,8 @@ class Cloud(Item):
                 
                 xml = doc.getContent()
 
-            filter = CloudFilter(self, store, uuid, version, generator)
+            filter = CloudFilter(self, cloudAlias, store, uuid, version,
+                                 generator)
             filter.parse(xml, uuids)
 
     def iterEndpoints(self, cloudAlias=None):
@@ -325,7 +327,8 @@ class Endpoint(Item):
 
         return results
 
-    def writeItems(self, index, uuid, version, generator, xml, uuids):
+    def writeItems(self, index, uuid, version, cloudAlias,
+                   generator, xml, uuids):
 
         names = self.attribute
 
@@ -345,12 +348,13 @@ class Endpoint(Item):
                     if cloud is None:
                         match = self.kindExp.match(xml, xml.index("<kind "))
                         kind = self.itsView[UUID(match.group(1))]
-                        cloud = kind.getClouds()
+                        cloud = kind.getClouds(cloudAlias)
                         if not cloud:
                             raise TypeError, 'No cloud for %s' %(kind.itsPath)
                         cloud = cloud[0]
 
-                    cloud.writeItems(uuid, version, generator, xml, uuids)
+                    cloud.writeItems(uuid, version, cloudAlias,
+                                     generator, xml, uuids)
 
                 else:
                     raise NotImplementedError, policy
@@ -366,8 +370,8 @@ class Endpoint(Item):
                     if doc is None:
                         raise NoSuchItemError, (uuid, version)
                     xml = doc.getContent()
-                    self.writeItems(index + 1, uuid, version, generator,
-                                    xml, uuids)
+                    self.writeItems(index + 1, uuid, version, cloudAlias,
+                                    generator, xml, uuids)
 
     def iterValues(self, item):
 

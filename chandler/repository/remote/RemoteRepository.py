@@ -14,7 +14,7 @@ from chandlerdb.util.UUID import UUID
 
 class RemoteRepository(XMLRepository):
 
-    def __init__(self, dbHome, protocol, *args, **kwds):
+    def __init__(self, dbHome, protocol, cloudAlias, *args, **kwds):
         'Construct an RemoteRepository giving it a transport handler'
         
         super(RemoteRepository, self).__init__(dbHome)
@@ -25,6 +25,8 @@ class RemoteRepository(XMLRepository):
             self.transport = JabberTransport(self, *args, **kwds)
         else:
             raise NotImplementedError, '%s protocol' %(protocol)
+
+        self.cloudAlias = cloudAlias
 
     def _createStore(self):
 
@@ -54,7 +56,8 @@ class RemoteStore(XMLStore):
         if doc is None:
             versionId = self._history.getVersionId(self.itsUUID)
             remoteVersion = self._history.getVersion(versionId)
-            xml = self.transport.serveItem(remoteVersion, uuid)
+            xml = self.transport.serveItem(remoteVersion, uuid,
+                                           self.repository.cloudAlias)
             if xml is not None:
                 filter = RemoteFilter(self, versionId)
                 self.transport.parseDoc(xml, filter)

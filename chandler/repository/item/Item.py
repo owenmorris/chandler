@@ -1304,6 +1304,25 @@ class Item(object):
 
         return False
 
+    def getItemCloud(self, cloudAlias):
+        """
+        Get the items in a cloud by using this item as entrypoint.
+
+        @param cloudAlias: the alias of the cloud(s) to use from this item's
+        kind.
+        @type cloudAlias: a string
+        @return: the list containing the items member of the cloud.
+        """
+
+        if self._kind is None:
+            raise KindlessItemError, self
+        
+        items = {}
+        for cloud in self._kind.getClouds(cloudAlias):
+            cloud.getItems(self, items, None, cloudAlias)
+
+        return items.values()
+
     def copy(self, name=None, parent=None, copies=None,
              copyPolicy=None, cloudAlias=None, copyFn=None):
         """

@@ -14,7 +14,7 @@
         -->
     </ref>
 
-    <ref name="kind" type="path">../../Kinds/Movie</ref>
+    <ref name="kind" otherAlias="remote" type="path">../../Kinds/Movie</ref>
   </item>
 
   <item>

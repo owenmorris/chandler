@@ -13,7 +13,7 @@
         -->
     </ref>
 
-    <ref name="kind" otherAlias="default"
+    <ref name="kind" otherAlias="remote"
          type="path">//Schema/Core/Kind</ref>
   </item>
 

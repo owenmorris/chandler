@@ -620,7 +620,7 @@ class XMLStore(Store):
             self._history.writeVersion(uuid, version, docId, status,
                                        parent, dirtyValues, dirtyRefs)
 
-    def serveItem(self, version, uuid):
+    def serveItem(self, version, uuid, cloudAlias):
 
         if version == 0:
             version = self._history.getVersion()
@@ -637,7 +637,8 @@ class XMLStore(Store):
             attrs = { 'version': str(version),
                       'versionId': self._history.getVersionId().str64() }
             generator.startElement('items', attrs)
-            filter = CloudFilter(None, self, uuid, version, generator)
+            filter = CloudFilter(None, cloudAlias, self, uuid, version,
+                                 generator)
             filter.parse(xml, {})
             generator.endElement('items')
         
@@ -645,7 +646,7 @@ class XMLStore(Store):
         finally:
             out.close()
 
-    def serveChild(self, version, uuid, name):
+    def serveChild(self, version, uuid, name, cloudAlias):
 
         if version == 0:
             version = self._history.getVersion()
@@ -654,7 +655,7 @@ class XMLStore(Store):
         if uuid is None:
             return None
 
-        return self.serveItem(version, uuid)
+        return self.serveItem(version, uuid, cloudAlias)
 
     TXNSTARTED = 0x0001
     EXCLUSIVE  = 0x0002

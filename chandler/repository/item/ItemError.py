@@ -108,6 +108,13 @@ class ReadOnlyAttributeError(AttributeError, ItemError):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
+class KindlessItemError(TypeError, ItemError):
+    "Item is kindless"
+
+    def __str__(self):
+        return self.getItem()._repr_()
+
+
 class CardinalityError(TypeError, ItemError):
     "Item %s (kind: %s), attribute '%s' is not %s"
 
