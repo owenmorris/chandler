@@ -8,15 +8,135 @@ relationships between them.
     >>> from spike import schema
 
 
+------------
+Introduction
+------------
+
+Entities and Values
+===================
+
+There are two fundamentally different kinds of objects you can use in Spike:
+entities and values.  Entities are normally used to represent real or virtual
+objects, while values are normally used to represent measurements or facts
+about those objects.  So, for example, a ``Person`` class would typically be
+an entity type, while a ``PersonName`` class (or a string) would be a value
+type.
+
+Entities are normally compared (and hashed) by identity, so that two entities
+are only equal if they are the same entity.  After all, what would it mean
+to say that two people are "equal"?  (Not to be confused with having equal
+rights, which is to say ``aPerson.rights == otherPerson.rights``, as opposed to
+``aPerson == otherPerson``!)  This identity-based comparison is Python's
+default behavior for user-defined classes, unless overridden.
+
+Values, on the other hand, are normally hashed and compared by their value,
+because more than one object can exist with the same value.  For example, one
+could create the string ``"A"`` and the string ``chr(65)``, and although these
+strings may be stored at different memory locations, their *values* are equal.
+Many Python built-in types are value types, including numbers, strings, tuples,
+unicode objects, and date/time values.
+
+Here's a quick summary of the differences between entity and value types:
+
+=======================     ===========================     ==============
+                                     Entities                  Values
+=======================     ===========================     ==============
+Mutability                  Mutable                         Immutable
+Hashing and comparisons     By identity                     By value
+Relationships               Uni or Bidirectional            Unidirectional
+Observable?                 Yes (Relationships changes)     No
+=======================     ===========================     ==============
+
+Values are immutable, which means they can't be changed once created.  (After
+all, what would it mean to "change" the number 1?)  Because they can't be
+changed, they can't directly participate in bidirectional relationships, or
+be observed (listened to for changes).
+
+Of course, not all objects fit neatly into one category or the other.  Python's
+list objects, for example, are compared by value, but are mutable and are not
+hashable.
+
+Spike, however, can only properly manage data that is either an entity, a
+value, or an observable collection thereof.  You cannot simply use Python
+lists or dictionaries, because these do not provide any way for Spike's storage
+and UI facilities to be notified when their contents are changed.
+
+Spike can't absolutely enforce this rule, though. It will give you warnings or
+errors when it detects something amiss, but it can't read your code or examine
+arbitrary types to determine whether they're truly value types.  In part this
+is because Spike wants to support built-in types like strings and numbers, and
+so Spike can't require that value types inherit from a common base class.
+
+Entity types, on the other hand, *are* required to inherit from a common base
+class, ``schema.Entity``.  Typically, an application will have many entity
+types, and relatively few value types, because it's somewhat less common to
+need a new kind of value.
+
+
+Roles and Relationships
+=======================
+
+Entities can be "related" to other entities or values.  For example, a
+``Person`` object might be involved in parent-child or sibling relationships,
+and an ``EmailMessage`` might have attachments.
+
+Relationships can be unidirectional for any related object type, and
+bidirectional if the related type is another entity type.  So, a person has
+a unidirectional relationship with their name, because a name is a value.  But
+a person can have a bidirectional relationship with another person, because
+a person is another entity.
+
+Each side of a relationship is called a "role", and each relationship has
+either one or two roles.  For example, in a bidirectional parent-and-child
+relationship, there is a "parent" role and a "child" role.  But in the
+person-and-name relationship, there is only one role: "name".
+
+Relationships are mutable, which is to say that the relationships between
+objects can be changed.  Or, more precisely, we can say that the set of
+objects playing a role in a particular relationship may change.  For example,
+if a person has another child, the set of objects playing the "child" role in
+relation to that person gets a new member.  Spike represents these "link sets"
+using observable set objects (see ``spike.models`` and its documentation), so
+that the storage and UI layers can be notified of these relationship changes.
+In this way, displays and databases can be automatically updated.
+
+In addition, Spike automatically manages the "other end" of a bidirectional
+relationship for you.  If you do something like ``Sally.father = Bill``, and
+there is a father-children relationship defined between ``Person`` objects,
+then Spike will automatically add ``Sally`` to ``Bill.children``.  This saves
+you from having to remember to update both link sets.
+
+Spike represents roles using objects, so to create a parent-child relationship
+you will literally create role objects called ``parents`` and ``children``.
+These objects represent the *idea* of parents and children, not a specific
+set of parents or children.  If you define these objects within the ``Person``
+class, then ``Person`` instances will have attributes named ``parents`` and
+``children`` that can be used to access the sets containing the person's
+parents and children.
+
+However, you are not restricted to only defining roles within an entity class.
+You can also define "standalone" role and relationship objects, which you can
+then use to access the link sets directly.  Role objects have an ``of()``
+method that returns the corresponding link set for the given entity.  So,
+``Person.parents.of(Joe)`` is just another way of accessing ``Joe.parents``,
+except that it also works for roles that were not defined in the entity class.
+This allows you to add new relationships to Chandler content types without
+needing to change Chandler's source code.
+
+
+
+-----
+To Do
+-----
 
 Entity Classes
-
-* Entity can be asked to retrieve a set for a given Role
 
 * EntityClass sets name and parent class for embedded Roles
 
 
 Roles
+
+* Role can retrieve itself for an Entity  (``aRole.of(anEntity)``)
 
 * Role classes exist for each cardinality (initially: One & Many)
 
@@ -43,10 +163,12 @@ Roles
 Relationships
 
 * Relationship expects two roles in class dict, and attempts to link them by
-setting the ``.inverse`` of one to point to the other.
+  setting the ``.inverse`` of one to point to the other.
 
 
 Misc.
+
+* Support derived roles
 
 * All schema objects know their fully-qualified import name (for UUID lookups)
   
