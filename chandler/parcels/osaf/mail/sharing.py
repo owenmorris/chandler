@@ -5,6 +5,7 @@ import twisted.internet.ssl as ssl
 import email.Message as Message
 import logging as logging
 import smtp as smtp
+import twisted.mail.smtp as smtpTwisted
 import common as common
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
@@ -56,9 +57,9 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         assert isinstance(url, str), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
+        assert len(sendToList) > 0, "sendToList must contain at least one email address"
 
-        if isinstance(collectionName, unicode):
-            collectionName = str(collectionName)
+        collectionName = str(collectionName)
 
         assert isinstance(collectionName, str), "collectionName must be a String or Unicode"
 
@@ -109,10 +110,12 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
         d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
         msg = StringIO.StringIO(messageText)
 
-        factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr,
-                                                  self.sendToList, msg, d, self.account.numRetries, common.TIMEOUT,
-                                                  sslContext, heloFallback, authRequired,
-                                                  self.account.useSSL)
+        factory = smtpTwisted.ESMTPSenderFactory(username, password, self.from_addr,
+                                                 self.sendToList, msg, d, self.account.numRetries, common.TIMEOUT,
+                                                 sslContext, heloFallback, authRequired,
+                                                 self.account.useSSL)
+
+        factory.protocol = smtp.ChandlerESMTPSender
 
         reactor.connectTCP(self.account.host, self.account.port, factory)
 
