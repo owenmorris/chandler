@@ -255,6 +255,10 @@ class MailDeliveryError(Item.Item):
         super (MailDeliveryError, self).__init__(name, parent, kind)
 
     def __str__(self):
+        if self.isStale():
+            return super(MailDeliveryError, self).__str__()
+            # Stale items shouldn't go through the code below
+
         return "| %d | %s | %s |" % (self.errorCode, self.errorString, self.errorDate.strftime())
 
 
@@ -550,6 +554,10 @@ class EmailAddress(Item.Item):
         """
           User readable string version of this address
         """
+        if self.isStale():
+            return super(EmailAddress, self).__str__()
+            # Stale items shouldn't go through the code below
+
         if self.emailAddress == self._getTheMeAddress():
             fullName = 'me'
         else:
