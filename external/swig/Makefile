@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-VERSION=1.3.21
+VERSION=20Feb04
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
 
@@ -32,7 +32,7 @@ swig:  $(SRC)/$(BUILD)/Makefile
 	$(MAKE) ; \
 	$(MAKE) install
 
-$(SRC)/$(BUILD)/Makefile:
+$(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); \
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
@@ -50,7 +50,7 @@ else
 
 EXECUTABLE=
 
-$(SRC)/$(BUILD)/Makefile:
+$(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); \
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
@@ -70,6 +70,9 @@ swig:   $(SRC)/$(BUILD)/Makefile
         $(MAKE) install 
 
 endif
+
+apply: patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION)
 
 # snap target can be empty since we don't actually need swig when
 # running Chandler
