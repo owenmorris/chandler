@@ -430,8 +430,13 @@ class wxApplication (wxApp):
 		"""
 		  add the passed in objects to the view specified by the url.
 		  Figure out the appropriate parcel, and let it do the work
+		  It must be the active parcel, or don't deliver the objects
 		"""
 		parcel = self.GetParcelFromURL(url)		
+		if self.wxMainFrame.activeParcel.model != parcel:
+		    # FIXME: we should at least log the error here
+		    return
+
 		if parcel != None:
 			parcel.AddObjectsToView(url, objectList, lastFlag)
 		else:
