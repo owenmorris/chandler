@@ -15,30 +15,38 @@ glob=*
 recursive=yes
 python2.3
 
-# src=release/lib
-# dest=lib
-# libwx_mac-2.4.0.dylib
-# libwx_mac-2.4.0.r
-# libwx_mac-2.4.0.rsrc
-# wx/include/mac-2.4/wx/setup.h
-# 
-# # Grab Chandler.py and LICENSE.txt
-# src=Chandler
-# dest=
-# Chandler.py
-# LICENSE.txt
-# 
-# # Grab the rest of Chandler from the application/ and parcel/ folders
-# recursive=yes
-# glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
-# application
-# parcels
-# 
-# # Grab the launcher and osx README
-# src=Chandler/distrib/osx
-# Chandler.sh
-# README.osx.txt
-# 
-# # Grab the overall README
-# src=Chandler/distrib
-# README.txt
+# Grab python Framework file
+src=release/Library/Frameworks/Python.framework/Versions/2.3
+dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3
+Python
+
+# Grab python executable file
+src=release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
+dest=Contents/MacOS
+python
+
+# Grab WX library
+src=release/lib
+dest=Contents/Resources/lib
+libwx_mac-2.4.0.dylib
+
+# Grab Chandler.py and LICENSE.txt
+src=Chandler
+dest=Contents/Resources
+Chandler.py
+LICENSE.txt
+ 
+# Grab the rest of Chandler from the application/ and parcel/ folders
+recursive=yes
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
+application
+parcels
+ 
+# Grab the bundle files
+src=Chandler/distrib/osx/bundle
+dest=Contents
+Info.plist
+dest=Contents/MacOS
+RunChandler
+dest=Contents/Resources
+Chandler.icns
