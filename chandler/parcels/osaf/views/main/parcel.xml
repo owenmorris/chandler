@@ -29,10 +29,7 @@
     Styles
   -->
   <CharacterStyle itemName="HeaderCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
     <fontStyle>bold</fontStyle>
-    <fontName></fontName>
   </CharacterStyle>  
 
   <!--

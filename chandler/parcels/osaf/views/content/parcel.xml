@@ -232,7 +232,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
@@ -250,7 +249,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
@@ -268,7 +266,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
@@ -286,7 +283,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
@@ -304,7 +300,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
@@ -322,7 +317,6 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
 
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 

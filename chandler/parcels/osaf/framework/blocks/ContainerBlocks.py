@@ -63,7 +63,7 @@ class EmbeddedContainer(RectangularChild):
         try:
             newChild = self.contentSpec.data[0]
         except IndexError:
-            return None, None, None
+            return None
         else:
             newChild.parentBlock = self
             self.RegisterEvents(newChild)

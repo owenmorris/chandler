@@ -26,17 +26,11 @@
     Styles
   -->
   <CharacterStyle itemName="TitleStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
     <fontStyle>bold</fontStyle>
-    <fontName></fontName>
   </CharacterStyle>  
 
   <CharacterStyle itemName="TextStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>10.0</fontSize>
-    <fontStyle></fontStyle>
-    <fontName></fontName>
   </CharacterStyle>
 
   <!--
@@ -157,7 +151,6 @@
 
   <StaticText itemName="IntroTextBlank">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
 
@@ -169,7 +162,6 @@
 
   <StaticText itemName="IntroTextOne">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.  It is used as an example for</title>
 
@@ -182,7 +174,6 @@
 
   <StaticText itemName="IntroTextTwo">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title>developers new to Chandler to see the kinds of blocks that are available and as a test framework</title>
 
@@ -194,7 +185,6 @@
 
   <StaticText itemName="IntroTextThree">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title>for blocks.</title>
 
@@ -206,7 +196,6 @@
  
   <StaticText itemName="IntroInstructionsBlank">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
 
@@ -218,7 +207,6 @@
 
   <StaticText itemName="IntroInstructions">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
     <title>Click through the tabs to view the kinds of blocks that Chandler supports.</title>
 
@@ -307,8 +295,6 @@
     <childrenBlocks itemref="doc:TextButton"/>
 
     <!-- Attributes -->
-    <orientationEnum>Horizontal</orientationEnum>
-
     <contentSpec itemref="doc:myQuery"/>
     <size>200,40</size>
     <minimumSize>200,40</minimumSize>
@@ -317,7 +303,6 @@
   
   <EditText itemName="ButtonText">
     <!-- Attributes -->
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
@@ -380,8 +365,6 @@
     <childrenBlocks itemref="doc:RadioExample"/>
 
     <!-- Attributes -->
-    <orientationEnum>Horizontal</orientationEnum>
-
     <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
@@ -393,8 +376,6 @@
     <childrenBlocks itemref="doc:ComboExample"/>
 
     <!-- Attributes -->
-    <orientationEnum>Horizontal</orientationEnum>
-
     <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>

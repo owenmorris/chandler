@@ -57,10 +57,7 @@
 
   <!-- Styles -->
   <CharacterStyle itemName="HeaderCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
     <fontStyle>bold</fontStyle>
-    <fontName></fontName>
   </CharacterStyle>  
 
   <!-- Events -->
@@ -107,7 +104,6 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
@@ -140,7 +136,6 @@
   </HTML>
 
   <SplitterWindow itemName="ZaoBaoView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -193,7 +188,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -239,7 +233,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chandlerwiki_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -284,7 +277,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="junglewiki_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -330,7 +322,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ted_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -376,7 +367,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="zaobao_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -423,7 +413,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chao_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -470,7 +459,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="lessig_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>
@@ -517,7 +505,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="mark_ZaoBaoChannelView">
-    <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
     
     <eventBoundary>True</eventBoundary>

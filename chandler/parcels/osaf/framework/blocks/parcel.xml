@@ -26,10 +26,12 @@
    
   <Attribute itemName="fontFamily">
     <type itemref="docSchema:fontFamilyEnumType"/>
+    <defaultValue type="docSchema:fontFamilyEnumType">DefaultUIFont</defaultValue>
   </Attribute>
 
   <Attribute itemName="fontSize">
     <type itemref="Float"/>
+    <defaultValue type="Float">12.0</defaultValue>
   </Attribute>
 
   <!--
@@ -38,10 +40,12 @@
   -->
   <Attribute itemName="fontStyle">
     <type itemref="String"/> 
+    <defaultValue type="String">""</defaultValue>
   </Attribute>
 
   <Attribute itemName="fontName">
     <type itemref="String"/>
+    <defaultValue type="String">""</defaultValue>
   </Attribute>
 
   <Struct itemName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct">
@@ -74,6 +78,7 @@
     
   <Attribute itemName="textAlignmentEnum">
     <type itemref="docSchema:textAlignmentEnumType"/>
+    <defaultValue type="docSchema:textAlignmentEnumType">Left</defaultValue>
   </Attribute>
   
   <Enumeration itemName="orientationEnumType">
@@ -83,6 +88,7 @@
 
   <Attribute itemName="orientationEnum">
     <type itemref="docSchema:orientationEnumType"/>
+    <defaultValue type="docSchema:orientationEnumType">Horizontal</defaultValue>
   </Attribute>
 
   <Attribute itemName="columnHeadings">
