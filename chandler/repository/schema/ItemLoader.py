@@ -20,6 +20,7 @@ import xml.sax.handler
 from model.item.Item import Item
 from model.schema.Kind import Kind
 from model.schema.Attribute import Attribute
+from model.schema.Parcel import Parcel
 import model.schema.Types
 
 class ItemLoader(object):
@@ -36,26 +37,11 @@ class ItemLoader(object):
                                                   verbose))
         self.parser.setErrorHandler(ItemErrorHandler())
 
-        # @@@ Remove this
-        self.pathSetup()
+        Parcel.setupParcels(repository)
 
     def load(self, file, parent=None):
         self.parser.parse(file)
 
-    # @@@ Bootstrapping: this method should go away!
-    def pathSetup(self):
-        itemKind = self.repository.find('//Schema/Core/Item')
-        schemaContainer = self.repository.find('//Schema')
-
-        parcelsContainer = Item('Parcels', self.repository, itemKind)
-        osafSchemaContainer = Item('OSAF', schemaContainer, itemKind)
-        osafParcelsContainer = Item('OSAF', parcelsContainer, itemKind)
-
-        kindKind = self.repository.find('//Schema/Core/Kind')
-        coreContainer = self.repository.find('//Schema/Core')
-        parcelKind = Item('Parcel', coreContainer, kindKind)
-
-        
 class ItemErrorHandler(xml.sax.ErrorHandler):
     def error(self, exception):
         print "SAX ERROR"
@@ -221,11 +207,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def createParcel(self, uri, local, nameString):
         # @@@ Ick!
-        parcelKind = self.repository.find("//Schema/Core/Item")
+        kind = self.repository.find("//Schema/Core/Kind")
         schema = self.repository.find("//Schema/OSAF")
         parcels = self.repository.find("//Parcels/OSAF")
-        schemaItem = parcelKind.newItem(nameString, schema)
-        parcelItem = parcelKind.newItem(nameString, parcels)
+        schemaItem = Parcel(nameString, schema, kind)
+        parcelItem = Parcel(nameString, parcels, kind)
 
         return schemaItem
 

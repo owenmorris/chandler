@@ -12,19 +12,15 @@ from model.schema.Kind import Kind
 class Parcel(Item, AutoKind):
 
     def setupParcels(repository):
+        # @@@ bootstrapping for parcels
         itemKind = repository.find('//Schema/Core/Item')
         schemaContainer = repository.find('//Schema')
 
         parcelsContainer = Item('Parcels', repository, itemKind)
+
+        # @@@ need to handle this more generally
         osafSchemaContainer = Item('OSAF', schemaContainer, itemKind)
         osafParcelsContainer = Item('OSAF', parcelsContainer, itemKind)
-
-        kindKind = repository.find('//Schema/Core/Kind')
-        coreContainer = repository.find('//Schema/Core')
-        parcelKind = kindKind.newItem('ParcelKind', coreContainer)
-        parcelKind.addValue('superKinds', itemKind)
-
-        return parcelKind
 
     setupParcels = staticmethod(setupParcels)
 
