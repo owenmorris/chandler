@@ -71,29 +71,37 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
     os.mkdir(outputDir)
-    # Initialize sources
-    print "Setup source tree..."
-    log.write("- - - - tree setup - - - - - - -\n")
     
-    outputList = hardhatutil.executeCommandReturnOutputRetry(
-     [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
-    hardhatutil.dumpOutputList(outputList, log)
-
-    # hack for linux until we fix things    
-    if buildenv['os'] == 'posix':
-        if not os.path.exists("Chandler"):
-            os.symlink(chanDir, "Chandler")
-
-    os.chdir(chanDir)
-
-    for releaseMode in ('debug', 'release'):
-
-        doInstall(releaseMode, workingDir, log)
-
-    # do tests
-        ret = doTests(hardhatScript, chanDir, workingDir, releaseMode, log)
-
-        CopyLog(os.path.join(workingDir, logPath), log)
+    if not os.path.exists(chanDir):
+        # Initialize sources
+        print "Setup source tree..."
+        log.write("- - - - tree setup - - - - - - -\n")
+        
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+         [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
+        hardhatutil.dumpOutputList(outputList, log)
+    
+        # hack for linux until we fix things    
+        if buildenv['os'] == 'posix':
+            if not os.path.exists("Chandler"):
+                os.symlink(chanDir, "Chandler")
+    
+        os.chdir(chanDir)
+    
+        for releaseMode in ('debug', 'release'):
+    
+            doInstall(releaseMode, workingDir, log)
+            ret = doTests(hardhatScript, chanDir, workingDir, releaseMode, log)
+            CopyLog(os.path.join(workingDir, logPath), log)
+    else:
+        os.chdir(chanDir)
+    
+        for releaseMode in ('debug', 'release'):
+    
+        # do tests after checking CVS
+            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+              cvsVintage, buildVersion, log)
+            CopyLog(os.path.join(workingDir, logPath), log)
 
     return ret
 
@@ -113,8 +121,7 @@ tarballModules = {
 }
 
 
-def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, 
- clobber, log):
+def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     print "Do " + mode
@@ -126,10 +133,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         log.write("Changes in CVS, do a " + mode + " install\n")
         doInstall(mode, workingDir, log)
         changes = "-changes"
-#     elif changesInModules(mode):
-#         log.write("Changes in module tarballs, updating modules\n")
-#         getChangedModules(mode)
-#         doBuild(mode)
     else:
         log.write("No changes, " + mode + " install skipped\n")
         changes = "-nochanges"
@@ -237,11 +240,6 @@ def doInstall(buildmode, workingDir, log):
     outputList = hardhatutil.executeCommandReturnOutput(
      [buildenv['make'], dbgStr, "install" ])
     hardhatutil.dumpOutputList(outputList, log)
-
-    # make a distribution
-#     outputList = hardhatutil.executeCommandReturnOutput(
-#      [hardhatScript, "-o", outputDir, dashR, 
-#      "-D", buildVersionEscaped])
 
 
 def NeedsUpdate(outputList):
