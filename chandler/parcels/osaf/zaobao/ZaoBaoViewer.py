@@ -13,7 +13,7 @@ from application.SplashScreen import SplashScreen
 
 #ZaoBao modules
 from OSAF.zaobao.ZaoBaoUI import *
-from OSAF.zaobao import RSSData
+from OSAF.zaobao.model import RSSData
 
 class ZaoBaoViewer (ViewerParcel):
     def __init__(self):
@@ -22,6 +22,13 @@ class ZaoBaoViewer (ViewerParcel):
         self.hasPermission = 1
         self.RunFirstTime()
 
+    def GetNotificationList(self):
+        return [RSSData.FEED_CHANGED_NOTIFICATION]
+   
+    def ReceiveNotification(self, notification):
+        myWxViewer = app.association[id(self)]
+        print "received notification"
+        
     def GetAccessibleViews(self, who):
         """ return a list of accessible views (for now, ones that are public)
         """
@@ -56,24 +63,8 @@ class ZaoBaoViewer (ViewerParcel):
 
     def RunFirstTime(self):
         #print 'running first time'
-        if (not hasattr(self,'_v_initialized')) or (not self._v_initialized):
-            #self.refreshRSSFeeds()
-            self._v_initialized = 1
-
-    def refreshRSSFeeds(self):
-        t = threading.Thread(target=self._refreshRSSFeeds)
-        t.setDaemon(1)
-        t.start()
-        
-    def _refreshRSSFeeds(self):
-        while 1:
-            RSSData.updateRSSFeeds()
-            time.sleep(5*60) # @@@ hardcoded for 5 mins
-        
-    def __setstate__(self, state):
-        super(ZaoBaoViewer, self).__setstate__(state)
-        self.RunFirstTime()
-            
+        return None
+                    
         
 class wxZaoBaoViewer(wxViewerParcel):
     def OnInit(self):
@@ -105,6 +96,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         EVT_TEXT_ENTER(self, self.urlTextArea.GetId(), self.onAddRssUrl)
         EVT_BUTTON(self, self.addURLButton.GetId(), self.onAddRssUrl)
 
+        #get top-most parent window to set status bar
         aFrame = self
         while not isinstance(aFrame,wxFrame):
             aFrame = aFrame.GetParent()
@@ -126,22 +118,23 @@ class wxZaoBaoViewer(wxViewerParcel):
         else:
             success = 1
             try:
-                anRSSData = RSSData.getNewRSSData(rssURL)
-            except RSSData.RSSDataException, e:
+                anRSSData = RSSData.getNewRSSChannel(rssURL)
+            except RSSData.RSSChannelException, e:
                 if (rssURL[:4] != 'http'):
                     try:
-                        anRSSData = RSSData.getNewRSSData(defaultPrefix + rssURL)
-                    except RSSData.RSSDataException, e:
+                        anRSSData = RSSData.getNewRSSChannel(defaultPrefix + rssURL)
+                    except RSSData.RSSChannelException, e:
                         success = 0
                 else: success = 0
             if success: self.RSSIndexView.addRSS(anRSSData)
             else: answer = wxMessageBox(e.args)
         self.SetCursor(wxNullCursor)
         
-    def onReload(self, event):
+    def OnReload(self):
         """Spawns a thread to check for updates from RSS feed"""
-        pass
-
+        print "reload pressed"
+        RSSData._updateRSSFeeds()
+ 
     def onAboutZaoBaoItem(self, event):
         pageLocation = pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
         # KDS: not sure if "About ZaoBao" should be internationalized or not.

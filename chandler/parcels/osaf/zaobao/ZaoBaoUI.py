@@ -18,6 +18,7 @@ import os
 from wxPython.wx import *
 from wxPython.lib.mixins.listctrl import *
 from wxPython.html import *
+
 #from wxPython.lib.dialogs import *
 
 if __is_standalone__:
@@ -28,19 +29,18 @@ if __is_standalone__:
 else:    
     #Chandler modules
     from application.ViewerParcel import *
-    from application.model_deprecated.LocalRepository import LocalRepository
     
     #ZaoBao modules
-    from OSAF.zaobao import RSSData
+    from OSAF.zaobao.model import RSSData
     from OSAF.zaobao.wxScrolledEditDialog import scrolledEditDialog
     from OSAF.zaobao.Observable import Observable1
     from OSAF.zaobao.dialogs import *
 
-def getChangedStatus(data):
+def getChangedStatus(rssChannel):
     """function used by list control to display if this feed has been read or not.
     Could also make it a anonymous lambda function
     """
-    if data.hasNewItems(): return __is_standalone__ and unichr(0x25CF) or '*' # @@@ Chandler doesn't coerce unicode to text?!
+    if rssChannel.hasNewItems(): return __is_standalone__ and unichr(0x25CF) or '*' # @@@ Chandler doesn't coerce unicode to text?!
     else: return ''
     
 class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixin, Observable1):
@@ -60,18 +60,18 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
                         'defaultWidth':10,
                         'sortFlag':0},
                     1:{'name':'Channel',
-                        'stringFunc':RSSData.RSSData.getTitle,
-                        'sorterFunc':RSSData.RSSData.getTitle,
+                        'stringFunc':RSSData.RSSChannel.getTitle,
+                        'sorterFunc':RSSData.RSSChannel.getTitle,
                         'defaultWidth':125,
                         'sortFlag':1},
                     2:{'name':'Creator',
-                        'stringFunc':RSSData.RSSData.getCreator,
-                        'sorterFunc':RSSData.RSSData.getCreator,
+                        'stringFunc':RSSData.RSSChannel.getCreator,
+                        'sorterFunc':RSSData.RSSChannel.getCreator,
                         'defaultWidth':100,
                         'sortFlag':1},
                     3:{'name':'Modified Date',
-                        'stringFunc':RSSData.RSSData.getModifiedDateString,
-                        'sorterFunc':RSSData.RSSData.getModifiedDate,
+                        'stringFunc':RSSData.RSSChannel.getModifiedDateString,
+                        'sorterFunc':RSSData.RSSChannel.getModifiedDate,
                         'defaultWidth':75,
                         'sortFlag':0}}
                         
@@ -124,8 +124,8 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         """use for sorting the list by wxColumnSorterMixin"""
         col = self._col
         ascending = self._colSortFlag[col]
-        data1 = self.getRSSDataFromKey(key1)
-        data2 = self.getRSSDataFromKey(key2)
+        data1 = self.getRSSChannelFromKey(key1)
+        data2 = self.getRSSChannelFromKey(key2)
         item1 = self._columnInfo[col]['sorterFunc'](data1)
         item2 = self._columnInfo[col]['sorterFunc'](data2)
 
@@ -208,32 +208,32 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
     def getCurrentItem(self):
         return self.GetFirstSelected(-1)
     
-    def deleteRSSDataFromKey(self, key):
-        """Delete the corresponding RSSData object given a key"""
+    def deleteRSSChannelFromKey(self, key):
+        """Delete the corresponding RSSChannel object given a key"""
         if (self.isLocal()):
             repository = LocalRepository()
-            assert (isinstance(self.rssDict[key],RSSData.RSSData))
+            assert (isinstance(self.rssDict[key],RSSData.RSSChannel))
             repository.deleteObject(self.rssDict[key])
             repository.commit()
         del self.rssDict[key]
 
-    def getRSSDataFromKey(self, key):
+    def getRSSChannelFromKey(self, key):
         return self.rssDict[key]
     
-    def getRSSDataFromIndex(self,index):
-        """Given an row number, return the instance of RSSData associated with the row"""
-        return self.getRSSDataFromKey(self.GetItemData(index))
+    def getRSSChannelFromIndex(self,index):
+        """Given an row number, return the instance of RSSChannel associated with the row"""
+        return self.getRSSChannelFromKey(self.GetItemData(index))
         
-    def getCurrentRSSData(self):
-        """Return the instance of RSSData associated with the selected row"""
+    def getCurrentRSSChannel(self):
+        """Return the instance of RSSChannel associated with the selected row"""
         index = self.getCurrentItem()
         if (index != -1):
-            return self.getRSSDataFromIndex(self.getCurrentItem())
+            return self.getRSSChannelFromIndex(self.getCurrentItem())
         return None
     
     def refreshIndex(self,index):
         """Refresh the display of the row in the indexView"""
-        data = self.getRSSDataFromIndex(index)
+        data = self.getRSSChannelFromIndex(index)
         for (col,colInfo) in self._columnInfo.items():
             self.SetStringItem(index,col,colInfo['stringFunc'](data))
         self.setReadStatus(index,data.hasNewItems())
@@ -250,9 +250,9 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         self.SetItemState(index,wxLIST_STATE_SELECTED,wxLIST_STATE_SELECTED)
         
     def update(self, updateObj, args):
-        """called by Observable, when underlying list item data (instance of RSSData)
+        """called by Observable, when underlying list item data (instance of RSSChannel)
         is updated (changed)"""
-        if isinstance(updateObj, RSSData.RSSData):
+        if isinstance(updateObj, RSSData.RSSChannel):
             try:
                 key = args['key']
                 index = self.FindItemData(-1,key)
@@ -273,7 +273,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         """Tell the ItemView to refresh its content based on the selected row"""
         inRightDown = hasattr(self,'inRightDown') and self.inRightDown
         if self.itemView and not inRightDown:
-            data = self.getCurrentRSSData()
+            data = self.getCurrentRSSChannel()
             if data:
                 self.SetCursor(wxHOURGLASS_CURSOR)
                 #print ('*** setting page ')
@@ -290,14 +290,14 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         
     def onSelected(self,event):
         """A new row (RSS channel) has been selected"""
-        self.broadcast(self.getCurrentRSSData())
+        self.broadcast(self.getCurrentRSSChannel())
         self.updateItemView()
         
     def onActivated(self, event):
         """Double-clicking opens the web site of the RSS feed on the default browser"""
         if self.itemView:
             currentItem = event.m_itemIndex
-            data = self.getCurrentRSSData()
+            data = self.getCurrentRSSChannel()
             if data:
                 webbrowser.open(data.getSiteLink())
                 data.setHasNewItems(0)
@@ -316,7 +316,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         """Double-clicking opens the web site of the RSS feed on the default browser"""
         if self.itemView:
             currentItem = event.m_itemIndex
-            data = self.getCurrentRSSData()
+            data = self.getCurrentRSSChannel()
             if data:
                 webbrowser.open(data.getSiteLink())
                 data.setHasNewItems(0)
@@ -325,7 +325,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
         """Deletes the RSS feed represented by the index or row num"""
         key = self.GetItemData(index) # need to get key before it is deleted!
         if self.DeleteItem(index):
-            self.deleteRSSDataFromKey(key)
+            self.deleteRSSChannelFromKey(key)
             self.updateItemView()
             
     def onRightClick(self, event):
@@ -345,7 +345,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
             EVT_MENU(self, self.popupIDs[1], self.onDeleteItem)
             EVT_MENU(self, self.popupIDs[2], self.onRefreshItem)
 
-        data = self.getCurrentRSSData()
+        data = self.getCurrentRSSChannel()
         if data:
             menu = wxMenu()
             menuName = _("Mark as ")
@@ -363,7 +363,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
     def onMarkItem(self, event):
         """Mark selected row as read or unread (toggle)"""
         self.inRightDown = false
-        data = self.getCurrentRSSData()
+        data = self.getCurrentRSSChannel()
         if data:
             data.setHasNewItems(not data.hasNewItems())
     
@@ -379,14 +379,14 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
     def onRefreshItem(self, event):
         """Pings RSS feed for new data"""
         self.inRightDown = false
-        data = self.getCurrentRSSData()
+        data = self.getCurrentRSSChannel()
         if data:
             data.update()
     
     def onCopyRSSURL(self, event):
         """Copies selected RSS feed URL to clipboard"""
         self.inRightDown = false
-        data = self.getCurrentRSSData()
+        data = self.getCurrentRSSChannel()
         if data:
             wxTheClipboard.SetData(wxTextDataObject(data.getRSSURL()))
         
@@ -452,7 +452,7 @@ class wxZaoBaoItemView(wxHtmlWindow):
         
     def subItemsForHTML(self,item,text):
         def translate(match):
-            return item.get(self._translationDict[match.group(0)],'')
+            return item.getAttribute(self._translationDict[match.group(0)])
         
         return self._regex.sub(translate, text)
 
@@ -468,7 +468,7 @@ class wxZaoBaoItemView(wxHtmlWindow):
         return re.sub('<%items>',bodyHTML,self._defaultPageHTML)
 
     def SetData(self, data):
-        """Set the RSSData that this content view should represent"""
+        """Set the RSSChannel that this content view should represent"""
         if self.data != data:
             self.data = data
             self.SetPage(self.getNewItemsHTML())
