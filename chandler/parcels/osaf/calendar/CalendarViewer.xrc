@@ -27,6 +27,14 @@
    </object>
 </object>
 
+<object class="wxMenu" name="HelpMenu">
+   <label>Help</label>
+   <object class="wxMenuItem" name="MenuAboutCalendar">
+      <label>About Calendar...</label>
+      <insertBefore>About Chandler...</insertBefore>
+   </object>
+</object>
+
 <object class="wxPanel" 
         subclass="parcels.OSAF.calendar.CalendarViewer.wxCalendarViewer"
         name="CalendarViewer">
@@ -224,3 +232,4 @@
 </object>
 
 </resource>
+

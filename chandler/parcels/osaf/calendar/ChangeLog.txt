@@ -1,5 +1,10 @@
 # ChangeLog for Calendar Parcel
 
+2003-07-15
+   * Fix for Bug#456 ("About Calendar" info page missing)
+   * Removed discussion of a now-dead bug from the About page.
+   
+
 2003-07-14 capps@osafoundation.org
 
    * Fixes for Bug#789 (call Destroy or use wxMessageBox for dialogs)
