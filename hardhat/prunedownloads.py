@@ -7,6 +7,7 @@
 # The default policy is as follows:
 # - keep all builds from the last 48 hours
 # - keep one build per day for the past 30 days
+# - keep the latest build
 # - delete all others
 #
 # We assume directory structure as follows:
@@ -98,7 +99,7 @@ def prune():
         # now the real pruning happens here
         betweenDays = {}
         archivedirs = glob.glob('[0-9]*')
-        for archive in archivedirs:
+        for archive in archivedirs[:-1]: # [:-1] means 'leave latest'
             if len(archive) != 14 or not os.path.isdir(archive):
                 continue 
 
