@@ -26,7 +26,7 @@ src=chandler/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/
 dest=Contents/MacOS/release
 python
 
-# Grab wx and db libs
+# Grab wx, db and gcj libs
 src=chandler/release
 dest=Contents/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
@@ -35,14 +35,6 @@ src=chandler/release/db
 lib
 src=chandler/release/dbxml
 lib
-
-# Grab gcj 3.4.1 runtime libs
-src=$(GCJ_HOME)/lib
-libgcj.5.dylib
-libgcj.5.0.0.dylib
-libstdc++.6.dylib
-libstdc++.6.0.1.dylib
-libgcc_s.1.0.dylib
 
 # Grab Chandler.py and others
 src=chandler
