@@ -11,7 +11,7 @@ import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
 import twisted.internet.protocol as protocol
 import twisted.protocols.imap4 as imap4
-import repository.view.RepositoryViewBase as RepositoryViewBase
+import repository.persistence.RepositoryView as RepositoryView
 import mx.DateTime as DateTime
 import email as email
 import email.Utils as Utils
@@ -86,10 +86,10 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 
 
 
-class IMAPDownloader(RepositoryViewBase.RepositoryViewBase):
+class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
     def __init__(self, accountUUID, viewName):
-        super(IMAPDownloader, self).__init__(viewName)
+        super(IMAPDownloader, self).__init__(Globals.repository, viewName)
 
         self.proto = None
         self.accountUUID = accountUUID
@@ -264,11 +264,11 @@ class IMAPDownloader(RepositoryViewBase.RepositoryViewBase):
             self.restorePreviousView()
 
         """Commit the view in a Twisted thread to prevent blocking""" 
-        self.commitView()
+        self.commitView(True)
 
 
     def _viewCommitSuccess(self):
-        super(IMAPDownloader, self)._viewCommitSuccess()
+        Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
 
         self.printInfo(self.downloadedStr)
         self.downloadedStr = None
@@ -327,7 +327,7 @@ def make_message(data):
     m.subject = msg['Subject']
 
     # XXX replyAddress should really be the Reply-to header, not From
-    m.replyAddress = Mail.EmailAddressEmailAddress()
+    m.replyAddress = Mail.EmailAddress()
     m.replyAddress.emailAddress = format_addr(Utils.parseaddr(msg['From']))
 
     m.toAddress = []
