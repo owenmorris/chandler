@@ -81,7 +81,7 @@ class CanvasTextButton(wx.BitmapButton):
         dc.SetBackground(wx.Brush(bgcolor))
         dc.Clear()
         dc.SetTextForeground(fgcolor)
-        dc.DrawText(text, (0, 0))
+        dc.DrawText(text, 0, 0)
         
         return bitmap
         
@@ -269,10 +269,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 if (x + width > rect.x + rect.width):
                     y += height
                     x = rect.x
-                dc.DrawText(word, (x, y))
+                dc.DrawText(word, x, y)
                 x += width
                 width, height = dc.GetTextExtent(' ')
-                dc.DrawText(' ', (x, y))
+                dc.DrawText(' ', x, y)
                 x += width
             y += height
 
@@ -280,7 +280,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         textExtent = dc.GetTextExtent(text)
         middleRect = rect.width / 2
         middleText = textExtent[0] / 2
-        dc.DrawText(text, (rect.x + middleRect - middleText, rect.y))
+        dc.DrawText(text, rect.x + middleRect - middleText, rect.y)
         
     # Mouse movement
 
@@ -486,10 +486,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self.DrawBackground(memoryDC)
         self.DrawCells(memoryDC)
 
-        dc.Blit((xBuffer, yBuffer),
-                (wBuffer, hBuffer),
+        dc.Blit(xBuffer, yBuffer,
+                wBuffer, hBuffer,
                 memoryDC,
-                (xBuffer, yBuffer))
+                xBuffer, yBuffer)
 
         memoryDC.EndDrawing()
         

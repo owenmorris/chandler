@@ -55,7 +55,9 @@ class StringAttributeEditor (AttributeEditor):
         """
         dc.SetBackgroundMode (wx.SOLID)
         dc.SetPen (wx.TRANSPARENT_PEN)
-        dc.DrawRectangle ((rect.x, rect.y), (rect.width, rect.height))
+
+        dc.DrawRectangle (rect.x, rect.y, rect.width, rect.height)
+
         """
           Draw the text in the box
         """
@@ -69,7 +71,7 @@ class StringAttributeEditor (AttributeEditor):
 
         string = self.GetAttributeValue (item, attributeName)
         for line in str (string).split (os.linesep):
-            dc.DrawText (line, (x, y))
+            dc.DrawText (line, x, y)
             lineWidth, lineHeight = dc.GetTextExtent (line)
             y += lineHeight
         dc.DestroyClippingRegion()
@@ -156,10 +158,10 @@ class StampAttributeEditor (StringAttributeEditor):
                 if height > rect.height - 2:
                     height = rect.height - 2
                     
-                dc.Blit ((rect.x + 1, rect.y + 1),
-                         (width, height), 
+                dc.Blit (rect.x + 1, rect.y + 1,
+                         width, height, 
                          offscreenBuffer,
-                         (0, 0),
+                         0, 0,
                          wx.COPY,
                          True)
         else:

@@ -84,10 +84,10 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
                 if (x + width > wrapLength):
                     y += height
                     x = offset
-                dc.DrawText(word, (x, y))
+                dc.DrawText(word, x, y)
                 x += width
                 width, height = dc.GetTextExtent(' ')
-                dc.DrawText(' ', (x, y))
+                dc.DrawText(' ', x, y)
                 x += width
             y += height
 
@@ -327,7 +327,7 @@ class wxWeekBlock(wxCalendarBlock):
         hour = DateTime.today() + DateTime.RelativeDateTime(hours=6)
         for j in range (self.blockItem.hoursPerView):
             dc.DrawText (hour.Format("%I"),
-                         (2, j * self.blockItem.hourHeight + self.blockItem.offset))
+                         2, j * self.blockItem.hourHeight + self.blockItem.offset)
             dc.SetPen (wx.Pen(wx.Colour(204, 204, 204)))
             dc.DrawLine ((self.blockItem.offset,
                           j * self.blockItem.hourHeight + self.blockItem.offset),
@@ -349,8 +349,8 @@ class wxWeekBlock(wxCalendarBlock):
         # Draw lines between the days
         for i in range (self.blockItem.daysPerView):
             currentDate = startDay + DateTime.RelativeDateTime(days=i)
-            dc.DrawText (currentDate.Format("%b %d"), (self.blockItem.offset + self.blockItem.dayWidth * i,
-                                                       self.blockItem.offset - 20))
+            dc.DrawText (currentDate.Format("%b %d"), self.blockItem.offset + self.blockItem.dayWidth * i,
+                                                       self.blockItem.offset - 20)
             dc.DrawLine ((self.blockItem.offset + self.blockItem.dayWidth * i, self.blockItem.offset),
                          (self.blockItem.offset + self.blockItem.dayWidth * i, self.blockItem.size.height))
         
@@ -469,8 +469,8 @@ class wxMonthBlock(wxCalendarBlock):
                 if (currentDate == today):
                     dc.SetTextForeground(wx.RED)                    
                 dc.DrawText (currentDate.Format("%d"), 
-                             (self.blockItem.dayWidth * day + 10,
-                              self.blockItem.dayHeight * week + self.blockItem.offset))
+                             self.blockItem.dayWidth * day + 10,
+                              self.blockItem.dayHeight * week + self.blockItem.offset)
                 if (currentDate == today):
                     dc.SetTextForeground(wx.Colour(64, 64, 64))
 
@@ -481,8 +481,8 @@ class wxMonthBlock(wxCalendarBlock):
         for i in range (self.blockItem.daysPerWeek):
             weekday = startDay + DateTime.RelativeDateTime(days=i)
             dc.DrawText (weekday.Format('%A'),
-                         ((self.blockItem.dayWidth * i) + 10,
-                          self.blockItem.offset - 20))
+                         (self.blockItem.dayWidth * i) + 10,
+                          self.blockItem.offset - 20)
             if (i != 0):
                 dc.DrawLine ((self.blockItem.dayWidth * i,
                               self.blockItem.offset),
@@ -499,11 +499,11 @@ class wxMonthBlock(wxCalendarBlock):
         (width, height) = dc.GetTextExtent(text)
         x = (self.blockItem.size.width - width)/2
         y = (self.blockItem.size.height - height)/2
-        dc.DrawText(text, (x, 0))
+        dc.DrawText(text, x, 0)
 
     def DrawAdjustedText(self, dc, text):
         (width, height) = dc.GetTextExtent(text)
-        dc.DrawText(text, (self.blockItem.size.width - width, 0))
+        dc.DrawText(text, self.blockItem.size.width - width, 0)
 
 class MonthBlock(CalendarBlock):
 

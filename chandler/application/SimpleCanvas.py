@@ -80,7 +80,7 @@ class wxCanvasDragImage(wx.Frame):
 
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, (0, 0), True)
+        dc.DrawBitmap(self.bmp, 0, 0, True)
 
 
 class wxCanvasDropSource (wx.DropSource):
@@ -338,16 +338,16 @@ class wxSimpleCanvas (wx.ScrolledWindow):
           Debugging code that makes it easy to see which areas are updating.
         """
         if 0:
-            success = paintDC.Blit ((bufferX, bufferY),
-                                    (bufferWidth, bufferHeight),
+            success = paintDC.Blit (bufferX, bufferY,
+                                    bufferWidth, bufferHeight,
                                     paintDC,
-                                    (bufferX, bufferY),
+                                    bufferX, bufferY,
                                     wx.SRC_INVERT)
             time.sleep(1)
-            success = paintDC.Blit ((bufferX, bufferY),
-                                    (bufferWidth, bufferHeight),
+            success = paintDC.Blit (bufferX, bufferY,
+                                    bufferWidth, bufferHeight,
                                     paintDC,
-                                    (bufferX, bufferY),
+                                    bufferX, bufferY,
                                     wx.SRC_INVERT)
 
 
@@ -356,10 +356,10 @@ class wxSimpleCanvas (wx.ScrolledWindow):
         self.DrawBackground (memoryDC)
         self.Draw (memoryDC)
 
-        paintDC.Blit ((bufferX, bufferY),
-                     (bufferWidth, bufferHeight),
+        paintDC.Blit (bufferX, bufferY,
+                     bufferWidth, bufferHeight,
                      memoryDC,
-                     (bufferX, bufferY))
+                     bufferX, bufferY)
 
         memoryDC.EndDrawing()
 

@@ -5,11 +5,11 @@
 #
 
 # these get installed into release or debug
-BIN_ARCHIVES=../$(SNAP)-0.3-15.tar.gz \
-             ../wxPython-$(SNAP)-2.5-4.tar.gz \
-             ../UUIDext-$(SNAP)-0.3-2.tar.gz \
-             ../m2crypto-$(SNAP)-0.12-1.tar.gz \
-             ../Launchers-$(SNAP)-0.3-7.tar.gz
+BIN_ARCHIVES=../$(SNAP)-0.3-17.tar.gz \
+             ../wxPython-$(SNAP)-2.5.2.9-1.tar.gz \
+             ../UUIDext-$(SNAP)-0.3-3.tar.gz \
+             ../m2crypto-$(SNAP)-0.12-2.tar.gz \
+             ../Launchers-$(SNAP)-0.3-8.tar.gz
 
 # these get installed into chandler
 HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-4.tar.gz

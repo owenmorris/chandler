@@ -195,7 +195,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekHeaderCanvas, self).__init__ (*arguments, **keywords)
 
-        self.SetSize((-1, 50))
+        self.SetMinSize((-1, 50))
 
     def OnInit(self):
         # Setup the navigation buttons
@@ -249,7 +249,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle((0, 0), (self.size.width, self.size.height))
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
         
         startDay = self.parent.blockItem.rangeStart
 
@@ -268,14 +268,14 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
 
         # Draw a line across the bottom of the header
         dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
-        dc.DrawLine((0, self.size.height - 1),
-                    (self.size.width, self.size.height - 1))
+        dc.DrawLine(0, self.size.height - 1,
+                    self.size.width, self.size.height - 1)
         dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
-        dc.DrawLine((0, self.size.height - 2),
-                    (self.size.width, self.size.height - 2))
+        dc.DrawLine(0, self.size.height - 2,
+                    self.size.width, self.size.height - 2)
         dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
-        dc.DrawLine((0, self.size.height - 3),
-                    (self.size.width, self.size.height - 3))
+        dc.DrawLine(0, self.size.height - 3,
+                    self.size.width, self.size.height - 3)
 
     def DrawCells(self, dc):
         pass
@@ -318,7 +318,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle((0, 0), (self.size.width, self.size.height))
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
         # Set text properties for legend
         dc.SetTextForeground(self.bigFontColor)
@@ -350,27 +350,27 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
                         hourString = str(hour)
                 wText, hText = dc.GetTextExtent(hourString)
                 dc.DrawText(hourString,
-                            (self.xOffset - wText - 5,
-                             hour * self.hourHeight - (hText/2)))
+                            self.xOffset - wText - 5,
+                             hour * self.hourHeight - (hText/2))
             
             # Draw the line between hours
             dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
-            dc.DrawLine((self.xOffset,
-                         hour * self.hourHeight),
-                        (self.size.width,
-                         hour * self.hourHeight))
+            dc.DrawLine(self.xOffset,
+                         hour * self.hourHeight,
+                        self.size.width,
+                         hour * self.hourHeight)
 
             # Draw the line between half hours
             dc.SetPen(wx.Pen(wx.Colour(230, 230, 230)))
-            dc.DrawLine((self.xOffset,
-                         hour * self.hourHeight + (self.hourHeight/2)),
-                        (self.size.width,
-                         hour * self.hourHeight + (self.hourHeight/2)))
+            dc.DrawLine(self.xOffset,
+                         hour * self.hourHeight + (self.hourHeight/2),
+                        self.size.width,
+                         hour * self.hourHeight + (self.hourHeight/2))
 
         # Draw lines between days
         for day in range(self.parent.blockItem.daysPerView):
-            dc.DrawLine((self.xOffset + (self.dayWidth * day), 0),
-                        (self.xOffset + (self.dayWidth * day), self.size.height))
+            dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
+                        self.xOffset + (self.dayWidth * day), self.size.height)
 
     def DrawCells(self, dc):
         self._doDrawingCalculations(dc)
@@ -568,21 +568,21 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
         # Draw the background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle((0,0), (self.size.width, self.size.height))
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
         
         # Set up pen for drawing the grid
         dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
 
         # Draw the lines between the days
         for i in range(1, 7):
-            dc.DrawLine((self.dayWidth * i, self.yOffset),
-                        (self.dayWidth * i, self.size.height))
+            dc.DrawLine(self.dayWidth * i, self.yOffset,
+                        self.dayWidth * i, self.size.height)
 
         # Draw the lines between the weeks
         for i in range(6):
-            dc.DrawLine((0, (i * self.dayHeight) + self.yOffset),
-                        (self.size.width,
-                         (i * self.dayHeight) + self.yOffset))
+            dc.DrawLine(0, (i * self.dayHeight) + self.yOffset,
+                        self.size.width,
+                         (i * self.dayHeight) + self.yOffset)
 
 
     def DrawCells(self, dc):
@@ -620,7 +620,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
         # Draw the day header
         # Add logic to treat "today" or "not in current month" specially
-        dc.DrawText(date.Format("%d"), (rect.x, rect.y))
+        dc.DrawText(date.Format("%d"), rect.x, rect.y)
         
         x = rect.x
         y = rect.y + 10
