@@ -108,6 +108,16 @@ class AutoItem (Item, AutoKind):
             theOtherName = type(self).__name__
         self.createAttribute (name, cardinality='list', values=[], otherName=theOtherName, **args)
 
-    def addItemToReferenceCollection (self, collection, theValue):
-        self.setValue(collection, value = theValue)
+    def addItemToReferenceCollection (self, collection, theValue, theOtherName=None):
+        if not theOtherName:
+            theOtherName = type(self).__name__
 
+        assert not hasattr (theValue, theOtherName)
+        assert not theValue.hasAttributeValue (theOtherName)
+
+        theValue.createAttribute (theOtherName,
+                                  otherName=str (collection),
+                                  deletePolicy = 'cascade',
+                                  countPolicy = 'count')
+
+        self.setValue(collection, value = theValue)
