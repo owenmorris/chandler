@@ -3,38 +3,45 @@
 
 Visit http://diveintomark.org/projects/feed_parser/ for the latest version
 
-Handles RSS 0.9x, RSS 1.0, RSS 2.0, Pie/Atom/Echo feeds
-
-RSS 0.9x/common elements:
-- title, link, guid, description, webMaster, managingEditor, language
-  copyright, lastBuildDate, pubDate
-
-Additional RSS 1.0/2.0 elements:
-- dc:rights, dc:language, dc:creator, dc:date, dc:subject,
-  content:encoded, admin:generatorAgent, admin:errorReportsTo,
-  
-Addition Pie/Atom/Echo elements:
-- subtitle, created, issued, modified, summary, id, content
+Handles RSS 0.9x, RSS 1.0, RSS 2.0, Atom feeds
 
 Things it handles that choke other parsers:
 - bastard combinations of RSS 0.9x and RSS 1.0
-- illegal XML characters
+- illegal 8-bit XML characters
 - naked and/or invalid HTML in description
-- content:encoded in item element
-- guid in item element
-- fullitem in item element
-- non-standard namespaces
-- inline XML in content (Pie/Atom/Echo)
-- multiple content items per entry (Pie/Atom/Echo)
+- content:encoded, xhtml:body, fullitem
+- guid
+- elements in non-standard namespaces or non-default namespaces
+- multiple content items per entry (Atom)
+- multiple links per entry (Atom)
 
-Requires Python 2.2 or later
+Other features:
+- resolves relative URIs in some elements
+  - uses xml:base to define base URI
+  - uses URI of feed if no xml:base is given
+  - to control which elements are resolved, set FeedParser.can_be_relative_uri
+- resolves relative URIs within embedded markup
+  - to control which elements are resolved, set FeedParser.can_contain_relative_uris
+- sanitizes embedded markup in some elements
+  - to allow/disallow HTML elements, set HTMLSanitizer.acceptable_elements
+  - to allow/disallow HTML attributes, set HTMLSanitizer.acceptable_attributes
+  - to control which feed elements are sanitized, set FeedParser.can_contain_dangerous_markup
+  - to disable entirely (NOT RECOMMENDED), set FeedParser.can_contain_dangerous_markup = []
+- tidies embedded markup
+  - fixes malformed HTML
+  - converts to XHTML
+  - converts character entities to numeric entities
+  - requires tidylib <http://utidylib.sourceforge.net/> or mxTidy <http://www.lemburg.com/files/python/mxTidy.html>
+
+Requires Python 2.1; 2.3 or later recommended
 """
 
-__version__ = "2.5.3"
+__version__ = "2.7"
 __author__ = "Mark Pilgrim <http://diveintomark.org/>"
-__copyright__ = "Copyright 2002-3, Mark Pilgrim"
+__copyright__ = "Copyright 2002-4, Mark Pilgrim"
 __contributors__ = ["Jason Diamond <http://injektilo.org/>",
-                    "John Beimler <http://john.beimler.org/>"]
+                    "John Beimler <http://john.beimler.org/>",
+                    "Fazal Majid <http://www.majid.info/mylos/weblog/>"]
 __license__ = "Python"
 __history__ = """
 1.0 - 9/27/2002 - MAP - fixed namespace processing on prefixed RSS 2.0 elements,
@@ -78,26 +85,80 @@ __history__ = """
   inline <xhtml:body> and <xhtml:div> as used in some RSS 2.0 feeds
 2.5.3 - 8/6/2003 - TvdV - patch to track whether we're inside an image or
   textInput, and also to return the character encoding (if specified)
+2.6 - 1/1/2004 - MAP - dc:author support (MarekK); fixed bug tracking
+  nested divs within content (JohnD); fixed missing sys import (JohanS);
+  fixed regular expression to capture XML character encoding (Andrei);
+  added support for Atom 0.3-style links; fixed bug with textInput tracking;
+  added support for cloud (MartijnP); added support for multiple
+  category/dc:subject (MartijnP); normalize content model: "description" gets
+  description (which can come from description, summary, or full content if no
+  description), "content" gets dict of base/language/type/value (which can come
+  from content:encoded, xhtml:body, content, or fullitem);
+  fixed bug matching arbitrary Userland namespaces; added xml:base and xml:lang
+  tracking; fixed bug tracking unknown tags; fixed bug tracking content when
+  <content> element is not in default namespace (like Pocketsoap feed);
+  resolve relative URLs in link, guid, docs, url, comments, wfw:comment,
+  wfw:commentRSS; resolve relative URLs within embedded HTML markup in
+  description, xhtml:body, content, content:encoded, title, subtitle,
+  summary, info, tagline, and copyright; added support for pingback and
+  trackback namespaces
+2.7 - 1/5/2004 - MAP - really added support for trackback and pingback
+  namespaces, as opposed to 2.6 when I said I did but didn't really;
+  sanitize HTML markup within some elements; added mxTidy support (if
+  installed) to tidy HTML markup within some elements; fixed indentation
+  bug in parse_date (FazalM); use socket.setdefaulttimeout if available
+  (FazalM); universal date parsing and normalization (FazalM): 'created', modified',
+  'issued' are parsed into 9-tuple date format and stored in 'created_parsed',
+  'modified_parsed', and 'issued_parsed'; 'date' is duplicated in 'modified'
+  and vice-versa; 'date_parsed' is duplicated in 'modified_parsed' and vice-versa
+2.7.1 - 1/9/2004 - MAP - fixed bug handling &quot; and &apos;.  fixed memory
+  leak not closing url opener (JohnD); added dc:publisher support (MarekK);
+  added admin:errorReportsTo support (MarekK); Python 2.1 dict support (MarekK)
 """
 
-try:
-    import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
-    timeoutsocket.setDefaultSocketTimeout(10)
-except ImportError:
-    pass
-import cgi, re, sgmllib, string, StringIO, gzip, urllib2
-sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
-
+# if you are embedding feedparser in a larger application, you should change this to your application name and URL
 USER_AGENT = "UltraLiberalFeedParser/%s +http://diveintomark.org/projects/feed_parser/" % __version__
 
-def decodeEntities(data):
-    data = data or ''
-    data = data.replace('&lt;', '<')
-    data = data.replace('&gt;', '>')
-    data = data.replace('&quot;', '"')
-    data = data.replace('&apos;', "'")
-    data = data.replace('&amp;', '&')
-    return data
+# ---------- required modules (should come with any Python distribution) ----------
+import cgi, re, sgmllib, string, StringIO, urllib2, sys, copy, urlparse, htmlentitydefs, time, rfc822
+
+# ---------- optional modules (feedparser will work without these, but with reduced functionality) ----------
+
+# gzip is included with most Python distributions, but may not be available if you compiled your own
+try:
+    import gzip
+except:
+    gzip = None
+    
+# timeoutsocket allows feedparser to time out rather than hang forever on ultra-slow servers.
+# Python 2.3 now has this functionality available in the standard socket library, so under
+# 2.3 you don't need to install anything.
+import socket
+if hasattr(socket, 'setdefaulttimeout'):
+    socket.setdefaulttimeout(10)
+else:
+    try:
+        import timeoutsocket # http://www.timo-tasi.org/python/timeoutsocket.py
+        timeoutsocket.setDefaultSocketTimeout(10)
+    except ImportError:
+        pass
+
+# mxtidy allows feedparser to tidy malformed embedded HTML markup in description, content, etc.
+# this does not affect HTML sanitizing, which is self-contained in the HTMLSanitizer class
+try:
+    from mx.Tidy import Tidy as mxtidy # http://www.lemburg.com/files/python/mxTidy.html
+except:
+    mxtidy = None
+
+# ---------- don't touch this ----------
+sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
+
+if not dict:
+    def dict(aList):
+        rc = {}
+        for k, v in aList:
+            rc[k] = v
+        return rc
 
 class FeedParser(sgmllib.SGMLParser):
     namespaces = {"http://backend.userland.com/rss": "",
@@ -108,13 +169,28 @@ class FeedParser(sgmllib.SGMLParser):
                   "http://purl.org/echo/": "",
                   "uri/of/echo/namespace#": "",
                   "http://purl.org/pie/": "",
+                  "http://purl.org/atom/ns#": "",
                   "http://purl.org/rss/1.0/modules/textinput/": "ti",
                   "http://purl.org/rss/1.0/modules/company/": "co",
                   "http://purl.org/rss/1.0/modules/syndication/": "sy",
                   "http://purl.org/dc/elements/1.1/": "dc",
+                  "http://purl.org/dc/terms/": "dcterms",
                   "http://webns.net/mvcb/": "admin",
+                  "http://wellformedweb.org/CommentAPI/": "wfw",
+                  "http://madskills.com/public/xml/rss/module/trackback/": "trackback",
+                  "http://madskills.com/public/xml/rss/module/pingback/": "pingback",
                   "http://www.w3.org/1999/xhtml": "xhtml"}
 
+    can_be_relative_uri = ['link', 'id', 'guid', 'wfw_comment', 'wfw_commentRSS', 'docs', 'url', 'comments']
+    can_contain_relative_uris = ['content', 'body', 'xhtml_body', 'content_encoded', 'fullitem', 'description', 'title', 'summary', 'subtitle', 'info', 'tagline', 'copyright']
+    can_contain_dangerous_markup = ['content', 'body', 'xhtml_body', 'content_encoded', 'fullitem', 'description', 'title', 'summary', 'subtitle', 'info', 'tagline', 'copyright']
+    explicitly_set_type = ['title', 'tagline', 'summary', 'info', 'copyright', 'content']
+    html_types = ['text/html', 'application/xhtml+xml']
+    
+    def __init__(self, baseuri=None):
+        sgmllib.SGMLParser.__init__(self)
+        self.baseuri = baseuri or ''
+        
     def reset(self):
         self.channel = {}
         self.items = []
@@ -124,264 +200,45 @@ class FeedParser(sgmllib.SGMLParser):
         self.incontent = 0
         self.intextinput = 0
         self.inimage = 0
-        self.contentmode = None
-        self.contenttype = None
-        self.contentlang = None
+        self.contentparams = {}
         self.namespacemap = {}
+        self.basestack = []
+        self.langstack = []
+        self.baseuri = ''
+        self.lang = None
         sgmllib.SGMLParser.reset(self)
 
-    def push(self, element, expectingText):
-        self.elementstack.append([element, expectingText, []])
+    def unknown_starttag(self, tag, attrs):
+        # normalize attrs
+        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: chr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
+        
+        # track inline content
+        if self.incontent and self.contentparams.get('mode') == 'xml':
+            return self.handle_data("<%s%s>" % (tag, "".join([' %s="%s"' % t for t in attrs])))
 
-    def pop(self, element):
-        if not self.elementstack: return
-        if self.elementstack[-1][0] != element: return
-        element, expectingText, pieces = self.elementstack.pop()
-        if not expectingText: return
-        output = "".join(pieces)
-        output = decodeEntities(output)
-        if self.incontent and self.initem:
-            if not self.items[-1].has_key(element):
-                self.items[-1][element] = []
-            self.items[-1][element].append({"language":self.contentlang, "type":self.contenttype, "value":output})
-        elif self.initem:
-            self.items[-1][element] = output
-        elif self.inchannel and (not self.intextinput) and (not self.inimage):
-            self.channel[element] = output
-
-    def _addNamespaces(self, attrs):
+        # track xml:base and xml:lang
+        attrsD = dict(attrs)
+        baseuri = attrsD.get('xml:base')
+        if baseuri:
+            self.baseuri = baseuri
+        lang = attrsD.get('xml:lang')
+        if lang:
+            self.lang = lang
+        self.basestack.append(baseuri)
+        self.langstack.append(lang)
+        
+        # track namespaces
         for prefix, value in attrs:
             if not prefix.startswith("xmlns:"): continue
             prefix = prefix[6:]
-            if prefix.find('backend.userland.com/rss') <> -1:
+            if value.find('backend.userland.com/rss') <> -1:
                 # match any backend.userland.com namespace
-                prefix = 'http://backend.userland.com/rss'
+                value = 'http://backend.userland.com/rss'
             if self.namespaces.has_key(value):
                 self.namespacemap[prefix] = self.namespaces[value]
 
-    def _mapToStandardPrefix(self, name):
-        colonpos = name.find(':')
-        if colonpos <> -1:
-            prefix = name[:colonpos]
-            suffix = name[colonpos+1:]
-            prefix = self.namespacemap.get(prefix, prefix)
-            name = prefix + ':' + suffix
-        return name
-        
-    def _getAttribute(self, attrs, name):
-        value = [v for k, v in attrs if self._mapToStandardPrefix(k) == name]
-        if value:
-            value = value[0]
-        else:
-            value = None
-        return value
-            
-    def start_channel(self, attrs):
-        self.push('channel', 0)
-        self.inchannel = 1
-
-    def end_channel(self):
-        self.pop('channel')
-        self.inchannel = 0
-    
-    def start_image(self, attrs):
-        self.inimage = 1
-            
-    def end_image(self):
-        self.inimage = 0
-                
-    def start_textinput(self, attrs):
-        self.intextinput = 1
-        
-    def end_textinput(self):
-        self.intextinput = 0
-
-    def start_item(self, attrs):
-        self.items.append({})
-        self.push('item', 0)
-        self.initem = 1
-
-    def end_item(self):
-        self.pop('item')
-        self.initem = 0
-
-    def start_dc_language(self, attrs):
-        self.push('language', 1)
-    start_language = start_dc_language
-
-    def end_dc_language(self):
-        self.pop('language')
-    end_language = end_dc_language
-
-    def start_dc_creator(self, attrs):
-        self.push('creator', 1)
-    start_managingeditor = start_dc_creator
-    start_webmaster = start_dc_creator
-
-    def end_dc_creator(self):
-        self.pop('creator')
-    end_managingeditor = end_dc_creator
-    end_webmaster = end_dc_creator
-
-    def start_dc_rights(self, attrs):
-        self.push('rights', 1)
-    start_copyright = start_dc_rights
-
-    def end_dc_rights(self):
-        self.pop('rights')
-    end_copyright = end_dc_rights
-
-    def start_dc_date(self, attrs):
-        self.push('date', 1)
-    start_lastbuilddate = start_dc_date
-    start_pubdate = start_dc_date
-
-    def end_dc_date(self):
-        self.pop('date')
-    end_lastbuilddate = end_dc_date
-    end_pubdate = end_dc_date
-
-    def start_dc_subject(self, attrs):
-        self.push('category', 1)
-
-    def end_dc_subject(self):
-        self.pop('category')
-
-    def start_link(self, attrs):
-        self.push('link', self.inchannel or self.initem)
-
-    def end_link(self):
-        self.pop('link')
-
-    def start_guid(self, attrs):
-        self.guidislink = ('ispermalink', 'false') not in attrs
-        self.push('guid', 1)
-
-    def end_guid(self):
-        self.pop('guid')
-        if self.guidislink:
-            if not self.items[-1].has_key('link'):
-                # guid acts as link, but only if "ispermalink" is not present or is "true",
-                # and only if the item doesn't already have a link element
-                self.items[-1]['link'] = self.items[-1]['guid']
-
-    def start_title(self, attrs):
-        self.push('title', self.inchannel or self.initem)
-
-    def start_description(self, attrs):
-        self.push('description', self.inchannel or self.initem)
-
-    def start_content_encoded(self, attrs):
-        self.push('content_encoded', 1)
-    start_fullitem = start_content_encoded
-
-    def end_content_encoded(self):
-        self.pop('content_encoded')
-    end_fullitem = end_content_encoded
-
-    def start_admin_generatoragent(self, attrs):
-        self.push('generator', 1)
-        value = self._getAttribute(attrs, 'rdf:resource')
-        if value:
-            self.elementstack[-1][2].append(value)
-        self.pop('generator')
-
-    def start_feed(self, attrs):
-        self.inchannel = 1
-
-    def end_feed(self):
-        self.inchannel = 0
-
-    def start_entry(self, attrs):
-        self.items.append({})
-        self.push('item', 0)
-        self.initem = 1
-
-    def end_entry(self):
-        self.pop('item')
-        self.initem = 0
-        
-    def start_subtitle(self, attrs):
-        self.push('subtitle', 1)
-
-    def end_subtitle(self):
-        self.pop('subtitle')
-
-    def start_summary(self, attrs):
-        self.push('summary', 1)
-
-    def end_summary(self):
-        self.pop('summary')
-        
-    def start_modified(self, attrs):
-        self.push('modified', 1)
-
-    def end_modified(self):
-        self.pop('modified')
-
-    def start_created(self, attrs):
-        self.push('created', 1)
-
-    def end_created(self):
-        self.pop('created')
-
-    def start_issued(self, attrs):
-        self.push('issued', 1)
-
-    def end_issued(self):
-        self.pop('issued')
-
-    def start_id(self, attrs):
-        self.push('id', 1)
-
-    def end_id(self):
-        self.pop('id')
-
-    def start_content(self, attrs):
-        self.incontent = 1
-        if ('mode', 'escaped') in attrs:
-            self.contentmode = 'escaped'
-        elif ('mode', 'base64') in attrs:
-            self.contentmode = 'base64'
-        else:
-            self.contentmode = 'xml'
-        mimetype = [v for k, v in attrs if k=='type']
-        if mimetype:
-            self.contenttype = mimetype[0]
-        xmllang = [v for k, v in attrs if k=='xml:lang']
-        if xmllang:
-            self.contentlang = xmllang[0]
-        self.push('content', 1)
-
-    def end_content(self):
-        self.pop('content')
-        self.incontent = 0
-        self.contentmode = None
-        self.contenttype = None
-        self.contentlang = None
-
-    def start_body(self, attrs):
-        self.incontent = 1
-        self.contentmode = 'xml'
-        self.contenttype = 'application/xhtml+xml'
-        xmllang = [v for k, v in attrs if k=='xml:lang']
-        if xmllang:
-            self.contentlang = xmllang[0]
-        self.push('content', 1)
-
-    start_div = start_body
-    start_xhtml_body = start_body
-    start_xhtml_div = start_body
-    end_body = end_content
-    end_div = end_content
-    end_xhtml_body = end_content
-    end_xhtml_div = end_content
-        
-    def unknown_starttag(self, tag, attrs):
-        if self.incontent and self.contentmode == 'xml':
-            self.handle_data("<%s%s>" % (tag, "".join([' %s="%s"' % t for t in attrs])))
-            return
-        self._addNamespaces(attrs)
+        # match namespaces
         colonpos = tag.find(':')
         if colonpos <> -1:
             prefix = tag[:colonpos]
@@ -389,18 +246,24 @@ class FeedParser(sgmllib.SGMLParser):
             prefix = self.namespacemap.get(prefix, prefix)
             if prefix:
                 prefix = prefix + '_'
-            methodname = 'start_' + prefix + suffix
-            try:
-                method = getattr(self, methodname)
-                return method(attrs)
-            except AttributeError:
-                return self.push(prefix + suffix, 0)
-        return self.push(tag, 0)
+        else:
+            prefix = ''
+            suffix = tag
+
+        # call special handler (if defined) or default handler
+        methodname = '_start_' + prefix + suffix
+        try:
+            method = getattr(self, methodname)
+            return method(attrs)
+        except AttributeError:
+            return self.push(prefix + suffix, 1)
 
     def unknown_endtag(self, tag):
-        if self.incontent and self.contentmode == 'xml':
+        # track inline content
+        if self.incontent and self.contentparams.get('mode') == 'xml':
             self.handle_data("</%s>" % tag)
-            return
+
+        # match namespaces
         colonpos = tag.find(':')
         if colonpos <> -1:
             prefix = tag[:colonpos]
@@ -408,20 +271,34 @@ class FeedParser(sgmllib.SGMLParser):
             prefix = self.namespacemap.get(prefix, prefix)
             if prefix:
                 prefix = prefix + '_'
-            methodname = 'end_' + prefix + suffix
-            try:
-                method = getattr(self, methodname)
-                return method()
-            except AttributeError:
-                return self.pop(prefix + suffix)
-        return self.pop(tag)
+        else:
+            prefix = ''
+            suffix = tag
+
+        # call special handler (if defined) or default handler
+        methodname = '_end_' + prefix + suffix
+        try:
+            method = getattr(self, methodname)
+            method()
+        except AttributeError:
+            self.pop(prefix + suffix)
+
+        # track xml:base and xml:lang going out of scope
+        if self.basestack:
+            baseuri = self.basestack.pop()
+            if baseuri:
+                self.baseuri = baseuri
+        if self.langstack:
+            lang = self.langstack.pop()
+            if lang:
+                self.lang = lang
 
     def handle_charref(self, ref):
         # called for each character reference, e.g. for "&#160;", ref will be "160"
         # Reconstruct the original character reference.
         if not self.elementstack: return
         text = "&#%s;" % ref
-        if self.incontent and self.contentmode == 'xml':
+        if self.incontent and self.contentparams.get('mode') == 'xml':
             text = cgi.escape(text)
         self.elementstack[-1][2].append(text)
 
@@ -430,7 +307,7 @@ class FeedParser(sgmllib.SGMLParser):
         # Reconstruct the original entity reference.
         if not self.elementstack: return
         text = "&%s;" % ref
-        if self.incontent and self.contentmode == 'xml':
+        if self.incontent and self.contentparams.get('mode') == 'xml':
             text = cgi.escape(text)
         self.elementstack[-1][2].append(text)
 
@@ -438,7 +315,7 @@ class FeedParser(sgmllib.SGMLParser):
         # called for each block of plain text, i.e. outside of any tag and
         # not containing any character or entity references
         if not self.elementstack: return
-        if self.incontent and self.contentmode == 'xml':
+        if self.incontent and self.contentparams.get('mode') == 'xml':
             text = cgi.escape(text)
         self.elementstack[-1][2].append(text)
 
@@ -481,6 +358,505 @@ class FeedParser(sgmllib.SGMLParser):
             self.handle_data(cgi.escape(self.rawdata[i+9:k]))
             return k+3
         return sgmllib.SGMLParser.parse_declaration(self, i)
+
+    def resolveURI(self, uri):
+        return urlparse.urljoin(self.baseuri or '', uri)
+    
+    def push(self, element, expectingText):
+        self.elementstack.append([element, expectingText, []])
+
+    def pop(self, element):
+        if not self.elementstack: return
+        if self.elementstack[-1][0] != element: return
+
+        element, expectingText, pieces = self.elementstack.pop()
+        if not expectingText: return
+        
+        output = "".join(pieces)
+        output = output.strip()
+        
+        # resolve relative URIs
+        if (element in self.can_be_relative_uri) and output:
+            output = self.resolveURI(output)
+        
+        # decode entities within embedded markup
+        output = output or ''
+        if (element in self.explicitly_set_type and self.contentparams.get('type') in self.html_types) or \
+           (element not in self.explicitly_set_type):
+            output = output.replace('&lt;', '<')
+            output = output.replace('&gt;', '>')
+            output = output.replace('&amp;', '&')
+        output = output.replace('&quot;', '"')
+        output = output.replace('&apos;', "'")
+        
+        # resolve relative URIs within embedded markup
+        if element in self.can_contain_relative_uris:
+            output = resolveRelativeURIs(output, self.baseuri)
+        
+        # sanitize embedded markup
+        if element in self.can_contain_dangerous_markup:
+            output = sanitizeHTML(output)
+            
+        # store output in appropriate place(s)
+        if self.incontent and self.initem:
+            if not self.items[-1].has_key(element):
+                self.items[-1][element] = []
+            contentparams = copy.deepcopy(self.contentparams)
+            contentparams['value'] = output
+            self.items[-1][element].append(contentparams)
+        elif self.initem:
+            if element == 'category':
+                domain = self.items[-1]['categories'][-1][0]
+                self.items[-1]['categories'][-1] = (domain, output)
+            elif element == 'link':
+                if output:
+                    self.items[-1]['links'][-1]['href'] = output
+            self.items[-1][element] = output
+        elif self.inchannel and (not self.intextinput) and (not self.inimage):
+            if element == 'category':
+                domain = self.channel['categories'][-1][0]
+                self.channel['categories'][-1] = (domain, output)
+            elif element == 'link':
+                self.channel['links']['href'] = output
+            self.channel[element] = output
+
+        return output
+
+    def _mapToStandardPrefix(self, name):
+        colonpos = name.find(':')
+        if colonpos <> -1:
+            prefix = name[:colonpos]
+            suffix = name[colonpos+1:]
+            prefix = self.namespacemap.get(prefix, prefix)
+            name = prefix + ':' + suffix
+        return name
+        
+    def _getAttribute(self, attrs, name):
+        return dict(attrs).get(self._mapToStandardPrefix(name))
+
+    def _save(self, key, value):
+        if value:
+            if self.initem:
+                self.items[-1].setdefault(key, value)
+            elif self.channel:
+                self.channel.setdefault(key, value)
+        
+    def _start_channel(self, attrs):
+        self.inchannel = 1
+    _start_feed = _start_channel
+
+    def _end_channel(self):
+        self.inchannel = 0
+    _end_feed = _end_channel
+    
+    def _start_image(self, attrs):
+        self.inimage = 1
+            
+    def _end_image(self):
+        self.inimage = 0
+                
+    def _start_textinput(self, attrs):
+        self.intextinput = 1
+    _start_textInput = _start_textinput
+    
+    def _end_textinput(self):
+        self.intextinput = 0
+    _end_textInput = _end_textinput
+
+    def _start_tagline(self, attrs):
+        self.push('tagline', 1)
+
+    def _end_tagline(self):
+        value = self.pop('tagline')
+        if self.inchannel:
+            self.channel['description'] = value
+            
+    def _start_item(self, attrs):
+        self.items.append({})
+        self.push('item', 0)
+        self.initem = 1
+    _start_entry = _start_item
+
+    def _end_item(self):
+        self.pop('item')
+        self.initem = 0
+    _end_entry = _end_item
+
+    def _start_dc_language(self, attrs):
+        self.push('language', 1)
+    _start_language = _start_dc_language
+
+    def _end_dc_language(self):
+        self.pop('language')
+    _end_language = _end_dc_language
+
+    def _start_dc_creator(self, attrs):
+        self.push('creator', 1)
+    _start_managingeditor = _start_dc_creator
+    _start_webmaster = _start_dc_creator
+    _start_name = _start_dc_creator
+
+    def _end_dc_creator(self):
+        self.pop('creator')
+    _end_managingeditor = _end_dc_creator
+    _end_webmaster = _end_dc_creator
+    _end_name = _end_dc_creator
+
+    def _start_dc_author(self, attrs):
+        self.push('author', 1)
+    _start_author = _start_dc_author
+
+    def _end_dc_author(self):
+        self.pop('author')
+    _end_author = _end_dc_author
+
+    def _start_dc_publisher(self, attrs):
+        self.push('publisher', 1)
+
+    def _end_dc_publisher(self):
+        self.pop('publisher')
+        
+    def _start_dc_rights(self, attrs):
+        self.push('rights', 1)
+    _start_copyright = _start_dc_rights
+
+    def _end_dc_rights(self):
+        self.pop('rights')
+    _end_copyright = _end_dc_rights
+
+    def _start_dcterms_issued(self, attrs):
+        self.push('issued', 1)
+    _start_issued = _start_dcterms_issued
+
+    def _end_dcterms_issued(self):
+        value = self.pop('issued')
+        self._save('issued_parsed', parse_date(value))
+    _end_issued = _end_dcterms_issued
+
+    def _start_dcterms_created(self, attrs):
+        self.push('created', 1)
+    _start_created = _start_dcterms_created
+
+    def _end_dcterms_created(self):
+        value = self.pop('created')
+        self._save('created_parsed', parse_date(value))
+    _end_created = _end_dcterms_created
+
+    def _start_dcterms_modified(self, attrs):
+        self.push('modified', 1)
+    _start_modified = _start_dcterms_modified
+    _start_dc_date = _start_dcterms_modified
+    _start_pubdate = _start_dcterms_modified
+
+    def _end_dcterms_modified(self):
+        value = self.pop('modified')
+        parsed_value = parse_date(value)
+        self._save('date', value)
+        self._save('date_parsed', parsed_value)
+        self._save('modified_parsed', parsed_value)
+    _end_modified = _end_dcterms_modified
+    _end_dc_date = _end_dcterms_modified
+    _end_pubdate = _end_dcterms_modified
+
+    def _start_category(self, attrs):
+        self.push('category', 1)
+        domain = self._getAttribute(attrs, 'domain')
+        cats = []
+        if self.initem:
+            cats = self.items[-1].setdefault('categories', [])
+        elif self.inchannel:
+            cats = self.channel.setdefault('categories', [])
+        cats.append((domain, None))
+    _start_dc_subject = _start_category
+        
+    def _end_category(self):
+        self.pop('category')
+    _end_dc_subject = _end_category
+        
+    def _start_link(self, attrs):
+        attrsD = dict(attrs)
+        attrsD.setdefault('rel', 'alternate')
+        attrsD.setdefault('type', 'text/html')
+        if attrsD.has_key('href'):
+            attrsD['href'] = self.resolveURI(attrsD['href'])
+        expectingText = self.inchannel or self.initem
+        if self.initem:
+            self.items[-1].setdefault('links', [])
+            self.items[-1]['links'].append(attrsD)
+        elif self.inchannel:
+            self.channel['links'] = attrsD
+        if attrsD.has_key('href'):
+            expectingText = 0
+            if attrsD.get('type', '') in self.html_types:
+                if self.initem:
+                    self.items[-1]['link'] = attrsD['href']
+                elif self.inchannel:
+                    self.channel['link'] = attrsD['href']
+        else:
+            self.push('link', expectingText)
+
+    def _start_guid(self, attrs):
+        self.guidislink = ('ispermalink', 'false') not in attrs
+        self.push('guid', 1)
+
+    def _end_guid(self):
+        value = self.pop('guid')
+        self._save('id', value)
+        if self.guidislink:
+            # guid acts as link, but only if "ispermalink" is not present or is "true",
+            # and only if the item doesn't already have a link element
+            self._save('link', value)
+
+    def _start_id(self, attrs):
+        self.push('id', 1)
+
+    def _end_id(self):
+        value = self.pop('id')
+        self._save('guid', value)
+            
+    def _start_title(self, attrs):
+        self.push('title', self.inchannel or self.initem)
+    _start_dc_title = _start_title
+
+    def _end_title(self):
+        self.pop('title')
+    _end_dc_title = _end_title
+
+    def _start_description(self, attrs):
+        self.push('description', self.inchannel or self.initem)
+
+    def _end_description(self):
+        value = self.pop('description')
+        if self.initem:
+            self.items[-1]['summary'] = value
+        elif self.inchannel:
+            self.channel['tagline'] = value
+        
+    def _start_admin_generatoragent(self, attrs):
+        self.push('generator', 1)
+        value = self._getAttribute(attrs, 'rdf:resource')
+        if value:
+            self.elementstack[-1][2].append(value)
+        self.pop('generator')
+
+    def _start_admin_errorreportsto(self, attrs):
+        self.push('errorreportsto', 1)
+        value = self._getAttribute(attrs, 'rdf:resource')
+        if value:
+            self.elementstack[-1][2].append(value)
+        self.pop('errorreportsto')
+        
+    def _start_summary(self, attrs):
+        self.push('summary', 1)
+
+    def _end_summary(self):
+        value = self.pop('summary')
+        if self.items:
+            self.items[-1]['description'] = value
+        
+    def _start_content(self, attrs):
+        attrsD = dict(attrs)
+        self.incontent += 1
+        self.contentparams = {'mode': attrsD.get('mode', 'xml'),
+                              'type': attrsD.get('type', 'text/plain'),
+                              'language': attrsD.get('xml:lang', None),
+                              'base': attrsD.get('xml:base', self.baseuri)}
+        self.push('content', 1)
+
+    def _start_body(self, attrs):
+        attrsD = dict(attrs)
+        self.incontent += 1
+        self.contentparams = {'mode': 'xml',
+                              'type': 'application/xhtml+xml',
+                              'language': attrsD.get('xml:lang', None),
+                              'base': attrsD.get('xml:base', self.baseuri)}
+        self.push('content', 1)
+    _start_xhtml_body = _start_body
+
+    def _start_content_encoded(self, attrs):
+        attrsD = dict(attrs)
+        self.incontent += 1
+        self.contentparams = {'mode': 'escaped',
+                              'type': 'text/html',
+                              'language': attrsD.get('xml:lang', None),
+                              'base': attrsD.get('xml:base', self.baseuri)}
+        self.push('content', 1)
+    _start_fullitem = _start_content_encoded
+
+    def _end_content(self):
+        value = self.pop('content')
+        if self.contentparams.get('type') in (['text/plain'] + self.html_types):
+            self._save('description', value)
+        self.incontent -= 1
+        self.contentparams.clear()
+    _end_body = _end_content
+    _end_xhtml_body = _end_content
+    _end_content_encoded = _end_content
+    _end_fullitem = _end_content
+
+class BaseHTMLProcessor(sgmllib.SGMLParser):
+    def __init__(self):
+        sgmllib.SGMLParser.__init__(self)
+        
+    def reset(self):
+        # extend (called by sgmllib.SGMLParser.__init__)
+        self.pieces = []
+        sgmllib.SGMLParser.reset(self)
+
+    def normalize_attrs(self, attrs):
+        # utility method to be called by descendants
+        attrs = [(k.lower(), sgmllib.charref.sub(lambda m: chr(int(m.groups()[0])), v).strip()) for k, v in attrs]
+        attrs = [(k, k in ('rel', 'type') and v.lower() or v) for k, v in attrs]
+        return attrs
+
+    def unknown_starttag(self, tag, attrs):
+        # called for each start tag
+        # attrs is a list of (attr, value) tuples
+        # e.g. for <pre class="screen">, tag="pre", attrs=[("class", "screen")]
+        strattrs = "".join([' %s="%s"' % (key, value) for key, value in attrs])
+        self.pieces.append("<%(tag)s%(strattrs)s>" % locals())
+        
+    def unknown_endtag(self, tag):
+        # called for each end tag, e.g. for </pre>, tag will be "pre"
+        # Reconstruct the original end tag.
+        self.pieces.append("</%(tag)s>" % locals())
+
+    def handle_charref(self, ref):
+        # called for each character reference, e.g. for "&#160;", ref will be "160"
+        # Reconstruct the original character reference.
+        self.pieces.append("&#%(ref)s;" % locals())
+        
+    def handle_entityref(self, ref):
+        # called for each entity reference, e.g. for "&copy;", ref will be "copy"
+        # Reconstruct the original entity reference.
+        self.pieces.append("&%(ref)s" % locals())
+        # standard HTML entities are closed with a semicolon; other entities are not
+        if htmlentitydefs.entitydefs.has_key(ref):
+            self.pieces.append(";")
+
+    def handle_data(self, text):
+        # called for each block of plain text, i.e. outside of any tag and
+        # not containing any character or entity references
+        # Store the original text verbatim.
+        self.pieces.append(text)
+        
+    def handle_comment(self, text):
+        # called for each HTML comment, e.g. <!-- insert Javascript code here -->
+        # Reconstruct the original comment.
+        self.pieces.append("<!--%(text)s-->" % locals())
+        
+    def handle_pi(self, text):
+        # called for each processing instruction, e.g. <?instruction>
+        # Reconstruct original processing instruction.
+        self.pieces.append("<?%(text)s>" % locals())
+
+    def handle_decl(self, text):
+        # called for the DOCTYPE, if present, e.g.
+        # <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        #     "http://www.w3.org/TR/html4/loose.dtd">
+        # Reconstruct original DOCTYPE
+        self.pieces.append("<!%(text)s>" % locals())
+        
+    def output(self):
+        """Return processed HTML as a single string"""
+        return "".join(self.pieces)
+
+class RelativeURIResolver(BaseHTMLProcessor):
+    relative_uris = [('a', 'href'),
+                     ('applet', 'codebase'),
+                     ('area', 'href'),
+                     ('blockquote', 'cite'),
+                     ('body', 'background'),
+                     ('del', 'cite'),
+                     ('form', 'action'),
+                     ('frame', 'longdesc'),
+                     ('frame', 'src'),
+                     ('iframe', 'longdesc'),
+                     ('iframe', 'src'),
+                     ('head', 'profile'),
+                     ('img', 'longdesc'),
+                     ('img', 'src'),
+                     ('img', 'usemap'),
+                     ('input', 'src'),
+                     ('input', 'usemap'),
+                     ('ins', 'cite'),
+                     ('link', 'href'),
+                     ('object', 'classid'),
+                     ('object', 'codebase'),
+                     ('object', 'data'),
+                     ('object', 'usemap'),
+                     ('q', 'cite'),
+                     ('script', 'src')]
+
+    def __init__(self, baseuri):
+        BaseHTMLProcessor.__init__(self)
+        self.baseuri = baseuri
+
+    def resolveURI(self, uri):
+        return urlparse.urljoin(self.baseuri, uri)
+    
+    def unknown_starttag(self, tag, attrs):
+        attrs = self.normalize_attrs(attrs)
+        attrs = [(key, ((tag, key) in self.relative_uris) and self.resolveURI(value) or value) for key, value in attrs]
+        BaseHTMLProcessor.unknown_starttag(self, tag, attrs)
+        
+def resolveRelativeURIs(htmlSource, baseURI):
+    p = RelativeURIResolver(baseURI)
+    p.feed(htmlSource)
+    data = p.output()
+    return data
+
+class HTMLSanitizer(BaseHTMLProcessor):
+    acceptable_elements = ['a', 'abbr', 'acronym', 'address', 'area', 'b', 'big',
+      'blockquote', 'br', 'button', 'caption', 'center', 'cite', 'code', 'col',
+      'colgroup', 'dd', 'del', 'dfn', 'dir', 'div', 'dl', 'dt', 'em', 'fieldset',
+      'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'i', 'img', 'input',
+      'ins', 'kbd', 'label', 'legend', 'li', 'map', 'menu', 'ol', 'optgroup',
+      'option', 'p', 'pre', 'q', 's', 'samp', 'select', 'small', 'span', 'strike',
+      'strong', 'sub', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th',
+      'thead', 'tr', 'tt', 'u', 'ul', 'var']
+    
+    acceptable_attributes = ['abbr', 'accept', 'accept-charset', 'accesskey',
+      'action', 'align', 'alt', 'axis', 'border', 'cellpadding', 'cellspacing',
+      'char', 'charoff', 'charset', 'checked', 'cite', 'class', 'clear', 'cols',
+      'colspan', 'color', 'compact', 'coords', 'datetime', 'dir', 'disabled',
+      'enctype', 'for', 'frame', 'headers', 'height', 'href', 'hreflang', 'hspace',
+      'id', 'ismap', 'label', 'lang', 'longdesc', 'maxlength', 'media', 'method',
+      'multiple', 'name', 'nohref', 'noshade', 'nowrap', 'prompt', 'readonly',
+      'rel', 'rev', 'rows', 'rowspan', 'rules', 'scope', 'selected', 'shape', 'size',
+      'span', 'src', 'start', 'summary', 'tabindex', 'target', 'title', 'type',
+      'usemap', 'valign', 'value', 'vspace', 'width']
+    
+    def unknown_starttag(self, tag, attrs):
+        if not tag in self.acceptable_elements: return
+        attrs = self.normalize_attrs(attrs)
+        attrs = [(key, value) for key, value in attrs if key in self.acceptable_attributes]
+        BaseHTMLProcessor.unknown_starttag(self, tag, attrs)
+        
+    def unknown_endtag(self, tag):
+        if not tag in self.acceptable_elements: return
+        BaseHTMLProcessor.unknown_endtag(self, tag)
+
+    def handle_pi(self, text):
+        pass
+
+    def handle_decl(self, text):
+        pass
+
+def sanitizeHTML(htmlSource):
+    p = HTMLSanitizer()
+    p.feed(htmlSource)
+    data = p.output()
+    if mxtidy:
+        nerrors, nwarnings, data, errordata = mxtidy.tidy(data, output_xhtml=1, numeric_entities=1, wrap=0)
+        if data.count('<body'):
+            data = data.split('<body', 1)[1]
+            if data.count('>'):
+                data = data.split('>', 1)[1]
+        if data.count('</body'):
+            data = data.split('</body', 1)[0]
+        data = data.strip()
+    return data
 
 class FeedURLHandler(urllib2.HTTPRedirectHandler, urllib2.HTTPDefaultErrorHandler):
     def http_error_default(self, req, fp, code, msg, headers):
@@ -548,14 +924,18 @@ def open_resource(source, etag=None, modified=None, agent=None, referrer=None):
     request.add_header("User-Agent", agent)
     if referrer:
         request.add_header("Referer", referrer)
-        request.add_header("Accept-encoding", "gzip")
+        if gzip:
+            request.add_header("Accept-encoding", "gzip")
     opener = urllib2.build_opener(FeedURLHandler())
     opener.addheaders = [] # RMK - must clear so we only send our custom User-Agent
     try:
-        return opener.open(request)
-    except:
-        # source is not a valid URL, but it might be a valid filename
-        pass
+        try:
+            return opener.open(request)
+        except:
+            # source is not a valid URL, but it might be a valid filename
+            pass
+    finally:
+        opener.close() # JohnD
     
     # try to open with native open function (if source is a filename)
     try:
@@ -593,7 +973,7 @@ def get_modified(resource):
     if hasattr(resource, "info"):
         last_modified = resource.info().getheader("Last-Modified")
         if last_modified:
-            return parse_http_date(last_modified)
+            return parse_date(last_modified)
     return None
 
 short_weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -610,62 +990,164 @@ def format_http_date(date):
 
     return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (short_weekdays[date[6]], date[2], months[date[1] - 1], date[0], date[3], date[4], date[5])
 
-rfc1123_match = re.compile(r"(?P<weekday>[A-Z][a-z]{2}), (?P<day>\d{2}) (?P<month>[A-Z][a-z]{2}) (?P<year>\d{4}) (?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) GMT").match
-rfc850_match = re.compile(r"(?P<weekday>[A-Z][a-z]+), (?P<day>\d{2})-(?P<month>[A-Z][a-z]{2})-(?P<year>\d{2}) (?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) GMT").match
-asctime_match = re.compile(r"(?P<weekday>[A-Z][a-z]{2}) (?P<month>[A-Z][a-z]{2})  ?(?P<day>\d\d?) (?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2}) (?P<year>\d{4})").match
+# if possible, use the PyXML module xml.utils.iso8601 to parse dates
+try:
+    from xml.utils.iso8601 import parse as iso8601_parse
+except ImportError:
+    iso8601_parse = None
 
-def parse_http_date(date):
+# the ISO 8601 standard is very convoluted and irregular - a full ISO 8601
+# parser is beyond the scope of feedparser and would be a worthwhile addition
+# to the Python library
+# A single regular expression cannot parse ISO 8601 date formats into groups
+# as the standard is highly irregular (for instance is 030104 2003-01-04 or
+# 0301-04-01), so we use templates instead
+# Please note the order in templates is significant because we need  a
+# greedy match
+iso8601_tmpl = ['YYYY-?MM-?DD', 'YYYY-MM', 'YYYY-?OOO',
+                'YY-?MM-?DD', 'YY-?OOO', 'YYYY', 
+                '-YY-?MM', '-OOO', '-YY',
+                '--MM-?DD', '--MM',
+                '---DD',
+                'CC', '']
+iso8601_re = [
+    tmpl.replace(
+    'YYYY', r'(?P<year>\d{4})').replace(
+    'YY', r'(?P<year>\d\d)').replace(
+    'MM', r'(?P<month>[01]\d)').replace(
+    'DD', r'(?P<day>[0123]\d)').replace(
+    'OOO', r'(?P<ordinal>[0123]\d\d)').replace(
+    'CC', r'(?P<century>\d\d$)')
+    + r'(T?(?P<hour>\d{2}):(?P<minute>\d{2})'
+    + r'(:(?P<second>\d{2}))?'
+    + r'(?P<tz>[+-](?P<tzhour>\d{2})(:(?P<tzmin>\d{2}))?|Z)?)?'
+    for tmpl in iso8601_tmpl]
+
+iso8601_matches = [re.compile(regex).match for regex in iso8601_re]
+
+def parse_date(date):
     """
-    Parses any of the three HTTP date formats into a tuple of 9 integers as
+    Parses a variety of date formats into a tuple of 9 integers as
     returned by time.gmtime(). This should not use time.strptime() since
     that function is not available on all platforms and could also be
     affected by the current locale.
     """
 
     date = str(date)
-    year = 0
-    weekdays = short_weekdays
-
-    m = rfc1123_match(date)
-    if not m:
-        m = rfc850_match(date)
-        if m:
-            year = 1900
-            weekdays = long_weekdays
-        else:
-            m = asctime_match(date)
-            if not m:
-                return None
 
     try:
-        year = year + int(m.group("year"))
-        month = months.index(m.group("month")) + 1
-        day = int(m.group("day"))
-        hour = int(m.group("hour"))
-        minute = int(m.group("minute"))
-        second = int(m.group("second"))
-        weekday = weekdays.index(m.group("weekday"))
-        a = int((14 - month) / 12)
-        julian_day = (day - 32045 + int(((153 * (month + (12 * a) - 3)) + 2) / 5) + int((146097 * (year + 4800 - a)) / 400)) - (int((146097 * (year + 4799)) / 400) - 31738) + 1
+        # if at all possible, use the standard library's rfc822 module's
+        # (RFC2822, actually, which also encompasses RFC1123)
+        # parsedate function instead of rolling our own
+        # rfc822.parsedate is quite robust, and handles asctime-style dates
+        # as well
+        tm = rfc822.parsedate_tz(date)
+        if tm:
+            return time.gmtime(rfc822.mktime_tz(tm))
+        # not a RFC2822 date, try ISO 8601 format instead
+        try:
+            if iso8601_parse:
+                tm = iso8601_parse(date)
+        except ValueError:
+            tm = None
+        if tm:
+            return time.gmtime(tm)
+        # unfortunately, xml.utils.iso8601 does not recognize many valid
+        # ISO8601 formats like 20040105, so we try our home-made
+        # regular expressions instead
+        for iso8601_match in iso8601_matches:
+            m = iso8601_match(date)
+            if m:
+                break
+        if not m:
+            return None
+        # catch truly malformed strings
+        if m.span() == (0, 0):
+            return None
+        params = m.groupdict()
+        ordinal = params.get("ordinal", 0)
+        if ordinal:
+            ordinal = int(ordinal)
+        else:
+            ordinal = 0
+        year = params.get("year", "--")
+        if not year or year == "--":
+            year = time.gmtime()[0]
+        elif len(year) == 2:
+            # ISO 8601 assumes current century, i.e. 93 -> 2093, NOT 1993
+            year = 100 * (time.gmtime()[0] // 100) + int(year)
+        else:
+            year = int(year)
+        month = params.get("month", "-")
+        if not month or month == "-":
+            # ordinals are NOT normalized by mktime, we simulate them
+            # by setting month=1, day=ordinal
+            if ordinal:
+                month = 1
+            else:
+                month = time.gmtime()[1]
+        month = int(month)
+        day = params.get("day", 0)
+        if not day:
+            # see above
+            if ordinal:
+                day = ordinal
+            elif params.get("century", 0) or \
+                     params.get("year", 0) or params.get("month", 0):
+                day = 1
+            else:
+                day = time.gmtime()[2]
+        else:
+            day = int(day)
+        # special case of the century - is the first year of the 21st century
+        # 2000 or 2001 ? The debate goes on...
+        if "century" in params:
+            year = (int(params["century"]) - 1) * 100 + 1
+        # in ISO 8601 most fields are optional
+        for field in ["hour", "minute", "second", "tzhour", "tzmin"]:
+            if not params.get(field, None):
+                params[field] = 0
+        hour = int(params.get("hour", 0))
+        minute = int(params.get("minute", 0))
+        second = int(params.get("second", 0))
+        # weekday is normalized by mktime(), we can ignore it
+        weekday = 0
+        # daylight savings is complex, but not needed for feedparser's purposes
+        # as time zones, if specified, include mention of whether it is active
+        # (e.g. PST vs. PDT, CET). Using -1 is implementation-dependent and
+        # and most implementations have DST bugs
         daylight_savings_flag = 0
-        return (year, month, day, hour, minute, second, weekday, julian_day, daylight_savings_flag)
+        tm = [year, month, day, hour, minute, second, weekday,
+              ordinal, daylight_savings_flag]
+        # ISO 8601 time zone adjustments
+        tz = params.get("tz")
+        if tz and tz != "Z":
+            if tz[0] == "-":
+                tm[3] += int(params.get("tzhour", 0))
+                tm[4] += int(params.get("tzmin", 0))
+            elif tz[0] == "+":
+                tm[3] -= int(params.get("tzhour", 0))
+                tm[4] -= int(params.get("tzmin", 0))
+            else:
+                return None
+        # Python's time.mktime() is a wrapper around the ANSI C mktime(3c)
+        # which is guaranteed to normalize d/m/y/h/m/s
+        # many implementations have bugs, however
+        return time.localtime(time.mktime(tm))
     except:
-        # the month or weekday lookup probably failed indicating an invalid timestamp
         return None
 
 def parse(uri, etag=None, modified=None, agent=None, referrer=None):
-    r = FeedParser()
+    result = {}
     f = open_resource(uri, etag=etag, modified=modified, agent=agent, referrer=referrer)
     data = f.read()
     if hasattr(f, "headers"):
-        if f.headers.get('content-encoding', '') == 'gzip':
+        if gzip and f.headers.get('content-encoding', '') == 'gzip':
             try:
                 data = gzip.GzipFile(fileobj=StringIO.StringIO(data)).read()
             except:
                 # some feeds claim to be gzipped but they're not, so we get garbage
                 data = ''
-    r.feed(data)
-    result = {"channel": r.channel, "items": r.items}
     newEtag = get_etag(f)
     if newEtag: result["etag"] = newEtag
     elif etag: result["etag"] = etag
@@ -681,12 +1163,18 @@ def parse(uri, etag=None, modified=None, agent=None, referrer=None):
     elif hasattr(f, "url"):
         result["status"] = 200
     # get the xml encoding
-    if result.get('encoding', '') == '':
-        xmlheaderRe = re.compile('<\?.*encoding="(.*)".*\?>')
-        match = xmlheaderRe.match(data)
-        if match:
-            result['encoding'] = match.groups()[0].lower()
+#    xmlheaderRe = re.compile('<\?.*encoding="(.*)".*\?>') # TvdV's version
+#    xmlheaderRe = re.compile('xml\s.*\sencoding=(".*"|\'.*\').*') # Blake's version
+    xmlheaderRe = re.compile('<\?.*encoding=[\'"](.*?)[\'"].*\?>') # Andrei's version
+    match = xmlheaderRe.match(data)
+    if match:
+        result['encoding'] = match.groups()[0].lower()
     f.close()
+    baseuri = result.get('headers', {}).get('content-location', result.get('url'))
+    r = FeedParser(baseuri)
+    r.feed(data)
+    result['channel'] = r.channel
+    result['items'] = r.items
     return result
 
 TEST_SUITE = ('http://www.pocketsoap.com/rssTests/rss1.0withModules.xml',
@@ -698,8 +1186,99 @@ TEST_SUITE = ('http://www.pocketsoap.com/rssTests/rss1.0withModules.xml',
               'http://www.pocketsoap.com/rssTests/rss2.0NSwithModulesNoDefNS.xml',
               'http://www.pocketsoap.com/rssTests/rss2.0NSwithModulesNoDefNSLocalNameClash.xml')
 
+last_day_year = time.localtime(time.mktime(
+    (time.gmtime()[0], 12, 31, 0, 0, 0, 0, 0, 0)))
+last_day_january = time.localtime(time.mktime(
+    (time.gmtime()[0], 1, 31, 0, 0, 0, 0, 0, 0)))
+first_day_month = time.localtime(time.mktime(
+    (time.gmtime()[0], time.gmtime()[1], 1, 0, 0, 0, 0, 0, 0)))
+first_day_december = time.localtime(time.mktime(
+    (time.gmtime()[0], 12, 1, 0, 0, 0, 0, 0, 0)))
+DATETIME_SUITE = (
+    ('asctime', 'Sun Jan  4 16:29:06 PST 2004',
+     (2004, 1, 5, 0, 29, 6, 0, 5, 0)),
+    ('RFC-2822', 'Sat, 03 Jan 2004 07:21:52 GMT',
+     (2004, 1, 3, 7, 21, 52, 5, 3, 0)),
+    # http://www.w3.org/TR/NOTE-datetime
+    ('W3C-datetime (Tokyo)', '2003-12-31T18:14:55+08:00',
+     (2003, 12, 31, 10, 14, 55, 2, 365, 0)),
+    ('W3C-datetime (San Francisco)', '2003-12-31T10:14:55-08:00',
+     (2003, 12, 31, 18, 14, 55, 2, 365, 0)),
+    ('W3C-datetime (zulu)', '2003-12-31T10:14:55Z',
+     (2003, 12, 31, 10, 14, 55, 2, 365, 0)),
+    # Complete ISO 8601 test cases for the sake of completeness
+    # See:
+    # http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+    # http://www.mcs.vuw.ac.nz/technical/software/SGML/doc/iso8601/ISO8601.html
+    ('ISO8601 date only', '2003-12-31',
+     (2003, 12, 31, 0, 0, 0, 2, 365, 0)),
+    ('ISO8601 date only (variant)', '20031231',
+     (2003, 12, 31, 0, 0, 0, 2, 365, 0)),
+    ('ISO8601 year/month only', '2003-12',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year only', '2003',
+     (2003, 1, 1, 0, 0, 0, 2, 1, 0)),
+    ('ISO8601 century only', '21',
+     (2001, 1, 1, 0, 0, 0, 0, 1, 0)),
+    ('ISO8601 century omitted', '03-12-31',
+     (2003, 12, 31, 0, 0, 0, 2, 365, 0)),
+    ('ISO8601 century omitted (variant)', '031231',
+     (2003, 12, 31, 0, 0, 0, 2, 365, 0)),
+    ('ISO8601 year/month only (century omitted)', '-03-12',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year/month only (century omitted variant)', '-0312',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year only (century omitted)', '-03',
+     (2003, 1, 1, 0, 0, 0, 2, 1, 0)),
+    ('ISO8601 day/month only (year omitted)', '--12-31', last_day_year),
+    ('ISO8601 day/month only (year omitted variant)', '--1231', last_day_year),
+    ('ISO8601 month only', '--12', first_day_december),
+    ('ISO8601 day only', '---01', first_day_month),
+    ('ISO8601 year/ordinal', '2003-335',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year/ordinal (variant)', '2003335',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year/ordinal (century omitted)', '03-335',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 year/ordinal (century omitted variant)', '03335',
+     (2003, 12, 1, 0, 0, 0, 0, 335, 0)),
+    ('ISO8601 ordinal only', '-%03d' % last_day_year[-2], last_day_year),
+    ('ISO8601 ordinal only', '-031', last_day_january),
+    # XXX missing ISO 8601 week/day formats
+    # time formats
+    ('ISO8601 time only', '17:41:00',
+     time.gmtime()[0:3] + (17, 41 ,00) + time.gmtime()[-3:]),
+    ('ISO8601 time only (zulu)', '17:41:00Z',
+     time.gmtime()[0:3] + (17, 41 ,00) + time.gmtime()[-3:]),
+    ('ISO8601 time only (Tokyo)', '18:14:55+08:00',
+     time.gmtime()[0:3] + (10, 14, 55) + time.gmtime()[-3:]),
+    ('ISO8601 time only (Tokyo)', '18:14:55+08',
+     time.gmtime()[0:3] + (10, 14, 55) + time.gmtime()[-3:]),
+    # rollover, leap years, and so on
+    ('Rollover', '2004-02-28T18:14:55-08:00',
+     (2004, 2, 29, 2, 14, 55, 6, 60, 0)),
+    ('Rollover', '2003-02-28T18:14:55-08:00',
+     (2003, 3, 1, 2, 14, 55, 5, 60, 0)),
+    ('Rollover (Y2K)', '2000-02-28T18:14:55-08:00',
+     (2000, 2, 29, 2, 14, 55, 1, 60, 0)),
+    # this will overflow due to 32-bit time_t overflow
+    # years multiple of 100 but not of 400 are not leap years, e.g. 1900, 2100
+    ('Rollover (2100) (IGNORE)', '2100-02-28T18:14:55-08:00',
+     (2100, 3, 1, 2, 14, 55, 0, 60, 0)),
+    # miscellaneous non-conforming formats, seen in the wild
+    ('Bogus (from http://mindview.net/WebLog/RSS.xml)', '1-2-04', None),
+    ('US-style date only', '04-01-05',
+     (2004, 1, 5, 0, 0, 0, 0, 5, 0)))
+    
+
 if __name__ == '__main__':
-    import sys
+    if sys.argv[1:] == ['date']:
+        for test, date, gmtime in DATETIME_SUITE:
+            result = parse_date(date)
+            if result != gmtime:
+                print '### failed test for', test, '("%s")' % date
+                print 'got',  result, 'expected', gmtime
+        sys.exit(0)
     if sys.argv[1:]:
         urls = sys.argv[1:]
     else:
@@ -714,10 +1293,9 @@ if __name__ == '__main__':
 
 """
 TODO
-- textinput/textInput
 - image
 - author
 - contributor
 - comments
+- base64 content
 """
-
