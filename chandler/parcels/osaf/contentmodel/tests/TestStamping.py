@@ -17,164 +17,224 @@ import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import mx.DateTime as DateTime
+import logging
 
 from repository.util.Path import Path
 
+verbose = False
+compareWhos = True
+testFailureCases = True
+
+class SavedAttrs:
+    """
+    Saved Attributes stored in one of these
+    """
+    pass
 
 class StampingTest(TestContentModel.ContentModelTestCase):
     """ Test Stamping in the Content Model """
+    def setAttributes(self, item, doWho=True):
+        anAbout = 'aTitleOrHeadline'
+        item.about = anAbout
+        aDate = DateTime.now()
+        item.date = aDate
+        aWhoList = []
+        if doWho:
+            aWhoList.append(GenerateItems.GenerateCalendarParticipant())
+            aWhoList.append(GenerateItems.GenerateCalendarParticipant())
+        if compareWhos:
+            item.who = aWhoList
+
+        savedAttrs = SavedAttrs()
+        try:
+            savedItems = self.savedAttrs
+        except AttributeError:
+            self.savedAttrs = {}
+        self.savedAttrs[item.itsName] = savedAttrs
+
+        savedAttrs.about = anAbout
+        savedAttrs.date = aDate
+        savedAttrs.who = aWhoList
+
+    def assertAttributes(self, item):
+        itemAttrs = self.savedAttrs[item.itsName]
+        self.assertEqual(item.about, itemAttrs.about)
+        self.assertEqual(item.date, itemAttrs.date)
+        # compare the whos
+        if compareWhos:
+            self.assertEqual(len(item.who), len(itemAttrs.who))
+            i = 0
+            for whom in item.who:
+                self.assertEqual(whom, itemAttrs.who[i])
+                i += 1
+
+    def assertKinds(self, item, kindsList):
+        self.assertAttributes(item)
+        for kind in kindsList:
+            self.assert_(item.itsKind.isKindOf(kind))
+
+    def traverseStampSquence(self, item, sequence):
+        for operation, stampKind in sequence:
+            if verbose:
+                message = "stamping %s with %s %s" % \
+                        (item.itsKind.itsName, 
+                         operation,
+                         stampKind.itsName)
+                print message
+                logging.warning(message)
+            item.StampKind(operation, stampKind)
+            self.assertAttributes(item)
+            if operation == 'add':
+                self.assert_(item.itsKind.isKindOf(stampKind))
 
     def testStamping(self):
-        """ Simple test for creating instances of notes and stamping to related kinds """
-
+        # Make sure the contentModel is loaded.
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
 
-        # Construct sample items
-        noteItem1 = Notes.Note("noteItem1")
-        noteItem2 = Notes.Note("noteItem2")
-        noteItem3 = Notes.Note("noteItem3")
-
-        # Double check kinds
-        self.assertEqual(noteItem1.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem2.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem3.itsKind, ContentModel.ContentModel.getNoteKind())
-
-        # Add some attributes
-        note1About = 'note1About'
-        noteItem1.about = note1About
-        note2About = 'note2About'
-        noteItem2.about = note2About
-        note3About = 'note3About'
-        noteItem3.about = note3About
-        note1Date = DateTime.now()
-        noteItem1.date = note1Date
-        note2Date = DateTime.now()
-        noteItem2.date = note2Date
-        note3Date = DateTime.now()
-        noteItem3.date = note3Date
-        
         # Get the stamp kinds
         mailMixin = Mail.MailParcel.getMailMessageMixinKind()
         taskMixin = Task.TaskParcel.getTaskMixinKind()
         eventMixin = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        taskKind = Task.TaskParcel.getTaskKind()
+        mailKind = Mail.MailParcel.getMailMessageKind()
+        eventKind = Calendar.CalendarParcel.getCalendarEventKind()
+        noteKind = ContentModel.ContentModel.getNoteKind()
 
-        # Stamp to Mail, Task, Event
-        addOperation = 'add'
-        noteItem1.StampKind(addOperation, mailMixin)
-        noteItem2.StampKind(addOperation, taskMixin)
-        noteItem3.StampKind(addOperation, eventMixin)
+        # start out with a Note
+        aNote = Notes.Note("noteItem1")
+        self.setAttributes(aNote, doWho=False)
+        self.assertAttributes(aNote)
+        add = 'add'
+        remove = 'remove'
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
+        # stamp everything on and off the note
+        self.traverseStampSquence(aNote, ((add, mailMixin),
+                                          (add, taskMixin),
+                                          (add, eventMixin),
+                                          (remove, eventMixin),
+                                          (remove, taskMixin),
+                                          (remove, mailMixin)))
 
-        # Stamp additional Task, Event, Mail
-        noteItem1.StampKind(addOperation, taskMixin)
-        noteItem2.StampKind(addOperation, eventMixin)
-        noteItem3.StampKind(addOperation, mailMixin)
+        # stamp everything on again, remove in a different order
+        self.traverseStampSquence(aNote, ((add, mailMixin),
+                                          (add, taskMixin),
+                                          (add, eventMixin),
+                                          (remove, mailMixin),
+                                          (remove, taskMixin),
+                                          (remove, eventMixin)))
+        self.assertAttributes(aNote)
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
+        # Create a Task, and do all kinds of stamping on it
+        aTask = Task.Task("aTask")
+        self.setAttributes(aTask)
 
-        # Stamp additional, so they have all three
-        noteItem1.StampKind(addOperation, eventMixin)
-        noteItem2.StampKind(addOperation, mailMixin)
-        noteItem3.StampKind(addOperation, taskMixin)
+        self.traverseStampSquence(aTask, ((add, eventMixin),
+                                          (remove, taskMixin)))
+        # now it's an Event
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
+        self.traverseStampSquence(aTask, ((add, mailMixin),
+                                          (remove, mailMixin)))
 
-        # unstamp in different orders - mail
-        removeOperation = 'remove'
-        noteItem1.StampKind(removeOperation, mailMixin)
-        noteItem2.StampKind(removeOperation, mailMixin)
-        noteItem3.StampKind(removeOperation, mailMixin)
+        self.traverseStampSquence(aTask, ((add, mailMixin),
+                                          (add, taskMixin),
+                                          (remove, mailMixin),
+                                          (remove, taskMixin)))
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
+        self.traverseStampSquence(aTask, ((add, taskMixin),
+                                          (add, mailMixin),
+                                          (remove, mailMixin),
+                                          (remove, taskMixin)))
 
-        # unstamp in different orders - event
-        noteItem1.StampKind(removeOperation, eventMixin)
-        noteItem2.StampKind(removeOperation, eventMixin)
-        noteItem3.StampKind(removeOperation, eventMixin)
+        self.traverseStampSquence(aTask, ((add, mailMixin),
+                                          (remove, eventMixin)))
+        # now it's a Mail
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
+        self.traverseStampSquence(aTask, ((add, taskMixin),
+                                          (remove, mailMixin)))
+        # it's a Task again
 
-        # unstamp in different orders - task
-        noteItem1.StampKind(removeOperation, taskMixin)
-        noteItem2.StampKind(removeOperation, taskMixin)
-        noteItem3.StampKind(removeOperation, taskMixin)
+        self.traverseStampSquence(aTask, ((add, mailMixin),
+                                          (remove, taskMixin)))
 
-        # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
-        
-        # should all be back to Note again
-        self.assertEqual(noteItem1.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem2.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem3.itsKind, ContentModel.ContentModel.getNoteKind())
+        self.traverseStampSquence(aTask, ((add, taskMixin),
+                                          (remove, mailMixin)))
+        # it's a Task again
+
+        self.traverseStampSquence(aTask, ((add, eventMixin),
+                                          (remove, taskMixin),
+                                          (add, mailMixin),
+                                          (remove, eventMixin),
+                                          (add, taskMixin),
+                                          (remove, mailMixin)))
+        self.assert_(aTask.itsKind.isKindOf(taskKind))
+
+        # check stamping on an Event
+        anEvent = Calendar.CalendarEvent("anEvent")
+        self.setAttributes(anEvent)
+
+        # round-robin it's Kind back to event
+        self.traverseStampSquence(anEvent, ((add, mailMixin),
+                                            (remove, eventMixin),
+                                            (add, taskMixin),
+                                            (remove, mailMixin),
+                                            (add, eventMixin),
+                                            (remove, taskMixin)))
+        self.assert_(anEvent.itsKind.isKindOf(eventKind))
+
+        # check stamping on a Mail Message
+        aMessage = Mail.MailMessage("aMessage")
+        self.setAttributes(aMessage)
+        self.traverseStampSquence(aMessage, ((add, eventMixin),
+                                             (add, taskMixin),
+                                             (remove, eventMixin),
+                                             (remove, taskMixin)))
+        self.assert_(aMessage.itsKind.isKindOf(mailKind))
 
         # now mixin some arbitrary Kind
-        anotherKind = ContentModel.ContentModel.getConversationKind()
+        anotherKind = self.rep.findPath('//parcels/osaf/framework/blocks/Block')
 
         # stamp an event, mail, task with another kind
-        noteItem1.StampKind(addOperation, eventMixin)
-        noteItem2.StampKind(addOperation, mailMixin)
-        noteItem3.StampKind(addOperation, taskMixin)
+        aNote.StampKind(add, anotherKind)
+        aTask.StampKind(add, anotherKind)
+        anEvent.StampKind(add, anotherKind)
+        aMessage.StampKind(add, anotherKind)
 
-        noteItem1.StampKind(addOperation, anotherKind)
-        noteItem2.StampKind(addOperation, anotherKind)
-        noteItem3.StampKind(addOperation, anotherKind)
+        self.assertKinds(aNote, (noteKind, anotherKind))
+        self.assertKinds(aTask, (taskKind, anotherKind))
+        self.assertKinds(anEvent, (eventKind, anotherKind))
+        self.assertKinds(aMessage, (mailKind, anotherKind))
 
-        noteItem1.StampKind(removeOperation, anotherKind)
-        noteItem2.StampKind(removeOperation, anotherKind)
-        noteItem3.StampKind(removeOperation, anotherKind)
-
-        noteItem1.StampKind(removeOperation, eventMixin)
-        noteItem2.StampKind(removeOperation, mailMixin)
-        noteItem3.StampKind(removeOperation, taskMixin)
+        # unstamp with another kind
+        aNote.StampKind(remove, anotherKind)
+        aTask.StampKind(remove, anotherKind)
+        anEvent.StampKind(remove, anotherKind)
+        aMessage.StampKind(remove, anotherKind)
 
         # see that they still have their attributes
-        self.assertEqual(noteItem1.about, note1About)
-        self.assertEqual(noteItem1.date, note1Date)
-        self.assertEqual(noteItem2.about, note2About)
-        self.assertEqual(noteItem2.date, note2Date)
-        self.assertEqual(noteItem3.about, note3About)
-        self.assertEqual(noteItem3.date, note3Date)
-        
-        # should all be back to Note again
-        self.assertEqual(noteItem1.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem2.itsKind, ContentModel.ContentModel.getNoteKind())
-        self.assertEqual(noteItem3.itsKind, ContentModel.ContentModel.getNoteKind())
+        self.assertKinds(aNote, (noteKind, ))
+        self.assertKinds(aTask, (taskKind, ))
+        self.assertKinds(anEvent, (eventKind, ))
+        self.assertKinds(aMessage, (mailKind, ))
+
+        # Test some failure cases
+        # These cases should produce suitable warning messages in Chandler.log
+        if testFailureCases:
+            anotherEvent = Calendar.CalendarEvent("anotherEvent")
+            self.setAttributes(anotherEvent)
+            self.assert_(anotherEvent.itsKind.isKindOf(eventKind))
+            try:
+                # double stamping
+                self.traverseStampSquence(anotherEvent, ((add, mailMixin),
+                                                         (add, mailMixin)))
+            except:
+                pass
+
+            try:
+                # unstamping something not present
+                self.traverseStampSquence(anotherEvent, ((remove, taskMixin), ))
+            except:
+                pass
+
 
 if __name__ == "__main__":
     unittest.main()

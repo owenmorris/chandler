@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from application.Parcel import Parcel
 import repository.item.Item as Item
 import repository.item.Query as Query
+import logging
 
 import application.Globals as Globals
 
@@ -87,14 +88,56 @@ class ContentModel(Parcel):
     
     getConversationKind = classmethod(getConversationKind)
 
-class StampError(ValueError):
-    "Can't stamp Item with the requested Mixin Kind"
+class SuperKindSignature(list):
+    """
+    A list of unique superkinds, used as a signature to identify 
+    the structure of a Kind for stamping.
+    The signature is the list of twig node superkinds of the Kind.
+    Using a tree analogy, a twig is the part farthest from the leaf
+    that has no braching.
+    Specifically, a twig node in the SuperKind hierarchy is a node 
+    that has at most one superkind, and whose superkind has at
+    most one superkind, all they way up.
+    The twig superkinds list makes the best signature for two reasons:
+       1) it bypasses all the branching, allowing (A, (B,C)) to match 
+            ((A, B), C)
+       2) it uses the most specialized form when there is no branching,
+            thus if D has superKind B, and B has no superKinds,
+            D is more specialized, so we want to use it.
+    """
+    def __init__(self, aKind, *args, **kwds):
+        """
+        construct with a single Kind
+        """
+        super(SuperKindSignature, self).__init__(*args, **kwds)
+        onTwig = self.appendTwigSuperkinds(aKind)
+        if onTwig:
+            assert len(self) == 0, "Error building superKind Signature"
+            self.append(aKind)
 
-class KindList(list):
+    def appendTwigSuperkinds(self, aKind):
+        """
+        called with a kind, appends all the twig superkinds
+        and returns True iff there's been no branching within
+        this twig
+        """
+        supers = aKind.getAttributeValue('superKinds', default = [])
+        numSupers = len(supers)
+        onTwig = True
+        for kind in supers:
+            onTwig = self.appendTwigSuperkinds(kind)
+            if onTwig and numSupers > 1:
+                self.appendUnique(kind)
+        return numSupers < 2 and onTwig
+
     def appendUnique(self, item):
         if not item in self:
             self.append(item)
 
+    def extend(self, sequence):
+        for item in sequence:
+            self.appendUnique(item)
+    
     def properSubsetOf(self, sequence):
         """
         return True if self is a proper subset of sequence
@@ -105,26 +148,13 @@ class KindList(list):
                 return False
         return True
 
-    def allLeafSuperKinds(cls, aKind):
-        """
-        Return all the leaf node SuperKinds of a Kind in a list.
-        """
-        def leafNode(kind):
-            supers = kind.getAttributeValue('superKinds', default = None)
-            return supers is None
-        def appendSuperkinds(aKind, supersList):
-            supers = aKind.getAttributeValue('superKinds', default = [])
-            for kind in supers:
-                # all Kinds have Item as their superKind, so the
-                # kinds we want are ones just below the leaf. 
-                if leafNode(kind):
-                    supersList.appendUnique(aKind)
-                appendSuperkinds(kind, supersList)
-        supersList = KindList()
-        appendSuperkinds(aKind, supersList)
-        return supersList
-    allLeafSuperKinds = classmethod(allLeafSuperKinds)
-    
+    def __str__(self):
+        readable = []
+        for item in self:
+            readable.append(item.itsName)
+        theList = ', '.join(readable)
+        return '['+theList+']'
+            
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -154,7 +184,55 @@ class ContentItem(Item.Item):
         self.StampPostProcess(futureKind, dataCarryOver)
         Globals.repository.commit()
 
-    def FindStampedKind(self, operation, mixinKind):
+    def CandidateStampedKinds(self):
+        """
+        return the list of candidate kinds for stamping
+        right now, we consider all kinds
+        """
+        kindKind = Globals.repository.findPath('//Schema/Core/Kind')
+        allKinds = Query.KindQuery().run([kindKind])
+        return allKinds
+
+    def ComputeTargetKindSignature(self, operation, stampKind):
+        """
+        Compute the Kind Signature for stamping.
+        Takes the operation, the kind of self, the stampKind,
+        and computes a target kind signature, which is a list
+        of superKinds.
+        returns a tuple with the signature, and the allowed
+        extra kinds
+        @return: a C{Tuple} (kindSignature, allowedExtra)
+           where kindSignature is a list of kinds, and
+           allowedExtra is an integer telling how many
+           extra kinds are allowed beyond what's in the target.
+        """
+        myKind = self.itsKind
+        soughtSignature = SuperKindSignature(myKind)
+        stampSignature = SuperKindSignature(stampKind)
+        if operation == 'add':
+            for stampSuperKind in stampSignature:
+                if stampSuperKind in soughtSignature:
+                    logging.warning("Trying to stamp with a Kind Signature already present.")
+                    logging.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
+                                    (stampKind.itsName, stampSignature, \
+                                     myKind.itsName, soughtSignature))
+                    return None # in case this method is overloaded
+            soughtSignature.extend(stampSignature)
+            extrasAllowed = 1
+        else:
+            assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
+            if not stampSignature.properSubsetOf(soughtSignature):
+                logging.warning("Trying to unstamp with a Kind Signature not already present.")
+                logging.warning("%s has signature %s which is not present in %s: %s" % \
+                                    (stampKind.itsName, stampSignature, \
+                                     myKind.itsName, soughtSignature))
+                return None # in case this method is overloaded
+            for stampSuperKind in stampSignature:
+                soughtSignature.remove(stampSuperKind)
+            extrasAllowed = -1
+        return (soughtSignature, extrasAllowed)
+
+    def FindStampedKind(self, operation, stampKind):
         """
            Return the new Kind that results from self being
         stamped with the Mixin Kind specified.
@@ -166,47 +244,48 @@ class ContentItem(Item.Item):
         @type mixinKind: C{Kind} of the Mixin
         @return: a C{Kind}
         """
-        myKind = self.itsKind
-        soughtMixins = KindList.allLeafSuperKinds(myKind)
-        if operation == 'add':
-            assert not mixinKind in soughtMixins, "Trying to stamp with a Mixin Kind already present"
-            soughtMixins.append(mixinKind)
-            extrasAllowed = 1
-        else:
-            assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
-            if not mixinKind in soughtMixins:
-                return None
-            soughtMixins.remove(mixinKind)
-            extrasAllowed = -1
-
-        qualified = []
-        kindKind = Globals.repository.findPath('//Schema/Core/Kind')
-        allKinds = Query.KindQuery().run([kindKind])
-        for candidate in allKinds:
-            superKinds = KindList.allLeafSuperKinds(candidate)
-            extras = len(superKinds) - len(soughtMixins)
+        signature = self.ComputeTargetKindSignature(operation, stampKind)
+        if signature is None:
+            return None
+        soughtSignature, extrasAllowed = signature
+        exactMatches = []
+        closeMatches = []
+        candidates = self.CandidateStampedKinds()
+        for candidate in candidates:
+            candidateSignature = SuperKindSignature(candidate)
+            extras = len(candidateSignature) - len(soughtSignature)
             if extras != 0 and (extras - extrasAllowed) != 0:
                 continue
-            shortList = soughtMixins
-            longList = superKinds
+            shortList = soughtSignature
+            longList = candidateSignature
             if extras < 0:
-                shortList = superKinds
-                longList = soughtMixins
+                shortList = candidateSignature
+                longList = soughtSignature
             if shortList.properSubsetOf(longList):
                 # found a potential match
                 if extras == 0:
                     # exact match
-                    return candidate
+                    exactMatches.append(candidate)
                 else:
                     # close match - keep searching for a better match
-                    qualified.append(candidate)
+                    closeMatches.append(candidate)
 
-        # finished search with no exact matches.  Better have only one candidate.
-        if len(qualified) == 1:
-            return qualified[0]
-        # couldn't find a match, just ReKind with the Mixin Kind
+        # finished search.  Better have only one exact match or else the match is ambiguous.
+        if len(exactMatches) == 1:
+            return exactMatches[0]
+        elif len(exactMatches) == 0:
+            if len(closeMatches) == 1:
+                # zero exact matches is OK when "mixin synergy" is involved.
+                return closeMatches[0]
+
+        # Couldn't find a single exact match or a single close match.
+        logging.warning ("Couldn't find suitable candidates for stamping %s with %s." \
+                        % (self.itsKind.itsName, stampKind.itsName))
+        logging.warning ("Exact matches: %s" % exactMatches)
+        logging.warning ("Close matches: %s" % closeMatches)
+        # ReKind with the Mixin Kind on-the-fly
         return None
-        
+
 
     def AddedRemovedKinds(self, futureKind):
         """
@@ -256,7 +335,13 @@ class ContentItem(Item.Item):
                 break
             if self.hasAttributeAspect(name, 'redirectTo'):
                 try:
-                    carryOver[name] = self.getAttributeValue(name)
+                    value = self.getAttributeValue(name)
+                    # collections need to deep copy their attribute value
+                    # otherwise there will be two references to the collection,
+                    #  which will go away when the first reference goes away.
+                    value = self.CloneCollectionValue(name, value)
+                    oldRedirect = self.getAttributeAspect(name, 'redirectTo')
+                    carryOver[name] = (value, oldRedirect)
                 except AttributeError:
                     carryOver[name] = None
         return carryOver
@@ -284,8 +369,56 @@ class ContentItem(Item.Item):
         """
         for key, value in carryOver.items():
             if value is not None:
-                self.setAttributeValue(key, value)
+                value, redirect = value
+                # if the redirect has changed, set the value to the new attribute
+                if self.hasAttributeAspect(key, 'redirectTo'):
+                    newRedirect = self.getAttributeAspect(key, 'redirectTo')
+                    if redirect != newRedirect:
+                        try:
+                            self.setAttributeValue(key, value)
+                        except AttributeError:
+                            pass
     
+    def CloneCollectionValue(self, key, value):
+        """
+        If the value is some kind of collection, we need to make a shallow copy
+        so the collection isn't destroyed when the reference in the other attribute
+        is destroyed.
+        
+        @param key: the name of the indirect attribute.
+        @type name: a string.
+        @param value: the value, already set, in the attribute
+        @type value: anything compatible with the attribute's type
+        
+        I made this a separate method for easy overloading.
+        """
+        # don't need to clone single items
+        if self.getAttributeAspect(key, 'cardinality') == 'single':
+            return value
+
+        # check the first item to see if it has an alias
+        try:
+            alias = value.getAlias(value[0])
+            hasAlias = alias is not None
+        except:
+            hasAlias = False
+
+        # create the clone
+        if hasAlias:
+            clone = {}
+        else:
+            clone = []
+
+        # copy each item, using alias if available
+        for item in value:
+            if hasAlias:
+                alias = value.getAlias(item)
+                clone[alias] = item
+            else:
+                clone.append(item)
+        
+        return clone
+
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

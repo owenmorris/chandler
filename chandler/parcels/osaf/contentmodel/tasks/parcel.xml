@@ -44,6 +44,7 @@
     <displayName>Requestee</displayName>
     <issues>Type could be Contact, EmailAddress or String</issues>
     <issues>Think about using the icalendar terminology</issues>
+    <cardinality>list</cardinality>
     <type itemref="content:ContentItem"/>
     <inverseAttribute itemref="tasks:taskRequests"/>
   </Attribute>
