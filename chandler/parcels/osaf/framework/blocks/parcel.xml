@@ -288,16 +288,6 @@
 
     <attributes itemref="docSchema:BoxContainer/orientationEnum"/>
   </Kind>
-
-  <!--
-    TabbedContainer
-  -->
-  <Kind itemName="TabbedContainer">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TabbedContainer</classes>
-    <superKinds itemref="docSchema:RectContainer"/>
-
-  </Kind>  
-  
   
   <!--
     Menu Entries are either MenuItems or Menus
@@ -393,20 +383,31 @@
     <Enumeration itemName="buttonKindEnumType">
       <values>Text</values>
       <values>Image</values>
-      <values>Both</values>
+      <values>Toggle</values>
     </Enumeration>
     
     <Attribute itemName="buttonKind">
       <type itemref="docSchema:Button/buttonKindEnumType"/>
     </Attribute>
+    
+    <Attribute itemName="icon">
+      <type itemref="String"/>
+    </Attribute>
 
-    <Attribute itemName="event">
+    <Attribute itemName="clicked">
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
-    
+
+    <Attribute itemName="rightClicked">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+
     <attributes itemref="docSchema:Button/title"/>
     <attributes itemref="docSchema:Button/buttonKind"/>
-    <attributes itemref="docSchema:Button/event"/>
+    <attributes itemref="docSchema:Button/icon"/>
+    <attributes itemref="docSchema:characterStyle"/>    
+    <attributes itemref="docSchema:Button/clicked"/>
+    <attributes itemref="docSchema:Button/rightClicked"/>
   </Kind>
   
   <!--
@@ -425,8 +426,13 @@
       <cardinality>list</cardinality>
     </Attribute>
 
+    <Attribute itemName="itemSelected">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+
     <attributes itemref="docSchema:ComboBox/selection"/>
     <attributes itemref="docSchema:ComboBox/choices"/>
+    <attributes itemref="docSchema:ComboBox/itemSelected"/>    
   </Kind>
 
   <!--
@@ -471,7 +477,17 @@
   <Kind itemName="HTML">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.HTML</classes>
     <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Attribute itemName="url">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="pageLoaded">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
+    <attributes itemref="docSchema:HTML/url"/>
+    <attributes itemref="docSchema:HTML/pageLoaded"/>
   </Kind>    
   
   <!--
@@ -499,18 +515,28 @@
       <cardinality>list</cardinality>
     </Attribute>
     
-    <Enumeration itemName="orientationEnumType">
-      <values>Horizontal</values>
-      <values>Vertical</values>
+    <Enumeration itemName="radioAlignEnumType">
+      <values>Across</values>
+      <values>Down</values>
     </Enumeration>
     
-    <Attribute itemName="orientationEnum">
-      <type itemref="docSchema:RadioBox/orientationEnumType"/>
+    <Attribute itemName="radioAlignEnum">
+      <type itemref="docSchema:RadioBox/radioAlignEnumType"/>
+    </Attribute>
+    
+    <Attribute itemName="itemsPerLine">
+      <type itemref="Integer"/>
+    </Attribute>
+
+    <Attribute itemName="selectionChanged">
+      <type itemref="docSchema:BlockEvent"/>
     </Attribute>
 
     <attributes itemref="docSchema:RadioBox/title"/>
     <attributes itemref="docSchema:RadioBox/choices"/>
-    <attributes itemref="docSchema:RadioBox/orientationEnum"/>
+    <attributes itemref="docSchema:RadioBox/radioAlignEnum"/>
+    <attributes itemref="docSchema:RadioBox/itemsPerLine"/>
+    <attributes itemref="docSchema:RadioBox/selectionChanged"/>
   </Kind>
 
   <!--
@@ -528,7 +554,22 @@
   <Kind itemName="SplitterWindow">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitterWindow</classes>
     <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Enumeration itemName="orientationEnumType">
+      <values>Horizontal</values>
+      <values>Vertical</values>
+    </Enumeration>
 
+    <Attribute itemName="orientationEnum">
+      <type itemref="docSchema:BoxContainer/orientationEnumType"/>
+    </Attribute>
+
+    <Attribute itemName="sashPosChanged">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:SplitterWindow/orientationEnum"/>
+    <attributes itemref="docSchema:SplitterWindow/sashPosChanged"/>
   </Kind>  
 
   <!--
@@ -547,6 +588,38 @@
     <attributes itemref="docSchema:characterStyle"/>
   </Kind>
 
+  <!--
+    TabbedContainer
+  -->
+  <Kind itemName="TabbedContainer">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TabbedContainer</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+    <Enumeration itemName="tabPosEnumType">
+      <values>Top</values>
+      <values>Bottom</values>
+      <values>Right</values>
+      <values>Left</values>
+    </Enumeration>
+
+    <Attribute itemName="tabPosEnum">
+      <type itemref="docSchema:TabbedContainer/tabPosEnumType"/>
+    </Attribute>
+    
+    <Attribute itemName="tabNames">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+      
+    <Attribute itemName="selectionChanged">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:TabbedContainer/tabPosEnum"/>
+    <attributes itemref="docSchema:TabbedContainer/tabNames"/>
+    <attributes itemref="docSchema:TabbedContainer/selectionChanged"/>
+  </Kind>  
+  
   <!--
     Toolbar
   -->

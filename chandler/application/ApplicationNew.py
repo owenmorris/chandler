@@ -181,7 +181,7 @@ class wxApplicationNew (wxApp):
             self.mainFrame.counterpartUUID = topDocument.getUUID()
             topDocument.render (self.mainFrame, self.mainFrame)
 
-            events = Globals.repository.find('//parcels/OSAF/framework/blocks/events')
+            events = Globals.repository.find('//parcels/OSAF/framework/blocks/Events')
             names = []
             for child in events:
                 names.append (child.name)
@@ -232,7 +232,6 @@ class wxApplicationNew (wxApp):
                 except KeyError:
                     pass
 
-                
     def OnSetFocus(self, event):
         Globals.topController.onSetFocus()
 

@@ -253,6 +253,63 @@
     <readOnly>False</readOnly>
   </EditText>
   
+  <CharacterStyle itemName="OneStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>12.0</fontSize>
+    <fontStyle>bold</fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>
+
+  <CharacterStyle itemName="TwoStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>12.0</fontSize>
+    <fontStyle>bold</fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>  
+  
+  <StaticText itemName="TabOne">
+    <open>True</open>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:OneStyle"/>
+    <title>First tab</title>
+  </StaticText>  
+  
+  <StaticText itemName="TabTwo">
+    <open>True</open>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TwoStyle"/>
+    <title>Second tab</title>
+  </StaticText>  
+  
+  <TabbedContainer itemName="Tabs">
+    <childrenBlocks itemref="doc:TabOne"/>
+    <childrenBlocks itemref="doc:TabTwo"/>
+
+    <tabPosEnum>Top</tabPosEnum>
+    <tabNames>One</tabNames>
+    <tabNames>Two</tabNames>
+    
+
+    <size>600,200</size>
+
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TabbedContainer>
+  
   <BoxContainer itemName="LeftBox">
     <content-spec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:LeftText"/>
@@ -267,24 +324,10 @@
     <orientationEnum>Horizontal</orientationEnum>
   </BoxContainer>
 
-  <BoxContainer itemName="RightBox">
-    <content-spec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:RightText"/>
-    <open>True</open>
-
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>alignCenter</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
-  </BoxContainer>
-
   <BoxContainer itemName="ContentBox">
     <content-spec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:TreeList"/>
-    <childrenBlocks itemref="doc:RightBox"/>
+    <childrenBlocks itemref="doc:Tabs"/>
     <open>True</open>
 
     <size>200,100</size>
