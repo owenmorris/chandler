@@ -61,14 +61,10 @@ class JabberClient:
  
         self.rosterParcel = None
         self.FindRosterParcel()
-                               
+        self.rosterNotified = false
+        
         self.ReadAccountFromPreferences()
         self.Login()
-
-        # if there's a roster parcel, tell it to update the sidebar
-        # now that we've logged in
-        if self.rosterParcel != None:
-            self.rosterParcel.SynchronizePresence()
             
     # set up the reference to the roster parcel by iterating through the
     # parcel list
@@ -550,5 +546,13 @@ class JabberTimer(wxTimer):
         
     def Notify(self):
         if self.jabberClient.connection != None:
-            self.jabberClient.connection.process(0)			
+           # we want to notify the roster package just once after login to
+           # synchronize presence info with the sidebar, so do that here if necessary
+           if not self.jabberClient.rosterNotified:
+               if self.jabberClient.rosterParcel != None:
+                   self.jabberClient.rosterParcel.SynchronizePresence()
+               self.jabberClient.rosterNotified = true
+           
+           # process Jabber events
+           self.jabberClient.connection.process(0)			
         
