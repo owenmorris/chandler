@@ -272,6 +272,14 @@ class Contact(Item):
     def SetFullName(self, value):
         self.name.SetAttribute(chandler.fullname, value)
 
+    # delete a contact method
+    def DeleteContactMethod(self, contactMethod):
+        try:
+            index = self.contactMethods.index(contactMethod)
+            del self.contactMethods[index]
+        except:
+            pass
+
     # header and body attribute managerment routines
     def GetHeaderAttributes(self):
         return self.GetAttribute(chandler.headerAttribute)
