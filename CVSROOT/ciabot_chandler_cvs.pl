@@ -305,6 +305,7 @@ if ($xml_rpc) {
   my $rpc_response = $rpc_client->send_request($rpc_request);
 
   unless (ref $rpc_response) {
+    print "File(s) have been committed, error is from CIA reporting system";
     die "XML-RPC Error: $RPC::XML::ERROR\n";
   }
   exit;
