@@ -15,7 +15,7 @@ ifeq ($(OS),Cygwin)
 
 build: apply
 	cd $(SRC); \
-	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)"; \
+	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)" \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
