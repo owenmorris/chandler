@@ -11,6 +11,7 @@ import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.util.Path import Path
+import tools.timing
 
 
 class TestDelete(RepositoryTestCase):
@@ -27,10 +28,13 @@ class TestDelete(RepositoryTestCase):
 
     def testDeleteItemsInCollection(self):
 
+        tools.timing.reset()
         self._reopenRepository()
         k = self.rep.findPath('//CineGuide/KHepburn')
         for m in k.movies:
+            tools.timing.begin("repository.TestDelete")
             m.delete()
+            tools.timing.end("repository.TestDelete")
 
         self.assert_(len(k.movies) == 0)
         self.assert_(self.rep.check())
@@ -38,6 +42,7 @@ class TestDelete(RepositoryTestCase):
         self._reopenRepository()
         self.assert_(self.rep.check())
 
+        tools.timing.results(verbose=False)
 
 if __name__ == "__main__":
 #    import hotshot

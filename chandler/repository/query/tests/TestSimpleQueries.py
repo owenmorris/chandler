@@ -126,7 +126,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         tools.timing.begin("Commit Calendar Events")
         self.rep.commit()
         tools.timing.end("Commit Calendar Events")
-#        tools.timing.results()
+        tools.timing.results()
         
         results = self._compileQuery(u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
         self._checkQuery(lambda i: not i.importance == 'fyi', results)
