@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.5-4
+RELVER=0.5-5
 CHANDLERDB=$(INTERNAL)/chandlerdb
 
 BUILD=build_$(SNAP)

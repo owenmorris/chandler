@@ -116,11 +116,11 @@ class Kind(Item):
         for name, attribute, k in self.iterAttributes():
             descriptor = cls.__dict__.get(name, None)
             if descriptor is None:
-                descriptor = Descriptor(name)
+                descriptor = CDescriptor(name)
                 descriptors[name] = descriptor
                 setattr(cls, name, descriptor)
                 descriptor.registerAttribute(self, attribute)
-            elif type(descriptor) is Descriptor:
+            elif type(descriptor) is CDescriptor:
                 descriptor.registerAttribute(self, attribute)
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
@@ -648,7 +648,6 @@ class Kind(Item):
                 self._setupDescriptors(cls, reason)
             
 
-
     # begin typeness of Kind as SingleRef
     
     def isValueReady(self, itemHandler):
@@ -753,90 +752,6 @@ class Kind(Item):
     _classes = {}
     _kinds = {}
     _descriptors = {}
-    
-
-class Descriptor(CDescriptor):
-
-    def registerAttribute(self, kind, attribute):
-
-        values = attribute._values
-        
-        if 'otherName' in values:
-            flags = CDescriptor.REF
-            if values.get('cardinality', 'single') in ('list', 'dict'):
-                flags |= CDescriptor.SIMPLE
-                
-        elif 'redirectTo' in values:
-            flags = CDescriptor.REDIRECT
-
-        else:
-            flags = CDescriptor.VALUE
-            type = attribute.getAttributeValue('type', attribute._references,
-                                               None, default=None)
-            if type is not None and type.isSimple():
-                flags |= CDescriptor.SIMPLE
-
-        if values.get('required', False):
-            flags |= CDescriptor.REQUIRED
-
-        self.attrs[kind._uuid] = (attribute._uuid, flags)
-
-    def unregisterAttribute(self, kind):
-
-        del self.attrs[kind._uuid]
-        return len(self.attrs) == 0
-
-    def getAttribute(self, kind):
-
-        return self.attrs[kind._uuid]
-
-    def isValueRequired(self, item):
-
-        try:
-            attrID, flags = self.attrs[item._kind._uuid]
-        except KeyError:
-            return None, False
-        else:
-            attrDict = self.getAttrDict(item, flags)
-            return attrDict, (attrDict is not None and
-                              flags & CDescriptor.REQUIRED != 0)
-
-    def getName(self):
-
-        return self.name
-
-    def getAttrDict(self, obj, flags):
-
-        if flags & CDescriptor.VALUE:
-            return obj._values
-        elif flags & CDescriptor.REF:
-            return obj._references
-        elif flags & CDescriptor.REDIRECT:
-            return None
-
-        raise AssertionError, (self.name, flags)
-
-    def __delete__(self, obj):
-
-        if obj is None:
-            raise AttributeError, self.name
-
-        kind = obj._kind
-        if kind is not None:
-            try:
-                attrID, flags = self.attrs[kind._uuid]
-                attrDict = self.getAttrDict(obj, flags)
-            except KeyError:
-                pass
-            else:
-                return obj.removeAttributeValue(self.name,
-                                                _attrDict=attrDict,
-                                                _attrID=attrID)
-
-        try:
-            del obj.__dict__[self.name]
-        except KeyError:
-            raise AttributeError, self.name
     
 
 class SchemaMonitor(Monitor):
