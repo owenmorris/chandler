@@ -5,29 +5,27 @@ RELVER=0.1-1
 QP=$(INTERNAL)/queryparser
 
 ifeq ($(OS),Cygwin)
-TOOLPATH="`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps2.py`"
+TOOLPATH="`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps/yapps2.py`"
 GRAMMAR_PATH="`cygpath -aw $(SRC)/QueryParser.g`"
 else
-TOOLPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps2.py
+TOOLPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps/yapps2.py
 GRAMMAR_PATH=$(SRC)/QueryParser.g
 endif
 
 SRC=$(QP)
 
-MANIFEST=$(SNAP)/$(SITE)/QueryParser.py
+MANIFEST=repository/query/parser/QueryParser.py
 
 build: $(PYTHON) $(SRC)/QueryParser.g
-	$(PYTHON) $(TOOLPATH) $(GRAMMAR_PATH) 
-	cp QueryParser.py $(BUILD_ROOT)/$(SNAP)/$(SITE)/
+	$(PYTHON) $(TOOLPATH) $(GRAMMAR_PATH)
+	mkdir -p repository/query/parser
+	cp -p QueryParser.py repository/query/parser
 
 snap: 
-	cd $(BUILD_ROOT); \
-	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz \
-			 $(MANIFEST)
+	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 clean:
-	rm -f $(SRC)/QueryParser.py $(MANIFEST)
+	rm -rf $(SRC)/QueryParser.py $(MANIFEST)
 
 install:
-	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
+	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
