@@ -463,6 +463,7 @@
     
     <Attribute itemName="operation">
       <type itemref="docSchema:MenuEntry/operationEnumType"/>
+      <defaultValue type="docSchema:MenuEntry/operationEnumType">InsertBefore</defaultValue>
     </Attribute>
     
     <Attribute itemName="menuLocation">

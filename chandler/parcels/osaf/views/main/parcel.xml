@@ -49,7 +49,6 @@
   -->
   <Menu itemName="FileMenu">
     <title>File</title>
-    <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
     <helpString></helpString>
@@ -57,7 +56,6 @@
 
   <Menu itemName="EditMenu">
     <title>Edit</title>
-    <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
     <helpString></helpString>
@@ -65,7 +63,6 @@
     
   <Menu itemName="ViewMenu">
     <title>View</title>
-    <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
     <helpString></helpString>
@@ -73,7 +70,6 @@
 
   <Menu itemName="TestMenu">
     <title>Test</title>
-    <operation>InsertBefore</operation>
     <menuLocation/>
     <itemLocation/>
     <helpString/>
@@ -84,7 +80,6 @@
   -->
   <MenuItem itemName="QuitItem">
     <title>Quit</title>
-    <operation>InsertBefore</operation>
     <menuLocation>FileMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -95,10 +90,8 @@
   
   <MenuItem itemName="UndoItem">
     <title>Undo</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
-    <operation>InsertBefore</operation>
     <menuItemKind>Normal</menuItemKind>
     <accel>Z</accel>
     <helpString></helpString>
@@ -107,7 +100,6 @@
 
   <MenuItem itemName="RedoItem">
     <title>Redo</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -118,7 +110,6 @@
 
   <MenuItem itemName="EditSeparator1">
     <title></title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Separator</menuItemKind>
@@ -128,7 +119,6 @@
   
   <MenuItem itemName="CutItem">
     <title>Cut</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -139,7 +129,6 @@
 
   <MenuItem itemName="CopyItem">
     <title>Copy</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -150,7 +139,6 @@
 
   <MenuItem itemName="PasteItem">
     <title>Paste</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -161,7 +149,6 @@
   
   <MenuItem itemName="EditSeparator2">
     <title></title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Separator</menuItemKind>
@@ -171,7 +158,6 @@
   
   <MenuItem itemName="PreferencesItem">
     <title>Preferences</title>
-    <operation>InsertBefore</operation>
     <menuLocation>EditMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
@@ -182,7 +168,6 @@
 
   <MenuItem itemName="ViewSideBarItem">
     <title>View Sidebar</title>
-    <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
@@ -193,7 +178,6 @@
 
   <MenuItem itemName="ViewNavigationBarItem">
     <title>View Navigation Bar</title>
-    <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
@@ -204,7 +188,6 @@
 
   <MenuItem itemName="ViewBookmarksBarItem">
     <title>View Bookmarks Bar</title>
-    <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
@@ -215,7 +198,6 @@
 
   <MenuItem itemName="ViewStatusBarItem">
     <title>View Status Bar</title>
-    <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Check</menuItemKind>
@@ -226,7 +208,6 @@
 
   <MenuItem itemName="GenerateAllItem">
     <title>Generate Content Items</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -237,7 +218,6 @@
 
   <MenuItem itemName="GenerateContactItem">
     <title>Generate Contacts</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -248,7 +228,6 @@
 
   <MenuItem itemName="GenerateCalendarItem">
     <title>Generate Calendar Events</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -259,7 +238,6 @@
 
   <MenuItem itemName="GenerateNoteItem">
     <title>Generate Notes</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -270,7 +248,6 @@
 
   <MenuItem itemName="ImportContactItem">
     <title>Import Contacts from Outlook CSV</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -281,7 +258,6 @@
 
   <MenuItem itemName="CheckRepositoryItem">
     <title>Check Repository</title>
-    <operation>InsertBefore</operation>
     <menuLocation>TestMenu</menuLocation>
     <itemLocation/>
     <menuItemKind>Normal</menuItemKind>
@@ -559,9 +535,9 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </BoxContainer>
-  
-  <View itemName="MainView">
-        itemClass="OSAF.views.main.MainView.MainView">
+
+  <View itemName="MainView"
+        itemClass="OSAF.views.main.Main.MainView">
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:QuitItem"/>
