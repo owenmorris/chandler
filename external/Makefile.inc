@@ -77,6 +77,17 @@ ifeq ($(OS),Cygwin)
         else \
             $(GCJ_HOME)/bin/gcj.exe --v; \
         fi
+	@if expr "$VS71COMNTOOLSx" = "x"  > /dev/null; then \
+		echo You do not have MSVS installed for this user; \
+            false; \
+     else \
+		echo "Setting your environment variables..."; \
+		. $(BUILD_ROOT)/cygenv.sh; \
+		echo "(after exiting cygenv.sh)"; \
+		echo PATH is $(PATH); \
+		echo INCLUDE is $(INCLUDE); \
+		echo LIB is $(LIB);\
+	fi
 else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
             echo GCJ_HOME is incorrect; \
