@@ -23,7 +23,6 @@ alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.46"      #  IP of current server
-skipRsync = False
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
@@ -45,7 +44,7 @@ def main():
       default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
       " [default] " + defaultRsyncServer)
     parser.add_option("-s", "--skipRSync", action="store_true", dest="skipRsync",
-      default=skipRsync, help="Skip rsync step \n"
+      default=False, help="Skip rsync step \n"
       " [default] False")
 
     (options, args) = parser.parse_args()
@@ -177,7 +176,7 @@ def main():
             else:
                 print "Rsyncing..."
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+                 [rsyncProgram, "-e", "ssh", "-avzp",
                  outputDir + os.sep, 
                  options.rsyncServer + ":continuous/" + buildNameNoSpaces])
                 hardhatutil.dumpOutputList(outputList, log)
@@ -296,7 +295,7 @@ def SHAsum(filename):
 def CreateIndex(outputDir, newDirName, nowString, buildName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
-    fileOut = file(outputDir+os.sep+"index.html", "w")
+    fileOut = file(outputDir+os.sep+buildName+"_index.html", "w")
     fileOut.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
     fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
     for x in ["enduser", "developer"]:
