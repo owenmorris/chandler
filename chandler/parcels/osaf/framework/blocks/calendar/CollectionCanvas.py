@@ -191,8 +191,8 @@ class CanvasItem(object):
         """
 
         # @@@ scaffolding: resize bounds is the lower 5 pixels
-        self.bounds = bounds
-        self.item = item
+        self._bounds = bounds
+        self._item = item
 
     def isHit(self, point):
         """ Hit testing (used for selection and moving items).
@@ -202,7 +202,7 @@ class CanvasItem(object):
         @return: True if the point hit the item (includes resize region)
         @rtype: Boolean
         """
-        return self.bounds.Inside(point)
+        return self._bounds.Inside(point)
 
     def isHitResize(self, point):
         """ Hit testing of a resize region.
@@ -216,7 +216,7 @@ class CanvasItem(object):
         """
         return False
 
-    def getItem(self):
+    def GetItem(self):
         """
         Once we have a hit, give access to the item
         for selection, move, resize, etc.
@@ -224,7 +224,8 @@ class CanvasItem(object):
         @return: the item associated with this region on the canvas.
         @rtype: Item
         """
-        return self.item
+        return self._item
+    
 
 class wxCollectionCanvas(wx.ScrolledWindow,
                          DragAndDrop.DropReceiveWidget,
@@ -315,51 +316,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def SetDragBox(self, box):
         self._currentDragBox = self._originalDragBox = box
 
-    # Drawing utility -- scaffolding, we'll try using editor/renderers
-    def DrawWrappedText(self, dc, text, rect):
-        # Simple wordwrap, next step is to not overdraw the rect
-        
-        lines = text.splitlines()
-        y = rect.y
-        for line in lines:
-            x = rect.x
-            wrap = 0
-            for word in line.split():
-                width, height = dc.GetTextExtent(word)
 
-                # first see if we want to jump to the next line
-                # (careful not to jump if we're already at the beginning of the line)
-                if (x != rect.x and x + width > rect.x + rect.width):
-                    y += height
-                    x = rect.x
-                
-                # if we're out of vertical space, just return
-                if (y + height > rect.y + rect.height):
-                    return y
-                   
-                # if we wrapped but we still can't fit the word,
-                # just truncate it    
-                if (x == rect.x and width > rect.width):
-                    self.DrawClippedText(dc, word, x, y, rect.width)
-                    y += height
-                    continue
-                
-                dc.DrawText(word, x, y)
-                x += width
-                width, height = dc.GetTextExtent(' ')
-                dc.DrawText(' ', x, y)
-                x += width
-            y += height
-        return y
-
-    def DrawClippedText(self, dc, word, x, y, maxWidth):
-        # keep shortening the word until it fits
-        for i in xrange(len(word), 0, -1):
-            smallWord = word[0:i] # + "..."
-            width, height = dc.GetTextExtent(smallWord)
-            if width <= maxWidth:
-                dc.DrawText(smallWord, x, y)
-                return
         
     def DrawCenteredText(self, dc, text, rect):
         textExtent = dc.GetTextExtent(text)
@@ -454,7 +411,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                         hitBox = box
 
                 if hitBox:
-                    self.OnSelectItem(hitBox.getItem())
+                    self.OnSelectItem(hitBox.GetItem())
                     self.SetDragBox(hitBox)
 
                 # notice drag start whether or not we hit something

@@ -16,19 +16,90 @@ import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
-class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
+class CalendarCanvasItem(CollectionCanvas.CanvasItem):
+    """
+    Base class for calendar items. Covers:
+    - editor position & size
+    - text wrapping
+    """
+    def GetEditorPosition(self):
+        return self._bounds.GetPosition()
+        
+    def GetMaxEditorSize(self):
+        return self._bounds.GetSize()
+    
+    def GetStatusPen(self):
+        item = self.GetItem()
+        if (item.transparency == "confirmed"):
+            pen = wx.Pen(wx.BLACK, 3)
+        elif (item.transparency == "fyi"):
+            pen = wx.Pen(wx.LIGHT_GREY, 3)
+        elif (item.transparency == "tentative"):
+            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+        return pen
+        
+    # Drawing utility -- scaffolding, we'll try using editor/renderers
+    def DrawWrappedText(self, dc, text, rect):
+        # Simple wordwrap, next step is to not overdraw the rect
+        
+        result = []
+        
+        lines = text.splitlines()
+        y = rect.y
+        for line in lines:
+            x = rect.x
+            wrap = 0
+            for word in line.split():
+                width, height = dc.GetTextExtent(word)
+
+                # first see if we want to jump to the next line
+                # (careful not to jump if we're already at the beginning of the line)
+                if (x != rect.x and x + width > rect.x + rect.width):
+                    y += height
+                    x = rect.x
+                
+                # if we're out of vertical space, just return
+                if (y + height > rect.y + rect.height):
+                    return y
+                   
+                # if we wrapped but we still can't fit the word,
+                # just truncate it    
+                if (x == rect.x and width > rect.width):
+                    self.DrawClippedText(dc, word, x, y, rect.width)
+                    y += height
+                    continue
+                
+                dc.DrawText(word, x, y)
+                x += width
+                width, height = dc.GetTextExtent(' ')
+                dc.DrawText(' ', x, y)
+                x += width
+            y += height
+        return y
+
+    def DrawClippedText(self, dc, word, x, y, maxWidth):
+        # keep shortening the word until it fits
+        for i in xrange(len(word), 0, -1):
+            smallWord = word[0:i] # + "..."
+            width, height = dc.GetTextExtent(smallWord)
+            if width <= maxWidth:
+                dc.DrawText(smallWord, x, y)
+                return
+        
+
+class ColumnarCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2
     def __init__(self, *arguments, **keywords):
         super(ColumnarCanvasItem, self).__init__(*arguments, **keywords)
         
-        self._resizeLowBounds = wx.Rect(self.bounds.x,
-                                        self.bounds.y + self.bounds.height - self.resizeBufferSize,
-                                        self.bounds.width, self.resizeBufferSize)
+        self._resizeLowBounds = wx.Rect(self._bounds.x,
+                                        self._bounds.y + self._bounds.height - self.resizeBufferSize,
+                                        self._bounds.width, self.resizeBufferSize)
         
-        self._resizeTopBounds = wx.Rect(self.bounds.x, self.bounds.y,
-                                        self.bounds.width, self.resizeBufferSize)
+        self._resizeTopBounds = wx.Rect(self._bounds.x, self._bounds.y,
+                                        self._bounds.width, self.resizeBufferSize)
 
     def isHitResize(self, point):
         """ Hit testing of a resize region.
@@ -62,8 +133,8 @@ class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
         return None
         
     def Draw(self, dc, brushContainer):
-        item = self.item
-        itemRect = self.bounds
+        item = self._item
+        itemRect = self._bounds
         time = item.startTime
 
         # Draw one event
@@ -72,12 +143,7 @@ class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
         dc.SetPen(brushContainer.selectionPen)
         dc.DrawRoundedRectangleRect(itemRect, radius=10)
 
-        if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 3)
-        elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 3)
-        elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+        pen = self.GetStatusPen()
 
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
@@ -96,34 +162,23 @@ class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
         # only draw time if there is room
         te = dc.GetFullTextExtent(timeString, brushContainer.smallBoldFont)        
         (timeWidth, timeHeight) = te[0], te[1]
-        if (timeHeight < itemRect.height/3):
+        if (timeHeight < itemRect.height/2):
             dc.SetFont(brushContainer.smallBoldFont)
-            y = brushContainer.DrawWrappedText(dc, timeString, timeRect)
+            y = self.DrawWrappedText(dc, timeString, timeRect)
         
         textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
 
         dc.SetFont(brushContainer.smallFont)
-        brushContainer.DrawWrappedText(dc, item.displayName, textRect)
+        self.DrawWrappedText(dc, item.displayName, textRect)
         
 
-class HeaderCanvasItem(CollectionCanvas.CanvasItem):
-    def Draw(self, dc, isSelected, brushContainer):
-        item = self.item
-        itemRect = self.bounds
+class HeaderCanvasItem(CalendarCanvasItem):
+    def Draw(self, dc, brushContainer):
+        item = self._item
+        itemRect = self._bounds
                 
-        # draw selection rectangle, if any
-        if (isSelected):
-            dc.SetBrush(brushContainer.selectionBrush)
-            dc.SetPen(brushContainer.selectionPen)
-            dc.DrawRectangleRect(itemRect)
-        
         # draw little rectangle to the left of the item
-        if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 3)
-        elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 3)
-        elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+        pen = self.GetStatusPen()
         
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
@@ -133,9 +188,18 @@ class HeaderCanvasItem(CollectionCanvas.CanvasItem):
         # Shift text
         itemRect.x = itemRect.x + 6
         itemRect.width = itemRect.width - 6
-        # @@@ hack, this should be abstracted somehow
-        brushContainer.DrawWrappedText(dc, item.displayName, itemRect)
-    
+        self.DrawWrappedText(dc, item.displayName, itemRect)
+
+# hacky - might not work, but we don't even have a month canvas working right now
+class MonthCanvasItem(CalendarCanvasItem):
+    def Draw(self, dc, isSelected):
+        if (self.blockItem.selection is item):
+            dc.SetPen(wx.BLACK_PEN)
+            dc.SetBrush(wx.WHITE_BRUSH)
+            dc.DrawRectangleRect(itemRect)
+            
+        self.DrawWrappedText(dc, self.GetItem().displayName, itemRect)
+        
 
 class CalendarEventHandler(object):
 
@@ -563,10 +627,15 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.canvasItemList.append(canvasItem)
             
             # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.item == item:
+            if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem
 
-            canvasItem.Draw(dc, self.parent.blockItem.selection is item, self)
+            if (self.parent.blockItem.selection is item):
+                dc.SetBrush(self.selectionBrush)
+                dc.SetPen(self.selectionPen)
+                dc.DrawRectangleRect(itemRect)
+                
+            canvasItem.Draw(dc, self)
             
             y += h
             
@@ -595,7 +664,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             return
         
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.getItem()
+        item = self._currentDragBox.GetItem()
         if (newTime.absdate != item.startTime.absdate):
             item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                newTime.day,
@@ -604,10 +673,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.Refresh()
 
     def OnEditItem(self, box):
-        position = box.bounds.GetPosition()
-        size = box.bounds.GetSize()
+        position = box.GetEditorPosition()
+        size = box.GetMaxEditorSize()
 
-        self.editor.SetItem(box.getItem(), position, size, size.height)
+        self.editor.SetItem(box.GetItem(), position, size, size.height)
 
     def OnDayColumnSelect(self, event):
         """
@@ -806,7 +875,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             self.canvasItemList.append(canvasItem)
 
             # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.item == item:
+            if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem                
                 
             # save the selected box to be drawn last
@@ -823,13 +892,13 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     # handle mouse related actions: move, resize, create, select
 
     def OnEditItem(self, box):
-        position = self.CalcScrolledPosition(box.bounds.GetPosition())
-        size = box.bounds.GetSize()
+        position = self.CalcScrolledPosition(box.GetEditorPosition())
+        size = box.GetMaxEditorSize()
 
         textPos = wx.Point(position.x + 8, position.y + 15)
         textSize = wx.Size(size.width - 13, size.height - 20)
 
-        self.editor.SetItem(box.getItem(), textPos, textSize, self.smallFont.GetPointSize()) 
+        self.editor.SetItem(box.GetItem(), textPos, textSize, self.smallFont.GetPointSize()) 
 
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if createOnDrag:
@@ -867,7 +936,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
     def OnResizingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.getItem()
+        item = self._currentDragBox.GetItem()
         resizeMode = self.GetResizeMode()
         delta = DateTime.DateTimeDelta(0, 0, 15)
         
@@ -912,11 +981,14 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         #
         # so account for the original offset within the ORIGINAL dragbox so the 
         # mouse cursor stays in the same place relative to the original box
-        dy = (self._dragStartUnscrolled.y - self._originalDragBox.bounds.y)
+        
+        # @@@ Weird - we need to figure out where the original drag started
+        (boxX,boxY) = self._originalDragBox.GetEditorPosition()
+        dy = (self._dragStartUnscrolled.y - boxY)
         position = wx.Point(unscrolledPosition.x, unscrolledPosition.y - dy)
         
         newTime = self.getDateTimeFromPosition(position)
-        item = self._currentDragBox.getItem()
+        item = self._currentDragBox.GetItem()
         if ((newTime.absdate != item.startTime.absdate) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
@@ -1186,15 +1258,10 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
             self.canvasItemList.append(canvasItem)
 
             # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.item == item:
+            if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem
                 
-            if (self.blockItem.selection is item):
-                dc.SetPen(wx.BLACK_PEN)
-                dc.SetBrush(wx.WHITE_BRUSH)
-                dc.DrawRectangleRect(itemRect)
-                
-            self.DrawWrappedText(dc, item.displayName, itemRect)
+            canvasItem.Draw(dc, itemRect, self.blockItem.selection is item)
             y += h
 
     def DrawWeekday(self, dc, weekday, rect):
@@ -1228,7 +1295,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
 
     def OnDraggingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.getItem()
+        item = self._currentDragBox.GetItem()
         if (newTime.absdate != item.startTime.absdate):
             item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
                                                newTime.day,
