@@ -1,2 +1,2 @@
 #!/bin/sh
-debug/RunPython Chandler.py
+debug/RunPython Chandler.py $*

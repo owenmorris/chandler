@@ -1,2 +1,2 @@
 #!/bin/sh
-release/RunPython Chandler.py
+release/RunPython -O Chandler.py $*
