@@ -197,6 +197,9 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
+        fileOut2 = file(outputDir+os.sep+x+".html", "w")
+        fileOut2.write("<script>location.replace("+newDirName+"/"+actual+");</script>\n")
+        fileOut2.close()
     fileOut.write("</td></tr></table></body></html>\n")
     fileOut.close()
     fileOut = file(outputDir+os.sep+"time.js", "w")
