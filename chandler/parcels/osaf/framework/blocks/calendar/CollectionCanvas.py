@@ -201,9 +201,33 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
     This class currently provides two common fonts for subclasses to use
     in drawing as a convenience, subclasses are free to create their own fonts.
+
+    @ivar bigFont: font size and face of the default big font
+    @type bigFont: wx.Font
+    @ivar bigFontColor: color of the default big font
+    @type bigFontColor: wx.Colour
+    @ivar smallFont: font size and face of the default small font
+    @type smallFont: wx.Font
+    @ivar smallFontColor: color of the default small font
+    @type smallFontColor: wx.Colour
+
+    @ivar _isDraggingItem: captures mode of dragging an item in the canvas
+    @type _isDraggingItem: Boolean
+    @ivar _isResizingItem: captures mode of resizing an item in the canvas
+    @type _isResizingItem: Boolean
+    @ivar _dragStart: starting point of drag, in scrolled coordinates
+    @type _dragStart: wx.Point
+    @ivar _dragStartUnscrolled: unscrolled coordinates of drag start
+    @type _dragStartUnscrolled: wx.Point
+    @ivar _dragBox: canvas location of selected/resized/moved item
+    @type _dragBox: CanvasItem
     """
     
     def __init__(self, *arguments, **keywords):
+        """
+        Same arguments as wx.ScrolledWindow
+        Constructor sets up ivars, event handlers, etc.
+        """
         super(wxCollectionCanvas, self).__init__(*arguments, **keywords)
         self.canvasItemList = []
 
@@ -258,6 +282,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
     def OnMouseEvent(self, event):
         """
+        Handles mouse events, calls overridable methods related to:
+        1. Selecting an item
+        2. Dragging/moving an item
+        3. Resizing an item
         """
 
         position = event.GetPosition()
@@ -362,35 +390,58 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         return None
 
     def OnBeginResizeItem(self):
-        """ Subclasses can define to handle resizing """
+        """ Called when an item resize begins.
+        
+        Subclasses can define to handle resizing
+        """
         pass
 
     def OnEndResizeItem(self):
-        """ Subclasses can define to handle resizing """
+        """ Called when an item resize ends.
+        
+        Subclasses can define to handle resizing
+        """
         pass
 
     def OnResizingItem(self, position):
-        """ Subclasses can define to handle resizing """
+        """ Called when the mouse moves during a resize.
+        
+        Subclasses can define to handle resizing
+        """
         pass
 
     def OnBeginDragItem(self):
-        """ Subclasses can define to handle dragging """
+        """ Called when a drag/move begins.
+        
+        Subclasses can define to handle dragging
+        """
         pass
 
     def OnEndDragItem(self):
-        """ Subclasses can define to handle dragging """
+        """ Called when a drag/move ends.
+        
+        Subclasses can define to handle dragging
+        """
         pass
 
     def OnDraggingItem(self, position):
-        """ Subclasses can define to handle dragging """
+        """ Called when the mouse moves during a drag.
+        
+        Subclasses can define to handle dragging
+        """
         pass
             
     # Painting and drawing
 
     def OnEraseBackground(self, event):
+        """
+        Do nothing on EraseBackground events, to avoid flicker.
+        """
         pass
 
     def OnPaint(self, event):
+        """
+        """
         # @@@ we currently have a bug where the update regions don't 
         # always match the virtual size, creating a small black band 
         # at the bottom of the virtual window
@@ -425,16 +476,24 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         memoryDC.EndDrawing()
         
     def DrawCells(self, dc):
-        """ Subclasses should define to draw the canvas cells"""
+        """
+        Subclasses should define to draw the canvas cells
+        """
         pass
 
     def DrawBackground(self, dc):
-        """ Subclasses should define to draw the canvas background"""
+        """
+        Subclasses should define to draw the canvas background
+        """
         pass
 
     # selection
 
     def OnSelectItem(self, item):
+        """ Called when an item is hit, to select the item.
+
+        Subclasses can override to handle item selection.
+        """
         self.blockItem.selection = item
         self.blockItem.postSelectionChanged()
         self.wxSynchronizeWidget()
@@ -442,21 +501,39 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     # DropReceiveWidget
     
     def OnRequestDrop(self, x, y):
+        """
+        Handles drop target behavior -- @@@ not yet implemented
+        """
         return False
 
     def AddItem(self, itemUUID):
+        """
+        Handles drop target behavior -- @@@ not yet fully implemented
+        """
         item = Globals.repository.findUUID(itemUUID)
         
 
     def OnHover(self, x, y):
+        """
+        Handles drop target behavior -- @@@ not yet implemented
+        """
         pass
 
     # DraggableWidget
 
     def RemoveItem(self, itemUUID):
+        """
+        Handles drag source behavior -- @@@ not yet implemented
+        """
         pass
 
 class CollectionBlock(Block.RectangularChild):
+    """
+    @ivar selection: selected item
+    @type selection: Item
+    @ivar widget: widget associated with this block
+    @type widget: wx.Window (usually wx.CollectionCanvas)
+    """
     def __init__(self, *arguments, **keywords):
         super(CollectionBlock, self).__init__(*arguments, **keywords)
         self.selection = None
@@ -464,10 +541,16 @@ class CollectionBlock(Block.RectangularChild):
     # Event handling
     
     def onSelectionChangedEvent(self, notification):
+        """
+        Sets the block selection and synchronizes the widget.
+        """
         self.selection = notification.data['item']
         self.widget.wxSynchronizeWidget()
 
     def postSelectionChanged(self):
+        """
+        Convenience method for posting a selection changed event.
+        """
         event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged')
         self.Post(event, {'item':self.selection})
 
