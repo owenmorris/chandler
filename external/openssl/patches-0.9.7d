@@ -1,10 +1,14 @@
---- openssl-0.9.7d/Makefile.org	Fri May 28 14:35:35 2004
-+++ openssl-0.9.7d-patched/Makefile.org	Fri May 28 14:30:47 2004
-@@ -832,7 +832,6 @@
- 			echo 'OpenSSL shared libraries have been installed in:'; \
- 			echo '  $(INSTALLTOP)'; \
- 			echo ''; \
--			sed -e '1,/^$$/d' doc/openssl-shared.txt; \
- 		fi; \
- 	fi
- 	cp openssl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/lib/pkgconfig
+--- openssl-0.9.7d/util/mk1mf.pl	Fri Nov 28 06:51:16 2003
++++ openssl-0.9.7d-patched/util/mk1mf.pl	Tue Jun  1 17:06:43 2004
+@@ -487,6 +487,11 @@
+ 	chop;
+ 
+ 	($key,$val)=/^([^=]+)=(.*)/;
++	
++	# On some Windows machines, $val has linefeeds at the end, which confuses
++	# subsequent code in this file. So we strip all whitespace at the end.
++	$val =~ s/\s+$//;
++	
+ 	if ($key eq "RELATIVE_DIRECTORY")
+ 		{
+ 		if ($lib ne "")
