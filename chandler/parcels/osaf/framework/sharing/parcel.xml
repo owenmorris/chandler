@@ -29,6 +29,12 @@
 
     <webdav:WebDAVAccount itsName="WebDAVAccount">
         <displayName value="WebDAV"/>
+        <host>code-bear.com</host>
+        <path>dav</path>
+        <username>dav</username>
+        <password>dav</password>
+        <port>80</port>
+        <useSSL>False</useSSL>
     </webdav:WebDAVAccount>
 
 </Parcel>
