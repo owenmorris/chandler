@@ -291,7 +291,7 @@ def clean(buildenv, module_name):
 # end clean()
 
 
-def cleanDependencies(buildenv, module_name, history={}):
+def cleanDependencies(buildenv, module_name, history=None):
     """
     Based on the list of dependencies in the module's __hardhat_.py file, 
     call each one's clean(), and then call module's clean().
@@ -303,6 +303,10 @@ def cleanDependencies(buildenv, module_name, history={}):
     Returns:
         nothing
     """
+
+    if not history:
+	history = {}
+
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
@@ -341,7 +345,7 @@ def build(buildenv, module_name):
 # end build()
 
     
-def buildDependencies(buildenv, module_name, history={}):
+def buildDependencies(buildenv, module_name, history=None):
     """
     Based on the list of dependencies in the module's __hardhat_.py file, 
     call each one's build(), and then call module's build().
@@ -353,6 +357,10 @@ def buildDependencies(buildenv, module_name, history={}):
     Returns:
         nothing
     """
+
+    if not history:
+	history = {}
+
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
@@ -384,18 +392,17 @@ def scrub(buildenv, module_name):
 # end scrub()
 
     
-def scrubDependencies(buildenv, module_name, history={}):
+def scrubDependencies(buildenv, module_name):
     """
     Based on the list of dependencies in the module's __hardhat_.py file, 
     call scrub() on each one, and then call scrub() on the module.
     Parameters:
         buildenv: the build environment dictionary
         module_name: the directory name of the subproject
-        history: keeps track of which subprojects have been scrubbed, so that
-         each is scrubbed only once
     Returns:
         nothing
     """
+
     dependencies = {}
     getDependencies(buildenv, module_name, dependencies)
     dirsToScrub = []
@@ -404,7 +411,9 @@ def scrubDependencies(buildenv, module_name, history={}):
     cvsClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
-def getDependencies(buildenv, module_name, history={}):
+def getDependencies(buildenv, module_name, history=None):
+    if not history:
+	history = {}
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
@@ -1063,7 +1072,7 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 	raise HardHatError
 
 
-    buildPrepareSource(buildenv, releaseId, cvsModule)
+    buildPrepareSource(buildenv, releaseId, cvsModule, True)
     buildRelease(buildenv, releaseId, module)
     buildPrepareSource(buildenv, releaseId, cvsModule, False)
     buildDebug(buildenv, releaseId, module)
@@ -1110,9 +1119,11 @@ def buildRelease(buildenv, releaseId, module):
      releaseId
 
     try:
+	os.chdir(buildenv['root'])
+	if os.path.exists("release"):
+	    rmdir_recursive("release")
 	buildenv['version'] = 'release'
 	buildDependencies(buildenv, module)
-	os.chdir(buildenv['root'])
 	
 	compressedFile = compressDirectory(buildenv, "release", 
 	 compressedFileRoot)
@@ -1154,9 +1165,11 @@ def buildDebug(buildenv, releaseId, module):
      "_dev_debug_" + releaseId 
 
     try:
+	os.chdir(buildenv['root'])
+	if os.path.exists("debug"):
+	    rmdir_recursive("debug")
 	buildenv['version'] = 'debug'
 	buildDependencies(buildenv, module)
-	os.chdir(buildenv['root'])
 	
 	compressedFile = compressDirectory(buildenv, "debug", 
 	 compressedFileRoot)
