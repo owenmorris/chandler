@@ -12,10 +12,31 @@ import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
 
-# Buttons used in the calendar, could be more general utilities eventually
+# @@@ These buttons could become a more general utility
 
 class CanvasTextButton(wx.BitmapButton):
+    """ Flat text button, no border.
+    
+        Currently does not work well on os x, widgets doesn't give us
+        a button with no border. Currently implemented by drawing 
+        text to a bitmap, but one could imagine other implementations. 
+    """
+    
     def __init__(self, parent, text, font, fgcolor, bgcolor):
+        """
+
+        @param parent: like all controls, requires a parent window
+        @type parent: wx.Window
+        @param text: the text the button will display
+        @type text: string
+        @param font: the text font
+        @type font: wx.Font
+        @param fgcolor: the text color
+        @type fgcolor: wx.Colour
+        @param bgcolor: the background color of the button
+        @type bgcolor: wx.Colour
+        """
+        
         bitmap = self.buildBitmap(parent, text, font, fgcolor, bgcolor)
         super(CanvasTextButton, self).__init__(parent, -1,
                                                bitmap, style=wx.BORDER_NONE)
@@ -27,13 +48,31 @@ class CanvasTextButton(wx.BitmapButton):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
     def OnEraseBackground(self, event):
+        """
+        Do nothing on EraseBackground events, to avoid flicker.
+        """
         pass
 
-    def buildBitmap(self, parent, text, font, fgcolor, bgcolor):
+    def buildBitmap(self, window, text, font, fgcolor, bgcolor):
+        """ Creates a bitmap with the given text.
 
-        # Have to ask the parent window for the text extent, asking
+        @param window: needs a window to check the text extent
+        @type window: wx.Window
+        @param text: text to display in the bitmap
+        @type text: string
+        @param font: font used to display the text
+        @type font: wx.Font
+        @param fgcolor: color of the text
+        @type fgcolor: wx.Colour
+        @param bgcolor: background color of the bitmap
+        @type bgcolor: wx.Colour
+        @return: the bitmap
+        @rtype: wx.Bitmap
+        """
+        
+        # Have to ask a window for the text extent, asking
         # the memory dc doesn't work on the mac
-        textExtent = parent.GetFullTextExtent(text, font)
+        textExtent = window.GetFullTextExtent(text, font)
         bitmap = wx.EmptyBitmap(textExtent[0], textExtent[1])
 
         dc = wx.MemoryDC()
@@ -47,13 +86,32 @@ class CanvasTextButton(wx.BitmapButton):
         return bitmap
         
     def SetLabel(self, text):
+        """ Changes the text on the button.
+
+        @param text: text of the button
+        @type text: string
+        """
         self.text = text
         bitmap = self.buildBitmap(self.GetParent(), text,
                                   self.font, self.fgcolor, self.bgcolor)
         self.SetBitmapLabel(bitmap)
 
 class CanvasBitmapButton(wx.BitmapButton):
+    """ Flat bitmap button, no border.
+    
+        Currently does not work well on os x, widgets doesn't give us
+        a button with no border. 
+    """
+    
     def __init__(self, parent, path):
+        """
+
+        @param parent: like all controls, requires a parent window
+        @type parent: wx.Window
+        @param path: path to a png file
+        @type path: string
+        """
+
         bitmap = wx.Image(path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.BORDER_NONE)
@@ -61,27 +119,90 @@ class CanvasBitmapButton(wx.BitmapButton):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
     def OnEraseBackground(self, event):
+        """
+        Do nothing on EraseBackground events, to avoid flicker.
+        """
         pass
 
 class CanvasItem(object):
+    """
+    Represents a list of items currently on the canvas for hit testing.
+    Not responsible for drawing the object on the canvas. This class
+    stores the bounds of the item on the canvas, subclasses can be more
+    sophisticated.
+    """
+    
     def __init__(self, bounds, item):
+        """
+        @param bounds: the bounds of the item as drawn on the canvas.
+        @type bounds: wx.Rect
+        @param item: the item drawn on the canvas in these bounds
+        @type item: Item
+        """
+
+        # @@@ scaffolding: resize bounds is the lower 5 pixels
         self.bounds = bounds
         self.item = item
         self.resizeBounds = wx.Rect(bounds.x, bounds.y + bounds.height - 5,
                                     bounds.width, 5)
 
     def isHit(self, point):
+        """
+        Hit testing (used for selection and moving items).
+
+        @param point: point in unscrolled coordinates
+        @type point: wx.Point
+        @return: True if the point hit the item (includes resize region)
+        @rtype: Boolean
+        """
         return self.bounds.Inside(point)
 
     def isHitResize(self, point):
+        """
+        Hit testing of a resize region.
+        
+        @param point: point in unscrolled coordinates
+        @type point: wx.Point
+        @return: True if the point hit the resize region
+        @rtype: Boolean
+        """
         return self.resizeBounds.Inside(point)
 
     def getItem(self):
+        """
+        Once we have a hit, give access to the item
+        for selection, move, resize, etc.
+        
+        @return: the item associated with this region on the canvas.
+        @rtype: Item
+        """
         return self.item
 
 class wxCollectionCanvas(wx.ScrolledWindow,
                          DragAndDrop.DropReceiveWidget,
                          DragAndDrop.DraggableWidget):
+
+    """ Canvas used for displaying an ItemCollection
+
+    This class handles:
+    1. Mouse Events: the class sets up methods for selection, move, resize
+    2. Scrolling
+    3. Double buffered painting: the class sets up methods for drawing
+
+    Subclasses need to handle (by overriding appropriate methods):
+    1. Background drawing
+    2. Drawing items
+    3. Creating regions for hit testing
+    4. Resizing items (changing state, drawing the altered item)
+    5. Moving/dragging items (changing state, drawing the altered item)
+
+    This class assumes an associated blockItem for some default behavior,
+    although subclasses can alter this by overriding the appropriate methods.
+
+    This class currently provides two common fonts for subclasses to use
+    in drawing as a convenience, subclasses are free to create their own fonts.
+    """
+    
     def __init__(self, *arguments, **keywords):
         super(wxCollectionCanvas, self).__init__(*arguments, **keywords)
         self.canvasItemList = []
@@ -96,8 +217,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self._dragStart = None
         self._dragBox = None
 
-        # Create common fonts for drawing
-        # @@@ move elsewhere
+        # Create common fonts for drawing, @@@ move elsewhere
         if '__WXMAC__' in wx.PlatformInfo:
             self.bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
             self.smallFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL,
@@ -137,6 +257,8 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     # Mouse movement
 
     def OnMouseEvent(self, event):
+        """
+        """
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)
@@ -222,7 +344,21 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                         
 
     def OnCreateItem(self, position, createOnDrag):
-        """ Subclasses can define to create a new item on the canvas """
+        """ Creates a new item on the canvas.
+
+        Subclasses can define to create a new item on the canvas.
+
+        If the new item is created during a drag, then this method needs
+        to return a CanvasItem for the new item, for smooth dragging.
+        (As soon as the new item is created, it becomes a resize operation.)
+
+        @param position: unscrolled coordinates, location of the new item
+        @type position: wx.Point
+        @param createOnDrag: True if in the middle of a drag (vs double click) 
+        @type createOnDrag: Boolean
+        @return: the CanvasItem for the newly created item, if createOnDrag
+        @rtype: CanvasItem
+        """
         return None
 
     def OnBeginResizeItem(self):
