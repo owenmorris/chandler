@@ -11,6 +11,21 @@ from repository.item.Query import KindQuery
 from OSAF.framework.blocks.ControlBlocks import Tree, ItemDetail
 import OSAF.examples.zaobao.RSSData as RSSData
 
+# GetElementCellValues is shared between both classes
+def GetElementCellValues(element):
+    if element == RSSData.ZaoBaoParcel.getRSSChannelKind():
+        return ['','']
+
+    displayName = element.getAttributeValue('displayName',
+                                            default='<Untitled>')
+    date = element.getAttributeValue('date', default=None)
+    if not date:
+        date = element.getAttributeValue('lastModified', default='')
+    if date != '':
+        date = date.localtime().Format('%B %d, %Y    %I:%M %p')
+
+    return [displayName, str(date)]
+
 class ZaoBaoListDelegate:
     def ElementParent(self, element):
         if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
@@ -23,16 +38,7 @@ class ZaoBaoListDelegate:
         return None
 
     def ElementCellValues(self, element):
-        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
-            return ['','']
-        
-        displayName = element.getAttributeValue('displayName',
-                                                default='<Untitled>')
-        date = element.getAttributeValue('date', default='')
-        if date != '':
-            date = date.Format('%B %d, %Y    %I:%M %p')
-
-        return [displayName, str(date)]
+        return GetElementCellValues(element)
 
     def ElementHasChildren(self, element):
         if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
@@ -64,16 +70,7 @@ class ZaoBaoTreeDelegate:
         return None
 
     def ElementCellValues(self, element):
-        if element == RSSData.ZaoBaoParcel.getRSSChannelKind():
-            return ['','']
-
-        displayName = element.getAttributeValue('displayName',
-                                                default='<Untitled>')
-        date = element.getAttributeValue('date', default='')
-        if date != '':
-            date = date.Format('%B %d, %Y    %I:%M %p')
-
-        return [displayName, str(date)]
+        return GetElementCellValues(element)
 
     def ElementHasChildren(self, element):
         chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
