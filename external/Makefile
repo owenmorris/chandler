@@ -1,18 +1,16 @@
 
-VERSION=0.3-1
+VERSION=0.3-2
 
 include Makefile.inc
 
 SYSTEMS=persistence/db \
         python \
         epydoc \
-        wx \
         persistence/xerces-c \
         persistence/pathan \
         persistence/dbxml \
         persistence/libxml2 \
         persistence/libxslt \
-        persistence/PyLucene \
         pyxml \
         egenix-mx \
         jabber-py \
@@ -24,13 +22,11 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/bzip2-1.0.2.tar.gz \
         python/zlib-1.2.1.tar.gz \
         epydoc/epydoc-2.0.tar.gz \
-        wx/wxpython.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
         persistence/pathan/libpathan-1.2-2-src.tar.gz \
         persistence/dbxml/dbxml-1.2.1.tar.gz \
         persistence/libxml2/libxml2-2.6.3.tar.gz \
         persistence/libxslt/libxslt-1.1.2.tar.gz \
-        persistence/PyLucene/lucene-1.3-final-src.tar.gz \
         pyxml/PyXML-0.8.3.tar.gz \
         egenix-mx/egenix-mx-base-2.1.0.tar.gz \
         jabber-py/jabberpy0.4-0.tar.gz \
