@@ -105,14 +105,11 @@ locale
 src=chandler/distrib/linux
 README.linux.txt
 
-# Grab the launcher programs
+# Grab the main launcher script
 src=chandler
 dest=
 chandlerDebug
-src=chandler/debug/lib
-dest=debug/lib
-chandler_bin
-# and the launch scripts
+# and the other launch scripts
 src=chandler/debug
 dest=debug
 RunChandler

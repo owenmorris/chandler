@@ -3,19 +3,28 @@ Chandler README.linux
 
 * Compatibility *
 
-Our Linux binaries are built on a RedHat 8 machine that has libc version
-2.3.2. To run these binaries, your machine will need libc 2.3.2 or
-higher. To see what version of libc you have, run "ldd --version" on
-the command line. If you are building Chandler yourself you will need
-gcc 3.3.x, as described here:
+Our Linux binaries are built on a computer running Fedora Core 2.
+They have been tested on Fedora Core 2, but are unlikely to work
+on any other version of Linux.
+
+If you are building Chandler yourself you will need a few extra 
+things.  For details on how to build, please see:
 
  http://wiki.osafoundation.org/twiki/bin/view/Chandler/BuildingChandler
 
 
 * Running Chandler *
 
-To run chandler, use the executable "chandler" in this directory, like
-so:
+To run chandler, use the executable "RunChandler" in the release or debug
+directory, like so:
 
-% ./chandler
+% ./release/RunChandler
+
+or, if you have a "debug" version: 
+
+% ./debug/RunChandler
+
+If you aren't sure which you have, you can run:
+
+% ./*/RunChandler
 
