@@ -110,7 +110,12 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             print "an initialization error"
             log.write("***Error during initialization***" + "\n")
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            return "init_failed"
+            CopyLog(os.path.join(releaseModeDir, logPath), log)
+            if releaseMode == "debug":
+                # OK to do release dir
+                continue
+            else 
+                return "init_failed"
 
     # do debug
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
