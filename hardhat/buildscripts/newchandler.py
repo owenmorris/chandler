@@ -233,6 +233,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
     log.write("Done with CVS\n")
     return (filenameChanged, changesAtAll)
 
+
 def doInstall(buildmode, workingDir, log):
     # for our purposes, we do not really do a build
     # we will update chandler from CVS, and grab new tarballs when they appear
@@ -257,12 +258,47 @@ def doInstall(buildmode, workingDir, log):
         log.write("Build log:" + "\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         log.write(separator)
+        forceBuildNextCycle(log, workingDir)
         raise e
     except Exception, e:
         print "build error"
         log.write("***Error during build***\n")
+        log.write(separator)        
         log.write("No build log!\n")
+        log.write(separator)
+        forceBuildNextCycle(log, workingDir)
         raise e
+
+
+def forceBuildNextCycle(log, workingDir):
+    doRealclean(log)
+    # We trigger build for next cycle by removing /chandler/Makefile,
+    # which will be noticed as an 'update' in the beginning of next
+    # cycle which will cause doInstall etc. to be called.
+    print 'Removing chandler/Makefile to trigger build next cycle'
+    log.write('Removing chandler/Makefile to trigger build next cycle\n')
+    chandlerMakefile = os.path.join(workingDir, mainModule, 'Makefile')
+    if os.path.exists(chandlerMakefile):
+        os.remove(chandlerMakefile)
+    
+
+def doRealclean(log):
+    try:
+        # If make install fails, it will almost certainly fail next time
+        # as well - the typical case has been bad binaries packages.
+        # So what we do here is try to do realclean which will force
+        # the build to get new binaries tarballs next time, and if fixed
+        # binaries were uploaded in the meanwhile we'll recover
+        # automatically. This will also sort us out of corrupted debug/release.
+        print "Doing make realclean\n"
+        log.write("Doing make realclean\n")
+        outputList = hardhatutil.executeCommandReturnOutput(
+         [buildenv['make'], "realclean"])
+        hardhatutil.dumpOutputList(outputList, log)
+    except:
+        print "make realclean failed\n"
+        log.write("make realclean failed\n")
+
 
 def NeedsUpdate(outputList, filename):
     """
