@@ -247,10 +247,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
             for item in self._log:
                 if not item._status & Item.MERGED:
                     item._version = newVersion
-                item._status &= ~(Item.NEW | Item.DIRTY |
-                                  Item.MERGED | Item.SAVED)
-                item._values._clearDirties()
-                item._references._clearDirties()
+                item.setDirty(0, None)
+                item._status &= ~(Item.NEW | Item.MERGED | Item.SAVED)
             del self._log[:]
 
         if newVersion > self.version:
@@ -328,7 +326,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store.saveItem(xml, uuid, newVersion,
                        (item.itsParent.itsUUID, item._name), origPN,
-                       item._status,
+                       item._status & Item.SAVEMASK,
                        item._values._getDirties(),
                        item._references._getDirties())
 

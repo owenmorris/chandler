@@ -1349,8 +1349,11 @@ class Item(object):
                         repository.logger.error('logging of new item %s failed', self.itsPath)
             else:
                 self._status |= dirty
+
         else:
-            self._status &= ~Item.DIRTY
+            self._status &= ~(Item.DIRTY | Item.ADIRTY)
+            self._values._clearDirties()
+            self._references._clearDirties()
 
         return False
 
@@ -2356,7 +2359,7 @@ class Item(object):
     Nil        = nil()
     
     DELETED    = 0x0001
-    VDIRTY     = 0x0002           # literal value(s) changed
+    VDIRTY     = 0x0002           # literal or ref changed
     DELETING   = 0x0004
     RAW        = 0x0008
     ATTACHING  = 0x0010
@@ -2365,7 +2368,7 @@ class Item(object):
     STALE      = 0x0080
     SDIRTY     = 0x0100           # name of sibling(s) changed
     CDIRTY     = 0x0200           # parent or first/last child changed
-    RDIRTY     = 0x0400           # ref or ref collection value changed
+    RDIRTY     = 0x0400           # ref collection changed
     MERGED     = 0x0800
     SAVED      = 0x1000
     ADIRTY     = 0x2000           # acl(s) changed
@@ -2373,7 +2376,8 @@ class Item(object):
     NODIRTY    = 0x8000           # turn off dirtying
     
     VRDIRTY    = VDIRTY | RDIRTY
-    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY
+    DIRTY      = VDIRTY | RDIRTY | SDIRTY | CDIRTY
+    SAVEMASK   = DIRTY | ADIRTY | NEW | DELETED | SCHEMA
 
     __access__ = 0L
 
