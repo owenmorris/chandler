@@ -228,6 +228,9 @@ class wxChandlerWindow(wxFrame):
         del application.Application.app.association[id(self.model)]
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         del application.Application.app.applicationResources
+        if self.activeParcel:
+            self.activeParcel.Deactivate()
+
         self.Destroy()
         
     def UpdateViewMenuDisplay(self, event):
