@@ -54,7 +54,6 @@ def build(buildenv):
 
         os.chdir("../../../..")
 
-
     # Build the windows launcher program
     elif buildenv['os'] == 'win':
         version = buildenv['version']
