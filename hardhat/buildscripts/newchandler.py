@@ -20,6 +20,7 @@ cvsProgram = hardhatutil.findInPath(path, "cvs")
 treeName = "Chandler"
 mainModule = 'chandler'
 logPath = 'hardhat.log'
+separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
@@ -52,8 +53,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     except Exception, e:
         print "Could not initialize hardhat environment.  Exiting."
         print "Exception:", e
+        import traceback
         traceback.print_exc()
-        raise e
         sys.exit(1)
     
     # make sure workingDir is absolute
@@ -89,18 +90,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
         for releaseMode in ('release', 'debug'):
             doInstall(releaseMode, workingDir, log)
-            #   Create end-user, developer distributions
-            print "Making distribution files for " + releaseMode
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Making distribution files for " + releaseMode + "\n")
-            if releaseMode == "debug":
-                distOption = "-dD"
-            else:
-                distOption = "-D"
-                
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
-            hardhatutil.dumpOutputList(outputList, log)
+
+            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript)
             
             ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
@@ -125,19 +116,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         if makeDistribution:
             log.write("Changes in CVS require making distributions\n")
             changes = "-changes"
-            for releaseMode in ('debug', 'release'):        
-                #   Create end-user, developer distributions
-                print "Making distribution files for " + releaseMode
-                log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-                log.write("Making distribution files for " + releaseMode + "\n")
-                if releaseMode == "debug":
-                    distOption = "-dD"
-                else:
-                    distOption = "-D"
-                    
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
-                hardhatutil.dumpOutputList(outputList, log)
+            for releaseMode in ('debug', 'release'):
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript)
                     
         if not makeInstall and not makeDistribution:
             log.write("No changes\n")
@@ -170,7 +150,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
     
     try: # test
         print "Testing " + mode
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write(separator)
         log.write("Testing " + mode + " ...\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatScript, dashT])
@@ -178,24 +158,46 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
 
     except Exception, e:
         print "a testing error"
-        doTestLog("***Error during tests*** " + str(e), workingDir, logPath, log)
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
         return "test_failed"
     else:
-        doTestLog("Tests successful", workingDir, logPath, log)
+        doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
 
 
-def doTestLog(msg, workingDir, logPath, log):
+def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, distOption, hardhatScript):
+    #   Create end-user, developer distributions
+    print "Making distribution files for " + releaseMode
+    log.write(separator)
+    log.write("Making distribution files for " + releaseMode + "\n")
+    if releaseMode == "debug":
+        distOption = "-dD"
+    else:
+        distOption = "-D"
+
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput(
+         [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+        hardhatutil.dumpOutputList(outputList, log)
+    except Exception, e:
+        doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
+        raise e
+
+
+def doCopyLog(msg, workingDir, logPath, log):
+    # hardhat scripts should leave harhat.log behind both on success and
+    # failure (barring catastrophic failure), so we can copy that into the
+    # build log
     log.write(msg + "\n")
-    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-    log.write("Tests log:\n")
+    log.write(separator)
     logPath = os.path.join(workingDir, logPath)
+    log.write("Contents of " + logPath + ":\n")
     if os.path.exists(logPath):
         CopyLog(logPath, log)
     else:
         log.write(logPath + ' does not exist!\n')
-    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write(separator)
     
 
 def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
@@ -228,13 +230,13 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
             # print "NO, unchanged"
             log.write("Module unchanged" + "\n")
 
-    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write(separator)
     log.write("Done with CVS\n")
     return (filenameChanged, changesAtAll)
 
 def doInstall(buildmode, workingDir, log):
-# for our purposes, we do not really do a build
-# we will update chandler from CVS, and grab new tarballs when they appear
+    # for our purposes, we do not really do a build
+    # we will update chandler from CVS, and grab new tarballs when they appear
     if buildmode == "debug":
         dbgStr = "DEBUG=1"
     else:
@@ -245,10 +247,23 @@ def doInstall(buildmode, workingDir, log):
     print "Doing make " + dbgStr + " clean install\n"
     log.write("Doing make " + dbgStr + " clean install\n")
 
-    outputList = hardhatutil.executeCommandReturnOutput(
-     [buildenv['make'], dbgStr, "clean", "install" ])
-    hardhatutil.dumpOutputList(outputList, log)
-
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput(
+          [buildenv['make'], dbgStr, "clean", "install" ])
+        hardhatutil.dumpOutputList(outputList, log)
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        log.write(separator)
+        raise e
+    except Exception, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write("No build log!\n")
+        raise e
 
 def NeedsUpdate(outputList, filename):
     """
