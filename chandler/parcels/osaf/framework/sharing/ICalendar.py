@@ -100,6 +100,10 @@ def itemsToVObject(view, items, cal=None):
         except AttributeError:
             pass
         try:
+            comp.add('location').value = item.location.displayName
+        except AttributeError:
+            pass
+        try:
             comp.add('valarm').add('trigger').value = \
               convertToUTC(item.reminderTime) - convertToUTC(item.startTime)
         except AttributeError:
@@ -198,6 +202,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 description = event.description[0].value
             except AttributeError:
                 description = None
+                
+            try:
+                location = event.location[0].value
+            except AttributeError:
+                location = None            
 
             try:
                 # FIXME assumes DURATION, not DATE-TIME
@@ -283,6 +292,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if description is not None:
                     eventItem.body = textKind.makeValue(description)
                     
+                if location is not None:
+                    eventItem.location = Calendar.Location.getLocation(view,
+                                                                       location)
+                
                 if reminderDelta is not None:
                     eventItem.reminderTime = convertToMX(dt + reminderDelta)
 
