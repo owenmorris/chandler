@@ -46,8 +46,11 @@ def run(buildenv):
     if buildenv['os'] == 'posix':
 	ld_library_path = os.environ['LD_LIBRARY_PATH']
 	if buildenv['version'] == 'debug':
-	    # additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + 'lib'
-	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + 'lib'
+	    additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
+	     'lib'
+	    additional_path_rel = buildenv['root'] + os.sep + 'release' + \
+	     os.sep + 'lib'
+	    additional_path = additional_path + os.pathsep + additional_path_rel
 	else:
 	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + 'lib'
 	ld_library_path = additional_path + os.pathsep + ld_library_path
@@ -75,6 +78,7 @@ def removeRuntimeDir(buildenv):
 
 
     if path:
-        hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
-         "Removing: " + path)
-        hardhatlib.rmdir_recursive(path)
+	if os.access(path, os.F_OK):
+	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
+	     "Removing: " + path)
+	    hardhatlib.rmdir_recursive(path)
