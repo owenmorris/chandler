@@ -104,6 +104,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     moduleData = {}
     needToScrubAll = 0
+    newModules = 0
 
     for module in cvsModules:
         print "- - - -", module, "- - - - - - - - - - - - - - - - -"
@@ -113,6 +114,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         moduleDir = os.path.join(modeDir, module)
         # does module's directory exist?
         if not os.path.exists(moduleDir):
+            newModules = 1
             # check out that module
             os.chdir(modeDir)
             print "checking out", module
@@ -172,20 +174,27 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
          [hardhatScript, "-ns"])
 
     os.chdir(mainModuleDir)
+
+    # Only do a build build if there were new or updated modules
+    if needToScrubAll or newModules:
+        bigBLittleB = "B"
+    else:
+        bigBLittleB = "b"
+
     try:
         if mode == "debug":
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building debug..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-dBt", 
+             [hardhatScript, "-o", outputDir, "-d"+bigBLittleB+"t", 
              "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building release..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", outputDir, "-rBt", 
+             [hardhatScript, "-o", outputDir, "-r"+bigBLittleB+"t", 
              "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
