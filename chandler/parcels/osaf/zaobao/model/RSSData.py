@@ -163,7 +163,8 @@ class RSSChannel(Item):
                     self.setAttributeValue(key,value)
 
     def getItemsFromParseData(self,parseData):
-        items = [RSSItemFactory(app.repository).newItem(itemData)
+        encoding = parseData.get('encoding', 'ascii')
+        items = [RSSItemFactory(app.repository).newItem(itemData, encoding)
                  for itemData in parseData['items']]
         return items
     
@@ -257,18 +258,25 @@ class RSSItemFactory:
         self._container = rep.find('//ZaoBao/Items')
         self._kind = rep.find('//Schema/RSSSchema/RSSItem')
         
-    def newItem(self, itemData):
-        item = RSSItem(itemData.get('title',''),self._container,self._kind)
-        item.initAttributes(itemData)
+    def newItem(self, itemData, encoding):
+        item = RSSItem(unicode(itemData.get('title',''), encoding),
+                       self._container,self._kind)
+        item.initAttributes(itemData, encoding)
         return item
     
 class RSSItem(Item):
-    def initAttributes(self, itemData):
-        self.setAttributeValue('creator',itemData.get('creator',''))
-        self.setAttributeValue('description',itemData.get('description',''))
-        self.setAttributeValue('link',itemData.get('link',''))
-        self.setAttributeValue('title',itemData.get('title',''))
-        self.setAttributeValue('category',itemData.get('category',''))
+    def initAttributes(self, itemData, encoding):
+        self.setAttributeValue('creator', unicode(itemData.get('creator',''),
+                                                  encoding))
+        self.setAttributeValue('description',
+                               unicode(itemData.get('description',''),
+                                       encoding))
+        self.setAttributeValue('link', unicode(itemData.get('link',''),
+                                               encoding))
+        self.setAttributeValue('title', unicode(itemData.get('title',''),
+                                                encoding))
+        self.setAttributeValue('category', unicode(itemData.get('category',''),
+                                                   encoding))
         try:
             date = itemData['date']
             self.setAttributeValue('lastModified',mx.DateTime.DateTimeFrom(date))
