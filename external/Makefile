@@ -5,6 +5,7 @@ ifeq ($(DEBUG),1)
 SNAP=debug
 else
 SNAP=release
+DEBUG=0
 endif
 
 SYSTEMS=persistence/db \
@@ -40,17 +41,17 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         SOAPpy/SOAPpy-0.10.2.tar.gz \
         pychecker/pychecker-0.8.13.tar.gz
 
+.PHONY: default env sources expand binaries clean all $(SYSTEMS)
+
 default: all
 
 env:
-	@if [ "$(BUILD_ROOT)" = "" ]; then \
-	    echo BUILD_ROOT is not set; \
-	    false; \
-        fi; \
-	if [ "$(GCJ_HOME)" = "" ]; then \
-	    echo GCJ_HOME is not set; \
-	    false; \
-        fi
+ifeq ($(BUILD_ROOT),)
+	echo BUILD_ROOT is not set && false
+endif
+ifeq ($(GCJ_HOME),)
+	echo GCJ_HOME is not set && false
+endif
 
 sources:
 	tar -cvf sources-$(VERSION).tar $(SOURCES)
@@ -59,36 +60,35 @@ sources-$(VERSION).tar:
 	curl http://builds.osafoundation.org/external/sources-$(VERSION).tar > sources-$(VERSION).tar
 
 expand: sources-$(VERSION).tar
-	tar xvf sources-$(VERSION).tar; \
+	tar xvf sources-$(VERSION).tar
 	for system in $(SYSTEMS); \
 	do \
-	    (cd $$system; $(MAKE) expand); \
+	    $(MAKE) -C $$system expand; \
 	done
 
 binaries: env
-	@rm -f $(SNAP)-$(VERSION).tar $(SNAP)-$(VERSION).tar.gz; \
-	for system in $(SYSTEMS); \
+	rm -f $(SNAP)-$(VERSION).tar $(SNAP)-$(VERSION).tar.gz
+	@for system in $(SYSTEMS); \
 	do \
-	    (cd $$system; $(MAKE) DEBUG=$(DEBUG) snap); \
-	done; \
-	for system in $(SYSTEMS); \
+	    $(MAKE) -C $$system DEBUG=$(DEBUG) snap; \
+	done
+	@for system in $(SYSTEMS); \
 	do \
 	    echo appending $$system; \
 	    gunzip -c $$system/$(SNAP).tar.gz > _tmp.tar; \
             tar -Af $(SNAP)-$(VERSION).tar _tmp.tar; \
 	    rm _tmp.tar; \
-	done; \
-	echo compressing $(SNAP)-$(VERSION).tar; \
-        gzip $(SNAP)-$(VERSION).tar;
-
-all: env
-	@for system in $(SYSTEMS); \
-	do \
-	    (cd $$system; $(MAKE) DEBUG=$(DEBUG) all); \
 	done
+	gzip $(SNAP)-$(VERSION).tar
+
+
+$(SYSTEMS):
+	$(MAKE) -C $@ DEBUG=$(DEBUG)
+
+all: env $(SYSTEMS)
 
 clean: env
 	@for system in $(SYSTEMS); \
 	do \
-	    (cd $$system; $(MAKE) -k DEBUG=$(DEBUG) clean); \
+	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) clean; \
 	done
