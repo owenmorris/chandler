@@ -260,18 +260,28 @@ class wxApplication (wxApp):
                                                   "OSAF", "calendar", "model", 
                                                   "calendar.pack"))
 
-        self.LoadParcelsInDirectory(systemParcelDir)
 
+        loadExternalParcels = False
         if __debug__:
             """
-              In the debugging version, also load parcels from the PARCELDIR
-            directory if that environment variable is set.
+            In the debugging version, if PARCELDIR env var is set, put that
+            directory into sys.path because zodb might be loading objects
+            based on modules in that directory.  This must be done prior to
+            loading the system parcels
             """
             if os.environ.has_key('PARCELDIR'):
                 parcelDir = os.environ['PARCELDIR']
                 if parcelDir and os.path.exists(parcelDir):
+                    loadExternalParcels = True
                     sys.path.insert(0,parcelDir)
-                    self.LoadParcelsInDirectory(parcelDir)
+
+        """ Load the system parcels """
+        self.LoadParcelsInDirectory(systemParcelDir)
+
+        """ Load the (optional) external parcels """
+        if loadExternalParcels:
+            self.LoadParcelsInDirectory(parcelDir)
+
 
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
