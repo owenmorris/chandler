@@ -105,7 +105,8 @@ snap:
 		   $(SNAP)/lib/libcrypto.a \
 		   $(SNAP)/lib/libssl.a
 
-endif
+endif # if OS X or linux
+endif # if Cygwin or not
 
 $(SRC)/Configure: apply
 
