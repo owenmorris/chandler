@@ -116,7 +116,7 @@ $(SRC)/$(BUILD)/Makefile:
 
 wxPython:
 	cd $(SRC)/wxPython; \
-        export LD_LIBRARY_PATH=/home/builder/tinderbuild/external/release/lib; \
+        export LD_LIBRARY_PATH=$(PREFIX)/lib; \
         $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
                            USE_SWIG=$(SWIG_OPTION) \
                            SWIG=$(SWIG) \
