@@ -12,6 +12,7 @@ dependencies = (
                 'egenix-mx',
                 'zodb',
                 'jabber-py',
+                'pychecker',
                )
 
 
