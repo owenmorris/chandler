@@ -14,6 +14,7 @@ dependencies = (
                 'egenix-mx',
                 'zodb',
                 'jabber-py',
+                'SOAPpy',
                 'pychecker',
                 '4suite',
                )
