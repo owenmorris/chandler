@@ -8,6 +8,7 @@ import mx.DateTime as DateTime
 import xml.sax
 import xml.sax.handler
 
+import application
 import application.Globals as Globals
 import repository
 from repository.item.Item import Item
@@ -132,14 +133,23 @@ class Manager(Item):
 
         # Set up the parcel manager logger
         self.log = logging.getLogger("parcel")
-        logHandler = logging.FileHandler("parcel.log")
-        logHandler.setFormatter(
-         logging.Formatter('%(asctime)s %(levelname)s %(message)s',
-          "%m/%d %H:%M:%S")
-        )
-        self.log.addHandler(logHandler)
+        # Piggy-back on Chandler's handler unless we're outside of Chandler
+        if len(self.log.handlers) == 0:
+            # No matter our cwd, or sys.argv[0], locate the chandler directory:
+            chandler = os.path.dirname(
+             os.path.dirname(
+              os.path.abspath(application.__file__)
+             )
+            )
+            logHandler = logging.FileHandler(
+             os.path.join(chandler,"chandler.log")
+            )
+            # logHandler.setFormatter(
+            #  logging.Formatter('%(asctime)s %(levelname)s %(message)s',
+            #   "%m/%d %H:%M:%S")
+            # )
+            self.log.addHandler(logHandler)
         self.log.setLevel(logging.INFO)
-        self.log.info("= = = = = Parcel Manager initialization = = = = =")
 
         # Initialize any attributes that aren't persisted:
         self.repo = repository
@@ -147,6 +157,7 @@ class Manager(Item):
         self.kindUUID = repository.findPath("//Schema/Core/Kind").itsUUID
         self.itemUUID = repository.findPath("//Schema/Core/Item").itsUUID
         self.attrUUID = repository.findPath("//Schema/Core/Attribute").itsUUID
+        self.log.info("Parcel Manager initialized")
 
 
     def lookup(self, namespace, name=None):
