@@ -1196,7 +1196,11 @@ def handleManifest(buildenv, filename):
                      line)
                     createpath = os.path.dirname(copyto)
                     _mkdirs(createpath)
-                    shutil.copy(abspath, copyto)
+                    if os.path.islink(abspath):
+                        linkto = os.readlink(abspath)
+                        os.symlink(linkto, copyto)
+                    else:
+                        shutil.copy(abspath, copyto)
                 else:
                     log(buildenv, HARDHAT_WARNING, "HardHat", "File missing: " 
                      + abspath)
@@ -1251,7 +1255,11 @@ def _copyTree(srcdir, destdir, recursive, patterns):
             if os.path.isfile(match):
                 if not os.path.exists(destdir):
                     _mkdirs(destdir)
-                shutil.copy(match, destdir)
+                if os.path.islink(match):
+                    linkto = os.readlink(match)
+                    os.symlink(linkto, os.path.join(destdir,match))
+                else:
+                    shutil.copy(match, destdir)
     if recursive:
         for name in os.listdir(srcdir):
             full_name = os.path.join(srcdir, name)
