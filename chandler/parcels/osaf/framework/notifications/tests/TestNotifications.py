@@ -39,6 +39,7 @@ def repositoryCallback(uuid, notification, reason, **kwds):
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 class NMTest(RepositoryTestCase.RepositoryTestCase):
+    """ Notification Manager TestCase """
     def _loadParcel(self, relPath):
         """ load only the parcel we need (and it's dependencies) """
         import repository.parcel.LoadParcels as LoadParcels
