@@ -1,20 +1,19 @@
+Documentation
+-------------
+
+The latest, up to date documentation on how to build Chandler:
+
+  http://wiki.osafoundation.org/bin/view/Chandler/BuildingChandler
 
 Environments
 ------------
 
- - Linux, gcc 3.3.x with gcj (only tested on Red Hat 8 so far)
+ - Linux, gcc 3.3.x with gcj 3.4.x
 
- - OS X, 10.3.x, dev tools gcc + 3.4 build for gcj
-   An archive of gcc 3.4 built for OS X 10.3.x may be downloaded from:
-     http://downloads.osafoundation.org/compilers/osx/gcc-3.4-20040407.tar.bz2 
-   make compilers will download this for you
+ - OS X, 10.3.x, dev tools gcc
 
- - Win2k/XP, MSVC 7.1, MinGW 3.1 with gcj 3.3.1, 
-   The Cygwin environment with bash, make, cvs, tar, uname and, install is
-   REQUIRED on Windows.
-   An archive of MinGW 3.1 binaries with gcj 3.3.1 may be downloaded from:
-     http://downloads.osafoundation.org/compilers/windows/mingw-3.1.zip
-   make compilers will download this for you
+ - Win2k/XP, MSVC 7.1, the Cygwin environment with binutils, byacc, curl, 
+   cygwin, gzip, make, patchutils, tar and unzip. You will also need perl.
 
 Be ready to provide lots of disk space, especially on Windows (~ 1 gb).
 
@@ -23,71 +22,53 @@ Getting build sources with CVS
 
    - cvs -d :pserver:<cvslogin>@cvs.osafoundation.org:/usr/local/cvsrep co external
 
+Username anonymous, login anonymous works.
+
 Setting vital environment variables:
 ------------------------------------
   - cd external
   - export BUILD_ROOT=`pwd`
+
+On Linux also:
   - export GCJ_HOME='path to gcj installation'
 
 For example, if the path to gcj is /usr/local/gcc-3.3.2/bin/gcj, the
 GCJ_HOME variable should be set to /usr/local/gcc-3.3.2
 
-On windows, the GCJ_HOME path needs to be cygwin style. For example, if the
-path to gcj is d:\mingw-3.1\bin\gcj.exe, the GCJ_HOME variable needs to be
-set to /cygdrive/d/mingw-3.1
-On windows, the usual MSVC environment variables need to be set. See VC's
+On Windows, the usual MSVC environment variables need to be set. See VC's
 vsvars32.bat file for more information.
 
-Verify that the environment is correct
---------------------------------------
+Getting compilers on Windows and Mac OS X
+-----------------------------------------
 
-  - make env
+  - make compilers
 
-Getting the third party library source archives
------------------------------------------------
+On other platforms this will return a message informing you to install 
+gcj 3.4.x yourself.
 
-  - make expand
-
-This downloads the current version of sources.tar (~50Mb) and expands it
-into the source tree checked out from CVS.
-
-Building all third party systems
+Building all
 --------------------------------
 
-  - make                     (for release binaries)
-  - make DEBUG=1             (for debug binaries)
+  - make world                     (for release binaries)
+  - make DEBUG=1 world             (for debug binaries)
 
-Building the binary archives for Chandler
------------------------------------------
-After the third party systems were successfully built:
-
-  - make binaries            (for release binaries)
-  - make DEBUG=1 binaries    (for debug binaries)
-
-This creates release-$(VERSION).tar.gz or debug-$(VERSION).tar.gz
-
-Installing the binary archive into a Chandler tree for running
---------------------------------------------------------------
-
- - cd osaf/chandler
- - tar xvzf release-0.3-1.tar.gz
- - cd Chandler
- - ../../hardhat/hardhat.py -b               (installs RunRelease, RunPython)
- - cd repository
- - ../../../hardhat/hardhat.py -b            (installs UUIDext)
- - cd ..
- - ../release/bin/RunRelease -stderr -create (run Chandler, new repository)
+cd ../chandler to run the resulting program.
 
 Top Makefile targets
 --------------------
-Use DEBUG=1 for debug versions
+Use DEBUG=1 for debug versions.
 Most subsystems depend on at least one other. Be sure to preserve the order
 in which they're built (listed in the SYSTEMS Makefile variable).
 
+ - world: builds all of external and internal; Chandler ready to run
  - default, all: build all subsystems
+ - end: check build environment
+ - compilers: download and install compilers for your platform
  - binaries: create release or debug binaries for upload
+ - install: installs binaries into chandler directory
  - expand: download sources and expand them into the source tree
  - clean: clean all subsystems
+ - realclean: clean up more junk, will force you to do make expand next time
 
 Common Makefile targets in subsystem Makefiles
 ----------------------------------------------
@@ -100,3 +81,4 @@ Use DEBUG=1 for debug versions
          Chandler install for testing/debugging.
  - apply: apply the patches. Not all subsystems have patches. This target
           is invoked during the build process.
+ - expand: unpack the source packages
