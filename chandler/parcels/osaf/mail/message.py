@@ -22,15 +22,58 @@ import utils as utils
 
 """
 Notes:
-1. Encoding Email Address: Only encode name if present
+XXX: Do not check in till figure out repository error
+XXX: get_param() returns a tuple
+XXX: test_email.py, test_email_codecs.py in email package has good unicode examples
+XXX: Look at Scrubber.py in Mailman package
+
+   body = unicode(body, mcset).encode(lcset)
+           except (LookupError, UnicodeError):
+                       pass
+
+return unicode(s, charset, "replace").encode(GlobalOptions.default_charset, "replace")
+
+
+1. Encoding Email Address: Only encode name if present (I have example code)
 
 To Do:
 -------
 1. Work with Apple Mail and see how it handle display of various message types and copy
-2. Look at optimizations for Feedparser to prevent memory hogging
-3. Add back Unicode support
+2. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
 
 Look at Prologue, Echo and i18n text complete / date complete
+
+ARE THESES HANDLED BY THE EMAIL LIBRARY?
+--------------------------------------
+
+NOTE: Some protocols defines a maximum line length.  E.g. SMTP [RFC-
+821] allows a maximum of 998 octets before the next CRLF sequence.
+To be transported by such protocols, data which includes too long
+segments without CRLF sequences must be encoded with a suitable
+content-transfer-encoding.
+
+Note that if the specified character set includes 8-bit characters
+and such characters are used in the body, a Content-Transfer-Encoding
+header field and a corresponding encoding on the data are required in
+order to transmit the body via some mail transfer protocols, such as
+SMTP [RFC-821].
+
+
+In general, composition software should always use the "lowest common
+denominator" character set possible.  For example, if a body contains
+only US-ASCII characters, it SHOULD be marked as being in the US-
+ASCII character set, not ISO-8859-1, which, like all the ISO-8859
+family of character sets, is a superset of US-ASCII.  More generally,
+if a widely-used character set is a subset of another character set,
+and a body contains only characters in the widely-used subset, it
+should be labelled as being in that subset.  This will increase the
+chances that the recipient will be able to view the resulting entity
+correctly.
+
+Unrecognized subtypes of "text" should be treated as subtype "plain"
+as long as the MIME implementation knows how to handle the charset.
+Unrecognized subtypes which also specify an unrecognized charset
+should be treated as "application/octet- stream".
 """
 
 def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
@@ -160,12 +203,11 @@ def messageObjectToKind(messageObject, messageText=None):
 
 
     #XXX:Could compress at a later date
+    #XXX: Convert to unicode
     m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
     counter = utils.Counter()
     bodyBuffer = []
     buf = None
-
-    __checkForDefects(messageObject)
 
     if __verbose():
         if messageObject.has_key("Message-ID"):
@@ -177,6 +219,12 @@ def messageObjectToKind(messageObject, messageText=None):
 
     __parsePart(messageObject, m, bodyBuffer, counter, buf)
 
+    """If the message has attachments set hasMimeParts to True"""
+    if len(m.mimeParts) > 0:
+        m.hasMimeParts = True
+
+    #XXX: This will require i18n decoding
+    #XXX: All body part should already be encoded in utf-8
     m.body = utils.strToText(m, "body", '\n'.join(bodyBuffer).replace("\r", ""))
 
     __parseHeaders(messageObject, m)
@@ -225,7 +273,7 @@ def kindToMessageObject(mailMessage):
         #XXX: Temp hack this should be fixed in GUI level
         #     investigate with Andi and Bryan
         if payload.encoding is None:
-            payload.encoding = "utf-8"
+            payload.encoding = constants.DEFAULT_CHARSET
 
         payloadStr = utils.textToStr(payload)
 
@@ -237,7 +285,7 @@ def kindToMessageObject(mailMessage):
     return messageObject
 
 
-def kindToMessageText(mailMessage, saveMessage=True):
+def kindToMessageText(mailMessage, saveMessage=False):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -257,6 +305,9 @@ def kindToMessageText(mailMessage, saveMessage=True):
     messageText   = messageObject.as_string()
 
     #XXX: Can compress as well
+    #XXX: Convert to utf-8
+    #XXX: I think we can reconstruct this structure at export and get rid of this
+    #     save
     if saveMessage:
         mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", \
                                                      messageText)
@@ -350,7 +401,8 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
             setattr(kindVar, attr, ea)
 
         elif __debug__:
-            logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
+            #XXX: What should happen if we get to this point we need a reply address
+            logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr[1]))
 
     elif type == "EmailAddressList":
         for addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
@@ -367,9 +419,10 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
                 kindVar.append(ea)
 
             elif __debug__:
-                logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
+                #XXX: What should happen if we get to this point we need a reply address
+                logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr[1]))
     else:
-        logging.error("in osaf.mail.message.__assignToKind: HEADER SLIPPED THROUGH")
+        logging.error("__assignToKind: HEADER SLIPPED THROUGH")
 
     del messageObject[key]
 
@@ -420,6 +473,7 @@ def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, lev
             __appendHeader(sub, tmp, "Subject")
             tmp.append("\n")
 
+            #XXX: This will require unicode conversion
             bodyBuffer.append(''.join(tmp))
 
         else:
@@ -428,12 +482,13 @@ def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, lev
     elif subtype == "delivery-status":
         #XXX: This is will need i18n decoding
         """Add the delivery status info to the message body """
+        #XXX: assume us-ascii then covert to utf-8
         bodyBuffer.append(mimePart.as_string())
         return
 
     elif subtype == "disposition-notification-to":
         """Add the disposition-notification-to info to the message body"""
-        #XXX: This is will need i18n decoding
+        #XXX: assume us-ascii then covert to utf-8
         bodyBuffer.append(mimePart.as_string())
         return
 
@@ -454,8 +509,7 @@ def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, lev
             __parsePart(part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
     else:
-        #XXX: Do not think this case exists investigate
-        bodyBuffer.append(payload)
+        logging.warn("******WARNING****** message/%s payload not multipart" % subtype)
 
 
 def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
@@ -474,31 +528,28 @@ def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, l
         """An alternative container should always have at least one part"""
         if len(payload) > 0:
             foundText = False
+            firstPart = None
 
             for part in payload:
                 if part.get_content_type() == "text/plain":
-                    #XXX: This needs i18n decoding
-                    payload = part.get_payload(decode=1)
-                    assert payload is not None, "__handleMultipart alternative payload is None"
-
-                    bodyBuffer.append(payload)
+                    __handleText(part, parentMIMEContainer, bodyBuffer, counter, buf, level)
                     foundText = True
                     break
 
-            #XXX: This can be condensed for performance efficiency
-            if not foundText:
-                for part in payload:
+                if firstPart is None and not part.is_multipart():
                     """A multipart/alternative container should have
                        at least one part that is not multipart and
                        is text based (plain, html, rtf) for display
                     """
-                    if not part.is_multipart():
-                        if part.get_content_main_type() == "text":
-                            __handleText(part, parentContainer, bodyBuffer, counter, buf, level)
-                        else:
-                            __handleBinary(part, parentContainer, counter, buf, level)
+                    firstPart = part
 
-                        break
+            if not foundText and firstPart is not None:
+                if firstPart.get_content_maintype() == "text":
+                    __handleText(firstPart, parentMIMEContainer, bodyBuffer, counter, buf, level)
+                else:
+                    __handleBinary(firstPart, parentMIMEContainer, counter, buf, level)
+        else:
+            logging.warn("******WARNING****** multipart/alternative has no payload")
 
     elif subtype == "byteranges":
         logging.warn("Chandler Mail Service does not support multipart/byteranges at this time")
@@ -551,25 +602,21 @@ def __handleBinary(mimePart, parentMIMEContainer, counter, buf, level):
     mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body)
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
-    parentMIMEContainer.hasMimeParts = True
 
 def __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
     subtype = mimePart.get_content_subtype()
 
-    if __verbose() and size > 0:
+    if __verbose():
         __trace("text/%s" % subtype, buf, level)
 
     """Get the attachment data"""
     body = mimePart.get_payload(decode=1)
-    assert body is not None, "__handleText body is None"
+    assert isinstance(body, str) , "__handleText body is not a String"
 
     size = len(body)
 
-
     #XXX: If there is an encoding then decode first then store
-    #encoding = mimePart.get
-    charset  = mimePart.get_charset()
-    content_charset  = mimePart.get_content_charset()
+    content_charset = mimePart.get_content_charset(None)
 
     if subtype == "plain" or subtype == "rfc822-headers":
         #XXX: this requires i18n decoding
@@ -587,7 +634,7 @@ def __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
         parentMIMEContainer.hasMimeParts = True
 
 def __getFileName(mimePart, counter):
-    #XXX: This should handle all Unicode decoding of filename as well
+    #XXX: Does this handle all Unicode decoding of filename as well?
     filename = mimePart.get_filename()
 
     if filename:
@@ -603,16 +650,33 @@ def __getFileName(mimePart, counter):
 
 def __checkForDefects(mimePart):
     if len(mimePart.defects) > 0:
-        strBuffer = []
+        strBuffer = [mimePart.get("Message-ID", "Unknown Message ID")]
+        handled = False
 
         for defect in mimePart.defects:
-            strBuffer.append(str(defect.__class__).split(".").pop())
+            """Just get the class name strip the package path"""
+            defectName = str(defect.__class__).split(".").pop()
 
-        logging.warn("*****WARNING**** the following Mail Parsing defects \
-                     found: %s" % ", ".join(strBuffer))
+            if not handled and \
+              (defectName == "MultipartInvariantViolationDefect" or \
+               defectName == "NoBoundaryInMultipartDefect" or \
+               defectName == "StartBoundaryNotFoundDefect"):
+
+                """
+                   The Multipart Body of the message is corrupted or
+                   inaccurate(Spam?) convert the payload to a text part.
+                """
+                mimePart._payload = "".join(mimePart._payload)
+                mimePart.replace_header("Content-Type", "text/plain")
+                handled = True
+
+            strBuffer.append(defectName)
+
+        logging.warn("*****WARNING**** Mail Parsing defect: %s" % ", ".join(strBuffer))
 
 def __appendHeader(mimePart, buffer, header):
     if mimePart.has_key(header):
+        #XXX: This will need i18n unicode encoding
         buffer.append("%s: %s\n" % (header, decodeHeader(mimePart[header])))
 
 def __verbose():

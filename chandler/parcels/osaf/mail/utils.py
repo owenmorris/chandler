@@ -5,12 +5,19 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains common utility methods shared across the Mail Domain (SMTP, IMAP4, POP3) and message parsing"""
 
+#python / mx imports
 import email as email
 import email.Message as Message
 import email.Utils as Utils
+import os
 import mx.DateTime as DateTime
+
+#Chandler imports
 import application.Globals as Globals
 from repository.util.Lob import Lob
+
+#Chandler Mail Service imports
+import constants as constants
 
 class Counter:
     def __init__(self, val=0):
@@ -19,6 +26,28 @@ class Counter:
     def nextValue(self):
         self.counter += 1
         return self.counter
+
+
+def loadMimeTortureTests():
+    import osaf.mail.message as message
+    import osaf.contentmodel.mail.Mail as Mail
+
+    mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail', 
+                           'tests', 'mime_tests')
+
+    files = os.listdir(mimeDir)
+
+    for file in files:
+        if not file.startswith('test_'):
+            continue
+
+        filename = os.path.join(mimeDir, file)
+        messageObject = email.message_from_file(open(filename))
+        mailMessage   = message.messageObjectToKind(messageObject)
+        #mailMessage.incomingMessage()
+
+    Globals.repository.view.commit()
+
 
 def getChandlerTransportMessage():
     """Returns the skeleton of a mail message populated with the subject
@@ -80,8 +109,7 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
 
     if Globals.wxApplication is not None: # test framework has no wxApplication
         Globals.wxApplication.CallItemMethodAsync(Globals.views[0], callable,
-                                                   message, **keys)
-
+                                                  message, **keys)
 
 def dateTimeToRFC2882Date(dateTime):
     """Converts a C{mx.DateTime} object to a
@@ -122,9 +150,10 @@ def isString(var):
 
     return False
 
-def strToText(contentItem, attribute, string, indexText=False, encoding='utf-8'):
+def strToText(contentItem, attribute, string, indexText=False, encoding=constants.DEFAULT_CHARSET):
     """Converts a C{str} or C{unicode} to C{Lob}.
     """
+    #XXX: Only unicode should be passed to this method
     if not isString(string):
         return None
 

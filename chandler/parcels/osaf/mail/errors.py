@@ -47,19 +47,3 @@ SSL_CODE                = __offset + 9
 CONNECTION_REFUSED_CODE = __offset + 10
 UNKNOWN_CODE            = __offset + 11
 MISSING_VALUE_CODE      = __offset + 12
-
-ERROR_LOOKUP = \
-{
-    DNS_LOOKUP_CODE: "DNS Lookup Error",
-    DELIVERY_CODE: "Delivery Error",
-    PROTOCOL_CODE: "Protocol Error",
-    CONNECTION_CODE: "Connection Error",
-    BIND_CODE: "TCP Bind Error",
-    UNKNOWN_HOST_CODE: "Unknown Host Error",
-    TIMEOUT_CODE: "Connection Timeout Error",
-    SSL_CODE: "SSL Error",
-    CONNECTION_REFUSED_CODE: "Connection Refused Error",
-    UNKNOWN_CODE: "Unknown Error",
-    MISSING_VALUE_CODE: "Missing Value Error"
-}
-

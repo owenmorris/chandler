@@ -9,7 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import version
 
 #XXX: This will go away with internationalization
-DEFAULT_CHARSET = "ascii"
+DEFAULT_CHARSET = "utf-8"
 
 CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
