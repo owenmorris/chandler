@@ -77,8 +77,6 @@ binaries:
 	done
 	gzip $(SNAP)-$(VERSION).tar
 
-$(SNAP)-$(VERSION).tar.gz: binaries
-
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG)
 
