@@ -693,21 +693,34 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         otherwise our delegate will get called asking for deleted items
         """
         self.ClearSelection()
+        
+        # build up a list of selection ranges [[tl1, br1], [tl2, br2]]
         selectionRanges = []
         for topLeft in topLeftList:
             bottomRight = bottomRightList.pop (0)
             selectionRanges.append ([topLeft[0], bottomRight[0]])
         selectionRanges.sort()
         selectionRanges.reverse()
+
+        # now delete rows - since we reverse sorted, the 
+        # "newRowSelection" will be the highest row that we're not deleting
+        newRowSelection = 0
         contents = self.blockItem.contents
         for range in selectionRanges:
             for row in xrange (range[1], range [0] - 1, -1):
                 contents.remove (contents [row])
+                newRowSelection = row
+
         self.blockItem.selection = []
         self.blockItem.selectedItemToView = None
         self.blockItem.itsView.commit()
         self.blockItem.contents.endUpdate()
-        self.blockItem.postEventByName("SelectItemBroadcast", {'item':None})
+        
+        # now select the "next" item
+        totalItems = len(contents)
+        newRowSelection = min(newRowSelection, totalItems - 1)
+        self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
+
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
