@@ -253,13 +253,6 @@
   </Kind>
 
 <!-- Status -->
-  <Attribute itemName="name">
-    <displayName>name</displayName>
-    <description>...add description here...</description>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
   <Attribute itemName="subStatus">
     <displayName>sub-status</displayName>
     <description>...add description here...</description>
@@ -288,13 +281,6 @@
   </Kind>
 
 <!-- Task Type -->
-  <Attribute itemName="name">
-    <displayName>name</displayName>
-    <description>...add description here...</description>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
   <Attribute itemName="subTypes">
     <displayName>sub-types</displayName>
     <description>...add description here...</description>
