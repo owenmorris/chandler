@@ -12,7 +12,7 @@ fi
 
 if [ "$PYTHON_VER" = "" ]
 then
-    PYTHON_VER=2.3
+    PYTHON_VER=2.4
 fi
 
 if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
