@@ -208,10 +208,13 @@ class ItemCollection(ContentModel.ContentItem):
 
     def __getitem__ (self, index):
         iterator = iter(self.results)
-        item = iterator.next()
-        for count in xrange (index):
+        try:
             item = iterator.next()
-        return item
+            for count in xrange (index):
+                item = iterator.next()
+            return item
+        except StopIteration:
+            raise IndexError
 
     def __delitem__(self, index):
         self.remove (self.results [index])
