@@ -31,6 +31,11 @@
     <fontSize>10</fontSize>
   </CharacterStyle>
 
+  <CharacterStyle itsName="BigTextStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>14</fontSize>
+  </CharacterStyle>
+
   <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>12</fontSize>
@@ -122,33 +127,33 @@
   <ToolbarItem itsName="MailMessageButton"
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
-    <title>Message</title>
+    <title>Send as message</title>
     <bitmap>application/images/markup_message.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
-    <helpString>Send as message</helpString>
+    <helpString>Send this item as a mail message</helpString>
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="TaskStamp"
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
-    <title>Task</title>
+    <title>Put on Taskpad</title>
     <bitmap>application/images/markup_put_on_taskpad.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
-    <helpString>Make into a Task</helpString>
+    <helpString>Put this item onto the Taskpad</helpString>
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="CalendarStamp"
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
-    <title>Calendar</title>
+    <title>Put on Calendar</title>
     <bitmap>application/images/markup_put_on_calendar.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
-    <helpString>Put onto the Calendar</helpString>
+    <helpString>Put this item onto the Calendar</helpString>
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
 
@@ -178,7 +183,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -189,7 +194,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="ContactFullNameArea"
@@ -208,7 +213,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="ContactFullNameEditField"
@@ -219,7 +224,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="ToArea"
@@ -239,7 +244,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="ToEditField1"
@@ -250,7 +255,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>-1, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </EditText>
 
   <!-- CoreArea -->
@@ -274,7 +279,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>about</selectedItemsAttribute>
-    <minimumSize>380, 40</minimumSize>
+    <minimumSize>300, 32</minimumSize>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
@@ -285,18 +290,18 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 40</minimumSize>
+    <minimumSize>100, 32</minimumSize>
   </StaticText>
   
   <EditText itsName="EditHeadline"
             itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
     <blockName value="EditHeadline"/>
-    <characterStyle itemref="doc:TextStyle"/>
+    <characterStyle itemref="doc:BigTextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>380, 40</minimumSize>
+    <minimumSize>300, 32</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="EmailAddressArea"
@@ -307,7 +312,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>homeSection</selectedItemsAttribute>
-    <minimumSize>380, 24</minimumSize>
+    <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
@@ -318,7 +323,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="EditEmailAddress"
@@ -330,27 +335,37 @@
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>280, 24</minimumSize>
+    <minimumSize>400, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="DateKindArea">
     <blockName value="DateKindArea"/>
+    <childrenBlocks itemref="doc:EmptySpacer"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <childrenBlocks itemref="doc:KindLabel"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>280, 24</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </ContentItemDetail>
+
+  <StaticText itsName="EmptySpacer">
+    <blockName value="EmptySpacer"/>
+    <title></title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>100, 24</minimumSize>
+  </StaticText>
 
   <StaticText itsName="DateTime"
               itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
     <blockName value="DateTime"/>
     <title>Date/Time</title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>200, 24</minimumSize>
   </StaticText>
   
   <StaticText itsName="KindLabel"
@@ -360,7 +375,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <ContentItemDetail itsName="CalendarStartTime"
@@ -371,8 +386,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>startTime</selectedItemsAttribute>
-    <minimumSize>380, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarStartTime"
@@ -382,7 +396,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="EditCalendarStartTime"
@@ -393,7 +407,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>380, 30</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="CalendarDuration"
@@ -403,8 +417,7 @@
     <childrenBlocks itemref="doc:EditCalendarDuration"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
-    <minimumSize>380, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarDuration"
@@ -414,7 +427,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>180, 24</minimumSize>
+    <minimumSize>100, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="EditCalendarDuration"
@@ -425,7 +438,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>380, 30</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <!-- NotesArea -->
@@ -438,7 +451,7 @@
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>3</stretchFactor>
-    <minimumSize>380, 120</minimumSize>
+    <minimumSize>300, 80</minimumSize>
   </EditText>
 
   <!-- Send button -->
@@ -447,7 +460,7 @@
 
     <!-- Attributes -->
     <blockName value="SendShareButton"/>
-    <title>xxxxx</title>
+    <title>Share</title>
     <buttonKind>Text</buttonKind>
 
     <size>60,30</size>

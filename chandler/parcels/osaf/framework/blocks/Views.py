@@ -108,16 +108,6 @@ class View(BoxContainer):
         elif __debug__:
             assert (False)
 
-    def getFocusBlock (self):
-        focusWindow = wx.Window_FindFocus()
-        while (focusWindow):
-            try:
-                return focusWindow.blockItem
-            except AttributeError:
-                focusWindow = focusWindow.GetParent()
-        return Globals.mainView
-
-
     def onSetActiveView (self, block):
         """ 
         Set a new Active View.

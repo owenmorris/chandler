@@ -15,6 +15,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
+import application.dialogs.Util as Util
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import wx
@@ -42,6 +43,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         the Item.  
           Notify container blocks before their children.
         """
+        self.finishSelectionChanges () # finish changes to previous selected item 
         super(DetailRoot, self).onSelectionChangedEvent(notification)
         item= self.selectedItem()
         assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
@@ -138,7 +140,23 @@ class DetailRoot (ControlBlocks.SelectionContainer):
 
     def onSendShareItemEvent (self, notification):
         item = self.selectedItem()
-        item.shareSend() # tell the ContentItem to share/send itself.
+        # preflight the send/share request
+        # mail items and collections need their recievers set up
+        try:
+            whoTo = item.whoTo
+        except AttributeError:
+            whoTo = []
+        if len (whoTo) == 0:
+            if isinstance (item, ItemCollection.ItemCollection):
+                message = _('Please specify who to share this collection with in the "sharees" field.')
+            elif isinstance (item, Mail.MailMessageMixin):
+                message = _('Please specify who to send this message to in the "to" field.')
+            else:
+                message = _('Please specify receivers.')
+            Util.ok(Globals.wxApplication.mainFrame,
+             _("No Receivers"), message)
+        else:
+            item.shareSend() # tell the ContentItem to share/send itself.
 
     def resynchronizeDetailView (self):
         # Called to resynchronize the whole Detail View
@@ -163,6 +181,17 @@ class DetailRoot (ControlBlocks.SelectionContainer):
     def onNULLEventUpdateUI (self, notification):
         """ The NULL Event is always disabled """
         notification.data ['Enable'] = False
+
+    def finishSelectionChanges (self):
+        """ 
+          Need to finish any changes to the selected item
+        that are in progress.
+        """
+        focusBlock = self.getFocusBlock()
+        try:
+            focusBlock.saveFocusData()
+        except AttributeError:
+            pass
 
 class DetailSynchronizer(object):
     """
@@ -473,10 +502,14 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         if item:
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
+    
+    def saveFocusData (self):
+        # called to save away the data in the UI focus block
+        self.saveTextValue()
         
     def onLoseFocus (self, event):
-        # called when we lose focus, to save away the text
-        self.saveTextValue()
+        # called when we lose focus, to save away the data
+        self.saveFocusData()
         event.Skip()
         
     def OnDataChanged (self):
@@ -607,7 +640,7 @@ class EditRedirectAttribute (EditTextAttribute):
         try:
             value = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
-            value = ''
+            value = 'untitled'
         widget.SetValue(value)
 
 class EditHeadlineRedirectAttribute (EditRedirectAttribute):
@@ -631,7 +664,9 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
 
     def synchronizeItemDetail (self, item):
         # if the button should be visible, enable/disable
+        # changed for 0.4 - always enabled to avoid user confusion.
         if item is not None and self.shouldShow (item):
+            shouldEnable = True
             if isinstance (item, ItemCollection.ItemCollection):
                 # collection: label should read "Notify"
                 label = "Notify"
@@ -643,23 +678,15 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
                 else:
                     if renotify:
                         label = "Renotify"
-                # disable the button if no sharees
-                try:
-                    sharees = item.sharees
-                except AttributeError:
-                    sharees = []
-                shouldEnable = len (sharees) > 0
             else:
                 # not a collection, so it's probably Mail
                 label = "Send"
-                shouldEnable = True
                 try:
                     dateSent = item.dateSent
                 except AttributeError:
                     dateSent = None
                 if dateSent is not None:
                     label = "Sent"
-                    shouldEnable = False
             self.widget.Enable (shouldEnable)
             self.widget.SetLabel (label)
         return super (SendShareButton, self).synchronizeItemDetail (item)

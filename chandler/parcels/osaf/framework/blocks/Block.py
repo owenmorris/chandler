@@ -197,6 +197,15 @@ class Block(Item):
         return id
     getWidgetID = classmethod (getWidgetID)
 
+    def getFocusBlock (self):
+        focusWindow = wx.Window_FindFocus()
+        while (focusWindow):
+            try:
+                return focusWindow.blockItem
+            except AttributeError:
+                focusWindow = focusWindow.GetParent()
+        return Globals.mainView
+
     def onShowHideEvent(self, notification):
         self.isShown = not self.isShown
         self.synchronizeWidget()

@@ -1074,7 +1074,7 @@
 
   <ToolbarItem itsName="KindFilterMessage">
     <blockName>KindFilterMessage</blockName>
-    <title>Message</title>
+    <title>Messages</title>
     <bitmap>application/images/KindFilterMessage.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterMessageEvent"/>
@@ -1090,7 +1090,7 @@
 
   <ToolbarItem itsName="KindFilterEvent">
     <blockName>KindFilterEvent</blockName>
-    <title>Event</title>
+    <title>Calendar</title>
     <bitmap>application/images/KindFilterEvent.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterEventEvent"/>
@@ -1106,7 +1106,7 @@
 
   <ToolbarItem itsName="KindFilterTask">
     <blockName>KindFilterTask</blockName>
-    <title>Task</title>
+    <title>Taskpad</title>
     <bitmap>application/images/KindFilterTask.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterTaskEvent"/>
