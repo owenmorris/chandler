@@ -45,13 +45,9 @@ def getCHANDLERvars(buildenv):
             # Use DOS format paths under windows
             CHANDLERHOME = os.path.join(buildenv['root_dos'], 'chandler')
         else:
-            CHANDLERHOME = os.path.join(buildenv['root'], "chandler")
+            CHANDLERHOME = os.path.join(buildenv['root'], 'chandler')
 
-    CHANDLERBIN = os.getenv('CHANDLERBIN')
-    if not CHANDLERBIN:
-        CHANDLERBIN = CHANDLERHOME
-
-    return (CHANDLERHOME, CHANDLERBIN)
+    return (CHANDLERHOME, os.getenv('CHANDLERBIN') or CHANDLERHOME)
 
 
 def init(buildenv):
@@ -400,14 +396,14 @@ def build(buildenv, module_name):
         nothing
     """
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
+
     os.chdir(buildenv['root'])
     log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.build(buildenv)
@@ -428,12 +424,12 @@ def buildDependencies(buildenv, module_name, history):
         nothing
     """
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
+
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     for dependency in module.dependencies:
         if not history.has_key(dependency):
@@ -455,12 +451,14 @@ def scrub(buildenv, module_name):
         nothing
     """
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
+
     os.chdir(buildenv['root'])
     log(buildenv, HARDHAT_MESSAGE, module_name, "Scrubbing")
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name
+        module_path = CHANDLERHOME
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name
+        module_path = os.path.join(CHANDLERHOME, module_name)
     cvsClean(buildenv, [module_path])
     # log(buildenv, HARDHAT_MESSAGE, module_name, "Back from build")
 # end scrub()
@@ -477,21 +475,22 @@ def scrubDependencies(buildenv, module_name):
         nothing
     """
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
+
     dependencies = {}
     getDependencies(buildenv, module_name, dependencies)
     dirsToScrub = []
     for dep in dependencies.keys():
-        dirsToScrub.append(buildenv['root'] + os.sep + 'chandler' + os.sep + dep)
+        dirsToScrub.append(os.path.join(CHANDLERHOME, dep))
     cvsClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
 def getDependencies(buildenv, module_name, history):
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     for dependency in module.dependencies:
         if not history.has_key(dependency):
@@ -511,14 +510,13 @@ def run(buildenv, module_name):
     Returns:    
         nothing
     """
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     log(buildenv, HARDHAT_MESSAGE, module_name, "Executing")
     os.chdir(buildenv['root'])
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
 
@@ -541,14 +539,13 @@ def removeRuntimeDir(buildenv, module_name):
         nothing
     """
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     log(buildenv, HARDHAT_MESSAGE, module_name, "Removing runtime directory")
     os.chdir(buildenv['root'])
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.removeRuntimeDir(buildenv)
@@ -567,14 +564,13 @@ def distribute(buildenv, module_name, buildVersion):
     Returns:    
         nothing
     """
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     log(buildenv, HARDHAT_MESSAGE, module_name, "Creating distribution")
     os.chdir(buildenv['root'])
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
 
@@ -668,12 +664,11 @@ def test(buildenv, dir, *modules):
 def generateDocs(buildenv, module_name):
     os.chdir(buildenv['root'])
     # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
     if module_name == 'chandler':
-        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
-        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
-         "__hardhat__.py"
+        module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.generateDocs(buildenv)
@@ -956,8 +951,8 @@ def setupEnvironment(buildenv):
         pythonpaths.append(prevPath)
 
     # need to add chandler and chandler/parcels to PYTHONPATH
-    pythonpaths.append(os.path.join(buildenv['root'], "chandler"))
-    pythonpaths.append(os.path.join(buildenv['root'], "chandler", "parcels"))
+    pythonpaths.append(CHANDLERHOME)
+    pythonpaths.append(os.path.join(CHANDLERHOME, "parcels"))
     pythonpath = os.pathsep.join(pythonpaths)
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
