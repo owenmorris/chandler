@@ -12,7 +12,9 @@
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
   
-  <!-- global attributes for CPIA documents -->
+  <!--
+    global attributes for CPIA documents
+  -->
   <Attribute itemName="font">
     <type itemref="String"/>
   </Attribute>
@@ -92,7 +94,7 @@
   </Kind>
 
   <!--
-    Blocks
+    Block
   -->
   <Kind itemName="Block">
     <classes key="python">OSAF.AppSchema.DocumentSchema.Block.Block</classes>
@@ -131,6 +133,9 @@
     <attributes itemref="docSchema:Block/open"/>
   </Kind>
   
+  <!--
+    ContainerChild
+  -->
   <Kind itemName="ContainerChild">
     <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
@@ -162,7 +167,7 @@
     </Enumeration>
 
     <Attribute itemName="alignmentEnum">
-      <type itemref="Boolean"/>
+      <type itemref="docSchema:ContainerChild/alignmentEnumType"/>
     </Attribute>
 
     <Attribute itemName="stretchFactor">
@@ -176,6 +181,9 @@
     <attributes itemref="docSchema:ContainerChild/stretchFactor"/>
   </Kind>
 
+  <!--
+    BoxContainer
+  -->
   <Kind itemName="BoxContainer">
     <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.BoxContainer</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
@@ -190,6 +198,48 @@
     </Attribute>
 
     <attributes itemref="docSchema:BoxContainer/orientationEnum"/>
+  </Kind>
+
+  <!--
+    StaticText
+  -->
+  <Kind itemName="StaticText">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.StaticText</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+  </Kind>
+
+  <!--
+    EditText
+  -->
+  <Kind itemName="EditText">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.EditText</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Enumeration itemName="lineStyleEnumType">
+      <values>SingleLine</values>
+      <values>MultiLine</values>
+    </Enumeration>
+
+    <Attribute itemName="lineStyleEnum">
+      <type itemref="docSchema:EditText/lineStyleEnumType"/>
+    </Attribute>
+
+    <Enumeration itemName="textStyleEnumType">
+      <values>PlainText</values>
+      <values>RichText</values>
+    </Enumeration>
+
+    <Attribute itemName="textStyleEnum">
+      <type itemref="docSchema:EditText/textStyleEnumType"/>
+    </Attribute>
+
+    <Attribute itemName="readOnly">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:EditText/lineStyleEnum"/>
+    <attributes itemref="docSchema:EditText/textStyleEnum"/>
+    <attributes itemref="docSchema:EditText/readOnly"/>
   </Kind>
 
 </Parcel>

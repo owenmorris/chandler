@@ -121,6 +121,11 @@ class Application(AutoItem):
             self.__dict__.clear  ()
             self.__init__ ()
                 
+class TestFrame(wxFrame):
+    def __init__(self):
+        wxFrame.__init__(self, None, -1, "TestView", size=(640,480))
+
+
 class wxApplication (wxApp):
     """
       Many wxPython objects, for example wxApplication have corresponding
@@ -364,11 +369,14 @@ class wxApplication (wxApp):
         
         #self.OpenStartingURL()
 
-        #from OSAF.AppSchema.DocumentSchema.Block import Block
-        #topDocument = app.repository.find('//Parcels/OSAF/templates/top/TopDocument')
-        #if topDocument:
-            #assert isinstance (topDocument, Block)
-            #topDocument.Render (self.wxMainFrame)
+        from OSAF.AppSchema.DocumentSchema.Block import Block
+        
+        topDocument = app.repository.find('//Parcels/OSAF/templates/top/TopDocument')
+        if topDocument:
+            self.testFrame = TestFrame()
+            assert isinstance (topDocument, Block)
+            topDocument.Render (self.testFrame)
+            self.testFrame.Show()
 
         return true                     #indicates we succeeded with initialization
 
