@@ -89,7 +89,7 @@ class wxChoiceContainer(wxBoxContainer):
                     if childBlock.widget.GetToolState(toolbarItem.widget.GetId()):
                         return index
                     index += 1
-        assert True, "There should always be something selected"
+        assert False, "There should always be something selected"
         return 0
             
 
@@ -301,7 +301,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         elif block.tabPosEnum == "Right":
             style = wx.NB_RIGHT
         elif __debug__:
-            assert (False)
+            assert False
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
 
