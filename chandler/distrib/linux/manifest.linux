@@ -30,7 +30,7 @@ python2.3/curses
 python2.3/plat-linux2
 python2.3/lib-dynload
 
-# Grab files from the lib/python2.2 directory
+# Grab files from the lib/python2.3 directory
 recursive=no
 python2.3
 
@@ -43,6 +43,7 @@ src=Chandler
 dest=
 Chandler.py
 version.py
+HISTORY.txt
 LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders

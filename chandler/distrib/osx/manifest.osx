@@ -37,6 +37,7 @@ src=Chandler
 dest=Contents/Resources
 Chandler.py
 version.py
+HISTORY.txt
 LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
