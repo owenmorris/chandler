@@ -21,7 +21,7 @@ BUILD=build_$(SNAP)
 
 build: expand
 	cd $(SRC); \
-	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
 pychecker-$(VERSION).tar.gz:
