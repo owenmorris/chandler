@@ -14,7 +14,6 @@ False = 0
 
 import os, hardhatutil, hardhatlib, sys, re
 
-
 treeName = "Chandler"
 path = os.environ.get('PATH', os.environ.get('path'))
 cvsProgram = hardhatutil.findInPath(path, "cvs")
@@ -73,15 +72,15 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 # Now need to do the setup for external - "expand" and "make"
                 os.chdir(extModuleDir)
                 log.write("Environment variables: \n")
-                log.write("GCJ_HOME = " + buildenv["GCJ_HOME"] + "\n")
+                log.write("GCJ_HOME = " + os.getenv['GCJ_HOME'] + "\n")
                 os.putenv("BUILD_ROOT", extModuleDir)
-                log.write("BUILD_ROOT = " + buildenv["BUILD_ROOT"] + "\n")
+                log.write("BUILD_ROOT = " + os.getenv['BUILD_ROOT'] + "\n")
                 
                 print "Building " + relStr
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
                 log.write("Expanding external sources\n")
                 outputList = hardhatutil.executeCommandReturnOutput(
-                 ['make', "expand" ])
+                 [[buildenv['make'], "expand" ])
                 hardhatutil.dumpOutputList(outputList, log)
                 outputList = hardhatutil.executeCommandReturnOutput(
                  [buildenv['make'], dbgStr ])
