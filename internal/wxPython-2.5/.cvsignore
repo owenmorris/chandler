@@ -1,2 +1,3 @@
 build_release
 build_debug
+*.gz
