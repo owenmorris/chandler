@@ -64,6 +64,9 @@ class RepoResource(resource.Resource):
 
                     result += RenderBlock(repoView, item)
 
+                elif mode == "inheritance":
+                    result += RenderInheritance(repoView)
+
                 elif path != "//":
                     item = repoView.findPath(path)
                     if item is None:
@@ -135,6 +138,51 @@ def RenderRoots(repoView):
         result += "<a href=%s>//%s</a> &nbsp;  " % (toLink(child.itsPath), child.itsName)
     result += "</div>"
     result += "</td></tr></table>\n"
+    return result
+
+def RenderInheritance(repoView):
+    result = ""
+    kinds = []
+    for item in repository.item.Query.KindQuery().run(
+     [
+      repoView.findPath("//Schema/Core/Kind"),
+     ]
+    ):
+        kinds.append(item)
+
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td colspan=4><b>All Kinds:</b></td>\n"
+    result += "</tr>\n"
+
+    result += "<tr class='oddrow'>\n"
+    result += "<td><b>Kind</b></td><td><b>Class</b></td><td><b>Superclasses</b></td><td><b>Superkinds</b></td>\n"
+    result += "</tr>\n"
+
+    count = 0
+    for item in kinds:
+        result += oddEvenRow(count)
+        result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
+        result += "<td>"
+        klass = None
+        if hasattr(item, 'classes'):
+            klass = item.classes['python']
+            result += clean(str(klass))
+        result += "</td>"
+        result += "<td>"
+        if klass is not None:
+            for superclass in klass.__bases__:
+                result += clean(str(superclass)) + ", "
+        result += "</td>"
+
+        result += "<td>"
+        for superKind in item.superKinds:
+            result += superKind.getItemDisplayName() + ", "
+        result += "</td>"
+        result += "</tr>"
+        count += 1
+    result += "</table>\n"
+
     return result
 
 def RenderKinds(repoView):
