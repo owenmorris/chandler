@@ -755,7 +755,6 @@
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
-    <tabNames>In</tabNames>
     
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  

@@ -209,7 +209,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-
+    <displayName>Intro</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -297,7 +297,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-
+    <displayName>Buttons</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -360,7 +360,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-
+    <displayName>Controls</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -380,7 +380,7 @@
     <childrenBlocks itemref="doc:HTMLExample"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-
+    <displayName>HTML</displayName>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -396,10 +396,6 @@
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
-    <tabNames>Intro</tabNames>    
-    <tabNames>Buttons</tabNames>
-    <tabNames>Controls</tabNames>
-    <tabNames>HTML</tabNames>
     
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>

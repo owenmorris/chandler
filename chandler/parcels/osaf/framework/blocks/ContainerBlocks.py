@@ -357,7 +357,6 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def wxSynchronizeWidget(self):
         from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
-        assert(len(self.blockItem.childrenBlocks) == len(self.blockItem.tabNames)), "Improper number of tabs"
         self.Freeze()
         for pageNum in range (self.GetPageCount()):
             page = self.GetPage(0)
@@ -367,13 +366,13 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
                 self.RemovePage(0)
         index = 0
         for child in self.blockItem.childrenBlocks:
-            self.AddPage (child.widget, self.blockItem.tabNames[index])
+            self.AddPage (child.widget, self.blockItem._getBlockName(child))
             index += 1
         self.SetSelection(self.selectedTab)
         page = self.GetPage(self.selectedTab)
         Globals.mainView.onSetActiveView(page.blockItem) 
         self.Thaw()
-        
+                
 
 class TabbedContainer(RectangularChild):
     def instantiateWidget (self):
@@ -390,3 +389,11 @@ class TabbedContainer(RectangularChild):
             if self.widget.GetPageText(index) == choice:
                 self.widget.SetSelection (index)
                 break
+
+    def _getBlockName(self, block):
+        try:
+            contents = block.contents
+        except AttributeError:
+            return block.getAttributeValue('displayName')
+        else:
+            return contents.getAttributeValue('displayName')

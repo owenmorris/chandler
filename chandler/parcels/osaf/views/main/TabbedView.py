@@ -4,11 +4,10 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import osaf.framework.blocks.ControlBlocks as ControlBlocks
-from osaf.framework.blocks.Node import Node as Node
+import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.Block import Block as Block
 
-class TabbedView(ControlBlocks.TabbedContainer):
+class TabbedView(ContainerBlocks.TabbedContainer):
     def onSelectionChangedEvent(self, notification):
         item = notification.data['item']
         if isinstance(item, Block):
@@ -18,7 +17,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         if hasattr (self, 'widget'):
             # tabbed container hasn't been rendered yet
             activeTab = self.widget.GetSelection()
-            itemName = item.getItemDisplayName()
+            itemName = self._getBlockName(item)
             found = False
             for tabIndex in range(self.widget.GetPageCount()):
                 tabName = self.widget.GetPageText(tabIndex)
@@ -26,7 +25,6 @@ class TabbedView(ControlBlocks.TabbedContainer):
                     found = True
                     self.widget.SetSelection(tabIndex)
             if not found:
-                self.tabNames[activeTab] = itemName
                 page = self.widget.GetPage(activeTab)
                 previousChild = self.childrenBlocks.previous(page.blockItem)
                 page.blockItem.parentBlock = None
@@ -44,8 +42,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         newItem = originalItem.copy(name, self)
         newItem.contents._ItemCollection__refresh() # @@@ Hack to work around Bug#1568
 
-        self.widget.selectedTab = len(self.tabNames)
-        self.tabNames.append(name)
+        self.widget.selectedTab = self.widget.GetPageCount()
         newItem.parentBlock = self
         newItem.render()
         self.synchronizeWidget()
@@ -53,9 +50,8 @@ class TabbedView(ControlBlocks.TabbedContainer):
     def onCloseEvent (self, notification):
         "Close the current tab"
         selection = self.widget.GetSelection()
-        self.tabNames.remove(self.tabNames[selection])
         page = self.widget.GetPage(selection)
-        if selection > (len(self.tabNames) - 1):
+        if selection > (self.widget.GetPageCount() - 1):
             self.widget.selectedTab = selection - 1
         else:
             self.widget.selectedTab = selection
@@ -63,14 +59,16 @@ class TabbedView(ControlBlocks.TabbedContainer):
         self.synchronizeWidget()
         
     def onCloseEventUpdateUI(self, notification):
-        notification.data['Enable'] = (len(self.tabNames) > 1)
+        notification.data['Enable'] = (self.widget.GetPageCount() > 1)
         
     def _getUniqueName (self, name):
         if not self.hasChild(name):
             return name
         number = 1
-        while self.hasChild(name + " " + str(number)):
+        uniqueName = name + " " + str(number)
+        while self.hasChild(uniqueName):
             number += 1
-        return name + str(number)
+            uniqueName = name + " " + str(number)
+        return uniqueName
 
         
