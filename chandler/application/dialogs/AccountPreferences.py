@@ -41,10 +41,10 @@ PANELS = {
                 "attr" : "port",
                 "type" : "integer",
             },
-            # "IMAP_USE_SSL" : {
-            #     "attr" : "useSSL",
-            #     "type" : "boolean",
-            # },
+            "IMAP_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+            },
         },
         "id" : "IMAPPane",
     },
@@ -62,10 +62,10 @@ PANELS = {
                 "attr" : "port",
                 "type" : "integer",
             },
-            # "SMTP_USE_SSL" : {
-            #     "attr" : "useSSL",
-            #     "type" : "boolean",
-            # },
+            "SMTP_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+            },
             "SMTP_USE_AUTH" : {
                 "attr" : "useAuth",
                 "type" : "boolean",
