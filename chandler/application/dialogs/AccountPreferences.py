@@ -80,6 +80,7 @@ PANELS = {
             "IMAP_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
+                "linkedTo" : ("IMAP_PORT", { True:"993", False:"143" } )
             },
             "IMAP_DEFAULT" : {
                 "type" : "currentPointer",
@@ -116,6 +117,7 @@ PANELS = {
             "SMTP_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
+                "linkedTo" : ("SMTP_PORT", { True:"465", False:"25" } )
             },
             "SMTP_USE_AUTH" : {
                 "attr" : "useAuth",
@@ -165,6 +167,7 @@ PANELS = {
             "WEBDAV_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
+                "linkedTo" : ("WEBDAV_PORT", { True:"443", False:"80" } )
             },
             "WEBDAV_DEFAULT" : {
                 "type" : "currentPointer",
@@ -453,14 +456,13 @@ class AccountPreferencesDialog(wx.Dialog):
         # When a text field receives focus, call the handler.
         # When an exclusive radio button is clicked, call another handler.
         for field in PANELS[self.currentPanelType]['fields'].keys():
-
+            fieldInfo = PANELS[self.currentPanelType]['fields'][field]
             control = wx.xrc.XRCCTRL(self.currentPanel, field)
 
             if isinstance(control, wx.TextCtrl):
                 wx.EVT_SET_FOCUS(control, self.OnFocusGained)
 
             elif isinstance(control, wx.RadioButton):
-                fieldInfo = PANELS[self.currentPanelType]['fields'][field]
                 if fieldInfo.get('exclusive', False):
                     try:
                         # On GTK if you want to have a radio button which can
@@ -474,6 +476,12 @@ class AccountPreferencesDialog(wx.Dialog):
                         pass
                     wx.EVT_RADIOBUTTON(control, control.GetId(),
                                        self.OnExclusiveRadioButton)
+
+            elif isinstance(control, wx.CheckBox):
+                linkedTo = fieldInfo.get('linkedTo', None)
+                if linkedTo is not None:
+                    wx.EVT_CHECKBOX(control, control.GetId(),
+                                    self.OnLinkedControl)
 
         for callbackReg in PANELS[self.currentPanelType].get('callbacks', ()):
             self.Bind(wx.EVT_BUTTON, getattr(self, callbackReg[1]),
@@ -648,6 +656,27 @@ class AccountPreferencesDialog(wx.Dialog):
         """ Select entire text field contents when focus is gained. """
         control = evt.GetEventObject()
         wx.CallAfter(control.SetSelection, -1, -1)
+
+    def OnLinkedControl(self, evt):
+        control = evt.GetEventObject()
+
+        # Determine current panel
+        panel = PANELS[self.currentPanelType]
+
+        # Scan through fields, seeing if this control corresponds to one
+        # If marked as linkedTo, change the linked field
+        ##        "linkedTo" : ("IMAP_PORT", { True:993, False:143 } )
+        for (field, fieldInfo) in panel['fields'].iteritems():
+            if wx.xrc.XmlResource.GetXRCID(field) == control.GetId():
+                linkedTo = fieldInfo.get('linkedTo', None)
+                if linkedTo is not None:
+                    linkedField = linkedTo[0]
+                    linkedValues = linkedTo[1]
+                    linkedControl = wx.xrc.XRCCTRL(self.currentPanel,
+                                                   linkedField)
+                    if linkedControl.GetValue() in (linkedValues.values()):
+                        linkedControl.SetValue(linkedValues[control.GetValue()])
+                break
 
     def OnExclusiveRadioButton(self, evt):
         """ When an exclusive attribute (like default) is set on one account,

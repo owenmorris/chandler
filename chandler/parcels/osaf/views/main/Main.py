@@ -109,7 +109,7 @@ class MainView(View):
         # Triggered from "File | Prefs | Accounts..."
 
         # Handy during development:
-        # reload(application.dialogs.AccountPreferences)
+        reload(application.dialogs.AccountPreferences)
 
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.itsView)
 
