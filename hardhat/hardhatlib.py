@@ -1064,11 +1064,9 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 	raise HardHatError
 
 
-    """
     buildPrepareSource(buildenv, releaseId, cvsModule, True)
     buildRelease(buildenv, releaseId, module)
     buildPrepareSource(buildenv, releaseId, cvsModule, False)
-    """
     buildDebug(buildenv, releaseId, module)
 
 def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
@@ -1169,7 +1167,6 @@ def buildDebug(buildenv, releaseId, module):
 	buildDependencies(buildenv, module, history)
 	os.chdir(buildenv['root'])
 	
-	print "I'm in", os.getcwd()
 	compressedFile = compressDirectory(buildenv, "debug", 
 	 compressedFileRoot)
 	
