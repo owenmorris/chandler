@@ -83,22 +83,27 @@ def main():
             SendMail(fromAddr, toAddr, startTime, buildName, "building", 
              treeName, None)
 
+            log.write( "Start = " + nowString)
+
             mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
              buildVersion, 0, log)
 
         except Exception, e:
             print e
             print "something failed"
-            log.write("something failed")
+            log.write("Failed; exception: " + e)
             status = "build_failed"
         else:
             print "all is well"
-            log.write("all is well")
+            log.write("Success")
             status = "success"
             newDir = os.path.join(outputDir, buildVersion)
             os.rename(os.path.join(buildDir, "output"), newDir)
             CreateIndex(newDir)
             RotateDirectories(outputDir)
+
+        log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S"))
+
         log.close()
 
         log = open(logFile, "r")
