@@ -207,7 +207,7 @@ def distribute(buildenv):
             if os.path.exists(installTarget):
                 os.remove(installTarget)
 
-            os.rename(installSourceFile, installTarget)
+            os.rename(installSource, installTarget)
             
             if buildenv['version'] == 'release':
                 _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
