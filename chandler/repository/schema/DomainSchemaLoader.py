@@ -70,12 +70,14 @@ class DomainSchemaLoader(object):
 
     def __init__(self, repository):
         self.repository = repository
-        parser = xml.sax.make_parser()
-        parser.setFeature(xml.sax.handler.feature_namespaces, 1)
-        parser.setContentHandler(DomainSchemaHandler(self.repository))
+        self.parser = xml.sax.make_parser()
+        self.parser.setFeature(xml.sax.handler.feature_namespaces, 1)
+        self.parser.setContentHandler(DomainSchemaHandler(self.repository))
+        self.parser.setErrorHandler(xml.sax.handler.ErrorHandler())
         
     def load(self, file, parent=None):
-        parser.parse(file)
+        print "Loading file: " + file
+        self.parser.parse(file)
 
 class DomainSchemaHandler(xml.sax.ContentHandler):
     """A SAX ContentHandler responsible for loading DomainSchemas.
@@ -120,7 +122,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             self.currentAttributes = self.schemaAttributes
             
             idString = attrs.getValue((None, 'id'))
-            self.domainSchema = self.createDomainSchema(idString)
+            rootName = attrs.getValue((None, 'root'))
+            self.domainSchema = self.createDomainSchema(idString, rootName)
 
         # Create the item
         if local in ITEM_TAGS:
@@ -167,11 +170,12 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
         item = self.repository.find(path)
         return item
 
-    def createDomainSchema(self, idString):
+    def createDomainSchema(self, idString, rootName):
         """Create a DomainSchema with the given id."""
         [prefix, name] = idString.split(':')
         kind = self.repository.find('//Schema/Model/Item')
         item = Item(name, self.parent, kind)
+        root = Item(rootName, self.repository, kind)
         return item
 
     def createKind(self, idString):
