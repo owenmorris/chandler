@@ -90,7 +90,7 @@ def main():
 
         except Exception, e:
             print e
-            eStr = e.__str__
+            eStr = e.__str__()
             print eStr
             print "something failed"
             log.write("Failed:\n")
