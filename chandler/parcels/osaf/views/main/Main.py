@@ -123,6 +123,9 @@ class MainView(View):
         # Tell the sidebar we want to go to the All collection
         self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
 
+        # Switch to the All view
+        self.postEventByName ('ApplicationBarAll', { })
+
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
 
