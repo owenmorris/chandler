@@ -94,7 +94,7 @@
     <!-- child blocks -->
     <blockName value="DetailTrunk"/>
     <childrenBlocks itemref="doc:MarkupBar"/>
-    <childrenBlocks itemref="doc:FromAndToArea"/>
+    <childrenBlocks itemref="doc:ToAndFromArea"/>
     <childrenBlocks itemref="doc:ContactFullNameArea"/>
     <childrenBlocks itemref="doc:CoreArea"/>
     <childrenBlocks itemref="doc:NotesArea"/>
@@ -157,17 +157,18 @@
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
 
-  <!-- FromAndToArea -->
-  <ContentItemDetail itsName="FromAndToArea">
-    <blockName value="FromAndToArea"/>
-    <childrenBlocks itemref="doc:FromArea"/>
+  <!-- ToAndFromArea -->
+  <ContentItemDetail itsName="ToAndFromArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
+    <blockName value="ToAndFromArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
+    <childrenBlocks itemref="doc:FromArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="FromArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
     <blockName value="FromArea"/>
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField1"/>
@@ -177,9 +178,9 @@
   </ContentItemDetail>
 
   <StaticText itsName="FromString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
     <blockName value="FromString"/>
-    <title>From: </title>
+    <title>from</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -209,7 +210,7 @@
 
   <StaticText itsName="ContactFullNameString">
     <blockName value="ContactFullNameString"/>
-    <title>Full Name: </title>
+    <title>Full Name</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -228,7 +229,7 @@
   </EditText>
 
   <ContentItemDetail itsName="ToArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
     <blockName value="ToArea"/>
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToEditField1"/>
@@ -238,9 +239,9 @@
   </ContentItemDetail>
  
   <StaticText itsName="ToString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
     <blockName value="ToString"/>
-    <title>To </title>
+    <title>to</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -319,7 +320,7 @@
   <StaticText itsName="StaticEmailAddress"
               itemClass="osaf.framework.blocks.detail.Detail.StaticEmailAddressAttribute">
     <blockName value="StaticEmailAddress"/>
-    <title>home email address</title>
+    <title>email address</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -334,8 +335,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>400, 24</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="DateKindArea">
@@ -394,7 +394,7 @@
     <blockName value="StaticCalendarStartTime"/>
     <title>start time</title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
   </StaticText>
@@ -425,7 +425,7 @@
     <blockName value="StaticCalendarDuration"/>
     <title>duration</title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, 24</minimumSize>
   </StaticText>

@@ -148,7 +148,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
             whoTo = []
         if len (whoTo) == 0:
             if isinstance (item, ItemCollection.ItemCollection):
-                message = _('Please specify who to share this collection with in the "sharees" field.')
+                message = _('Please specify who to share this collection with in the "to" field.')
             elif isinstance (item, Mail.MailMessageMixin):
                 message = _('Please specify who to send this message to in the "to" field.')
             else:
@@ -357,7 +357,7 @@ class StaticRedirectAttribute (StaticTextLabel):
         except KeyError:
             pass
         if len (redirectAttr) > 0:
-            redirectAttr = ' ' + redirectAttr + ' '
+            redirectAttr = redirectAttr + _(' ')
         return redirectAttr
 
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
@@ -382,6 +382,30 @@ class EmailAddressBlock (DetailSynchronizer, LabeledTextAttributeBlock):
         contactKind = Contacts.ContactsParcel.getContactKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
+
+def ItemCollectionOrMailMessageMixin (item):
+    # if the item is a MailMessageMixin, or an ItemCollection,
+    # then return True
+    mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+    isCollection = isinstance (item, ItemCollection.ItemCollection)
+    isOneOrOther = isCollection or item.isItemOf (mailKind)
+    return isOneOrOther
+
+class ToAndFromBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    def shouldShow (self, item):
+        # if the item is a MailMessageMixin, or an ItemCollection,
+        # then we should show ourself
+        return ItemCollectionOrMailMessageMixin (item)
+
+class StaticToFromText (StaticTextLabel):
+    def shouldShow (self, item):
+        # if the item is a MailMessageMixin, or an ItemCollection,
+        # then we should show ourself
+        return ItemCollectionOrMailMessageMixin (item)
+
+    def staticTextLabelValue (self, item):
+        label = self.title + _(' ')
+        return label
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
@@ -588,18 +612,12 @@ class ToEditField (EditTextAttribute):
         widget.SetValue (whoString)
 
     def shouldShow (self, item):
-        contactKind = Contacts.ContactsParcel.getContactKind ()
-        if item is None or item.isItemOf (contactKind):
-            return False
-        return True
+        return ItemCollectionOrMailMessageMixin (item)
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
     def shouldShow (self, item):
-        # don't show if the item is a Contact
-        contactKind = Contacts.ContactsParcel.getContactKind ()
-        shouldShow = not item.isItemOf (contactKind)
-        return shouldShow
+        return ItemCollectionOrMailMessageMixin (item)
 
     def saveAttributeFromWidget(self, item, widget):  
         pass
@@ -752,13 +770,7 @@ class StaticEmailAddressAttribute (StaticRedirectAttribute):
     Customized for EmailAddresses
     """
     def staticTextLabelValue (self, item):
-        redirectName = self.whichAttribute ()
-        if 'home' in redirectName:
-            label = 'home email address'
-        elif 'work' in redirectName:
-            label = 'work email address'
-        if len (label) > 0:
-            label = label + ' '
+        label = self.title + _(' ')
         return label
 
     def shouldShow (self, item):
