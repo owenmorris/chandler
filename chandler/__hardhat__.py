@@ -198,9 +198,23 @@ def distribute(buildenv):
 
         if buildenv['os'] == 'win':
 
+            distName = 'Chandler_win_debug_' + buildVersionShort
+            distDir = buildenv['root'] + os.sep + distName
+            buildenv['distdir'] = distDir
+            if os.access(distDir, os.F_OK):
+                hardhatlib.rmdir_recursive(distDir)
+            os.mkdir(distDir)
+
+            manifestFile = "distrib" + os.sep + "win" + os.sep + \
+             "manifest.debug.win"
+            hardhatlib.handleManifest(buildenv, manifestFile)
             os.chdir(buildenv['root'])
-            compFile = hardhatlib.compressDirectory(buildenv,
-            ["debug", "Chandler"],
+            compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
+             distName)
+
+            os.chdir(buildenv['root'])
+            compFile2 = hardhatlib.compressDirectory(buildenv, 
+             ["debug","Chandler"],
              "Chandler_win_dev_debug_" + buildVersionShort)
 
         # put the compressed file in the right place if specified 'outputdir'
