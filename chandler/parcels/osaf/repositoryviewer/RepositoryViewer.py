@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from wxPython.xrc import *
 from wxPython.gizmos import *
+from wxPython.html import *
 
 from application.ViewerParcel import ViewerParcel
 from application.ViewerParcel import wxViewerParcel
@@ -23,52 +24,99 @@ class RepositoryViewer(ViewerParcel):
 
 class wxRepositoryViewer(wxViewerParcel):
     def OnInit(self):
+        """Initializes the repository viewer, setting up the layout
+           and populating the tree ctrl.
+        """
         # @@@ sizer layout should be handled in xrc, but xrc
         # does not yet support wxTreeListCtrl
-        
-        self.treeCtrl = wxTreeListCtrl(self)
-        self.treeCtrl.AddColumn('Containment Path')
-        self.treeCtrl.AddColumn('Display Name')
-        self.treeCtrl.AddColumn('Kind')
-        self.treeCtrl.AddColumn('UUID')
-        self.treeCtrl.AddColumn('URI')
-        
-        font = wxFont(18, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")
-        
-        self.container = wxBoxSizer(wxVERTICAL)
+
+        # Set up the title
         self.title = wxStaticText(self, -1, _("Repository Viewer"))
         self.title.SetFont(wxFont(18, wxSWISS, 
                                   wxNORMAL, wxNORMAL, 
                                   false, "Arial"))
+
+        self.splitter = wxSplitterWindow(self, -1,
+                                         style=wxNO_FULL_REPAINT_ON_RESIZE)
+
+        # Set up tree control
+        self.treeCtrl = wxTreeListCtrl(self.splitter)
+        self.treeCtrl.AddColumn(_('Containment Path'))
+        self.treeCtrl.AddColumn(_('Display Name'))
+        self.treeCtrl.AddColumn(_('Kind'))
+        self.treeCtrl.AddColumn(_('UUID'))
+        self.treeCtrl.AddColumn(_('URI'))
+        
+        EVT_TREE_SEL_CHANGED(self, self.treeCtrl.GetId(), self.OnSelChanged)
+        
+        # Set up detail view
+        self.detail = wxHtmlWindow(self.splitter, -1, 
+                                   style=wxNO_FULL_REPAINT_ON_RESIZE | wxSUNKEN_BORDER)
+        self.detail.SetPage("<html><body><h5>Item Viewer</h5></body></html>")
+        self.splitter.SplitHorizontally(self.treeCtrl, self.detail, 200)
+
+        # Set up sizer
+        self.container = wxBoxSizer(wxVERTICAL)
         self.container.Add(self.title, 0, wxEXPAND)
-        self.container.Add(self.treeCtrl, 1, wxEXPAND)
+        self.container.Add(self.splitter, 1, wxEXPAND)
         self.SetSizerAndFit(self.container)
         
         self.LoadTree()
-    
+
+    def OnSelChanged(self, event):
+        """Display the selected Item.
+        """
+        itemId = event.GetItem()
+        item = self.treeCtrl.GetItemData(itemId).GetData()
+
+        if (item == "Repository"):
+            self.detail.SetPage("<html><body><h5>Item Viewer</h5></body></html>")
+        else:
+            self.DisplayItem(item)
+        
+    def DisplayItem(self, item):
+        """Display the given Item's details in an HTML window.
+        """
+        htmlString = "<html><body><h5>Item</h5><ul>"
+        htmlString = htmlString + "<li><b>Path:</b> %s" % item.getPath()
+        htmlString = htmlString + "<li><b>UUID:</b> %s" % item.getUUID()
+        htmlString = htmlString + "</ul><h5>Attributes</h5><ul>"
+        for attribute in item.attributes():
+            key = attribute[0]
+            value = str(attribute[1])
+            value = value.replace("<", "&lt;")
+            value = value.replace(">", "&gt;")
+            htmlString = htmlString + ("<li><b>%s: </b>%s</li>" % (key, value))
+        htmlString = htmlString + "</ul></body></html>"
+        
+        self.detail.SetPage(htmlString)
+        
+        
     def LoadTree(self, item=None, path=None, parent=None):
+        """Load the repository data into the tree.
+           Recursively traverses the tree (by following the containment path), 
+           creating a tree item for every repository Item.
+        """
 
         if item is None:
             root = self.treeCtrl.AddRoot("\\\\")
+            self.treeCtrl.SetItemData(root, wxTreeItemData("Repository"))
             for item in app.repository.getRoots():
                 path = item.getPath()
-                node = self.treeCtrl.AppendItem(root, item.getName())
-                self.LoadItem(item, node)
-                self.LoadTree(item, path, node)
+                self.LoadTree(item, path, root)
             self.treeCtrl.Expand(root)
         else:
             path.append(item.getName())
             node = self.treeCtrl.AppendItem(parent, item.getName())
+            self.treeCtrl.SetItemData(node, wxTreeItemData(item))
             self.LoadItem(item, node)
             for child in item:
                 self.LoadTree(child, path, node)
             path.pop()
 
-        #for attribute in item.attributes():
-        #    attributeNode = self.treeCtrl.AppendItem(node, attribute[0])
-        #    self.treeCtrl.SetItemText(attributeNode, str(attribute[1]), 1)
-
     def LoadItem(self, item, node):
+        """Populates the tree's table with details of this particular item.
+        """
         if (item.hasAttribute('DisplayName')):
             displayName = item.DisplayName
         else:
