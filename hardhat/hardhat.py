@@ -23,28 +23,28 @@ def usage():
     print "python hardhat.py [OPTION]..."
     print "Hardhat builds an application and its dependencies."
     print ""
-    print "-b          build module"
-    print "-B          build module and its dependencies"
-    print "-c          clean module"
-    print "-C          clean module and its dependencies"
-    print "-d          use debug version"
-    print "-D VERSION  create a distribution, using VERSION as the version string"
-    print "-e          show environment variables in hardhat.log"
-    print "-g          generate documentation (via Epydoc and XSLT transform)"
-    print "-h          display this help"
-    print "-i          interactive python session"
-    print "-j          invoke epydoc on arguments"
-    print "-l FILE(S)  lint Python file(s) using PyChecker"
-    print "-n          non-interactive (won't prompt during scrubbing)"
-    print "-o DIR      output directory used when creating a distribution (-D)"
-    print "-r          use release version (this is the default)"
+    print "-b|--build            build module"
+    print "-B|--BuildDeps        build module and its dependencies"
+    print "-c|--clean            clean module"
+    print "-C|--CleanDeps        clean module and its dependencies"
+    print "-d|--debug            use debug version"
+    print "-D|--Distrib VERSION  create a distribution, using VERSION as the version string"
+    print "-e|--env              show environment variables in hardhat.log"
+    print "-g|--docs             generate documentation (via Epydoc and XSLT transform)"
+    print "-h|--help             display this help"
+    print "-i|--interact         interactive python session"
+    print "-j|--epydoc FILE(S)   invoke epydoc on arguments"
+    print "-l|--lint             lint Python file(s) using PyChecker"
+    print "-n|--noprompt         non-interactive (won't prompt during scrubbing)"
+    print "-o|--ouput DIR        output directory used when creating a distribution (-D)"
+    print "-r|--release          use release version (this is the default)"
     # print "-s          spawn an interactive shell"
-    print "-s          scrub module (remove all local files not in CVS)"
-    print "-S          scrub module and its dependencies"
-    print "-t          run all unit tests in this directory and below"
-    print "-u          checkout (update) source using CVS"
-    # print "-v          verbose"
-    print "-x          execute module"
+    print "-s|--scrub            scrub module (remove all local files not in CVS)"
+    print "-S|--ScrubDeps        scrub module and its dependencies"
+    print "-t|--test             run all unit tests in this directory and below"
+    print "-u|--update           checkout (update) source using CVS"
+    print "-v|--verbose          increase output information"
+    print "-x|--run              execute module"
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
@@ -52,7 +52,9 @@ False = 0
 
 def getOptsAndArgs(arglist):
     try:
-        return getopt.getopt(arglist, "bBcCdD:eghij:lno:rsStuvx")
+        return getopt.getopt(arglist, "bBcCdD:eghij:lno:rsStuvx", ['build', 'BuildDeps', 
+         'clean', 'CleanDeps', 'debug', 'Distrib=', 'env', 'docs', 'help', 'interact', 'epydoc=',
+         'lint', 'noprompt', 'output=', 'release', 'scrub', 'ScrubDeps', 'test', 'update', 'verbose', 'run'])
     except getopt.GetoptError:
         usage()
         sys.exit(1)
@@ -61,7 +63,7 @@ opts, args = getOptsAndArgs(sys.argv[1:])
 
 # Look for args that we can process before initializing hardhatlib:
 for opt, arg in opts:
-    if opt == "-h":
+    if opt == "-h" or opt == "--help":
         usage()
         sys.exit(0)
 
@@ -142,27 +144,27 @@ try:
                        # use the arguments that aren't tied to any flag
 
     for opt, arg in opts:
-        if opt == "-b":
+        if opt == "-b" or opt == "--build":
             hardhatlib.build(buildenv, curmodulepath)
 
-        if opt == "-B":
+        if opt == "-B" or opt == "--BuildDeps":
             history = {}
             hardhatlib.buildDependencies(buildenv, curmodulepath, history)
 
-        if opt == "-c":
+        if opt == "-c" or opt == "--clean":
             if hardhatlib.clean(buildenv, curmodulepath) == hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
-        if opt == "-C":
+        if opt == "-C" or opt == "--CleanDeps":
             history = {}
             if hardhatlib.cleanDependencies(buildenv, curmodulepath, history) == \
              hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
-        if opt == "-d":
+        if opt == "-d" or opt == "--debug":
             buildenv['version'] = 'debug'
 
-        if opt == "-D":
+        if opt == "-D" or opt == "--Distrib":
             buildVersionArg = arg
             # on Windows, args with spaces in them get split in two, so
             # there's a chance this arg will have it's spaces encoded into
@@ -170,57 +172,57 @@ try:
             buildVersionArg = buildVersionArg.replace("|", " ")
             hardhatlib.distribute(buildenv, curmodulepath, buildVersionArg)
 
-        if opt == "-e":
+        if opt == "-e" or opt == "--env":
             buildenv['showenv'] = 1
 
-        if opt == "-g":
+        if opt == "-g" or opt == "--docs":
             hardhatlib.generateDocs(buildenv, curmodulepath)
 
-        if opt == "-h":
+        if opt == "-h" or opt == "--help":
             usage()
 
-        if opt == "-i":
+        if opt == "-i" or opt == "--interact":
             py = buildenv['python']
             if( buildenv['version'] == 'debug' ):
                 py = buildenv['python_d']
             hardhatlib.executeCommandNoCapture(buildenv, "Interactive",
              [py], "Interactive session")
 
-        if opt == "-j":
+        if opt == "-j" or opt == "--epydoc":
             hardhatlib.epydoc(buildenv, None, None, arg, *args)
 
-        if opt == "-l":
+        if opt == "-l" or opt == "--lint":
             args_used = True  # we're going to be using the leftover args
             hardhatlib.lint(buildenv, args)
 
-        if opt == "-n":
+        if opt == "-n" or opt == "--noprompt":
             buildenv['interactive'] = False
 
-        if opt == "-o":
+        if opt == "-o" or opt == "--output":
             buildenv['outputdir'] = arg
 
-        if opt == "-r":
+        if opt == "-r" or opt == "--release":
             buildenv['version'] = 'release'
 
-        if opt == "-s":
+        if opt == "-s" or opt == "--scrub":
             hardhatlib.scrub(buildenv, curmodulepath)
 
-        if opt == "-S":
+        if opt == "-S" or opt == "--ScrubDeps":
             hardhatlib.scrubDependencies(buildenv, curmodulepath)
 
-        if opt == "-t":
+        if opt == "-t" or opt == "--test":
             leftOver = hardhatlib.test(buildenv, curdir, *args)
             loo, loa = getOptsAndArgs(leftOver)
             opts.extend(loo)
             args.extend(loa)
             
-        if opt == "-u":
+        if opt == "-u" or opt == "--update":
             hardhatlib.cvsCheckout(buildenv, projectRoot)
 
-        if opt == "-v":
+        if opt == "-v" or opt == "--verbose":
             buildenv['verbosity'] = buildenv['verbosity'] + 1
 
-        if opt == "-x":
+        if opt == "-x" or opt == "--run":
             hardhatlib.run(buildenv, curmodulepath)
 
     if len(args) > 0:
