@@ -16,11 +16,6 @@ class ItemRef(object):
                  otherCard=None, loading=False):
 
         super(ItemRef, self).__init__()
-
-        if otherCard is not None:
-            if type(otherCard) is not str and type(otherCard) is not unicode:
-                raise ValueError, otherCard
-        
         self.attach(refDict, item, name, other, otherName, otherCard, loading)
 
     def __repr__(self):
@@ -87,7 +82,7 @@ class ItemRef(object):
                         old._attach(self, other, otherName, item, name)
                     return
             
-            other.setAttribute(otherName, self)
+            other.setAttribute(otherName, self, _attrDict=other._references)
 
     def detach(self, refDict, item, name, other, otherName):
 
@@ -159,6 +154,78 @@ class ItemRef(object):
         generator.characters(other.getUUID().str64())
         generator.endElement('ref')
 
+
+class RefArgs(object):
+    'A wrapper around arguments necessary to make and store an ItemRef'
+    
+    def __init__(self, attrName, refName, other, otherName, otherCard,
+                 valueDict):
+
+        super(RefArgs, self).__init__()
+        
+        self.attrName = attrName
+        self.refName = refName
+        self.other = other
+        self.otherName = otherName
+        self.valueDict = valueDict
+        self.otherCard = otherCard
+
+    def attach(self, item, repository, loading=False):
+
+        if isinstance(self.other, UUID):
+            other = repository.find(self.other)
+        else:
+            other = item.find(self.other)
+            
+        if self.refName is None:
+            if other is None:
+                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.other, self.other, item.getPath())
+            else:
+                self.refName = other.refName(self.attrName)
+
+        if other is not None:
+            value = other._references.get(self.otherName)
+
+            if value is None:
+                ref = ItemRef(self.valueDict, item, self.attrName,
+                              other, self.otherName, self.otherCard,
+                              loading)
+                self.valueDict.__setitem__(self.refName, ref, loading)
+
+            elif isinstance(value, ItemRef):
+                if value._other is None:
+                    value._other = item
+                    self.valueDict[self.refName] = value
+                    if not loading:
+                        self.valueDict._attach(value, other, self.otherName,
+                                               item, self.attrName)
+
+            elif isinstance(value, RefDict):
+                otherRefName = item.refName(self.otherName)
+                if value.has_key(otherRefName):
+                    value = value._getRef(otherRefName)
+                    if value._other is None:
+                        value._other = item
+                        self.valueDict.__setitem__(self.refName, value,
+                                                   loading)
+                        if not loading:
+                            self.valueDict._attach(value, other,
+                                                   self.otherName,
+                                                   item, self.attrName)
+                else:
+                    ref = ItemRef(self.valueDict, item, self.attrName,
+                                  other, self.otherName, self.otherCard,
+                                  loading)
+                    self.valueDict.__setitem__(self.refName, ref, loading)
+
+        else:
+            value = ItemRef(self.valueDict, item, self.attrName,
+                            other, self.otherName, self.otherCard, loading)
+            self.valueDict.__setitem__(self.refName, value, loading)
+            repository._appendRef(item, self.attrName,
+                                  self.other, self.otherName,
+                                  self.otherCard, value, self.valueDict)
+        
 
 class Attributes(dict):
 

@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax
 
-from ItemRef import ItemRef
+from ItemRef import ItemRef, RefArgs
 from ItemRef import Attributes, References, RefDict
 
 from model.util.UUID import UUID
@@ -665,9 +665,14 @@ class Item(object):
 
         return None
 
-    def IsRemote(self):
-        '''by default, an item is not remote'''
+    def isRemote(self):
+        'By default, an item is not remote.'
+
         return False
+
+    # kludge for now until we settle on a casing convention
+    def IsRemote(self):
+        return self.isRemote()
 
     def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.
@@ -968,65 +973,8 @@ class ItemHandler(xml.sax.ContentHandler):
         if parent is None:
             self.repository._addOrphan(self.parentRef, item)
 
-        for ref in self.refs:
-            if isinstance(ref[1], UUID):
-                other = self.repository.find(ref[1])
-            else:
-                other = item.find(ref[1])
-            
-            if len(ref) == 3:
-                attrName = refName = ref[0][0]
-                otherName = ref[0][1]
-                valueDict = item._references
-                otherCard = ref[2]
-            else:
-                attrName = ref[2]._name
-                refName = ref[0]
-                if refName is None:
-                    if other is None:
-                        raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(ref[1], ref[1], item.getPath())
-                    else:
-                        refName = other.refName(attrName)
-                otherName = ref[2]._otherName
-                valueDict = ref[2]
-                otherCard = ref[3]
-
-            if other is not None:
-                value = other._references.get(otherName)
-                if value is None:
-                    ref = ItemRef(valueDict, item, attrName,
-                                  other, otherName, otherCard,
-                                  self.loading)
-                    valueDict.__setitem__(refName, ref, self.loading)
-                elif isinstance(value, ItemRef):
-                    if value._other is None:
-                        value._other = item
-                        valueDict[refName] = value
-                        if not self.loading:
-                            valueDict._attach(value, other, otherName,
-                                              item, attrName)
-                elif isinstance(value, RefDict):
-                    otherRefName = item.refName(otherName)
-                    if value.has_key(otherRefName):
-                        value = value._getRef(otherRefName)
-                        if value._other is None:
-                            value._other = item
-                            valueDict.__setitem__(refName, value, self.loading)
-                            if not self.loading:
-                                valueDict._attach(value, other, otherName,
-                                                  item, attrName)
-                    else:
-                        ref = ItemRef(valueDict, item, attrName,
-                                      other, otherName, otherCard,
-                                      self.loading)
-                        valueDict.__setitem__(refName, ref, self.loading)
-            else:
-                value = ItemRef(valueDict, item, attrName,
-                                other, otherName, otherCard, self.loading)
-                valueDict.__setitem__(refName, value, self.loading)
-                self.repository._appendRef(item, attrName,
-                                           ref[1], otherName, otherCard,
-                                           value, valueDict)
+        for refArgs in self.refs:
+            refArgs.attach(item, self.repository, self.loading)
 
     def kindEnd(self, itemHandler, attrs):
 
@@ -1092,13 +1040,16 @@ class ItemHandler(xml.sax.ContentHandler):
                                           attrs['name'])
                 else:
                     name = None
-                self.refs.append((name, ref, self.collections[-1], otherCard))
+
+                self.refs.append(RefArgs(self.collections[-1]._name, name,
+                                         ref, self.collections[-1]._otherName,
+                                         otherCard, self.collections[-1]))
             else:
                 name = attrs['name']
                 otherName = self.getOtherName(name, self.getAttrDef(name),
                                               attrs)
-                self.refs.append(((name, otherName), ref, otherCard))
-
+                self.refs.append(RefArgs(name, name, ref, otherName, otherCard,
+                                         self.references))
         else:
             value = self.collections.pop()
             self.references[attrs['name']] = value
@@ -1111,7 +1062,8 @@ class ItemHandler(xml.sax.ContentHandler):
         otherCard = self.tagAttrs[-1].get('otherCard', None)
 
         for ref in refDict._dbRefs():
-            self.refs.append((ref[0], ref[1], refDict, otherCard))
+            self.refs.append(RefArgs(refDict._name, ref[0], ref[1],
+                                     refDict._otherName, otherCard, refDict))
 
     def valueStart(self, itemHandler, attrs):
 
