@@ -56,6 +56,7 @@ class EmbeddedContainer(RectangularChild):
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.parentBlock = self
+            self.RegisterEvents(newChild)
             return panel, sizer, panel
         return None, None, None
 
@@ -200,7 +201,7 @@ class SplitWindow(RectangularChild):
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         try:
-            id = self.selectionChanged.getwxID()
+            id = Block.getwxID(self.selectionChanged)
         except AttributeError:
             id = 0
             

@@ -26,7 +26,7 @@
   <!--
     Styles
   -->
-  <CharacterStyle itemName="HeaderCharacterStyle">
+  <CharacterStyle itemName="TitleStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>12.0</fontSize>
     <fontStyle>bold</fontStyle>
@@ -43,6 +43,13 @@
   <!--
     Events
   -->
+  <ChoiceEvent itemName="ChooseIntroTab">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnChooseTabEvent</methodName>
+    <choice>Intro</choice>
+  </ChoiceEvent>  
+  
   <ChoiceEvent itemName="ChooseButtonsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
@@ -56,27 +63,25 @@
     <methodName>OnChooseTabEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
-
-  <ChoiceEvent itemName="ChooseDataTab">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnChooseTabEvent</methodName>
-    <choice>Data</choice>
-  </ChoiceEvent>
   
-  <ChoiceEvent itemName="ChooseEmbeddedTab">
+  <ChoiceEvent itemName="ChooseHTMLTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>OnChooseTabEvent</methodName>
-    <choice>Embedded</choice>
+    <choice>HTML</choice>
   </ChoiceEvent>
 
-  <ChoiceEvent itemName="SwitchEmbeddedChild">
+  <BlockEvent itemName="ReloadTextEvent">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="main:ParcelViewer"/>
-    <methodName>OnChooseTabEvent</methodName>
-    <choice>parcels/OSAF/templates/top/LeftText</choice>
-  </ChoiceEvent>  
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnReloadTextEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="AddTextEvent">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnAddTextEvent</methodName>
+  </BlockEvent>
 
   <!--
     Menus
@@ -92,6 +97,17 @@
   <!--
     Menu Items
   -->
+  <MenuItem itemName="IntroMenuItem">
+    <title>Intro Tab</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>DemoMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Radio</menuItemKind>
+    <accel></accel>
+    <event itemref="doc:ChooseIntroTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
   <MenuItem itemName="ButtonsMenuItem">
     <title>Buttons Tab</title>
     <operation>InsertBefore</operation>
@@ -114,121 +130,191 @@
     <helpString></helpString>
   </MenuItem>
 
-  <MenuItem itemName="DataMenuItem">
-    <title>Data Tab</title>
+  <MenuItem itemName="HTMLMenuItem">
+    <title>HTML Tab</title>
     <operation>InsertBefore</operation>
     <menuLocation>DemoMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="doc:ChooseDataTab"/>
-    <helpString></helpString>
-  </MenuItem>
-
-  <MenuItem itemName="EmbeddedMenuItem">
-    <title>Embedded Tab</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Radio</menuItemKind>
-    <accel></accel>
-    <event itemref="doc:ChooseEmbeddedTab"/>
-    <helpString></helpString>
-  </MenuItem>
-
-  <MenuItem itemName="DemoSeparatorItem">
-    <title></title>
-    <operation>InsertBefore</operation>
-    <menuLocation>DemoMenu</menuLocation>
-    <itemLocation></itemLocation>
-    <menuItemKind>Separator</menuItemKind>
-    <accel></accel>
+    <event itemref="doc:ChooseHTMLTab"/>
     <helpString></helpString>
   </MenuItem>
 
   <!--
     Layout blocks
   -->
+  <StaticText itemName="IntroTitle">
     <!-- Attributes -->
+    <textAlignmentEnum>Center</textAlignmentEnum>
+    <characterStyle itemref="doc:TitleStyle"/>
+    <title>Demo View</title>
 
-
-  <EditText itemName="LeftText">
     <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <characterStyle itemref="doc:TextStyle"/>
-  </EditText>
-    
-  <CharacterStyle itemName="OneStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
-    <fontStyle>bold</fontStyle>
-    <fontName></fontName>
-  </CharacterStyle>
-
-  <CharacterStyle itemName="TwoStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
-    <fontStyle>bold</fontStyle>
-    <fontName></fontName>
-  </CharacterStyle>  
-  
-  <StaticText itemName="ButtonHeader">
-    <open>True</open>
-
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <StaticText itemName="IntroTextBlank">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title></title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <StaticText itemName="IntroTextOne">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title>The demo view demonstrates the new CPIA functionality and availble blocks.  It is used as an example for</title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <StaticText itemName="IntroTextTwo">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title>developers new to Chandler to see the kinds of blocks that are available and as a test framework</title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <StaticText itemName="IntroTextThree">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title>for blocks.</title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+ 
+  <StaticText itemName="IntroInstructionsBlank">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title></title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <StaticText itemName="IntroInstructions">
+    <!-- Attributes -->
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <title>Click through the tabs to view the kinds of blocks that Chandler supports.</title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </StaticText>  
+
+  <BoxContainer itemName="IntroTab">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:IntroTitle"/>
+    <childrenBlocks itemref="doc:IntroTextBlank"/>
+    <childrenBlocks itemref="doc:IntroTextOne"/>
+    <childrenBlocks itemref="doc:IntroTextTwo"/>
+    <childrenBlocks itemref="doc:IntroTextThree"/>
+    <childrenBlocks itemref="doc:IntroInstructionsBlank"/>
+    <childrenBlocks itemref="doc:IntroInstructions"/>
+
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </BoxContainer>
+
+  <StaticText itemName="ButtonHeader">
+    <!-- Attributes -->
     <textAlignmentEnum>Center</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
-    <title>These buttons modify the text below</title>
+    <title>Click on the buttons below to modify the text field</title>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
   <Button itemName="TextButton">
+    <!-- Attributes -->
     <title>Add Text</title>
     <buttonKind>Text</buttonKind>
-    <contentSpec itemref="doc:myQuery"/>
-    
-    <open>True</open>
 
+    <contentSpec itemref="doc:myQuery"/>    
+    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
+    <event itemref="doc:AddTextEvent"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
   
   <Button itemName="ImageButton">
+    <!-- Attributes -->
     <buttonKind>Image</buttonKind>
     <icon>application/images/refresh.png</icon>
-    <contentSpec itemref="doc:myQuery"/>
-    
-    <open>True</open>
 
+    <contentSpec itemref="doc:myQuery"/>    
+    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
+    <event itemref="doc:ReloadTextEvent"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
 
   <Button itemName="ToggleButton">
+    <!-- Attributes -->
     <title>Toggle</title>
     <buttonKind>Toggle</buttonKind>
-    <contentSpec itemref="doc:myQuery"/>
-    
-    <open>True</open>
 
+    <contentSpec itemref="doc:myQuery"/>    
+    <open>True</open>
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -237,53 +323,59 @@
   </Button>
 
   <BoxContainer itemName="ButtonsSizer">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:ImageButton"/>
     <childrenBlocks itemref="doc:ToggleButton"/>
     <childrenBlocks itemref="doc:TextButton"/>
-    <open>True</open>
 
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
     <size>200,40</size>
     <minimumSize>200,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
   </BoxContainer>
   
   <EditText itemName="ButtonText">
-    <open>True</open>
-
-    <size>100,100</size>
-    <minimumSize>100,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
+    <!-- Attributes -->
     <textAlignmentEnum>Left</textAlignmentEnum>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <characterStyle itemref="doc:TextStyle"/>
+
+    <open>True</open>
+    <size>100,100</size>
+    <minimumSize>100,100</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
   </EditText>
 
   <BoxContainer itemName="ButtonsTab">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:ButtonHeader"/>
     <childrenBlocks itemref="doc:ButtonsSizer"/>
     <childrenBlocks itemref="doc:ButtonText"/>
-    <open>True</open>
 
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
   
   <RadioBox itemName="RadioExample">
+    <!-- Attributes -->
     <title>Radio Box Example</title>
     <choices>One</choices>
     <choices>Two</choices>
@@ -295,7 +387,6 @@
 
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -303,22 +394,8 @@
     <stretchFactor>0.0</stretchFactor>
   </RadioBox>
   
-  <Choice itemName="ChoiceExample">
-    <choices>First</choices>
-    <choices>Second</choices>
-    <choices>Third</choices>
-
-    <contentSpec itemref="doc:myQuery"/>
-    <open>True</open>
-
-    <size>200,200</size>
-    <minimumSize>200,10</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </Choice>
-
   <ComboBox itemName="ComboExample">
+    <!-- Attributes -->
     <selection>First</selection>    
     <choices>First</choices>
     <choices>Second</choices>
@@ -326,7 +403,6 @@
 
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -335,98 +411,60 @@
   </ComboBox>
 
   <BoxContainer itemName="RadioSizer">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:RadioExample"/>
-    <open>True</open>
 
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
   </BoxContainer>
   
-  <BoxContainer itemName="ChoiceSizer">
-    <contentSpec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:ChoiceExample"/>
-    <open>True</open>
-
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
-  </BoxContainer>
-
   <BoxContainer itemName="ComboSizer">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:ComboExample"/>
-    <open>True</open>
 
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
+    <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
   </BoxContainer>
 
   <BoxContainer itemName="ControlsTab">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:RadioSizer"/>
     <childrenBlocks itemref="doc:ComboSizer"/>
-    <open>True</open>
 
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-
+    <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
-  <Tree itemName="TreeExample">
-    <columnHeadings>Heading</columnHeadings>    
-    <columnWidths>200</columnWidths>
-    <noLines>False</noLines>
-    <useButtons>True</useButtons>
-    <hideRoot>False</hideRoot>
 
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-
-    <size>200,200</size>
-    <minimumSize>200,10</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </Tree>
-  
-  <BoxContainer itemName="TreeSizer">
-    <contentSpec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:TreeExample"/>
-    <open>True</open>
-
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
   </BoxContainer>
 
   <HTML itemName="HTMLExample">
-    <url>http://www.osafoundation.org</url>
+    <!-- Attributes -->
+    <url>parcels/OSAF/views/demo/example.html</url>
+
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-
     <size>200,200</size>
     <minimumSize>200,200</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -434,92 +472,37 @@
     <stretchFactor>1.0</stretchFactor>
   </HTML>
 
-  <BoxContainer itemName="HTMLSizer">
-    <contentSpec itemref="doc:myQuery"/>
+  <BoxContainer itemName="HTMLTab">
+    <!-- Layout children -->
     <childrenBlocks itemref="doc:HTMLExample"/>
-    <open>True</open>
-
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Horizontal</orientationEnum>
-  </BoxContainer>
-
-  <BoxContainer itemName="DataTab">
-    <contentSpec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:TreeSizer"/>
-    <childrenBlocks itemref="doc:HTMLSizer"/>
-    <open>True</open>
-
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-
+    <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
 
-  <StaticText itemName="Footer">
     <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <characterStyle itemref="doc:HeaderCharacterStyle"/>
-    <title>My Repository Viewer</title>
-  </StaticText>
-
-  <Query itemName="embeddedQuery">
-    <queryEnum>listOfItems</queryEnum>
-    <data>parcels/OSAF/templates/top/Footer</data>
-  </Query>  
-  
-  <EmbeddedContainer itemName="EmbeddedTitle">
-    <contentSpec itemref="doc:embeddedQuery"/>
-    <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
-  </EmbeddedContainer>  
-  
-  <BoxContainer itemName="EmbeddedTab">
     <contentSpec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:EmbeddedTitle"/>
-    <open>True</open>
-
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <TabbedContainer itemName="Tabs">
+  <TabbedContainer itemName="Tabs"
+                   itemClass="OSAF.views.demo.Demo.DemoTabs">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:IntroTab"/>
     <childrenBlocks itemref="doc:ButtonsTab"/>
     <childrenBlocks itemref="doc:ControlsTab"/>
-    <!-- childrenBlocks itemref="doc:DataTab"/ -->
-    <!-- childrenBlocks itemref="doc:EmbeddedTab"/ -->
+    <childrenBlocks itemref="doc:HTMLTab"/>
 
+    <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
+    <tabNames>Intro</tabNames>    
     <tabNames>Buttons</tabNames>
     <tabNames>Controls</tabNames>
-    <tabNames>Data</tabNames>
-    <tabNames>Embedded</tabNames>
+    <tabNames>HTML</tabNames>
     
     <size>600,200</size>
-
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
@@ -527,22 +510,28 @@
   </TabbedContainer>
   
   <BoxContainer itemName="TabBox">
-    <contentSpec itemref="doc:myQuery"/>
+    <!-- Menus -->
     <childrenBlocks itemref="doc:DemoMenu"/>
+    <childrenBlocks itemref="doc:IntroMenuItem"/>    
     <childrenBlocks itemref="doc:ButtonsMenuItem"/>
     <childrenBlocks itemref="doc:ControlsMenuItem"/>
-    <!-- childrenBlocks itemref="doc:DataMenuItem"/ -->
-    <!-- childrenBlocks itemref="doc:EmbeddedMenuItem"/ -->
-    <!-- childrenBlocks itemref="doc:DemoSeparatorItem"/ -->
-    <!-- childrenBlocks itemref="doc:SwitchViewItem"/ -->
-    
+    <childrenBlocks itemref="doc:HTMLMenuItem"/>
+
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:Tabs"/>
+
+    <!-- Block Events -->
+    <blockEvents itemref="doc:ChooseIntroTab"/>
     <blockEvents itemref="doc:ChooseButtonsTab"/>
     <blockEvents itemref="doc:ChooseControlsTab"/>
-    <!-- blockEvents itemref="doc:ChooseDataTab"/ -->
-    <!-- blockEvents itemref="doc:SwitchEmbeddedChild"/ -->
-    <!-- blockEvents itemref="doc:ChooseEmbeddedTab"/ -->
+    <blockEvents itemref="doc:ChooseHTMLTab"/>
+    <blockEvents itemref="doc:ReloadTextEvent"/>
+    <blockEvents itemref="doc:AddTextEvent"/>
 
-    <childrenBlocks itemref="doc:Tabs"/>
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <eventBoundary>True</eventBoundary>
     <size>600,200</size>
@@ -550,8 +539,6 @@
     <border>1.0, 1.0, 1.0, 1.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-
-    <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
     
 </core:Parcel>

@@ -16,10 +16,11 @@ from wxPython.html import *
 from new import classobj
 import webbrowser # for opening external links
 
+
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         try:
-            id = self.clicked.getwxID()
+            id = Block.getwxID(self.event)
         except AttributeError:
             id = 0
 
@@ -45,11 +46,20 @@ class Button(RectangularChild):
         elif __debug__:
             assert False, "unknown buttonKind"
 
+        EVT_BUTTON(parentWindow, id, self.buttonPressed)
         self.getParentBlock(parentWindow).addToContainer(parent, button, self.stretchFactor,
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
 
+    def buttonPressed(self, event):
+        try:
+            event = self.event
+        except AttributeError:
+            pass
+        else:
+            self.Post(event, {'item':self})
 
+                              
 class Choice(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         choice = wxChoice(parentWindow, -1, 
