@@ -543,7 +543,7 @@ class wxApplication (wx.App):
                 i(the_view, changes, "changeonly")
 
         focus = wx.Window_FindFocus()
-        if self.focus != focus:
+        if self.focus != focus or self.needsUpdateUI:
             self.focus = focus
             self.needsUpdateUI = True
             updateOnIdle()

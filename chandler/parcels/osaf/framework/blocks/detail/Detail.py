@@ -1142,6 +1142,7 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
         if item is not None:
             item.allDay = self.widget.GetValue() == wx.CHK_CHECKED
             self.resynchronizeDetailView()
+            wx.GetApp().needsUpdateUI = True
 
 class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """
