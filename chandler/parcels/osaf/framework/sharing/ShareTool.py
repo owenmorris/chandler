@@ -52,11 +52,11 @@ class ShareToolDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnSyncShare,
          id=wx.xrc.XRCID("BUTTON_SYNC"))
 
-        self.Bind(wx.EVT_BUTTON, self.OnPutShare,
-         id=wx.xrc.XRCID("BUTTON_PUT"))
+        # self.Bind(wx.EVT_BUTTON, self.OnPutShare,
+        #  id=wx.xrc.XRCID("BUTTON_PUT"))
 
-        self.Bind(wx.EVT_BUTTON, self.OnGetShare,
-         id=wx.xrc.XRCID("BUTTON_GET"))
+        # self.Bind(wx.EVT_BUTTON, self.OnGetShare,
+        #  id=wx.xrc.XRCID("BUTTON_GET"))
 
         # self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
         #  id=wx.xrc.XRCID("ACCOUNTS_LIST"))
