@@ -8,6 +8,7 @@
 <Parcel itsName="sharing"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:notif="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
+    xmlns:webdav="http://osafoundation.org/parcels/osaf/framework/webdav"
     itemClass="osaf.framework.sharing.Sharing.Parcel"
     >
 
@@ -25,5 +26,9 @@
         <displayName value="Error Event" />
         <description value="This event is posted from the mail system if an invite fails to be sent." />
     </notif:Event>
+
+    <webdav:WebDAVAccount itsName="WebDAVAccount">
+        <displayName value="WebDAV"/>
+    </webdav:WebDAVAccount>
 
 </Parcel>

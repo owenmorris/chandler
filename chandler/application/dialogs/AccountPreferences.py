@@ -8,6 +8,8 @@ from repository.item.Query import KindQuery
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
+# Used to lookup the webdav parcel:
+WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -81,6 +83,39 @@ PANELS = {
         },
         "id" : "SMTPPane",
     },
+    "WebDAV" : {
+        "fields" : {
+            "WEBDAV_DESCRIPTION" : {
+                "attr" : "displayName",
+                "type" : "string",
+            },
+            "WEBDAV_SERVER" : {
+                "attr" : "host",
+                "type" : "string",
+            },
+            "WEBDAV_PATH" : {
+                "attr" : "path",
+                "type" : "string",
+            },
+            "WEBDAV_USERNAME" : {
+                "attr" : "username",
+                "type" : "string",
+            },
+            "WEBDAV_PASSWORD" : {
+                "attr" : "password",
+                "type" : "string",
+            },
+            "WEBDAV_PORT" : {
+                "attr" : "port",
+                "type" : "integer",
+            },
+            "WEBDAV_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+            },
+        },
+        "id" : "WebDAVPane",
+    },
 }
 
 class AccountPreferencesDialog(wx.Dialog):
@@ -112,14 +147,15 @@ class AccountPreferencesDialog(wx.Dialog):
         repo.commit()
 
         accountKind = pm.lookup(MAIL_MODEL, "AccountBase")
+        webDavAccountKind = pm.lookup(WEBDAV_MODEL, "WebDAVAccount")
         i = 0
-        for item in KindQuery().run([accountKind]):
+        for item in KindQuery().run([accountKind, webDavAccountKind]):
             values = { }
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
                 values[field] = item.getAttributeValue(desc['attr'])
             self.data.append( { "item" : item, "values" : values } )
-            self.accountsList.Append(item.itsName)
+            self.accountsList.Append(item.displayName)
             i += 1
 
         if i > 0:

@@ -28,9 +28,9 @@ class Parcel(application.Parcel.Parcel):
 
     def _sharingUpdateCallback(self, notification):
         # When we receive the event, display a dialog
-        url = notification.data['share']
-        collectionName = notification.data['name']
-        fromAddress = notification.data['from']
+        url = notification.data['share'].strip()
+        collectionName = notification.data['name'].strip()
+        fromAddress = notification.data['from'].strip()
         print "Received invite from %s; collection '%s' at %s" % (fromAddress,
          collectionName, url)
         collection = collectionFromSharedUrl(url)
@@ -42,7 +42,7 @@ class Parcel(application.Parcel.Parcel):
         else:
             if application.dialogs.Util.promptYesNo( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
-             "Subscribe to collection:\n%s ?" % url):
+             "%s\nhas invited you to subscribe to '%s'\nWould you like to accept the invitation?" % (fromAddress, collectionName) ):
                 subscribeToWebDavCollection(url)
 
     def _errorCallback(self, notification):
@@ -104,6 +104,13 @@ def collectionFromSharedUrl(url):
             if str(item.sharedURL) == (url):
                 return item
     return None
+
+def getWebDavPath():
+    acct = Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
+    if acct.host:
+        return "http://%s/%s" % (acct.host, acct.path)
+    else:
+        return None
 
 # Non-blocking methods that the mail thread can call to post events to the
 # main thread:

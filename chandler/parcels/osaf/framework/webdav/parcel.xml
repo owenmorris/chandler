@@ -14,4 +14,59 @@
     </Attribute>
   </Kind>
 
+
+    <Kind itsName="WebDAVAccount">
+        <superKinds ref="Item" />
+        <displayName value="WebDAV Account" />
+        <description value="A WebDAV 'Account'" />
+        <issues value="Long term we're probably not going to treat WebDAV as an account, but rather how a web browser maintains URL-to-ACL mappings." />
+
+        <Attribute itsName="username">
+            <displayName value="Username" />
+            <type ref="String" />
+            <initialValue type="String" />
+        </Attribute>
+
+        <Attribute itsName="password">
+            <displayName value="Password" />
+            <issues value="This should not be a simple string. We need some solution for encrypting it." />
+            <type ref="String" />
+            <initialValue type="String" />
+        </Attribute>
+
+        <Attribute itsName="host">
+            <displayName value="Host" />
+            <description value="The hostname of the account" />
+            <type ref="String" />
+            <initialValue type="String" />
+        </Attribute>
+
+        <Attribute itsName="path">
+            <displayName value="Path" />
+            <description value="Base path on the host to use for publishing" />
+            <type ref="String" />
+            <initialValue type="String" />
+        </Attribute>
+
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="80" />
+        </Attribute>
+
+        <Attribute itsName="useSSL">
+            <displayName value="Use secure connection (SSL/TLS)" />
+            <description value="Whether or not to use SSL/TLS" />
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+        <Attribute itsName="accountType">
+            <displayName value="Account Type" />
+            <initialValue type="String" value="WebDAV" />
+        </Attribute>
+
+    </Kind>
+
 </Parcel>

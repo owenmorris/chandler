@@ -9,6 +9,7 @@ import osaf.mail.sharing
 import application.dialogs.Util
 import osaf.framework.sharing.Sharing
 
+#@@@ This will go away:
 DEFAULT_URL = "http://code-bear.com/dav"
 
 class PublishCollectionDialog(wx.Dialog):
@@ -28,7 +29,13 @@ class PublishCollectionDialog(wx.Dialog):
         if osaf.framework.sharing.Sharing.isShared(collection):
             self.urlText.SetValue("%s" % collection.sharedURL)
         else:
-            self.urlText.SetValue("%s/%s" % (DEFAULT_URL, collection.itsUUID))
+            path = osaf.framework.sharing.Sharing.getWebDavPath()
+            if path:
+                self.urlText.SetValue("%s/%s" % (path, collection.itsUUID))
+            else:
+                #@@@ This will go away:
+                self.urlText.SetValue("%s/%s" % (DEFAULT_URL, 
+                 collection.itsUUID))
 
         self.inviteesText = wx.xrc.XRCCTRL(self, "ID_INVITEES")
 

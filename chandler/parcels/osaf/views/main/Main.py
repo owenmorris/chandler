@@ -113,8 +113,8 @@ class MainView(View):
 
 
     def onGetNewMailEvent (self, notification):
-        accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')]
-        account = accountList[0]
+        account = \
+         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
         IMAPDownloader (account).getMail()
 
     def onNewEvent (self, notification):
@@ -224,6 +224,11 @@ class MainView(View):
         """
         Update the menu to reflect the selected collection name
         """
+        # Only enable it user has set their webdav account up
+        if osaf.framework.sharing.Sharing.getWebDavPath() == None:
+            notification.data ['Enable'] = False
+            return
+
         collection = self.getSidebarSelectedCollection ()
         notification.data ['Enable'] = collection is not None
         if collection:
