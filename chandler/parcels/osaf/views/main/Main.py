@@ -502,11 +502,11 @@ class MainView(View):
         if not Sharing.ensureAccountSetUp(self.itsView):
             return
 
-        # @@@ BJS For 0.5, simplify sharing: if the Kind filter isn't All, switch it to All now.
-        allKindFilterToolbarItem = Block.findBlockByName('KindFilterAllItem')
-        if not allKindFilterToolbarItem.widget.IsToggled():
+        # @@@ BJS For 0.5, simplify sharing: if the application filter isn't All, switch it to All now.
+        allFilterToolbarItem = Block.findBlockByName('ApplicationBarAllItem')
+        if not allFilterToolbarItem.widget.IsToggled():
             # @@@BJS Maybe put up an alert here to let the user know we've pulled the rug out?
-            allKindFilterToolbarItem.dynamicParent.widget.ToggleTool(allKindFilterToolbarItem.toolID, True)
+            allFilterToolbarItem.dynamicParent.widget.ToggleTool(allFilterToolbarItem.toolID, True)
         
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
