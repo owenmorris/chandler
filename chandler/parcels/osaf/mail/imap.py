@@ -93,8 +93,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
     def __init__(self, account):
         """
         Creates a C{IMAPDownload} instance
-        @param account: An Instance of C{EmailAccountKind}
-        @type account: C{EmailAccountKind}
+        @param account: An Instance of C{IMAPAccount}
+        @type account: C{IMAPAccount}
         @return: C{None}
         """
 
@@ -144,8 +144,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             self.account.setPinned()
 
-            serverName = self.account.serverName
-            serverPort = self.account.serverPort
+            host  = self.account.host
+            port = self.account.port
 
             if __debug__:
                 self.printAccount()
@@ -154,11 +154,11 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             self.restorePreviousView()
 
         factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors)
-        reactor.connectTCP(serverName, serverPort, factory)
+        reactor.connectTCP(host, port, factory)
  
     def printAccount(self):
         """
-        Utility method that prints out C{EmailAccountKind} information for debugging
+        Utility method that prints out C{IMAPAccount} information for debugging
         purposes
         @return: C{None}
         """
@@ -168,9 +168,9 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         if self.account is None:
             return
 
-        str  = "\nHost: %s\n" % self.account.serverName
-        str += "Port: %d\n" % self.account.serverPort
-        str += "Username: %s\n" % self.account.accountName
+        str  = "\nHost: %s\n" % self.account.host
+        str += "Port: %d\n" % self.account.port
+        str += "Username: %s\n" % self.account.username
         str += "Password: %s\n" % self.account.password
 
         self.log.info(str)
@@ -208,7 +208,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             assert self.account is not None, "Account is None can not login client"
 
-            return self.proto.login(str(self.account.accountName),
+            return self.proto.login(str(self.account.username),
                                     str(self.account.password)).addCallback(self.__selectInbox)
         finally:
            self.restorePreviousView()
@@ -347,7 +347,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
     def __getAccount(self):
 
-        accountKind = Mail.MailParcel.getEmailAccountKind()
+        accountKind = Mail.MailParcel.getIMAPAccountKind()
         account = accountKind.findUUID(self.accountUUID)
 
         if account is None: 
@@ -357,12 +357,12 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
     def __printInfo(self, info):
 
-        if self.account.serverPort != 143:
-            str = "[Server: %s:%d User: %s] %s" % (self.account.serverName,
-                                                   self.account.serverPort,
-                                                   self.account.accountName, info)
+        if self.account.port != 143:
+            str = "[Server: %s:%d User: %s] %s" % (self.account.host,
+                                                   self.account.port,
+                                                   self.account.username, info)
         else:
-            str = "[Server: %s User: %s] %s" % (self.account.serverName,
-                                                self.account.accountName, info)
+            str = "[Server: %s User: %s] %s" % (self.account.host,
+                                                self.account.username, info)
 
         self.log.info(str)

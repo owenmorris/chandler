@@ -133,6 +133,7 @@ def messageObjectToKind(messageObject):
 
     if messageObject['Date'] is not None:
         m.dateSent = DateTime.mktime(Utils.parsedate(messageObject['Date']))
+        m.dateSentString = messageObject['Date']
 
     else:
         m.dateSent = None
@@ -144,9 +145,8 @@ def messageObjectToKind(messageObject):
     else:
         m.subject = messageObject['Subject']
 
-    # XXX replyAddress should really be the Reply-to header, not From
-    m.replyAddress = Mail.EmailAddress()
-    m.replyAddress.emailAddress = format_addr(Utils.parseaddr(messageObject['From']))
+    m.fromAddress = Mail.EmailAddress()
+    m.fromAddress.emailAddress = format_addr(Utils.parseaddr(messageObject['From']))
 
     m.toAddress = []
     for addr in Utils.getaddresses(messageObject.get_all('To', [])):
@@ -184,11 +184,13 @@ def kindToMessageObject(mailMessage):
 
     messageObject = Message.Message()
 
-    messageObject['Date'] = Utils.formatdate(mailMessage.dateSent.ticks(), True)
+    messageObject['Date'] = mailMessage.dateSentString()
+    #Utils.formatdate(mailMessage.dateSent.ticks(), True)
+
     messageObject['Date Received'] = Utils.formatdate(mailMessage.dateReceived.ticks(), True)
     messageObject['Subject'] = mailMessage.subject
 
-    messageObject['From'] = mailMessage.replyAddress.emailAddress
+    messageObject['From'] = mailMessage.fromAddress.emailAddress
 
     to = []
 
