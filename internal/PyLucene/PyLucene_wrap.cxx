@@ -708,20 +708,25 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #define  SWIGTYPE_p_org__apache__lucene__queryParser__QueryParser swig_types[5] 
 #define  SWIGTYPE_p_jdb swig_types[6] 
 #define  SWIGTYPE_p_org__apache__lucene__document__Field swig_types[7] 
-#define  SWIGTYPE_p_jstring swig_types[8] 
-#define  SWIGTYPE_p_org__apache__lucene__analysis__standard__StandardAnalyzer swig_types[9] 
-#define  SWIGTYPE_p_void swig_types[10] 
-#define  SWIGTYPE_p_org__apache__lucene__search__Query swig_types[11] 
-#define  SWIGTYPE_p_java__io__Reader swig_types[12] 
-#define  SWIGTYPE_p_jreader swig_types[13] 
-#define  SWIGTYPE_p_org__apache__lucene__index__IndexWriter swig_types[14] 
-#define  SWIGTYPE_p_org__apache__lucene__store__db__DbDirectory swig_types[15] 
-#define  SWIGTYPE_p_org__apache__lucene__store__FSDirectory swig_types[16] 
-#define  SWIGTYPE_p_org__apache__lucene__store__Directory swig_types[17] 
-#define  SWIGTYPE_p_java__lang__Object swig_types[18] 
-#define  SWIGTYPE_p_jdbtxn swig_types[19] 
-#define  SWIGTYPE_p_org__apache__lucene__document__Document swig_types[20] 
-static swig_type_info *swig_types[22];
+#define  SWIGTYPE_p_org__apache__lucene__index__Term swig_types[8] 
+#define  SWIGTYPE_p_jstring swig_types[9] 
+#define  SWIGTYPE_p_org__apache__lucene__analysis__standard__StandardAnalyzer swig_types[10] 
+#define  SWIGTYPE_p_void swig_types[11] 
+#define  SWIGTYPE_p_org__apache__lucene__search__Query swig_types[12] 
+#define  SWIGTYPE_p_java__io__Reader swig_types[13] 
+#define  SWIGTYPE_p_jreader swig_types[14] 
+#define  SWIGTYPE_p_org__apache__lucene__index__IndexWriter swig_types[15] 
+#define  SWIGTYPE_p_org__apache__lucene__store__db__DbDirectory swig_types[16] 
+#define  SWIGTYPE_p_org__apache__lucene__store__FSDirectory swig_types[17] 
+#define  SWIGTYPE_p_org__apache__lucene__store__Directory swig_types[18] 
+#define  SWIGTYPE_p_org__apache__lucene__index__TermEnum swig_types[19] 
+#define  SWIGTYPE_p_org__apache__lucene__index__TermPositions swig_types[20] 
+#define  SWIGTYPE_p_java__lang__Object swig_types[21] 
+#define  SWIGTYPE_p_jdbtxn swig_types[22] 
+#define  SWIGTYPE_p_org__apache__lucene__document__Document swig_types[23] 
+#define  SWIGTYPE_p_org__apache__lucene__index__IndexReader swig_types[24] 
+#define  SWIGTYPE_p_org__apache__lucene__index__TermDocs swig_types[25] 
+static swig_type_info *swig_types[27];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -744,6 +749,7 @@ static swig_type_info *swig_types[22];
 #include <java/io/StringWriter.h>
 #include <java/io/PrintWriter.h>
 #include <java/io/Reader.h>
+#include <java/io/File.h>
 
 #ifdef _WITH_DB_DIRECTORY
 #include "com/sleepycat/db/DbEnv.h"
@@ -763,6 +769,11 @@ static swig_type_info *swig_types[22];
 #include "org/apache/lucene/document/Field.h"
 #include "org/apache/lucene/document/Document.h"
 #include "org/apache/lucene/index/IndexWriter.h"
+#include "org/apache/lucene/index/IndexReader.h"
+#include "org/apache/lucene/index/Term.h"
+#include "org/apache/lucene/index/TermDocs.h"
+#include "org/apache/lucene/index/TermEnum.h"
+#include "org/apache/lucene/index/TermPositions.h"
 #include "org/apache/lucene/queryParser/QueryParser.h"
 #include "org/apache/lucene/search/Searcher.h"
 #include "org/apache/lucene/search/Query.h"
@@ -1086,7 +1097,7 @@ static PyObject *_wrap_new_DbDirectory(PyObject *self, PyObject *args) {
     PyObject * obj1 = 0 ;
     PyObject * obj2 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"OOOi:new_DbDirectory",&obj0,&obj1,&obj2,&arg4)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"OOOl:new_DbDirectory",&obj0,&obj1,&obj2,&arg4)) goto fail;
     {
         if (obj0 == Py_None)
         arg1 = NULL;
@@ -1983,7 +1994,7 @@ static PyObject *_wrap_IndexWriter_maxFieldLength_set(PyObject *self, PyObject *
     jint arg2 ;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:IndexWriter_maxFieldLength_set",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexWriter_maxFieldLength_set",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexWriter,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     if (arg1) (arg1)->maxFieldLength = arg2;
     
@@ -2017,7 +2028,7 @@ static PyObject *_wrap_IndexWriter_mergeFactor_set(PyObject *self, PyObject *arg
     jint arg2 ;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:IndexWriter_mergeFactor_set",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexWriter_mergeFactor_set",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexWriter,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     if (arg1) (arg1)->mergeFactor = arg2;
     
@@ -2051,7 +2062,7 @@ static PyObject *_wrap_IndexWriter_minMergeDocs_set(PyObject *self, PyObject *ar
     jint arg2 ;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:IndexWriter_minMergeDocs_set",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexWriter_minMergeDocs_set",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexWriter,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     if (arg1) (arg1)->minMergeDocs = arg2;
     
@@ -2085,7 +2096,7 @@ static PyObject *_wrap_IndexWriter_maxMergeDocs_set(PyObject *self, PyObject *ar
     jint arg2 ;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:IndexWriter_maxMergeDocs_set",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexWriter_maxMergeDocs_set",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexWriter,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     if (arg1) (arg1)->maxMergeDocs = arg2;
     
@@ -2155,6 +2166,2472 @@ static PyObject * IndexWriter_swigregister(PyObject *self, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
     SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__IndexWriter, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_new_Term(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jstring arg2 ;
+    org::apache::lucene::index::Term *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:new_Term",&obj0,&obj1)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        if (obj1 == Py_None)
+        arg2 = NULL;
+        else
+        arg2 = JvNewStringUTF(PyString_AsString(obj1));
+    }
+    {
+        try {
+            result = (org::apache::lucene::index::Term *)new org::apache::lucene::index::Term(arg1,arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__Term, 1);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Term_field(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::Term *arg1 = (org::apache::lucene::index::Term *) 0 ;
+    jstring result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:Term_field",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->field();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        if (!result)
+        resultobj = Py_None;
+        else
+        {
+            jint len = JvGetStringUTFLength(result);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(result, 0, len, buf);
+            buf[len] = '\0';
+            
+            resultobj = Py_BuildValue("s#", buf, len);
+        }
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Term_text(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::Term *arg1 = (org::apache::lucene::index::Term *) 0 ;
+    jstring result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:Term_text",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->text();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        if (!result)
+        resultobj = Py_None;
+        else
+        {
+            jint len = JvGetStringUTFLength(result);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(result, 0, len, buf);
+            buf[len] = '\0';
+            
+            resultobj = Py_BuildValue("s#", buf, len);
+        }
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Term_compareTo(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::Term *arg1 = (org::apache::lucene::index::Term *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:Term_compareTo",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->compareTo(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_Term_toString(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::Term *arg1 = (org::apache::lucene::index::Term *) 0 ;
+    jstring result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:Term_toString",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->toString();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        if (!result)
+        resultobj = Py_None;
+        else
+        {
+            jint len = JvGetStringUTFLength(result);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(result, 0, len, buf);
+            buf[len] = '\0';
+            
+            resultobj = Py_BuildValue("s#", buf, len);
+        }
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_delete_Term(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::Term *arg1 = (org::apache::lucene::index::Term *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:delete_Term",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            delete arg1;
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * Term_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__Term, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_TermEnum_next(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermEnum *arg1 = (org::apache::lucene::index::TermEnum *) 0 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermEnum_next",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermEnum,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->next();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermEnum_term(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermEnum *arg1 = (org::apache::lucene::index::TermEnum *) 0 ;
+    org::apache::lucene::index::Term *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermEnum_term",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermEnum,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::Term *)(arg1)->term();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__Term, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermEnum_docFreq(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermEnum *arg1 = (org::apache::lucene::index::TermEnum *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermEnum_docFreq",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermEnum,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->docFreq();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermEnum_close(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermEnum *arg1 = (org::apache::lucene::index::TermEnum *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermEnum_close",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermEnum,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->close();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * TermEnum_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__TermEnum, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_TermDocs_seek__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:TermDocs_seek",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->seek(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_seek__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    org::apache::lucene::index::TermEnum *arg2 = (org::apache::lucene::index::TermEnum *) 0 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:TermDocs_seek",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__TermEnum,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->seek(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_seek(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[3];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 2) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__TermDocs, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                void *ptr;
+                if (SWIG_ConvertPtr(argv[1], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__Term, 0) == -1) {
+                    _v = 0;
+                    PyErr_Clear();
+                } else {
+                    _v = 1;
+                }
+            }
+            if (_v) {
+                return _wrap_TermDocs_seek__SWIG_0(self,args);
+            }
+        }
+    }
+    if (argc == 2) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__TermDocs, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                void *ptr;
+                if (SWIG_ConvertPtr(argv[1], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__TermEnum, 0) == -1) {
+                    _v = 0;
+                    PyErr_Clear();
+                } else {
+                    _v = 1;
+                }
+            }
+            if (_v) {
+                return _wrap_TermDocs_seek__SWIG_1(self,args);
+            }
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'TermDocs_seek'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_doc(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermDocs_doc",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->doc();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_freq(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermDocs_freq",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->freq();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_next(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermDocs_next",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->next();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_skipTo(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    jint arg2 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Ol:TermDocs_skipTo",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->skipTo(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_TermDocs_close(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermDocs *arg1 = (org::apache::lucene::index::TermDocs *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermDocs_close",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermDocs,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->close();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * TermDocs_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__TermDocs, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_TermPositions_nextPosition(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::TermPositions *arg1 = (org::apache::lucene::index::TermPositions *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:TermPositions_nextPosition",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__TermPositions,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->nextPosition();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * TermPositions_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__TermPositions, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_IndexReader_open__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    org::apache::lucene::index::IndexReader *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_open",&obj0)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        try {
+            result = (org::apache::lucene::index::IndexReader *)org::apache::lucene::index::IndexReader::open(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_open__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    org::apache::lucene::index::IndexReader *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_open",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::IndexReader *)org::apache::lucene::index::IndexReader::open(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_open(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[2];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 1); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_open__SWIG_0(self,args);
+        }
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__store__Directory, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_open__SWIG_1(self,args);
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_open'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_lastModified__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jlong result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_lastModified",&obj0)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        try {
+            result = (jlong)org::apache::lucene::index::IndexReader::lastModified(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyLong_FromLongLong(result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_lastModified__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    jlong result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_lastModified",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jlong)org::apache::lucene::index::IndexReader::lastModified(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyLong_FromLongLong(result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_lastModified(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[2];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 1); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_lastModified__SWIG_0(self,args);
+        }
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__store__Directory, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_lastModified__SWIG_1(self,args);
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_lastModified'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_getCurrentVersion__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jlong result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_getCurrentVersion",&obj0)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        try {
+            result = (jlong)org::apache::lucene::index::IndexReader::getCurrentVersion(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyLong_FromLongLong(result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_getCurrentVersion__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    jlong result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_getCurrentVersion",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jlong)org::apache::lucene::index::IndexReader::getCurrentVersion(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyLong_FromLongLong(result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_getCurrentVersion(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[2];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 1); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_getCurrentVersion__SWIG_0(self,args);
+        }
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__store__Directory, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_getCurrentVersion__SWIG_1(self,args);
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_getCurrentVersion'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_indexExists__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_indexExists",&obj0)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        try {
+            result = org::apache::lucene::index::IndexReader::indexExists(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_indexExists__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_indexExists",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = org::apache::lucene::index::IndexReader::indexExists(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_indexExists(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[2];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 1); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_indexExists__SWIG_0(self,args);
+        }
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__store__Directory, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_indexExists__SWIG_1(self,args);
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_indexExists'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_numDocs(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_numDocs",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->numDocs();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_maxDoc(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_maxDoc",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->maxDoc();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_document(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint arg2 ;
+    org::apache::lucene::document::Document *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexReader_document",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::document::Document *)(arg1)->document(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__document__Document, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_isDeleted(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint arg2 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexReader_isDeleted",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->isDeleted(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_hasDeletions(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_hasDeletions",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (arg1)->hasDeletions();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_setNorm__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint arg2 ;
+    jstring arg3 ;
+    jbyte arg4 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj2 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OlOc:IndexReader_setNorm",&obj0,&arg2,&obj2,&arg4)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        if (obj2 == Py_None)
+        arg3 = NULL;
+        else
+        arg3 = JvNewStringUTF(PyString_AsString(obj2));
+    }
+    {
+        try {
+            (arg1)->setNorm(arg2,arg3,arg4);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_setNorm__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint arg2 ;
+    jstring arg3 ;
+    jfloat arg4 ;
+    PyObject * obj0 = 0 ;
+    PyObject * obj2 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OlOf:IndexReader_setNorm",&obj0,&arg2,&obj2,&arg4)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        if (obj2 == Py_None)
+        arg3 = NULL;
+        else
+        arg3 = JvNewStringUTF(PyString_AsString(obj2));
+    }
+    {
+        try {
+            (arg1)->setNorm(arg2,arg3,arg4);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_setNorm(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[5];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 4); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 4) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                _v = (PyInt_Check(argv[1]) || PyLong_Check(argv[1])) ? 1 : 0;
+            }
+            if (_v) {
+                {
+                    void *ptr;
+                    if (SWIG_ConvertPtr(argv[2], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                        _v = 0;
+                        PyErr_Clear();
+                    } else {
+                        _v = 1;
+                    }
+                }
+                if (_v) {
+                    {
+                        _v = (PyFloat_Check(argv[3]) || PyInt_Check(argv[3]) || PyLong_Check(argv[3])) ? 1 : 0;
+                    }
+                    if (_v) {
+                        return _wrap_IndexReader_setNorm__SWIG_1(self,args);
+                    }
+                }
+            }
+        }
+    }
+    if (argc == 4) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                _v = (PyInt_Check(argv[1]) || PyLong_Check(argv[1])) ? 1 : 0;
+            }
+            if (_v) {
+                {
+                    void *ptr;
+                    if (SWIG_ConvertPtr(argv[2], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                        _v = 0;
+                        PyErr_Clear();
+                    } else {
+                        _v = 1;
+                    }
+                }
+                if (_v) {
+                    {
+                        _v = (PyString_Check(argv[3]) && (PyString_Size(argv[3]) == 1)) ? 1 : 0;
+                    }
+                    if (_v) {
+                        return _wrap_IndexReader_setNorm__SWIG_0(self,args);
+                    }
+                }
+            }
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_setNorm'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_terms__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::TermEnum *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_terms",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermEnum *)(arg1)->terms();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermEnum, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_terms__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    org::apache::lucene::index::TermEnum *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:IndexReader_terms",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermEnum *)(arg1)->terms(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermEnum, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_terms(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[3];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_terms__SWIG_0(self,args);
+        }
+    }
+    if (argc == 2) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                void *ptr;
+                if (SWIG_ConvertPtr(argv[1], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__Term, 0) == -1) {
+                    _v = 0;
+                    PyErr_Clear();
+                } else {
+                    _v = 1;
+                }
+            }
+            if (_v) {
+                return _wrap_IndexReader_terms__SWIG_1(self,args);
+            }
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_terms'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_docFreq(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:IndexReader_docFreq",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->docFreq(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termDocs__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    org::apache::lucene::index::TermDocs *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:IndexReader_termDocs",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermDocs *)(arg1)->termDocs(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermDocs, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termDocs__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::TermDocs *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_termDocs",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermDocs *)(arg1)->termDocs();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermDocs, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termDocs(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[3];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_termDocs__SWIG_1(self,args);
+        }
+    }
+    if (argc == 2) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                void *ptr;
+                if (SWIG_ConvertPtr(argv[1], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__Term, 0) == -1) {
+                    _v = 0;
+                    PyErr_Clear();
+                } else {
+                    _v = 1;
+                }
+            }
+            if (_v) {
+                return _wrap_IndexReader_termDocs__SWIG_0(self,args);
+            }
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_termDocs'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termPositions__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    org::apache::lucene::index::TermPositions *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:IndexReader_termPositions",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermPositions *)(arg1)->termPositions(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermPositions, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termPositions__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::TermPositions *result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_termPositions",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (org::apache::lucene::index::TermPositions *)(arg1)->termPositions();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__index__TermPositions, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_termPositions(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[3];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_termPositions__SWIG_1(self,args);
+        }
+    }
+    if (argc == 2) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__IndexReader, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            {
+                void *ptr;
+                if (SWIG_ConvertPtr(argv[1], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__index__Term, 0) == -1) {
+                    _v = 0;
+                    PyErr_Clear();
+                } else {
+                    _v = 1;
+                }
+            }
+            if (_v) {
+                return _wrap_IndexReader_termPositions__SWIG_0(self,args);
+            }
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_termPositions'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_undeleteAll(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_undeleteAll",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->undeleteAll();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_close(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_close",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->close();
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_isLocked__SWIG_0(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_isLocked",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = org::apache::lucene::index::IndexReader::isLocked(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_isLocked__SWIG_1(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jboolean result;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_isLocked",&obj0)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        try {
+            result = org::apache::lucene::index::IndexReader::isLocked(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    {
+        resultobj = PyBool_FromLong((long) result);
+    }
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_isLocked(PyObject *self, PyObject *args) {
+    int argc;
+    PyObject *argv[2];
+    int ii;
+    
+    argc = PyObject_Length(args);
+    for (ii = 0; (ii < argc) && (ii < 1); ii++) {
+        argv[ii] = PyTuple_GetItem(args,ii);
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_org__apache__lucene__store__Directory, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_isLocked__SWIG_0(self,args);
+        }
+    }
+    if (argc == 1) {
+        int _v;
+        {
+            void *ptr;
+            if (SWIG_ConvertPtr(argv[0], (void **) &ptr, SWIGTYPE_p_jstring, 0) == -1) {
+                _v = 0;
+                PyErr_Clear();
+            } else {
+                _v = 1;
+            }
+        }
+        if (_v) {
+            return _wrap_IndexReader_isLocked__SWIG_1(self,args);
+        }
+    }
+    
+    PyErr_SetString(PyExc_TypeError,"No matching function for overloaded 'IndexReader_isLocked'");
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_unlock(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::store::Directory *arg1 = (org::apache::lucene::store::Directory *) 0 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"O:IndexReader_unlock",&obj0)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__store__Directory,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            org::apache::lucene::index::IndexReader::unlock(arg1);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * IndexReader_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__index__IndexReader, obj);
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
@@ -2341,7 +4818,7 @@ static PyObject *_wrap_Hits_doc(PyObject *self, PyObject *args) {
     org::apache::lucene::document::Document *result;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:Hits_doc",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:Hits_doc",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__search__Hits,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     {
         try {
@@ -2381,7 +4858,7 @@ static PyObject *_wrap_Hits_score(PyObject *self, PyObject *args) {
     jfloat result;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:Hits_score",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:Hits_score",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__search__Hits,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     {
         try {
@@ -2421,7 +4898,7 @@ static PyObject *_wrap_Hits_id(PyObject *self, PyObject *args) {
     jint result;
     PyObject * obj0 = 0 ;
     
-    if(!PyArg_ParseTuple(args,(char *)"Oi:Hits_id",&obj0,&arg2)) goto fail;
+    if(!PyArg_ParseTuple(args,(char *)"Ol:Hits_id",&obj0,&arg2)) goto fail;
     if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__search__Hits,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
     {
         try {
@@ -2738,6 +5215,46 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IndexWriter_maxMergeDocs_get", _wrap_IndexWriter_maxMergeDocs_get, METH_VARARGS },
 	 { (char *)"delete_IndexWriter", _wrap_delete_IndexWriter, METH_VARARGS },
 	 { (char *)"IndexWriter_swigregister", IndexWriter_swigregister, METH_VARARGS },
+	 { (char *)"new_Term", _wrap_new_Term, METH_VARARGS },
+	 { (char *)"Term_field", _wrap_Term_field, METH_VARARGS },
+	 { (char *)"Term_text", _wrap_Term_text, METH_VARARGS },
+	 { (char *)"Term_compareTo", _wrap_Term_compareTo, METH_VARARGS },
+	 { (char *)"Term_toString", _wrap_Term_toString, METH_VARARGS },
+	 { (char *)"delete_Term", _wrap_delete_Term, METH_VARARGS },
+	 { (char *)"Term_swigregister", Term_swigregister, METH_VARARGS },
+	 { (char *)"TermEnum_next", _wrap_TermEnum_next, METH_VARARGS },
+	 { (char *)"TermEnum_term", _wrap_TermEnum_term, METH_VARARGS },
+	 { (char *)"TermEnum_docFreq", _wrap_TermEnum_docFreq, METH_VARARGS },
+	 { (char *)"TermEnum_close", _wrap_TermEnum_close, METH_VARARGS },
+	 { (char *)"TermEnum_swigregister", TermEnum_swigregister, METH_VARARGS },
+	 { (char *)"TermDocs_seek", _wrap_TermDocs_seek, METH_VARARGS },
+	 { (char *)"TermDocs_doc", _wrap_TermDocs_doc, METH_VARARGS },
+	 { (char *)"TermDocs_freq", _wrap_TermDocs_freq, METH_VARARGS },
+	 { (char *)"TermDocs_next", _wrap_TermDocs_next, METH_VARARGS },
+	 { (char *)"TermDocs_skipTo", _wrap_TermDocs_skipTo, METH_VARARGS },
+	 { (char *)"TermDocs_close", _wrap_TermDocs_close, METH_VARARGS },
+	 { (char *)"TermDocs_swigregister", TermDocs_swigregister, METH_VARARGS },
+	 { (char *)"TermPositions_nextPosition", _wrap_TermPositions_nextPosition, METH_VARARGS },
+	 { (char *)"TermPositions_swigregister", TermPositions_swigregister, METH_VARARGS },
+	 { (char *)"IndexReader_open", _wrap_IndexReader_open, METH_VARARGS },
+	 { (char *)"IndexReader_lastModified", _wrap_IndexReader_lastModified, METH_VARARGS },
+	 { (char *)"IndexReader_getCurrentVersion", _wrap_IndexReader_getCurrentVersion, METH_VARARGS },
+	 { (char *)"IndexReader_indexExists", _wrap_IndexReader_indexExists, METH_VARARGS },
+	 { (char *)"IndexReader_numDocs", _wrap_IndexReader_numDocs, METH_VARARGS },
+	 { (char *)"IndexReader_maxDoc", _wrap_IndexReader_maxDoc, METH_VARARGS },
+	 { (char *)"IndexReader_document", _wrap_IndexReader_document, METH_VARARGS },
+	 { (char *)"IndexReader_isDeleted", _wrap_IndexReader_isDeleted, METH_VARARGS },
+	 { (char *)"IndexReader_hasDeletions", _wrap_IndexReader_hasDeletions, METH_VARARGS },
+	 { (char *)"IndexReader_setNorm", _wrap_IndexReader_setNorm, METH_VARARGS },
+	 { (char *)"IndexReader_terms", _wrap_IndexReader_terms, METH_VARARGS },
+	 { (char *)"IndexReader_docFreq", _wrap_IndexReader_docFreq, METH_VARARGS },
+	 { (char *)"IndexReader_termDocs", _wrap_IndexReader_termDocs, METH_VARARGS },
+	 { (char *)"IndexReader_termPositions", _wrap_IndexReader_termPositions, METH_VARARGS },
+	 { (char *)"IndexReader_undeleteAll", _wrap_IndexReader_undeleteAll, METH_VARARGS },
+	 { (char *)"IndexReader_close", _wrap_IndexReader_close, METH_VARARGS },
+	 { (char *)"IndexReader_isLocked", _wrap_IndexReader_isLocked, METH_VARARGS },
+	 { (char *)"IndexReader_unlock", _wrap_IndexReader_unlock, METH_VARARGS },
+	 { (char *)"IndexReader_swigregister", IndexReader_swigregister, METH_VARARGS },
 	 { (char *)"Query_setBoost", _wrap_Query_setBoost, METH_VARARGS },
 	 { (char *)"Query_getBoost", _wrap_Query_getBoost, METH_VARARGS },
 	 { (char *)"Query_toString", _wrap_Query_toString, METH_VARARGS },
@@ -2764,14 +5281,14 @@ static PyMethodDef SwigMethods[] = {
 static void *_p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *) (org::apache::lucene::analysis::Analyzer *) ((org::apache::lucene::analysis::standard::StandardAnalyzer *) x));
 }
-static void *_p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *) (org::apache::lucene::search::Searcher *) ((org::apache::lucene::search::IndexSearcher *) x));
+static void *_p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::analysis::Analyzer *) x));
 }
 static void *_p_org__apache__lucene__search__SearcherTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Searcher *) x));
 }
-static void *_p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((org::apache::lucene::analysis::Analyzer *) x));
+static void *_p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *) (org::apache::lucene::search::Searcher *) ((org::apache::lucene::search::IndexSearcher *) x));
 }
 static void *_p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::queryParser::QueryParser *) x));
@@ -2785,8 +5302,14 @@ static void *_p_org__apache__lucene__search__HitsTo_p_java__lang__Object(void *x
 static void *_p_org__apache__lucene__search__QueryTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Query *) x));
 }
+static void *_p_org__apache__lucene__index__TermTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::index::Term *) x));
+}
 static void *_p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::index::IndexWriter *) x));
+}
+static void *_p_org__apache__lucene__index__TermPositionsTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *) (org::apache::lucene::index::TermDocs *) ((org::apache::lucene::index::TermPositions *) x));
 }
 static void *_p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *) (org::apache::lucene::store::Directory *) ((org::apache::lucene::store::db::DbDirectory *) x));
@@ -2797,11 +5320,20 @@ static void *_p_org__apache__lucene__store__FSDirectoryTo_p_java__lang__Object(v
 static void *_p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::store::Directory *) x));
 }
+static void *_p_org__apache__lucene__index__TermEnumTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::index::TermEnum *) x));
+}
 static void *_p_org__apache__lucene__document__DocumentTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::document::Document *) x));
 }
+static void *_p_org__apache__lucene__index__IndexReaderTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::index::IndexReader *) x));
+}
 static void *_p_java__io__ReaderTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((java::io::Reader *) x));
+}
+static void *_p_org__apache__lucene__index__TermDocsTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::index::TermDocs *) x));
 }
 static void *_p_org__apache__lucene__search__IndexSearcherTo_p_org__apache__lucene__search__Searcher(void *x) {
     return (void *)((org::apache::lucene::search::Searcher *)  ((org::apache::lucene::search::IndexSearcher *) x));
@@ -2815,6 +5347,9 @@ static void *_p_org__apache__lucene__store__FSDirectoryTo_p_org__apache__lucene_
 static void *_p_org__apache__lucene__store__db__DbDirectoryTo_p_org__apache__lucene__store__Directory(void *x) {
     return (void *)((org::apache::lucene::store::Directory *)  ((org::apache::lucene::store::db::DbDirectory *) x));
 }
+static void *_p_org__apache__lucene__index__TermPositionsTo_p_org__apache__lucene__index__TermDocs(void *x) {
+    return (void *)((org::apache::lucene::index::TermDocs *)  ((org::apache::lucene::index::TermPositions *) x));
+}
 static swig_type_info _swigt__p_jboolean[] = {{"_p_jboolean", 0, "jboolean *", 0},{"_p_jboolean"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__search__Hits[] = {{"_p_org__apache__lucene__search__Hits", 0, "org::apache::lucene::search::Hits *", 0},{"_p_org__apache__lucene__search__Hits"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__search__Searcher[] = {{"_p_org__apache__lucene__search__Searcher", 0, "org::apache::lucene::search::Searcher *", 0},{"_p_org__apache__lucene__search__Searcher"},{"_p_org__apache__lucene__search__IndexSearcher", _p_org__apache__lucene__search__IndexSearcherTo_p_org__apache__lucene__search__Searcher},{0}};
@@ -2823,6 +5358,7 @@ static swig_type_info _swigt__p_org__apache__lucene__search__IndexSearcher[] = {
 static swig_type_info _swigt__p_org__apache__lucene__queryParser__QueryParser[] = {{"_p_org__apache__lucene__queryParser__QueryParser", 0, "org::apache::lucene::queryParser::QueryParser *", 0},{"_p_org__apache__lucene__queryParser__QueryParser"},{0}};
 static swig_type_info _swigt__p_jdb[] = {{"_p_jdb", 0, "jdb *", 0},{"_p_jdb"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__document__Field[] = {{"_p_org__apache__lucene__document__Field", 0, "org::apache::lucene::document::Field *", 0},{"_p_org__apache__lucene__document__Field"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__index__Term[] = {{"_p_org__apache__lucene__index__Term", 0, "org::apache::lucene::index::Term *", 0},{"_p_org__apache__lucene__index__Term"},{0}};
 static swig_type_info _swigt__p_jstring[] = {{"_p_jstring", 0, "jstring *", 0},{"_p_jstring"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__analysis__standard__StandardAnalyzer[] = {{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", 0, "org::apache::lucene::analysis::standard::StandardAnalyzer *", 0},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer"},{0}};
 static swig_type_info _swigt__p_void[] = {{"_p_void", 0, "void *", 0},{"_p_void"},{0}};
@@ -2833,9 +5369,13 @@ static swig_type_info _swigt__p_org__apache__lucene__index__IndexWriter[] = {{"_
 static swig_type_info _swigt__p_org__apache__lucene__store__db__DbDirectory[] = {{"_p_org__apache__lucene__store__db__DbDirectory", 0, "org::apache::lucene::store::db::DbDirectory *", 0},{"_p_org__apache__lucene__store__db__DbDirectory"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__store__FSDirectory[] = {{"_p_org__apache__lucene__store__FSDirectory", 0, "org::apache::lucene::store::FSDirectory *", 0},{"_p_org__apache__lucene__store__FSDirectory"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__store__Directory[] = {{"_p_org__apache__lucene__store__Directory", 0, "org::apache::lucene::store::Directory *", 0},{"_p_org__apache__lucene__store__Directory"},{"_p_org__apache__lucene__store__FSDirectory", _p_org__apache__lucene__store__FSDirectoryTo_p_org__apache__lucene__store__Directory},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_org__apache__lucene__store__Directory},{0}};
-static swig_type_info _swigt__p_java__lang__Object[] = {{"_p_java__lang__Object", 0, "java::lang::Object *", 0},{"_p_org__apache__lucene__search__Hits", _p_org__apache__lucene__search__HitsTo_p_java__lang__Object},{"_p_org__apache__lucene__search__IndexSearcher", _p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Searcher", _p_org__apache__lucene__search__SearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__Analyzer", _p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__queryParser__QueryParser", _p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object},{"_p_org__apache__lucene__document__Field", _p_org__apache__lucene__document__FieldTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", _p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Query", _p_org__apache__lucene__search__QueryTo_p_java__lang__Object},{"_p_java__io__Reader", _p_java__io__ReaderTo_p_java__lang__Object},{"_p_org__apache__lucene__index__IndexWriter", _p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__FSDirectory", _p_org__apache__lucene__store__FSDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__Directory", _p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object},{"_p_java__lang__Object"},{"_p_org__apache__lucene__document__Document", _p_org__apache__lucene__document__DocumentTo_p_java__lang__Object},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__index__TermEnum[] = {{"_p_org__apache__lucene__index__TermEnum", 0, "org::apache::lucene::index::TermEnum *", 0},{"_p_org__apache__lucene__index__TermEnum"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__index__TermPositions[] = {{"_p_org__apache__lucene__index__TermPositions", 0, "org::apache::lucene::index::TermPositions *", 0},{"_p_org__apache__lucene__index__TermPositions"},{0}};
+static swig_type_info _swigt__p_java__lang__Object[] = {{"_p_java__lang__Object", 0, "java::lang::Object *", 0},{"_p_org__apache__lucene__search__Hits", _p_org__apache__lucene__search__HitsTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__Analyzer", _p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Searcher", _p_org__apache__lucene__search__SearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__search__IndexSearcher", _p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__queryParser__QueryParser", _p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object},{"_p_org__apache__lucene__index__Term", _p_org__apache__lucene__index__TermTo_p_java__lang__Object},{"_p_org__apache__lucene__document__Field", _p_org__apache__lucene__document__FieldTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", _p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Query", _p_org__apache__lucene__search__QueryTo_p_java__lang__Object},{"_p_java__io__Reader", _p_java__io__ReaderTo_p_java__lang__Object},{"_p_org__apache__lucene__index__IndexWriter", _p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__FSDirectory", _p_org__apache__lucene__store__FSDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__index__TermPositions", _p_org__apache__lucene__index__TermPositionsTo_p_java__lang__Object},{"_p_org__apache__lucene__store__Directory", _p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__index__TermEnum", _p_org__apache__lucene__index__TermEnumTo_p_java__lang__Object},{"_p_java__lang__Object"},{"_p_org__apache__lucene__document__Document", _p_org__apache__lucene__document__DocumentTo_p_java__lang__Object},{"_p_org__apache__lucene__index__IndexReader", _p_org__apache__lucene__index__IndexReaderTo_p_java__lang__Object},{"_p_org__apache__lucene__index__TermDocs", _p_org__apache__lucene__index__TermDocsTo_p_java__lang__Object},{0}};
 static swig_type_info _swigt__p_jdbtxn[] = {{"_p_jdbtxn", 0, "jdbtxn *", 0},{"_p_jdbtxn"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__document__Document[] = {{"_p_org__apache__lucene__document__Document", 0, "org::apache::lucene::document::Document *", 0},{"_p_org__apache__lucene__document__Document"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__index__IndexReader[] = {{"_p_org__apache__lucene__index__IndexReader", 0, "org::apache::lucene::index::IndexReader *", 0},{"_p_org__apache__lucene__index__IndexReader"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__index__TermDocs[] = {{"_p_org__apache__lucene__index__TermDocs", 0, "org::apache::lucene::index::TermDocs *", 0},{"_p_org__apache__lucene__index__TermDocs"},{"_p_org__apache__lucene__index__TermPositions", _p_org__apache__lucene__index__TermPositionsTo_p_org__apache__lucene__index__TermDocs},{0}};
 
 static swig_type_info *swig_types_initial[] = {
 _swigt__p_jboolean, 
@@ -2846,6 +5386,7 @@ _swigt__p_org__apache__lucene__search__IndexSearcher,
 _swigt__p_org__apache__lucene__queryParser__QueryParser, 
 _swigt__p_jdb, 
 _swigt__p_org__apache__lucene__document__Field, 
+_swigt__p_org__apache__lucene__index__Term, 
 _swigt__p_jstring, 
 _swigt__p_org__apache__lucene__analysis__standard__StandardAnalyzer, 
 _swigt__p_void, 
@@ -2856,9 +5397,13 @@ _swigt__p_org__apache__lucene__index__IndexWriter,
 _swigt__p_org__apache__lucene__store__db__DbDirectory, 
 _swigt__p_org__apache__lucene__store__FSDirectory, 
 _swigt__p_org__apache__lucene__store__Directory, 
+_swigt__p_org__apache__lucene__index__TermEnum, 
+_swigt__p_org__apache__lucene__index__TermPositions, 
 _swigt__p_java__lang__Object, 
 _swigt__p_jdbtxn, 
 _swigt__p_org__apache__lucene__document__Document, 
+_swigt__p_org__apache__lucene__index__IndexReader, 
+_swigt__p_org__apache__lucene__index__TermDocs, 
 0
 };
 

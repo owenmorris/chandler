@@ -22,6 +22,7 @@ for fn in dir(_PyLucene):
 #include <java/io/StringWriter.h>
 #include <java/io/PrintWriter.h>
 #include <java/io/Reader.h>
+#include <java/io/File.h>
 
 #ifdef _WITH_DB_DIRECTORY
 #include "com/sleepycat/db/DbEnv.h"
@@ -41,6 +42,11 @@ for fn in dir(_PyLucene):
 #include "org/apache/lucene/document/Field.h"
 #include "org/apache/lucene/document/Document.h"
 #include "org/apache/lucene/index/IndexWriter.h"
+#include "org/apache/lucene/index/IndexReader.h"
+#include "org/apache/lucene/index/Term.h"
+#include "org/apache/lucene/index/TermDocs.h"
+#include "org/apache/lucene/index/TermEnum.h"
+#include "org/apache/lucene/index/TermPositions.h"
 #include "org/apache/lucene/queryParser/QueryParser.h"
 #include "org/apache/lucene/search/Searcher.h"
 #include "org/apache/lucene/search/Query.h"
@@ -152,6 +158,11 @@ void *attachCurrentThread(PyObject *pyThread)
     $1 = PyObject_IsTrue($input);
 }
 
+%typemap(out) jboolean {
+
+    $result = PyBool_FromLong((long) $1);
+}
+
 %typemap(in) jreader {
 
     if ($input == Py_None)
@@ -208,7 +219,9 @@ void *attachCurrentThread(PyObject *pyThread)
 
 #endif
 
-typedef int jint;
+typedef long jint;
+typedef long long jlong;
+typedef char jbyte;
 typedef float jfloat;
 
 
@@ -314,6 +327,70 @@ namespace org {
                     jint minMergeDocs;
                     jint maxMergeDocs;
                 };
+                class Term : public ::java::lang::Object {
+                public:
+                    Term(jstring, jstring);
+                    jstring field();
+                    jstring text();
+                    jint compareTo(Term *);
+                    jstring toString();
+                };
+%nodefault;
+                class TermEnum : public ::java::lang::Object {
+                public:
+                    virtual jboolean next();
+                    virtual Term *term();
+                    virtual jint docFreq();
+                    virtual void close();
+                };
+                class TermDocs : public ::java::lang::Object {
+                public:
+                    virtual void seek(Term *);
+                    virtual void seek(TermEnum *);
+                    virtual jint doc();
+                    virtual jint freq();
+                    virtual jboolean next();
+                    virtual jboolean skipTo(jint);
+                    virtual void close();
+                };
+                class TermPositions : public TermDocs {
+                public:
+                    virtual jint nextPosition();
+                };
+		class IndexReader : public ::java::lang::Object {
+		public:
+		    static IndexReader *open(jstring);
+                    static IndexReader *open(::org::apache::lucene::store::Directory *);
+                    static jlong lastModified(jstring);
+                    static jlong lastModified(::org::apache::lucene::store::Directory *);
+                    static jlong getCurrentVersion(jstring);
+                    static jlong getCurrentVersion(::org::apache::lucene::store::Directory *);
+                    static jboolean indexExists(jstring);
+                    static jboolean indexExists(::org::apache::lucene::store::Directory *);
+                    virtual jint numDocs();
+                    virtual jint maxDoc();
+                    virtual ::org::apache::lucene::document::Document *document (jint);
+                    virtual jboolean isDeleted(jint);
+                    virtual jboolean hasDeletions();
+                    virtual void setNorm(jint, jstring, jbyte);
+                    virtual void setNorm(jint, jstring, jfloat);
+                    virtual TermEnum *terms();
+                    virtual TermEnum *terms(Term *);
+                    virtual jint docFreq(Term *);
+                    virtual TermDocs *termDocs(Term *);
+                    virtual TermDocs *termDocs();
+                    virtual TermPositions *termPositions(Term *);
+                    virtual TermPositions *termPositions();
+%rename(deleteTerm) delete$;
+//                    void delete$(jint);
+//                    jint delete$(Term *);
+                    virtual void undeleteAll();
+                    void close();
+                    static jboolean isLocked(::org::apache::lucene::store::Directory *);
+                    static jboolean isLocked(jstring);
+                    static void unlock(::org::apache::lucene::store::Directory *);
+                };
+%makedefault;
             }
 
 	    namespace search {

@@ -95,6 +95,11 @@ $(CLASSES)\org\osafoundation\io\PythonReader.h:
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.document.Field
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.document.Document
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.IndexWriter
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.IndexReader
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.Term
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.TermDocs
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.TermEnum
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.TermPositions
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Searcher
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Query
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Hits

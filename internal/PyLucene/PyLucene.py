@@ -211,6 +211,124 @@ class IndexWriterPtr(IndexWriter):
         self.__class__ = IndexWriter
 _PyLucene.IndexWriter_swigregister(IndexWriterPtr)
 
+class Term(Object):
+    def __repr__(self):
+        return "<C org::apache::lucene::index::Term instance at %s>" % (self.this,)
+    def __init__(self, *args):
+        newobj = _PyLucene.new_Term(*args)
+        self.this = newobj.this
+        self.thisown = 1
+        del newobj.thisown
+    def field(*args): return _PyLucene.Term_field(*args)
+    def text(*args): return _PyLucene.Term_text(*args)
+    def compareTo(*args): return _PyLucene.Term_compareTo(*args)
+    def toString(*args): return _PyLucene.Term_toString(*args)
+    def __del__(self, destroy=_PyLucene.delete_Term):
+        try:
+            if self.thisown: destroy(self)
+        except: pass
+
+class TermPtr(Term):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = Term
+_PyLucene.Term_swigregister(TermPtr)
+
+class TermEnum(Object):
+    def __init__(self): raise RuntimeError, "No constructor defined"
+    def __repr__(self):
+        return "<C org::apache::lucene::index::TermEnum instance at %s>" % (self.this,)
+    def next(*args): return _PyLucene.TermEnum_next(*args)
+    def term(*args): return _PyLucene.TermEnum_term(*args)
+    def docFreq(*args): return _PyLucene.TermEnum_docFreq(*args)
+    def close(*args): return _PyLucene.TermEnum_close(*args)
+
+class TermEnumPtr(TermEnum):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = TermEnum
+_PyLucene.TermEnum_swigregister(TermEnumPtr)
+
+class TermDocs(Object):
+    def __init__(self): raise RuntimeError, "No constructor defined"
+    def __repr__(self):
+        return "<C org::apache::lucene::index::TermDocs instance at %s>" % (self.this,)
+    def seek(*args): return _PyLucene.TermDocs_seek(*args)
+    def doc(*args): return _PyLucene.TermDocs_doc(*args)
+    def freq(*args): return _PyLucene.TermDocs_freq(*args)
+    def next(*args): return _PyLucene.TermDocs_next(*args)
+    def skipTo(*args): return _PyLucene.TermDocs_skipTo(*args)
+    def close(*args): return _PyLucene.TermDocs_close(*args)
+
+class TermDocsPtr(TermDocs):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = TermDocs
+_PyLucene.TermDocs_swigregister(TermDocsPtr)
+
+class TermPositions(TermDocs):
+    def __init__(self): raise RuntimeError, "No constructor defined"
+    def __repr__(self):
+        return "<C org::apache::lucene::index::TermPositions instance at %s>" % (self.this,)
+    def nextPosition(*args): return _PyLucene.TermPositions_nextPosition(*args)
+
+class TermPositionsPtr(TermPositions):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = TermPositions
+_PyLucene.TermPositions_swigregister(TermPositionsPtr)
+
+class IndexReader(Object):
+    def __init__(self): raise RuntimeError, "No constructor defined"
+    def __repr__(self):
+        return "<C org::apache::lucene::index::IndexReader instance at %s>" % (self.this,)
+    open = staticmethod(_PyLucene.IndexReader_open)
+    open = staticmethod(_PyLucene.IndexReader_open)
+    lastModified = staticmethod(_PyLucene.IndexReader_lastModified)
+    lastModified = staticmethod(_PyLucene.IndexReader_lastModified)
+    getCurrentVersion = staticmethod(_PyLucene.IndexReader_getCurrentVersion)
+    getCurrentVersion = staticmethod(_PyLucene.IndexReader_getCurrentVersion)
+    indexExists = staticmethod(_PyLucene.IndexReader_indexExists)
+    indexExists = staticmethod(_PyLucene.IndexReader_indexExists)
+    def numDocs(*args): return _PyLucene.IndexReader_numDocs(*args)
+    def maxDoc(*args): return _PyLucene.IndexReader_maxDoc(*args)
+    def document(*args): return _PyLucene.IndexReader_document(*args)
+    def isDeleted(*args): return _PyLucene.IndexReader_isDeleted(*args)
+    def hasDeletions(*args): return _PyLucene.IndexReader_hasDeletions(*args)
+    def setNorm(*args): return _PyLucene.IndexReader_setNorm(*args)
+    def terms(*args): return _PyLucene.IndexReader_terms(*args)
+    def docFreq(*args): return _PyLucene.IndexReader_docFreq(*args)
+    def termDocs(*args): return _PyLucene.IndexReader_termDocs(*args)
+    def termPositions(*args): return _PyLucene.IndexReader_termPositions(*args)
+    def undeleteAll(*args): return _PyLucene.IndexReader_undeleteAll(*args)
+    def close(*args): return _PyLucene.IndexReader_close(*args)
+    isLocked = staticmethod(_PyLucene.IndexReader_isLocked)
+    isLocked = staticmethod(_PyLucene.IndexReader_isLocked)
+    unlock = staticmethod(_PyLucene.IndexReader_unlock)
+
+class IndexReaderPtr(IndexReader):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = IndexReader
+_PyLucene.IndexReader_swigregister(IndexReaderPtr)
+
+IndexReader_open = _PyLucene.IndexReader_open
+
+IndexReader_lastModified = _PyLucene.IndexReader_lastModified
+
+IndexReader_getCurrentVersion = _PyLucene.IndexReader_getCurrentVersion
+
+IndexReader_indexExists = _PyLucene.IndexReader_indexExists
+
+IndexReader_isLocked = _PyLucene.IndexReader_isLocked
+
+IndexReader_unlock = _PyLucene.IndexReader_unlock
+
 class Query(Object):
     def __init__(self): raise RuntimeError, "No constructor defined"
     def __repr__(self):
