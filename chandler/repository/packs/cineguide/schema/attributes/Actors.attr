@@ -2,7 +2,7 @@
 
 <item>
     <name>actors</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
 
     <attribute name="cardinality">dict</attribute>
     <attribute name="otherName">movies</attribute>

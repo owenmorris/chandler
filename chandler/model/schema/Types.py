@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import mx.DateTime
 
 from model.item.Item import Item
-from model.item.Item import ItemHandler
+from model.item.ItemHandler import ItemHandler
 from model.item.ItemRef import RefDict
 from Kind import Kind
 

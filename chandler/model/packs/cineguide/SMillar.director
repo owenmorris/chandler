@@ -2,7 +2,7 @@
 
 <item>
     <name>SMillar</name>
-    <kind type="path">//Schema/CineGuide/Director</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Director</kind>
 
     <attribute name="name">Stuart Millar</attribute>
 </item>

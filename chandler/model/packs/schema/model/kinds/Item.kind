@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Item</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <class module="model.schema.Kind">ItemKind</class>
+
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref type="path">/Model/Attributes/kind</ref>
+  </ref>
+
+  <attribute name="classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.item.Item.Item</value>
+  </attribute>
+</item>

@@ -3,13 +3,15 @@
 <pack name="Collections" cwd="collections">
 
   <item path="//Schema">
-    <item file="Collections.container" cwd="schema">
-      <item files="*.kind" />
-      <item file="Types.container" cwd="types">
+    <item file="Collections.domain" cwd="schema">
+      <item file="Types.namespace" cwd="types">
         <item files="*.alias" />
       </item>
-      <item file="Attributes.container" cwd="attributes">
+      <item file="Attributes.namespace" cwd="attributes">
         <item files="*.attr" />
+      </item>
+      <item file="Kinds.namespace" cwd="kinds">
+        <item files="*.kind" />
       </item>
     </item>
   </item>

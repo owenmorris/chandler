@@ -2,7 +2,8 @@
 
 <item withSchema="True">
   <name>kind</name>
-  <kind type="path">//Schema/Model/Attribute</kind>
+  <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+  <class module="model.schema.Attribute">Attribute</class>
 
   <attribute name="cardinality">single</attribute>
   <attribute name="otherName">items</attribute>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Taxon</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <class module="model.schema.Kind">Kind</class>
+
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref type="path">/Model/Attributes/displayName</ref>
+    <ref type="path">/Model/Attributes/description</ref>
+    <ref type="path">/Model/Attributes/typeFor</ref>
+    <ref type="path">/Model/Attributes/aliasedBy</ref>
+  </ref>
+
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
+    <ref type="path">/Model/Kinds/Item</ref>
+  </ref>
+</item>

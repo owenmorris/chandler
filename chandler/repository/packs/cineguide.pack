@@ -3,10 +3,12 @@
 <pack name="CineGuide" cwd="cineguide">
 
   <item path="//Schema">
-    <item file="CineGuide.container" cwd="schema">
-      <item files="*.kind" />
-      <item file="Attributes.container" cwd="attributes">
+    <item file="CineGuide.domain" cwd="schema">
+      <item file="Attributes.namespace" cwd="attributes">
         <item files="*.attr" />
+      </item>
+      <item file="Kinds.namespace" cwd="kinds">
+        <item files="*.kind" />
       </item>
     </item>
   </item>

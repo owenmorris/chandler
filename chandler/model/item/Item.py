@@ -4,13 +4,16 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax
+import xml.sax, xml.sax.saxutils
+import cStringIO
 
 from ItemRef import ItemRef, RefArgs
 from ItemRef import Values, References, RefDict
+from ItemHandler import ItemHandler
 
 from model.util.UUID import UUID
 from model.util.Path import Path
+from model.util.LinkedMap import LinkedMap
 
 
 class Item(object):
@@ -58,18 +61,12 @@ class Item(object):
         kwds['references']._setItem(self)
         self._references = kwds['references']
 
-        self._setParent(parent)
+        self._setParent(parent, kwds.get('previous'), kwds.get('next'))
         self._setKind(kind)
 
     def __iter__(self):
 
-        class nullIter(object):
-            def next(self): raise StopIteration
-        
-        if self.__dict__.has_key('_children'):
-            return self._children.itervalues()
-
-        return nullIter()
+        return self.iterChildren()
     
     def __repr__(self):
 
@@ -260,6 +257,22 @@ class Item(object):
                 value.clear()
             else:
                 raise ValueError, value
+
+    def hasChild(self, name, load=True):
+
+        return (self.__dict__.has_key('_children') and
+                self._children.has_key(name))
+
+    def iterChildren(self, load=True):
+
+        if not load:
+            if self.__dict__.has_key('_children'):
+                for child in self._children._itervalues():
+                    yield child
+
+        elif self.__dict__.has_key('_children'):
+            for child in self._children:
+                yield child
 
     def iterAttributes(self, valuesOnly=False, referencesOnly=False):
         """Get a generator of (name, value) tuples for attributes of this item.
@@ -515,9 +528,8 @@ class Item(object):
             self._status |= Item.DELETING
             others = []
             
-            if self.__dict__.has_key('_children'):
-                for item in self._children.values():
-                    item.delete()
+            for child in self:
+                child.delete()
 
             self._values.clear()
 
@@ -636,7 +648,7 @@ class Item(object):
 
                 self.setDirty()
 
-        for child in self:
+        for child in self.iterChildren(load=False):
             child._setRoot(root)
 
     def getItemParent(self):
@@ -674,36 +686,47 @@ class Item(object):
         self._name = name
         self._parent._addItem(self)
 
-    def move(self, parent):
+    def move(self, parent, previous=None, next=None):
         'Move this item under another container or make it a root.'
 
         if self._parent is not parent:
             self._parent._removeItem(self)
-            self._setRoot(parent._addItem(self))
+            self._setRoot(parent._addItem(self, previous, next))
             self._parent = parent
 
-    def _setParent(self, parent):
+    def _setParent(self, parent, previous=None, next=None):
 
         if parent is not None:
             self._parent = parent
-            self._setRoot(parent._addItem(self))
+            self._setRoot(parent._addItem(self, previous, next))
         else:
             self._parent = None
 
-    def _addItem(self, item):
+    def _addItem(self, item, previous=None, next=None):
 
         name = item._name
         
         if self.__dict__.has_key('_children'):
 
-            current = self._children.get(name)
+            loading = self.getRepository().isLoading()
+            if loading:
+                current = self._children.get(name)
+            else:
+                current = self.getItemChild(name)
+                
             if current is not None:
+                if loading:
+                    print "Warning, deleting %s while loading" %(current)
                 current.delete()
 
-            self._children[name] = item
-
         else:
-            self._children = { name: item }
+            self._children = Children(self)
+
+        self._children.__setitem__(name, item, previous, next)
+
+        if (self.__dict__.has_key('_notChildren') and
+            self._notChildren.has_key(name)):
+            del self._notChildren[name]
             
         return self._root
 
@@ -714,10 +737,21 @@ class Item(object):
     def getItemChild(self, name, load=True):
         'Return the child as named or None if not found.'
 
+        child = None
         if self.__dict__.has_key('_children'):
-            return self._children.get(name)
+            child = self._children.get(name)
 
-        return None
+        if load and child is None:
+            hasNot = self.__dict__.has_key('_notChildren')
+            if not hasNot or not self._notChildren.has_key(name):
+                child = self.getRepository()._loadChild(self, name)
+                if child is None:
+                    if not hasNot:
+                        self._notChildren = { name: name }
+                    else:
+                        self._notChildren[name] = name
+
+        return child
 
     def isRemote(self):
         'By default, an item is not remote.'
@@ -779,7 +813,24 @@ class Item(object):
 
         return None
 
-    def _saveItem(self, generator, withSchema=False):
+    def toXML(self):
+
+        try:
+            out = cStringIO.StringIO()
+            generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
+            generator.startDocument()
+            self._xmlItem(generator, self.getRoot().getItemName() == 'Schema')
+            generator.endDocument()
+
+            return out.getvalue()
+        finally:
+            out.close()
+
+    def _saveItem(self, generator, withSchema='False'):
+
+        self._xmlItem(generator, withSchema, 'save')
+
+    def _xmlItem(self, generator, withSchema=False, mode='serialize'):
 
         def xmlTag(tag, attrs, value, generator):
 
@@ -804,12 +855,31 @@ class Item(object):
             xmlTag('class', { 'module': self.__module__ },
                    type(self).__name__, generator)
 
-        if self._root is not self:
-            xmlTag('parent', { 'type': 'uuid' },
-                   self._parent.getUUID().str64(), generator)
+        attrs = {}
 
-        self._saveAttrs(generator, withSchema)
-        self._saveRefs(generator, withSchema)
+        if self._root is not self:
+            parentID = self._parent.getUUID().str64()
+
+            link = self._parent._children._get(self._name)
+            if link._previousKey is not None:
+                attrs['previous'] = link._previousKey
+            if link._nextKey is not None:
+                attrs['next'] = link._nextKey
+
+        else:
+            parentID = self.getRepository().ROOT_ID.str64()
+
+        if self.__dict__.has_key('_children'):
+            children = self._children
+            if children._firstKey is not None:
+                attrs['first'] = children._firstKey
+            if children._lastKey is not None:
+                attrs['last'] = children._lastKey
+
+        xmlTag('container', attrs, parentID, generator)
+
+        self._xmlAttrs(generator, withSchema, mode)
+        self._xmlRefs(generator, withSchema, mode)
 
         generator.endElement('item')
 
@@ -817,7 +887,7 @@ class Item(object):
 
         return self
 
-    def _saveAttrs(self, generator, withSchema):
+    def _xmlAttrs(self, generator, withSchema, mode):
 
         for attr in self._values.iteritems():
             if self.getAttributeAspect(attr[0], 'persist', True):
@@ -828,11 +898,11 @@ class Item(object):
                                      attrType, attrCard, generator,
                                      withSchema)
 
-    def _saveRefs(self, generator, withSchema):
+    def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.iteritems():
             if self.getAttributeAspect(attr[0], 'persist', True):
-                attr[1]._saveValue(attr[0], self, generator, withSchema)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
 
     def _refDict(self, name, otherName, ordered=False):
 
@@ -873,513 +943,42 @@ class Item(object):
     DIRTY    = 0x2
     DELETING = 0x4
     RAW      = 0x8
-    
 
-class ItemHandler(xml.sax.ContentHandler):
-    'A SAX ContentHandler implementation responsible for loading items.'
-    
-    typeHandlers = {}
-    
-    def __init__(self, repository, parent, afterLoadHooks):
 
-        self.repository = repository
-        self.parent = parent
-        self.afterLoadHooks = afterLoadHooks
-        self.item = None
+class Children(LinkedMap):
+
+    def __init__(self, item, dictionary=None):
+
+        super(Children, self).__init__(dictionary)
+        self._item = item
         
-    def startDocument(self):
+    def linkChanged(self, link):
 
-        self.tagAttrs = []
-        self.tags = []
-        self.delegates = []
-        self.fields = None
-
-        assert not self.item
-        
-    def startElement(self, tag, attrs):
-
-        self.data = ''
-        self.tagAttrs.append(attrs)
-
-        if self.delegates:
-            delegate = self.delegates[-1]
-            delegateClass = type(delegate)
-            self.delegates.append(delegate)
-        else:
-            delegate = self
-            delegateClass = ItemHandler
-            
-        method = getattr(delegateClass, tag + 'Start', None)
-        if method is not None:
-            method(delegate, self, attrs)
-
-        self.tags.append(tag)
-
-    def endElement(self, tag):
- 
-        withValue = False
-
-        if self.delegates:
-            delegate = self.delegates.pop()
-            if not self.delegates:
-                value = delegate.getValue(self, self.data)
-                withValue = True
-
-        if self.delegates:
-            delegate = self.delegates[-1]
-            delegateClass = type(delegate)
-        else:
-            delegate = self
-            delegateClass = ItemHandler
-            
-        attrs = self.tagAttrs.pop()
-        method = getattr(delegateClass, self.tags.pop() + 'End', None)
-        if method is not None:
-            if withValue:
-                method(delegate, self, attrs, value=value)
-            else:
-                method(delegate, self, attrs)
-
-    def characters(self, data):
-
-        self.data += data
-
-    def attributeStart(self, itemHandler, attrs):
-
-        attribute = self.getAttribute(attrs['name'])
-        self.attributes.append(attribute)
-
-        cardinality = self.getCardinality(attribute, attrs)
-        typeName = self.getTypeName(attribute, attrs)
-        
-        if cardinality == 'dict' or typeName == 'dict':
-            self.collections.append({})
-        elif cardinality == 'list' or typeName == 'list':
-            self.collections.append([])
-        else:
-            self.setupTypeDelegate(attrs)
-
-    def refStart(self, itemHandler, attrs):
-
-        if self.tags[-1] == 'item':
-            name = attrs['name']
-            attribute = self.getAttribute(name)
-            self.attributes.append(attribute)
-
-            cardinality = self.getCardinality(attribute, attrs)
-
-            if cardinality != 'single':
-                otherName = self.getOtherName(name, attribute, attrs)
-                ordered = cardinality == 'list'
-                refDict = self.repository.createRefDict(None, name, otherName,
-                                                        ordered)
-                self.collections.append(refDict)
-
-    def itemStart(self, itemHandler, attrs):
-
-        self.values = Values(None)
-        self.references = References(None)
-        self.refs = []
-        self.collections = []
-        self.attributes = []
-        self.name = None
-        self.kind = None
-        self.cls = None
-        self.kindRef = None
-        self.parentRef = None
-        self.withSchema = attrs.get('withSchema', 'False') == 'True'
-                
-    def itemEnd(self, itemHandler, attrs):
-
-        cls = self.cls
-        if cls is None:
-            if self.kind is None:
-                cls = Item
-            else:
-                cls = self.kind.getItemClass()
-
-        self.item = item = cls.__new__(cls)
-        item._fillItem(self.name, self.parent, self.kind,
-                       uuid = UUID(attrs.get('uuid')),
-                       values = self.values,
-                       references = self.references,
-                       afterLoadHooks = self.afterLoadHooks)
-
-        self.repository._registerItem(item)
-
-        for refArgs in self.refs:
-            refArgs.attach(item, self.repository)
-
-    def kindEnd(self, itemHandler, attrs):
-
-        if attrs['type'] == 'uuid':
-            self.kindRef = UUID(self.data)
-        else:
-            self.kindRef = Path(self.data)
-
-        self.kind = self.repository.find(self.kindRef)
-        if self.kind is None:
-            if self.withSchema:
-                if self.afterLoadHooks is not None:
-                    self.afterLoadHooks.append(self._setKind)
-            else:
-                raise ValueError, "Kind %s not found" %(self.kindRef)
-
-    def _setKind(self):
-
-        if self.item._kind is None:
-            self.kind = self.repository.find(self.kindRef)
-            if self.kind is None:
-                raise ValueError, 'Kind %s not found' %(self.kindRef)
-            else:
-                self.item._setKind(self.kind)
-
-    def parentEnd(self, itemHandler, attrs):
-
-        if attrs['type'] == 'uuid':
-            self.parentRef = UUID(self.data)
-        else:
-            self.parentRef = Path(self.data)
-
-        self.parent = self.repository.find(self.parentRef)
-        if self.parent is None:
-            if self.afterLoadHooks is not None:
-                self.afterLoadHooks.append(self._move)
-            else:
-                raise ValueError, "Parent %s not found" %(self.parentRef)
-
-    def _move(self):
-
-        if self.item._parent is None:
-            self.parent = self.repository.find(self.parentRef)
-            if self.parent is None:
-                raise ValueError, 'Parent %s not found' %(self.parentRef)
-            else:
-                self.item.move(self.parent)
-
-    def classEnd(self, itemHandler, attrs):
-
-        self.cls = Item.loadClass(self.data, attrs['module'])
-
-    def nameEnd(self, itemHandler, attrs):
-
-        self.name = self.data
-
-    def attributeEnd(self, itemHandler, attrs, **kwds):
-
-        if kwds.has_key('value'):
-            value = kwds['value']
-        else:
-            attribute = self.attributes.pop()
-            cardinality = self.getCardinality(attribute, attrs)
-            typeName = self.getTypeName(attribute, attrs)
-
-            if cardinality == 'dict' or typeName == 'dict':
-                value = self.collections.pop()
-            elif cardinality == 'list' or typeName == 'list':
-                value = self.collections.pop()
-            else:
-                value = self.makeValue(typeName, self.data)
-            
-        self.values[attrs['name']] = value
-
-    def refEnd(self, itemHandler, attrs):
-
-        if self.tags[-1] == 'item':
-            attribute = self.attributes.pop()
-            cardinality = self.getCardinality(attribute, attrs)
-            otherCard = attrs.get('otherCard', None)
-        else:
-            cardinality = 'single'
-            otherCard = self.tagAttrs[-1].get('otherCard', None)
-
-        if cardinality == 'single':
-            typeName = attrs.get('type', 'path')
-
-            if typeName == 'path':
-                ref = Path(self.data)
-            else:
-                ref = UUID(self.data)
-
-            if self.collections:
-                name = self.refName(attrs, 'name')
-                previous = self.refName(attrs, 'previous')
-                next = self.refName(attrs, 'next')
-
-                self.refs.append(RefArgs(self.collections[-1]._name, name,
-                                         ref, self.collections[-1]._otherName,
-                                         otherCard, self.collections[-1],
-                                         previous, next))
-            else:
-                name = attrs['name']
-                otherName = self.getOtherName(name, self.getAttribute(name),
-                                              attrs)
-                self.refs.append(RefArgs(name, name, ref, otherName, otherCard,
-                                         self.references))
-        else:
-            value = self.collections.pop()
-            self.references[attrs['name']] = value
-
-    def dbEnd(self, itemHandler, attrs):
-            
-        if not self.collections:
-            raise ValueError, self.tagAttrs[-1]['name']
-
-        refDict = self.collections[-1]
-        refDict._prepareKey(UUID(self.tagAttrs[-2]['uuid']), UUID(self.data))
-
-        otherCard = self.tagAttrs[-1].get('otherCard', None)
-
-        for ref in refDict._dbRefs():
-            if refDict._ordered:
-                args = RefArgs(refDict._name, ref[0], ref[1],
-                               refDict._otherName, otherCard, refDict,
-                               ref[2], ref[3])
-            else:
-                args = RefArgs(refDict._name, ref[0], ref[1],
-                               refDict._otherName, otherCard, refDict)
-
-            self.refs.append(args)
-
-    def valueStart(self, itemHandler, attrs):
-
-        typeName = attrs.get('type')
-        if typeName == 'dict':
-            self.collections.append({})
-        elif typeName == 'list':
-            self.collections.append([])
-        else:
-            self.setupTypeDelegate(attrs)
-
-    # valueEnd is called when parsing 'dict' or 'list' cardinality values of
-    # one type (type specified with cardinality) or of unspecified type
-    # (type specified with value) or 'dict' or 'list' type values of 'single'
-    # or unspecified cardinality or values of type 'Dictionary' or 'List' of
-    # any cardinality. A mess of overloading.
+        self._item.setDirty()
     
-    def valueEnd(self, itemHandler, attrs, **kwds):
+    def __repr__(self):
 
-        # case of parsing 'Dictionary' or 'List' of non 'single' cardinality
-        if kwds.has_key('value'):
-            value = kwds['value']
-        else:
-            typeName = attrs.get('type')
-            if typeName == 'dict' or typeName == 'list':
-                # case of parsing 'single' 'list' or 'dict' type value
-                value = self.collections.pop()
-
-            else:
-                if typeName is None:
-                    cardinality = self.getCardinality(self.attributes[-1],
-                                                      self.tagAttrs[-1])
-                    if cardinality == 'dict' or cardinality == 'list':
-                        # case of parsing non 'single' 'list' or 'dict' type
-                        # value of one type specified with cardinality
-                        typeName = self.getTypeName(self.attributes[-1],
-                                                    self.tagAttrs[-1])
-                    else:
-                        # case of parsing a collection value of type string
-                        # which is unspecified
-                        typeName = 'str'
+        buffer = cStringIO.StringIO()
+        try:
+            buffer.write('{(currenly loaded) ')
+            first = True
+            for key, value in self._iteritems():
+                if not first:
+                    buffer.write(', ')
                 else:
-                    # case of parsing a collection value of a specific type
-                    pass
+                    first = False
+                buffer.write(key.__repr__())
+                buffer.write(': ')
+                buffer.write(value.__repr__())
+            buffer.write('}')
 
-                value = self.makeValue(typeName, self.data)
+            return buffer.getvalue()
+        finally:
+            buffer.close()
 
-        name = attrs.get('name')
+    def _load(self, key):
 
-        if name is None:
-            self.collections[-1].append(value)
-        else:
-            name = self.makeValue(attrs.get('nameType', 'str'), name)
-            self.collections[-1][name] = value
+        if self._item.getRepository()._loadChild(self._item, key) is not None:
+            return True
 
-    def getCardinality(self, attribute, attrs):
-
-        cardinality = attrs.get('cardinality')
-
-        if cardinality is None:
-            if attribute is None:
-                cardinality = 'single'
-            else:
-                cardinality = attribute.getAspect('cardinality', 'single')
-
-        return cardinality
-
-    def getTypeName(self, attribute, attrs):
-
-        attrType = attrs.get('type')
-
-        if attrType is None and attribute is not None:
-            attrType = attribute.getAspect('type', None)
-            if attrType is not None:
-                return type(attrType).__name__
-
-        return attrType or 'str'
-
-    def refName(self, attrs, attr):
-
-        if attrs.has_key(attr):
-            return self.makeValue(attrs.get(attr + 'Type', 'str'), attrs[attr])
-        else:
-            return None
-
-    def getOtherName(self, name, attribute, attrs):
-
-        otherName = attrs.get('otherName')
-
-        if otherName is None and attribute is not None:
-            otherName = attribute.getAspect('otherName')
-
-        if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s' %(name)
-
-        return otherName
-
-    def getAttribute(self, name):
-
-        if self.withSchema is False and self.kind is not None:
-            return self.kind.getAttribute(name)
-        else:
-            return None
-
-    def setupTypeDelegate(self, attrs):
-
-        if attrs.has_key('typeid'):
-            attrType = self.repository.find(UUID(attrs['typeid']))
-            if attrType is None:
-                raise TypeError, "Alias used before being defined"
-            self.delegates.append(attrType)
-        
-        elif self.attributes[-1]:
-            attrType = self.attributes[-1].getAspect('type')
-            if attrType is not None:
-                self.delegates.append(attrType)
-
-    def makeValue(self, typeName, data):
-
-        if typeName.find('.') > 0:
-            try:
-                typeHandler = ItemHandler.typeHandlers[typeName]
-            except KeyError:
-                lastDot = typeName.rindex('.')
-                module = typeName[:lastDot]
-                name = typeName[lastDot+1:]
-        
-                typeHandler = getattr(__import__(module, {}, {}, name), name)
-                ItemHandler.typeHandlers[typeName] = typeHandler
-
-            return typeHandler.makeValue(data)
-
-        if typeName == 'str':
-            return str(data)
-
-        if typeName == 'unicode':
-            return unicode(data)
-
-        if typeName == 'uuid':
-            return UUID(data)
-        
-        if typeName == 'path':
-            return Path(data)
-
-        if typeName == 'bool':
-            return data != 'False'
-
-        if typeName == 'int':
-            return int(data)
-
-        if typeName == 'long':
-            return long(data)
-
-        if typeName == 'float':
-            return float(data)
-
-        if typeName == 'complex':
-            return complex(data)
-
-        if typeName == 'class':
-            return Item.loadClass(str(data))
-
-        if typeName == 'NoneType':
-            return None
-
-        raise ValueError, "Unknown type: %s" %(typeName)
-
-    def typeName(cls, value):
-
-        typeHandler = cls.typeHandlers.get(type(value))
-
-        if typeHandler is not None:
-            return typeHandler.handlerName()
-        elif isinstance(value, UUID):
-            return 'uuid'
-        elif isinstance(value, Path):
-            return 'path'
-        else:
-            return type(value).__name__
-
-    def makeString(cls, value):
-
-        typeHandler = cls.typeHandlers.get(type(value))
-
-        if typeHandler is not None:
-            return typeHandler.makeString(value)
-        else:
-            return str(value)
-            
-    def xmlValue(cls, name, value, tag, attrType, attrCard,
-                 generator, withSchema):
-
-        attrs = {}
-            
-        if name is not None:
-            if isinstance(name, UUID):
-                attrs['nameType'] = 'uuid'
-                attrs['name'] = name.str64()
-            elif not isinstance(name, str) and not isinstance(name, unicode):
-                attrs['nameType'] = cls.typeName(name)
-                attrs['name'] = str(name)
-            else:
-                attrs['name'] = name
-
-        if attrCard == 'single':
-            if attrType is not None and attrType.isAlias():
-                valueType = attrType.type(value)
-                if valueType:
-                    if withSchema:
-                        attrs['type'] = valueType.handlerName()
-                    else:
-                        attrs['typeid'] = valueType.getUUID().str64()
-                else:
-                    attrs['type'] = cls.typeName(value)
-            elif not isinstance(value, str) and not isinstance(value, unicode):
-                if attrType is None:
-                    attrs['type'] = cls.typeName(value)
-                elif withSchema:
-                    attrs['type'] = attrType.handlerName()
-        else:
-            attrs['cardinality'] = attrCard
-
-        generator.startElement(tag, attrs)
-
-        if withSchema or attrType is None or attrCard != 'single':
-            if isinstance(value, dict):
-                for val in value.iteritems():
-                    cls.xmlValue(val[0], val[1], 'value', attrType, 'single',
-                                 generator, withSchema)
-            elif isinstance(value, list):
-                for val in value:
-                    cls.xmlValue(None, val, 'value', attrType, 'single',
-                                 generator, withSchema)
-            else:
-                generator.characters(cls.makeString(value))
-        else:
-            attrType.typeXML(value, generator)
-
-        generator.endElement(tag)
-
-    typeName = classmethod(typeName)
-    makeString = classmethod(makeString)
-    xmlValue = classmethod(xmlValue)
+        return False

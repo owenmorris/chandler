@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item withSchema="True">
   <name>Complex</name>
-  <kind type="path">//Schema/Model/Type</kind>
+  <kind type="path">//Schema/Model/Kinds/Type</kind>
   <class module="model.schema.Types">Complex</class>
 </item>

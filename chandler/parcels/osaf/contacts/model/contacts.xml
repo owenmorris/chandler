@@ -10,8 +10,6 @@
 
   <itemPathMapping prefix="types"
                    path="//Schema/Model/Types/"/>
-  <itemPathMapping prefix="core"
-                   path="//Schema/Model/"/>
   <itemPathMapping prefix="contacts"
                    path="//Schema/ContactsSchema/"/>
 
@@ -72,7 +70,6 @@
     <attributes itemref="contacts:nickname"/>
     <attributes itemref="contacts:nameEntity"/>
     <classes key="python">OSAF.contacts.model.ContactName.ContactName</classes>
-    <superKinds itemref="core:Item" />
   </Kind>
 
   <!-- Attributes used in ContactMethod -->
@@ -118,7 +115,6 @@
     <attributes itemref="contacts:methodValue"/>
     <attributes itemref="contacts:methodEntity"/>
     <classes key="python">OSAF.contacts.model.ContactMethod.ContactMethod</classes>
-    <superKinds itemref="core:Item" />
   </Kind>
 
   <!-- Attributes used in PhoneContactMethod -->
@@ -200,7 +196,6 @@
     <attributes itemref="contacts:bodyAttributes"/>
     <attributes itemref="contacts:formatEntity"/>
     <classes key="python">OSAF.contacts.model.ContactFormat.ContactFormat</classes>
-    <superKinds itemref="core:Item" />
   </Kind>
 
   <!-- Main Attributes used in ContactEntity -->
@@ -306,7 +301,6 @@
     <attributes itemref="contacts:gender"/>
     <attributes itemref="contacts:sharing"/>
     <classes key="python">OSAF.contacts.model.ContactEntity.ContactEntity</classes>
-    <superKinds itemref="core:Item" />
   </Kind>
 
 </DomainSchema>

@@ -23,6 +23,7 @@ import xml.sax.handler
 
 from model.item.Item import Item
 from model.schema.Kind import Kind
+from model.schema.Namespace import Domain
 from model.schema.Attribute import Attribute
 from model.schema import Types
 
@@ -170,7 +171,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 if local == 'Attribute':
                     BOOTSTRAP[name] = '//Schema/Model/Attributes/' + name
                 elif local == 'Kind':
-                    BOOTSTRAP[name] = '//Schema/Model/' + name
+                    BOOTSTRAP[name] = '//Schema/Model/Kinds/' + name
                 elif local == 'Type' or local == 'Alias':
                     BOOTSTRAP[name] = '//Schema/Model/Types/' + name
                 if self.verbose:
@@ -247,24 +248,25 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def createDomainSchema(self, idString, rootName):
         """Create a DomainSchema with the given id."""
         [prefix, name] = idString.split(':')
-        kind = self.repository.find('//Schema/Model/Item')
+        domainKind = self.repository.find('//Schema/Model/Kinds/Domain')
+        itemKind = self.repository.find('//Schema/Model/Kinds/Item')
 
         self.domainSchemaName = name
 
         if self.bootstrap:
             parent = self.repository.find('//Schema/Model')
-            item = Item('Proposed', parent, kind)
+            item = FlatDomain('Proposed', parent, domainKind)
         else:
-            item = Item(name, self.parent, kind)
+            item = FlatDomain(name, self.parent, domainKind)
 
-        self.root = Item(rootName, self.repository, kind)
+        self.root = Item(rootName, self.repository, itemKind)
 
         return item
 
     def createKind(self, prefix, name):
         """Create a Kind item with the given id."""
-        kind = self.repository.find('//Schema/Model/Kind')
-        itemKind = self.repository.find('//Schema/Model/Item')
+        kind = self.repository.find('//Schema/Model/Kinds/Kind')
+        itemKind = self.repository.find('//Schema/Model/Kinds/Item')
         
         if self.verbose:
             print "Creating Kind: (%s, %s)" % (self.domainSchema.getItemPath(),
@@ -277,7 +279,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createAttribute(self, prefix, name):
         """Create an Attribute item with the given id."""
-        kind = self.repository.find('//Schema/Model/Attribute')
+        kind = self.repository.find('//Schema/Model/Kinds/Attribute')
         if self.verbose:
             print "Creating Attribute: (%s, %s)" % (self.domainSchema.getItemPath(),
                                                     name)
@@ -287,7 +289,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createItem(self, prefix, name):
         """Create a generic item, for types, aliases, etc."""
-        kind = self.repository.find('//Schema/Model/Item')
+        kind = self.repository.find('//Schema/Model/Kinds/Item')
         item = Item(name, self.domainSchema, kind)
         return item
 
@@ -347,4 +349,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 value = attributeDictionary[key]
                 item.setAttributeValue(ATTRIBUTE_BOOL_TAGS[key], value)
 
+class FlatDomain(Domain):
+    def getNamespace(self, name):
+        return self
 

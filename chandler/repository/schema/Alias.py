@@ -6,7 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from model.schema.Types import Type
-from model.item.Item import ItemHandler
 
 
 class Alias(Type):

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Movie</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+
+  <ref name="attributes">
+    <ref type="path">/CineGuide/Attributes/director</ref>
+    <ref type="path">/CineGuide/Attributes/title</ref>
+    <ref type="path">/CineGuide/Attributes/frenchTitle</ref>
+    <ref type="path">/CineGuide/Attributes/released</ref>
+    <ref type="path">/CineGuide/Attributes/actors</ref>
+  </ref>
+
+  <attribute name="displayAttribute">title</attribute>
+
+  <ref name="superKinds">
+    <ref type="path">/Model/Kinds/Item</ref>
+  </ref>
+
+</item>

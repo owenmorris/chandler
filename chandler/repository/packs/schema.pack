@@ -2,26 +2,28 @@
 
 <pack name="Schema" cwd="schema">
 
-  <item file="Schema.root" call="afterLoadHook">
+  <item file="Schema.root" afterLoadHooks="True">
     <item file="Model.domain" cwd="model">
 
-      <!-- Must be loaded first -->
-      <item file="Kind.kind" /> 
-
-      <item file="Attribute.kind" />
-      <item file="Item.kind" />
-      <item file="Taxon.kind" />
-      <item file="Type.kind" />
-      <item file="Enumeration.kind" />
-      <item file="Alias.kind" />
-
-      <item file="Types.container" cwd="types">
+      <item file="Types.namespace" cwd="types">
         <item files="*.type" />
         <item files="*.alias" />
       </item>
 
-      <item file="Attributes.container" cwd="attributes">
+      <item file="Attributes.namespace" cwd="attributes">
         <item files="*.attr" />
+      </item>
+
+      <item file="Kinds.namespace" cwd="kinds">
+        <item file="Item.kind" />
+        <item file="Namespace.kind" />
+        <item file="Domain.kind" />
+        <item file="Attribute.kind" />
+        <item file="Taxon.kind" />
+        <item file="Kind.kind" /> 
+        <item file="Alias.kind" />
+        <item file="Type.kind" />
+        <item file="Enumeration.kind" />
       </item>
 
     </item>

@@ -1,4 +1,4 @@
-build
+build build_release build_debug
 Makefile
 *.pyc
 *.pyo

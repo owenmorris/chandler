@@ -5,8 +5,9 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax, xml.sax.saxutils
-import os.path
-import os
+import os, os.path
+
+from datetime import datetime
 
 from model.util.UUID import UUID
 from model.persistence.Repository import Repository, RepositoryError
@@ -20,38 +21,38 @@ class FileRepository(Repository):
     item files in a given directory. It can then load them back to restore
     the same exact item hierarchy."""
 
-    def create(self):
+    def create(self, verbose=False):
 
         if not self.isOpen():
-            super(FileRepository, self).create()
+            super(FileRepository, self).create(verbose)
             self._status |= Repository.OPEN
 
     def open(self, verbose=False, create=False):
 
         if not self.isOpen():
-            super(FileRepository, self).open()
-            self._status |= Repository.OPEN
-            self._load(verbose=verbose)
+            super(FileRepository, self).open(verbose)
+            self._status |= self.OPEN
+            self._load()
 
     def close(self):
 
         if self.isOpen():
-            self._status &= ~Repository.OPEN
+            self._status &= ~self.OPEN
 
-    def _load(self, verbose=False):
+    def _load(self):
         'Load items from the directory the repository was initialized with.'
 
         try:
-            self._status |= Repository.LOADING
+            self._status |= self.LOADING
             if os.path.isdir(self.dbHome):
                 contents = file(os.path.join(self.dbHome, 'contents.lst'), 'r')
             
                 for dir in contents.readlines():
-                    self._loadRoot(dir[:-1], verbose=verbose)
+                    self._loadItems(dir[:-1])
         finally:
-            self._status &= ~Repository.LOADING
+            self._status &= ~self.LOADING
 
-    def _loadRoot(self, dir, verbose=False):
+    def _loadItems(self, dir):
 
         hooks = []
 
@@ -59,14 +60,19 @@ class FileRepository(Repository):
         for uuid in contents.readlines():
             self._loadItemFile(os.path.join(self.dbHome, dir,
                                             uuid[:-1] + '.item'),
-                               verbose=verbose, afterLoadHooks=hooks)
+                               verbose=self.verbose, afterLoadHooks=hooks)
         contents.close()
 
         for hook in hooks:
             hook()
 
     def _loadItem(self, uuid):
+        return None
 
+    def _loadRoot(self, name):
+        return None
+
+    def _loadChild(self, parent, name):
         return None
 
     def purge(self):
@@ -81,7 +87,7 @@ class FileRepository(Repository):
                             os.remove(os.path.join(path, item))
             os.path.walk(self.dbHome, purge, None)
 
-    def commit(self, purge=False, verbose=False):
+    def commit(self, purge=False):
         '''Save all items into the directory this repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
@@ -95,39 +101,49 @@ class FileRepository(Repository):
         elif not os.path.isdir(self.dbHome):
             raise ValueError, "%s exists but is not a directory" %(self.dbHome)
 
+        before = datetime.now()
+        count = 0
+
         contents = file(os.path.join(self.dbHome, 'contents.lst'), 'w')
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
-            self._saveRoot(self.getRoot('Schema'), True, verbose)
+            count += self._saveItems(self.getRoot('Schema'), True)
             contents.write('Schema')
             contents.write('\n')
         
         for root in self._roots.itervalues():
             name = root.getItemName()
             if name != 'Schema':
-                self._saveRoot(root, not hasSchema, verbose)
+                count += self._saveItems(root, not hasSchema)
                 contents.write(name)
                 contents.write('\n')
                 
         contents.close()
 
+        after = datetime.now()
+        print 'committed %d items in %s' %(count, after - before)
+        
         if purge:
             self.purge()
 
-    def _saveRoot(self, root, withSchema=False, verbose=False):
+    def _saveItems(self, root, withSchema=False):
 
         def commit(item, repository, contents, **args):
 
+            count = 0
             if item.isDirty():
                 repository._saveItem(item, **args)
+                count += 1
                 item.setDirty(False)
 
             contents.write(item.getUUID().str16())
             contents.write('\n')
                 
             for child in item:
-                commit(child, repository, contents, **args)
+                count += commit(child, repository, contents, **args)
+
+            return count
 
         name = root.getItemName()
         dir = os.path.join(self.dbHome, name)
@@ -138,9 +154,11 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        commit(root, self, rootContents,
-               withSchema = withSchema, verbose = verbose)
+        count = commit(root, self, rootContents,
+                       withSchema = withSchema, verbose = self.verbose)
         rootContents.close()
+
+        return count
 
     def _saveItem(self, item, **args):
 
@@ -173,13 +191,4 @@ class FileRepository(Repository):
     
 
 class FileRefDict(RefDict):
-
-    def _saveValues(self, generator):
-
-        for tuple in self._iteritems():
-            if self._ordered:
-                ref = tuple[1]._value
-            else:
-                ref = tuple[1]
-                
-            ref._saveValue(tuple[0], self._item, generator)
+    pass

@@ -23,6 +23,7 @@ class PackHandler(xml.sax.ContentHandler):
         self.parent = [ parent ]
         self.repository = repository
         self.verbose = verbose
+        self.hooks = [ None ]
 
     def startDocument(self):
 
@@ -81,6 +82,9 @@ class PackHandler(xml.sax.ContentHandler):
     def itemStart(self, attrs):
 
         parent = None
+
+        if attrs.get('afterLoadHooks', 'False') == 'True':
+            self.hooks.append([])
         
         if attrs.has_key('path'):
             parent = self.repository.find(Path(attrs['path']))
@@ -111,12 +115,14 @@ class PackHandler(xml.sax.ContentHandler):
         if attrs.has_key('cwd'):
             self.cwd.pop()
 
-        if attrs.has_key('call'):
-            getattr(type(item), attrs['call'])(item)
+        if attrs.get('afterLoadHooks', 'False') == 'True':
+            for hook in self.hooks.pop():
+                hook()
 
     def loadItem(self, file, parent):
 
         if self.verbose:
             print file
             
-        return self.repository._loadItemFile(file, parent)
+        return self.repository._loadItemFile(file, parent,
+                                             afterLoadHooks=self.hooks[-1])

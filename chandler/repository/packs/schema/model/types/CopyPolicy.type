@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item withSchema="True">
   <name>CopyPolicy</name>
-  <kind type="path">//Schema/Model/Enumeration</kind>
+  <kind type="path">//Schema/Model/Kinds/Enumeration</kind>
+  <class module="model.schema.Types">Enumeration</class>
 
   <attribute name="values" cardinality="list">
     <value>remove</value>

@@ -2,7 +2,8 @@
 
 <item withSchema="True">
   <name>deletePolicy</name>
-  <kind type="path">//Schema/Model/Attribute</kind>
+  <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+  <class module="model.schema.Attribute">Attribute</class>
 
   <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Types/DeletePolicy</ref>

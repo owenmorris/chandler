@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Kind</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <class module="model.schema.Kind">Kind</class>
+
+  <ref name="kind" otherName="items" 
+       type="path" otherCard="dict">/Model/Kinds/Kind</ref>
+
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref type="path">/Model/Attributes/superKinds</ref>
+    <ref type="path">/Model/Attributes/subKinds</ref>
+    <ref type="path">/Model/Attributes/items</ref>
+    <ref type="path">/Model/Attributes/attributes</ref>
+    <ref type="path">/Model/Attributes/inheritedNames</ref>
+    <ref type="path">/Model/Attributes/inheritedAttributes</ref>
+    <ref type="path">/Model/Attributes/notFoundAttributes</ref>
+    <ref type="path">/Model/Attributes/classes</ref>
+    <ref type="path">/Model/Attributes/displayAttribute</ref>
+  </ref>
+
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
+    <ref type="path">/Model/Kinds/Taxon</ref>
+  </ref>
+
+  <attribute name="classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.schema.Kind.Kind</value>
+  </attribute>
+</item>

@@ -3,7 +3,7 @@
 <xml>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">A Bill of Divorcement</attribute>
     <attribute name="frenchTitle">Heritage</attribute>
@@ -16,7 +16,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Morning Glory</attribute>
     <attribute name="released">1933-MM-DD</attribute>
@@ -28,7 +28,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Little Women</attribute>
     <attribute name="frenchTitle">Les Quatre Filles du Docteur Marsch</attribute>
@@ -41,7 +41,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Spitfire</attribute>
     <attribute name="frenchTitle">Mademoiselle Hicks</attribute>
@@ -54,7 +54,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Alice Adams</attribute>
     <attribute name="released">1935-MM-DD</attribute>
@@ -66,7 +66,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Mary of Scotland</attribute>
     <attribute name="frenchTitle">Mary Stuart</attribute>
@@ -79,7 +79,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Sylvia Scarlett</attribute>
     <attribute name="released">1936-MM-DD</attribute>
@@ -91,7 +91,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Stage Door</attribute>
     <attribute name="frenchTitle">Pension d'Artistes</attribute>
@@ -104,7 +104,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Bringing Up Baby</attribute>
     <attribute name="frenchTitle">L'Impossible Monsieur Bebe</attribute>
@@ -117,7 +117,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Woman of the Year</attribute>
     <attribute name="frenchTitle">La Femme de l'Annee</attribute>
@@ -130,7 +130,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Keeper of the Flame</attribute>
     <attribute name="frenchTitle">La Flamme Sacree</attribute>
@@ -143,7 +143,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Stagedoor Canteen</attribute>
     <attribute name="frenchTitle">Le Cabaret des Etoiles</attribute>
@@ -156,7 +156,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Dragon Seed</attribute>
     <attribute name="frenchTitle">Le Fils du Dragon</attribute>
@@ -169,7 +169,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Undercurrent</attribute>
     <attribute name="frenchTitle">Lame de Fond</attribute>
@@ -182,7 +182,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Sea of Grass</attribute>
     <attribute name="frenchTitle">Le Maitre de la Prairie</attribute>
@@ -195,7 +195,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">State of the Union</attribute>
     <attribute name="frenchTitle">L'Enjeu</attribute>
@@ -208,7 +208,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Adam's Rib</attribute>
     <attribute name="frenchTitle">Madame Porte la Culotte</attribute>
@@ -221,7 +221,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">African Queen</attribute>
     <attribute name="frenchTitle">La Reine Africaine</attribute>
@@ -234,7 +234,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Pat and Mike</attribute>
     <attribute name="frenchTitle">Mademoiselle Gagne-Tout</attribute>
@@ -247,7 +247,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Summertime</attribute>
     <attribute name="frenchTitle">Vacances a Venise</attribute>
@@ -260,7 +260,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Rainmaker</attribute>
     <attribute name="frenchTitle">Le Faiseur de Pluie</attribute>
@@ -273,7 +273,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Iron Petticoat</attribute>
     <attribute name="frenchTitle">Whisky, Vodka et Jupon de Fer</attribute>
@@ -286,7 +286,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Desk Set</attribute>
     <attribute name="frenchTitle">Une Femme de Tete</attribute>
@@ -299,7 +299,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Suddenly Last Summer</attribute>
     <attribute name="frenchTitle">Soudain l'Ete Dernier</attribute>
@@ -312,7 +312,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Lond Day's Journey into Night</attribute>
     <attribute name="released">1962-MM-DD</attribute>
@@ -324,7 +324,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Guess Who's Coming to Dinner</attribute>
     <attribute name="frenchTitle">Devine qui Vient Diner ?</attribute>
@@ -337,7 +337,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Lion in Winter</attribute>
     <attribute name="frenchTitle">Un Lion en Hiver</attribute>
@@ -350,7 +350,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Madwoman of Chaillot</attribute>
     <attribute name="frenchTitle">La Folle de Chaillot</attribute>
@@ -363,7 +363,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Trojan Women</attribute>
     <attribute name="frenchTitle">Les Troyennes</attribute>
@@ -376,7 +376,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Rooster Cogburn</attribute>
     <attribute name="frenchTitle">Une Bible et un Fusil</attribute>
@@ -389,7 +389,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Olly, Olly, Oxen Free</attribute>
     <attribute name="released">1978-MM-DD</attribute>
@@ -401,7 +401,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">On Golden Pond</attribute>
     <attribute name="frenchTitle">La Maison du Lac</attribute>
@@ -414,7 +414,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Georges Stevens: A Filmmaker's Story</attribute>
     <attribute name="released">1984-MM-DD</attribute>
@@ -426,7 +426,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Man Upstairs</attribute>
     <attribute name="frenchTitle">Bijoux, Hot-Dogs et Tasses de Cafe</attribute>
@@ -439,7 +439,7 @@
   </item>
 
   <item>
-    <kind type="path">//Schema/CineGuide/Movie</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Love Affair</attribute>
     <attribute name="frenchTitle">Rendez-Vous avec le Destin</attribute>

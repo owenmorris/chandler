@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Attribute</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+  <class module="model.schema.Kind">Kind</class>
+
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref type="path">/Model/Attributes/required</ref>
+    <ref type="path">/Model/Attributes/persist</ref>
+    <ref type="path">/Model/Attributes/cardinality</ref>
+    <ref type="path">/Model/Attributes/type</ref>
+    <ref type="path">/Model/Attributes/defaultValue</ref>
+    <ref type="path">/Model/Attributes/inheritFrom</ref>
+    <ref type="path">/Model/Attributes/otherName</ref>
+    <ref type="path">/Model/Attributes/deletePolicy</ref>
+    <ref type="path">/Model/Attributes/copyPolicy</ref>
+    <ref type="path">/Model/Attributes/countPolicy</ref>
+    <ref type="path">/Model/Attributes/inheritingKinds</ref>
+    <ref type="path">/Model/Attributes/kinds</ref>
+    <ref type="path">/Model/Attributes/superAttribute</ref>
+    <ref type="path">/Model/Attributes/subAttributes</ref>
+  </ref>
+
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
+    <ref type="path">/Model/Kinds/Item</ref>
+  </ref>
+
+  <attribute name="classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.schema.Attribute.Attribute</value>
+  </attribute>
+</item>

@@ -75,3 +75,7 @@ class UUID(object):
         aLRpUOtih7neqg00ejSUdY.'''
 
         return UUIDext.to64String(self._uuid)
+
+
+if __name__ == "__main__":
+    print UUID().str16()

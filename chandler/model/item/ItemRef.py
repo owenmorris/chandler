@@ -119,7 +119,7 @@ class ItemRef(object):
 
         return 1
 
-    def _saveValue(self, name, item, generator, withSchema=False):
+    def _xmlValue(self, name, item, generator, withSchema, mode):
 
         def typeName(value):
             
@@ -616,7 +616,7 @@ class RefDict(References):
         else:
             return 'dict'
 
-    def _saveValue(self, name, item, generator, withSchema=False):
+    def _xmlValue(self, name, item, generator, withSchema, mode):
 
         def addAttr(attrs, attr, key):
 
@@ -645,12 +645,18 @@ class RefDict(References):
                 attrs['otherCard'] = otherCard
 
             generator.startElement('ref', attrs)
-            self._saveValues(generator)
+            self._xmlValues(generator, mode)
             generator.endElement('ref')
 
-    def _saveValues(self, generator):
+    def _xmlValues(self, generator, mode):
 
-        raise NotImplementedError, 'RefDict._saveValues'
+        for tuple in self._iteritems():
+            if self._ordered:
+                ref = tuple[1]._value
+            else:
+                ref = tuple[1]
+                
+            ref._xmlValue(tuple[0], self._item, generator, False, mode)
 
     def iterkeys(self):
 

@@ -8,8 +8,6 @@
 	<description>RSS schema for ZaoBao parcel for 0.2 release</description>
 	<version>0.1</version>
 	
-	<itemPathMapping prefix="core"
-		path="//Schema/Model/"/>
 	<itemPathMapping prefix="types"
 		path="//Schema/Model/Types/"/>
 	<itemPathMapping prefix="zaobao"
@@ -110,7 +108,6 @@
 		<attributes itemref="zaobao:isUnread"/>
 		<attributes itemref="zaobao:items"/>
 		<classes key="python">OSAF.zaobao.model.RSSData.RSSChannel</classes>
-    <superKinds itemref="core:Item" />
 	</Kind>	
 
 	<Kind itemName="zaobao:RSSItem">
@@ -123,7 +120,6 @@
 		<attributes itemref="zaobao:lastModified"/>
 		<attributes itemref="zaobao:channel"/>
 		<classes key="python">OSAF.zaobao.model.RSSData.RSSItem</classes>
-    <superKinds itemref="core:Item" />
 	</Kind>
 	
 <!-- end -->	

@@ -11,13 +11,6 @@ from model.schema.Kind import Kind
 
 class Attribute(Item):
 
-    def refName(self, name):
-
-        if name == 'attributes' or name == 'inheritedAttributes':
-            return self._name
-
-        return super(Attribute, self).refName(name)
-
     def hasAspect(self, name):
 
         return self.hasAttributeValue(name)
@@ -33,8 +26,8 @@ class Attribute(Item):
 
         return default
 
-    def _saveRefs(self, generator, withSchema):
+    def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():
             if self.getAttributeAspect(attr[0], 'persist', True):
-                attr[1]._saveValue(attr[0], self, generator, withSchema)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)

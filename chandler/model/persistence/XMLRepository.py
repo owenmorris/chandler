@@ -4,16 +4,18 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
-import xml.sax, xml.sax.saxutils
-import cStringIO
+import os, re, cStringIO, xml.sax.saxutils
+
+from xml.sax import parseString
+from datetime import datetime
+from struct import pack, unpack
 
 from model.util.UUID import UUID
-from model.item.Item import Item, ItemHandler
+from model.item.Item import Item
 from model.item.ItemRef import ItemRef, ItemStub, RefDict
-from model.persistence.Repository import Repository, RepositoryError
+from model.persistence.Repository import OnDemandRepository, Store
+from model.persistence.Repository import RepositoryError
 
-from struct import pack, unpack
 from bsddb.db import DBEnv, DB
 from bsddb.db import DB_CREATE, DB_TRUNCATE, DB_FORCE, DB_INIT_MPOOL, DB_BTREE
 from bsddb.db import DBNoSuchFileError, DBNotFoundError
@@ -25,7 +27,7 @@ class DBError(RepositoryError):
     "All DBXML related exceptions go here"
     
 
-class XMLRepository(Repository):
+class XMLRepository(OnDemandRepository):
     """A Berkeley DBXML based repository.
 
     This simple repository implementation saves all items in separate XML
@@ -41,12 +43,12 @@ class XMLRepository(Repository):
         self._ctx = XmlQueryContext()
         self._transaction = {}
         
-    def create(self):
+    def create(self, verbose=False):
 
         if not self.isOpen():
-            super(XMLRepository, self).create()
+            super(XMLRepository, self).create(verbose)
             self._create()
-            self._status |= Repository.OPEN
+            self._status |= self.OPEN
 
     def _create(self):
 
@@ -60,108 +62,79 @@ class XMLRepository(Repository):
         
         self._env = DBEnv()
         self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
-        self._refs = XMLRepository.refContainer(self._env, "__refs__",
-                                                True)
-        self._schema = XMLRepository.xmlContainer(self._env, "__schema__",
-                                                  True)
-        self._data = XMLRepository.xmlContainer(self._env, "__data__",
-                                                True)
+        self._refs = XMLRepository.refContainer(self._env, "__refs__", True)
+        self._store = XMLRepository.xmlContainer(self._env, "__data__", True)
 
     def open(self, verbose=False, create=False):
 
         if not self.isOpen():
-            super(XMLRepository, self).open()
+            super(XMLRepository, self).open(verbose)
             self._env = DBEnv()
 
             try:
                 self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
-                self._refs = XMLRepository.refContainer(self._env,
-                                                        "__refs__")
-                self._schema = XMLRepository.xmlContainer(self._env,
-                                                          "__schema__")
-                self._data = XMLRepository.xmlContainer(self._env,
-                                                        "__data__")
+                self._refs = XMLRepository.refContainer(self._env, "__refs__")
+                self._store = XMLRepository.xmlContainer(self._env, "__data__")
             except DBNoSuchFileError:
                 if create:
                     self._create()
                 else:
                     raise
 
-            self._status |= Repository.OPEN
-            self._load(verbose=verbose)
+            self._status |= self.OPEN
 
-    def close(self, purge=False, verbose=False):
+    def close(self, purge=False):
 
         if self.isOpen():
             self._refs.close()
-            self._data.close()
-            self._schema.close()
+            self._store.close()
             self._env.close()
             self._env = None
-            self._status &= ~Repository.OPEN
-
-    def _load(self, verbose=False):
-
-        if not self.isOpen():
-            raise DBError, "Repository is not open"
-
-        def load(container):
-
-            hooks = []
-
-            for value in container.query("/item"):
-                self._loadItemString(value.asDocument().getContent(),
-                                     verbose=verbose, afterLoadHooks=hooks)
-
-            for hook in hooks:
-                hook()
-
-        try:
-            self._status |= Repository.LOADING
-            load(self._schema)
-            load(self._data)
-        finally:
-            self._status &= ~Repository.LOADING
-
-    def _loadItem(self, uuid):
-
-        return None
+            self._status &= ~self.OPEN
 
     def purge(self):
         pass
 
-    def commit(self, purge=False, verbose=False):
+    def commit(self, purge=False):
 
         if not self.isOpen():
             raise DBError, "Repository is not open"
 
+        before = datetime.now()
+        count = 0
+        
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
-            self._saveRoot(self.getRoot('Schema'), self._schema,
-                           True, verbose)
+            count += self._saveItems(self.getRoot('Schema'), self._store, True)
         
         for root in self._roots.itervalues():
             name = root.getItemName()
             if name != 'Schema':
-                self._saveRoot(root, self._data,
-                               not hasSchema, verbose)
+                count += self._saveItems(root, self._store, not hasSchema)
 
-    def _saveRoot(self, root, container,
-                  withSchema=False, verbose=False):
+        after = datetime.now()
+        print 'committed %d items in %s' %(count, after - before)
 
-        log = self._transaction.get(root.getItemName(), None)
-        if log is not None:
+    def _saveItems(self, root, container, withSchema=False):
+
+        log = self._transaction.get(root.getItemName(), [])
+        count = len(log)
+
+        if log:
             for item in log:
                 self._saveItem(item, container = container,
-                               withSchema = withSchema, verbose = verbose)
+                               withSchema = withSchema, verbose = self.verbose)
                 item.setDirty(False)
             del log[:]
+
+        return count
 
     def _saveItem(self, item, **args):
 
         container = args['container']
-        for oldDoc in container.find(item.getUUID()):
+        oldDoc = container.loadItem(item.getUUID())
+        if oldDoc is not None:
             container.deleteDocument(oldDoc)
 
         if item.isDeleted():
@@ -192,7 +165,7 @@ class XMLRepository(Repository):
             print 'Removing', item.getItemPath()
             
         container = args['container']
-        for oldDoc in container.find(item.getUUID()):
+        for oldDoc in container.loadItem(item.getUUID()):
             container.deleteDocument(oldDoc)
 
     def createRefDict(self, item, name, otherName, ordered=False):
@@ -215,7 +188,7 @@ class XMLRepository(Repository):
         
         return False
 
-    class xmlContainer(object):
+    class xmlContainer(Store):
 
         def __init__(self, env, name, create=False):
 
@@ -233,7 +206,9 @@ class XMLRepository(Repository):
                                    "node-attribute-equality-string")
                 self._xml.addIndex(None, "", "kind",
                                    "node-element-equality-string")
-                self._xml.addIndex(None, "", "parent",
+                self._xml.addIndex(None, "", "container",
+                                   "node-element-equality-string")
+                self._xml.addIndex(None, "", "name",
                                    "node-element-equality-string")
             else:
                 self._xml.open(None, 0)
@@ -243,16 +218,38 @@ class XMLRepository(Repository):
             self._ctx.setEvaluationType(XmlQueryContext.Lazy)
             self._updateCtx = XmlUpdateContext(self._xml)
 
-        def find(self, uuid):
+        def loadItem(self, uuid):
 
             self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
             for value in self._xml.queryWithXPath(None, "/item[@uuid=$uuid]",
                                                   self._ctx):
-                yield value.asDocument()
+                return value.asDocument()
 
-        def query(self, xpath, context=None):
+        def loadChild(self, uuid, name):
 
-            return self._xml.queryWithXPath(None, xpath, context)
+            self._ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
+            self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
+            for value in self._xml.queryWithXPath(None, "/item[container=$uuid and name=$name]",
+                                                  self._ctx):
+                return value.asDocument()
+
+        def loadChildren(self, uuid):
+
+            ctx = XmlQueryContext()
+            ctx.setReturnType(XmlQueryContext.ResultDocuments)
+            ctx.setEvaluationType(XmlQueryContext.Lazy)
+            ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
+            nameExp = re.compile("<name>(.*)</name>")
+
+            for value in self._xml.queryWithXPath(None,
+                                                  "/item[container=$uuid]",
+                                                  ctx):
+                xml = value.asDocument()
+                xmlString = xml.getContent()
+                match = nameExp.match(xmlString, xmlString.index("<name>"))
+                name = match.group(1)
+                
+                yield (xml, name)
 
         def deleteDocument(self, doc):
 
@@ -267,6 +264,10 @@ class XMLRepository(Repository):
             self._xml.close()
             self._xml = None
 
+        def parseXML(self, xml, handler):
+
+            parseString(xml.getContent(), handler)
+            
 
     class refContainer(object):
 
@@ -329,12 +330,9 @@ class XMLRefDict(RefDict):
     class _log(list):
 
         def append(self, value):
-            if len(self) > 0:
-                if value != self[-1]:
-                    super(XMLRefDict._log, self).append(value)
-            else:
+            if len(self) == 0 or value != self[-1]:
                 super(XMLRefDict._log, self).append(value)
-                
+
 
     def __init__(self, repository, item, name, otherName, ordered):
         
@@ -489,36 +487,43 @@ class XMLRefDict(RefDict):
         if self._ordered:
             self._value = cStringIO.StringIO()
             
-    def _saveValues(self, generator):
+    def _xmlValues(self, generator, mode):
 
-        for entry in self._log:
-            try:
-                value = self._get(entry[1])
-            except KeyError:
-                value = None
+        if mode == 'save':
+            for entry in self._log:
+                try:
+                    value = self._get(entry[1])
+                except KeyError:
+                    value = None
+    
+                if entry[0] == 0:
+                    if value is not None:
+                        if self._ordered:
+                            ref = value._value
+                            previous = value._previous
+                            next = value._next
+                        else:
+                            ref = value
+                            previous = None
+                            next = None
+    
+                        uuid = ref.other(self._item).getUUID()
+                        self._writeRef(entry[1], uuid, previous, next)
+                        
+                elif entry[0] == 1:
+                    self._eraseRef(entry[1])
+                else:
+                    raise ValueError, entry[0]
+    
+            del self._log[:]
+    
+            if len(self) > 0:
+                generator.startElement('db', {})
+                generator.characters(self._uuid.str64())
+                generator.endElement('db')
 
-            if entry[0] == 0:
-                if value is not None:
-                    if self._ordered:
-                        ref = value._value
-                        previous = value._previous
-                        next = value._next
-                    else:
-                        ref = value
-                        previous = None
-                        next = None
+        elif mode == 'serialize':
+            super(XMLRefDict, self)._xmlValues(generator, mode)
 
-                    uuid = ref.other(self._item).getUUID()
-                    self._writeRef(entry[1], uuid, previous, next)
-                    
-            elif entry[0] == 1:
-                self._eraseRef(entry[1])
-            else:
-                raise ValueError, entry[0]
-
-        del self._log[:]
-
-        if len(self) > 0:
-            generator.startElement('db', {})
-            generator.characters(self._uuid.str64())
-            generator.endElement('db')
+        else:
+            raise ValueError, mode

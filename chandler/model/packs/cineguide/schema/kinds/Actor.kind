@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Actor</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+
+  <ref name="attributes">
+    <ref type="path">/CineGuide/Attributes/name</ref>
+    <ref type="path">/CineGuide/Attributes/born</ref>
+    <ref type="path">/CineGuide/Attributes/died</ref>
+    <ref type="path">/CineGuide/Attributes/movies</ref>
+  </ref>
+
+  <ref name="superKinds">
+    <ref type="path">/Model/Kinds/Item</ref>
+  </ref>
+
+</item>

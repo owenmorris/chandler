@@ -6,8 +6,6 @@
   <description>Calendar schema for the 0.2 release</description>
   <version>0.1</version>
 
-  <itemPathMapping prefix="core" 
-                   path="//Schema/Model/"/>
   <itemPathMapping prefix="types" 
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="cal" 

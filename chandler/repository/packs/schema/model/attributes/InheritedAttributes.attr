@@ -2,7 +2,8 @@
 
 <item withSchema="True">
   <name>inheritedAttributes</name>
-  <kind type="path">//Schema/Model/Attribute</kind>
+  <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+  <class module="model.schema.Attribute">Attribute</class>
 
   <attribute name="cardinality">dict</attribute>
   <attribute name="persist" type="bool">False</attribute>

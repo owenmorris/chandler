@@ -6,17 +6,19 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from model.item.Item import Item
+from model.schema.Namespace import Namespace
 from model.item.ItemRef import RefDict
 from model.util.Path import Path
 
 
-class Kind(Item):
+class Kind(Namespace):
 
     def __init__(self, name, parent, kind):
 
         super(Kind, self).__init__(name, parent, kind)
 
         # recursion avoidance
+        self._values['inheritedNames'] = {}
         self._values['notFoundAttributes'] = []
 
     def _fillItem(self, name, parent, kind, **kwds):
@@ -24,6 +26,7 @@ class Kind(Item):
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
 
         # recursion avoidance
+        self._values['inheritedNames'] = {}
         self._values['notFoundAttributes'] = []
 
     def newItem(self, name, parent):
@@ -38,31 +41,46 @@ class Kind(Item):
         """Return the class used to create items of this Kind.
 
         By default, the Item class is returned."""
-        
+
         return self.getAttributeValue('classes').get('python', Item)
-        
+
+    def resolve(self, name):
+
+        child = self.getItemChild(name)
+        if child:
+            return child.getUUID()
+
+        return self.getDomain().getNamespace('Attributes').resolve(name)
+
     def getAttribute(self, name):
 
-        attribute = self.getValue('attributes', name,
-                                  _attrDict=self._references)
-        if attribute is None:
-            attribute = self.getValue('inheritedAttributes', name,
+        uuid = self.resolve(name)
+        if uuid is not None:
+            attribute = self.getValue('attributes', uuid,
                                       _attrDict=self._references)
-            if attribute is None:
-                return self.inheritAttribute(name)
+        else:
+            attribute = None
+            
+        if attribute is None:
+            uuid = self.getValue('inheritedNames', name)
+            if uuid is not None:
+                attribute = self.getValue('inheritedAttributes', uuid,
+                                          _attrDict=self._references)
+            else:
+                attribute = self.inheritAttribute(name)
 
         return attribute
 
     def hasAttribute(self, name):
 
-        if self.hasValue('attributes', name, _attrDict=self._references):
+        uuid = self.resolve(name)
+        if uuid is not None:
+            if self.hasValue('attributes', uuid, _attrDict=self._references):
+                return True
+        elif self.hasValue('inheritedNames', name):
             return True
-        
-        if self.hasValue('inheritedAttributes', name,
-                         _attrDict=self._references):
-            return True
-        
-        return self.inheritAttribute(name) is not None
+        else:
+            return self.inheritAttribute(name) is not None
 
     def inheritAttribute(self, name):
 
@@ -76,6 +94,8 @@ class Kind(Item):
                 if inheritingKind is not None:
                     attribute = inheritingKind.getAttribute(name)
                     if attribute is not None:
+                        self.addValue('inheritedNames',
+                                      attribute.getUUID(), name)
                         self.attach('inheritedAttributes', attribute)
                         return attribute
                 else:
@@ -91,31 +111,19 @@ class Kind(Item):
         if self.hasAttributeValue('superKinds'):
             return self.superKinds
 
-#        return self._kind._getInheritingKinds()
         raise ValueError, 'No superKind for %s' %(self.getItemPath())
 
-    def _saveRefs(self, generator, withSchema):
+    def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():
             if self.getAttributeAspect(attr[0], 'persist', True):
-                attr[1]._saveValue(attr[0], self, generator, withSchema)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
 
     def isAlias(self):
         return False
 
     def recognizes(self, value):
         raise NotImplementedError, "Kind.recognizes()"
-
-
-class KindKind(Kind):
-
-    def __init__(self, name, parent, kind):
-
-        super(KindKind, self).__init__(name, parent, self)
-
-    def _fillItem(self, name, parent, kind, **kwds):
-    
-        super(KindKind, self)._fillItem(name, parent, self, **kwds)
 
 
 class ItemKind(Kind):
@@ -131,8 +139,8 @@ class SchemaRoot(Item):
 
         super(SchemaRoot, self)._fillItem(name, parent, kind, **kwds)
 
-        if kwds['afterLoadHooks'] is not None:
-            kwds['afterLoadHooks'].append(self.afterLoadHook)
+#        if kwds['afterLoadHooks'] is not None:
+#            kwds['afterLoadHooks'].append(self.afterLoadHook)
 
     def afterLoadHook(self):
 

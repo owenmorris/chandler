@@ -2,7 +2,7 @@
 
 <item>
     <name>born</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
 
     <ref name="type" type="path">//Schema/Model/Types/RelativeDateTime</ref>
     <attribute name="cardinality">single</attribute>

@@ -2,7 +2,7 @@
 
 <item>
     <name>KHepburn</name>
-    <kind type="path">//Schema/CineGuide/Actor</kind>
+    <kind type="path">//Schema/CineGuide/Kinds/Actor</kind>
 
     <attribute name="name">Katharine Hepburn</attribute>
     <attribute name="born">1907-MM-DD</attribute>

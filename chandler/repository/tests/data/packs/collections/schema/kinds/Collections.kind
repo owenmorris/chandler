@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Collections</name>
+  <kind type="path">//Schema/Model/Kinds/Kind</kind>
+
+  <ref name="attributes">
+    <ref type="path">/Collections/Attributes/dictionary</ref>
+    <ref type="path">/Collections/Attributes/list</ref>
+    <ref type="path">/Collections/Attributes/lists</ref>
+    <ref type="path">/Collections/Attributes/dictionaries</ref>
+    <ref type="path">/Collections/Attributes/alias</ref>
+  </ref>
+
+  <ref name="superKinds">
+    <ref type="path">/Model/Kinds/Item</ref>
+  </ref>
+
+</item>

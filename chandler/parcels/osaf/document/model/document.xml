@@ -6,8 +6,6 @@
   <description>Document block schema for the 0.2 release</description>
   <version>0.1</version>
 
-  <itemPathMapping prefix="core"
-                   path="//Schema/Model/"/>
   <itemPathMapping prefix="types"
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="doc"
@@ -60,7 +58,6 @@
     <attributes itemref="doc:positionInParent"/>
 
     <classes key="python">OSAF.document.model.Block.Block</classes>
-    <superKinds itemref="core:Item" />
   </Kind>
   
   <Kind itemName="doc:Container">

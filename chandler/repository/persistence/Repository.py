@@ -4,13 +4,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
-import os.path
-import os
+import os, os.path, xml.sax
 
 from model.util.UUID import UUID
 from model.util.Path import Path
-from model.item.Item import Item, ItemHandler
+from model.item.Item import Item
+from model.item.ItemHandler import ItemHandler
 from model.item.ItemRef import ItemStub, DanglingRefError
 from model.persistence.PackHandler import PackHandler
 
@@ -32,25 +31,26 @@ class Repository(object):
         self.dbHome = dbHome
         self._status = 0
 
-    def create(self):
+    def create(self, verbose=False):
 
-        self._init()
+        self._init(verbose)
         
     def open(self, verbose=False, create=False):
 
-        self._init()
+        self._init(verbose)
         
-    def _init(self):
+    def _init(self, verbose):
 
         self._roots = {}
         self._registry = {}
         self._stubs = []
         self._status = 0
+        self.verbose = verbose
         
-    def close(self, purge=False, verbose=False):
+    def close(self, purge=False):
         raise NotImplementedError, "Repository.close"
 
-    def commit(self, purge=False, verbose=False):
+    def commit(self, purge=False):
         raise NotImplementedError, "Repository.commit"
     
     def createRefDict(self, item, name, otherName, ordered=False):
@@ -71,7 +71,7 @@ class Repository(object):
 
         return self._registry.itervalues()
 
-    def _addItem(self, item):
+    def _addItem(self, item, previous=None, next=None):
 
         try:
             name = item.getItemName()
@@ -100,6 +100,12 @@ class Repository(object):
     def _loadItem(self, uuid):
         raise NotImplementedError, "Repository._loadItem"
 
+    def _loadRoot(self, name):
+        raise NotImplementedError, "Repository._loadRoot"
+
+    def _loadChild(self, parent, name):
+        raise NotImplementedError, "Repository._loadChild"
+
     def _saveItem(self, item, **args):
         raise NotImplementedError, "Repository._saveItem"
 
@@ -114,15 +120,26 @@ class Repository(object):
 
         return path
 
+    def hasRoot(self, name, load=True):
+
+        return self._roots.has_key(name)
+
     def getRoot(self, name, load=True):
         'Return the root as named or None if not found.'
-        
-        return self._roots.get(name)
+
+        try:
+            return self._roots[name]
+        except KeyError:
+            return self._loadRoot(name)
 
     def getRoots(self):
         'Return a list of the roots in the repository.'
 
         return self._roots.values()
+
+    def _findKind(self, spec, withSchema):
+
+        return self.find(spec)
 
     def find(self, spec, _index=0, load=True):
         '''Find an item as specified or return None if not found.
@@ -152,11 +169,14 @@ class Repository(object):
             return None
 
         elif isinstance(spec, UUID):
-            try:
-                return self._registry[spec]
-            except KeyError:
-                if load:
-                    return self._loadItem(spec)
+            if spec == self.ROOT_ID:
+                return self
+            else:
+                try:
+                    return self._registry[spec]
+                except KeyError:
+                    if load:
+                        return self._loadItem(spec)
 
         elif isinstance(spec, str) or isinstance(spec, unicode):
             if (spec[0] != '/' and
@@ -227,6 +247,17 @@ class Repository(object):
 
         return handler.item
 
+    def _loadItemXML(self, xml, parser, parent=None, verbose=False,
+                     afterLoadHooks=None):
+
+        if verbose:
+            print string[51:73]
+            
+        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        parser.parseXML(xml, handler)
+
+        return handler.item
+
     def purge(self):
         raise NotImplementedError, "Repository.purge"
 
@@ -236,5 +267,130 @@ class Repository(object):
             item.check()
 
 
+    ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    
     OPEN    = 0x1
     LOADING = 0x2
+
+
+class Store(object):
+
+    def open(self):
+        raise NotImplementedError, "Store.open"
+
+    def close(self):
+        raise NotImplementedError, "Store.close"
+
+    def loadItem(self, uuid):
+        raise NotImplementedError, "Store.loadItem"
+    
+    def loadChild(self, parent, name):
+        raise NotImplementedError, "Store.loadChild"
+
+    def loadChildren(self, parent):
+        raise NotImplementedError, "Store.loadChildren"
+
+    def parseXML(self, xml, handler):
+        raise NotImplementedError, "Store.parseXML"
+
+
+class OnDemandRepository(Repository):
+
+    def __init__(self, dbHome):
+        
+        super(OnDemandRepository, self).__init__(dbHome)
+        self._hooks = None
+
+    def _setLoading(self):
+
+        loading = self._status & self.LOADING
+        if not loading:
+            self._status |= self.LOADING
+
+        return loading
+
+    def _resetLoading(self, loading):
+
+        if not loading:
+            self._status &= ~self.LOADING
+
+            if self._hooks is not None:
+                for hook in self._hooks:
+                    hook()
+                self._hooks = None
+
+    def _loadItem(self, uuid):
+
+        xml = self._store.loadItem(uuid)
+
+        if xml is not None:
+            if self.verbose:
+                print "loading item %s" %(uuid)
+
+            try:
+                loading = self._setLoading()
+                if not loading:
+                    self._hooks = []
+
+                item = self._loadItemXML(xml, self._store,
+                                         afterLoadHooks = self._hooks)
+                if self.verbose:
+                    print "loaded item %s" %(item.getItemPath())
+
+                return item
+            finally:
+                self._resetLoading(loading)
+
+        return None
+
+    def _loadRoot(self, name, verbose=False):
+
+        return self._loadChild(None, name)
+
+    def _loadChild(self, parent, name):
+
+        if parent is not None and parent is not self:
+            uuid = parent.getUUID()
+        else:
+            uuid = Repository.ROOT_ID
+
+        xml = self._store.loadChild(uuid, name)
+
+        if xml is not None:
+            if self.verbose:
+                if parent is not None and parent is not self:
+                    print "loading child %s into %s" %(name,
+                                                       parent.getItemPath())
+                else:
+                    print "loading root %s" %(name)
+
+            try:
+                loading = self._setLoading()
+                if not loading:
+                    self._hooks = []
+
+                return self._loadItemXML(xml, self._store,
+                                         afterLoadHooks = self._hooks)
+
+            finally:
+                self._resetLoading(loading)
+
+        return None
+
+    def _findKind(self, spec, withSchema):
+
+        if withSchema:
+            return self.find(spec, load=False)
+
+        # when crossing the schema boundary, reset loading status so that
+        # hooks get called before resuming regular loading
+        
+        try:
+            hooks = self._hooks
+            loading = self._status & self.LOADING
+            self._status &= ~self.LOADING
+            
+            return self.find(spec)
+        finally:
+            self._hooks = hooks
+            self._status |= loading
