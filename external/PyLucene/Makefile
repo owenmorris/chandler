@@ -102,6 +102,7 @@ build: expand apply
             DB_LIB_VER=$(DB_LIB_VER) \
             PREFIX_DB=$(PREFIX_DB) \
             BUILD_DB=build_$(SNAP) \
+            PYTHON_VER=$(PYTHON_VER) \
             all install
 
 clean:
