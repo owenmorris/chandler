@@ -3,6 +3,7 @@ from twisted.internet.protocol import Factory
 from twisted.protocols import basic
 from twisted.internet import reactor
 import sys
+import os
 
 """
 TODO:
@@ -32,7 +33,7 @@ DROP_CONNECTION = False
 BAD_TRANSFER_RESPONSE = False
 BAD_TLS_RESPONSE = False
 TIMEOUT_RESPONSE = False
-
+SLOW_GREETING = False
 
 """TOKENS"""
 TERMINATOR = "."
@@ -94,9 +95,17 @@ class SMTPTestServer(basic.LineReceiver):
             self.transport.loseConnection()
             return
 
+        if SLOW_GREETING:
+            reactor.callLater(20, self.sendGreeting)
+
+        else:
+            self.sendGreeting()
+
+    def sendGreeting(self):
         self.sendLine(CONNECTION_MADE)
 
     def lineReceived(self, line):
+        print "got line"
         """Error Conditions"""
         if TIMEOUT_RESPONSE:
             """Do not respond to clients request"""
@@ -223,6 +232,7 @@ drop - Drop the connection after sending the greeting
 bad_tran - Send a bad response to a Mail From request
 bad_tls - Send a bad response to a STARTTLS
 timeout - Do not return a response to a Client request
+slow - Wait 20 seconds after the connection is made to return a Server Greeting
 """
 
 def printMessage(msg):
@@ -277,6 +287,14 @@ def processArgs():
         global TIMEOUT_RESPONSE
         TIMEOUT_RESPONSE = True
         printMessage("Timeout Response")
+
+    elif arg.lower() == 'slow':
+        global SLOW_GREETING
+        SLOW_GREETING = True
+        printMessage("Slow Greeting")
+
+    elif arg.lower() == '--help':
+        print usage
 
     elif arg.lower() == '--help':
         print usage
