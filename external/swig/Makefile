@@ -2,7 +2,6 @@
 include ../Makefile.inc
 
 VERSION=1.3.21
-RELVER=$(VERSION)-1
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
 
@@ -34,11 +33,12 @@ snap:
 		$(SNAP)/bin/swig.exe
 
 clean:
-	cd $(SRC); devenv.com build/msw/msw.sln /clean $(Snap)
-	cd $(SRC)/swig; rm -rf $(SRC)/swig/$(BUILD)
+	if [ -f $(BUILD_ROOT)/$(SNAP)/bin/swig.exe ]; then \
+		rm -f $(BUILD_ROOT)/$(SNAP)/bin/swig.exe; \
+	fi
 
 expand:    swigwin-1.3.21.zip
-	unzip swigwin-1.3.21.zip swig-1.3.21\\swig.exe ../$(SNAP)/bin/
+	unzip swigwin-1.3.21.zip SWIG-1.3.21/swig.exe -d $(BUILD_ROOT)/$(SNAP)/bin/
 
 else
 
