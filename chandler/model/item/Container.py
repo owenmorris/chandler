@@ -92,19 +92,18 @@ class Container(Item):
                     else:
                         return self._root.find(spec, _index=0)
 
-            else:
-                child = self._children.get(spec[_index])
-                if child is not None:
-                    return child.find(spec, _index + 1)
+            child = self._children.get(spec[_index])
+            if child is not None:
+                return child.find(spec, _index + 1)
 
         elif isinstance(spec, UUID):
             return self.getRepository().find(spec)
 
         elif isinstance(spec, str):
-            if spec.find('/') >= 0:
-                return self.find(Path(spec))
-            elif len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
+            if len(spec) == 36 and spec[8] == '-' or len(spec) == 22:
                 return self.find(UUID(spec))
+
+            return self.find(Path(spec))
 
         return None
 
