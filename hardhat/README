@@ -4,60 +4,62 @@ Build Instructions
 ------------------
 
 - Make sure you have Python installed on your system.
+- set OSAFROOT to a directory where you would like builds to take place
+- cd $OSAFROOT
 - cvs checkout chandler-source
-- cd osaf/chandler
-- set OSAFROOT = /path/to/osaf/chandler  (optional; if you don't set 
-                                this variable be sure to run the python 
-				commands below while in the osaf/chandler 
-				directory)
 
 * Building entire release tree *
-python hardhat/hardhat.py -B Chandler
+python hardhat/hardhat -eB Chandler
 
 * Running unit tests *
-python hardhat/hardhat.py -t Chandler
+python hardhat/hardhat -t Chandler
 
 * Cleaning entire release tree *
-python hardhat/hardhat.py -C Chandler
+python hardhat/hardhat -C Chandler
 
 * Building entire debug tree *
-python hardhat/hardhat.py -dB Chandler
+python hardhat/hardhat -edB Chandler
 
 * Running unit tests *
-python hardhat/hardhat.py -dt Chandler
+python hardhat/hardhat -dt Chandler
 
 * Cleaning entire debug tree *
-python hardhat/hardhat.py -dC Chandler
+python hardhat/hardhat -dC Chandler
 
 * Executing release *
-python hardhat/hardhat.py -x Chandler
+python hardhat/hardhat -x Chandler
 
 * Executing debug *
-python hardhat/hardhat.py -dx Chandler
+python hardhat/hardhat -dx Chandler
 
 
 
 HardHat commandline options
 ---------------------------
 
-Choose one of:
--d              use debug
--r              use release (this is the default)
-
-Choose one of:
--b MODULE       build MODULE
--B MODULE       build MODULE and dependencies
--c MODULE       clean MODULE
--C MODULE       clean MODULE and dependencies
--x MODULE       execute MODULE
--t MODULE       run unit tests for MODULE
--a MODULE       delete runtime directory (osaf/release or osaf/debug, depending on whether -d or -r was specified)
+-a MODULE   remove runtime directory for MODULE
+-b MODULE   build module MODULE
+-B MODULE   build MODULE and its dependencies
+-c MODULE   clean module MODULE
+-C MODULE   clean MODULE and its dependencies
+-d          use debug version
+-D          create a distribution
+-e          show environment variables in build.log
+-h          display this help
+-i          inspect system (not implemented)
+-n          non-interactive (won't prompt during scrubbing)
+-r          use release version (this is the default)
+-R DIR      directory to use for OSAFROOT (overrides env var)
+-s          scrub MODULE (remove all local files not in CVS)
+-S          scrub MODULE and its dependencies
+-t MODULE   test module MODULE
+-x MODULE   execute MODULE
 
 If you want to run an aribtrary python script via the release or debug
 version of python (as opposed to your system's installed python), do the
 following:
 
-python hardhat/hardhat.py myscript.py
+python hardhat/hardhat path/to/myscript.py
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -68,83 +70,11 @@ A: HardHat is a Python script which builds a collection of subsystems in
    the environment appropriately and calls each of these methods as 
    needed.  This approach allows each subsystem to use whatever particular
    build technology is required (make, distutils, VisualStudio solution),
-   and provides a uniform interface for invoking them.  A message log is
-   also maintained which can be displayed at the end of the build.  Since
-   HardHat is itself a Python module wrapped by a Python command-line
+   and provides a uniform interface for invoking them.  Output from all the
+   subsystem builds is captured to a file named hardhat.log.
+   Since HardHat is itself a Python module wrapped by a Python command-line
    script, the module could be embedded in another application such as an 
-   automated build system, or perhaps a nice GUI.
+   automated build system, or perhaps a GUI.
    
 
-Q: Why not use distutils?
-A: Distutils is meant for building and installing python packages and
-   modules, while we're building an application (python) and several 
-   libraries,
-   
-
-Q: Why not use make?
-A: At first I was under the impression that make might not be a great 
-   cross-platform tool (differences between windows and unix makes).
-   Perhaps this isn't an issue and we might want to look at creating
-   Makefiles for every subsystem in the future.
-
-
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                              Build status
-
-
-           Windows             Mac                 Linux
-          -------------------------------------------------------------
-          |  Debug  : Release |  Debug  : Release |  Debug  : Release |
-          -------------------------------------------------------------
-          |  B : C  :  B : C  |  B : C  :  B : C  |  B : C  :  B : C  |
-          -------------------------------------------------------------
-Python    | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
-wxWindows | OK : 3  : OK : 3  |    :    : OK : OK | OK : OK : OK : OK |
-distutils | OK : 4  : OK : 4  |    :    : OK : OK | OK : OK : OK : OK |
-egenix    | OK : 5  : OK : 5  |    :    : OK : OK | OK :    : OK :    |
-ZODB4     | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
-pyXML     | OK : OK : OK : OK |    :    : OK : OK | OK : OK : OK : OK |
-          -------------------------------------------------------------
-
-
-2) *FIXED* returns exit code of 1, issuing a warning instead of error for now
-3) wxWindows/wxPython/wxPython/*.py don't get cleaned
-4) distutils/distutils/*.pyc don't get cleaned
-5) egenix-mx-base-2.0.4/mxBASE.pyc and mxSetup.pyc don't get cleaned
-6) *FIXED* At runtime, wxPython (importing wxc) tries to load non-debug version
-   of libwx_gtk.  
-7) Build on mac returns exit code 2, but appears to work anyway
-
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                            Execution status
-
-
-           Windows             Mac                 Linux
-          -------------------------------------------------------------
-          |  Debug  : Release |  Debug  : Release |  Debug  : Release |
-          -------------------------------------------------------------
-Chandler  |    2    :   OK    |         :   OK    |  2      :   OK    |
-          -------------------------------------------------------------
-
-
-1) *FIXED* Exception:  Access Violation reading location 0 in 
-   _Py_ForgetReference()
-2) Memory leaks, but it does run, Linux version throws asserts
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-ToDo:
-
-- Capture stdout/stderr of each step to a log, rather than always dumping 
-  to the screen
-
-- Ensure this works with older Pythons (1.5?)  Replace True/False?

@@ -90,23 +90,23 @@ def init(root):
     # set OS-specific variables
     if buildenv['os'] == 'win':
         import os_win
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
+        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
         devenv_file = os_win.find_exe( "devenv.exe", "7.0")
         if( devenv_file ):
-            log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
             buildenv['compiler'] = devenv_file
         else:
-            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find compiler")
+            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find devenv.exe")
             log_dump(buildenv)
             raise HardHatMissingCompilerError
 
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for nmake.exe...")
+        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for nmake.exe...")
         nmake_file = os_win.find_exe( "nmake.exe", "7.0")
         if( nmake_file ):
-            log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
             buildenv['nmake'] = nmake_file
         else:
-            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake")
+            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
             log_dump(buildenv)
             raise HardHatMissingCompilerError
         include_path = os_win.get_msvc_paths('include', '7.0')
@@ -172,6 +172,10 @@ def init(root):
 
     return buildenv
 # end init()
+
+def inspectSystem():
+    print "Not implemented yet"
+    return
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Log-related functions and message types
@@ -1219,6 +1223,10 @@ def findInPath(path,fileName):
 
 class HardHatError(Exception):
     """ General HardHat exception; more specific errors subclass this. """
+    pass
+
+class HardHatInspectionError(HardHatError):
+    """ Exception thrown when the system fails inspection. """
     pass
 
 class HardHatMissingCompilerError(HardHatError):

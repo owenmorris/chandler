@@ -22,6 +22,7 @@ def usage():
     print "-D          create a distribution" 
     print "-e          show environment variables in build.log"
     print "-h          display this help" 
+    print "-i          inspect system (not implemented)" 
     print "-n          non-interactive (won't prompt during scrubbing)" 
     print "-r          use release version (this is the default)" 
     print "-R DIR      directory to use for OSAFROOT (overrides env var)" 
@@ -43,13 +44,25 @@ if os.environ.has_key('OSAFROOT'):
     osafRoot = os.environ['OSAFROOT']
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "a:b:B:c:C:dD:ehlnrR:s:S:t:vx:")
+    opts, args = getopt.getopt(sys.argv[1:], "a:b:B:c:C:dD:ehilnrR:s:S:t:vx:")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
 
 # Look for args that we can process before initializing hardhatlib:
 for opt, arg in opts:
+
+    if opt == "-i":
+        print "Inspecting system:"
+        import hardhatlib
+        try:
+            hardhatlib.inspectSystem()
+        except hardhatlib.HardHatInspectionError:
+            print "Failed inspection"
+            sys.exit(1)
+
+        print "Passed inspection"
+        sys.exit(0)
 
     if opt == "-h":
 	usage()
