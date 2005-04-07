@@ -1419,7 +1419,7 @@
   </SplitterWindow>
 
   <LayoutChooser itsName="CPIATestSummaryView">
-    <blockName>CPIATestSummaryViewhooser</blockName>
+    <blockName>CPIATestSummaryView</blockName>
     <childrenBlocks itemref="doc:CPIATestLayoutToolbar"/>
     <childrenBlocks itemref="doc:CPIATestTable"/>
     <choices itemref="doc:CPIATestTable"/>

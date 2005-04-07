@@ -1394,7 +1394,7 @@
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/trunkDelegate"/>
         <Endpoint itsName="detailItem">
             <attribute value="detailItem"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
         </Endpoint>
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/detailItem"/>
         <Endpoint itsName="colorStyle">

@@ -367,6 +367,15 @@ class ViewContainer(BoxContainer):
                     self.selectionIndex = selectionIndex
                     self.widget.wxSynchronizeWidget()
                 else:
+                    """
+                      If the view points to the read only section replace it with a copy
+                    in the soup
+                    """
+                    userData = self.findPath ('//userdata')
+                    if view.itsParent != userData:
+                        self.views.remove (view)
+                        view = view.copy (parent = userData, cloudAlias="default")
+                        self.views.append (view)
                     self.postEventByName('SelectItemBroadcast', {'item':view})
                 break
             selectionIndex = selectionIndex + 1

@@ -356,32 +356,6 @@ class wxApplication (wx.App):
           that isn't it's UUID. We need the name to look it up. If the main view's root
           isn't found then make a copy into the soup with the right name.
         """
-        def deleteBlockItem (block):
-            """
-              Deletes blocks. Temporary hack until cloud delete is available. May
-            leave minor garbage around that is never cleaned up.
-            """
-            if not block is None:
-                for child in block.childrenBlocks:
-                    deleteBlockItem (child)
-                try:
-                    eventsForNamedDispatch = block.eventsForNamedDispatch
-                except AttributeError:
-                    pass
-                else:
-                    for events in eventsForNamedDispatch:
-                        events.delete()
-                try:
-                    contents = block.contents
-                except AttributeError:
-                    pass
-                else:
-                    contents.delete()
-                try:
-                    blockName = block.blockName
-                except AttributeError:
-                    blockName = "None"
-                block.delete()
 
         mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
         if mainViewRoot and delete:
@@ -390,12 +364,11 @@ class wxApplication (wx.App):
             except AttributeError:
                 pass
             self.UIRepositoryView.refresh()
-            deleteBlockItem (mainViewRoot)
+            mainViewRoot.delete (cloudAlias="default")
             self.UIRepositoryView.commit()
             mainViewRoot = None
         if mainViewRoot is None:
             template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
-            assert (template)
             mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
                                           name = "MainViewRoot",
                                           cloudAlias="default")

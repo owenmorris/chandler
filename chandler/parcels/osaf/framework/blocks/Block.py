@@ -520,12 +520,11 @@ class Block(Item):
         except AttributeError:
             methodName = 'on' + event.blockName + 'Event'
 
-        try:
-            updateUI = event.arguments['UpdateUI']
-        except KeyError:
-            updateUI = False
-        else:
+        if event.arguments.has_key ('UpdateUI'):
             methodName += 'UpdateUI'
+            commitAfterDispatch = False
+        else:
+            commitAfterDispatch = event.commitAfterDispatch
 
         dispatchEnum = event.dispatchEnum
         if dispatchEnum == 'SendToBlockByReference':
@@ -580,7 +579,7 @@ class Block(Item):
         elif __debug__:
             assert (False)
 
-        if (not updateUI) and event.commitAfterDispatch:
+        if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
     dispatchEvent = classmethod (dispatchEvent)
 
