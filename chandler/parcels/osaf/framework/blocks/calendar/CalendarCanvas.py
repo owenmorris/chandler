@@ -555,6 +555,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.parent.blockItem.selection = item
         self.parent.blockItem.postSelectItemBroadcast()
         self.parent.wxSynchronizeWidget()
+    
+    def OnSelectNone(self, unscrolledPosition):
+        # quick hack to allow deselection
+        self.OnSelectItem(None)
 
     def GrabFocusHack(self):
         self.editor.SaveItem()
