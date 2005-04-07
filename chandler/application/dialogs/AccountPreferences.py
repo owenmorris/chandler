@@ -41,6 +41,27 @@ def IMAPSaveHandler(item, fields, values):
                 # item is complete.
 
 
+def IMAPDeleteHandler(item, values, data):
+    # If this IMAP account is the default, then return False to indicate it
+    # can't be deleted; True otherwise.
+    return not values['IMAP_DEFAULT']
+
+def SMTPDeleteHandler(item, values, data):
+    # If this SMTP account is the default for any of the IMAP accounts, return
+    # False to indicate it can't be deleted; True otherwise.
+    isDefault = False
+    for accountData in data:
+        if accountData['type'] == "IMAP":
+            if accountData['values']['IMAP_SMTP'] == item.itsUUID:
+                isDefault = True
+                break
+    return not isDefault
+    
+def WebDAVDeleteHandler(item, values, data):
+    # If this WebDAV account is the default, then return False to indicate it
+    # can't be deleted; True otherwise.
+    return not values['WEBDAV_DEFAULT']
+
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -103,6 +124,7 @@ PANELS = {
         },
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
+        "deleteHandler" : IMAPDeleteHandler,
         "displayName" : "IMAP_DESCRIPTION",
         "description" : "Incoming mail (IMAP)",
     },
@@ -150,6 +172,7 @@ PANELS = {
             },
         },
         "id" : "SMTPPanel",
+        "deleteHandler" : SMTPDeleteHandler,
         "displayName" : "SMTP_DESCRIPTION",
         "description" : "Outgoing mail (SMTP)",
     },
@@ -195,6 +218,7 @@ PANELS = {
             },
         },
         "id" : "WebDAVPanel",
+        "deleteHandler" : WebDAVDeleteHandler,
         "displayName" : "WEBDAV_DESCRIPTION",
         "description" : "Sharing (WebDAV)",
         "callbacks" : (
@@ -268,10 +292,11 @@ class AccountPreferencesDialog(wx.Dialog):
         # the accounts list widget.
         self.data = [ ]
 
-        self.__PopulateAccountsList(account)
-
         # If the user deletes an account, its data will be moved here:
         self.deletions = [ ]
+
+        self.__PopulateAccountsList(account)
+
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
@@ -352,7 +377,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 values[field] = setting
             self.data.append( { "item" : item.itsUUID, "values" : values,
-                                "type" : item.accountType } )
+                                "type" : item.accountType, "isNew" : False } )
             self.accountsList.Append(item.displayName)
             i += 1
 
@@ -409,7 +434,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     elif desc['type'] == 'itemRef':
                         if values[field]:
                             item.setAttributeValue(desc['attr'],
-                                             self.view.findUUID(values[field]))
+                                self.view.findUUID(values[field]))
 
                     else:
                         try:
@@ -424,6 +449,15 @@ class AccountPreferencesDialog(wx.Dialog):
                 item = self.view.findUUID(uuid)
                 item.delete()
 
+    def __ApplyCancellations(self):
+        # The only thing we need to do on Cancel is to remove any account items
+        # we created this session:
+        for accountData in self.data:
+            if accountData['isNew']:
+                uuid = accountData['item']
+                item = self.view.findUUID(uuid)
+                item.delete()
+          
     def __Validate(self):
 
         # First store the current form values to the data structure
@@ -613,16 +647,42 @@ class AccountPreferencesDialog(wx.Dialog):
                 uuid = data[field]
                 kind = PANELS[panelType]['fields'][field]['kind']
                 for item in KindQuery().run([self.view.findPath(kind)]):
-                    if item.isActive:
+                    deleted = False
+                    for accountData in self.deletions:
+                         if accountData['item'] == item.itsUUID:
+                             deleted = True
+                             break
+                         
+                    if item.isActive and not deleted:
                         items.append(item)
                         if item.itsUUID == uuid:
                             index = count
                         count += 1
 
                 control.Clear()
+                
                 for item in items:
-                    newIndex = control.Append(item.displayName)
+                    # Add items to the dropdown list...
+                    
+                    # ...however we need to grab displayName from the form
+                    # data rather than from the item (as long as it's an item
+                    # that's being edited in the dialog).  If the item doesn't
+                    # appear in self.data, then it's an item that isn't being
+                    # edited by the dialog and therefore we can ask it directly
+                    # for its displayName:
+                    
+                    displayName = item.displayName
+                    for accountData in self.data:
+                        if item.itsUUID == accountData['item']:
+                            displayNameField = \
+                                PANELS[item.accountType]['displayName']
+                            displayName = \
+                                accountData['values'][displayNameField]
+                            break
+                        
+                    newIndex = control.Append(displayName)
                     control.SetClientData(newIndex, item.itsUUID)
+
                 if index != -1:
                     control.SetSelection(index)
 
@@ -637,6 +697,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.view.commit()
 
     def OnCancel(self, evt):
+        self.__ApplyCancellations()      
         self.EndModal(False)
 
     def OnNewAccount(self, evt):
@@ -647,8 +708,16 @@ class AccountPreferencesDialog(wx.Dialog):
 
         accountType = self.choiceNewType.GetClientData(selection)
         self.choiceNewType.SetSelection(0)
+        
+        if accountType == "IMAP":
+            item = Mail.IMAPAccount(view=self.view)
+        elif accountType == "SMTP":
+            item = Mail.SMTPAccount(view=self.view)
+        elif accountType == "WebDAV":
+            item = Sharing.WebDAVAccount(view=self.view)
 
         accountName = "New %s account" % accountType
+        item.displayName = accountName
 
         values = { }
 
@@ -668,24 +737,39 @@ class AccountPreferencesDialog(wx.Dialog):
 
             values[field] = setting
 
-        self.data.append( { "item" : None,
+        self.data.append( { "item" : item.itsUUID,
                             "values" : values,
-                            "type" : accountType } )
+                            "type" : accountType,
+                            "isNew" : True } )
 
         index = self.accountsList.Append(accountName)
         self.accountsList.SetSelection(index)
         self.__SwapDetailPanel(index)
 
     def OnDeleteAccount(self, evt):
+        # First, make sure any values that have been modified in the form
+        # are stored:
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+        
         index = self.accountsList.GetSelection()
-        self.accountsList.Delete(index)
-        self.deletions.append(self.data[index])
-        del self.data[index]
-        self.innerSizer.Detach(self.currentPanel)
-        self.currentPanel.Hide()
-        self.currentIndex = None
-        self.accountsList.SetSelection(0)
-        self.__SwapDetailPanel(0)
+        item = self.view.findUUID(self.data[index]['item'])
+        deleteHandler = PANELS[item.accountType]['deleteHandler']
+        canDelete = deleteHandler(item, self.data[index]['values'], self.data)
+        if canDelete:
+            self.accountsList.Delete(index)
+            self.deletions.append(self.data[index])
+            del self.data[index]
+            self.innerSizer.Detach(self.currentPanel)
+            self.currentPanel.Hide()
+            self.currentIndex = None
+            self.accountsList.SetSelection(0)
+            self.__SwapDetailPanel(0)
+        else:
+            msg = "This account currently may not be deleted because it has been marked as a 'default' account"
+            application.dialogs.Util.ok(self, "Cannot delete default account",
+                                        msg)
+
 
     def OnTestWebDAV(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
