@@ -70,6 +70,7 @@ Section "MainSection" SEC01
   File "..\..\..\${DISTRIB_DIR}\${PRODUCT_BINARY}"
   File "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
   File "..\..\..\${DISTRIB_DIR}\README.win.txt"
+  File "..\..\..\${DISTRIB_DIR}\chandler.ico"
 
     ; this could be handled completely by the above line
     ; if the /r option was used - I kept them as individual
@@ -86,8 +87,8 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
-  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$SMPROGRAMS\chandler.ico" 
-  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$SMPROGRAMS\chandler.ico"
+  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\chandler.ico" 
+  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\chandler.ico"
 SectionEnd
 
   ; create the uninstall shortcut - done here so that it will only
