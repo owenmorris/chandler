@@ -1281,6 +1281,8 @@ wxClientDC	dc( this );
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 		{
+		wxDCClipper		boundsClip( dc, boundsR );
+
 #if defined(__WXMAC__)
 			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 #else
@@ -1863,7 +1865,6 @@ long wxColumnHeaderItem::MacDrawItem(
 	bool				bVisibleSelection ) const
 {
 ThemeButtonDrawInfo		drawInfo;
-RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
 SInt16				nativeFontID;
@@ -1884,11 +1885,6 @@ OSStatus				errStatus;
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
 	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
-
-	// clip down to the item bounds
-	savedClipRgn = NewRgn();
-	GetClip( savedClipRgn );
-	ClipRect( &qdBoundsR );
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -1970,10 +1966,6 @@ OSStatus				errStatus;
 		GenericGetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
-
-	// restore the clip region
-	SetClip( savedClipRgn );
-	DisposeRgn( savedClipRgn );
 
 	return (long)errStatus;
 }
@@ -2110,58 +2102,27 @@ void wxColumnHeaderItem::GenericDrawSelection(
 	const wxRect			*boundsR,
 	long					drawStyle )
 {
+wxColour		stdSelRGB( 0x66, 0x66, 0x66 );
+wxPen			solidPen( stdSelRGB, 1, wxSOLID );
+int				borderWidth;
+
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
 
-#if 0 && defined(__WXMSW__)
-RECT			gdiBoundsR;
-HDC			targetHDC;
-//HPEN		targetPen, prevPen;
-HBRUSH		targetBrush;
-COLORREF		targetColor;
-
-	// rendering effects under consideration:
-	//	frameRect( 2 pixels ), fillRect( 25-50% gray ), rollover bar (orange)
-
-	// compute the sub-item bounds rect
-	gdiBoundsR.left = boundsR->x;
-	gdiBoundsR.right = gdiBoundsR.left + boundsR->width;
-	gdiBoundsR.top = boundsR->y;
-	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
-
-	// now...frame it (or something)
-	targetHDC = GetHdcOf( *dc );
-
-	switch (drawStyle)
-	{
-	case 0:
-		//targetPen = CreatePen( PS_SOLID, 2, 0 );
-		//prevPen = ::SelectObject( targetPen );
-		targetColor = ::GetBkColor( targetHDC );
-		targetBrush = ::CreateSolidBrush( targetColor );
-		::FrameRect( targetHDC, &gdiBoundsR, targetBrush );
-		::DeleteObject( targetBrush );
-		//(void)::SelectObject( prevPen );
-		//::DeleteObject( targetPen );
-		break;
-
-	default:
-		break;
-	}
-#else
-
-// wxLogDebug( _T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"), boundsR->x, boundsR->y, boundsR->width, boundsR->height );
+//	wxLogDebug(
+//		_T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
+//		boundsR->x, boundsR->y, boundsR->width, boundsR->height );
 
 	switch (drawStyle)
 	{
 	case 1:
-		// border style
+		// frame border style
 		{
-		int		borderWidth = 2;
-		wxPen	solidPen( *wxCYAN, borderWidth, wxSOLID );
-
+			borderWidth = 2;
+			solidPen.SetWidth( borderWidth );
 			dc->SetPen( solidPen );
 			dc->SetBrush( *wxTRANSPARENT_BRUSH );
+
 			dc->DrawRectangle(
 				boundsR->x,
 				boundsR->y,
@@ -2173,10 +2134,10 @@ COLORREF		targetColor;
 	default:
 		// underline style - similar to Win32 rollover drawing
 		{
-		int		borderWidth = 6;
-		wxPen	solidPen( *wxCYAN, borderWidth, wxSOLID );
-
+			borderWidth = 6;
+			solidPen.SetWidth( borderWidth );
 			dc->SetPen( solidPen );
+
 			dc->DrawLine(
 				boundsR->x,
 				boundsR->y + boundsR->height,
@@ -2185,8 +2146,6 @@ COLORREF		targetColor;
 		}
 		break;
 	}
-
-#endif
 }
 
 // static
