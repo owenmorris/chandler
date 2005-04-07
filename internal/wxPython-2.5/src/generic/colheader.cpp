@@ -1268,7 +1268,7 @@ long			resultV;
 		{
 		wxClientDC		dc( this );
 
-			wxColumnHeaderItem::MSWRenderSelection( &dc, &boundsR );
+			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, 0 );
 		}
 	}
 
@@ -1686,17 +1686,6 @@ void wxColumnHeaderItem::SetItemData(
 		SetBitmapRef( *(info->m_BitmapRef), NULL );
 }
 
-// static
-bool wxColumnHeaderItem::HasValidBitmapRef(
-	const wxBitmap		*bitmapRef )
-{
-bool		bResultV;
-
-	bResultV = ((bitmapRef != NULL) && bitmapRef->Ok());
-
-	return bResultV;
-}
-
 void wxColumnHeaderItem::GetBitmapRef(
 	wxBitmap			&bitmapRef ) const
 {
@@ -1718,7 +1707,7 @@ wxRect			targetBoundsR;
 
 	if ((boundsR != NULL) && HasValidBitmapRef( m_BitmapRef ))
 	{
-		GetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
+		GenericGetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
 
 		m_BitmapRef->SetWidth( targetBoundsR.width );
 		m_BitmapRef->SetHeight( targetBoundsR.height );
@@ -1973,7 +1962,7 @@ OSStatus				errStatus;
 	{
 	wxRect		subItemBoundsR;
 
-		GetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
+		GenericGetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2044,7 +2033,7 @@ bool					bSelected, bHasIcon;
 		dc->DrawText( m_LabelTextRef.c_str(), originX, localBoundsR.y + 1 );
 
 	// draw sort direction arrows (if specified)
-	// NB: what if icon avail? mut. ex.?
+	// NB: what if icon avail? mutually exclusive?
 	if (bSelected && m_BSortEnabled)
 	{
 		// NB: should the first arg be the original "boundsR" arg ??
@@ -2056,7 +2045,7 @@ bool					bSelected, bHasIcon;
 	if (bHasIcon)
 	{
 		// NB: should the first arg be the original "boundsR" arg ??
-		GetBitmapItemBounds( &localBoundsR, m_TextJust, &subItemBoundsR );
+		GenericGetBitmapItemBounds( &localBoundsR, m_TextJust, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2066,44 +2055,6 @@ bool					bSelected, bHasIcon;
 // ================
 #if 0
 #pragma mark -
-#endif
-
-#if defined(__WXMSW__)
-// static
-void wxColumnHeaderItem::MSWRenderSelection(
-	wxClientDC			*dc,
-	const wxRect			*boundsR )
-{
-RECT			gdiBoundsR;
-HDC			targetHDC;
-//HPEN		targetPen, prevPen;
-HBRUSH		targetBrush;
-COLORREF		targetColor;
-
-	if ((dc == NULL) || (boundsR == NULL))
-		return;
-
-	// rendering effects under consideration:
-	//	frameRect( 2 pixels ), fillRect( 25-50% gray ), rollover bar (orange)
-
-	// compute the sub-item bounds rect
-	gdiBoundsR.left = boundsR->x;
-	gdiBoundsR.right = gdiBoundsR.left + boundsR->width;
-	gdiBoundsR.top = boundsR->y;
-	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
-
-	// now...frame it (or something)
-	targetHDC = GetHdcOf( *dc );
-
-	//targetPen = CreatePen( PS_SOLID, 2, 0 );
-	//prevPen = ::SelectObject( targetPen );
-	targetColor = ::GetBkColor( targetHDC );
-	targetBrush = ::CreateSolidBrush( targetColor );
-	::FrameRect( targetHDC, &gdiBoundsR, targetBrush );
-	::DeleteObject( targetBrush );
-	//(void)::SelectObject( prevPen );
-	//::DeleteObject( targetPen );
-}
 #endif
 
 #if defined(__WXMAC__)
@@ -2146,6 +2097,59 @@ OSStatus			errStatus;
 	DisposeRgn( savedClipRgn );
 }
 #endif
+
+// static
+void wxColumnHeaderItem::GenericDrawSelection(
+	wxClientDC			*dc,
+	const wxRect			*boundsR,
+	long					drawStyle )
+{
+#if defined(__WXMSW__)
+RECT			gdiBoundsR;
+HDC			targetHDC;
+//HPEN		targetPen, prevPen;
+HBRUSH		targetBrush;
+COLORREF		targetColor;
+
+	if ((dc == NULL) || (boundsR == NULL))
+		return;
+
+	// rendering effects under consideration:
+	//	frameRect( 2 pixels ), fillRect( 25-50% gray ), rollover bar (orange)
+
+	// compute the sub-item bounds rect
+	gdiBoundsR.left = boundsR->x;
+	gdiBoundsR.right = gdiBoundsR.left + boundsR->width;
+	gdiBoundsR.top = boundsR->y;
+	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
+
+	// now...frame it (or something)
+	targetHDC = GetHdcOf( *dc );
+
+	switch (drawStyle)
+	{
+	case 0:
+		//targetPen = CreatePen( PS_SOLID, 2, 0 );
+		//prevPen = ::SelectObject( targetPen );
+		targetColor = ::GetBkColor( targetHDC );
+		targetBrush = ::CreateSolidBrush( targetColor );
+		::FrameRect( targetHDC, &gdiBoundsR, targetBrush );
+		::DeleteObject( targetBrush );
+		//(void)::SelectObject( prevPen );
+		//::DeleteObject( targetPen );
+		break;
+
+	default:
+		break;
+	}
+#else
+
+	wxUnusedVar( dc );
+	wxUnusedVar( boundsR );
+	wxUnusedVar( drawStyle );
+
+#endif
+}
 
 // static
 void wxColumnHeaderItem::GenericGetSortArrowBounds(
@@ -2211,7 +2215,7 @@ wxPoint		triPt[3];
 }
 
 // static
-void wxColumnHeaderItem::GetBitmapItemBounds(
+void wxColumnHeaderItem::GenericGetBitmapItemBounds(
 	const wxRect			*itemBoundsR,
 	long					targetJustification,
 	wxRect				*targetBoundsR )
@@ -2256,6 +2260,17 @@ int		sizeX, sizeY, insetX;
 		targetBoundsR->width =
 		targetBoundsR->height = 0;
 	}
+}
+
+// static
+bool wxColumnHeaderItem::HasValidBitmapRef(
+	const wxBitmap		*bitmapRef )
+{
+bool		bResultV;
+
+	bResultV = ((bitmapRef != NULL) && bitmapRef->Ok());
+
+	return bResultV;
 }
 
 // static

@@ -102,11 +102,22 @@ public:
 #endif
 
 public:
-#if defined(__WXMSW__)
-	static void MSWRenderSelection(
+	static void GenericDrawSelection(
 		wxClientDC		*dc,
-		const wxRect		*boundsR );
-#endif
+		const wxRect		*boundsR,
+		long				drawStyle );
+
+	static void GenericDrawSortArrow(
+		wxClientDC		*dc,
+		const wxRect		*boundsR,
+		bool				bSortAscending );
+	static void GenericGetSortArrowBounds(
+		const wxRect		*itemBoundsR,
+		wxRect			*targetBoundsR );
+	static void GenericGetBitmapItemBounds(
+		const wxRect		*itemBoundsR,
+		long				targetJustification,
+		wxRect			*targetBoundsR );
 
 #if defined(__WXMAC__)
 	static void MacDrawThemeBackgroundNoArrows(
@@ -114,20 +125,8 @@ public:
 		bool				bSelected );
 #endif
 
-	static void GenericGetSortArrowBounds(
-		const wxRect		*itemBoundsR,
-		wxRect			*targetBoundsR );
-	static void GenericDrawSortArrow(
-		wxClientDC		*dc,
-		const wxRect		*boundsR,
-		bool				bSortAscending );
-
 	static bool HasValidBitmapRef(
 		const wxBitmap	*bitmapRef );
-	static void GetBitmapItemBounds(
-		const wxRect		*itemBoundsR,
-		long				targetJustification,
-		wxRect			*targetBoundsR );
 
 	static long ConvertJustification(
 		long				sourceEnum,
