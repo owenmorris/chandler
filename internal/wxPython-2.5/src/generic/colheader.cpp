@@ -42,6 +42,7 @@
 	#include "wx/listbox.h"
 	#include "wx/dcclient.h"
 	#include "wx/bitmap.h"
+	#include "wx/gdicmn.h"
 #endif
 
 #if defined(__WXMAC__)
@@ -1004,7 +1005,7 @@ bool					bResultV;
 	if (bResultV)
 	{
 		boundsR->x = itemRef->m_OriginX;
-		boundsR->y = m_NativeBoundsR.y;
+		boundsR->y = 0; // m_NativeBoundsR.y;
 		boundsR->width = itemRef->m_ExtentX + 1;
 		boundsR->height = m_NativeBoundsR.height;
 
@@ -1284,6 +1285,10 @@ wxClientDC	dc( this );
 			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 #else
 			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+
+			// generic case - add selection indicator
+			if (m_BVisibleSelection && (i == m_ItemSelected))
+				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, 0 );
 #endif
 		}
 #endif
@@ -1873,7 +1878,7 @@ OSStatus				errStatus;
 
 	qdBoundsR.left = boundsR->x;
 	qdBoundsR.right = qdBoundsR.left + boundsR->width;
-	qdBoundsR.top = 0;
+	qdBoundsR.top = boundsR->y;
 	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
 	// determine selection and bitmap rendering conditions
@@ -1986,6 +1991,8 @@ wxPoint				labelTextSize;
 long					originX, insetX;
 bool					bSelected, bHasIcon;
 
+	wxUnusedVar( bUseUnicode );
+
 //	if ((boundsR == NULL) || boundsR->IsEmpty())
 	if (boundsR == NULL)
 		return (-1L);
@@ -2000,7 +2007,6 @@ bool					bSelected, bHasIcon;
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
-	localBoundsR.y = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 	// draw text label, with justification
@@ -2104,15 +2110,15 @@ void wxColumnHeaderItem::GenericDrawSelection(
 	const wxRect			*boundsR,
 	long					drawStyle )
 {
-#if defined(__WXMSW__)
+	if ((dc == NULL) || (boundsR == NULL))
+		return;
+
+#if 0 && defined(__WXMSW__)
 RECT			gdiBoundsR;
 HDC			targetHDC;
 //HPEN		targetPen, prevPen;
 HBRUSH		targetBrush;
 COLORREF		targetColor;
-
-	if ((dc == NULL) || (boundsR == NULL))
-		return;
 
 	// rendering effects under consideration:
 	//	frameRect( 2 pixels ), fillRect( 25-50% gray ), rollover bar (orange)
@@ -2144,9 +2150,41 @@ COLORREF		targetColor;
 	}
 #else
 
-	wxUnusedVar( dc );
-	wxUnusedVar( boundsR );
-	wxUnusedVar( drawStyle );
+// wxLogDebug( _T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"), boundsR->x, boundsR->y, boundsR->width, boundsR->height );
+
+	switch (drawStyle)
+	{
+	case 1:
+		// border style
+		{
+		int		borderWidth = 2;
+		wxPen	solidPen( *wxCYAN, borderWidth, wxSOLID );
+
+			dc->SetPen( solidPen );
+			dc->SetBrush( *wxTRANSPARENT_BRUSH );
+			dc->DrawRectangle(
+				boundsR->x,
+				boundsR->y,
+				boundsR->width - borderWidth,
+				boundsR->height );
+		}
+		break;
+
+	default:
+		// underline style - similar to Win32 rollover drawing
+		{
+		int		borderWidth = 6;
+		wxPen	solidPen( *wxCYAN, borderWidth, wxSOLID );
+
+			dc->SetPen( solidPen );
+			dc->DrawLine(
+				boundsR->x,
+				boundsR->y + boundsR->height,
+				boundsR->x + boundsR->width - borderWidth,
+				boundsR->y + boundsR->height );
+		}
+		break;
+	}
 
 #endif
 }
