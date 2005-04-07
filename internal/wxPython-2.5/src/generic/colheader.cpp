@@ -1355,7 +1355,7 @@ wxCoord		targetWidth;
 	if (dc != NULL)
 	{
 		dc->SetFont( m_Font );
-		dc->DoGetTextExtent(
+		dc->GetTextExtent(
 			targetStr, &targetWidth,
 			NULL, NULL, NULL, NULL );
 
