@@ -324,7 +324,6 @@ class Cloud(Item):
         @type cloudAlias: a string
         """
 
-
         if not item.isItemOf(self.kind):
             raise TypeError, '%s (Kind: %s) is not of a kind this cloud (%s) understands' %(item.itsPath, item._kind.itsPath, self.itsPath)
 
@@ -332,17 +331,20 @@ class Cloud(Item):
             for other in endpoint.iterValues(item):
                 yield other
 
-    def traceItem(self, item, trace):
+    def traceItem(self, item, trace, indent=0, done=None):
 
-        found = True
-        while found:
-            found = False
-            for (other, endpoint), others in trace.iteritems():
-                if item in others:
-                    yield (item, other, '.'.join(endpoint.attribute))
-                    item = other
-                    found = True
-                    break
+        if done is None:
+            done = set()
+        elif item in done:
+            return
+
+        done.add(item)
+        for (other, endpoint), others in trace.iteritems():
+            if item in others:
+                yield (item, other, '.'.join(endpoint.attribute),
+                       endpoint.includePolicy, indent)
+                for tuple in self.traceItem(other, trace, indent + 1, done):
+                    yield tuple
 
 
 class Endpoint(Item):
