@@ -63,10 +63,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                 self.dumpShownHierarchy ('onSelectItemEvent')
     
     def __changeSelection(self, item):
-        # @@@BJS For now, avoid dirtying selection if it's already right
-        # (This optimization may get done in the repository in 0.6...)
-        if self.selection != item:
-            self.selection = item
+        self.selection = item
         
         # Make sure the itemcollection that we monitor includes only the selected item.
         if len(self.contents.inclusions) != 1 or self.contents.inclusions.first() is not item:

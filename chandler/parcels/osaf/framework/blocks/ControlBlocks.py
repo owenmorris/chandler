@@ -655,11 +655,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         if self.blockItem.hideColumnHeadings:
             self.SetColLabelSize (0)
         else:
-            """
-              Should be using wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT, but
-            it hasn't been wrapped yet -- DJA
-            """
-            self.SetColLabelSize (20)
+            self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
 
         gridTable = self.GetTable()
         newRows = gridTable.GetNumberRows()

@@ -333,14 +333,6 @@ class wxViewContainer (wxBoxContainer):
 class ViewContainer(BoxContainer):
     def instantiateWidget (self):
         """
-        There is a repository bug where copying trees of blocks won't copy parentBlock
-        when it's initialValue is None -- DJA
-        """
-        try:
-            parentBlock = self.parentBlock
-        except AttributeError:
-            self.parentBlock = None
-        """
           Somewhat of a hack: When the ViewContainer is the root of all the blocks
         it doesn't have a parent block widget, so in that case we use the mainFrame.
         """
