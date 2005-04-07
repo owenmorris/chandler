@@ -52,9 +52,10 @@ glob=*
 repository
 locale
 
-# Grab the launchers and windows README
+# Grab the launchers, icon file and windows README
 src=chandler/distrib/win
 README.win.txt
+chandler.ico
 
 src=chandler
 dest=
