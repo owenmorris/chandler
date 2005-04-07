@@ -86,8 +86,8 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
-  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" ; "" "path\to\foo.ico" 
-  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" ; "" "path\to\foo.ico"
+  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$SMPROGRAMS\chandler.ico" 
+  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$SMPROGRAMS\chandler.ico"
 SectionEnd
 
   ; create the uninstall shortcut - done here so that it will only
