@@ -353,7 +353,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         dy = abs(position.y - self._dragStart.y)
         return dx > tolerance or dy > tolerance
 
-    def _initiateDrag(self):
+    def _initiateDrag(self, unscrolledPosition):
         """
         Potentially begin a drag. This is where we decide if it is a resize-drag 
         or a moving drag. 
@@ -362,9 +362,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             OnBeginDragItem()
         """
         
-        # start keeping _dragCurrentUnscrolled up to date
-        self._dragCurrentUnscrolled = self._dragStartUnscrolled
-
         if self._originalDragBox.isHitResize(self._dragStartUnscrolled): 
             # start resizing
             self._isResizingItem = True
@@ -376,32 +373,26 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             self._isDraggingItem = True
             self.OnBeginDragItem()
             
+        # start keeping _dragCurrentUnscrolled up to date
+        self._dragCurrentUnscrolled = unscrolledPosition
         self.CaptureMouse()
 
-    def _initiateDragWithoutSelection(self):
+    def _initiateDragWithoutSelection(self, unscrolledPosition):
         """
         User has begun to drag, but there is no canvasItem selected
         Possible client events:
             OnCreateItem()
             OnBeginResizeItem()
         """
-        # start keeping _dragCurrentUnscrolled up to date
-        self._dragCurrentUnscrolled = self._dragStartUnscrolled
 
-        itemBox = self.OnCreateItem(self._dragStartUnscrolled, True)
-        if itemBox: # if we have one, start resizing this item
-            self.SetDragBox(itemBox)
-            self._isResizingItem = True
-            self.OnBeginResizeItem()
-            self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
-        else: 
-            # indicate that we're dragging nothing
-            self._isDraggingNone = True
-            self.OnBeginDragNone()
+        # indicate that we're dragging nothing
+        self._isDraggingNone = True
+        self.OnBeginDragNone()
+
+        # start keeping _dragCurrentUnscrolled up to date
+        self._dragCurrentUnscrolled = unscrolledPosition
 
         self.CaptureMouse()
-        
-
         
     def _handleNormalDrag(self, dragInProgress, unscrolledPosition):
         """
@@ -484,7 +475,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         if hitBox:
             self.OnEditItem(hitBox)
         else:
-            self.OnCreateItem(unscrolledPosition, False)
+            self.OnCreateItem(unscrolledPosition)
             
     def _handleLeftClick(self, position, unscrolledPosition):
         """
@@ -534,19 +525,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
         # checks if the event iself is from dragging the mouse
         dragInProgress = event.Dragging() and event.LeftIsDown()
-        
-        # handle events-in-progress such as resizes or drags
-        if self._isDraggingItem:
-            self._handleNormalDrag(dragInProgress, unscrolledPosition)
 
-        # handle resizing
-        elif self._isResizingItem:
-            self._handleResizeDrag(dragInProgress, unscrolledPosition)
-            
-        elif self._isDraggingNone:
-            self._handleNoneDrag(dragInProgress, unscrolledPosition)
-                
-        else: 
+        if not (self._isDraggingItem or
+                self._isResizingItem or
+                self._isDraggingNone):
             # just handle normal mouse events
 
             self._updateCursor(unscrolledPosition)
@@ -558,17 +540,26 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 self._handleLeftClick(position, unscrolledPosition)
 
             # look for the beginning of a drag
-            # _dragStart seems to be used as a way to allow someone to
-            # cancel/ignore a drag in progress - see _initiateDragWithoutSelection
-            elif (dragInProgress):
-                
-                if (self._shouldBeginDrag(position)):
-                    if self._originalDragBox: 
-                        self._initiateDrag()
-                            
-                    else: # try creating an item
-                        self._initiateDragWithoutSelection()
+            elif (dragInProgress and self._shouldBeginDrag(position)):
+                if self._originalDragBox: 
+                    self._initiateDrag(unscrolledPosition)
+                        
+                else: # try creating an item
+                    self._initiateDragWithoutSelection(unscrolledPosition)
 
+        # now handle events-in-progress such as resizes or drags
+        # note that we may be doing both, since we might begin a drag,
+        # and then need to actually handle the drag
+        if self._isDraggingItem:
+            self._handleNormalDrag(dragInProgress, unscrolledPosition)
+
+        # handle resizing
+        elif self._isResizingItem:
+            self._handleResizeDrag(dragInProgress, unscrolledPosition)
+            
+        elif self._isDraggingNone:
+            self._handleNoneDrag(dragInProgress, unscrolledPosition)
+                
     def ScrollIntoView(self, unscrolledPosition):
         clientSize = self.GetClientSize()
         
@@ -586,7 +577,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def GrabFocusHack(self):
         pass
 
-    def OnCreateItem(self, position, createOnDrag):
+    def OnCreateItem(self, position):
         """ Creates a new item on the canvas.
 
         Subclasses can define to create a new item on the canvas.
@@ -597,10 +588,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
         @param position: unscrolled coordinates, location of the new item
         @type position: wx.Point
-        @param createOnDrag: True if in the middle of a drag (vs double click) 
-        @type createOnDrag: Boolean
-        @return: the CanvasItem for the newly created item, if createOnDrag
-        @rtype: CanvasItem
         """
         return None
 
