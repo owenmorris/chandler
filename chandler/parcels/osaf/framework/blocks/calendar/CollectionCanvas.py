@@ -293,6 +293,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
         self._isDraggingItem = False
         self._isResizingItem = False
+        self._isDraggingNone = False
         self._dragStart = None
         self._originalDragBox = None
         self._currentDragBox = None
@@ -369,13 +370,13 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             self._isResizingItem = True
             self.OnBeginResizeItem()
             self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
-            self.CaptureMouse()
 
         else: 
             # start dragging
             self._isDraggingItem = True
             self.OnBeginDragItem()
-            self.CaptureMouse()
+            
+        self.CaptureMouse()
 
     def _initiateDragWithoutSelection(self):
         """
@@ -384,18 +385,23 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             OnCreateItem()
             OnBeginResizeItem()
         """
+        # start keeping _dragCurrentUnscrolled up to date
+        self._dragCurrentUnscrolled = self._dragStartUnscrolled
+
         itemBox = self.OnCreateItem(self._dragStartUnscrolled, True)
         if itemBox: # if we have one, start resizing this item
             self.SetDragBox(itemBox)
             self._isResizingItem = True
             self.OnBeginResizeItem()
             self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
-            self.CaptureMouse()
-        else: # clear out the drag info, avoid creating more items
-            # actually, shouldn't DragBox already be none?
-            self.SetDragBox(None)
-            # this is a way to prevent this method from being called again
-            self._setDragStart(None)
+        else: 
+            # indicate that we're dragging nothing
+            self._isDraggingNone = True
+            self.OnBeginDragNone()
+
+        self.CaptureMouse()
+        
+
         
     def _handleNormalDrag(self, dragInProgress, unscrolledPosition):
         """
@@ -435,6 +441,19 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             self._setDragStart(None)
             self.ReleaseMouse()
 
+    def _handleNoneDrag(self, dragInProgress, unscrolledPosition):
+        
+        if dragInProgress:
+            self._dragCurrentUnscrolled = unscrolledPosition
+            self.OnDraggingNone(unscrolledPosition)
+            
+        else: # end the drag
+            self._isDraggingNone = False
+            self._dragCurrentUnscrolled = None
+            self.OnEndDragNone()
+            self._setDragStart(None)
+            self.ReleaseMouse()
+            
     def _updateCursor(self, unscrolledPosition):
         """
         Show the resize cursor if we're over a resize area,
@@ -513,6 +532,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         if (event.Entering() or event.Leaving()):
             return
 
+        # checks if the event iself is from dragging the mouse
         dragInProgress = event.Dragging() and event.LeftIsDown()
         
         # handle events-in-progress such as resizes or drags
@@ -522,6 +542,9 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # handle resizing
         elif self._isResizingItem:
             self._handleResizeDrag(dragInProgress, unscrolledPosition)
+            
+        elif self._isDraggingNone:
+            self._handleNoneDrag(dragInProgress, unscrolledPosition)
                 
         else: 
             # just handle normal mouse events
@@ -537,7 +560,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             # look for the beginning of a drag
             # _dragStart seems to be used as a way to allow someone to
             # cancel/ignore a drag in progress - see _initiateDragWithoutSelection
-            elif (dragInProgress and self._dragStart):
+            elif (dragInProgress):
                 
                 if (self._shouldBeginDrag(position)):
                     if self._originalDragBox: 
@@ -639,9 +662,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def OnPaint(self, event):
         """
         """
-        # @@@ we currently have a bug where the update regions don't 
-        # always match the virtual size, creating a small black band 
-        # at the bottom of the virtual window
 
         # double buffered drawing
         dc = wx.PaintDC(self)
@@ -718,6 +738,21 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self.blockItem.selection = item
         self.blockItem.postSelectItemBroadcast()
         self.wxSynchronizeWidget()
+        
+    def OnSelectNone(self, unscrolledPosition):
+        """
+           Called when the user clicks on an area that isn't an item
+        """
+        self.OnSelectItem(None)
+    
+    def OnBeginDragNone(self):
+        pass
+        
+    def OnDraggingNone(self, unscrolledPosition):
+        pass
+        
+    def OnEndDragNone(self):
+        pass
 
     # DropReceiveWidget
     

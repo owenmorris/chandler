@@ -209,12 +209,22 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         @rtype: string or None
         """
         
+        if hasattr(self, '_forceResizeMode'):
+            return self._forceResizeMode
+            
         if self._resizeTopBounds.Inside(point):
             return self.RESIZE_MODE_START
         if self._resizeLowBounds.Inside(point):
             return self.RESIZE_MODE_END
         return None
         
+    def SetResizeMode(self, mode):
+        self._forceResizeMode = mode
+        
+    def ResetResizeMode(self):
+        if hasattr(self, '_forceResizeMode'):
+            del self._forceResizeMode
+    
     def GenerateBoundsRects(self, calendarCanvas):
         """
         Generate a bounds rectangle for each day period. For example, an event
@@ -556,10 +566,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.parent.blockItem.postSelectItemBroadcast()
         self.parent.wxSynchronizeWidget()
     
-    def OnSelectNone(self, unscrolledPosition):
-        # quick hack to allow deselection
-        self.OnSelectItem(None)
-
     def GrabFocusHack(self):
         self.editor.SaveItem()
         self.editor.Hide()
@@ -919,10 +925,16 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         super (wxWeekColumnCanvas, self).OnInit()
         
         # @@@ rationalize drawing calculations...
+        self.hourHeight = 40
+        
         self._scrollYRate = 10
-        self.SetVirtualSize((self.GetVirtualSize().width, 40*24))
+        
+        self._bgSelectionStartTime = None
+        self._bgSelectionEndTime = None
+        
+        self.SetVirtualSize((self.GetVirtualSize().width, self.hourHeight*24))
         self.SetScrollRate(0, self._scrollYRate)
-        self.Scroll(0, (40*7)/self._scrollYRate)
+        self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
 
     def ScaledScroll(self, dx, dy):
         (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
@@ -942,7 +954,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # @@@ magic numbers
         self.size = self.GetVirtualSize()
         self.xOffset = self.size.width / 8
-        self.hourHeight = 40
         if self.parent.blockItem.dayMode:
             self.parent.columns = 1
         else:
@@ -970,8 +981,13 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         topCoordinate = self.CalcUnscrolledPosition((0,0))
         topTime = self.getDateTimeFromPosition(wx.Point(topCoordinate[0],
                                                         topCoordinate[1]))
+        
+        #bottomCoordinate = self.CalcUnscrolledPosition((
+        #bottomTime = self.getDateTimeFromPosition(wx.Point(bottomCoordinate[0],
+        #                                                   bottomCoordinate[1]))
 
         # Draw the lines separating hours
+        halfHourHeight = self.hourHeight/2
         for hour in range(24):
             
             # Draw the hour legend
@@ -1005,9 +1021,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             # Draw the line between half hours
             dc.SetPen(self.minorLinePen)
             dc.DrawLine(self.xOffset,
-                         hour * self.hourHeight + (self.hourHeight/2),
+                         hour * self.hourHeight + halfHourHeight,
                         self.size.width,
-                         hour * self.hourHeight + (self.hourHeight/2))
+                         hour * self.hourHeight + halfHourHeight)
 
         # Draw lines between days
         for day in range(self.parent.columns):
@@ -1017,6 +1033,21 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                 dc.SetPen(self.minorLinePen)
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
+                        
+        # draw selection stuff
+        if (self._bgSelectionStartTime):
+            dc.SetPen(self.majorLinePen)
+            dc.SetBrush(self.selectionBrush)
+            
+            tlPos = self.getPositionFromDateTime(self._bgSelectionStartTime)
+            brPos = \
+               (self.getPositionFromDateTime(self._bgSelectionEndTime))
+            brPos.x += self.dayWidth
+            brPos.y += halfHourHeight
+            
+            selectionRect = wx.RectPP(tlPos, brPos)
+            dc.DrawRectangleRect(selectionRect)
+                    
 
     def sortByStartTime(self, item1, item2):
         """
@@ -1107,7 +1138,19 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
             
     # handle mouse related actions: move, resize, create, select
-
+    
+    def OnSelectItem(self, item):
+        if item:
+            # clear background selection
+            self._bgSelectionStartTime = self._bgSelectionEndTime = None
+        
+        super(wxWeekColumnCanvas, self).OnSelectItem(item)
+        
+    def OnSelectNone(self, unscrolledPosition):
+        self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
+        self._bgSelectionEndTime = self._bgSelectionStartTime
+        super(wxWeekColumnCanvas, self).OnSelectNone(unscrolledPosition)
+        
     def OnEditItem(self, box):
         position = self.CalcScrolledPosition(box.GetEditorPosition())
         size = box.GetMaxEditorSize()
@@ -1118,29 +1161,33 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.editor.SetItem(box.GetItem(), textPos, textSize, self.smallFont.GetPointSize()) 
 
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
-        if createOnDrag:
-            # @@@ disable until we work out repository issues
-            # event.duration = DateTime.DateTimeDelta(0, 0, 60)
-            #     x, y = self.getPositionFromDateTime(newTime)
-            #     eventRect = wx.Rect(x, y,
-            #          self.dayWidth - 1,
-            #          int(event.duration.hours * self.hourHeight) - 1)
-            pass
-        else:
-            # @@@ this code might want to live somewhere else, refactored
-            view = self.parent.blockItem.itsView
-            newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            event = Calendar.CalendarEvent(view=view)
-            event.InitOutgoingAttributes()
-            event.ChangeStart(newTime)
+        # @@@ this code might want to live somewhere else, refactored
+        view = self.parent.blockItem.itsView
+        event = Calendar.CalendarEvent(view=view)
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        event.InitOutgoingAttributes()
+        event.ChangeStart(newTime)
 
-            self.parent.blockItem.contents.source.add(event)
+        # ugh, this is a hack to work around the whole ItemCollection stuff
+        # see bug 2749 for some background
+        self.parent.blockItem.contents.source.add(event)
+        
+        if createOnDrag:
+            self._bgSelectionStartTime = self.bgSelectionEndTime = None
+        else:
+
             self.OnSelectItem(event)
 
             # @@@ Bug#1854 currently this is too slow,
             # and the event causes flicker
-            view.commit()
-        return None
+            #view.commit()
+        canvasItem = ColumnarCanvasItem(event, self)
+        
+        # only problem here is that we haven't checked for conflicts
+        canvasItem.UpdateDrawingRects()
+        canvasItem.SetResizeMode(canvasItem.RESIZE_MODE_END)
+        return canvasItem
+        
     
     def OnBeginResizeItem(self):
         self._lastUnscrolledPosition = self._dragStartUnscrolled
@@ -1149,6 +1196,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
     def OnEndResizeItem(self):
         self.StopDragTimer()
+        self._originalDragBox.ResetResizeMode()
         pass
         
     def OnResizingItem(self, unscrolledPosition):
@@ -1188,6 +1236,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     def OnEndDragItem(self):
         self.StopDragTimer()
         pass
+        
+    def OnDraggingNone(self, unscrolledPosition):
+        self._bgSelectionEndTime = self.getDateTimeFromPosition(unscrolledPosition)
+        if (self._bgSelectionEndTime < self._bgSelectionStartTime):
+            # swap values
+            (self._bgSelectionStartTime, self._bgSelectionEndTime) = \
+                (self._bgSelectionEndTime, self._bgSelectionStartTime)
+        self.Refresh()
+            
         
     def OnDraggingItem(self, unscrolledPosition):
         # at the start of the drag, the mouse was somewhere inside the
