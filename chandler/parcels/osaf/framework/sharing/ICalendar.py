@@ -96,6 +96,13 @@ def itemsToVObject(view, items, cal=None):
         except AttributeError:
             pass
         try:
+            if taskorevent == 'EVENT':
+                status = item.transparency.upper()
+                if status == 'FYI': status = 'CANCELLED'
+                comp.add('status').value = status
+        except AttributeError:
+            pass
+        try:
             comp.add('description').value = item.body.getReader().read()
         except AttributeError:
             pass
@@ -209,6 +216,17 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 location = None            
 
             try:
+                status = event.status[0].value.lower()
+                if status in ('confirmed', 'tentative'):
+                    pass
+                elif status == 'cancelled': #Chandler doesn't have CANCELLED
+                    status = 'fyi'
+                else:
+                    status = 'confirmed'
+            except AttributeError:
+                status = 'confirmed'
+
+            try:
                 # FIXME assumes DURATION, not DATE-TIME
                 reminderDelta = event.valarm[0].trigger[0].value
             except AttributeError:
@@ -284,12 +302,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     if duration is not None:
                         eventItem.dueDate = convertToMX(dt + duration)
                 
+                eventItem.transparency = status
                 
                 # I think Item.description describes a Kind, not userdata, so
                 # I'm using DESCRIPTION <-> body  
                 if description is not None:
                     eventItem.body = textKind.makeValue(description)
-                    
+                
                 if location is not None:
                     eventItem.location = Calendar.Location.getLocation(view,
                                                                        location)

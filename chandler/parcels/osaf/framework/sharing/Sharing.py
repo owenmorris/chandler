@@ -105,11 +105,15 @@ class OneTimeShare(Share):
 
     def put(self):
         super(OneTimeShare, self).put()
+        collection = self.contents
         self.remove()
+        return collection
 
     def get(self):
         super(OneTimeShare, self).get()
+        collection = self.contents
         self.remove()
+        return collection
 
 
 

@@ -353,7 +353,8 @@ class MainView(View):
         try:
             share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
-            share.get()
+            collection = share.get()
+            self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
             self.setStatusMessage ("Import completed")
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
