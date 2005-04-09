@@ -1314,7 +1314,7 @@ wxClientDC	dc( this );
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 		{
-		wxDCClipper		boundsClip( dc, boundsR );
+			dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
 #if defined(__WXMAC__)
 			// Mac case - selection indicator is drawn as needed
@@ -1327,6 +1327,8 @@ wxClientDC	dc( this );
 				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
 #endif
 		}
+
+	dc.DestroyClippingRegion();
 #endif
 
 	return resultV;
