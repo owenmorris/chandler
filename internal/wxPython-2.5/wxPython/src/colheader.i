@@ -107,6 +107,10 @@ public:
         long            itemIndex,
         long            originX );
 
+    void GetSelectionColour(
+        wxColor            &targetColour ) const;
+    void SetSelectionColour(
+        const wxColor        &targetColour );
     long GetSelectionDrawStyle( void ) const;
     void SetSelectionDrawStyle(
         long                styleValue );

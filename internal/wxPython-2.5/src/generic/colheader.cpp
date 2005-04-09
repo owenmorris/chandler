@@ -165,6 +165,8 @@ void wxColumnHeader::Init( void )
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 	m_SelectionDrawStyle = 0;
 
+	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
+
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
@@ -548,6 +550,18 @@ wxVisualAttributes wxColumnHeader::GetClassDefaultAttributes(
 #if 0
 #pragma mark -
 #endif
+
+void wxColumnHeader::GetSelectionColour(
+	wxColor			&targetColour ) const
+{
+	targetColour = m_SelectionColour;
+}
+
+void wxColumnHeader::SetSelectionColour(
+	const wxColor		&targetColour )
+{
+	m_SelectionColour = targetColour;
+}
 
 long wxColumnHeader::GetSelectionDrawStyle( void ) const
 {
@@ -1308,7 +1322,7 @@ long			resultV;
 		{
 		wxClientDC		dc( this );
 
-			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
+			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionColour, m_SelectionDrawStyle );
 		}
 
 #else
@@ -1330,7 +1344,7 @@ long			i;
 			// generic case - add selection indicator
 			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 			if (m_BVisibleSelection && (i == m_ItemSelected))
-				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
+				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionColour, m_SelectionDrawStyle );
 #endif
 		}
 
@@ -2142,14 +2156,17 @@ OSStatus			errStatus;
 void wxColumnHeaderItem::GenericDrawSelection(
 	wxClientDC			*dc,
 	const wxRect			*boundsR,
+	const wxColour			*targetColour,
 	long					drawStyle )
 {
-wxColour		stdSelRGB( 0x66, 0x66, 0x66 );
-wxPen		targetPen( stdSelRGB, 1, wxSOLID );
+wxPen		targetPen( *wxLIGHT_GREY, 1, wxSOLID );
 int			borderWidth;
 
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
+
+	if (targetColour != NULL)
+		targetPen.SetColour( *targetColour );
 
 //	wxLogDebug(
 //		_T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),

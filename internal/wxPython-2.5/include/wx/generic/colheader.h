@@ -19,6 +19,7 @@
 #include "wx/control.h"			// the base class
 #include "wx/dcclient.h"
 #include "wx/font.h"
+#include "wx/colour.h"
 #include "wx/bitmap.h"
 
 
@@ -27,7 +28,7 @@
 // class wxBitmap;
 
 // ----------------------------------------------------------------------------
-// wxColumnHeader: a control that provides a native-appearance column header
+// private data definitions
 // ----------------------------------------------------------------------------
 
 typedef enum
@@ -105,6 +106,7 @@ public:
 	static void GenericDrawSelection(
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
+		const wxColour		*targetColour,
 		long				drawStyle );
 
 	static void GenericDrawSortArrow(
@@ -185,6 +187,10 @@ public:
 		long				itemIndex,
 		long				originX );
 
+	void GetSelectionColour(
+		wxColor			&targetColour ) const;
+	void SetSelectionColour(
+		const wxColor		&targetColour );
 	long GetSelectionDrawStyle( void ) const;
 	void SetSelectionDrawStyle(
 		long				styleValue );
@@ -347,6 +353,7 @@ protected:
 protected:
 	wxRect					m_NativeBoundsR;
 	wxFont				m_Font;
+	wxColour				m_SelectionColour;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
