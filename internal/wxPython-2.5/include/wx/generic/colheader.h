@@ -182,9 +182,12 @@ public:
 	bool RescaleToFit(
 		long				newWidth );
 	bool ResizeDivision(
-		long			itemIndex,
+		long				itemIndex,
 		long				originX );
 
+	long GetSelectionDrawStyle( void ) const;
+	void SetSelectionDrawStyle(
+		long				styleValue );
 	bool GetFlagProportionalResizing( void ) const;
 	void SetFlagProportionalResizing(
 		bool				bFlagValue );
@@ -347,6 +350,7 @@ protected:
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
+	long					m_SelectionDrawStyle;
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 	bool					m_BUseUnicode;

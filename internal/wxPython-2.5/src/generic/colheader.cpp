@@ -163,9 +163,7 @@ void wxColumnHeader::Init( void )
 	m_ItemList = NULL;
 	m_ItemCount = 0;
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
-
-	m_BProportionalResizing = true;
-	m_BVisibleSelection = true;
+	m_SelectionDrawStyle = 0;
 
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
@@ -174,61 +172,14 @@ void wxColumnHeader::Init( void )
 	m_Font.SetFamily( 0 );
 #endif
 
+	m_BProportionalResizing = true;
+	m_BVisibleSelection = true;
+
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
 #else
 	m_BUseUnicode = false;
 #endif
-}
-
-bool wxColumnHeader::GetFlagProportionalResizing( void ) const
-{
-	return m_BProportionalResizing;
-}
-
-void wxColumnHeader::SetFlagProportionalResizing(
-	bool			bFlagValue )
-{
-	if (m_BProportionalResizing == bFlagValue)
-		return;
-
-	m_BProportionalResizing = bFlagValue;
-}
-
-bool wxColumnHeader::GetFlagVisibleSelection( void ) const
-{
-	return m_BVisibleSelection;
-}
-
-void wxColumnHeader::SetFlagVisibleSelection(
-	bool			bFlagValue )
-{
-	if (m_BVisibleSelection == bFlagValue)
-		return;
-
-	m_BVisibleSelection = bFlagValue;
-
-	if (m_ItemSelected >= 0)
-	{
-		RefreshItem( m_ItemSelected );
-		SetViewDirty();
-	}
-}
-
-bool wxColumnHeader::GetFlagUnicode( void ) const
-{
-	return m_BUseUnicode;
-}
-
-// NB: this routine shouldn't really exist
-//
-void wxColumnHeader::SetFlagUnicode(
-	bool			bFlagValue )
-{
-	if (m_BUseUnicode == bFlagValue)
-		return;
-
-	// m_BUseUnicode = bFlagValue;
 }
 
 bool wxColumnHeader::Create(
@@ -590,6 +541,88 @@ wxVisualAttributes wxColumnHeader::GetClassDefaultAttributes(
 	// FIXME: is this dependency necessary?
 	// use the same color scheme as wxListBox
 	return wxListBox::GetClassDefaultAttributes( variant );
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
+long wxColumnHeader::GetSelectionDrawStyle( void ) const
+{
+	return m_SelectionDrawStyle;
+}
+
+// NB: this has no effect on the Mac selection UI,
+// which is well-defined.
+//
+void wxColumnHeader::SetSelectionDrawStyle(
+	long			styleValue )
+{
+	if (m_SelectionDrawStyle == styleValue)
+		return;
+	if ((styleValue < 0) || (styleValue > 0))
+		return;
+
+	m_SelectionDrawStyle = styleValue;
+
+#if !defined(__WXMAC__)
+	if (m_ItemSelected >= 0)
+	{
+		RefreshItem( m_ItemSelected );
+		SetViewDirty();
+	}
+#endif
+}
+
+bool wxColumnHeader::GetFlagProportionalResizing( void ) const
+{
+	return m_BProportionalResizing;
+}
+
+void wxColumnHeader::SetFlagProportionalResizing(
+	bool			bFlagValue )
+{
+	if (m_BProportionalResizing == bFlagValue)
+		return;
+
+	m_BProportionalResizing = bFlagValue;
+}
+
+bool wxColumnHeader::GetFlagVisibleSelection( void ) const
+{
+	return m_BVisibleSelection;
+}
+
+void wxColumnHeader::SetFlagVisibleSelection(
+	bool			bFlagValue )
+{
+	if (m_BVisibleSelection == bFlagValue)
+		return;
+
+	m_BVisibleSelection = bFlagValue;
+
+	if (m_ItemSelected >= 0)
+	{
+		RefreshItem( m_ItemSelected );
+		SetViewDirty();
+	}
+}
+
+bool wxColumnHeader::GetFlagUnicode( void ) const
+{
+	return m_BUseUnicode;
+}
+
+// NB: this routine shouldn't really exist
+//
+void wxColumnHeader::SetFlagUnicode(
+	bool			bFlagValue )
+{
+	if (m_BUseUnicode == bFlagValue)
+		return;
+
+	// m_BUseUnicode = bFlagValue;
 }
 
 // ================
@@ -1262,14 +1295,14 @@ long			resultV;
 	// render native control window
 	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
-	// add selection indicator - no Win32 native mechanism exists
+	// Win32 case - add selection indicator - no native mechanism exists
 	if (m_BVisibleSelection && (m_ItemSelected >= 0))
 	{
 		if (GetItemBounds( m_ItemSelected, &boundsR ))
 		{
 		wxClientDC		dc( this );
 
-			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, 0 );
+			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
 		}
 	}
 
@@ -1284,13 +1317,14 @@ wxClientDC	dc( this );
 		wxDCClipper		boundsClip( dc, boundsR );
 
 #if defined(__WXMAC__)
+			// Mac case - selection indicator is drawn as needed
 			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
-#else
-			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 
+#else
 			// generic case - add selection indicator
+			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 			if (m_BVisibleSelection && (i == m_ItemSelected))
-				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, 0 );
+				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
 #endif
 		}
 #endif
@@ -2103,8 +2137,8 @@ void wxColumnHeaderItem::GenericDrawSelection(
 	long					drawStyle )
 {
 wxColour		stdSelRGB( 0x66, 0x66, 0x66 );
-wxPen			solidPen( stdSelRGB, 1, wxSOLID );
-int				borderWidth;
+wxPen		targetPen( stdSelRGB, 1, wxSOLID );
+int			borderWidth;
 
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
@@ -2117,33 +2151,29 @@ int				borderWidth;
 	{
 	case 1:
 		// frame border style
-		{
-			borderWidth = 2;
-			solidPen.SetWidth( borderWidth );
-			dc->SetPen( solidPen );
-			dc->SetBrush( *wxTRANSPARENT_BRUSH );
+		borderWidth = 2;
+		targetPen.SetWidth( borderWidth );
+		dc->SetPen( targetPen );
+		dc->SetBrush( *wxTRANSPARENT_BRUSH );
 
-			dc->DrawRectangle(
-				boundsR->x,
-				boundsR->y,
-				boundsR->width - borderWidth,
-				boundsR->height );
-		}
+		dc->DrawRectangle(
+			boundsR->x,
+			boundsR->y,
+			boundsR->width - borderWidth,
+			boundsR->height );
 		break;
 
 	default:
 		// underline style - similar to Win32 rollover drawing
-		{
-			borderWidth = 6;
-			solidPen.SetWidth( borderWidth );
-			dc->SetPen( solidPen );
+		borderWidth = 6;
+		targetPen.SetWidth( borderWidth );
+		dc->SetPen( targetPen );
 
-			dc->DrawLine(
-				boundsR->x,
-				boundsR->y + boundsR->height,
-				boundsR->x + boundsR->width - borderWidth,
-				boundsR->y + boundsR->height );
-		}
+		dc->DrawLine(
+			boundsR->x,
+			boundsR->y + boundsR->height,
+			boundsR->x + boundsR->width - borderWidth,
+			boundsR->y + boundsR->height );
 		break;
 	}
 }

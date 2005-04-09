@@ -107,6 +107,9 @@ public:
         long            itemIndex,
         long            originX );
 
+    long GetSelectionDrawStyle( void ) const;
+    void SetSelectionDrawStyle(
+        long                styleValue );
     bool GetFlagProportionalResizing( void ) const;
     void SetFlagProportionalResizing(
         bool                bFlagValue );
