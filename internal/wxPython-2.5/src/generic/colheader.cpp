@@ -271,6 +271,7 @@ bool		bResultV;
 bool wxColumnHeader::Enable(
 	bool		bEnable )
 {
+long		i;
 bool		bResultV;
 
 	if (bEnable == IsEnabled())
@@ -278,7 +279,7 @@ bool		bResultV;
 
 	bResultV = wxControl::Enable( bEnable );
 
-	for (long i=0; i<m_ItemCount; i++)
+	for (i=0; i<m_ItemCount; i++)
 	{
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
@@ -774,11 +775,12 @@ long wxColumnHeader::GetSelectedItem( void ) const
 void wxColumnHeader::SetSelectedItem(
 	long			itemIndex )
 {
+long		i;
 bool		bSelected;
 
 	if (m_ItemSelected != itemIndex)
 	{
-		for (long i=0; i<m_ItemCount; i++)
+		for (i=0; i<m_ItemCount; i++)
 		{
 			bSelected = (i == itemIndex);
 			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
@@ -808,6 +810,8 @@ bool		bSelected;
 void wxColumnHeader::DeleteItem(
 	long			itemIndex )
 {
+long		i;
+
 	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 	{
 #if defined(__WXMSW__)
@@ -822,7 +826,7 @@ void wxColumnHeader::DeleteItem(
 				delete m_ItemList[itemIndex];
 
 				// close the list hole
-				for (long i=itemIndex; i<m_ItemCount-1; i++)
+				for (i=itemIndex; i<m_ItemCount-1; i++)
 					m_ItemList[i] = m_ItemList[i + 1];
 
 				// leave a NULL spot at the end
@@ -975,9 +979,11 @@ bool				bIsSelected;
 
 void wxColumnHeader::DisposeItemList( void )
 {
+long		i;
+
 	if (m_ItemList != NULL)
 	{
-		for (long i=0; i<m_ItemCount; i++)
+		for (i=0; i<m_ItemCount; i++)
 			delete m_ItemList[i];
 
 		free( m_ItemList );
@@ -1250,7 +1256,7 @@ wxColumnHeaderHitTestResult		resultV;
 #if defined(__WXMSW__)
 RECT		boundsR;
 HWND		targetViewRef;
-long		itemCount, i;
+long			itemCount, i;
 
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
@@ -1271,8 +1277,9 @@ long		itemCount, i;
 		}
 	}
 #else
+long		i;
 
-	for (long i=0; i<m_ItemCount; i++)
+	for (i=0; i<m_ItemCount; i++)
 		if (m_ItemList[i] != NULL)
 			if (m_ItemList[i]->HitTest( locationPt ) != 0)
 			{
@@ -1297,21 +1304,20 @@ long			resultV;
 
 	// Win32 case - add selection indicator - no native mechanism exists
 	if (m_BVisibleSelection && (m_ItemSelected >= 0))
-	{
 		if (GetItemBounds( m_ItemSelected, &boundsR ))
 		{
 		wxClientDC		dc( this );
 
 			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionDrawStyle );
 		}
-	}
 
 #else
 wxClientDC	dc( this );
+long			i;
 
 	dc.SetFont( m_Font );
 
-	for (long i=0; i<m_ItemCount; i++)
+	for (i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 		{
 			dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
