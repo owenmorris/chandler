@@ -43,6 +43,7 @@
 	#include "wx/dcclient.h"
 	#include "wx/bitmap.h"
 	#include "wx/gdicmn.h"
+	#include "wx/colour.h"
 #endif
 
 #if defined(__WXMAC__)
@@ -287,6 +288,7 @@ bool		bResultV;
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
 
 #if defined(__WXMSW__)
+		// FIXME: possibly replace with simpler Win32ItemRefresh( i ) call
 	bool		bSelected, bSortEnabled, bSortAscending;
 
 		bSelected = false;
@@ -801,6 +803,7 @@ bool		bSelected;
 				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
+		// FIXME: possibly replace with simpler Win32ItemRefresh( i ) call
 		bool		bSortEnabled, bSortAscending;
 
 			bSortEnabled = false;
@@ -1322,7 +1325,7 @@ long			resultV;
 		{
 		wxClientDC		dc( this );
 
-			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionColour, m_SelectionDrawStyle );
+			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
 		}
 
 #else
@@ -1344,7 +1347,7 @@ long			i;
 			// generic case - add selection indicator
 			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 			if (m_BVisibleSelection && (i == m_ItemSelected))
-				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, m_SelectionColour, m_SelectionDrawStyle );
+				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
 #endif
 		}
 
