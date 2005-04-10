@@ -167,6 +167,12 @@ void wxColumnHeader::Init( void )
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
 
+#if defined(__WXMSW__) || defined(__WXMAC__)
+	m_BFixedHeight = true;
+#else
+	m_BFixedHeight = false;
+#endif
+
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
@@ -199,9 +205,14 @@ wxSize		actualSize;
 bool			bResultV;
 
 	localName = name;
-	actualSize = CalculateDefaultSize();
-	if (size.x > 0)
-		actualSize.x = size.x;
+
+	actualSize = size;
+	if (m_BFixedHeight)
+	{
+		actualSize = CalculateDefaultSize();
+		if (size.x > 0)
+			actualSize.x = size.x;
+	}
 
 	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)
@@ -228,11 +239,11 @@ bool			bResultV;
 			style, wxDefaultValidator, localName );
 #endif
 
+#if 0
 	if (bResultV)
 	{
 		// NB: is any of this necessary??
 
-#if 0
 		// needed to get the arrow keys normally used for dialog navigation
 		SetWindowStyle( style );
 
@@ -240,8 +251,8 @@ bool			bResultV;
 		// the same as the one specified in pos if we have the controls above it
 		SetBestSize( actualSize );
 		SetPosition( pos );
-#endif
 	}
+#endif
 
 	// NB: is this advisable?
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
@@ -2194,6 +2205,7 @@ long			borderWidth, offsetY;
 	{
 	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None:
 	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_BoldLabel:
 		// performed elsewheres or not at all
 		break;
 

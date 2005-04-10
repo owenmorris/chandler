@@ -359,6 +359,7 @@ protected:
 	long					m_ItemCount;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
+	bool					m_BFixedHeight;
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 	bool					m_BUseUnicode;
