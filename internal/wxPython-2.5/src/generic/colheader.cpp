@@ -164,15 +164,16 @@ void wxColumnHeader::Init( void )
 	m_ItemList = NULL;
 	m_ItemCount = 0;
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
-	m_SelectionDrawStyle = 0;
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
 
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
+	m_SelectionDrawStyle = 0;
 #else
 	m_Font.SetFamily( 0 );
+	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native;
 #endif
 
 	m_BProportionalResizing = true;
@@ -578,7 +579,8 @@ void wxColumnHeader::SetSelectionDrawStyle(
 {
 	if (m_SelectionDrawStyle == styleValue)
 		return;
-	if ((styleValue < 0) || (styleValue > 0))
+	if ((styleValue < wxCOLUMNHEADER_SELECTIONDRAWSTYLE_FIRST)
+			|| (styleValue > wxCOLUMNHEADER_SELECTIONDRAWSTYLE_LAST))
 		return;
 
 	m_SelectionDrawStyle = styleValue;
@@ -1387,16 +1389,16 @@ long		originX, i;
 	}
 }
 
-long wxColumnHeader::GetLabelWidth(
+wxSize wxColumnHeader::GetLabelTextExtent(
 	wxClientDC			*dc,
 	const wxString			&targetStr )
 {
-long		resultV;
+wxSize		resultV;
 
-	resultV = 0;
+	resultV.x = resultV.y = 0;
 
 	if (targetStr.IsEmpty())
-		return 0;
+		return resultV;
 
 #if defined(__WXMAC__)
 wxMacCFStringHolder	cfString( targetStr, m_Font.GetEncoding() );
@@ -1413,19 +1415,22 @@ SInt16				baselineV;
 		&xyPt,
 		&baselineV );
 
-	resultV = (long)(xyPt.h);
+	resultV.x = (wxCoord)(xyPt.h);
+	resultV.y = (wxCoord)(xyPt.v);
 
 #else
-wxCoord		targetWidth;
+wxCoord		targetWidth, targetHeight;
 
 	if (dc != NULL)
 	{
 		dc->SetFont( m_Font );
 		dc->GetTextExtent(
-			targetStr, &targetWidth,
-			NULL, NULL, NULL, NULL );
+			targetStr,
+			&targetWidth, &targetHeight,
+			NULL, NULL, NULL );
 
-		resultV = (long)targetWidth;
+		resultV.x = (wxCoord)targetWidth;
+		resultV.y = (wxCoord)targetHeight;
 	}
 #endif
 
@@ -1457,6 +1462,7 @@ WXDWORD		msStyle;
 
 	style = (style & ~wxBORDER_MASK) | wxBORDER_NONE;
 
+	// FIXME: is WS_CLIPSIBLINGS necessary ???
 	msStyle = wxControl::MSWGetStyle( style, exstyle );
 	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
 	msStyle |= WS_CLIPSIBLINGS;
@@ -1527,6 +1533,8 @@ long		resultV;
 	return resultV;
 }
 
+// FIXME: is this routine necessary ???
+//
 long wxColumnHeader::Win32ItemRefresh(
 	long			itemIndex )
 {
@@ -1684,6 +1692,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
+	m_LabelTextExtent.x = m_LabelTextExtent.y = (-1);
 }
 
 wxColumnHeaderItem::wxColumnHeaderItem(
@@ -1699,6 +1708,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
+	m_LabelTextExtent.x = m_LabelTextExtent.y = (-1);
 	SetItemData( info );
 }
 
@@ -1716,6 +1726,7 @@ void wxColumnHeaderItem::GetItemData(
 		return;
 
 	info->m_TextJust = m_TextJust;
+	info->m_LabelTextExtent = m_LabelTextExtent;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
 	info->m_BEnabled = m_BEnabled;
@@ -1738,6 +1749,7 @@ void wxColumnHeaderItem::SetItemData(
 		return;
 
 	m_TextJust = info->m_TextJust;
+	m_LabelTextExtent = info->m_LabelTextExtent;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
 	m_BEnabled = info->m_BEnabled;
@@ -2163,7 +2175,8 @@ void wxColumnHeaderItem::GenericDrawSelection(
 	long					drawStyle )
 {
 wxPen		targetPen( *wxLIGHT_GREY, 1, wxSOLID );
-int			borderWidth;
+long			borderWidth, offsetY;
+
 
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
@@ -2171,13 +2184,26 @@ int			borderWidth;
 	if (targetColour != NULL)
 		targetPen.SetColour( *targetColour );
 
-//	wxLogDebug(
-//		_T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
-//		boundsR->x, boundsR->y, boundsR->width, boundsR->height );
+#if 0
+	wxLogDebug(
+		_T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
+		boundsR->x, boundsR->y, boundsR->width, boundsR->height );
+#endif
 
 	switch (drawStyle)
 	{
-	case 1:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native:
+		// performed elsewheres or not at all
+		break;
+
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet:
+		// NB: not yet implemented
+		break;
+
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame:
 		// frame border style
 		borderWidth = 2;
 		targetPen.SetWidth( borderWidth );
@@ -2191,17 +2217,24 @@ int			borderWidth;
 			boundsR->height );
 		break;
 
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline:
+	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline:
 	default:
 		// underline style - similar to Win32 rollover drawing
+		// overline style - similar to Win32 tab highlighting
 		borderWidth = 6;
 		targetPen.SetWidth( borderWidth );
 		dc->SetPen( targetPen );
 
+		offsetY = 0;
+		if (drawStyle == wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline)
+			offsetY = boundsR->height;
+
 		dc->DrawLine(
 			boundsR->x,
-			boundsR->y + boundsR->height,
+			boundsR->y + offsetY,
 			boundsR->x + boundsR->width - borderWidth,
-			boundsR->y + boundsR->height );
+			boundsR->y + offsetY );
 		break;
 	}
 }

@@ -136,6 +136,7 @@ public:
 
 public:
 	wxString				m_LabelTextRef;
+	wxSize				m_LabelTextExtent;
 	long					m_TextJust;
 	wxBitmap				*m_BitmapRef;
 	long					m_OriginX;
@@ -302,7 +303,7 @@ protected:
 	void RefreshItem(
 		long				itemIndex );
 
-	long GetLabelWidth(
+	wxSize GetLabelTextExtent(
 		wxClientDC			*dc,
 		const wxString			&targetStr );
 

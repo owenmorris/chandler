@@ -30,13 +30,6 @@
 
 //---------------------------------------------------------------------------
 
-enum wxColumnHeaderJustification
-{
-    wxCOLUMNHEADER_JUST_Left,
-    wxCOLUMNHEADER_JUST_Center,
-    wxCOLUMNHEADER_JUST_Right
-};
-
 enum wxColumnHeaderFlagAttr
 {
     wxCOLUMNHEADER_FLAGATTR_Enabled,
@@ -48,8 +41,29 @@ enum wxColumnHeaderFlagAttr
 
 enum wxColumnHeaderHitTestResult
 {
-    wxCOLUMNHEADER_HITTEST_NoPart            = -1,    // outside of everything
+    wxCOLUMNHEADER_HITTEST_NoPart            = -1,    // not within a known sub-item (but within the client bounds)
     wxCOLUMNHEADER_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
+};
+
+enum wxColumnHeaderJustification
+{
+    // NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
+    // NB: 2) existing Wx justification enum has (too) many inapplicable elements
+    wxCOLUMNHEADER_JUST_Left,
+    wxCOLUMNHEADER_JUST_Center,
+    wxCOLUMNHEADER_JUST_Right
+};
+
+enum wxColumnHeaderSelectionDrawStyle
+{
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame,
+    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
 };
 
 //---------------------------------------------------------------------------

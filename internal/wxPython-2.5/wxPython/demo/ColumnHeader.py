@@ -56,30 +56,30 @@ class TestPanel( wx.Panel ):
 
         # add demo UI controls
         miscControlsY = 175
-        prompt = "[Unicode build: %d]" %(ch1.GetFlagUnicode())
+        prompt = "Unicode build: [%d]" %(ch1.GetFlagUnicode())
         hasUnicode = ch1.GetFlagUnicode()
-        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 25), (150, 20) )
+        l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
-        l0O = wx.StaticText( self, -1, "Last Action:", (10, miscControlsY + 65), (150, 20) )
-        l0 = wx.StaticText( self, -1, "[result]", (10, miscControlsY + 85), (150, 20) )
+        l0O = wx.StaticText( self, -1, "Last Action:", (self.colStartX, miscControlsY + 175), (150, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 175), (150, 20) )
         self.l0 = l0
 
-        btn = wx.Button( self, -1, "Resize Bounds", (10, self.colStartY) )
-        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
-
-        btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 25) )
+        btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 15) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeleteItem, btn )
 
-        btn = wx.Button( self, -1, "Add Bitmap Item", (10, self.colStartY + 80 + 10) )
+        btn = wx.Button( self, -1, "Add Bitmap Item", (10, self.colStartY + 80 + 5) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestAddBitmapItem, btn )
 
-        btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 10 + 25) )
+        btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 5 + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeDivision, btn )
 
-        btn = wx.Button( self, -1, "Deselect", (10, self.colStartY + 80 + 10 + 50) )
+        btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
 
-        self.colStartX += 60
+        btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
+
+        self.colStartX += 150
 
         cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
@@ -93,7 +93,7 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb3 )
         cb3.SetValue( True )
 
-        self.colStartX -= 60
+        self.colStartX = 175
 
     def OnClickColumnHeader( self, event ):
         ch = event.GetEventObject()

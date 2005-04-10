@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:		wx/colheader.h
-// Purpose:	definitions for a native-appearance column header
+// Purpose:	public definitions for a native-appearance column header
 // Author:	David Surovell
 // Modified by:
 // Created:	01.01.2005
@@ -27,15 +27,6 @@
 
 typedef enum
 {
-	// NB: wxID_JUSTIFY_ values enum as: center, fill, right, left
-	wxCOLUMNHEADER_JUST_Left,
-	wxCOLUMNHEADER_JUST_Center,
-	wxCOLUMNHEADER_JUST_Right
-}
-wxColumnHeaderJustification;
-
-typedef enum
-{
 	wxCOLUMNHEADER_FLAGATTR_Enabled,
 	wxCOLUMNHEADER_FLAGATTR_Selected,
 	wxCOLUMNHEADER_FLAGATTR_SortEnabled,
@@ -51,6 +42,34 @@ typedef enum
 }
 wxColumnHeaderHitTestResult;
 
+typedef enum
+{
+	// NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
+	// NB: 2) existing Wx justification enum has (too) many inapplicable elements
+	wxCOLUMNHEADER_JUST_Left,
+	wxCOLUMNHEADER_JUST_Center,
+	wxCOLUMNHEADER_JUST_Right
+}
+wxColumnHeaderJustification;
+
+typedef enum
+{
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame,
+	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
+}
+wxColumnHeaderSelectionDrawStyle;
+
+// NB: these should be enum members,
+// but some compilers spit warnings at synonymic references to the same base value
+// anyways, they're private
+#define wxCOLUMNHEADER_SELECTIONDRAWSTYLE_FIRST		wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None
+#define wxCOLUMNHEADER_SELECTIONDRAWSTYLE_LAST			wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader events
