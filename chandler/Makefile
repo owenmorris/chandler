@@ -35,7 +35,7 @@ BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-9.tar.gz \
              ../yapps-$(SNAP)-2.1.1-2.tar.gz \
              ../zopeinterface-$(SNAP)-3.0.0b1-2.tar.gz \
              ../dateutil-$(SNAP)-0.5-1.tar.gz \
-             ../vobject-$(SNAP)-0.1.1-1.tar.gz
+             ../vobject-$(SNAP)-0.1.2-1.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
