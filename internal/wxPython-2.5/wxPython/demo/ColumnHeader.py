@@ -60,8 +60,8 @@ class TestPanel( wx.Panel ):
         hasUnicode = ch1.GetFlagUnicode()
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
-        l0O = wx.StaticText( self, -1, "Last Action:", (self.colStartX, miscControlsY + 175), (150, 20) )
-        l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 175), (150, 20) )
+        l0O = wx.StaticText( self, -1, "Last Action:", (self.colStartX, miscControlsY + 175), (90, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 175), (250, 20) )
         self.l0 = l0
 
         btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 15) )
@@ -210,6 +210,8 @@ overview = """<html><body>
 <p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot.</p>
 
 <p>Selections, bitmaps and sort arrows are optional</p>
+
+<p>NB: not all of the selection styles are functional</p>
 
 <p>A limitation: text and bitmaps are mutually exclusive.</p>
 
