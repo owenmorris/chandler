@@ -79,6 +79,12 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
+        styleList = ['None', 'Native', 'BoldLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
+        wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 75), (150, -1) )
+        choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 95), choices = styleList )
+        choice.SetSelection( 1 )
+        self.Bind( wx.EVT_CHOICE, self.OnEvtChoice, choice )
+
         self.colStartX += 150
 
         cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
@@ -178,6 +184,12 @@ class TestPanel( wx.Panel ):
         self.ch1.SetFlagProportionalResizing( curEnabled )
         self.ch2.SetFlagProportionalResizing( curEnabled )
         self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
+
+    def OnEvtChoice( self, event ):
+        ch = event.GetEventObject()
+        self.ch1.SetSelectionDrawStyle( event.GetSelection() )
+        self.ch2.SetSelectionDrawStyle( event.GetSelection() )
+        self.l0.SetLabel( "Choice hit (%d - %s)" %(event.GetSelection(), event.GetString()) )
 
 #----------------------------------------------------------------------
 
