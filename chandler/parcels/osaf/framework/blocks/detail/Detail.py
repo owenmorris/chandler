@@ -735,7 +735,9 @@ class NoteBody (EditTextAttribute):
                 #XXX: Ensures that any non-ascii text entered in to the detail view
                 #     is properly encoded to ascii. This is a short term fix
                 #     and will not address issues related to internationalization
-                text = unicode(widgetText, 'utf-8', 'ignore').encode('ascii', 'ignore')
+                if not isinstance(widgetText, unicode):
+                    widgetText = unicode(widgetText, 'utf-8', 'ignore')
+                text = widgetText.encode('ascii', 'ignore')
                 item.body = textType.makeValue(text, encoding='ascii', indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
