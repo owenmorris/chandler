@@ -252,11 +252,11 @@ public:
 		long				itemIndex,
 		long				textJust );
 
-	wxPoint GetUIExtent(
+	wxSize GetUIExtent(
 		long				itemIndex ) const;
 	void SetUIExtent(
 		long				itemIndex,
-		wxPoint			&extentPt );
+		wxSize			&extentPt );
 	bool GetFlagAttribute(
 		long						itemIndex,
 		wxColumnHeaderFlagAttr		flagEnum ) const;

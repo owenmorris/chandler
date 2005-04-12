@@ -877,7 +877,7 @@ void wxColumnHeader::AddItem(
 	bool				bSortAscending )
 {
 wxColumnHeaderItem		itemInfo;
-wxPoint					targetExtent;
+wxSize					targetExtent;
 long					originX;
 
 	// set invariant values
@@ -1177,11 +1177,11 @@ wxColumnHeaderItem		*itemRef;
 	}
 }
 
-wxPoint wxColumnHeader::GetUIExtent(
-	long			itemIndex ) const
+wxSize wxColumnHeader::GetUIExtent(
+	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
-wxPoint					extentPt;
+wxSize					extentPt;
 long					originX, extentX;
 bool					bResultV;
 
@@ -1204,8 +1204,8 @@ bool					bResultV;
 }
 
 void wxColumnHeader::SetUIExtent(
-	long			itemIndex,
-	wxPoint		&extentPt )
+	long				itemIndex,
+	wxSize			&extentPt )
 {
 wxColumnHeaderItem		*itemRef;
 
@@ -2009,7 +2009,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 	bool				bVisibleSelection ) const
 {
 wxRect				localBoundsR, subItemBoundsR;
-wxPoint				labelTextSize;
+wxSize				labelTextSize;
 long					originX, insetX;
 bool					bSelected, bHasIcon;
 
