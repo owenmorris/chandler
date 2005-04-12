@@ -56,8 +56,8 @@ class TestPanel( wx.Panel ):
 
         # add demo UI controls
         miscControlsY = 175
-        prompt = "Unicode build: [%d]" %(ch1.GetFlagUnicode())
         hasUnicode = ch1.GetFlagUnicode()
+        prompt = "Unicode build: [%d]" %(hasUnicode)
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
         l0O = wx.StaticText( self, -1, "Last Action:", (self.colStartX, miscControlsY + 175), (90, 20) )
@@ -82,22 +82,22 @@ class TestPanel( wx.Panel ):
         styleList = ['None', 'Native', 'BoldLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
         wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 75), (150, -1) )
         choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 95), choices = styleList )
-        choice.SetSelection( 1 )
+        choice.SetSelection( ch1.GetSelectionDrawStyle() )
         self.Bind( wx.EVT_CHOICE, self.OnEvtChoice, choice )
 
         self.colStartX += 150
 
         cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
-        cb1.SetValue( True )
+        cb1.SetValue( ch1.IsEnabled() )
 
         cb2 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
-        cb2.SetValue( True )
+        cb2.SetValue( ch1.GetFlagVisibleSelection() )
 
         cb3 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb3 )
-        cb3.SetValue( True )
+        cb3.SetValue(  ch1.GetFlagProportionalResizing() )
 
         self.colStartX = 175
 

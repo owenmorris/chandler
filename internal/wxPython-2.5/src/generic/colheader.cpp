@@ -176,7 +176,7 @@ void wxColumnHeader::Init( void )
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
-	m_SelectionDrawStyle = 0;
+	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None;
 #else
 	m_Font.SetFamily( 0 );
 	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native;
@@ -1790,16 +1790,17 @@ void wxColumnHeaderItem::SetBitmapRef(
 {
 wxRect			targetBoundsR;
 
-	// NB: could rewrite to make NULL wxBitmap for no bitmap
 	delete m_BitmapRef;
-	m_BitmapRef = new wxBitmap( bitmapRef );
+	m_BitmapRef = NULL;
 
-	if ((boundsR != NULL) && HasValidBitmapRef( m_BitmapRef ))
+	if ((boundsR != NULL) && HasValidBitmapRef( &bitmapRef ))
 	{
-		GenericGetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
+	wxBitmap		localBitmap;
 
-		m_BitmapRef->SetWidth( targetBoundsR.width );
-		m_BitmapRef->SetHeight( targetBoundsR.height );
+		GenericGetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
+		targetBoundsR.x = targetBoundsR.y = 0;
+		localBitmap = bitmapRef.GetSubBitmap( targetBoundsR );
+		m_BitmapRef = new wxBitmap( localBitmap );
 	}
 	else
 	{
