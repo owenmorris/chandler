@@ -119,6 +119,7 @@ public:
 	static void GenericGetBitmapItemBounds(
 		const wxRect		*itemBoundsR,
 		long				targetJustification,
+		const wxBitmap	*targetBitmap,
 		wxRect			*targetBoundsR );
 
 #if defined(__WXMAC__)
@@ -331,7 +332,8 @@ protected:
 	long Win32ItemDelete(
 		long			itemIndex );
 	long Win32ItemRefresh(
-		long			itemIndex );
+		long			itemIndex,
+		bool			bCheckChanged = false );
 	long Win32ItemSelect(
 		long			itemIndex,
 		bool			bSelected,

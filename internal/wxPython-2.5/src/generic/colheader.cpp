@@ -300,7 +300,7 @@ bool		bResultV;
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
 
 #if defined(__WXMSW__)
-		// FIXME: possibly replace with simpler Win32ItemRefresh( i ) call
+		// FIXME: possibly replace with simpler Win32ItemRefresh( i, false ) call
 	bool		bSelected, bSortEnabled, bSortAscending;
 
 		bSelected = false;
@@ -816,7 +816,7 @@ bool		bSelected;
 				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
-		// FIXME: possibly replace with simpler Win32ItemRefresh( i ) call
+		// FIXME: possibly replace with simpler Win32ItemRefresh( i, false ) call
 		bool		bSortEnabled, bSortAscending;
 
 			bSortEnabled = false;
@@ -1380,7 +1380,7 @@ void wxColumnHeader::RefreshItem(
 {
 #if defined(__WXMSW__)
 	// NB: need to update native item
-	Win32ItemRefresh( itemIndex );
+	Win32ItemRefresh( itemIndex, false );
 #endif
 }
 
@@ -1544,14 +1544,14 @@ long		resultV;
 	return resultV;
 }
 
-// FIXME: is this routine necessary ???
-//
 long wxColumnHeader::Win32ItemRefresh(
-	long			itemIndex )
+	long			itemIndex,
+	bool			bCheckChanged )
 {
 wxColumnHeaderItem		*itemRef;
 HDITEM					itemData;
 HWND					targetViewRef;
+LONG						newFmt;
 long					resultV;
 
 	itemRef = GetItemRef( itemIndex );
@@ -1565,43 +1565,45 @@ long					resultV;
 		return (-1L);
 	}
 
+	// FIXME: protect against HBMP leaks?
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_FORMAT | HDI_WIDTH;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
-	// add string reference
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
-	itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
+	itemData.pszText = NULL;
 	itemData.cxy = (int)(itemRef->m_ExtentX);
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
-	itemData.fmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
-	// add bitmap reference as needed
-	// NB: text and icon are mutually exclusive:
-	// - need m_BitmapJustification + mgmt. to fully implement non-MutEx behavior
+	// add sort arrows as needed
+	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
+	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
+		newFmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+
+	// NB: should sort arrows and bitmaps be MutEx?
 	if (itemRef->HasValidBitmapRef( itemRef->m_BitmapRef ))
 	{
-		// FIXME: scaling a la wxBitmap::SetWidth/Height doesn't apply !!!
-		// FIXME: protect against HBMP leaks?
-		itemData.fmt &= ~HDF_STRING;
-		itemData.fmt |= HDF_BITMAP;
+		// add bitmap reference
+		newFmt |= HDF_BITMAP;
 		itemData.mask |= HDI_BITMAP;
 		itemData.hbm = (HBITMAP)(itemRef->m_BitmapRef->GetHBITMAP());
 	}
 	else
 	{
-		itemData.fmt &= ~HDF_BITMAP;
+		// add string reference
+		newFmt |= HDF_STRING;
+		itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
 	}
 
-	// add sort arrows as needed
-	// NB: should sort arrows and bitmaps be MutEx?
-	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
-	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
-		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
-
-	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//	resultV = (long)SendMessage( mViewRef, itemRef->m_BTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+	if (! bCheckChanged || (temData.fmt != newFmt))
+	{
+		itemData.fmt = newFmt;
+		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
+//		resultV = (long)SendMessage( mViewRef, itemRef->m_BTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+	}
+	else
+		resultV = 1;
 
 	if (resultV == 0)
 		wxLogDebug( _T("Win32ItemRefresh - SendMessage failed") );
@@ -1609,6 +1611,8 @@ long					resultV;
 	return resultV;
 }
 
+// FIXME: is this routine necessary ???
+//
 long wxColumnHeader::Win32ItemSelect(
 	long			itemIndex,
 	bool			bSelected,
@@ -1795,12 +1799,21 @@ wxRect			targetBoundsR;
 
 	if ((boundsR != NULL) && HasValidBitmapRef( &bitmapRef ))
 	{
-	wxBitmap		localBitmap;
+		GenericGetBitmapItemBounds( boundsR, m_TextJust, NULL, &targetBoundsR );
+		if ((bitmapRef.GetWidth() > targetBoundsR.width) || (bitmapRef.GetHeight() > targetBoundsR.height))
+		{
+		wxBitmap		localBitmap;
 
-		GenericGetBitmapItemBounds( boundsR, m_TextJust, &targetBoundsR );
-		targetBoundsR.x = targetBoundsR.y = 0;
-		localBitmap = bitmapRef.GetSubBitmap( targetBoundsR );
-		m_BitmapRef = new wxBitmap( localBitmap );
+			// copy from the upper left-hand corner
+			targetBoundsR.x = targetBoundsR.y = 0;
+			localBitmap = bitmapRef.GetSubBitmap( targetBoundsR );
+			m_BitmapRef = new wxBitmap( localBitmap );
+		}
+		else
+		{
+			// copy the entire bitmap
+			m_BitmapRef = new wxBitmap( bitmapRef );
+		}
 	}
 	else
 	{
@@ -2046,7 +2059,7 @@ OSStatus				errStatus;
 	{
 	wxRect		subItemBoundsR;
 
-		GenericGetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
+		GenericGetBitmapItemBounds( boundsR, m_TextJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2117,7 +2130,6 @@ bool					bSelected, bHasIcon;
 	// NB: what if icon avail? mutually exclusive?
 	if (bSelected && m_BSortEnabled)
 	{
-		// NB: should the first arg be the original "boundsR" arg ??
 		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
 		GenericDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 	}
@@ -2125,8 +2137,7 @@ bool					bSelected, bHasIcon;
 	// render the bitmap, should one be present
 	if (bHasIcon)
 	{
-		// NB: should the first arg be the original "boundsR" arg ??
-		GenericGetBitmapItemBounds( &localBoundsR, m_TextJust, &subItemBoundsR );
+		GenericGetBitmapItemBounds( &localBoundsR, m_TextJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2319,6 +2330,7 @@ wxPoint		triPt[3];
 void wxColumnHeaderItem::GenericGetBitmapItemBounds(
 	const wxRect			*itemBoundsR,
 	long					targetJustification,
+	const wxBitmap		*targetBitmap,
 	wxRect				*targetBoundsR )
 {
 int		sizeX, sizeY, insetX;
@@ -2352,6 +2364,27 @@ int		sizeX, sizeY, insetX;
 		default:
 			targetBoundsR->x += insetX;
 			break;
+		}
+
+		// if a bitmap was specified and it's smaller than the default bounds,
+		// center and shrink to fit
+		if (targetBitmap != NULL)
+		{
+		long		deltaV;
+
+			deltaV = targetBitmap->GetWidth() - targetBoundsR->width;
+			if (deltaV > 0)
+			{
+				targetBoundsR->width -= deltaV;
+				targetBoundsR->x += deltaV;
+			}
+
+			deltaV = targetBitmap->GetHeight() - targetBoundsR->height;
+			if (deltaV > 0)
+			{
+				targetBoundsR->height -= deltaV;
+				targetBoundsR->y += deltaV;
+			}
 		}
 	}
 	else

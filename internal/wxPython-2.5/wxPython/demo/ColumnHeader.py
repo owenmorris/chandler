@@ -56,11 +56,14 @@ class TestPanel( wx.Panel ):
 
         # add demo UI controls
         miscControlsY = 175
-        hasUnicode = ch1.GetFlagUnicode()
-        prompt = "Unicode build: [%d]" %(hasUnicode)
+
+        if (ch1.GetFlagUnicode()):
+                prompt = "Unicode build"
+        else:
+                prompt = "ANSI build"
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
-        l0O = wx.StaticText( self, -1, "Last Action:", (self.colStartX, miscControlsY + 175), (90, 20) )
+        l0O = wx.StaticText( self, -1, "Last action:", (self.colStartX, miscControlsY + 175), (90, 20) )
         l0 = wx.StaticText( self, -1, "[result]", (self.colStartX + 95, miscControlsY + 175), (250, 20) )
         self.l0 = l0
 
