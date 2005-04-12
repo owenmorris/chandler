@@ -329,9 +329,10 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             
             # only draw date/time on first item
             if drawTime:
-                
-                # only draw time if there is room
-                timeString = time.Format('%I:%M %p').lower()
+                # amazingly, there is no hour-without-the-zero in mx.DateTime!
+                # (If anyone knows a better way to do this, please fix..)
+                hour = str(int(time.Format('%I')))
+                timeString = hour + time.Format(':%M %p').lower()
                 te = dc.GetFullTextExtent(timeString, brushContainer.smallBoldFont)
                 timeHeight = te[1]
                 
