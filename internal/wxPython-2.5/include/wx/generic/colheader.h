@@ -334,11 +334,6 @@ protected:
 	long Win32ItemRefresh(
 		long			itemIndex,
 		bool			bCheckChanged = false );
-	long Win32ItemSelect(
-		long			itemIndex,
-		bool			bSelected,
-		bool			bSortEnabled,
-		bool			bSortAscending );
 #endif
 
 protected:

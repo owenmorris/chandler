@@ -176,10 +176,10 @@ void wxColumnHeader::Init( void )
 #if defined(__WXMAC__)
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
-	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None;
+	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native;
 #else
 	m_Font.SetFamily( 0 );
-	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native;
+	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline;
 #endif
 
 	m_BProportionalResizing = true;
@@ -300,19 +300,7 @@ bool		bResultV;
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
 
 #if defined(__WXMSW__)
-		// FIXME: possibly replace with simpler Win32ItemRefresh( i, false ) call
-	bool		bSelected, bSortEnabled, bSortAscending;
-
-		bSelected = false;
-		bSortEnabled = false;
-		bSortAscending = false;
-		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-		{
-			bSelected = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected );
-			bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
-			bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-		}
-		(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
+		Win32ItemRefresh( i, false );
 #endif
 	}
 
@@ -816,18 +804,7 @@ bool		bSelected;
 				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
-		// FIXME: possibly replace with simpler Win32ItemRefresh( i, false ) call
-		bool		bSortEnabled, bSortAscending;
-
-			bSortEnabled = false;
-			bSortAscending = false;
-			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-			{
-				bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
-				bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-			}
-
-			(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
+			Win32ItemRefresh( i, false );
 #endif
 		}
 
@@ -1596,7 +1573,7 @@ long					resultV;
 		itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
 	}
 
-	if (! bCheckChanged || (temData.fmt != newFmt))
+	if (! bCheckChanged || (itemData.fmt != newFmt))
 	{
 		itemData.fmt = newFmt;
 		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
@@ -1607,49 +1584,6 @@ long					resultV;
 
 	if (resultV == 0)
 		wxLogDebug( _T("Win32ItemRefresh - SendMessage failed") );
-
-	return resultV;
-}
-
-// FIXME: is this routine necessary ???
-//
-long wxColumnHeader::Win32ItemSelect(
-	long			itemIndex,
-	bool			bSelected,
-	bool			bSortEnabled,
-	bool			bSortAscending )
-{
-HDITEM		itemData;
-HWND		targetViewRef;
-LONG			newFmt;
-long		resultV;
-
-	targetViewRef = GetHwnd();
-	if (targetViewRef == NULL)
-	{
-		//wxLogDebug( _T("Win32ItemSelect - GetHwnd failed (NULL)") );
-		return (-1L);
-	}
-
-	ZeroMemory( &itemData, sizeof(itemData) );
-	itemData.mask = HDI_FORMAT | HDI_WIDTH;
-	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
-
-	newFmt = itemData.fmt & ~(HDF_SORTDOWN | HDF_SORTUP);
-	if (bSelected && bSortEnabled)
-		newFmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
-
-	if (itemData.fmt != newFmt)
-	{
-		itemData.fmt = newFmt;
-		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//		resultV = (long)SendMessage( targetViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
-	}
-	else
-		resultV = 1;
-
-	if (resultV == 0)
-		wxLogDebug( _T("Win32ItemSelect - SendMessage failed") );
 
 	return resultV;
 }
