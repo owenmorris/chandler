@@ -1579,7 +1579,7 @@ long					resultV;
 	// add sort arrows as needed
 	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
 	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
-		newFmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	// NB: should sort arrows and bitmaps be MutEx?
 	if (itemRef->HasValidBitmapRef( itemRef->m_BitmapRef ))
