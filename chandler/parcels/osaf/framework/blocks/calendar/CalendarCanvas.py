@@ -289,51 +289,28 @@ class ColumnarCanvasItem(CalendarCanvasItem):
 
         # Draw one event - an event consists of one or more bounds
         lastRect = len(self._boundsRects) - 1
-        radius = 10
-        diameter = radius * 2
-                       
+            
+        clipRect = None   
+        (cx,cy,cwidth,cheight) = dc.GetClippingBox()
+        if not cwidth == cheight == 0:
+            clipRect = wx.Rect(x,y,width,height)
+            
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
             dc.SetPen(brushContainer.selectionPen)
-            dc.DrawRectangleRect(itemRect)
 
             # properly round the corners - first 
             # and last boundsRect gets some rounding, and they
             # may actually be the same boundsRect
             hasTopRightRounded = hasBottomRightRounded = False
+            drawTime = False
             if rectIndex == 0:
                 hasTopRightRounded = True
+                drawTime = True
             if rectIndex == lastRect:
                 hasBottomRightRounded = True
 
-            # For now, we'll manually erase each corner, and then draw an arc
-            # over the erased corner. 
-            # We'll use wx.SET for now to just erase it with a white color,
-            # but this has the ugly side effect of blowing away anything
-            # underneath the event, including gridlines.
-            # For the next iteration, we should be assembling the rectangle
-            # piece by piece
-            if hasTopRightRounded:
-                dc.SetLogicalFunction(wx.SET)
-                dc.DrawRectangle(itemRect.x + itemRect.width - radius, 
-                                 itemRect.y, radius, radius)
-                dc.SetLogicalFunction(wx.COPY)
-                dc.DrawEllipticArc(itemRect.x + itemRect.width - diameter,
-                                   itemRect.y,
-                                   diameter, diameter, 0, 90)
-                       
-                trRadius = radius
-                
-            if hasBottomRightRounded:
-                dc.SetLogicalFunction(wx.SET)
-                dc.DrawRectangle(itemRect.x + itemRect.width - radius,
-                                 itemRect.y + itemRect.height - radius,
-                                 radius, radius)
-                dc.SetLogicalFunction(wx.COPY)
-                dc.DrawEllipticArc(itemRect.x + itemRect.width - diameter, 
-                                   itemRect.y + itemRect.height - diameter,
-                                   diameter, diameter, -90, 0)
-                brRadius = radius
+            self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
 
             pen = self.GetStatusPen()
     
@@ -351,7 +328,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             timeRect = wx.Rect(x, y, width, height)
             
             # only draw date/time on first item
-            if rectIndex == 0:
+            if drawTime:
                 
                 # only draw time if there is room
                 timeString = time.Format('%I:%M %p').lower()
@@ -367,6 +344,47 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                 
                 dc.SetFont(brushContainer.smallFont)
                 self.DrawWrappedText(dc, item.displayName, textRect)
+        
+        dc.DestroyClippingRegion()
+        if clipRect:
+            dc.SetClippingRect(clipRect)
+
+    def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):
+        """
+        Make a D-shaped rectangle, optionally specifying if the top and bottom
+        right side of the rectangle should have rounded corners. Uses
+        clip rect tricks to make sure it is drawn correctly
+        
+        Side effect: Destroys the clipping region.
+        """
+
+        radius = 10
+        diameter = radius * 2
+
+        dc.DestroyClippingRegion()
+        dc.SetClippingRect(rect)
+        
+        roundRect = wx.Rect(rect.x, rect.y, rect.width, rect.height)
+        
+        # first widen the whole thing left, this makes sure the 
+        # left rounded corners aren't drawn
+        roundRect.x -= radius
+        roundRect.width += radius
+        
+        # now optionally push the other rounded corners off the top or bottom
+        if not hasBottomRightRounded:
+            roundRect.height += radius
+            
+        if not hasTopRightRounded:
+            roundRect.y -= radius
+            roundRect.height += radius
+        
+        # finally draw the clipped rounded rect
+        dc.DrawRoundedRectangleRect(roundRect, radius)
+        
+        # draw the lefthand side border, to stay consistent all
+        # the way around the rectangle
+        dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class HeaderCanvasItem(CalendarCanvasItem):
     def Draw(self, dc, brushContainer):
@@ -712,8 +730,14 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         startDate = self.parent.blockItem.rangeStart
 
         # Update the month button given the selected date
-        
-        self.monthButton.SetLabel(selectedDate.Format("%B %Y"))
+        lastDate = startDate + DateTime.RelativeDateTime(days=6)
+        if (startDate.month == lastDate.month):
+            monthText = selectedDate.Format("%B %Y")
+        else:
+            monthText = "%s - %s" % (startDate.Format("%B"),
+                                     lastDate.Format("%B %Y"))
+     
+        self.monthButton.SetLabel(monthText)
         self.monthButton.UpdateSize()
 
         for day in range(7):
@@ -727,7 +751,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
     def toggleSize(self):
         # Toggles size between fixed and large enough to show all tasks
         if self.fixed:
-            if self.fullHeight > 106:
+            if self.fullHeight > 99:
                 self.SetMinSize((-1, self.fullHeight + 9))
             else:
                 self.SetMinSize((-1, 106))
@@ -1044,9 +1068,19 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                 dc.SetPen(self.minorLinePen)
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
-                        
+
+        if self.parent.blockItem.dayMode:
+            startDay = self.parent.blockItem.selectedDate
+            endDay = startDay + DateTime.RelativeDateTime(days = 1)
+        else:
+            startDay = self.parent.blockItem.rangeStart
+            endDay = startDay + self.parent.blockItem.rangeIncrement
+
+        (startDay, endDay) = self.GetCurrentDateRange()
         # draw selection stuff
-        if (self._bgSelectionStartTime):
+        if (self._bgSelectionStartTime and self._bgSelectionEndTime and
+            self._bgSelectionStartTime >= startDay and
+            self._bgSelectionEndTime <= endDay):
             dc.SetPen(self.majorLinePen)
             dc.SetBrush(self.selectionBrush)
             
@@ -1057,7 +1091,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                                                        0)
             for rect in rects:
                 dc.DrawRectangleRect(rect)
-                    
+
+    def GetCurrentDateRange(self):
+        if self.parent.blockItem.dayMode:
+            startDay = self.parent.blockItem.selectedDate
+            endDay = startDay + DateTime.RelativeDateTime(days = 1)
+        else:
+            startDay = self.parent.blockItem.rangeStart
+            endDay = startDay + self.parent.blockItem.rangeIncrement
+        return (startDay, endDay)
 
     def sortByStartTime(self, item1, item2):
         """
@@ -1076,12 +1118,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self._doDrawingCalculations()
         self.canvasItemList = []
 
-        if self.parent.blockItem.dayMode:
-            startDay = self.parent.blockItem.selectedDate
-            endDay = startDay + DateTime.RelativeDateTime(days = 1)
-        else:
-            startDay = self.parent.blockItem.rangeStart
-            endDay = startDay + self.parent.blockItem.rangeIncrement
+        (startDay, endDay) = self.GetCurrentDateRange()
         
         # Set up fonts and brushes for drawing the events
         dc.SetTextForeground(wx.BLACK)

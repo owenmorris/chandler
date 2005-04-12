@@ -348,6 +348,8 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         Determines if the drag should begin, based on the position, returns
         True or False
         """
+        if not self._dragStart: return False
+        
         tolerance = 2
         dx = abs(position.x - self._dragStart.x)
         dy = abs(position.y - self._dragStart.y)
@@ -675,12 +677,13 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self.DrawBackground(memoryDC)
         self.DrawCells(memoryDC)
 
+        memoryDC.EndDrawing()      
+
         dc.Blit(point.x, point.y,
                 wBuffer, hBuffer,
                 memoryDC,
                 point.x, point.y)
 
-        memoryDC.EndDrawing()      
         
     def PrintCanvas(self, dc):
         dc.BeginDrawing()
