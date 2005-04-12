@@ -309,7 +309,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if description is not None:
                     eventItem.body = textKind.makeValue(description)
                 
-                if location is not None:
+                if location:
                     eventItem.location = Calendar.Location.getLocation(view,
                                                                        location)
                 
