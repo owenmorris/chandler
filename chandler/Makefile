@@ -18,34 +18,31 @@ endif
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-9.tar.gz \
-             ../chandlerdb-$(SNAP)-0.5-6.tar.gz \
-             ../db-$(SNAP)-4.3.27-1.tar.gz \
-             ../egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
-             ../epydoc-$(SNAP)-2.1-2.tar.gz \
-             ../jabberpy-$(SNAP)-0.4-0-2.tar.gz \
-             ../libxml2-$(SNAP)-2.6.16-3.tar.gz \
-             ../m2crypto-$(SNAP)-0.12-9.tar.gz \
-             ../pychecker-$(SNAP)-0.8.13-2.tar.gz \
-             ../pylucene-$(SNAP)-0.9.8-1.tar.gz \
-             ../python-$(SNAP)-2.4-2.tar.gz \
-             ../soappy-$(SNAP)-0.10.2-2.tar.gz \
-             ../twisted-$(SNAP)-r11303-4.tar.gz \
-             ../wxPython-$(SNAP)-2.5.3.1-14.tar.gz \
-             ../yapps-$(SNAP)-2.1.1-2.tar.gz \
-             ../zopeinterface-$(SNAP)-3.0.0b1-2.tar.gz \
-             ../dateutil-$(SNAP)-0.5-1.tar.gz \
-             ../vobject-$(SNAP)-0.1.2-1.tar.gz
+ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-6.tar.gz \
+         $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.27-1.tar.gz \
+         $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
+         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-2.tar.gz \
+         $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-2.tar.gz \
+         $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-3.tar.gz \
+         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.12-9.tar.gz \
+         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-2.tar.gz \
+         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.8-1.tar.gz \
+         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4-2.tar.gz \
+         $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-2.tar.gz \
+         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r11303-4.tar.gz \
+         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.5.3.1-14.tar.gz \
+         $(CHANDLERARCHIVES)/yapps-$(SNAP)-2.1.1-2.tar.gz \
+         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.0b1-2.tar.gz \
+         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.5-1.tar.gz \
+         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.1-1.tar.gz \
+         $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
-BIN_ARCHIVES += ../openssl-$(SNAP)-0.9.7d-1.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7d-1.tar.gz
 endif
 
-# these get installed into chandler
-HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-3.tar.gz
-
-ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
 
 
@@ -92,20 +89,19 @@ endif
 
 ifeq ($(CHANDLERBIN),)
 CHANDLERBIN=$(CHANDLERHOME)
+endif               
+
+ifeq ($(CHANDLERARCHIVES),)
+CHANDLERARCHIVES=../downloads
 endif
 
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
-BIN_ARCHIVES_INST = \
+ARCHIVES_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(CHANDLERBIN)/$(SNAP)/, \
-                            $(notdir $(BIN_ARCHIVES))))
-
-HOME_ARCHIVES_INST = \
-    $(addsuffix .inst, \
-                $(addprefix $(CHANDLERHOME)/, \
-                            $(notdir $(HOME_ARCHIVES))))
+                            $(notdir $(ARCHIVES))))
 
 .PHONY: default install clean realclean downloads
 
@@ -113,18 +109,15 @@ default: install
 
 downloads: $(ARCHIVES)
 
-$(ARCHIVES):
+$(ARCHIVES): 
+	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(URL)/$(notdir $@)
 	$(CURL) $@.md5 $(URL)/$(notdir $@.md5)
 
-#	cd ..; $(MD5CHECK) $(notdir $@.md5)
+#	cd $(CHANDLERARCHIVES); $(MD5CHECK) $(notdir $@.md5)
 
-$(BIN_ARCHIVES_INST):
-	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))
-	touch $@
-
-$(HOME_ARCHIVES_INST):
-	tar -C $(CHANDLERHOME) -xvzf ../$(notdir $(basename $@))
+$(ARCHIVES_INST):
+	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
 checkout:
@@ -133,7 +126,7 @@ checkout:
 	cvs co chandler-python 2>&1 | tee -a cvsco.log; \
 	@echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
-install: $(ARCHIVES) $(BIN_ARCHIVES_INST) $(HOME_ARCHIVES_INST)
+install: $(ARCHIVES) $(ARCHIVES_INST)
 
 clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
@@ -141,5 +134,5 @@ clean:
 
 realclean: clean
 	rm -rf $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
-	rm -f $(ARCHIVES) $(BIN_ARCHIVES_INST) $(HOME_ARCHIVES_INST)
+	rm -f $(ARCHIVES) $(ARCHIVES_INST)
 	rm -f $(ARCHIVES_MD5)
