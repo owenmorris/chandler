@@ -168,6 +168,6 @@ def test():
 
 if __name__ == '__main__':
     import doctest, unittest, sys
-    from repository.query.parser.QueryParser import parse
+    from QueryParser import parse
     sys.exit(doctest.testmod()[0])
 

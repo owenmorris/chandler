@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004, 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.query.parser.QueryParser as QueryParser
+import QueryParser
 import repository.item.Item as Item
 import tools.timing
 import sets
