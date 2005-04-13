@@ -7,14 +7,13 @@ QP=$(INTERNAL)/queryparser
 ifeq ($(OS),Cygwin)
 TOOLPATH="`cygpath -aw $(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps/yapps2.py`"
 GRAMMAR_PATH="`cygpath -aw $(SRC)/QueryParser.g`"   
-MANIFEST_PATH="`cygpath -aw $(SNAP)/$(SITE)`"
-MANIFEST="`cygpath -aw $(MANIFEST_PATH)/QueryParser.py`"
 else
 TOOLPATH=$(BUILD_ROOT)/$(SNAP)/$(SITE)/yapps/yapps2.py
 GRAMMAR_PATH=$(SRC)/QueryParser.g
+endif
+
 MANIFEST_PATH=$(SNAP)/$(SITE)
 MANIFEST=$(MANIFEST_PATH)/QueryParser.py
-endif
 
 SRC=$(QP)
 
