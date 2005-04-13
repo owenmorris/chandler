@@ -787,9 +787,13 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.monthButton.SetLabel(monthText)
         #self.monthButton.UpdateSize()
 
+        today = DateTime.today()
         for day in range(7):
             currentDate = startDate + DateTime.RelativeDateTime(days=day)
-            dayName = currentDate.Format('%a ') + str(currentDate.day)
+            if currentDate == today:
+                dayName = "Today"
+            else:
+                dayName = currentDate.Format('%a ') + str(currentDate.day)
             self.weekHeader.SetLabelText(day+1, dayName)
             
         self.Layout()
