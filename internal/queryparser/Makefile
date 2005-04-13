@@ -27,7 +27,7 @@ snap:
 	$(MD5) QueryParser-$(SNAP)-$(RELVER).tar.gz > QueryParser-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
-	rm -f $(SRC)/QueryParser.py $(MANIFEST_PATH)
+	rm -f $(SRC)/QueryParser.py $(MANIFEST)
 
 realclean: clean
 	rm -f QueryParser-debug-*.tar.gz* QueryParser-release-*.tar.gz*
