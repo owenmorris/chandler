@@ -27,6 +27,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def __init__(self, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(*args, **keywords)
         self._parentConflicts = []
+        self._childConflicts = []
         # the rating of conflicts - i.e. how far to indent this
         self._conflictDepth = 0
                 
@@ -114,6 +115,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # we might want to keep track of the inverse conflict as well,
         # for conflict bars
         child._parentConflicts.append(self)
+        self._childConflicts.append(child)
         
     def FindFirstGapInSequence(self, seq):
         """
@@ -148,6 +150,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # maximum indent level of all children + 1
         return self._conflictDepth
         
+    def GetMaxDepth(self):
+        maxparents = maxchildren = 0
+        if self._childConflicts:
+            maxchildren = max([child.GetIndentLevel() for child in self._childConflicts])
+        if self._parentConflicts:
+            maxparents = max([parent.GetIndentLevel() for parent in self._parentConflicts])
+        return max(self.GetIndentLevel(), maxchildren, maxparents)
+        
 
 class ColumnarCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
@@ -165,9 +175,10 @@ class ColumnarCanvasItem(CalendarCanvasItem):
     def UpdateDrawingRects(self):
         item = self.GetItem()
         indent = self.GetIndentLevel() * 5
+        width = self.GetMaxDepth() * 5
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           item.startTime,
-                                                          item.endTime, indent))
+                                                          item.endTime, indent, width))
         self._bounds = self._boundsRects[0]
 
         r = self._boundsRects[-1]
@@ -229,7 +240,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         if hasattr(self, '_forceResizeMode'):
             del self._forceResizeMode
     
-    def GenerateBoundsRects(calendarCanvas, startTime, endTime, indent):
+    def GenerateBoundsRects(calendarCanvas, startTime, endTime, indent=0, width=0):
         """
         Generate a bounds rectangle for each day period. For example, an event
         that goes from noon monday to noon wednesday would have three bounds rectangles:
@@ -253,7 +264,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             
             rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
             rect.x += indent
-            rect.width -= indent
+            rect.width -= width
             try:
                 yield rect
             except ValueError:
@@ -1120,8 +1131,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             rects = \
                 ColumnarCanvasItem.GenerateBoundsRects(self,
                                                        self._bgSelectionStartTime,
-                                                       self._bgSelectionEndTime, 
-                                                       0)
+                                                       self._bgSelectionEndTime)
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
