@@ -299,25 +299,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self._currentDragBox = None
         self._dragCurrentUnscrolled = None
 
-        # Create common fonts for drawing, @@@ move elsewhere
-        if '__WXMAC__' in wx.PlatformInfo:
-            self.bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
-            self.bigBoldFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            self.smallFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL,
-                                     face="Verdana")
-            self.smallBoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD,
-                                         face="Verdana")
-        else:
-            self.bigFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.NORMAL)
-            self.bigBoldFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            self.smallFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL,
-                                     face="Verdana")
-            self.smallBoldFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD,
-                                         face="Verdana")
-
-        self.bigFontColor = wx.Colour(64, 64, 64)
-        self.bgColor = wx.WHITE
-        self.smallFontColor = wx.BLACK
 
     def SetDragBox(self, box):
         self._currentDragBox = self._originalDragBox = box
@@ -509,6 +490,10 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         3. Resizing an item
         """
 
+        # ignore entering and leaving events
+        if (event.Entering() or event.Leaving()):
+            return
+
         # @@@ wxPanels don't ever get the focus if they have a child window.
         # This causes us problems as we are using controls as in-place editors.
         # The current hack is to notice when the panel might want to grab
@@ -520,10 +505,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)
-
-        # ignore entering and leaving events
-        if (event.Entering() or event.Leaving()):
-            return
 
         # checks if the event iself is from dragging the mouse
         dragInProgress = event.Dragging() and event.LeftIsDown()

@@ -8,14 +8,24 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import wx.colheader
+import wx.lib.colourselect as colourselect
 import mx.DateTime as DateTime
 
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.ContentModel as ContentModel
 
 import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
+import osaf.framework.blocks.Styles as Style
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
+class CalendarData(ContentModel.ContentItem):
+    myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
+    myKindID = None
+    def __init__(self, *args, **keywords):
+        super(CalendarData, self).__init__(*args, **keywords)
+        self.calendarColor = Styles.ColorStyle(self.itsView)
+        
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
     Base class for calendar items. Covers:
@@ -53,18 +63,20 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def GetMaxEditorSize(self):
         return self._bounds.GetSize()
     
-    def GetStatusPen(self):
+    def GetStatusPen(self, styles):
+        # probably should use styles to determine a good pen color
         item = self.GetItem()
         if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 3)
+            pen = wx.Pen(wx.BLACK, 4)
         elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 3)
+            pen = wx.Pen(wx.LIGHT_GREY, 4)
         elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+            pen = wx.Pen(wx.BLACK, 4, wx.DOT)
         return pen
         
     # Drawing utility -- scaffolding, we'll try using editor/renderers
-    def DrawWrappedText(self, dc, text, rect):
+    @staticmethod
+    def DrawWrappedText(dc, text, rect):
         # Simple wordwrap, next step is to not overdraw the rect
         
         result = []
@@ -90,7 +102,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # if we wrapped but we still can't fit the word,
                 # just truncate it    
                 if (x == rect.x and width > rect.width):
-                    self.DrawClippedText(dc, word, x, y, rect.width)
+                    CalendarCanvasItem.DrawClippedText(dc, word, x, y, rect.width)
                     y += height
                     continue
                 
@@ -102,7 +114,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             y += height
         return y
 
-    def DrawClippedText(self, dc, word, x, y, maxWidth):
+    @staticmethod
+    def DrawClippedText(dc, word, x, y, maxWidth):
         # keep shortening the word until it fits
         for i in xrange(len(word), 0, -1):
             smallWord = word[0:i] # + "..."
@@ -240,6 +253,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         if hasattr(self, '_forceResizeMode'):
             del self._forceResizeMode
     
+    @staticmethod
     def GenerateBoundsRects(calendarCanvas, startTime, endTime, indent=0, width=0):
         """
         Generate a bounds rectangle for each day period. For example, an event
@@ -269,9 +283,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                 yield rect
             except ValueError:
                 pass
-
-    GenerateBoundsRects = staticmethod(GenerateBoundsRects)
         
+    @staticmethod
     def MakeRectForRange(calendarCanvas, startTime, endTime):
         """
         Turn a datetime range into a rectangle that can be drawn on the screen
@@ -291,15 +304,13 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         # shrinks as well
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
-    MakeRectForRange = staticmethod(MakeRectForRange)
-
-    def Draw(self, dc, boundingRect, brushContainer):
+    def Draw(self, dc, boundingRect, styles):
         item = self._item
 
         time = item.startTime
 
         # Draw one event - an event consists of one or more bounds
-        lastRect = len(self._boundsRects) - 1
+        lastRect = self._boundsRects[-1]
             
         clipRect = None   
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()
@@ -308,31 +319,31 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
-            dc.SetPen(brushContainer.selectionPen)
+            dc.SetPen(wx.Pen(styles.eventDrawingColor))
 
-            # properly round the corners - first 
-            # and last boundsRect gets some rounding, and they
+            # properly round the corners - first and last
+            # boundsRect gets some rounding, and they
             # may actually be the same boundsRect
             hasTopRightRounded = hasBottomRightRounded = False
             drawTime = False
             if rectIndex == 0:
                 hasTopRightRounded = True
                 drawTime = True
-            if rectIndex == lastRect:
+            if itemRect == lastRect:
                 hasBottomRightRounded = True
 
             self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
 
-            pen = self.GetStatusPen()
+            pen = self.GetStatusPen(styles)
     
             cornerRadius = 0
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
-            dc.DrawLine(itemRect.x + 2, itemRect.y + (cornerRadius*3/4),
-                        itemRect.x + 2, itemRect.y + itemRect.height - (cornerRadius*3/4))
+            dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),
+                        itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))
     
             # Shift text
-            x = itemRect.x + self.textMargin + 5
+            x = itemRect.x + self.textMargin + 3
             y = itemRect.y + self.textMargin
             width = itemRect.width - (self.textMargin + 10)
             height = 15
@@ -344,17 +355,17 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                 # (If anyone knows a better way to do this, please fix..)
                 hour = str(int(time.Format('%I')))
                 timeString = hour + time.Format(':%M %p').lower()
-                te = dc.GetFullTextExtent(timeString, brushContainer.smallBoldFont)
+                te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)
                 timeHeight = te[1]
                 
                 # draw the time if there is room
                 if (timeHeight < itemRect.height/2):
-                    dc.SetFont(brushContainer.smallBoldFont)
+                    dc.SetFont(styles.eventTimeFont)
                     y = self.DrawWrappedText(dc, timeString, timeRect)
                 
                 textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
                 
-                dc.SetFont(brushContainer.smallFont)
+                dc.SetFont(styles.eventLabelFont)
                 self.DrawWrappedText(dc, item.displayName, textRect)
         
         dc.DestroyClippingRegion()
@@ -399,12 +410,12 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class HeaderCanvasItem(CalendarCanvasItem):
-    def Draw(self, dc, brushContainer):
+    def Draw(self, dc, styles):
         item = self._item
         itemRect = self._bounds
                 
         # draw little rectangle to the left of the item
-        pen = self.GetStatusPen()
+        pen = self.GetStatusPen(styles)
         
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
@@ -585,7 +596,15 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             startDay = self.rangeStart
             endDay = startDay + self.rangeIncrement
         return (startDay, endDay)
-
+        
+    def getCalendarData(self):
+        """
+        Lazily stamp the data
+        """
+        caldata = self.contents
+        if not isinstance(caldata, CalendarData):
+            caldata.StampKind('add', CalendarData.getKind(caldata.itsView))
+        return caldata
                             
 
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
@@ -596,11 +615,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
 
-        self.majorLinePen = wx.Pen(wx.Colour(204, 204, 204))
-        self.minorLinePen = wx.Pen(wx.Colour(229, 229, 229))
-        self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
-        self.selectionPen = wx.Pen(wx.Colour(102, 102, 102)) # or 153?
-        self.legendColor = wx.Colour(153, 153, 153)
+
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
     def OnInit(self):
@@ -637,6 +652,45 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         box.Add(self.headerCanvas, 0, wx.EXPAND)
         box.Add(self.columnCanvas, 1, wx.EXPAND)
         self.SetSizer(box)
+        
+        # This is where all the styles come from - eventually should probably
+        # be moved up to the block
+        if '__WXMAC__' in wx.PlatformInfo:
+            
+            bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+            bigBoldFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.BOLD)
+            smallFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL,
+                                face="Verdana")
+            smallBoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD,
+                                    face="Verdana")
+        else:
+            bigFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+            bigBoldFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.BOLD)
+            smallFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL,
+                                face="Verdana")
+            smallBoldFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD,
+                                         face="Verdana")
+
+        self.monthLabelFont = bigBoldFont
+        self.monthLabelColor = wx.Colour(64, 64, 64)
+        
+        self.eventLabelFont = smallFont
+        self.eventLabelColor = wx.BLACK
+        
+        self.eventTimeFont = smallBoldFont
+        
+        self.legendFont = bigBoldFont
+        self.legendColor = wx.Colour(153, 153, 153)
+
+        self.bgColor = wx.WHITE
+
+        self.majorLinePen = wx.Pen(wx.Colour(204, 204, 204))
+        self.minorLinePen = wx.Pen(wx.Colour(229, 229, 229))
+        self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
+
+        self.eventDrawingColor = wx.Colour(102,102,102)
+        
+        
 
     def OnEraseBackground(self, event):
         pass
@@ -673,6 +727,9 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
     def OnExpand(self):
         self.headerCanvas.toggleSize()
         self.wxSynchronizeWidget()
+        
+    def OnSelectColor(self, event):
+        self.eventDrawingColor = event.GetValue()
 
 class wxWeekHeaderCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
@@ -692,14 +749,25 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         navigationRow = wx.BoxSizer(wx.HORIZONTAL)
-        labelRow = wx.BoxSizer(wx.HORIZONTAL)
         
         sizer.Add((3,3), 0, wx.EXPAND)
         sizer.Add(navigationRow, 0, wx.EXPAND)
         sizer.Add((3,3), 0, wx.EXPAND)
-        sizer.Add(labelRow, 0, wx.EXPAND)
-        sizer.Add((3,3), 0, wx.EXPAND)
 
+        # beginnings of  in the calendar
+        #self.colorSelect = colourselect.ColourSelect(self, -1)
+        #self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
+        #navigationRow.Add(self.colorSelect, 0, wx.EXPAND)
+
+        today = DateTime.today()
+        styles = self.parent
+        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
+                                                             styles.monthLabelFont, 
+                                                             styles.monthLabelColor,
+                                                             styles.bgColor)
+        navigationRow.Add((0,0), 1)
+        navigationRow.Add(self.monthButton, 0, wx.ALIGN_CENTER)
+        navigationRow.Add((0,0), 1)
         
         # 
         # top row - left/right buttons, anchored to the right
@@ -708,21 +776,14 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
 
-        navigationRow.Add((0,0), 1, wx.EXPAND)
+        #navigationRow.Add((0,0), 1, wx.EXPAND)
         navigationRow.Add(self.prevButton, 0, wx.EXPAND)
-        navigationRow.Add((5,5), 0, wx.EXPAND)
+        navigationRow.Add((5,5), 0)
         navigationRow.Add(self.nextButton, 0, wx.EXPAND)
-        navigationRow.Add((5,5), 0, wx.EXPAND)
+        navigationRow.Add((5,5), 0)
         
         # 
         # middle row - just the month label centered
-        today = DateTime.today()
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
-                                                             self.bigFont, self.bigFontColor,
-                                                             self.bgColor)
-        labelRow.Add((0,0), 1)
-        labelRow.Add(self.monthButton, 0, wx.ALIGN_CENTER)
-        labelRow.Add((0,0), 1)
 
         #
         # finally the last row, with the header
@@ -832,6 +893,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
 
     def DrawBackground(self, dc):
+        styles = self.parent
         self._doDrawingCalculations()
 
         # Use the transparent pen for painting the background
@@ -841,7 +903,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
-        dc.SetPen(self.majorLinePen)
+        dc.SetPen(styles.majorLinePen)
 
         # Draw lines between days
         for day in range(self.parent.columns):
@@ -857,6 +919,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                     self.size.height)
 
     def DrawCells(self, dc):
+        styles = self.parent
         self._doDrawingCalculations()
         self.canvasItemList = []
 
@@ -875,12 +938,12 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.DrawDay(dc, currentDate, rect)
 
         # Draw a line across the bottom of the header
-        dc.SetPen(self.majorLinePen)
+        dc.SetPen(styles.majorLinePen)
         dc.DrawLine(0, self.size.height - 1,
                     self.size.width, self.size.height - 1)
         dc.DrawLine(0, self.size.height - 4,
                     self.size.width, self.size.height - 4)
-        dc.SetPen(self.minorLinePen)
+        dc.SetPen(styles.minorLinePen)
         dc.DrawLine(0, self.size.height - 2,
                     self.size.width, self.size.height - 2)
         dc.DrawLine(0, self.size.height - 3,
@@ -889,8 +952,9 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
 
     def DrawDay(self, dc, date, rect):
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(self.smallFont)
+        styles = self.parent
+        dc.SetTextForeground(styles.eventLabelColor)
+        dc.SetFont(styles.eventLabelFont)
 
         x = rect.x
         y = rect.y
@@ -908,11 +972,11 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                 self._currentDragBox = canvasItem
 
             if (self.parent.blockItem.selection is item):
-                dc.SetBrush(self.selectionBrush)
-                dc.SetPen(self.selectionPen)
+                dc.SetBrush(styles.selectionBrush)
+                dc.SetPen(wx.Pen(styles.eventDrawingColor))
                 dc.DrawRectangleRect(itemRect)
                 
-            canvasItem.Draw(dc, self)
+            canvasItem.Draw(dc, styles)
             
             y += h
             
@@ -921,7 +985,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                     
     def OnCreateItem(self, unscrolledPosition):
         view = self.parent.blockItem.itsView
-        
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
         event = Calendar.CalendarEvent(view=view)
         event.InitOutgoingAttributes()
         event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
@@ -1064,6 +1128,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.dayHeight = self.hourHeight * 24
 
     def DrawBackground(self, dc):
+        styles = self.parent
         self._doDrawingCalculations()
 
         # Use the transparent pen for painting the background
@@ -1074,8 +1139,8 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
 
         # Set text properties for legend
-        dc.SetTextForeground(self.legendColor)
-        dc.SetFont(self.bigBoldFont)
+        dc.SetTextForeground(styles.legendColor)
+        dc.SetFont(styles.legendFont)
 
         # Use topTime to draw am/pm on the topmost hour
         topCoordinate = self.CalcUnscrolledPosition((0,0))
@@ -1112,14 +1177,14 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                              hour * self.hourHeight - (hText/2))
             
             # Draw the line between hours
-            dc.SetPen(self.majorLinePen)
+            dc.SetPen(styles.majorLinePen)
             dc.DrawLine(self.xOffset,
                          hour * self.hourHeight,
                         self.size.width,
                          hour * self.hourHeight)
 
             # Draw the line between half hours
-            dc.SetPen(self.minorLinePen)
+            dc.SetPen(styles.minorLinePen)
             dc.DrawLine(self.xOffset,
                          hour * self.hourHeight + halfHourHeight,
                         self.size.width,
@@ -1128,17 +1193,17 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # Draw lines between days
         for day in range(self.parent.columns):
             if day == 0:
-                dc.SetPen(self.majorLinePen)
+                dc.SetPen(styles.majorLinePen)
             else:
-                dc.SetPen(self.minorLinePen)
+                dc.SetPen(styles.minorLinePen)
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
 
         (startDay, endDay) = self.GetCurrentDateRange()
         # draw selection stuff
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
-            dc.SetPen(self.majorLinePen)
-            dc.SetBrush(self.selectionBrush)
+            dc.SetPen(styles.majorLinePen)
+            dc.SetBrush(styles.selectionBrush)
             
             rects = \
                 ColumnarCanvasItem.GenerateBoundsRects(self,
@@ -1172,6 +1237,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
         
     def DrawCells(self, dc):
+        styles = self.parent
         self._doDrawingCalculations()
         self.canvasItemList = []
 
@@ -1216,12 +1282,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is canvasItem.GetItem():
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, boundingRect, self)
+                canvasItem.Draw(dc, boundingRect, styles)
             
         # now draw the current item on top of everything else
         if selectedBox:
-            dc.SetBrush(self.selectionBrush)
-            selectedBox.Draw(dc, boundingRect, self)
+            dc.SetBrush(styles.selectionBrush)
+            selectedBox.Draw(dc, boundingRect, styles)
             
 
     def CheckConflicts(self):
@@ -1278,13 +1344,14 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         super(wxWeekColumnCanvas, self).OnSelectNone(unscrolledPosition)
         
     def OnEditItem(self, box):
+        styles = self.parent
         position = self.CalcScrolledPosition(box.GetEditorPosition())
         size = box.GetMaxEditorSize()
 
         textPos = wx.Point(position.x + 8, position.y + 15)
         textSize = wx.Size(size.width - 13, size.height - 20)
 
-        self.editor.SetItem(box.GetItem(), textPos, textSize, self.smallFont.GetPointSize()) 
+        self.editor.SetItem(box.GetItem(), textPos, textSize, styles.eventLabelFont.GetPointSize()) 
 
     def OnCreateItem(self, unscrolledPosition):
         # @@@ this code might want to live somewhere else, refactored
@@ -1560,7 +1627,8 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
         self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
-                                                             self.bigFont, self.bigFontColor,
+                                                             self.parent.monthLabelFont, 
+                                                             self.parent.monthLabelColor,
                                                              self.bgColor)
 
         self.monthButton.UpdateSize()
@@ -1596,6 +1664,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         self.dayHeight = (self.size.height - self.yOffset) / 6
     
     def DrawBackground(self, dc):
+        styles = self.parent
         self._doDrawingCalculations()
 
         # Use the transparent pen for drawing the background rectangles
@@ -1606,7 +1675,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
         
         # Set up pen for drawing the grid
-        dc.SetPen(self.majorLinePen)
+        dc.SetPen(style.majorLinePen)
 
         # Draw the lines between the days
         for i in range(1, 7):
@@ -1648,10 +1717,11 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
 
 
     def DrawDay(self, dc, date, rect):
+        styles = self.parent
         # Scaffolding, we'll get more sophisticated here
 
-        dc.SetTextForeground(self.bigFontColor)
-        dc.SetFont(self.bigFont)
+        dc.SetTextForeground(styles.eventLabelColor)
+        dc.SetFont(style.eventLabelFont)
 
         # Draw the day header
         # Add logic to treat "today" or "not in current month" specially
@@ -1662,8 +1732,8 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         w = rect.width
         h = 15
 
-        dc.SetTextForeground(self.smallFontColor)
-        dc.SetFont(self.smallFont)
+        dc.SetTextForeground(styles.eventLabelColor)
+        dc.SetFont(styles.eventLabelFont)
 
         for item in self.blockItem.getItemsInRange(date, date + DateTime.RelativeDateTime(days=1)):
             itemRect = wx.Rect(x, y, w, h)
