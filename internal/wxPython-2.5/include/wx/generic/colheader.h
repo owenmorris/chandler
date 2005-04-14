@@ -91,7 +91,7 @@ public:
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
 		bool				bUseUnicode,
-		bool				bVisibleSelection ) const;
+		bool				bVisibleSelection );
 
 #if defined(__WXMAC__)
 	long MacDrawItem(
@@ -99,7 +99,7 @@ public:
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
 		bool				bUseUnicode,
-		bool				bVisibleSelection ) const;
+		bool				bVisibleSelection );
 #endif
 
 public:

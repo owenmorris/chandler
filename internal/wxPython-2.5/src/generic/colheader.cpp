@@ -1330,7 +1330,7 @@ long			i;
 			dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
 #if defined(__WXMAC__)
-			// Mac case - selection indicator is drawn as needed
+			// MacOS case - selection indicator is drawn as needed
 			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 
 #else
@@ -1641,7 +1641,8 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
-	m_LabelTextExtent.x = m_LabelTextExtent.y = (-1);
+	m_LabelTextExtent.x =
+	m_LabelTextExtent.y = (-1);
 }
 
 wxColumnHeaderItem::wxColumnHeaderItem(
@@ -1657,7 +1658,8 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
-	m_LabelTextExtent.x = m_LabelTextExtent.y = (-1);
+	m_LabelTextExtent.x =
+	m_LabelTextExtent.y = (-1);
 	SetItemData( info );
 }
 
@@ -1765,6 +1767,8 @@ void wxColumnHeaderItem::GetLabelText(
 void wxColumnHeaderItem::SetLabelText(
 	const wxString		&textBuffer )
 {
+	m_LabelTextExtent.x =
+	m_LabelTextExtent.y = (-1);
 	m_LabelTextRef = textBuffer;
 }
 
@@ -1892,7 +1896,7 @@ long wxColumnHeaderItem::MacDrawItem(
 	wxClientDC		*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
-	bool				bVisibleSelection ) const
+	bool				bVisibleSelection )
 {
 ThemeButtonDrawInfo		drawInfo;
 Rect					qdBoundsR;
@@ -2006,10 +2010,9 @@ long wxColumnHeaderItem::GenericDrawItem(
 	wxClientDC		*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
-	bool				bVisibleSelection ) const
+	bool				bVisibleSelection )
 {
 wxRect				localBoundsR, subItemBoundsR;
-wxSize				labelTextSize;
 long					originX, insetX;
 bool					bSelected, bHasIcon;
 
@@ -2039,14 +2042,24 @@ bool					bSelected, bHasIcon;
 	{
 	case wxCOLUMNHEADER_JUST_Right:
 	case wxCOLUMNHEADER_JUST_Center:
-		// NB: consider caching these values
-		dc->GetTextExtent( m_LabelTextRef.c_str(), &(labelTextSize.x), &(labelTextSize.y) );
-		if (m_ExtentX > labelTextSize.x)
+		if ((m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
+		{
+		wxCoord		targetWidth, targetHeight;
+
+			dc->GetTextExtent(
+				m_LabelTextRef,
+				&targetWidth, &targetHeight,
+				NULL, NULL, NULL );
+
+			m_LabelTextExtent.x = targetWidth;
+			m_LabelTextExtent.y = targetHeight;
+		}
+		if (m_ExtentX > m_LabelTextExtent.x)
 		{
 			if (m_TextJust == wxCOLUMNHEADER_JUST_Center)
-				originX += (m_ExtentX - labelTextSize.x) / 2;
+				originX += (m_ExtentX - m_LabelTextExtent.x) / 2;
 			else
-				originX += m_ExtentX - (labelTextSize.x + insetX);
+				originX += m_ExtentX - (m_LabelTextExtent.x + insetX);
 		}
 		break;
 
