@@ -262,10 +262,10 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             boundsStartTime = max(startTime, absDayStart)
             boundsEndTime = min(endTime, absDayEnd)
             
-            rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
-            rect.x += indent
-            rect.width -= width
             try:
+                rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
+                rect.x += indent
+                rect.width -= width
                 yield rect
             except ValueError:
                 pass
@@ -917,7 +917,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                     
     def OnCreateItem(self, unscrolledPosition):
         view = self.parent.blockItem.itsView
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        
         event = Calendar.CalendarEvent(view=view)
         event.InitOutgoingAttributes()
         event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
@@ -1018,6 +1018,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
         self._bgSelectionStartTime = None
         self._bgSelectionEndTime = None
+        
+        # determines if we're dragging the start or the end of an event, usually
+        # the end
         self._bgSelectionDragEnd = True
         
         self.SetVirtualSize((self.GetVirtualSize().width, self.hourHeight*24))
@@ -1126,9 +1129,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         (startDay, endDay) = self.GetCurrentDateRange()
         # draw selection stuff
-        if (self._bgSelectionStartTime and self._bgSelectionEndTime and
-            self._bgSelectionStartTime >= startDay and
-            self._bgSelectionEndTime <= endDay):
+        if (self._bgSelectionStartTime and self._bgSelectionEndTime):
             dc.SetPen(self.majorLinePen)
             dc.SetBrush(self.selectionBrush)
             
@@ -1246,16 +1247,23 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     
     def OnSelectItem(self, item):
         if item:
-            # clear background selection
+            # clear background selection when an existing item is selected
             self._bgSelectionStartTime = self._bgSelectionEndTime = None
         
         super(wxWeekColumnCanvas, self).OnSelectItem(item)
         
     def OnSelectNone(self, unscrolledPosition):
-        self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
-        self._bgSelectionDragEnd = True
-        self._bgSelectionEndTime = self._bgSelectionStartTime + \
-            DateTime.RelativeDateTime(minutes=30)
+        selectedTime = self.getDateTimeFromPosition(unscrolledPosition)
+        
+        # only select something new if there's no existing selection, or if 
+        # we're outside of an existing selection
+        if (not self._bgSelectionStartTime or
+            selectedTime < self._bgSelectionStartTime or
+            selectedTime > self._bgSelectionEndTime):
+            self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
+            self._bgSelectionDragEnd = True
+            self._bgSelectionEndTime = self._bgSelectionStartTime + \
+                DateTime.RelativeDateTime(minutes=30)
             
         # set focus on the calendar so that we can receive key events
         # (as of this writing, wxPanel can't recieve focus, so this is a no-op)
@@ -1275,9 +1283,21 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # @@@ this code might want to live somewhere else, refactored
         view = self.parent.blockItem.itsView
         event = Calendar.CalendarEvent(view=view)
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        
+        # if a region is selected, then use that for the event span
+        if (self._bgSelectionStartTime):
+            newTime = self._bgSelectionStartTime
+            duration = self._bgSelectionEndTime - self._bgSelectionStartTime
+        else:
+            newTime = self.getDateTimeFromPosition(unscrolledPosition)
+            duration = None
+            
         event.InitOutgoingAttributes()
         event.ChangeStart(newTime)
+        
+        # only set the duration if its something larger than the default
+        if duration and duration.hours >= 1:
+            event.duration = duration
 
         # ugh, this is a hack to work around the whole ItemCollection stuff
         # see bug 2749 for some background
