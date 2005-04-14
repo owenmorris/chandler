@@ -736,6 +736,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.weekHeader.AppendItem(header, wx.colheader.COLUMNHEADER_JUST_Center, 5, bSortEnabled=False)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekHeader)
 
+        # set up initial selection
+        self.weekHeader.SetFlagVisibleSelection(True)
+        self.UpdateHeader()
+
         sizer.Add(self.weekHeader, 0, wx.EXPAND)
         
         # spacer below to set the minimum size of the event area
@@ -966,18 +970,21 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         # (this may change...)
         if (colIndex == 8):
             # re-fix selection so that the expand button doesn't stay selected
-            if self.parent.blockItem.dayMode:
-                # ugly back-calculation of the previously selected day
-                reldate = self.parent.blockItem.selectedDate - \
-                          self.parent.blockItem.rangeStart
-                self.weekHeader.SetSelectedItem(reldate.day+1)
-            else:
-                self.weekHeader.SetSelectedItem(0)
+            self.UpdateHeader()
             return self.parent.OnExpand()
         
         # all other cases mean a day was selected
         # OnDaySelect takes a zero-based day, and our first day is in column 1
         return self.parent.OnDaySelect(colIndex-1)
+
+    def UpdateHeader(self):
+        if self.parent.blockItem.dayMode:
+            # ugly back-calculation of the previously selected day
+            reldate = self.parent.blockItem.selectedDate - \
+                      self.parent.blockItem.rangeStart
+            self.weekHeader.SetSelectedItem(reldate.day+1)
+        else:
+            self.weekHeader.SetSelectedItem(0)
 
     def getDateTimeFromPosition(self, position):
         # bound the position by the available space that the user 
