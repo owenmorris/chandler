@@ -619,14 +619,10 @@ class MainView(View):
         # find all the shared collections and sync them.
         self.onSyncWebDAVEvent (event)
 
-        # Make sure we have all the accounts; returns False if the user cancels
-        # out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
-            return
-
-        # synch mail
-        self.setStatusMessage (_("Getting new Mail"))
-        self.onGetNewMailEvent (event)
+        # If mail is set up, fetch it:
+        if Sharing.isIMAPSetUp(self.itsView):
+            self.setStatusMessage (_("Getting new Mail"))
+            self.onGetNewMailEvent (event)
 
     def sharedWebDAVCollections (self):
         # return the list of all the shared collections
