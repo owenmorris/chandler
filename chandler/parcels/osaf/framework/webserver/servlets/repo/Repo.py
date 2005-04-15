@@ -108,12 +108,16 @@ class RepoResource(resource.Resource):
                     result += RenderAllClouds(repoView)
 
             finally: # inner try
-                prevView.setCurrentView()
+                if prevView:
+                    prevView.setCurrentView()
 
         except Exception, e: # outer try
             result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
-        return str(result)
+        if isinstance(result, unicode):
+            result = result.encode('ascii', 'replace')
+            
+        return result
 
 
 def RenderSearchForm(repoView):
