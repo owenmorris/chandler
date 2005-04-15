@@ -165,6 +165,7 @@ class RSSItem(ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSItem, self).__init__(name, parent, kind, view)
+        self.displayName = "No Title"
 
     def Update(self, data):
         # fill in the item
