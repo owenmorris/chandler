@@ -30,6 +30,7 @@ import application.dialogs.ReminderDialog as ReminderDialog
 from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.sharing.ICalendar as ICalendar
+import osaf.framework.sharing.PublishCollection
 
 class MainView(View):
     """
@@ -470,9 +471,18 @@ class MainView(View):
 
     def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."
+
+        # @@@MOR: This new dialog is a work in progress...
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            Sharing.manualPublishCollection(self.itsView, collection)
+            reload(osaf.framework.sharing.PublishCollection)
+            collection = self.getSidebarSelectedCollection()
+            osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
+                wx.GetApp().mainFrame,
+                view=self.itsView,
+                collection=collection)
+            
+        # Sharing.manualPublishCollection(self.itsView, collection)
 
     def onShareCollectionEventUpdateUI (self, event):
         """
@@ -507,6 +517,7 @@ class MainView(View):
         changed to the entire summary view's collection.
         The "Collection | Share collection " menu item
         """
+    
         # Make sure we have all the accounts; returns False if the user cancels out and we don't.
         if not Sharing.ensureAccountSetUp(self.itsView):
             return
@@ -550,6 +561,7 @@ class MainView(View):
         reload(osaf.framework.sharing.ShareTool)
         osaf.framework.sharing.ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
 
+ 
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
         self.itsView.commit() 
