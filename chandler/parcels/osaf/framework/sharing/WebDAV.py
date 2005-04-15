@@ -107,7 +107,7 @@ class Client(object):
             extraHeaders['Depth'] = str(depth)
         return self._request('PROPFIND', url, body, extraHeaders=extraHeaders)
 
-    def ls(self, url, extraHeaders={ }):
+    def ls(self, url, extraHeaders={ }, ignoreCollections=True):
         # A helper method which parses a PROPFIND response and returns a
         # list of (path, etag) tuples, providing an easy way to get the
         # contents of a collection
@@ -150,8 +150,9 @@ class Client(object):
                                         ggchild = ggchild.next
                                 gchild = gchild.next
                         child = child.next
-                    if path and not path.endswith("/"):
-                        resources.append( (path, etag) )
+                    if path:
+                        if not ignoreCollections or not path.endswith("/"):
+                            resources.append( (path, etag) )
             node = node.next
         doc.freeDoc()
         return resources

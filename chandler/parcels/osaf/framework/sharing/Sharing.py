@@ -94,7 +94,10 @@ class Share(ContentModel.ContentItem):
     def exists(self):
         return self.conduit.exists()
 
-
+    def getLocation(self):
+        return self.conduit.getLocation()
+    
+    
 class OneTimeShare(Share):
     """Delete format, conduit, and share after the first get or put."""
 
