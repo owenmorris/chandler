@@ -1212,7 +1212,8 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
-    def sortByStartTime(self, item1, item2):
+    @staticmethod
+    def sortByStartTime(item1, item2):
         """
         Comparison function for sorting, mostly by start time
         """
@@ -1223,18 +1224,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         if dateResult == 0:
             dateResult = DateTime.cmp(item2.endTime, item1.endTime)
         return dateResult
-        
-    def sortByDepth(self, canvasItem1, canvasItem2):
-        """
-        Comparison by depth - sorts events by how "deep" they will appear
-        on the canvas
-        """
-        diff = canvasItem1.GetIndentLevel() - canvasItem2.GetIndentLevel()
-        if diff:
-            return diff
-        return self.sortByStartTime(canvasItem1.GetItem(), \
-                                    canvasItem2.GetItem())
-        
         
     def DrawCells(self, dc):
         styles = self.parent
@@ -1269,7 +1258,8 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # canvasItemList has to be sorted by depth
         # should be relatively quick because the canvasItemList is already
         # sorted by startTime. If no conflicts, this is an O(n) operation
-        self.canvasItemList.sort(self.sortByDepth)
+        # (note that as of Python 2.4, sorts are stable, so this remains safe)
+        self.canvasItemList.sort(key=ColumnarCanvasItem.GetIndentLevel)
         
         selectedBox = None        
         # finally, draw the items
