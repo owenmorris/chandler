@@ -80,6 +80,10 @@ public:
 		long			originX,
 		long			extentX );
 
+	void GetTextUIExtent(
+		long			&originX,
+		long			&extentX ) const;
+
 	bool GetFlagAttribute(
 		wxColumnHeaderFlagAttr		flagEnum ) const;
 	bool SetFlagAttribute(
@@ -101,6 +105,12 @@ public:
 		bool				bUseUnicode,
 		bool				bVisibleSelection );
 #endif
+
+	long TruncateLabelText(
+		wxDC			*dc,
+		wxString			&targetStr,
+		long				maxWidth,
+		long				&charCount );
 
 public:
 	static void GenericDrawSelection(

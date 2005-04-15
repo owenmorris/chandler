@@ -299,9 +299,7 @@ bool		bResultV;
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
 
-#if defined(__WXMSW__)
-		Win32ItemRefresh( i, false );
-#endif
+		RefreshItem( i );
 	}
 
 	// force a redraw
@@ -803,9 +801,7 @@ bool		bSelected;
 			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
 				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
-#if defined(__WXMSW__)
-			Win32ItemRefresh( i, false );
-#endif
+			RefreshItem( i );
 		}
 
 		m_ItemSelected = itemIndex;
@@ -1805,6 +1801,22 @@ void wxColumnHeaderItem::SetUIExtent(
 		m_ExtentX = extentX;
 }
 
+// NB: horizontal item layout is as follows:
+// || InsetX | label text or bitmap | InsetX | sort arrow | InsetX ||
+//
+void wxColumnHeaderItem::GetTextUIExtent(
+	long			&originX,
+	long			&extentX ) const
+{
+	originX = m_OriginX + wxCHI_kMetricInsetX;
+	if (extentX > m_ExtentX)
+		extentX = m_ExtentX;
+
+	extentX = m_ExtentX - ((3 * wxCHI_kMetricInsetX) + wxCHI_kMetricArrowSizeX);
+	if (extentX < 0)
+		extentX = 0;
+}
+
 bool wxColumnHeaderItem::GetFlagAttribute(
 	wxColumnHeaderFlagAttr		flagEnum ) const
 {
@@ -2089,6 +2101,57 @@ bool					bSelected, bHasIcon;
 	}
 
 	return 0;
+}
+
+long wxColumnHeaderItem::TruncateLabelText(
+	wxDC			*dc,
+	wxString			&targetStr,
+	long				maxWidth,
+	long				&charCount )
+{
+wxString		truncStr, ellipsisStr;
+wxCoord		targetWidth, targetHeight, ellipsisWidth;
+bool			bContinue;
+
+	if ((dc == NULL) || (maxWidth <= 0))
+		return 0;
+
+	charCount = targetStr.Length();
+	if (charCount <= 0)
+		return 0;
+
+	// determine the minimum width
+	ellipsisStr = wxString( wxT("...") );
+	dc->GetTextExtent( ellipsisStr, &ellipsisWidth, &targetHeight );
+	if (ellipsisWidth > maxWidth)
+		return 0;
+
+	// determine if the string can fit inside the current width
+	dc->GetTextExtent( targetStr, &targetWidth, &targetHeight );
+	bContinue = (targetWidth > maxWidth);
+
+	if (bContinue)
+	{
+		charCount--;
+
+		if (charCount > 0)
+		{
+			truncStr = targetStr.Left( charCount );
+			dc->GetTextExtent( truncStr, &targetWidth, &targetHeight );
+			bContinue = (targetWidth + ellipsisWidth > maxWidth);
+
+			if (! bContinue)
+				targetStr = truncStr + ellipsisStr;
+		}
+		else
+		{
+			targetStr = ellipsisStr;
+			targetWidth = ellipsisWidth;
+			bContinue = false;
+		}
+	}
+
+	return (long)targetWidth;
 }
 
 // ================
