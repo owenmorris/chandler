@@ -26,6 +26,8 @@ class InboundParcel(application.Parcel.Parcel):
         for url in urls:
             try:
                 url = url.strip()
+                if url.startswith('#'):
+                    continue
                 logger.info("Adding channel from file: %s" % url)
                 newChannel = RSSChannel(view=view)
                 newChannel.url = url
@@ -98,7 +100,10 @@ class InboundResource(resource.Resource):
         except Exception, e: # outer try
             result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
-        return str(result)
+        if isinstance(result, unicode):
+            result = result.encode('ascii', 'replace')
+            
+        return result
 
 
 
@@ -170,10 +175,14 @@ def RenderChannelList(repoView, theItem):
 
         count = 0
         for item in items:
+            try:
+                displayName = item.displayName
+            except:
+                displayName = "No Title"
             result += oddEvenRow(count)
             result += "<td>"
             result += "&nbsp;<a href=/inbound/%s>%s</a>" % (item.itsUUID,
-              item.displayName)
+              displayName)
             result += "</td></tr>"
             count += 1
 
@@ -183,7 +192,11 @@ def RenderChannelList(repoView, theItem):
 
     if theItem is not None:
         item = theItem
-        result += "<span class=header><a href=%s>%s</a></span></br>" % (item.link, item.displayName)
+        try:
+            displayName = item.displayName
+        except:
+            displayName = "No Title"
+        result += "<span class=header><a href=%s>%s</a></span></br>" % (item.link, displayName)
         result += "<b>%s</b> | %s</br>" % (item.channel.displayName, item.date.localtime().strftime('%A, %B %d @ %I:%M %p'))
 
         try:
