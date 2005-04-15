@@ -805,6 +805,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self._doDrawingCalculations()
                     
     def ResizeHeader(self):
         # column layout rules are funky:
