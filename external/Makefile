@@ -8,7 +8,6 @@ SYSTEMS=persistence/db \
         PyLucene \
         persistence/libxml2 \
         openssl \
-	m2crypto \
         egenix-mx \
         jabber-py \
         SOAPpy \
