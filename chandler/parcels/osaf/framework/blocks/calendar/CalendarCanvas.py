@@ -19,6 +19,8 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Styles as Style
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
+import copy
+
 class CalendarData(ContentModel.ContentItem):
     myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
     myKindID = None
@@ -413,6 +415,8 @@ class HeaderCanvasItem(CalendarCanvasItem):
     def Draw(self, dc, styles):
         item = self._item
         itemRect = self._bounds
+        
+        dc.DrawRectangleRect(itemRect)
                 
         # draw little rectangle to the left of the item
         pen = self.GetStatusPen(styles)
@@ -423,20 +427,10 @@ class HeaderCanvasItem(CalendarCanvasItem):
                     itemRect.x + 2, itemRect.y + itemRect.height - 3)
         
         # Shift text
-        itemRect.x = itemRect.x + 6
-        itemRect.width = itemRect.width - 6
-        self.DrawWrappedText(dc, item.displayName, itemRect)
-
-# hacky - might not work, but we don't even have a month canvas working right now
-class MonthCanvasItem(CalendarCanvasItem):
-    def Draw(self, dc, isSelected):
-        if (self.blockItem.selection is item):
-            dc.SetPen(wx.BLACK_PEN)
-            dc.SetBrush(wx.WHITE_BRUSH)
-            dc.DrawRectangleRect(itemRect)
-            
-        self.DrawWrappedText(dc, self.GetItem().displayName, itemRect)
-        
+        textRect = copy.copy(itemRect)
+        textRect.x += 5
+        textRect.width -= 7
+        self.DrawWrappedText(dc, item.displayName, textRect)
 
 class CalendarEventHandler(object):
 
@@ -628,7 +622,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def OnSelectItem(self, item):
         self.parent.blockItem.selection = item
         self.parent.blockItem.postSelectItemBroadcast()
-        self.parent.wxSynchronizeWidget()
+        #self.parent.wxSynchronizeWidget()
     
     def GrabFocusHack(self):
         self.editor.SaveItem()
@@ -832,12 +826,13 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
     def OnSize(self, event):
         self._doDrawingCalculations()
         self.ResizeHeader()
+        self.RebuildCanvasItems()
         
         self.Refresh()
         event.Skip()
         
     def wxSynchronizeWidget(self):
-
+        self.RebuildCanvasItems()
         selectedDate = self.parent.blockItem.selectedDate
         startDate = self.parent.blockItem.rangeStart
 
@@ -862,6 +857,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             self.weekHeader.SetLabelText(day+1, dayName)
             
         self.Layout()
+        
+        # we need this extra refresh because the canvas below the header area
+        # doesn't get paint events during Layout because of optimizations in
+        # CollectionCanvas.OnPaint()
         self.Refresh()
 
     def toggleSize(self):
@@ -918,9 +917,46 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                     self.size.width - self.scrollbarWidth,
                     self.size.height)
 
+        
     def DrawCells(self, dc):
         styles = self.parent
         self._doDrawingCalculations()
+
+        dc.SetTextForeground(styles.eventLabelColor)
+        dc.SetFont(styles.eventLabelFont)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetBrush(wx.WHITE_BRUSH)
+        
+        selectedBox = None
+
+        for canvasItem in self.canvasItemList:
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            # save the selected box to be drawn last
+            if self.parent.blockItem.selection is canvasItem.GetItem():
+                selectedBox = canvasItem
+            else:
+                canvasItem.Draw(dc, styles)
+        
+        if selectedBox:
+            dc.SetBrush(styles.selectionBrush)
+            dc.SetPen(wx.Pen(styles.eventDrawingColor))
+
+            selectedBox.Draw(dc, styles)
+
+        # Draw a line across the bottom of the header
+        dc.SetPen(styles.majorLinePen)
+        dc.DrawLine(0, self.size.height - 1,
+                    self.size.width, self.size.height - 1)
+        dc.DrawLine(0, self.size.height - 4,
+                    self.size.width, self.size.height - 4)
+        dc.SetPen(styles.minorLinePen)
+        dc.DrawLine(0, self.size.height - 2,
+                    self.size.width, self.size.height - 2)
+        dc.DrawLine(0, self.size.height - 3,
+                    self.size.width, self.size.height - 3)
+
+            
+    def RebuildCanvasItems(self):
         self.canvasItemList = []
 
         if self.parent.blockItem.dayMode:
@@ -935,27 +971,11 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             currentDate = startDay + DateTime.RelativeDateTime(days=day)
             rect = wx.Rect((self.dayWidth * day) + self.xOffset, self.yOffset,
                            width, self.size.height - self.yOffset)
-            self.DrawDay(dc, currentDate, rect)
-
-        # Draw a line across the bottom of the header
-        dc.SetPen(styles.majorLinePen)
-        dc.DrawLine(0, self.size.height - 1,
-                    self.size.width, self.size.height - 1)
-        dc.DrawLine(0, self.size.height - 4,
-                    self.size.width, self.size.height - 4)
-        dc.SetPen(styles.minorLinePen)
-        dc.DrawLine(0, self.size.height - 2,
-                    self.size.width, self.size.height - 2)
-        dc.DrawLine(0, self.size.height - 3,
-                    self.size.width, self.size.height - 3)
+            self.RebuildCanvasItemsByDay(currentDate, rect)
 
 
 
-    def DrawDay(self, dc, date, rect):
-        styles = self.parent
-        dc.SetTextForeground(styles.eventLabelColor)
-        dc.SetFont(styles.eventLabelFont)
-
+    def RebuildCanvasItemsByDay(self, date, rect):
         x = rect.x
         y = rect.y
         w = rect.width
@@ -971,13 +991,6 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem
 
-            if (self.parent.blockItem.selection is item):
-                dc.SetBrush(styles.selectionBrush)
-                dc.SetPen(wx.Pen(styles.eventDrawingColor))
-                dc.DrawRectangleRect(itemRect)
-                
-            canvasItem.Draw(dc, styles)
-            
             y += h
             
         if (y > self.fullHeight):
@@ -1077,7 +1090,14 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 class wxWeekColumnCanvas(wxCalendarCanvas):
 
     def wxSynchronizeWidget(self):
+        self.RebuildCanvasItems()
         self.Refresh()
+        
+    def OnSize(self, event):
+        self._doDrawingCalculations()
+        self.RebuildCanvasItems()
+        #self.Refresh()
+        #event.Skip()
 
     def OnInit(self):
         super (wxWeekColumnCanvas, self).OnInit()
@@ -1098,6 +1118,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.SetScrollRate(0, self._scrollYRate)
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
+        self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
 
     def ScaledScroll(self, dx, dy):
@@ -1224,24 +1245,18 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         if dateResult == 0:
             dateResult = DateTime.cmp(item2.endTime, item1.endTime)
         return dateResult
+
+    def RebuildCanvasItems(self):
         
-    def DrawCells(self, dc):
-        styles = self.parent
-        self._doDrawingCalculations()
         self.canvasItemList = []
 
         (startDay, endDay) = self.GetCurrentDateRange()
         
-        # Set up fonts and brushes for drawing the events
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetBrush(wx.WHITE_BRUSH)
-
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
         visibleItems = list(self.parent.blockItem.getItemsInRange(startDay, endDay))
         visibleItems.sort(self.sortByStartTime)
                 
-        boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
         
         # First generate a sorted list of ColumnarCanvasItems
         for item in visibleItems:
@@ -1255,19 +1270,29 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # now generate conflict info
         self.CheckConflicts()
         
+        for canvasItem in self.canvasItemList:
+            # drawing rects should be updated to reflect conflicts
+            canvasItem.UpdateDrawingRects()
+            
         # canvasItemList has to be sorted by depth
         # should be relatively quick because the canvasItemList is already
         # sorted by startTime. If no conflicts, this is an O(n) operation
         # (note that as of Python 2.4, sorts are stable, so this remains safe)
         self.canvasItemList.sort(key=ColumnarCanvasItem.GetIndentLevel)
         
+        
+    def DrawCells(self, dc):
+        styles = self.parent
+        
+        # Set up fonts and brushes for drawing the events
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetBrush(wx.WHITE_BRUSH)
+
         selectedBox = None        
         # finally, draw the items
+        boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
         for canvasItem in self.canvasItemList:
 
-            # drawing rects should be updated to reflect conflicts
-            canvasItem.UpdateDrawingRects()
-            
             # save the selected box to be drawn last
             if self.parent.blockItem.selection is canvasItem.GetItem():
                 selectedBox = canvasItem
@@ -1470,7 +1495,11 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
             item.ChangeStart(newTime)
-            self.Refresh()
+            self.RebuildCanvasItems()
+            
+            # this extra paint is actually unnecessary because ContainerBlock is
+            # giving us too many paints on a drag anyway. Why? hmm.
+            #self.Refresh()
 
     def GetResizeMode(self):
         """
@@ -1603,226 +1632,4 @@ class wxInPlaceEditor(wx.TextCtrl):
     def OnSize(self, event):
         self.Hide()
         event.Skip()
-
-class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
-    def __init__(self, *arguments, **keywords):
-        super(wxMonthCanvas, self).__init__(*arguments, **keywords)
-
-    def OnInit(self):
-        super(wxMonthCanvas, self).OnInit()
-
-        # Setup the navigation buttons
-        today = DateTime.today()
-        
-        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
-        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
-                                                             self.parent.monthLabelFont, 
-                                                             self.parent.monthLabelColor,
-                                                             self.bgColor)
-
-        self.monthButton.UpdateSize()
-
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add(self.monthButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        self.SetSizer(box)
-                                            
-        self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
-        self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-
-    def OnSize(self, event):
-        self.Refresh()
-        event.Skip()
-
-    def wxSynchronizeWidget(self):
-        self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
-        self.Layout()
-        self.Refresh()
-
-    # Drawing logic
-
-    def _doDrawingCalculations(self):
-        self.size = self.GetVirtualSize()
-        self.yOffset = 50
-        self.dayWidth = self.size.width / 7
-        self.dayHeight = (self.size.height - self.yOffset) / 6
-    
-    def DrawBackground(self, dc):
-        styles = self.parent
-        self._doDrawingCalculations()
-
-        # Use the transparent pen for drawing the background rectangles
-        dc.SetPen(wx.TRANSPARENT_PEN)
-
-        # Draw the background
-        dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
-        
-        # Set up pen for drawing the grid
-        dc.SetPen(style.majorLinePen)
-
-        # Draw the lines between the days
-        for i in range(1, 7):
-            dc.DrawLine(self.dayWidth * i, self.yOffset,
-                        self.dayWidth * i, self.size.height)
-
-        # Draw the lines between the weeks
-        for i in range(6):
-            dc.DrawLine(0, (i * self.dayHeight) + self.yOffset,
-                        self.size.width,
-                         (i * self.dayHeight) + self.yOffset)
-
-
-    def DrawCells(self, dc):
-        self._doDrawingCalculations()
-        self.canvasItemList = []
-        
-        # Delegate the drawing of each day
-        startDay = self.blockItem.rangeStart + \
-                   DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
-
-        # Draw each day in the month
-        for week in range(6):
-            for day in range(7):
-                currentDate = startDay + DateTime.RelativeDateTime(days=(week*7 + day))
-                rect = wx.Rect(self.dayWidth * day,
-                               self.dayHeight * week + self.yOffset,
-                               self.dayWidth,
-                               self.dayHeight)
-                self.DrawDay(dc, currentDate, rect)
-
-        # Draw the weekdays
-        for i in range(7):
-            weekday = startDay + DateTime.RelativeDateTime(days=i)
-            rect = wx.Rect(self.dayWidth * i,
-                           self.yOffset,
-                           self.dayWidth, 20) # Related to font height?
-            self.DrawWeekday(dc, weekday, rect)
-
-
-    def DrawDay(self, dc, date, rect):
-        styles = self.parent
-        # Scaffolding, we'll get more sophisticated here
-
-        dc.SetTextForeground(styles.eventLabelColor)
-        dc.SetFont(style.eventLabelFont)
-
-        # Draw the day header
-        # Add logic to treat "today" or "not in current month" specially
-        dc.DrawText(date.Format("%d"), rect.x, rect.y)
-        
-        x = rect.x
-        y = rect.y + 10
-        w = rect.width
-        h = 15
-
-        dc.SetTextForeground(styles.eventLabelColor)
-        dc.SetFont(styles.eventLabelFont)
-
-        for item in self.blockItem.getItemsInRange(date, date + DateTime.RelativeDateTime(days=1)):
-            itemRect = wx.Rect(x, y, w, h)
-            canvasItem = CollectionCanvas.CanvasItem(itemRect, item)
-            self.canvasItemList.append(canvasItem)
-
-            # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.GetItem() == item:
-                self._currentDragBox = canvasItem
-                
-            canvasItem.Draw(dc, itemRect, self.blockItem.selection is item)
-            y += h
-
-    def DrawWeekday(self, dc, weekday, rect):
-        dc.SetTextForeground(self.bigFontColor)
-        dc.SetFont(self.bigFont)
-
-        dayName = weekday.Format('%a')
-        self.DrawCenteredText(dc, dayName, rect)
-
-    # handle mouse related actions: move, create
-
-    def OnCreateItem(self, unscrolledPosition):
-        # @@@ this code might want to live somewhere else, refactored
-        view = self.blockItem.itsView
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        event = Calendar.CalendarEvent(view=view)
-        event.InitOutgoingAttributes()
-        event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
-                                            newTime.day,
-                                            event.startTime.hour,
-                                            event.startTime.minute))
-
-        self.blockItem.contents.source.add(event)
-        self.OnSelectItem(event)
-        
-        # @@@ Bug#1854 currently this is too slow,
-        # and the event causes flicker
-        view.commit()
-        return event
-
-    def OnDraggingItem(self, unscrolledPosition):
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.GetItem()
-        if (newTime.absdate != item.startTime.absdate):
-            item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
-                                               newTime.day,
-                                               item.startTime.hour,
-                                               item.startTime.minute))
-            self.Refresh()
-
-    def getDateTimeFromPosition(self, position):
-        # x and y in whole canvas coordinates
-        
-        # the first day displayed in the month view
-        startDay = self.blockItem.getStartDay()
-
-        # the number of days over
-        deltaDays = position.x / self.dayWidth
-
-        # the number of weeks over
-        deltaWeeks = (position.y - self.yOffset) / self.dayHeight
-
-        newDay = startDay + DateTime.RelativeDateTime(days=deltaDays,
-                                                      weeks=deltaWeeks)
-        return newDay
-    
-
-class MonthBlock(CalendarBlock):
-    def __init__(self, *arguments, **keywords):
-        super(MonthBlock, self).__init__(*arguments, **keywords)
-
-        self.rangeIncrement = DateTime.RelativeDateTime(months=1)
-        self.setRange(DateTime.today())
-
-    def instantiateWidget(self):
-        return wxMonthCanvas(self.parentBlock.widget,
-                             Block.Block.getWidgetID(self))
-
-    def setRange(self, date):
-        # override set range to pick the first day of the month
-        self.rangeStart = DateTime.DateTime(date.year, date.month)
-        self.selectedDate = self.rangeStart
-
-    def getStartDay(self):
-        """ Returns the starting day of the month displayed.
-        """
-        startDay = self.rangeStart + \
-                   DateTime.RelativeDateTime(days=-6,
-                                             weekday=(DateTime.Sunday, 0))
-        return startDay
-
-
-
-    
-
-
-
-
-
-
 
