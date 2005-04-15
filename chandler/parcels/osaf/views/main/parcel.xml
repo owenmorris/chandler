@@ -1423,7 +1423,6 @@
     <childrenBlocks itemref="doc:CPIATestLayoutToolbar"/>
     <childrenBlocks itemref="doc:CPIATestTable"/>
     <choices itemref="doc:CPIATestTable"/>
-    <choices itemref="doc:CPIATestMonth"/>
     <choices itemref="doc:CPIATestWeek"/>
     <choices itemref="doc:CPIATestDay"/>    
     <orientationEnum>Vertical</orientationEnum>
@@ -1434,7 +1433,6 @@
   -->
   <Toolbar itsName="CPIATestLayoutToolbar">
     <childrenBlocks itemref="doc:ListViewButton"/>
-    <childrenBlocks itemref="doc:MonthViewButton"/>
     <childrenBlocks itemref="doc:WeekViewButton"/>
     <childrenBlocks itemref="doc:DayViewButton"/>
     <toolSize>16,16</toolSize>
@@ -1449,16 +1447,6 @@
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
-    <event itemref="doc:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton">
-    <blockName>MonthViewButton1</blockName>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
     <event itemref="doc:ChangeLayout"/>
   </ToolbarItem>
 
@@ -1505,10 +1493,6 @@
     <columnReadOnly>False</columnReadOnly>
     <columnReadOnly>True</columnReadOnly>
   </Table>
-
-  <calendar:CanvasMonth itsName="CPIATestMonth">
-    <contents itemref="core:None"/>
-  </calendar:CanvasMonth>
 
   <calendar:CanvasWeek itsName="CPIATestWeek">
     <contents itemref="core:None"/>

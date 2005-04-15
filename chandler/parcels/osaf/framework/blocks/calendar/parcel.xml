@@ -19,21 +19,6 @@
     <attributes itemref="blocks:selection"/>
   </Kind>
 
-  <Kind itsName="CanvasMonth">
-    <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.MonthBlock</classes>
-    <superKinds itemref="calBlocks:CollectionCanvas"/>
-
-    <Attribute itsName="rangeStart">
-      <type itemref="DateTime"/>
-    </Attribute>
-    <Attribute itsName="rangeIncrement">
-      <type itemref="RelativeDateTime"/>
-    </Attribute>
-    <Attribute itsName="selectedDate">
-      <type itemref="DateTime"/>
-    </Attribute>
-  </Kind>
-
   <Kind itsName="CanvasWeek">
     <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.WeekBlock</classes>
     <superKinds itemref="calBlocks:CollectionCanvas"/>
