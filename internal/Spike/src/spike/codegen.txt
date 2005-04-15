@@ -11,17 +11,14 @@ repository metadata.  It serves two purposes:
 2. Assist in the translation of existing Chandler content types to use the
    Spike API.
 
-Before we can do anything useful, we'll need to set up a Chandler repository
-instance::
+Before we can do anything useful, we'll need to import the Chandler
+repository's "null view", and populate it with the repository schema and
+Chandler core schema::
 
+    >>> from repository.persistence.RepositoryView import nullRepositoryView
+    >>> rep = nullRepositoryView
     >>> import os, repository
     >>> packdir = os.path.join(os.path.dirname(repository.__file__),'packs')
-    >>> from repository.persistence.DBRepository import DBRepository
-    >>> rep = DBRepository('__repository__')
-    >>> rep.create(ramdb=True)
-
-And then load in the repository schema and Chandler base schema::
-
     >>> rep.loadPack(os.path.join(packdir,'schema.pack'))
     >>> rep.loadPack(os.path.join(packdir,'chandler.pack'))
 
