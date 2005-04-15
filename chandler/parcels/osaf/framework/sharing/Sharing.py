@@ -261,6 +261,10 @@ class ShareConduit(ContentModel.ContentItem):
                 self.share.contents.add(item)
                 retrievedItems.append(item)
             self.__setSeen(itemPath)
+            
+        # When first importing a collection, name it after the share
+        if not hasattr(self.share.contents, 'displayName'):
+            self.share.contents.displayName = self.share.displayName
 
         # If an item was prevsiously on the server (it was in our manifest)
         # but is no longer on the server, remove it from the collection
@@ -1133,7 +1137,11 @@ class CloudXMLFormat(ImportExportFormat):
             for (alias, endpoint, inCloud) in cloud.iterEndpoints(self.cloudAlias):
                 # @@@MOR for now, don't support endpoint attribute 'chains'
                 attrName = endpoint.attribute[0]
-                attributes[attrName] = endpoint
+                
+                # An includePolicy of 'none' is how we override an inherited
+                # endpoint
+                if endpoint.includePolicy != 'none':
+                    attributes[attrName] = endpoint
         return attributes
 
 

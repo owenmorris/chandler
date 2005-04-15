@@ -151,7 +151,7 @@
           <Endpoint itsName="displayName">
             <attribute value="displayName"/>
           </Endpoint>
-          <endpoints itemref="cm:ContentItem/SharingCloud/displayName"/>
+          <endpoints alias="displayName" itemref="cm:ContentItem/SharingCloud/displayName"/>
           <Endpoint itsName="body">
             <attribute value="body"/>
           </Endpoint>
@@ -396,6 +396,16 @@
       <endpoints itemref="cm:ItemCollection/DefaultCloud/invitees"/>
     </Cloud>
     <clouds alias="default" itemref="cm:ItemCollection/DefaultCloud"/>
+
+      <!-- Sharing Cloud -->
+      <Cloud itsName="SharingCloud">
+        <Endpoint itsName="displayName">
+          <attribute value="displayName"/>
+          <includePolicy value="none"/>
+        </Endpoint>
+        <endpoints alias="displayName" itemref="cm:ItemCollection/SharingCloud/displayName"/>
+      </Cloud>
+      <clouds alias="sharing" itemref="cm:ItemCollection/SharingCloud"/>
 
   </Kind>
 

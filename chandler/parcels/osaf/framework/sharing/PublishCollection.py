@@ -108,11 +108,13 @@ class PublishCollectionDialog(wx.Dialog):
         wx.Yield()
         
         shareName = self.publishNameControl.GetValue()
-        shareName = urllib.quote_plus(shareName)
+        shareNameSafe = urllib.quote_plus(shareName)
         share = Sharing.newOutboundShare(self.view, self.collection,
-                                         shareName=shareName,
+                                         shareName=shareNameSafe,
                                          account=self.currentAccount)
         self.share = share
+        
+        share.displayName = shareName
 
         if not share.exists():
             self._showStatus("Creating collection on server...")
