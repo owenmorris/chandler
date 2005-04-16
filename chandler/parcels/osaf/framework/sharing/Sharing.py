@@ -49,6 +49,11 @@ class Share(ContentModel.ContentItem):
         super(Share, self).__init__(name, parent, kind, view)
 
         self.contents = contents # ItemCollection
+        try:
+            self.displayName = contents.displayName
+        except:
+            self.displayName = ""
+        
         self.setConduit(conduit)
         self.format = format
 
