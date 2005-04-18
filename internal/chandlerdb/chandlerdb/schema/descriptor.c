@@ -181,10 +181,10 @@ static PyObject *get_attrdict(PyObject *obj, int flags)
 static PyObject *t_descriptor___get__(t_descriptor *self,
                                       PyObject *obj, PyObject *type)
 {
-    if (obj == Py_None)
+    if (obj == NULL || obj == Py_None)
     {
-        PyErr_SetObject(PyExc_AttributeError, self->name);
-        return NULL;
+        Py_INCREF(self);
+        return (PyObject *) self;
     }
     else if (((t_item *) obj)->status & STALE)
     {

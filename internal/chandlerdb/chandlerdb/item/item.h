@@ -36,6 +36,8 @@ enum {
     RMERGED    = 0x00020000,
     NMERGED    = 0x00040000,
     CMERGED    = 0x00080000,
+    COPYEXPORT = 0x00100000,          /* item instance is copied on export */
+    IMPORTING  = 0x00200000,          /* item is being imported */
 };
 
 enum {

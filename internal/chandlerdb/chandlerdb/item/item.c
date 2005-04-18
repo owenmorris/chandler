@@ -16,9 +16,12 @@ static PyObject *t_item_isDeleting(t_item *self, PyObject *args);
 static PyObject *t_item_isDeleted(t_item *self, PyObject *args);
 static PyObject *t_item_isStale(t_item *self, PyObject *args);
 static PyObject *t_item_isPinned(t_item *self, PyObject *args);
+static PyObject *t_item_isSchema(t_item *self, PyObject *args);
 static PyObject *t_item_isDirty(t_item *self, PyObject *args);
 static PyObject *t_item_getDirty(t_item *self, PyObject *args);
 static PyObject *t_item__isNDirty(t_item *self, PyObject *args);
+static PyObject *t_item__isCopyExport(t_item *self, PyObject *args);
+static PyObject *t_item__isImporting(t_item *self, PyObject *args);
 static PyObject *t_item__isRepository(t_item *self, PyObject *args);
 static PyObject *t_item__isView(t_item *self, PyObject *args);
 static PyObject *t_item__isItem(t_item *self, PyObject *args);
@@ -82,9 +85,12 @@ static PyMethodDef t_item_methods[] = {
     { "isDeleted", (PyCFunction) t_item_isDeleted, METH_NOARGS, isDeleted_DOC },
     { "isStale", (PyCFunction) t_item_isStale, METH_NOARGS, isStale_DOC },
     { "isPinned", (PyCFunction) t_item_isPinned, METH_NOARGS, isPinned_DOC },
+    { "isSchema", (PyCFunction) t_item_isSchema, METH_NOARGS, "" },
     { "isDirty", (PyCFunction) t_item_isDirty, METH_NOARGS, isDirty_DOC },
     { "getDirty", (PyCFunction) t_item_getDirty, METH_NOARGS, getDirty_DOC },
     { "_isNDirty", (PyCFunction) t_item__isNDirty, METH_NOARGS, "" },
+    { "_isCopyExport", (PyCFunction) t_item__isCopyExport, METH_NOARGS, "" },
+    { "_isImporting", (PyCFunction) t_item__isImporting, METH_NOARGS, "" },
     { "_isRepository", (PyCFunction) t_item__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_item__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
@@ -211,6 +217,14 @@ static PyObject *t_item_isPinned(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
+static PyObject *t_item_isSchema(t_item *self, PyObject *args)
+{
+    if (self->status & SCHEMA)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 static PyObject *t_item_isDirty(t_item *self, PyObject *args)
 {
     if (self->status & DIRTY)
@@ -227,6 +241,22 @@ static PyObject *t_item_getDirty(t_item *self, PyObject *args)
 static PyObject *t_item__isNDirty(t_item *self, PyObject *args)
 {
     if (self->status & NDIRTY)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isCopyExport(t_item *self, PyObject *args)
+{
+    if (self->status & COPYEXPORT)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isImporting(t_item *self, PyObject *args)
+{
+    if (self->status & IMPORTING)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -301,6 +331,8 @@ void inititem(void)
             PyDict_SetItemString_Int(dict, "RMERGED", RMERGED);
             PyDict_SetItemString_Int(dict, "NMERGED", NMERGED);
             PyDict_SetItemString_Int(dict, "CMERGED", CMERGED);
+            PyDict_SetItemString_Int(dict, "COPYEXPORT", COPYEXPORT);
+            PyDict_SetItemString_Int(dict, "IMPORTING", IMPORTING);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);
