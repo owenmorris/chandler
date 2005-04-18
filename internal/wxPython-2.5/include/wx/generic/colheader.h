@@ -330,7 +330,7 @@ protected:
 #endif
 
 #if defined(__WXMSW__)
-	long Win32ItemInsert(
+	long MSWItemInsert(
 		long			iInsertAfter,
 		long			nWidth,
 		const void		*titleText,
@@ -339,9 +339,9 @@ protected:
 		bool			bSelected,
 		bool			bSortEnabled,
 		bool			bSortAscending );
-	long Win32ItemDelete(
+	long MSWItemDelete(
 		long			itemIndex );
-	long Win32ItemRefresh(
+	long MSWItemRefresh(
 		long			itemIndex,
 		bool			bCheckChanged = false );
 #endif

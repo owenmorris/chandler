@@ -818,7 +818,7 @@ long		i;
 	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 	{
 #if defined(__WXMSW__)
-		(void)Win32ItemDelete( itemIndex );
+		(void)MSWItemDelete( itemIndex );
 #endif
 
 		if (m_ItemList != NULL)
@@ -941,7 +941,7 @@ bool				bIsSelected;
 		bIsSelected = (m_ItemList[targetIndex]->m_BSelected && m_ItemList[targetIndex]->m_BEnabled);
 
 #if defined(__WXMSW__)
-		Win32ItemInsert(
+		MSWItemInsert(
 			targetIndex,
 			m_ItemList[targetIndex]->m_ExtentX,
 			m_ItemList[targetIndex]->m_LabelTextRef.c_str(),
@@ -1305,7 +1305,7 @@ long			resultV;
 	// render native control window
 	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
-	// Win32 case - add selection indicator - no native mechanism exists
+	// MSW case - add selection indicator - no native mechanism exists
 	if (m_BVisibleSelection && (m_ItemSelected >= 0))
 		if (GetItemBounds( m_ItemSelected, &boundsR ))
 		{
@@ -1353,7 +1353,7 @@ void wxColumnHeader::RefreshItem(
 {
 #if defined(__WXMSW__)
 	// NB: need to update native item
-	Win32ItemRefresh( itemIndex, false );
+	MSWItemRefresh( itemIndex, false );
 #endif
 }
 
@@ -1454,7 +1454,7 @@ WXDWORD		msStyle;
 	return msStyle;
 }
 
-long wxColumnHeader::Win32ItemInsert(
+long wxColumnHeader::MSWItemInsert(
 	long			iInsertAfter,
 	long			nWidth,
 	const void		*titleText,
@@ -1471,11 +1471,11 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("Win32ItemInsert - GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("MSWItemInsert - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
-//	wxLogDebug( _T("Win32ItemInsert - item text [%s]"), (const TCHAR*)titleText );
+//	wxLogDebug( _T("MSWItemInsert - item text [%s]"), (const TCHAR*)titleText );
 
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
@@ -1491,12 +1491,12 @@ long		resultV;
 //	resultV = (long)SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
 	if (resultV < 0)
-		wxLogDebug( _T("Win32ItemInsert - SendMessage failed") );
+		wxLogDebug( _T("MSWItemInsert - SendMessage failed") );
 
 	return resultV;
 }
 
-long wxColumnHeader::Win32ItemDelete(
+long wxColumnHeader::MSWItemDelete(
 	long			itemIndex )
 {
 HWND		targetViewRef;
@@ -1505,19 +1505,19 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("Win32ItemDelete - GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("MSWItemDelete - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
 	resultV = (long)Header_DeleteItem( targetViewRef, itemIndex );
 
 	if (resultV == 0)
-		wxLogDebug( _T("Win32ItemDelete - SendMessage failed") );
+		wxLogDebug( _T("MSWItemDelete - SendMessage failed") );
 
 	return resultV;
 }
 
-long wxColumnHeader::Win32ItemRefresh(
+long wxColumnHeader::MSWItemRefresh(
 	long			itemIndex,
 	bool			bCheckChanged )
 {
@@ -1534,7 +1534,7 @@ long					resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("Win32ItemRefresh - GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("MSWItemRefresh - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -1579,7 +1579,7 @@ long					resultV;
 		resultV = 1;
 
 	if (resultV == 0)
-		wxLogDebug( _T("Win32ItemRefresh - SendMessage failed") );
+		wxLogDebug( _T("MSWItemRefresh - SendMessage failed") );
 
 	return resultV;
 }
@@ -2254,8 +2254,8 @@ long			borderWidth, offsetY;
 	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline:
 	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline:
 	default:
-		// underline style - similar to Win32 rollover drawing
-		// overline style - similar to Win32 tab highlighting
+		// underline style - similar to MSW rollover drawing
+		// overline style - similar to MSW tab highlighting
 		borderWidth = 6;
 		targetPen.SetWidth( borderWidth );
 		dc->SetPen( targetPen );
