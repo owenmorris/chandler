@@ -34,22 +34,22 @@ wxColumnHeaderHitTestResult;
 
 typedef enum
 {
-	CH_FLAGATTR_Unicode,
-	CH_FLAGATTR_GenericRenderer,
-	CH_FLAGATTR_VisibleSelection,
-	CH_FLAGATTR_ProportionalResizing
+	CH_ATTR_Unicode,
+	CH_ATTR_GenericRenderer,
+	CH_ATTR_VisibleSelection,
+	CH_ATTR_ProportionalResizing
 }
-wxColumnHeaderFlagAttr;
+wxColumnHeaderAttribute;
 
 typedef enum
 {
-	CH_ITEM_FLAGATTR_Enabled,
-	CH_ITEM_FLAGATTR_Selected,
-	CH_ITEM_FLAGATTR_SortEnabled,
-	CH_ITEM_FLAGATTR_SortDirection,
-	CH_ITEM_FLAGATTR_FixedWidth
+	CH_ITEM_ATTR_Enabled,
+	CH_ITEM_ATTR_Selected,
+	CH_ITEM_ATTR_SortEnabled,
+	CH_ITEM_ATTR_SortDirection,
+	CH_ITEM_ATTR_FixedWidth
 }
-wxColumnHeaderItemFlagAttr;
+wxColumnHeaderItemAttribute;
 
 typedef enum
 {

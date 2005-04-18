@@ -57,7 +57,7 @@ class TestPanel( wx.Panel ):
         # add demo UI controls
         miscControlsY = 175
 
-        if (ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_Unicode )):
+        if (ch1.GetAttribute( wx.colheader.CH_ATTR_Unicode )):
                 prompt = "Unicode build"
         else:
                 prompt = "ANSI build"
@@ -96,15 +96,15 @@ class TestPanel( wx.Panel ):
 
         cb2 = wx.CheckBox( self, -1, "Generic Renderer", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestGenericRendererCheckBox, cb2 )
-        cb2.SetValue( ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_GenericRenderer ) )
+        cb2.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer ) )
 
         cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
-        cb3.SetValue( ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection ) )
+        cb3.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection ) )
 
         cb4 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 75), (200, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb4 )
-        cb4.SetValue( ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing ) )
+        cb4.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing ) )
 
         self.colStartX = 175
 
@@ -151,7 +151,7 @@ class TestPanel( wx.Panel ):
              if (itemIndex < 0):
                  itemIndex = itemCount
              ch.AddItem( itemIndex, "", wx.colheader.CH_JUST_Center, 40, 0, 0, 1 )
-             ch.SetItemFlagAttribute( itemIndex, wx.colheader.CH_ITEM_FLAGATTR_FixedWidth, 1 )
+             ch.SetItemAttribute( itemIndex, wx.colheader.CH_ITEM_ATTR_FixedWidth, 1 )
              testBmp = images.getTest2Bitmap()
              ch.SetBitmapRef( itemIndex, testBmp )
              ch.SetSelectedItem( itemIndex )
@@ -179,24 +179,24 @@ class TestPanel( wx.Panel ):
         self.l0.SetLabel( "enabled (%d)" %(curEnabled) )
 
     def OnTestGenericRendererCheckBox( self, event ):
-        curEnabled = self.ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_GenericRenderer )
+        curEnabled = self.ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer )
         curEnabled = not curEnabled
-        self.ch1.SetFlagAttribute( wx.colheader.CH_FLAGATTR_GenericRenderer, curEnabled )
-        self.ch2.SetFlagAttribute( wx.colheader.CH_FLAGATTR_GenericRenderer, curEnabled )
+        self.ch1.SetAttribute( wx.colheader.CH_ATTR_GenericRenderer, curEnabled )
+        self.ch2.SetAttribute( wx.colheader.CH_ATTR_GenericRenderer, curEnabled )
         self.l0.SetLabel( "generic renderer (%d)" %(curEnabled) )
 
     def OnTestVisibleSelectionCheckBox( self, event ):
-        curEnabled = self.ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection )
+        curEnabled = self.ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection )
         curEnabled = not curEnabled
-        self.ch1.SetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection, curEnabled )
-        self.ch2.SetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection, curEnabled )
+        self.ch1.SetAttribute( wx.colheader.CH_ATTR_VisibleSelection, curEnabled )
+        self.ch2.SetAttribute( wx.colheader.CH_ATTR_VisibleSelection, curEnabled )
         self.l0.SetLabel( "selection visible (%d)" %(curEnabled) )
 
     def OnTestProportionalResizingCheckBox( self, event ):
-        curEnabled = self.ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing )
+        curEnabled = self.ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing )
         curEnabled = not curEnabled
-        self.ch1.SetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing, curEnabled )
-        self.ch2.SetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing, curEnabled )
+        self.ch1.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
+        self.ch2.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
         self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
 
     def OnEvtChoice( self, event ):

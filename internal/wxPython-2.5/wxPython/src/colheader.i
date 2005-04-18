@@ -30,27 +30,27 @@
 
 //---------------------------------------------------------------------------
 
-enum wxColumnHeaderFlagAttr
-{
-    CH_FLAGATTR_Unicode,
-    CH_FLAGATTR_GenericRenderer,
-    CH_FLAGATTR_VisibleSelection,
-    CH_FLAGATTR_ProportionalResizing
-};
-
-enum wxColumnHeaderItemFlagAttr
-{
-    CH_ITEM_FLAGATTR_Enabled,
-    CH_ITEM_FLAGATTR_Selected,
-    CH_ITEM_FLAGATTR_SortEnabled,
-    CH_ITEM_FLAGATTR_SortDirection,
-    CH_ITEM_FLAGATTR_FixedWidth
-};
-
 enum wxColumnHeaderHitTestResult
 {
     CH_HITTEST_NoPart            = -1,    // not within a known sub-item (but within the client bounds)
     CH_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
+};
+
+enum wxColumnHeaderAttribute
+{
+    CH_ATTR_Unicode,
+    CH_ATTR_GenericRenderer,
+    CH_ATTR_VisibleSelection,
+    CH_ATTR_ProportionalResizing
+};
+
+enum wxColumnHeaderItemAttribute
+{
+    CH_ITEM_ATTR_Enabled,
+    CH_ITEM_ATTR_Selected,
+    CH_ITEM_ATTR_SortEnabled,
+    CH_ITEM_ATTR_SortDirection,
+    CH_ITEM_ATTR_FixedWidth
 };
 
 enum wxColumnHeaderJustification
@@ -137,10 +137,10 @@ public:
     long GetSelectionDrawStyle( void ) const;
     void SetSelectionDrawStyle(
         long                styleValue );
-    bool GetFlagAttribute(
-        wxColumnHeaderFlagAttr    flagEnum ) const;
-    bool SetFlagAttribute(
-        wxColumnHeaderFlagAttr        flagEnum,
+    bool GetAttribute(
+        wxColumnHeaderAttribute    flagEnum ) const;
+    bool SetAttribute(
+        wxColumnHeaderAttribute        flagEnum,
         bool                        bFlagValue );
 
     long GetItemCount( void ) const;
@@ -187,12 +187,12 @@ public:
     void SetUIExtent(
         long                itemIndex,
         wxSize            &extentPt );
-    bool GetItemFlagAttribute(
+    bool GetItemAttribute(
         long                            itemIndex,
-        wxColumnHeaderItemFlagAttr    flagEnum ) const;
-    bool SetItemFlagAttribute(
+        wxColumnHeaderItemAttribute    flagEnum ) const;
+    bool SetItemAttribute(
         long                            itemIndex,
-        wxColumnHeaderItemFlagAttr        flagEnum,
+        wxColumnHeaderItemAttribute        flagEnum,
         bool                        bFlagValue );
 };
 

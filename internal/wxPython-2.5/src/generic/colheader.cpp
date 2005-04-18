@@ -299,7 +299,7 @@ bool		bResultV;
 	for (i=0; i<m_ItemCount; i++)
 	{
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-			m_ItemList[i]->SetFlagAttribute( CH_ITEM_FLAGATTR_Enabled, bEnable );
+			m_ItemList[i]->SetAttribute( CH_ITEM_ATTR_Enabled, bEnable );
 
 		RefreshItem( i );
 	}
@@ -522,10 +522,10 @@ long			curSelectionIndex;
 
 		item = ((m_ItemList != NULL) ? m_ItemList[itemIndex] : NULL);
 		if (item != NULL)
-			if (item->GetFlagAttribute( CH_ITEM_FLAGATTR_SortEnabled ))
+			if (item->GetAttribute( CH_ITEM_ATTR_SortEnabled ))
 			{
-				bSortFlag = item->GetFlagAttribute( CH_ITEM_FLAGATTR_SortDirection );
-				item->SetFlagAttribute( CH_ITEM_FLAGATTR_SortDirection, ! bSortFlag );
+				bSortFlag = item->GetAttribute( CH_ITEM_ATTR_SortDirection );
+				item->SetAttribute( CH_ITEM_ATTR_SortDirection, ! bSortFlag );
 
 				if (m_BVisibleSelection)
 				{
@@ -591,8 +591,8 @@ void wxColumnHeader::SetSelectionDrawStyle(
 	}
 }
 
-bool wxColumnHeader::GetFlagAttribute(
-	wxColumnHeaderFlagAttr		flagEnum ) const
+bool wxColumnHeader::GetAttribute(
+	wxColumnHeaderAttribute		flagEnum ) const
 {
 bool			bResult;
 
@@ -600,19 +600,19 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_FLAGATTR_Unicode:
+	case CH_ATTR_Unicode:
 		bResult = m_BUseUnicode;
 		break;
 
-	case CH_FLAGATTR_GenericRenderer:
+	case CH_ATTR_GenericRenderer:
 		bResult = m_BUseGenericRenderer;
 		break;
 
-	case CH_FLAGATTR_VisibleSelection:
+	case CH_ATTR_VisibleSelection:
 		bResult = m_BVisibleSelection;
 		break;
 
-	case CH_FLAGATTR_ProportionalResizing:
+	case CH_ATTR_ProportionalResizing:
 		bResult = m_BProportionalResizing;
 		break;
 
@@ -623,8 +623,8 @@ bool			bResult;
 	return bResult;
 }
 
-bool wxColumnHeader::SetFlagAttribute(
-	wxColumnHeaderFlagAttr		flagEnum,
+bool wxColumnHeader::SetAttribute(
+	wxColumnHeaderAttribute		flagEnum,
 	bool						bFlagValue )
 {
 bool			bResult;
@@ -633,12 +633,12 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_FLAGATTR_Unicode:
+	case CH_ATTR_Unicode:
 		// NB: runtime set not allowed
 		// m_BUseUnicode = bFlagValue;
 		break;
 
-	case CH_FLAGATTR_GenericRenderer:
+	case CH_ATTR_GenericRenderer:
 #if defined(__WXMSW__) || defined(__WXMAC__)
 		if (m_BUseGenericRenderer != bFlagValue)
 		{
@@ -648,7 +648,7 @@ bool			bResult;
 #endif
 		break;
 
-	case CH_FLAGATTR_VisibleSelection:
+	case CH_ATTR_VisibleSelection:
 		if (m_BVisibleSelection != bFlagValue)
 		{
 			m_BVisibleSelection = bFlagValue;
@@ -661,7 +661,7 @@ bool			bResult;
 		}
 		break;
 
-	case CH_FLAGATTR_ProportionalResizing:
+	case CH_ATTR_ProportionalResizing:
 		if (m_BProportionalResizing != bFlagValue)
 		{
 			m_BProportionalResizing = bFlagValue;
@@ -834,7 +834,7 @@ bool		bSelected;
 		{
 			bSelected = (i == itemIndex);
 			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-				m_ItemList[i]->SetFlagAttribute( CH_ITEM_FLAGATTR_Selected, bSelected );
+				m_ItemList[i]->SetAttribute( CH_ITEM_ATTR_Selected, bSelected );
 
 			RefreshItem( i );
 		}
@@ -1250,9 +1250,9 @@ wxColumnHeaderItem		*itemRef;
 	}
 }
 
-bool wxColumnHeader::GetItemFlagAttribute(
+bool wxColumnHeader::GetItemAttribute(
 	long						itemIndex,
-	wxColumnHeaderItemFlagAttr	flagEnum ) const
+	wxColumnHeaderItemAttribute	flagEnum ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -1260,14 +1260,14 @@ bool					bResultV;
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
 	if (bResultV)
-		bResultV = itemRef->GetFlagAttribute( flagEnum );
+		bResultV = itemRef->GetAttribute( flagEnum );
 
 	return bResultV;
 }
 
-bool wxColumnHeader::SetItemFlagAttribute(
+bool wxColumnHeader::SetItemAttribute(
 	long						itemIndex,
-	wxColumnHeaderItemFlagAttr	flagEnum,
+	wxColumnHeaderItemAttribute	flagEnum,
 	bool						bFlagValue )
 {
 wxColumnHeaderItem		*itemRef;
@@ -1277,7 +1277,7 @@ bool					bResultV;
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		if (itemRef->SetFlagAttribute( flagEnum, bFlagValue ))
+		if (itemRef->SetAttribute( flagEnum, bFlagValue ))
 			RefreshItem( itemIndex );
 	}
 
@@ -1863,20 +1863,39 @@ void wxColumnHeaderItem::GetTextUIExtent(
 	long				&originX,
 	long				&extentX ) const
 {
-	originX = m_OriginX + wxCH_kMetricInsetX;
-	if (extentX > m_ExtentX)
-		extentX = m_ExtentX;
+long		leftInsetX, rightInsetX;
 
-	if (m_BSortEnabled)
-		extentX = m_ExtentX - ((3 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX);
-	else
-		extentX = m_ExtentX - (2 * wxCH_kMetricInsetX);
+	rightInsetX =
+		(m_BSortEnabled
+		? (2 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX
+		: wxCH_kMetricInsetX );
+
+	switch (m_TextJust)
+	{
+	case CH_JUST_Center:
+		leftInsetX = rightInsetX;
+		break;
+
+	case CH_JUST_Right:
+	case CH_JUST_Left:
+	default:
+		leftInsetX = wxCH_kMetricInsetX;
+		break;
+	}
+
+	originX = m_OriginX + leftInsetX;
+	extentX = m_ExtentX - (leftInsetX + rightInsetX);
+
+	if (originX > m_OriginX + m_ExtentX)
+		originX = m_OriginX + m_ExtentX;
+	if (extentX > m_ExtentX - originX)
+		extentX = m_ExtentX - originX;
 	if (extentX < 0)
 		extentX = 0;
 }
 
-bool wxColumnHeaderItem::GetFlagAttribute(
-	wxColumnHeaderItemFlagAttr		flagEnum ) const
+bool wxColumnHeaderItem::GetAttribute(
+	wxColumnHeaderItemAttribute		flagEnum ) const
 {
 bool			bResult;
 
@@ -1884,23 +1903,23 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_ITEM_FLAGATTR_Enabled:
+	case CH_ITEM_ATTR_Enabled:
 		bResult = m_BEnabled;
 		break;
 
-	case CH_ITEM_FLAGATTR_Selected:
+	case CH_ITEM_ATTR_Selected:
 		bResult = m_BSelected;
 		break;
 
-	case CH_ITEM_FLAGATTR_SortEnabled:
+	case CH_ITEM_ATTR_SortEnabled:
 		bResult = m_BSortEnabled;
 		break;
 
-	case CH_ITEM_FLAGATTR_SortDirection:
+	case CH_ITEM_ATTR_SortDirection:
 		bResult = m_BSortAscending;
 		break;
 
-	case CH_ITEM_FLAGATTR_FixedWidth:
+	case CH_ITEM_ATTR_FixedWidth:
 		bResult = m_BFixedWidth;
 		break;
 
@@ -1911,8 +1930,8 @@ bool			bResult;
 	return bResult;
 }
 
-bool wxColumnHeaderItem::SetFlagAttribute(
-	wxColumnHeaderItemFlagAttr	flagEnum,
+bool wxColumnHeaderItem::SetAttribute(
+	wxColumnHeaderItemAttribute	flagEnum,
 	bool						bFlagValue )
 {
 bool			bResult;
@@ -1921,23 +1940,23 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case CH_ITEM_FLAGATTR_Enabled:
+	case CH_ITEM_ATTR_Enabled:
 		m_BEnabled = bFlagValue;
 		break;
 
-	case CH_ITEM_FLAGATTR_Selected:
+	case CH_ITEM_ATTR_Selected:
 		m_BSelected = bFlagValue;
 		break;
 
-	case CH_ITEM_FLAGATTR_SortEnabled:
+	case CH_ITEM_ATTR_SortEnabled:
 		m_BSortEnabled = bFlagValue;
 		break;
 
-	case CH_ITEM_FLAGATTR_SortDirection:
+	case CH_ITEM_ATTR_SortDirection:
 		m_BSortAscending = bFlagValue;
 		break;
 
-	case CH_ITEM_FLAGATTR_FixedWidth:
+	case CH_ITEM_ATTR_FixedWidth:
 		m_BFixedWidth = bFlagValue;
 		break;
 
@@ -2082,9 +2101,9 @@ long wxColumnHeaderItem::GenericDrawItem(
 	bool				bUseUnicode,
 	bool				bVisibleSelection )
 {
-wxRect				localBoundsR, subItemBoundsR;
-long					originX, insetX, maxExtentX;
-bool					bSelected, bHasIcon;
+wxRect		localBoundsR, subItemBoundsR;
+long			originX, maxExtentX;
+bool			bSelected, bHasIcon;
 
 	wxUnusedVar( bUseUnicode );
 
@@ -2105,14 +2124,8 @@ bool					bSelected, bHasIcon;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 	// draw (justified) label text (if specified)
-	// FIXME: need to clip long text items
-	insetX = wxCH_kMetricInsetX;
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
-		originX = localBoundsR.x;
-		maxExtentX = m_ExtentX;
-//		GetTextUIExtent( originX, maxExtentX );
-
 		// calculate and cache text extent
 		if ((m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
 		{
@@ -2127,26 +2140,8 @@ bool					bSelected, bHasIcon;
 			m_LabelTextExtent.y = targetHeight;
 		}
 
-		// determine left size text origin
-		switch (m_TextJust)
-		{
-		case CH_JUST_Right:
-		case CH_JUST_Center:
-			if (maxExtentX > m_LabelTextExtent.x)
-			{
-				if (m_TextJust == CH_JUST_Center)
-					originX += (maxExtentX - m_LabelTextExtent.x) / 2;
-				else
-					originX += maxExtentX - (m_LabelTextExtent.x + insetX);
-			}
-			break;
-
-		case CH_JUST_Left:
-		default:
-			originX += insetX;
-			break;
-		}
-
+		// FIXME: need to clip long text items
+		GetTextUIExtent( originX, maxExtentX );
 		dc->DrawText( m_LabelTextRef.c_str(), originX, localBoundsR.y + 1 );
 	}
 
@@ -2398,6 +2393,8 @@ wxPoint		triPt[3];
 		triPt[2].y = boundsR->height;
 	}
 
+	dc->SetPen( *wxGREY_PEN );
+	dc->SetBrush( *wxGREY_BRUSH );
 	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
 }
 

@@ -35,8 +35,8 @@ typedef enum
 {
 	wxCH_kMetricInsetX				= 4,
 	wxCH_kMetricInsetY				= 4,
-	wxCH_kMetricArrowSizeX		= 12,
-	wxCH_kMetricArrowSizeY		= 12,
+	wxCH_kMetricArrowSizeX		= 8,
+	wxCH_kMetricArrowSizeY		= 8,
 	wxCH_kMetricBitmapSizeX		= 12,
 	wxCH_kMetricBitmapSizeY		= 12
 }
@@ -84,10 +84,10 @@ public:
 		long			&originX,
 		long			&extentX ) const;
 
-	bool GetFlagAttribute(
-		wxColumnHeaderItemFlagAttr	flagEnum ) const;
-	bool SetFlagAttribute(
-		wxColumnHeaderItemFlagAttr	flagEnum,
+	bool GetAttribute(
+		wxColumnHeaderItemAttribute	flagEnum ) const;
+	bool SetAttribute(
+		wxColumnHeaderItemAttribute	flagEnum,
 		bool						bFlagValue );
 
 	long GenericDrawItem(
@@ -206,10 +206,10 @@ public:
 	long GetSelectionDrawStyle( void ) const;
 	void SetSelectionDrawStyle(
 		long				styleValue );
-	bool GetFlagAttribute(
-		wxColumnHeaderFlagAttr		flagEnum ) const;
-	bool SetFlagAttribute(
-		wxColumnHeaderFlagAttr		flagEnum,
+	bool GetAttribute(
+		wxColumnHeaderAttribute		flagEnum ) const;
+	bool SetAttribute(
+		wxColumnHeaderAttribute		flagEnum,
 		bool						bFlagValue );
 
 	// returns a non-negative value for a column header item
@@ -263,12 +263,12 @@ public:
 	void SetUIExtent(
 		long				itemIndex,
 		wxSize			&extentPt );
-	bool GetItemFlagAttribute(
+	bool GetItemAttribute(
 		long						itemIndex,
-		wxColumnHeaderItemFlagAttr	flagEnum ) const;
-	bool SetItemFlagAttribute(
+		wxColumnHeaderItemAttribute	flagEnum ) const;
+	bool SetItemAttribute(
 		long						itemIndex,
-		wxColumnHeaderItemFlagAttr	flagEnum,
+		wxColumnHeaderItemAttribute	flagEnum,
 		bool						bFlagValue );
 
 	// implementation only from now on
