@@ -584,13 +584,11 @@ void wxColumnHeader::SetSelectionDrawStyle(
 
 	m_SelectionDrawStyle = styleValue;
 
-#if !defined(__WXMAC__)
 	if (m_ItemSelected >= 0)
 	{
 		RefreshItem( m_ItemSelected );
 		SetViewDirty();
 	}
-#endif
 }
 
 bool wxColumnHeader::GetFlagAttribute(
@@ -641,10 +639,13 @@ bool			bResult;
 		break;
 
 	case CH_FLAGATTR_GenericRenderer:
+#if defined(__WXMSW__) || defined(__WXMAC__)
 		if (m_BUseGenericRenderer != bFlagValue)
 		{
 			m_BUseGenericRenderer = bFlagValue;
+			SetViewDirty();
 		}
+#endif
 		break;
 
 	case CH_FLAGATTR_VisibleSelection:
