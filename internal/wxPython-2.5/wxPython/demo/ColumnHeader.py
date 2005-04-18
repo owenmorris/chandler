@@ -33,7 +33,7 @@ class TestPanel( wx.Panel ):
         ch1 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 20), (self.baseWidth1, self.colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
-            ch1.AddItem( -1, v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
+            ch1.AddItem( -1, v, wx.colheader.CH_JUST_Center, 50, 0, 0, 1 )
         ch1.SetSelectedItem( 0 )
         self.ch1 = ch1
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch1 )
@@ -47,7 +47,7 @@ class TestPanel( wx.Panel ):
         ch2 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 100), (self.baseWidth2, self.colHeight), 0 )
         coffeeNames = [ "Juan", "Valdez", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
-            ch2.AddItem( -1, v, wx.colheader.COLUMNHEADER_JUST_Left + i, 90, 0, 1, 1 )
+            ch2.AddItem( -1, v, wx.colheader.CH_JUST_Left + i, 90, 0, 1, 1 )
         ch2.SetSelectedItem( 0 )
 
         self.ch2 = ch2
@@ -57,7 +57,7 @@ class TestPanel( wx.Panel ):
         # add demo UI controls
         miscControlsY = 175
 
-        if (ch1.GetFlagUnicode()):
+        if (ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_Unicode )):
                 prompt = "Unicode build"
         else:
                 prompt = "ANSI build"
@@ -96,11 +96,11 @@ class TestPanel( wx.Panel ):
 
         cb2 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
-        cb2.SetValue( ch1.GetFlagVisibleSelection() )
+        cb2.SetValue( ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection ) )
 
         cb3 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb3 )
-        cb3.SetValue(  ch1.GetFlagProportionalResizing() )
+        cb3.SetValue( ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing ) )
 
         self.colStartX = 175
 
@@ -146,8 +146,8 @@ class TestPanel( wx.Panel ):
              itemIndex = ch.GetSelectedItem()
              if (itemIndex < 0):
                  itemIndex = itemCount
-             ch.AddItem( itemIndex, "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
-             ch.SetFlagAttribute( itemIndex, wx.colheader.COLUMNHEADER_FLAGATTR_FixedWidth, 1 )
+             ch.AddItem( itemIndex, "", wx.colheader.CH_JUST_Center, 40, 0, 0, 1 )
+             ch.SetItemFlagAttribute( itemIndex, wx.colheader.CH_ITEM_FLAGATTR_FixedWidth, 1 )
              testBmp = images.getTest2Bitmap()
              ch.SetBitmapRef( itemIndex, testBmp )
              ch.SetSelectedItem( itemIndex )
@@ -175,17 +175,17 @@ class TestPanel( wx.Panel ):
         self.l0.SetLabel( "enabled (%d)" %(curEnabled) )
 
     def OnTestVisibleSelectionCheckBox( self, event ):
-        curEnabled = self.ch1.GetFlagVisibleSelection()
+        curEnabled = self.ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection )
         curEnabled = not curEnabled
-        self.ch1.SetFlagVisibleSelection( curEnabled )
-        self.ch2.SetFlagVisibleSelection( curEnabled )
+        self.ch1.SetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection, curEnabled )
+        self.ch2.SetFlagAttribute( wx.colheader.CH_FLAGATTR_VisibleSelection, curEnabled )
         self.l0.SetLabel( "selection visible (%d)" %(curEnabled) )
 
     def OnTestProportionalResizingCheckBox( self, event ):
-        curEnabled = self.ch1.GetFlagProportionalResizing()
+        curEnabled = self.ch1.GetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing )
         curEnabled = not curEnabled
-        self.ch1.SetFlagProportionalResizing( curEnabled )
-        self.ch2.SetFlagProportionalResizing( curEnabled )
+        self.ch1.SetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing, curEnabled )
+        self.ch2.SetFlagAttribute( wx.colheader.CH_FLAGATTR_ProportionalResizing, curEnabled )
         self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
 
     def OnEvtChoice( self, event ):

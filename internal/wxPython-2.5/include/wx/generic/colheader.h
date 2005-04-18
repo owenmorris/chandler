@@ -33,12 +33,12 @@
 
 typedef enum
 {
-	wxCHI_kMetricInsetX			= 4,
-	wxCHI_kMetricInsetY			= 4,
-	wxCHI_kMetricArrowSizeX		= 12,
-	wxCHI_kMetricArrowSizeY		= 12,
-	wxCHI_kMetricBitmapSizeX		= 12,
-	wxCHI_kMetricBitmapSizeY		= 12
+	wxCH_kMetricInsetX				= 4,
+	wxCH_kMetricInsetY				= 4,
+	wxCH_kMetricArrowSizeX		= 12,
+	wxCH_kMetricArrowSizeY		= 12,
+	wxCH_kMetricBitmapSizeX		= 12,
+	wxCH_kMetricBitmapSizeY		= 12
 }
 wxColumnHeaderMetric;
 
@@ -85,9 +85,9 @@ public:
 		long			&extentX ) const;
 
 	bool GetFlagAttribute(
-		wxColumnHeaderFlagAttr		flagEnum ) const;
+		wxColumnHeaderItemFlagAttr	flagEnum ) const;
 	bool SetFlagAttribute(
-		wxColumnHeaderFlagAttr		flagEnum,
+		wxColumnHeaderItemFlagAttr	flagEnum,
 		bool						bFlagValue );
 
 	long GenericDrawItem(
@@ -206,15 +206,11 @@ public:
 	long GetSelectionDrawStyle( void ) const;
 	void SetSelectionDrawStyle(
 		long				styleValue );
-	bool GetFlagProportionalResizing( void ) const;
-	void SetFlagProportionalResizing(
-		bool				bFlagValue );
-	bool GetFlagVisibleSelection( void ) const;
-	void SetFlagVisibleSelection(
-		bool				bFlagValue );
-	bool GetFlagUnicode( void ) const;
-	void SetFlagUnicode(
-		bool				bFlagValue );
+	bool GetFlagAttribute(
+		wxColumnHeaderFlagAttr		flagEnum ) const;
+	bool SetFlagAttribute(
+		wxColumnHeaderFlagAttr		flagEnum,
+		bool						bFlagValue );
 
 	// returns a non-negative value for a column header item
 	// or wxCOLUMNHEADER_HITTEST_NOWHERE for no item
@@ -267,12 +263,12 @@ public:
 	void SetUIExtent(
 		long				itemIndex,
 		wxSize			&extentPt );
-	bool GetFlagAttribute(
+	bool GetItemFlagAttribute(
 		long						itemIndex,
-		wxColumnHeaderFlagAttr		flagEnum ) const;
-	bool SetFlagAttribute(
+		wxColumnHeaderItemFlagAttr	flagEnum ) const;
+	bool SetItemFlagAttribute(
 		long						itemIndex,
-		wxColumnHeaderFlagAttr		flagEnum,
+		wxColumnHeaderItemFlagAttr	flagEnum,
 		bool						bFlagValue );
 
 	// implementation only from now on
@@ -366,10 +362,11 @@ protected:
 	long					m_ItemCount;
 	long					m_ItemSelected;
 	long					m_SelectionDrawStyle;
-	bool					m_BFixedHeight;
+	bool					m_BUseUnicode;			// set by compile flag, but not necessarily so - cannot be reset
+	bool					m_BUseGenericRenderer;		// Mac,MSW: either true or false; otherwise: always true
+	bool					m_BFixedHeight;			// Mac,MSW: always true; otherwise: false
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
-	bool					m_BUseUnicode;
 
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
 	DECLARE_EVENT_TABLE()

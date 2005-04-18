@@ -163,32 +163,34 @@ void wxColumnHeader::Init( void )
 
 	m_ItemList = NULL;
 	m_ItemCount = 0;
-	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+	m_ItemSelected = CH_HITTEST_NoPart;
 
 	m_SelectionColour.Set( 0x66, 0x66, 0x66 );
-
-#if defined(__WXMSW__) || defined(__WXMAC__)
-	m_BFixedHeight = true;
-#else
-	m_BFixedHeight = false;
-#endif
-
-#if defined(__WXMAC__)
-	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
-	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
-	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native;
-#else
-	m_Font.SetFamily( 0 );
-	m_SelectionDrawStyle = wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline;
-#endif
-
-	m_BProportionalResizing = true;
-	m_BVisibleSelection = true;
 
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
 #else
 	m_BUseUnicode = false;
+#endif
+
+#if defined(__WXMSW__) || defined(__WXMAC__)
+	m_BFixedHeight = true;
+	m_BUseGenericRenderer = false;
+#else
+	m_BFixedHeight = false;
+	m_BUseGenericRenderer = true;
+#endif
+
+	m_BProportionalResizing = true;
+	m_BVisibleSelection = true;
+
+#if defined(__WXMAC__)
+	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
+	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
+	m_SelectionDrawStyle = CH_SELECTIONDRAWSTYLE_Native;
+#else
+	m_Font.SetFamily( 0 );
+	m_SelectionDrawStyle = CH_SELECTIONDRAWSTYLE_Underline;
 #endif
 }
 
@@ -297,7 +299,7 @@ bool		bResultV;
 	for (i=0; i<m_ItemCount; i++)
 	{
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
+			m_ItemList[i]->SetFlagAttribute( CH_ITEM_FLAGATTR_Enabled, bEnable );
 
 		RefreshItem( i );
 	}
@@ -458,7 +460,7 @@ void wxColumnHeader::OnDoubleClick(
 long		itemIndex;
 
 	itemIndex = HitTest( event.GetPosition() );
-	if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
+	if (itemIndex >= CH_HITTEST_ItemZero)
 	{
 		// NB: just call the single click handler for the present
 		OnClick( event );
@@ -481,7 +483,7 @@ long		itemIndex;
 	switch (itemIndex)
 	{
 	default:
-		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
+		if (itemIndex >= CH_HITTEST_ItemZero)
 		{
 			if (IsEnabled())
 			{
@@ -496,7 +498,7 @@ long		itemIndex;
 			//wxLogDebug( _T("wxColumnHeader::OnClick - unknown hittest code") );
 		}
 
-	case wxCOLUMNHEADER_HITTEST_NoPart:
+	case CH_HITTEST_NoPart:
 		event.Skip();
 		break;
 	}
@@ -520,10 +522,10 @@ long			curSelectionIndex;
 
 		item = ((m_ItemList != NULL) ? m_ItemList[itemIndex] : NULL);
 		if (item != NULL)
-			if (item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled ))
+			if (item->GetFlagAttribute( CH_ITEM_FLAGATTR_SortEnabled ))
 			{
-				bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-				item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
+				bSortFlag = item->GetFlagAttribute( CH_ITEM_FLAGATTR_SortDirection );
+				item->SetFlagAttribute( CH_ITEM_FLAGATTR_SortDirection, ! bSortFlag );
 
 				if (m_BVisibleSelection)
 				{
@@ -576,8 +578,8 @@ void wxColumnHeader::SetSelectionDrawStyle(
 {
 	if (m_SelectionDrawStyle == styleValue)
 		return;
-	if ((styleValue < wxCOLUMNHEADER_SELECTIONDRAWSTYLE_FIRST)
-			|| (styleValue > wxCOLUMNHEADER_SELECTIONDRAWSTYLE_LAST))
+	if ((styleValue < CH_SELECTIONDRAWSTYLE_FIRST)
+			|| (styleValue > CH_SELECTIONDRAWSTYLE_LAST))
 		return;
 
 	m_SelectionDrawStyle = styleValue;
@@ -591,54 +593,86 @@ void wxColumnHeader::SetSelectionDrawStyle(
 #endif
 }
 
-bool wxColumnHeader::GetFlagProportionalResizing( void ) const
+bool wxColumnHeader::GetFlagAttribute(
+	wxColumnHeaderFlagAttr		flagEnum ) const
 {
-	return m_BProportionalResizing;
-}
+bool			bResult;
 
-void wxColumnHeader::SetFlagProportionalResizing(
-	bool			bFlagValue )
-{
-	if (m_BProportionalResizing == bFlagValue)
-		return;
+	bResult = false;
 
-	m_BProportionalResizing = bFlagValue;
-}
-
-bool wxColumnHeader::GetFlagVisibleSelection( void ) const
-{
-	return m_BVisibleSelection;
-}
-
-void wxColumnHeader::SetFlagVisibleSelection(
-	bool			bFlagValue )
-{
-	if (m_BVisibleSelection == bFlagValue)
-		return;
-
-	m_BVisibleSelection = bFlagValue;
-
-	if (m_ItemSelected >= 0)
+	switch (flagEnum)
 	{
-		RefreshItem( m_ItemSelected );
-		SetViewDirty();
+	case CH_FLAGATTR_Unicode:
+		bResult = m_BUseUnicode;
+		break;
+
+	case CH_FLAGATTR_GenericRenderer:
+		bResult = m_BUseGenericRenderer;
+		break;
+
+	case CH_FLAGATTR_VisibleSelection:
+		bResult = m_BVisibleSelection;
+		break;
+
+	case CH_FLAGATTR_ProportionalResizing:
+		bResult = m_BProportionalResizing;
+		break;
+
+	default:
+		break;
 	}
+
+	return bResult;
 }
 
-bool wxColumnHeader::GetFlagUnicode( void ) const
+bool wxColumnHeader::SetFlagAttribute(
+	wxColumnHeaderFlagAttr		flagEnum,
+	bool						bFlagValue )
 {
-	return m_BUseUnicode;
-}
+bool			bResult;
 
-// NB: this routine shouldn't really exist
-//
-void wxColumnHeader::SetFlagUnicode(
-	bool			bFlagValue )
-{
-	if (m_BUseUnicode == bFlagValue)
-		return;
+	bResult = true;
 
-	// m_BUseUnicode = bFlagValue;
+	switch (flagEnum)
+	{
+	case CH_FLAGATTR_Unicode:
+		// NB: runtime set not allowed
+		// m_BUseUnicode = bFlagValue;
+		break;
+
+	case CH_FLAGATTR_GenericRenderer:
+		if (m_BUseGenericRenderer != bFlagValue)
+		{
+			m_BUseGenericRenderer = bFlagValue;
+		}
+		break;
+
+	case CH_FLAGATTR_VisibleSelection:
+		if (m_BVisibleSelection != bFlagValue)
+		{
+			m_BVisibleSelection = bFlagValue;
+
+			if (m_ItemSelected >= 0)
+			{
+				RefreshItem( m_ItemSelected );
+				SetViewDirty();
+			}
+		}
+		break;
+
+	case CH_FLAGATTR_ProportionalResizing:
+		if (m_BProportionalResizing != bFlagValue)
+		{
+			m_BProportionalResizing = bFlagValue;
+		}
+		break;
+
+	default:
+		bResult = false;
+		break;
+	}
+
+	return bResult;
 }
 
 // ================
@@ -799,7 +833,7 @@ bool		bSelected;
 		{
 			bSelected = (i == itemIndex);
 			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
-				m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
+				m_ItemList[i]->SetFlagAttribute( CH_ITEM_FLAGATTR_Selected, bSelected );
 
 			RefreshItem( i );
 		}
@@ -844,7 +878,7 @@ long		i;
 
 			// if this item was selected, then there is a selection no longer
 			if (m_ItemSelected == itemIndex)
-				m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+				m_ItemSelected = CH_HITTEST_NoPart;
 
 			// NB: AddItem doesn't do this
 			SetViewDirty();
@@ -973,7 +1007,7 @@ bool				bIsSelected;
 	long		savedIndex;
 
 		savedIndex = m_ItemSelected;
-		m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+		m_ItemSelected = CH_HITTEST_NoPart;
 		SetSelectedItem( savedIndex );
 	}
 
@@ -994,7 +1028,7 @@ long		i;
 	}
 
 	m_ItemCount = 0;
-	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+	m_ItemSelected = CH_HITTEST_NoPart;
 }
 
 bool wxColumnHeader::GetItemData(
@@ -1215,9 +1249,9 @@ wxColumnHeaderItem		*itemRef;
 	}
 }
 
-bool wxColumnHeader::GetFlagAttribute(
+bool wxColumnHeader::GetItemFlagAttribute(
 	long						itemIndex,
-	wxColumnHeaderFlagAttr		flagEnum ) const
+	wxColumnHeaderItemFlagAttr	flagEnum ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -1230,9 +1264,9 @@ bool					bResultV;
 	return bResultV;
 }
 
-bool wxColumnHeader::SetFlagAttribute(
+bool wxColumnHeader::SetItemFlagAttribute(
 	long						itemIndex,
-	wxColumnHeaderFlagAttr		flagEnum,
+	wxColumnHeaderItemFlagAttr	flagEnum,
 	bool						bFlagValue )
 {
 wxColumnHeaderItem		*itemRef;
@@ -1254,7 +1288,7 @@ wxColumnHeaderHitTestResult wxColumnHeader::HitTest(
 {
 wxColumnHeaderHitTestResult		resultV;
 
-	resultV = wxCOLUMNHEADER_HITTEST_NoPart;
+	resultV = CH_HITTEST_NoPart;
 
 #if defined(__WXMSW__)
 RECT		boundsR;
@@ -1301,43 +1335,62 @@ long			resultV;
 
 	resultV = 0;
 
+	if (m_BUseGenericRenderer)
+	{
+	wxClientDC	dc( this );
+	long			i;
+
+		dc.SetFont( m_Font );
+
+		for (i=0; i<m_ItemCount; i++)
+			if (GetItemBounds( i, &boundsR ))
+			{
+				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
+
+				// generic case - add selection indicator
+				resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+				if (m_BVisibleSelection && (i == m_ItemSelected))
+					wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
+			}
+
+		dc.DestroyClippingRegion();
+	}
+
 #if defined(__WXMSW__)
-	// render native control window
-	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
+	if (! m_BUseGenericRenderer)
+	{
+		// render native control window
+		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
-	// MSW case - add selection indicator - no native mechanism exists
-	if (m_BVisibleSelection && (m_ItemSelected >= 0))
-		if (GetItemBounds( m_ItemSelected, &boundsR ))
-		{
-		wxClientDC		dc( this );
+		// MSW case - add selection indicator - no native mechanism exists
+		if (m_BVisibleSelection && (m_ItemSelected >= 0))
+			if (GetItemBounds( m_ItemSelected, &boundsR ))
+			{
+			wxClientDC		dc( this );
 
-			wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
-		}
-
-#else
-wxClientDC	dc( this );
-long			i;
-
-	dc.SetFont( m_Font );
-
-	for (i=0; i<m_ItemCount; i++)
-		if (GetItemBounds( i, &boundsR ))
-		{
-			dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
-
-#if defined(__WXMAC__)
-			// MacOS case - selection indicator is drawn as needed
-			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
-
-#else
-			// generic case - add selection indicator
-			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
-			if (m_BVisibleSelection && (i == m_ItemSelected))
 				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
-#endif
-		}
+			}
+	}
 
-	dc.DestroyClippingRegion();
+#elif defined(__WXMAC__)
+	if (! m_BUseGenericRenderer)
+	{
+	wxClientDC	dc( this );
+	long			i;
+
+		dc.SetFont( m_Font );
+
+		for (i=0; i<m_ItemCount; i++)
+			if (GetItemBounds( i, &boundsR ))
+			{
+				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
+
+				// MacOS case - selection indicator is drawn as needed
+				resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
+			}
+
+		dc.DestroyClippingRegion();
+	}
 #endif
 
 	return resultV;
@@ -1780,16 +1833,16 @@ void wxColumnHeaderItem::SetLabelJustification(
 }
 
 void wxColumnHeaderItem::GetUIExtent(
-	long			&originX,
-	long			&extentX ) const
+	long				&originX,
+	long				&extentX ) const
 {
 	originX = m_OriginX;
 	extentX = m_ExtentX;
 }
 
 void wxColumnHeaderItem::SetUIExtent(
-	long			originX,
-	long			extentX )
+	long				originX,
+	long				extentX )
 {
 	wxUnusedVar( originX );
 
@@ -1801,24 +1854,28 @@ void wxColumnHeaderItem::SetUIExtent(
 		m_ExtentX = extentX;
 }
 
-// NB: horizontal item layout is as follows:
-// || InsetX | label text or bitmap | InsetX | sort arrow | InsetX ||
+// NB: horizontal item layout is one of the following:
+// || InsetX || label text or bitmap || InsetX ||
+// || InsetX || label text or bitmap || InsetX || sort arrow || InsetX ||
 //
 void wxColumnHeaderItem::GetTextUIExtent(
-	long			&originX,
-	long			&extentX ) const
+	long				&originX,
+	long				&extentX ) const
 {
-	originX = m_OriginX + wxCHI_kMetricInsetX;
+	originX = m_OriginX + wxCH_kMetricInsetX;
 	if (extentX > m_ExtentX)
 		extentX = m_ExtentX;
 
-	extentX = m_ExtentX - ((3 * wxCHI_kMetricInsetX) + wxCHI_kMetricArrowSizeX);
+	if (m_BSortEnabled)
+		extentX = m_ExtentX - ((3 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX);
+	else
+		extentX = m_ExtentX - (2 * wxCH_kMetricInsetX);
 	if (extentX < 0)
 		extentX = 0;
 }
 
 bool wxColumnHeaderItem::GetFlagAttribute(
-	wxColumnHeaderFlagAttr		flagEnum ) const
+	wxColumnHeaderItemFlagAttr		flagEnum ) const
 {
 bool			bResult;
 
@@ -1826,23 +1883,23 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case wxCOLUMNHEADER_FLAGATTR_Enabled:
+	case CH_ITEM_FLAGATTR_Enabled:
 		bResult = m_BEnabled;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_Selected:
+	case CH_ITEM_FLAGATTR_Selected:
 		bResult = m_BSelected;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_SortEnabled:
+	case CH_ITEM_FLAGATTR_SortEnabled:
 		bResult = m_BSortEnabled;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
+	case CH_ITEM_FLAGATTR_SortDirection:
 		bResult = m_BSortAscending;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_FixedWidth:
+	case CH_ITEM_FLAGATTR_FixedWidth:
 		bResult = m_BFixedWidth;
 		break;
 
@@ -1854,7 +1911,7 @@ bool			bResult;
 }
 
 bool wxColumnHeaderItem::SetFlagAttribute(
-	wxColumnHeaderFlagAttr		flagEnum,
+	wxColumnHeaderItemFlagAttr	flagEnum,
 	bool						bFlagValue )
 {
 bool			bResult;
@@ -1863,23 +1920,23 @@ bool			bResult;
 
 	switch (flagEnum)
 	{
-	case wxCOLUMNHEADER_FLAGATTR_Enabled:
+	case CH_ITEM_FLAGATTR_Enabled:
 		m_BEnabled = bFlagValue;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_Selected:
+	case CH_ITEM_FLAGATTR_Selected:
 		m_BSelected = bFlagValue;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_SortEnabled:
+	case CH_ITEM_FLAGATTR_SortEnabled:
 		m_BSortEnabled = bFlagValue;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
+	case CH_ITEM_FLAGATTR_SortDirection:
 		m_BSortAscending = bFlagValue;
 		break;
 
-	case wxCOLUMNHEADER_FLAGATTR_FixedWidth:
+	case CH_ITEM_FLAGATTR_FixedWidth:
 		m_BFixedWidth = bFlagValue;
 		break;
 
@@ -1966,8 +2023,8 @@ OSStatus				errStatus;
 
 	// exclude button adornment areas from further drawing consideration
 	qdBoundsR.top += 1;
-	qdBoundsR.left += wxCHI_kMetricInsetX;
-	qdBoundsR.right -= (m_BSortEnabled ? wxCHI_kMetricArrowSizeX + wxCHI_kMetricInsetX : wxCHI_kMetricInsetX);
+	qdBoundsR.left += wxCH_kMetricInsetX;
+	qdBoundsR.right -= (m_BSortEnabled ? wxCH_kMetricArrowSizeX + wxCH_kMetricInsetX : wxCH_kMetricInsetX);
 
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
@@ -2025,7 +2082,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 	bool				bVisibleSelection )
 {
 wxRect				localBoundsR, subItemBoundsR;
-long					originX, insetX;
+long					originX, insetX, maxExtentX;
 bool					bSelected, bHasIcon;
 
 	wxUnusedVar( bUseUnicode );
@@ -2046,14 +2103,16 @@ bool					bSelected, bHasIcon;
 	localBoundsR = *boundsR;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
-	// draw text label, with justification
-	insetX = wxCHI_kMetricInsetX;
-	originX = localBoundsR.x;
-
-	switch (m_TextJust)
+	// draw (justified) label text (if specified)
+	// FIXME: need to clip long text items
+	insetX = wxCH_kMetricInsetX;
+	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
-	case wxCOLUMNHEADER_JUST_Right:
-	case wxCOLUMNHEADER_JUST_Center:
+		originX = localBoundsR.x;
+		maxExtentX = m_ExtentX;
+//		GetTextUIExtent( originX, maxExtentX );
+
+		// calculate and cache text extent
 		if ((m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
 		{
 		wxCoord		targetWidth, targetHeight;
@@ -2066,31 +2125,28 @@ bool					bSelected, bHasIcon;
 			m_LabelTextExtent.x = targetWidth;
 			m_LabelTextExtent.y = targetHeight;
 		}
-		if (m_ExtentX > m_LabelTextExtent.x)
+
+		// determine left size text origin
+		switch (m_TextJust)
 		{
-			if (m_TextJust == wxCOLUMNHEADER_JUST_Center)
-				originX += (m_ExtentX - m_LabelTextExtent.x) / 2;
-			else
-				originX += m_ExtentX - (m_LabelTextExtent.x + insetX);
+		case CH_JUST_Right:
+		case CH_JUST_Center:
+			if (maxExtentX > m_LabelTextExtent.x)
+			{
+				if (m_TextJust == CH_JUST_Center)
+					originX += (maxExtentX - m_LabelTextExtent.x) / 2;
+				else
+					originX += maxExtentX - (m_LabelTextExtent.x + insetX);
+			}
+			break;
+
+		case CH_JUST_Left:
+		default:
+			originX += insetX;
+			break;
 		}
-		break;
 
-	case wxCOLUMNHEADER_JUST_Left:
-	default:
-		originX += insetX;
-		break;
-	}
-
-	// FIXME: need to clip long text items
-	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 		dc->DrawText( m_LabelTextRef.c_str(), originX, localBoundsR.y + 1 );
-
-	// draw sort direction arrows (if specified)
-	// NB: what if icon avail? mutually exclusive?
-	if (bSelected && m_BSortEnabled)
-	{
-		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
-		GenericDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 	}
 
 	// render the bitmap, should one be present
@@ -2098,6 +2154,14 @@ bool					bSelected, bHasIcon;
 	{
 		GenericGetBitmapItemBounds( &localBoundsR, m_TextJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
+	}
+
+	// draw sort direction arrows (if specified)
+	// NB: what if icon avail? mutually exclusive?
+	if (bSelected && m_BSortEnabled)
+	{
+		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
+		GenericDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 	}
 
 	return 0;
@@ -2225,19 +2289,19 @@ long			borderWidth, offsetY;
 
 	switch (drawStyle)
 	{
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None:
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native:
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_BoldLabel:
+	case CH_SELECTIONDRAWSTYLE_None:
+	case CH_SELECTIONDRAWSTYLE_Native:
+	case CH_SELECTIONDRAWSTYLE_BoldLabel:
 		// performed elsewheres or not at all
 		break;
 
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey:
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel:
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet:
+	case CH_SELECTIONDRAWSTYLE_Grey:
+	case CH_SELECTIONDRAWSTYLE_InvertBevel:
+	case CH_SELECTIONDRAWSTYLE_Bullet:
 		// NB: not yet implemented
 		break;
 
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame:
+	case CH_SELECTIONDRAWSTYLE_Frame:
 		// frame border style
 		borderWidth = 2;
 		targetPen.SetWidth( borderWidth );
@@ -2251,8 +2315,8 @@ long			borderWidth, offsetY;
 			boundsR->height );
 		break;
 
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline:
-	case wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline:
+	case CH_SELECTIONDRAWSTYLE_Underline:
+	case CH_SELECTIONDRAWSTYLE_Overline:
 	default:
 		// underline style - similar to MSW rollover drawing
 		// overline style - similar to MSW tab highlighting
@@ -2261,7 +2325,7 @@ long			borderWidth, offsetY;
 		dc->SetPen( targetPen );
 
 		offsetY = 0;
-		if (drawStyle == wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline)
+		if (drawStyle == CH_SELECTIONDRAWSTYLE_Underline)
 			offsetY = boundsR->height;
 
 		dc->DrawLine(
@@ -2285,9 +2349,9 @@ int		sizeX, sizeY, insetX;
 
 	if (itemBoundsR != NULL)
 	{
-		sizeX = wxCHI_kMetricArrowSizeX;
-		sizeY = wxCHI_kMetricArrowSizeY;
-		insetX = wxCHI_kMetricInsetX;
+		sizeX = wxCH_kMetricArrowSizeX;
+		sizeY = wxCH_kMetricArrowSizeY;
+		insetX = wxCH_kMetricInsetX;
 
 		targetBoundsR->x = itemBoundsR->x + itemBoundsR->width - (sizeX + insetX);
 		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
@@ -2350,9 +2414,9 @@ int		sizeX, sizeY, insetX;
 
 	if (itemBoundsR != NULL)
 	{
-		sizeX = wxCHI_kMetricBitmapSizeX;
-		sizeY = wxCHI_kMetricBitmapSizeY;
-		insetX = wxCHI_kMetricInsetX;
+		sizeX = wxCH_kMetricBitmapSizeX;
+		sizeY = wxCH_kMetricBitmapSizeY;
+		insetX = wxCH_kMetricInsetX;
 
 		targetBoundsR->x = itemBoundsR->x;
 		targetBoundsR->y = (itemBoundsR->height - sizeY) / 2;
@@ -2362,15 +2426,15 @@ int		sizeX, sizeY, insetX;
 
 		switch (targetJustification)
 		{
-		case wxCOLUMNHEADER_JUST_Right:
+		case CH_JUST_Right:
 			targetBoundsR->x += (itemBoundsR->width - sizeX) - insetX;
 			break;
 
-		case wxCOLUMNHEADER_JUST_Center:
+		case CH_JUST_Center:
 			targetBoundsR->x += (itemBoundsR->width - sizeX) / 2;
 			break;
 
-		case wxCOLUMNHEADER_JUST_Left:
+		case CH_JUST_Left:
 		default:
 			targetBoundsR->x += insetX;
 			break;
@@ -2426,18 +2490,18 @@ typedef struct { long valA; long valB; } AnonLongPair;
 static AnonLongPair	sMap[] =
 {
 #if defined(__WXMSW__)
-	{ wxCOLUMNHEADER_JUST_Left, HDF_LEFT }
-	, { wxCOLUMNHEADER_JUST_Center, HDF_CENTER }
-	, { wxCOLUMNHEADER_JUST_Right, HDF_RIGHT }
+	{ CH_JUST_Left, HDF_LEFT }
+	, { CH_JUST_Center, HDF_CENTER }
+	, { CH_JUST_Right, HDF_RIGHT }
 #elif defined(__WXMAC__)
-	{ wxCOLUMNHEADER_JUST_Left, teJustLeft }
-	, { wxCOLUMNHEADER_JUST_Center, teJustCenter }
-	, { wxCOLUMNHEADER_JUST_Right, teJustRight }
+	{ CH_JUST_Left, teJustLeft }
+	, { CH_JUST_Center, teJustCenter }
+	, { CH_JUST_Right, teJustRight }
 #else
 	// FIXME: generic - wild guess - irrelevant
-	{ wxCOLUMNHEADER_JUST_Left, 0 }
-	, { wxCOLUMNHEADER_JUST_Center, 1 }
-	, { wxCOLUMNHEADER_JUST_Right, 2 }
+	{ CH_JUST_Left, 0 }
+	, { CH_JUST_Center, 1 }
+	, { CH_JUST_Right, 2 }
 #endif
 };
 

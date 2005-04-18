@@ -27,50 +27,59 @@
 
 typedef enum
 {
-	wxCOLUMNHEADER_FLAGATTR_Enabled,
-	wxCOLUMNHEADER_FLAGATTR_Selected,
-	wxCOLUMNHEADER_FLAGATTR_SortEnabled,
-	wxCOLUMNHEADER_FLAGATTR_SortDirection,
-	wxCOLUMNHEADER_FLAGATTR_FixedWidth
-}
-wxColumnHeaderFlagAttr;
-
-typedef enum
-{
-	wxCOLUMNHEADER_HITTEST_NoPart			= -1,	// not within a known sub-item (but within the client bounds)
-	wxCOLUMNHEADER_HITTEST_ItemZero		= 0		// any other (non-negative) value is a sub-item
+	CH_HITTEST_NoPart			= -1,	// not within a known sub-item (but within the client bounds)
+	CH_HITTEST_ItemZero		= 0		// any other (non-negative) value is a sub-item
 }
 wxColumnHeaderHitTestResult;
 
 typedef enum
 {
+	CH_FLAGATTR_Unicode,
+	CH_FLAGATTR_GenericRenderer,
+	CH_FLAGATTR_VisibleSelection,
+	CH_FLAGATTR_ProportionalResizing
+}
+wxColumnHeaderFlagAttr;
+
+typedef enum
+{
+	CH_ITEM_FLAGATTR_Enabled,
+	CH_ITEM_FLAGATTR_Selected,
+	CH_ITEM_FLAGATTR_SortEnabled,
+	CH_ITEM_FLAGATTR_SortDirection,
+	CH_ITEM_FLAGATTR_FixedWidth
+}
+wxColumnHeaderItemFlagAttr;
+
+typedef enum
+{
 	// NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
 	// NB: 2) existing Wx justification enum has (too) many inapplicable elements
-	wxCOLUMNHEADER_JUST_Left,
-	wxCOLUMNHEADER_JUST_Center,
-	wxCOLUMNHEADER_JUST_Right
+	CH_JUST_Left,
+	CH_JUST_Center,
+	CH_JUST_Right
 }
 wxColumnHeaderJustification;
 
 typedef enum
 {
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_BoldLabel,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame,
-	wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
+	CH_SELECTIONDRAWSTYLE_None,
+	CH_SELECTIONDRAWSTYLE_Native,
+	CH_SELECTIONDRAWSTYLE_BoldLabel,
+	CH_SELECTIONDRAWSTYLE_Grey,
+	CH_SELECTIONDRAWSTYLE_InvertBevel,
+	CH_SELECTIONDRAWSTYLE_Underline,
+	CH_SELECTIONDRAWSTYLE_Overline,
+	CH_SELECTIONDRAWSTYLE_Frame,
+	CH_SELECTIONDRAWSTYLE_Bullet
 }
 wxColumnHeaderSelectionDrawStyle;
 
 // NB: these should be enum members,
 // but some compilers spit warnings at synonymic references to the same base value
 // anyways, they're private
-#define wxCOLUMNHEADER_SELECTIONDRAWSTYLE_FIRST		wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None
-#define wxCOLUMNHEADER_SELECTIONDRAWSTYLE_LAST			wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
+#define CH_SELECTIONDRAWSTYLE_FIRST		CH_SELECTIONDRAWSTYLE_None
+#define CH_SELECTIONDRAWSTYLE_LAST		CH_SELECTIONDRAWSTYLE_Bullet
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader events

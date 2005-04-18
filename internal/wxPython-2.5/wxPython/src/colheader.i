@@ -32,39 +32,47 @@
 
 enum wxColumnHeaderFlagAttr
 {
-    wxCOLUMNHEADER_FLAGATTR_Enabled,
-    wxCOLUMNHEADER_FLAGATTR_Selected,
-    wxCOLUMNHEADER_FLAGATTR_SortEnabled,
-    wxCOLUMNHEADER_FLAGATTR_SortDirection,
-    wxCOLUMNHEADER_FLAGATTR_FixedWidth
+    CH_FLAGATTR_Unicode,
+    CH_FLAGATTR_GenericRenderer,
+    CH_FLAGATTR_VisibleSelection,
+    CH_FLAGATTR_ProportionalResizing
+};
+
+enum wxColumnHeaderItemFlagAttr
+{
+    CH_ITEM_FLAGATTR_Enabled,
+    CH_ITEM_FLAGATTR_Selected,
+    CH_ITEM_FLAGATTR_SortEnabled,
+    CH_ITEM_FLAGATTR_SortDirection,
+    CH_ITEM_FLAGATTR_FixedWidth
 };
 
 enum wxColumnHeaderHitTestResult
 {
-    wxCOLUMNHEADER_HITTEST_NoPart            = -1,    // not within a known sub-item (but within the client bounds)
-    wxCOLUMNHEADER_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
+    CH_HITTEST_NoPart            = -1,    // not within a known sub-item (but within the client bounds)
+    CH_HITTEST_ItemZero        = 0        // any other (non-negative) value is a sub-item
 };
 
 enum wxColumnHeaderJustification
 {
     // NB: 1) wxID_JUSTIFY_ values enum as: center, fill, right, left
     // NB: 2) existing Wx justification enum has (too) many inapplicable elements
-    wxCOLUMNHEADER_JUST_Left,
-    wxCOLUMNHEADER_JUST_Center,
-    wxCOLUMNHEADER_JUST_Right
+    CH_JUST_Left,
+    CH_JUST_Center,
+    CH_JUST_Right
 };
 
 enum wxColumnHeaderSelectionDrawStyle
 {
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_None,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Native,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_BoldLabel,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Grey,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_InvertBevel,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Underline,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Overline,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Frame,
-    wxCOLUMNHEADER_SELECTIONDRAWSTYLE_Bullet
+    CH_SELECTIONDRAWSTYLE_None,
+    CH_SELECTIONDRAWSTYLE_Native,
+    CH_SELECTIONDRAWSTYLE_BoldLabel,
+    CH_SELECTIONDRAWSTYLE_Grey,
+    CH_SELECTIONDRAWSTYLE_InvertBevel,
+    CH_SELECTIONDRAWSTYLE_Underline,
+    CH_SELECTIONDRAWSTYLE_Overline,
+    CH_SELECTIONDRAWSTYLE_Frame,
+    CH_SELECTIONDRAWSTYLE_Bullet
 };
 
 //---------------------------------------------------------------------------
@@ -129,15 +137,11 @@ public:
     long GetSelectionDrawStyle( void ) const;
     void SetSelectionDrawStyle(
         long                styleValue );
-    bool GetFlagProportionalResizing( void ) const;
-    void SetFlagProportionalResizing(
-        bool                bFlagValue );
-    bool GetFlagVisibleSelection( void ) const;
-    void SetFlagVisibleSelection(
-        bool                bFlagValue );
-    bool GetFlagUnicode( void ) const;
-    void SetFlagUnicode(
-        bool                bFlagValue );
+    bool GetFlagAttribute(
+        wxColumnHeaderFlagAttr    flagEnum ) const;
+    bool SetFlagAttribute(
+        wxColumnHeaderFlagAttr        flagEnum,
+        bool                        bFlagValue );
 
     long GetItemCount( void ) const;
     long GetSelectedItem( void ) const;
@@ -183,12 +187,12 @@ public:
     void SetUIExtent(
         long                itemIndex,
         wxSize            &extentPt );
-    bool GetFlagAttribute(
+    bool GetItemFlagAttribute(
         long                            itemIndex,
-        wxColumnHeaderFlagAttr    flagEnum ) const;
-    bool SetFlagAttribute(
+        wxColumnHeaderItemFlagAttr    flagEnum ) const;
+    bool SetItemFlagAttribute(
         long                            itemIndex,
-        wxColumnHeaderFlagAttr        flagEnum,
+        wxColumnHeaderItemFlagAttr        flagEnum,
         bool                        bFlagValue );
 };
 
