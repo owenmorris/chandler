@@ -125,6 +125,9 @@ class PublishCollectionDialog(wx.Dialog):
         share.put()
         self._showStatus(" done.\n")
 
+        self._showStatus("URL of collection:\n")
+        self._showStatus("%s\n" % share.getLocation())
+
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             wx.TheClipboard.SetData(wx.TextDataObject(share.getLocation()))
